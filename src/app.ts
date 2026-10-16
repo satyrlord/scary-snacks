@@ -1,4 +1,4 @@
-import { createGame, reduceGame, validateGame, validateLegacyGame, migrateGame, validatePreviousGame, migratePreviousGame, validateGeneratorGame, migrateGeneratorGame, validateLevelRewardGame, migrateLevelRewardGame, getLevel, generatorOutputs, canServe, servedCells, taskEligibility, saleValue, normalizeOrderCustomers, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, previewQuestCleanup } from './engine.ts';
+import { createGame, reduceGame, validateGame, saveMigrations, getLevel, availableLevelRewards, generatorOutputs, nextOutput, dataProblems, canServe, servedCells, taskEligibility, saleValue, normalizeOrderCustomers, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, previewQuestCleanup } from './engine.ts';
 import type { Action, DecorationSlot, DecorationVariant, GameData, GameState, Order, Quest, RoomView, Task } from './engine.ts';
 import { loadSave, saveGame, exportSave, importSave, resetSave, SAVE_KEY, MAX_SAVE_BYTES } from './storage.ts';
 import type { WriteResult } from './storage.ts';
@@ -70,18 +70,12 @@ const pantryPanel = $('#pantry');
 let storage: Storage | null = null;
 try { storage = window.localStorage; } catch { /* Session play remains available. */ }
 const validate = (candidate: unknown) => validateGame(candidate, data);
-const migration = {
-  1: { validate: (candidate: unknown) => validateLegacyGame(candidate,data), migrate: (candidate: unknown) => migrateGame(candidate,data) },
-  2: { validate: (candidate: unknown) => validatePreviousGame(candidate,data), migrate: (candidate: unknown) => migratePreviousGame(candidate,data) },
-  3: { validate: (candidate: unknown) => validateGeneratorGame(candidate,data), migrate: (candidate: unknown) => migrateGeneratorGame(candidate,data) },
-  4: { validate: (candidate: unknown) => validateLevelRewardGame(candidate,data), migrate: (candidate: unknown) => migrateLevelRewardGame(candidate,data) },
-};
 const definition = (code: string) => getItem(code,data)!;
 const itemName = (code: string) => definition(code)?.name || 'Item';
 const character = (id: string) => data.characters.find(value => value.id === id) || data.characters[0];
 // Players meet generators as ingredient sources: the Flour bin, the Copper pot, and so on. They take ingredients from them.
 const sourceOf = (chain: string) => [...Object.values(data.items),...Object.values(data.questItems)].find(item => item.generator && item.chain === chain)!;
-const chosenOutput = (code: string) => state.outputChoices[definition(code).chain] ?? definition(code).generator!.outputs[0];
+const chosenOutput = (code: string) => nextOutput(state,code,data)!;
 const sourceOutput = (code: string) => generatorOutputs(state,code,data).map(itemName).join(' or ');
 function status(text: string) { $('#status').textContent = text; }
 /** Mara's note for a selected item, which the status region announces. On phones the note leaves out the name, which the selection strip shows. */
@@ -398,8 +392,7 @@ function renderOrders() {
     const since = arriving[slot] ? performance.now() - arriving[slot] : Infinity;
     if (since < ARRIVAL_MS) { card.classList.add('arriving'); card.style.setProperty('--rise-delay', `${RISE_AT - Math.round(since)}ms`); }
     const face = element('span', `portrait portrait-${person.sprite}`); face.setAttribute('aria-hidden', 'true');
-    const stock = state.board.flatMap(cell => cell ? [cell.code] : []);
-    const onBoard = order.requirements.map(code => { const at = stock.indexOf(code); if (at >= 0) stock.splice(at, 1); return at >= 0; });
+    const onBoard = servedCells(state, order).map(index => index >= 0);
     const labels = order.requirements.map((code, index) => `${itemName(code)}, ${onBoard[index] ? 'ready on the board' : 'not on the board yet'}`);
     // A drawer ticket is too narrow for a 44px target per dish, so two dishes share one target that opens the order.
     const shared = drawerLayout.matches && order.requirements.length > 1;
@@ -1021,11 +1014,8 @@ function editDecoration(id: string) {
   actions.append(apply,cancel);refresh();content.append(element('p','modal-copy','Make this corner your own. You can change it again for free.'),preview,options,notice,actions);
   showModal(slot.name,content,group.querySelector<HTMLInputElement>('input:checked')!);
 }
-function availableLevelRewards() {
-  return data.levelRewards.filter(reward=>reward.level<=getLevel(state)&&!state.claimedLevelRewards.includes(reward.id));
-}
 function markLevelRewards() {
-  const ready=availableLevelRewards().length;
+  const ready=availableLevelRewards(state,data).length;
   for(const opener of document.querySelectorAll<HTMLElement>('[data-house-book]')){
     opener.toggleAttribute('data-rewards',ready>0);
     opener.setAttribute('aria-label',`House book: settings and saved game${ready?`, ${ready} level ${ready===1?'reward':'rewards'} available`:''}`);
@@ -1037,7 +1027,7 @@ function levelPanel() {
   const heading=element('h3','','Level rewards');heading.id='level-heading';heading.tabIndex=-1;
   const details=element('div'),notice=element('p','level-notice');notice.setAttribute('role','status');
   const refresh=()=>{
-    const level=getLevel(state),ready=availableLevelRewards(),next=data.levelRewards.find(reward=>reward.level>level);
+    const level=getLevel(state),ready=availableLevelRewards(state,data),next=data.levelRewards.find(reward=>reward.level>level);
     details.replaceChildren(element('p','level-progress',`Level ${count.format(level)} · ${count.format(state.xp)} XP`),element('p','',`${state.xp%100} of 100 XP to level ${count.format(level+1)}. Merge dishes, serve orders, and finish preparations to earn XP.`));
     if(next)details.append(element('p','level-next',`Next reward: level ${next.level} · ${coinText(next.coins)} at ${count.format((next.level-1)*100)} XP.`));
     else details.append(element('p','level-next',ready.length?'All level rewards earned. Claim your remaining rewards below.':'All level rewards claimed. Your level can keep rising.'));
@@ -1098,7 +1088,7 @@ function settings(focusSlot?: string) {
     const selectedFile=file.files?.[0];if(!selectedFile)return;
     try {
       if(selectedFile.size>MAX_SAVE_BYTES)throw new Error('Select a saved game smaller than 2 MiB.');
-      const candidate=normalizeOrderCustomers(importSave<GameState>(await selectedFile.text(),validate,migration),data);
+      const candidate=normalizeOrderCustomers(importSave<GameState>(await selectedFile.text(),validate,saveMigrations(data)),data);
       const review=element('div');review.append(element('p','modal-copy',`Replace the current game with this saved game: ${coinText(candidate.coins)} and ${count.format(candidate.taskIndex)} of ${data.tasks.length} preparations done? Export the current game first if you want to keep it.`));
       const keep=button('Keep the current game','secondary-button',settings),choice=element('div','settings-actions');
       choice.append(button('Import this saved game','primary-button',()=>changeGame(()=>{
@@ -1189,7 +1179,7 @@ $('#collection-button').addEventListener('click',()=>data&&recipeBook());
 $('#recipes-button').addEventListener('click',()=>data&&recipeBook());
 $('#pantry-button').addEventListener('click',()=>data&&pantrySheet());
 $('#story-button').addEventListener('click',()=>data&&showModal('Our little bistro',storyContent(true)));
-$('#hint-button').addEventListener('click',()=>data&&findMatch());
+$('#hint-button').addEventListener('click',()=>state&&findMatch());
 $('#cat-button').addEventListener('click',toggleCat);
 phone.addEventListener('change',()=>{if(state){renderCoins();renderDetail();}});
 drawerLayout.addEventListener('change',()=>{setLowered(false);if(!drawerLayout.matches&&modal.open&&pantryPanel.closest('dialog'))modal.close();if(state){renderOffer();renderOrders();}});
@@ -1203,8 +1193,10 @@ window.addEventListener('storage',event=>{
 try {
   const response=await fetch(new URL('../data/game.json',import.meta.url));if(!response.ok)throw new Error('Game data could not be loaded.');
   data=await response.json();
+  // Data that fails its checks never reaches the save, so it cannot be mistaken for a damaged save.
+  const problems=dataProblems(data);if(problems.length)throw new Error('The game data is not valid.',{cause:problems});
   // Migration writes share the game lock, so an old tab cannot replace a newer destination.
-  const load=()=>loadSave<GameState>(storage,validate,migration);
+  const load=()=>loadSave<GameState>(storage,validate,saveMigrations(data));
   const saved=storage&&navigator.locks?await navigator.locks.request(SAVE_KEY,load):load();
   state=saved.state?normalizeOrderCustomers(saved.state,data):createGame(data);
   // A reload cannot open blocked storage, so that game plays for this visit without the recovery block.

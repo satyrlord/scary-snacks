@@ -89,7 +89,9 @@ The game makes its sounds as procedural browser tones. The interface text uses t
 `tools/create-original-data.ts` authors the game data. The game data includes the renovation: the areas and one room state for the new game and for each preparation. A state has its painting ID, the focus of its change, and its caption. The tool refuses to write the game data in these cases:
 
 - An ID in `roomPaintings` in `src/engine.ts` has no approved master.
-- `roomProblems`, `decorationProblems`, `generatorTierProblems`, `levelRewardProblems`, `questProblems`, `taskGoalProblems`, or `economyProblems` in `src/engine.ts` reports a problem in the room states, decoration slots, production tiers, level rewards, quests, or campaign goals. Quest checks include the combined preparation and quest graph, ingredient availability, and exclusive source ownership. Campaign goals must be nonnegative integers and must not decrease. Economy checks validate every menu price, work estimate, and material-plus-labour total.
+- `dataProblems` in `src/engine.ts` reports a problem in the board, room states, decoration slots, production tiers, level rewards, quests, or campaign goals. The board must have six columns, seven rows, and 42 starting spaces. The starting board must make a new game that passes the save validation. Quest checks include the combined preparation and quest graph, ingredient availability, and exclusive source ownership. Campaign goals must be nonnegative integers and must not decrease. Economy checks validate every menu price, work estimate, and material-plus-labour total.
+
+The game runs `dataProblems` when it starts, before it reads the save. The game does not have the asset records, so it does not check the decoration image names.
 
 The art has no small text. After you edit the generator, run `npm run data:generate`.
 

@@ -585,6 +585,31 @@ test('a kitchen that cannot load offers to try again',async({page})=>{
   fail=false;await page.getByRole('button',{name:'Try again'}).click();await expect(page.locator('#board button')).toHaveCount(42);
 });
 
+for(const fault of ['cost','board dimensions','board length'] as const)test(`game data with invalid ${fault} stops before save access and can retry`,async({page})=>{
+  const errors: string[]=[];page.on('pageerror',error=>errors.push(error.message));
+  await start(page);await mergeStart(page);const before=await page.evaluate(key=>localStorage.getItem(key),KEY);
+  const broken=structuredClone(data);
+  if(fault==='cost')broken.tasks[0].cost++;
+  else if(fault==='board dimensions')broken.board.columns=7;
+  else broken.board.initial.pop();
+  await page.addInitScript(()=>{
+    const audit=Object.assign(window,{saveAccess:[] as string[]});
+    const get=Storage.prototype.getItem,set=Storage.prototype.setItem,remove=Storage.prototype.removeItem;
+    Storage.prototype.getItem=function(key){if(key.startsWith('scary-snacks-save-'))audit.saveAccess.push(`get:${key}`);return get.call(this,key);};
+    Storage.prototype.setItem=function(key,value){if(key.startsWith('scary-snacks-save-'))audit.saveAccess.push(`set:${key}`);return set.call(this,key,value);};
+    Storage.prototype.removeItem=function(key){if(key.startsWith('scary-snacks-save-'))audit.saveAccess.push(`remove:${key}`);return remove.call(this,key);};
+  });
+  let fail=true;await page.route('**/data/game.json',route=>fail?route.fulfill({json:broken}):route.continue());await page.reload();
+  await expect(page.locator('#status')).toContainText('The kitchen could not open. The game data is not valid.');
+  for(const opener of await page.locator('#story-button,#recipes-button,#pantry-button,#collection-button,[data-house-book]').all())await expect(opener).toBeDisabled();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(await page.evaluate(()=>(window as Window & {saveAccess?: string[]}).saveAccess)).toEqual([]);
+  expect(await page.evaluate(key=>localStorage.getItem(key),KEY)).toBe(before);
+  fail=false;await page.getByRole('button',{name:'Try again'}).click();await expect(page.locator('#board button')).toHaveCount(42);
+  expect(await page.evaluate(key=>localStorage.getItem(key),KEY)).toBe(before);
+  expect(errors).toEqual([]);
+});
+
 test('blocked browser storage keeps the game playable for the visit and says that it is not saved',async({page})=>{
   await page.addInitScript(()=>Object.defineProperty(window,'localStorage',{get(){throw new DOMException('Blocked','SecurityError');}}));
   await start(page);await expect(page.getByRole('dialog')).toBeVisible();

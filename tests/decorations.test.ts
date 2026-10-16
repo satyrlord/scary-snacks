@@ -1,19 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, reduceGame, validateGame, validateLegacyGame, migrateGame, validatePreviousGame, migratePreviousGame, validateGeneratorGame, migrateGeneratorGame, validateLevelRewardGame, migrateLevelRewardGame, resolveDecorations, decorationProblems, legacyOrderReward } from '../src/engine.ts';
+import { createGame, reduceGame, validateGame, validateLegacyGame, migrateGame, validatePreviousGame, migratePreviousGame, validateGeneratorGame, migrateGeneratorGame, validateLevelRewardGame, migrateLevelRewardGame, resolveDecorations, decorationProblems, legacyOrderReward, saveMigrations } from '../src/engine.ts';
 import { exportSave, importSave, loadSave, saveGame, SAVE_KEY, PREVIOUS_SAVE_KEY, LEGACY_SAVE_KEY } from '../src/storage.ts';
 import type { Action, GameData, GameState } from '../src/engine.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
 const provenance: { assets: { id: string }[] } = JSON.parse(await readFile(new URL('../docs/asset-provenance.json', import.meta.url), 'utf8'));
 const validate = (state: unknown) => validateGame(state, data);
-const migration = {
-  1: { validate: (state: unknown) => validateLegacyGame(state, data), migrate: (state: unknown) => migrateGame(state, data) },
-  2: { validate: (state: unknown) => validatePreviousGame(state, data), migrate: (state: unknown) => migratePreviousGame(state, data) },
-  3: { validate: (state: unknown) => validateGeneratorGame(state, data), migrate: (state: unknown) => migrateGeneratorGame(state, data) },
-  4: { validate: (state: unknown) => validateLevelRewardGame(state, data), migrate: (state: unknown) => migrateLevelRewardGame(state, data) },
-};
+const migration = saveMigrations(data);
 function checkpoint(count: number) {
   let state = createGame(data);
   state.coins = data.tasks.reduce((sum, task) => sum + task.cost, 0);

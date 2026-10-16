@@ -28,8 +28,10 @@ In that condition, give each edit or check that you did not complete in the repo
 
 Read `PRODUCT.md`, `README.md`, and `tools/create-original-data.ts`.
 That tool is the only source of the game data.
-Read `validateGame`, `roomProblems`, `decorationProblems`, and the order rules in `src/engine.ts`.
-`validateGame` checks a save against the game data. The generator calls `roomProblems` and `decorationProblems`.
+Read `validateGame`, `dataProblems`, and the order rules in `src/engine.ts`.
+`validateGame` checks a save against the game data.
+`dataProblems` runs each data check. It also checks that the starting board makes a valid new game.
+The generator and the game both call `dataProblems`. The game does not start on data that has a problem.
 Read the content test and the progression test in `tests/engine.test.ts`.
 Read the code in `src/app.ts` that shows items, portraits, and dialogue.
 

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, validateGame, reduceGame, canServe, currentTask, getLevel, normalizeOrderCustomers, resolveRooms, latestArea, roomProblems, roomPaintings, generatorOutputs, generatorTierProblems, taskEligibility, menuReward, saleValue } from '../src/engine.ts';
+import { createGame, dataProblems, validateGame, reduceGame, canServe, currentTask, getLevel, normalizeOrderCustomers, resolveRooms, latestArea, roomProblems, roomPaintings, generatorOutputs, generatorTierProblems, taskEligibility, menuReward, saleValue } from '../src/engine.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import { imageVariants } from '../tools/build-image-variants.ts';
 import type { Action, GameData, GameState, Order } from '../src/engine.ts';
@@ -218,7 +218,7 @@ test('a newly unlocked source uses the earned tier and starts with stage one sel
   later.tasks[11].unlock = 'sweet';
   // This source-only fixture moves the related request to the later unlock as well.
   later.quests.find(quest => quest.id === 'eszter-table')!.afterTask = 'task_12';
-  assert.deepEqual(generatorTierProblems(later), []);
+  assert.deepEqual(dataProblems(later), []);
   let state = withGoals(createGame(later));
   state.coins = 100000;
   for (let index = 0; index < 12; index++) {
@@ -622,5 +622,55 @@ test('fresh, mid-campaign, and completed saves resolve the same rooms after relo
     const exported = importSave<GameState>(exportSave(reloaded, validate), validate);
     assert.deepEqual(resolveRooms(reloaded.decorations, data), roomsAt(count), `reload at ${count}`);
     assert.deepEqual(resolveRooms(exported.decorations, data), roomsAt(count), `export at ${count}`);
+  }
+});
+
+test('one data check gathers every content check, and the game can run it without the image records', async () => {
+  const images = (JSON.parse(await readFile(new URL('../docs/asset-provenance.json', import.meta.url), 'utf8')) as { assets: { id: string }[] }).assets.map(asset => asset.id);
+  assert.deepEqual(dataProblems(data, images), []);
+  assert.deepEqual(dataProblems(data), []);
+  const unknownImage = structuredClone(data);
+  unknownImage.decorationSlots[0].variants[0].image = 'absent';
+  assert.deepEqual(dataProblems(unknownImage), [], 'Only the generator knows the approved images.');
+  assert.match(dataProblems(unknownImage, images).join(' '), /missing image/);
+  const mutations: ((content: GameData) => void)[] = [
+    content => { content.rooms[1].after = 'absent'; },
+    content => { content.generatorTiers[0].stage = 4; },
+    content => { content.levelRewards = []; },
+    content => { content.quests[0].reward = -1; },
+    content => { content.tasks[1].goals.served = -1; },
+    content => { content.tasks[0].cost++; },
+    content => { (content as { tasks: unknown }).tasks = null; },
+  ];
+  for (const mutate of mutations) {
+    const content = structuredClone(data);
+    mutate(content);
+    assert.ok(dataProblems(content, images).length, String(mutate));
+  }
+});
+
+test('data checks reject a starting board that does not make a valid new game', () => {
+  for (const code of ['generator_bakery', 'sweet_1']) {
+    const content = structuredClone(data);
+    content.board.initial[content.board.initial.indexOf(null)] = code;
+    assert.match(dataProblems(content).join(' '), /valid new game/, code);
+  }
+});
+
+test('data checks reject unsupported board dimensions and incomplete starting layouts', () => {
+  const mutations: ((content: GameData) => void)[] = [
+    content => { content.board.columns = 7; },
+    content => { content.board.rows = 6; },
+    content => { content.board.columns = 7; content.board.rows = 6; },
+    content => { content.board.columns = 0; },
+    content => { content.board.rows = 7.5; },
+    content => { content.board.initial.pop(); },
+    content => { content.board.initial.push(null); },
+    content => { (content.board as { initial: unknown }).initial = {}; },
+  ];
+  for (const mutate of mutations) {
+    const content = structuredClone(data);
+    mutate(content);
+    assert.ok(dataProblems(content).length, String(mutate));
   }
 });

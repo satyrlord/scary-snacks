@@ -57,7 +57,9 @@ For game data, use [update-game-content](../update-game-content/SKILL.md).
 If the save shape changes, obey "Access and persistence" in `PRODUCT.md`.
 Also obey "Shared save compatibility" in `docs/specs/README.md`.
 These sections give the save versions, the storage keys, the migration, and the Retry path.
-The engine validates and migrates saves in `validateGame`, `validateLegacyGame`, and `migrateGame` in `src/engine.ts`.
+The engine validates saves in `validateGame` in `src/engine.ts`.
+`saveMigrations` in `src/engine.ts` gives the validation and the conversion of each older save envelope.
+Add a new save version to `saveMigrations` and to `VERSION` in `src/storage.ts` together.
 
 If you add a runtime file, add the file to `runtimeFiles` in `tools/build.ts`.
 The build publishes each runtime `.ts` module as a `.js` script in `dist/`. `index.html` names the `.ts` source.

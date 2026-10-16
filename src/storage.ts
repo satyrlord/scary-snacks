@@ -1,19 +1,23 @@
 /** Local-only persistence. */
-export const SAVE_KEY = 'scary-snacks-save-v5';
-export const LEVEL_REWARD_SAVE_KEY = 'scary-snacks-save-v4';
-export const GENERATOR_SAVE_KEY = 'scary-snacks-save-v3';
-export const PREVIOUS_SAVE_KEY = 'scary-snacks-save-v2';
-export const LEGACY_SAVE_KEY = 'scary-snacks-save-v1';
-export const MAX_SAVE_BYTES = 2 * 1024 * 1024;
 const FORMAT = 'scary-snacks';
+/** The envelope version that this game writes. Envelopes 1 through VERSION - 1 load through migrations. */
 const VERSION = 5;
+/** Each envelope version has its own key, so a conversion never changes the bytes of an older save. */
+const saveKey = (version: number) => `scary-snacks-save-v${version}`;
+export const SAVE_KEY = saveKey(VERSION);
+export const LEVEL_REWARD_SAVE_KEY = saveKey(4);
+export const GENERATOR_SAVE_KEY = saveKey(3);
+export const PREVIOUS_SAVE_KEY = saveKey(2);
+export const LEGACY_SAVE_KEY = saveKey(1);
+export const MAX_SAVE_BYTES = 2 * 1024 * 1024;
 
 export type SaveStatus = 'loaded' | 'empty' | 'invalid' | 'unsupported' | 'unavailable';
 export type SaveStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 /** Only a result of exactly true admits a state. */
 export type Validator = (state: unknown) => unknown;
 export type Migration = { validate: Validator; migrate: (state: unknown) => unknown };
-export type Migrations = Partial<Record<1 | 2 | 3 | 4, Migration>>;
+/** Migration n converts the state of envelope version n into the state of envelope version n + 1. */
+export type Migrations = Partial<Record<number, Migration>>;
 export type LoadResult<State> = { state: State | null; status: SaveStatus; error: string | null };
 export type WriteResult = { ok: boolean; error: string | null };
 
@@ -63,7 +67,7 @@ function parseSave<State>(text: unknown, validate: Validator | undefined, migrat
   if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)) {
     throw new SaveError('This is not a Scary Snacks saved game.');
   }
-  if (envelope.format !== FORMAT || ![1, 2, 3, 4, VERSION].includes(envelope.version)
+  if (envelope.format !== FORMAT || !Number.isInteger(envelope.version) || envelope.version < 1 || envelope.version > VERSION
     || (expectedVersion !== undefined && envelope.version !== expectedVersion)) {
     throw new SaveError('The saved game comes from another game or a version this one cannot open.', 'unsupported');
   }
@@ -71,13 +75,13 @@ function parseSave<State>(text: unknown, validate: Validator | undefined, migrat
     throw new SaveError('The saved game has no game data in it.');
   }
   let state: unknown = envelope.state;
-  for (let version = envelope.version as number; version < VERSION; version++) {
-    const migration = migrations?.[version as 1 | 2 | 3 | 4];
+  for (let version: number = envelope.version; version < VERSION; version++) {
+    const migration = migrations?.[version];
     if (!migration) throw new SaveError('The saved game comes from a version this one cannot open.', 'unsupported');
     validateState(state, migration.validate);
     try { state = migration.migrate(state); }
     catch { throw new SaveError('The older saved game could not be converted.'); }
-    validateState(state, version + 1 === VERSION ? validate : migrations?.[(version + 1) as 2 | 3 | 4]?.validate);
+    validateState(state, version + 1 === VERSION ? validate : migrations?.[version + 1]?.validate);
   }
   validateState(state, validate);
   return state as State;
@@ -89,12 +93,10 @@ export function loadSave<State>(storage: SaveStorage | null, validate: Validator
   let version = VERSION;
   try {
     text = available(storage).getItem(SAVE_KEY);
-    if (text === null && migrations) {
-      for (const [key, candidateVersion] of [[LEVEL_REWARD_SAVE_KEY, 4], [GENERATOR_SAVE_KEY, 3], [PREVIOUS_SAVE_KEY, 2], [LEGACY_SAVE_KEY, 1]] as const) {
-        text = available(storage).getItem(key);
-        version = candidateVersion;
-        if (text !== null) break;
-      }
+    // Without the current save, the newest older save that exists loads.
+    if (migrations) for (let older = VERSION - 1; text === null && older >= 1; older--) {
+      text = available(storage).getItem(saveKey(older));
+      version = older;
     }
   } catch (error) {
     return { state: null, status: 'unavailable', error: `Cannot read browser storage: ${message(error, 'Storage is unavailable.')}` };

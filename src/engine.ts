@@ -151,6 +151,11 @@ export function getLevel(state: Pick<GameState, 'xp'>) {
   return 1 + Math.floor(state.xp / 100);
 }
 
+/** The rewards that a claim can take: reached and not claimed. A reward that the coin limit blocks stays available. */
+export function availableLevelRewards(state: Pick<GameState, 'xp' | 'claimedLevelRewards'>, data: GameData): LevelReward[] {
+  return data.levelRewards.filter(reward => reward.level <= getLevel(state) && !state.claimedLevelRewards.includes(reward.id));
+}
+
 /** Check the finite coin schedule before the content generator writes its data. */
 export function levelRewardProblems(data: GameData): string[] {
   if (!Array.isArray(data.levelRewards) || !data.levelRewards.length) return ['Level rewards need a finite schedule.'];
@@ -395,6 +400,19 @@ export function generatorOutputs(state: Pick<GameState, 'taskIndex'>, generatorC
     .sort((a, b) => a.stage - b.stage).map(tier => `${tier.chain}_${tier.stage}`)];
 }
 
+/**
+ * The output that one tap on this source takes: the next in a quest source's sequence, which starts again at its first output
+ * when the quest is accepted, or the output that the player last took. Null for an item that is not a source.
+ */
+export function nextOutput(state: Pick<GameState, 'outputChoices' | 'activeQuestProducers'>, generatorCode: string, data: GameData): string | null {
+  const item = getItem(generatorCode, data);
+  if (!item?.generator) return null;
+  const quest = data.quests.find(quest => quest.producer?.item === item.id);
+  if (!quest) return state.outputChoices[item.chain] ?? item.generator.outputs[0];
+  const outputs = quest.producer!.outputs;
+  return outputs[(own(state.activeQuestProducers, quest.id) ? state.activeQuestProducers[quest.id] : 0) % outputs.length];
+}
+
 /** Check each production tier before the content generator writes its data. */
 export function generatorTierProblems(data: GameData): string[] {
   const problems: string[] = [];
@@ -458,8 +476,8 @@ export function resolveDecorations(completed: readonly string[], choices: Readon
   });
 }
 
-/** Check authored choices before packaging their data and approved images. */
-export function decorationProblems(data: GameData, knownImages: readonly string[]): string[] {
+/** Check authored choices before packaging their data and approved images. Without knownImages, the image names are not checked. */
+export function decorationProblems(data: GameData, knownImages?: readonly string[]): string[] {
   const problems: string[] = [];
   const slots = data.decorationSlots;
   if (new Set(slots.map(slot => slot.id)).size !== slots.length) problems.push('Decoration slot IDs must be unique.');
@@ -471,7 +489,7 @@ export function decorationProblems(data: GameData, knownImages: readonly string[
     if (slot.variants.length < 2 || new Set(slot.variants.map(variant => variant.id)).size !== slot.variants.length) problems.push(`${slot.id}: needs at least two variants with unique IDs.`);
     if (!slot.variants.some(variant => variant.id === slot.default)) problems.push(`${slot.id}: unknown default.`);
     for (const variant of slot.variants) {
-      if (!/^[a-z][a-z0-9-]*$/.test(variant.id) || !variant.name || !knownImages.includes(variant.image)) problems.push(`${slot.id}: invalid variant or missing image.`);
+      if (!/^[a-z][a-z0-9-]*$/.test(variant.id) || !variant.name || (knownImages && !knownImages.includes(variant.image))) problems.push(`${slot.id}: invalid variant or missing image.`);
     }
     const { x, y, width, height } = slot.crop;
     if (![x, y, width, height].every(Number.isFinite) || x < 0 || y < 0 || width <= 0 || height <= 0 || x + width > 100 || y + height > 100) problems.push(`${slot.id}: crop must be inside the painting.`);
@@ -512,6 +530,23 @@ export function roomProblems(data: GameData, painted: readonly string[] = roomPa
     if (changes !== 1) problems.push(`${task.id}: ${changes ? 'changes the rooms more than once' : 'changes nothing in the rooms'}.`);
   }
   return problems;
+}
+
+/**
+ * Every check of the authored data. The content generator refuses to write data with a problem, and the game refuses to start on it,
+ * so the rules and the save validation can rely on valid data. Without knownImages, the decoration image names are not checked.
+ */
+export function dataProblems(data: GameData, knownImages?: readonly string[]): string[] {
+  try {
+    if (data.board.columns !== 6 || data.board.rows !== 7 || !Array.isArray(data.board.initial) || data.board.initial.length !== 42) {
+      return ['The board needs six columns, seven rows, and 42 starting spaces.'];
+    }
+    const problems = [...roomProblems(data), ...decorationProblems(data, knownImages), ...generatorTierProblems(data), ...levelRewardProblems(data),
+      ...questProblems(data), ...taskGoalProblems(data), ...economyProblems(data)];
+    // The save validation relies on the other checks, so it judges the new game only after they pass.
+    if (!problems.length && !validateGame(createGame(data), data)) problems.push('The starting board does not make a valid new game.');
+    return problems;
+  } catch { return ['The game data is malformed.']; }
 }
 
 /** The board cells that a serve empties: the first free matching cell for each item, or -1 if there is none. */
@@ -558,7 +593,7 @@ function validateQuestProgress(state: GameState, data: GameData): boolean {
   return true;
 }
 
-/** Accepts untrusted input: a parsed save is checked field by field before it is treated as a game state. */
+/** Accepts an untrusted save: a parsed save is checked field by field before it is treated as a game state. The data must pass dataProblems. */
 function validateState(candidate: unknown, data: GameData, version: 2 | 3 | 4 | 5 | 6): boolean {
   try {
     const state = candidate as Omit<GameState, 'version'> & { version: number };
@@ -567,10 +602,10 @@ function validateState(candidate: unknown, data: GameData, version: 2 | 3 | 4 | 
     if (!Array.isArray(state.inventory) || state.inventory.length > data.inventoryCapacity) return false;
     if (!([state.coins, state.xp, state.served, state.merges] as unknown[]).every(value => integer(value))) return false;
     if (!integer(state.seed, 0, 4294967295) || !integer(state.nextOrderId, 4)) return false;
-    if (!integer(state.taskIndex, 0, data.tasks.length) || taskGoalProblems(data).length || economyProblems(data).length) return false;
+    if (!integer(state.taskIndex, 0, data.tasks.length)) return false;
     const chains = availableChains(state, data);
     if (version < 6 && ['completedQuests', 'legacySatisfiedQuests', 'activeQuestProducers'].some(key => Object.hasOwn(state, key))) return false;
-    if (version === 6 && (questProblems(data).length || !validateQuestProgress(state as GameState, data))) return false;
+    if (version === 6 && !validateQuestProgress(state as GameState, data)) return false;
     const active = version === 6 ? data.quests.filter(quest => own(state.activeQuestProducers, quest.id)) : [];
     const validItem = (cell: Cell | null) => cell && typeof cell === 'object' && !Array.isArray(cell)
       && Object.keys(cell).length === 1 && (own(data.items, cell.code) && chains.includes(data.items[cell.code].chain)
@@ -624,7 +659,7 @@ function validateState(candidate: unknown, data: GameData, version: 2 | 3 | 4 | 
         || !generatorOutputs(state, `generator_${chain}`, data).includes(code)) return false;
     }
     if (version === 4) return true;
-    if (levelRewardProblems(data).length || !Array.isArray(state.claimedLevelRewards)
+    if (!Array.isArray(state.claimedLevelRewards)
       || state.claimedLevelRewards.length > data.levelRewards.length
       || new Set(state.claimedLevelRewards).size !== state.claimedLevelRewards.length) return false;
     return [...state.claimedLevelRewards].every(id => typeof id === 'string'
@@ -694,6 +729,16 @@ export function migrateLevelRewardGame(candidate: unknown, data: GameData): Game
   return state;
 }
 
+/** Each save conversion, keyed by the save envelope version of its input. Envelope version n holds game state version n + 1. */
+export function saveMigrations(data: GameData) {
+  return {
+    1: { validate: (state: unknown) => validateLegacyGame(state, data), migrate: (state: unknown) => migrateGame(state, data) },
+    2: { validate: (state: unknown) => validatePreviousGame(state, data), migrate: (state: unknown) => migratePreviousGame(state, data) },
+    3: { validate: (state: unknown) => validateGeneratorGame(state, data), migrate: (state: unknown) => migrateGeneratorGame(state, data) },
+    4: { validate: (state: unknown) => validateLevelRewardGame(state, data), migrate: (state: unknown) => migrateLevelRewardGame(state, data) },
+  };
+}
+
 export function reduceGame(state: GameState, action: Action, data: GameData): Result {
   const fail = (message: string): Result => ({ state, ok: false, message, event: null });
   if (!action || typeof action !== 'object') return fail('Choose an action.');
@@ -734,8 +779,9 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
     case 'claimLevelReward': {
       const reward = data.levelRewards.find(reward => reward.id === action.id);
       if (!reward) return fail('Choose a known level reward.');
-      if (getLevel(next) < reward.level) return fail(`Reach level ${reward.level} to claim this reward.`);
-      if (next.claimedLevelRewards.includes(reward.id)) return fail('This level reward is already claimed.');
+      if (!availableLevelRewards(next, data).includes(reward)) {
+        return fail(getLevel(next) < reward.level ? `Reach level ${reward.level} to claim this reward.` : 'This level reward is already claimed.');
+      }
       if (!integer(next.coins + reward.coins)) return fail('Spend some coins before you claim this reward.');
       next.coins += reward.coins;
       next.claimedLevelRewards.push(reward.id);
@@ -781,7 +827,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       if (!item?.generator) return fail('Choose an ingredient source, such as the Flour bin.');
       const quest = data.quests.find(quest => quest.producer?.item === item.id);
       if (quest && !own(next.activeQuestProducers, quest.id)) return fail('This quest source is not active.');
-      const expected = quest ? quest.producer!.outputs[next.activeQuestProducers[quest.id] % quest.producer!.outputs.length] : next.outputChoices[item.chain] ?? item.generator.outputs[0];
+      const expected = nextOutput(next, item.id, data)!;
       const code = action.output === undefined ? expected : action.output;
       if (!generatorOutputs(next, item.id, data).includes(code)) return fail('Choose an available output from this source.');
       if (quest && code !== expected) return fail('Take the next output from this quest source.');

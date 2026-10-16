@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { SAVE_KEY, LEVEL_REWARD_SAVE_KEY, GENERATOR_SAVE_KEY, PREVIOUS_SAVE_KEY, LEGACY_SAVE_KEY, MAX_SAVE_BYTES, loadSave, saveGame, exportSave, importSave, resetSave } from '../src/storage.ts';
-import { createGame, validateGame, validateLevelRewardGame, validateGeneratorGame, validatePreviousGame, validateLegacyGame, migrateGame, migratePreviousGame, migrateGeneratorGame, migrateLevelRewardGame, reduceGame, taskEligibility, legacyOrderReward } from '../src/engine.ts';
+import { createGame, validateGame, validateLevelRewardGame, validateGeneratorGame, validatePreviousGame, validateLegacyGame, migrateGame, migratePreviousGame, migrateGeneratorGame, migrateLevelRewardGame, reduceGame, saveMigrations, taskEligibility, legacyOrderReward } from '../src/engine.ts';
 import type { GameData, GameState, GeneratorGameState, LevelRewardGameState } from '../src/engine.ts';
 
 type State = { coins: number; board: ({ code: string } | null)[]; story: string; self?: State };
@@ -58,6 +58,9 @@ test('portable export and import leave their input unchanged', () => {
 for (const [name, raw, status] of [
   ['corrupt JSON', '{broken', 'invalid'],
   ['unknown version', JSON.stringify({ format: 'scary-snacks', version: 6, state: state() }), 'unsupported'],
+  ['zero version', JSON.stringify({ format: 'scary-snacks', version: 0, state: state() }), 'unsupported'],
+  ['fractional version', JSON.stringify({ format: 'scary-snacks', version: 4.5, state: state() }), 'unsupported'],
+  ['text version', JSON.stringify({ format: 'scary-snacks', version: '5', state: state() }), 'unsupported'],
   ['unknown format', JSON.stringify({ format: 'another-game', version: 5, state: state() }), 'unsupported'],
   ['invalid state', envelope({ coins: -1, board: [] }), 'invalid'],
   ['missing state', JSON.stringify({ format: 'scary-snacks', version: 5 }), 'invalid'],
@@ -390,12 +393,7 @@ test('a failed final conversion keeps every older envelope without a partial des
 
 const gameData: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
 const validGame = (candidate: unknown) => validateGame(candidate, gameData);
-const gameMigrations = {
-  1: { validate: (candidate: unknown) => validateLegacyGame(candidate, gameData), migrate: (candidate: unknown) => migrateGame(candidate, gameData) },
-  2: { validate: (candidate: unknown) => validatePreviousGame(candidate, gameData), migrate: (candidate: unknown) => migratePreviousGame(candidate, gameData) },
-  3: { validate: (candidate: unknown) => validateGeneratorGame(candidate, gameData), migrate: (candidate: unknown) => migrateGeneratorGame(candidate, gameData) },
-  4: { validate: (candidate: unknown) => validateLevelRewardGame(candidate, gameData), migrate: (candidate: unknown) => migrateLevelRewardGame(candidate, gameData) },
-};
+const gameMigrations = saveMigrations(gameData);
 
 function levelRewardCheckpoint(count: number): LevelRewardGameState {
   let current = createGame(gameData);

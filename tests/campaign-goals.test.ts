@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, currentTask, questProblems, reduceGame, taskEligibility, taskGoalProblems, validateGame } from '../src/engine.ts';
+import { createGame, currentTask, dataProblems, questProblems, reduceGame, taskEligibility, taskGoalProblems, validateGame } from '../src/engine.ts';
 import type { Action, GameData, GameState } from '../src/engine.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
@@ -53,7 +53,7 @@ test('each preparation has explicit, nondecreasing lifetime service and merge go
       const content = structuredClone(data);
       Object.assign(content.tasks[0].goals, { [field]: value });
       assert.ok(taskGoalProblems(content).length, `${field}: ${String(value)}`);
-      assert.equal(validateGame(createGame(data), content), false);
+      assert.ok(dataProblems(content).length, `${field}: ${String(value)}`);
     }
     const decreasing = structuredClone(data);
     decreasing.tasks[1].goals[field] = 0;
@@ -178,7 +178,7 @@ test('generator placement is part of eligibility and failed completion leaves ev
 test('a named quest prerequisite is visible and unknown or cyclic prerequisites are rejected', () => {
   const content = structuredClone(data);
   content.tasks[0].requiresQuest = 'mara-welcome';
-  assert.deepEqual(questProblems(content), []);
+  assert.deepEqual(dataProblems(content), []);
   const state = createGame(content);
   Object.assign(state, { coins: data.tasks[0].cost, ...data.tasks[0].goals });
   const title = content.quests.find(quest => quest.id === 'mara-welcome')!.title;

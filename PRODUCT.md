@@ -103,7 +103,7 @@ If the browser blocks storage, the game is playable for the current visit only. 
 
 If the game is open in two tabs, each tab follows the latest save. A tab does not overwrite the latest save with an older board. When a tab follows the latest save, an open dialog or a drag in that tab ends.
 
-If the game data cannot load, the kitchen says so and offers Try again. The kitchen also disables the Story, Recipes, Pantry, and House book buttons.
+If the game data cannot load or does not pass its checks, the kitchen says so and offers Try again. The kitchen also disables the Story, Recipes, Pantry, and House book buttons. The game does not read or write the save in that case.
 
 An import validates the envelope and the state of the save. An import rejects malformed saved data and keeps the current save. An import enforces a size limit. Load, save, import, and reset use only the save keys of this game. They do not change other browser data.
 

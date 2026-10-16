@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, getLevel, levelRewardProblems, migrateGame, migratePreviousGame, migrateGeneratorGame, migrateLevelRewardGame, reduceGame, validateGame, validateGeneratorGame, validateLevelRewardGame, validateLegacyGame, validatePreviousGame, legacyOrderReward } from '../src/engine.ts';
+import { availableLevelRewards, createGame, dataProblems, getLevel, levelRewardProblems, migrateGame, migratePreviousGame, migrateGeneratorGame, migrateLevelRewardGame, reduceGame, validateGame, validateGeneratorGame, validateLevelRewardGame, validateLegacyGame, validatePreviousGame, legacyOrderReward } from '../src/engine.ts';
 import type { GameData, GameState, GeneratorGameState } from '../src/engine.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
@@ -68,6 +68,18 @@ test('several reached milestones can be claimed in any order without more XP or 
   rejected(state, '__proto__', /known level reward/);
 });
 
+test('the rewards that the House book offers are the rewards that a claim accepts', () => {
+  for (const xp of [0, 99, 100, 450, 999, 2500]) {
+    for (const claimed of [[], ['level-2'], ['level-3', 'level-5']]) {
+      const state = { ...createGame(data), xp, claimedLevelRewards: claimed };
+      const offered = availableLevelRewards(state, data);
+      for (const reward of data.levelRewards) assert.equal(claim(state, reward.id).ok, offered.includes(reward), `${reward.id} at ${xp} XP`);
+    }
+  }
+  const full = { ...createGame(data), xp: 100, coins: 999_999_981 };
+  assert.deepEqual(availableLevelRewards(full, data).map(reward => reward.id), ['level-2'], 'A reward that the coin limit blocks stays available.');
+});
+
 test('a full board and pantry permit a coin claim; overflow preserves the claim for later', () => {
   const state = { ...createGame(data), xp: 100, coins: 999_999_981, ...data.tasks[0].goals };
   state.board = state.board.map(cell => cell ?? { code: 'bakery_1' });
@@ -106,7 +118,7 @@ test('the reward data check rejects invalid and unsupported schedules', () => {
     [data.levelRewards[0], data.levelRewards[0]], [data.levelRewards[0], { id: 'other', level: 2, coins: 20 }]]) {
     const broken = { ...data, levelRewards: schedule } as GameData;
     assert.ok(levelRewardProblems(broken).length, JSON.stringify(schedule));
-    assert.equal(validateGame(createGame(data), broken), false);
+    assert.ok(dataProblems(broken).length, JSON.stringify(schedule));
   }
 });
 
@@ -156,5 +168,4 @@ test('every older schema rejects injected claims and conversion validates both e
   assert.equal(validateGeneratorGame({ ...generator, claimedLevelRewards: [] }, data), false);
   assert.throws(() => migrateGeneratorGame({ ...generator, coins: -1 }, data), /damaged or unknown/);
   assert.throws(() => migrateGeneratorGame({ ...generator, version: 99 }, data), /damaged or unknown/);
-  assert.throws(() => migrateGeneratorGame(generator, { ...data, levelRewards: [] }), /converted saved game is not valid/);
 });

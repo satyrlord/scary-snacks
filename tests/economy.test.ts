@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, economyProblems, legacyOrderReward, menuReward, reduceGame, saleValue, validateGame, validateLegacyGame, validatePreviousGame, validateGeneratorGame, validateLevelRewardGame, migrateGame, migratePreviousGame, migrateGeneratorGame, migrateLevelRewardGame } from '../src/engine.ts';
+import { createGame, dataProblems, economyProblems, legacyOrderReward, menuReward, reduceGame, saleValue, validateGame, validateLegacyGame, validatePreviousGame, validateGeneratorGame, validateLevelRewardGame, migrateGame, migratePreviousGame, migrateGeneratorGame, migrateLevelRewardGame } from '../src/engine.ts';
 import { exportSave, importSave, loadSave, saveGame, SAVE_KEY } from '../src/storage.ts';
 import type { GameData, GameState } from '../src/engine.ts';
 
@@ -65,7 +65,7 @@ test('authored economy rejects missing, malformed, unsupported, or inconsistent 
     const content = structuredClone(data);
     mutate(content);
     assert.ok(economyProblems(content).length);
-    assert.equal(validateGame(createGame(data), content), false);
+    assert.ok(dataProblems(content).length);
   }
 });
 

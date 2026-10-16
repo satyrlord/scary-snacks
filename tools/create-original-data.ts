@@ -1,7 +1,7 @@
 // Original setting, dialogue, progression, and economy authored for this browser game.
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { roomPaintings, roomProblems, decorationProblems, generatorTierProblems, levelRewardProblems, questProblems, taskGoalProblems, economyProblems } from '../src/engine.ts';
+import { roomPaintings, dataProblems } from '../src/engine.ts';
 import type { Area, Character, DecorationSlot, GameData, Item, Quest, RoomState, Task } from '../src/engine.ts';
 
 const chains: [id: string, name: string, stages: string[], generator: string][] = [
@@ -248,7 +248,7 @@ const data: GameData = {
 const provenance: { assets: { id: string }[] } = JSON.parse(await readFile(new URL('../docs/asset-provenance.json', import.meta.url), 'utf8'));
 const unapproved = roomPaintings.filter(id => !provenance.assets.some(asset => asset.id === id));
 if (unapproved.length) throw new Error(`These room paintings have no approved master: ${unapproved.join(', ')}.`);
-const problems = [...roomProblems(data), ...decorationProblems(data, provenance.assets.map(asset => asset.id)), ...generatorTierProblems(data), ...levelRewardProblems(data), ...questProblems(data), ...taskGoalProblems(data), ...economyProblems(data)];
+const problems = dataProblems(data, provenance.assets.map(asset => asset.id));
 if (problems.length) throw new Error(`The game data is not valid: ${problems.join(' ')}`);
 const target = new URL('../public/data/game.json', import.meta.url);
 await mkdir(fileURLToPath(new URL('.', target)), { recursive: true });
