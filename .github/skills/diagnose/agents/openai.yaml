@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Diagnose'
+  short_description: 'Find the cause of a failure'
+  default_prompt: 'Use $diagnose to reproduce and isolate this Scary Snacks failure.'
+policy:
+  allow_implicit_invocation: true

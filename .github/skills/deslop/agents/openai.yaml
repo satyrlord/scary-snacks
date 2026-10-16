@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Deslop'
+  short_description: 'Remove unsupported content'
+  default_prompt: 'Use $deslop to find unsupported Scary Snacks content that has evidence.'
+policy:
+  allow_implicit_invocation: true

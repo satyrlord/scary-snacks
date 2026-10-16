@@ -1,0 +1,635 @@
+{
+  "title": "Scary Snacks",
+  "assets": [
+    {
+      "id": "menu-atlas",
+      "file": "public/assets/original/menu-atlas.png",
+      "sha256": "e92eab962787d63fff30eb4ec58d5eb4fc4b7800da87472df812f02afcb20e7a",
+      "bytes": 2370281,
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "menu-atlas-final",
+      "generation": "built-in in-chat imagegen",
+      "sourceGameImageInput": false
+    },
+    {
+      "id": "portraits",
+      "file": "public/assets/original/portraits.png",
+      "sha256": "42ecfa1970b5b6ad9a874990ca9b5ac055fc22f4fc7d3d40c8d549c751106a92",
+      "bytes": 4040242,
+      "width": 1536,
+      "height": 1536,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "portraits-folk-2",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality",
+      "sourceGameImageInput": false
+    },
+    {
+      "id": "mascots",
+      "file": "public/assets/original/mascots.png",
+      "sha256": "c74841176f091963d8e802e4e447cc9010ccb27e5707c748aaedab02bbf179f9",
+      "bytes": 1062473,
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "mascots-final",
+      "generation": "built-in in-chat imagegen",
+      "sourceGameImageInput": false
+    },
+    {
+      "id": "timber-tabletop",
+      "file": "public/assets/original/timber-tabletop.png",
+      "sha256": "fda14c8a814cfeed9f033a973cd02256c3958a9d1701d5302fadb7dbc383a2da",
+      "bytes": 4435636,
+      "width": 1536,
+      "height": 1536,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "timber-tabletop",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality",
+      "sourceGameImageInput": false
+    },
+    {
+      "id": "embroidered-runner",
+      "file": "public/assets/original/embroidered-runner.png",
+      "sha256": "a4351bbe4ed91e98851d49dd034a4e22af2268555d94520cde01204388aa6a04",
+      "bytes": 1759851,
+      "width": 1536,
+      "height": 512,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "embroidered-runner",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality",
+      "sourceGameImageInput": false
+    },
+    {
+      "id": "front-room-00",
+      "file": "public/assets/original/front-room-00.png",
+      "sha256": "310dd73281c6d683d553afd009a740cc7965ab87228a3489d5ce6979c7cb8962",
+      "bytes": 7528391,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "front-room-00",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a masked edit composited over the previous state with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "counter-band",
+      "referenceSha256": "36890c956684c287ac6d6a3f98f2c27413ab5e07211200a71f87720c420fd26d",
+      "review": "The first painted room state: the unrenovated front room as a 3:4 portrait. The base comes from counter-band. Two masked edits (front-room-00-fix, front-room-00) follow. Each edit is composited so that pixels outside its region equal the previous state. The agent reviewed the image at full resolution. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "front-room-01",
+      "file": "public/assets/original/front-room-01.png",
+      "sha256": "87e836734b1a739b7a561a88fdfbb2fcafe3ea9fd0aba9604700767bdc22d0e2",
+      "bytes": 7570580,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "front-room-01",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a masked edit composited over the previous state with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "front-room-00",
+      "referenceSha256": "310dd73281c6d683d553afd009a740cc7965ab87228a3489d5ce6979c7cb8962",
+      "review": "The room after preparation 1, \"Fix the broken window\": a masked edit of front-room-00. The edit is composited so that only the window region changes. The agent reviewed the image at full resolution. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "front-room-02",
+      "file": "public/assets/original/front-room-02.png",
+      "sha256": "ea55c195874de052f803ed81c02d50790a0d1d99bcac6c18fa78b7c6b299b68d",
+      "bytes": 7594215,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "front-room-02",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a masked edit composited over the previous state with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "front-room-01",
+      "referenceSha256": "87e836734b1a739b7a561a88fdfbb2fcafe3ea9fd0aba9604700767bdc22d0e2",
+      "review": "The room after preparation 2, \"Mend the welcome board\": a masked edit of front-room-01. The edit is composited with a 64px feather, so that only the wall under the pans changes. The agent reviewed the image at full resolution. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "front-room-03",
+      "file": "public/assets/original/front-room-03.png",
+      "sha256": "263ef931e102166de4337a5f95214f10d825d993cf45eb8a5b5eb98b60121bbc",
+      "bytes": 7602302,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "front-room-03",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a masked edit composited over the previous state with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "front-room-02",
+      "referenceSha256": "ea55c195874de052f803ed81c02d50790a0d1d99bcac6c18fa78b7c6b299b68d",
+      "review": "The room after preparation 3, \"Set up the pastry shelf\": a masked edit of front-room-02 (the corrective request). The edit is composited with a 12px feather, so that only the lower shelf region changes. The agent reviewed the image at full resolution. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "front-room-04",
+      "file": "public/assets/original/front-room-04.png",
+      "sha256": "c7ba08a9f5ec69368872e50a32512bcc9c4990a296b5781f3bc53db7115d7a93",
+      "bytes": 7763998,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "front-room-04",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of the previous state, of which only the changed region was composited, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "front-room-03",
+      "referenceSha256": "263ef931e102166de4337a5f95214f10d825d993cf45eb8a5b5eb98b60121bbc",
+      "review": "The room after preparation 4, \"Light the front room\": an unmasked edit of front-room-03 (the corrective request). Only an oval around each lamp is composited, with a 96px ramped feather. The agent reviewed the image at full resolution. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "front-room-05",
+      "file": "public/assets/original/front-room-05.png",
+      "sha256": "97c01d53f2275f99bb1051b14b6138536b95bdd12d99e75db7cbf68600b1ef1a",
+      "bytes": 7774970,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "front-room-05",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of the previous state, of which only the changed region was composited, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "front-room-04",
+      "referenceSha256": "c7ba08a9f5ec69368872e50a32512bcc9c4990a296b5781f3bc53db7115d7a93",
+      "review": "The room after preparation 5, \"Repair the kitchen worktop\": an unmasked edit of front-room-04 (the corrective request). Only the rail and the pans are composited, with a 16px ramped feather. The agent reviewed the image at full resolution. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "front-room-06",
+      "file": "public/assets/original/front-room-06.png",
+      "sha256": "47e23170aaebae6367a3eda71c6cf3733ab9692ecf6c7efbf79a04a1202cee58",
+      "bytes": 7786402,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "front-room-06",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of the previous state, of which only the changed region was composited, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "front-room-05",
+      "referenceSha256": "97c01d53f2275f99bb1051b14b6138536b95bdd12d99e75db7cbf68600b1ef1a",
+      "review": "The room after preparation 6, \"Bring in market produce\": an unmasked edit of front-room-05 (a third request that the user approved). The hook, the strings, the lavender, and the wall hanging are composited, with a 12px ramped feather. The user accepted that the wall hanging lost its dark-red left strip. The agent reviewed the image at full resolution. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "front-room-07",
+      "file": "public/assets/original/front-room-07.png",
+      "sha256": "caa8ec2c5afab9a040d3a1f950fa5c68d84bb96120fc65c6877347bbc027fd2c",
+      "bytes": 7790777,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "front-room-07",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of the previous state, of which only the changed region was composited, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "front-room-06",
+      "referenceSha256": "47e23170aaebae6367a3eda71c6cf3733ab9692ecf6c7efbf79a04a1202cee58",
+      "review": "The room after preparation 7, \"Hang the kitchen shelves\": an unmasked edit of front-room-06. Only the jars on the upper shelf are composited, with a 12px ramped feather. The agent reviewed the image at full resolution. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "front-room-08",
+      "file": "public/assets/original/front-room-08.png",
+      "sha256": "4a9cf7a9b6ccdd988ea0f8e7546d388c2a16b6708c331f2baf6421525c11d847",
+      "bytes": 7781765,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "front-room-08",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of the previous state, of which only the changed region was composited, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "front-room-07",
+      "referenceSha256": "caa8ec2c5afab9a040d3a1f950fa5c68d84bb96120fc65c6877347bbc027fd2c",
+      "review": "The room after preparation 8, \"Write the first menu\": an unmasked edit of front-room-07. Only the slate on the cabinet is composited, with an 8px ramped feather. The agent reviewed the image at full resolution. The user accepted it, with the slate larger than asked and its drawings cleaner than chalk.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "front-room-09",
+      "file": "public/assets/original/front-room-09.png",
+      "sha256": "daaa9ae94f45697cef2f4e6c69cfb93c29e7d28d599f6eeb3604e56e218d3b94",
+      "bytes": 7786340,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "front-room-09",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of the previous state, of which only the changed region was composited, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "front-room-08",
+      "referenceSha256": "4a9cf7a9b6ccdd988ea0f8e7546d388c2a16b6708c331f2baf6421525c11d847",
+      "review": "The room after preparation 9, \"Choose the tableware\": an unmasked edit of front-room-08. Only the bowls and plate on the upper shelf are composited, with a 10px ramped feather. The agent reviewed the image at full resolution. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "front-room-10",
+      "file": "public/assets/original/front-room-10.png",
+      "sha256": "26049b029fcbccec5213fc12c481cb1f7692c0d802b0bea103e33f8b492c8d95",
+      "bytes": 7764614,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "front-room-10",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of the previous state, of which only the changed region was composited, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "front-room-09",
+      "referenceSha256": "daaa9ae94f45697cef2f4e6c69cfb93c29e7d28d599f6eeb3604e56e218d3b94",
+      "review": "The room after preparation 10, \"Sand the long table\": an unmasked edit of front-room-09 (a regeneration that the user approved). Only the right corner is composited, with a 16px ramped feather. The agent reviewed the image at full resolution. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "front-room-11",
+      "file": "public/assets/original/front-room-11.png",
+      "sha256": "a6e5f3f2e42cf53e66b48c2d49ccf0bbc8fc01f4253bce6df9d725d60b605626",
+      "bytes": 7767666,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "front-room-11",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of the previous state, of which only the changed region was composited, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "front-room-10",
+      "referenceSha256": "26049b029fcbccec5213fc12c481cb1f7692c0d802b0bea103e33f8b492c8d95",
+      "review": "The room after preparation 11, \"Make a recipe corner\": an unmasked edit of front-room-10. Only the left end of the cabinet top is composited, with a 10px ramped feather. The agent reviewed the image at full resolution, including the notebook for readable text. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "front-room-12",
+      "file": "public/assets/original/front-room-12.png",
+      "sha256": "2a31be7d05972c8c3c8a46d013b4704013e969143794122151fb7507852ce077",
+      "bytes": 7762869,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "front-room-12",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of the previous state, of which only the changed region was composited, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "front-room-11",
+      "referenceSha256": "a6e5f3f2e42cf53e66b48c2d49ccf0bbc8fc01f4253bce6df9d725d60b605626",
+      "review": "The room after preparation 12, \"Open the shared table\": an unmasked edit of front-room-11 (sent as its accepted composite, byte-identical to the master). Only the right corner is composited, with a 16px ramped feather. The agent reviewed the image at full resolution. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "courtyard-13",
+      "file": "public/assets/original/courtyard-13.png",
+      "sha256": "bec9ec1713248a4fcfe04774ba692ccde209a8a135e4d7ff2e19fc49acf80239",
+      "bytes": 8826550,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "courtyard-13-hood",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; the courtyard base (an edit of the courtyard reference painting), repaired with a frame removal and a masked hood edit, each composited over its previous image with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "courtyard",
+      "referenceSha256": "cb015877c8d8e9244ba04b8cc4941161ce314c616999a57c457cd72f9877aadb",
+      "review": "The courtyard after preparation 13, \"Clear the courtyard\": the base with its iron awning frame removed and a broken wooden door hood painted into an outline in the perspective of the wall (room-states/courtyard-13-run6-hood-composite-c). The agent checked the image against the vanishing lines of the wall. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "courtyard-14",
+      "file": "public/assets/original/courtyard-14.png",
+      "sha256": "aa7f22e12dd5b0dc7a3b2e98455e9d6d0c14be9c56862bb460d43d326d72ad8e",
+      "bytes": 8831334,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "courtyard-14",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of the previous state, of which only the changed region was composited, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "courtyard-13",
+      "referenceSha256": "bec9ec1713248a4fcfe04774ba692ccde209a8a135e4d7ff2e19fc49acf80239",
+      "review": "The courtyard after preparation 14, \"Plant the herb pots\": the herb-pot region of the courtyard-14-run1 candidate, composited with its mask and feather over courtyard-13 (room-states/courtyard-14-rebuild-c). Every other pixel equals courtyard-13. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "courtyard-15",
+      "file": "public/assets/original/courtyard-15.png",
+      "sha256": "47c4f22991eabd467d543ae4c03001847ec55aa057e1e4263aa07a62f1557344",
+      "bytes": 8829868,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "courtyard-15",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a masked edit of the bare-wall courtyard composite, composited over the previous state with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "courtyard-14",
+      "referenceSha256": "aa7f22e12dd5b0dc7a3b2e98455e9d6d0c14be9c56862bb460d43d326d72ad8e",
+      "review": "The courtyard after preparation 15, \"Repair the door hood\": new shingles repair the broken door hood. The work painted the repair on the bare-wall composite into the same perspective outline. The work composited it over courtyard-14 through the outline of the hood, with a 10px ramped feather. The agent checked the image against the vanishing lines of the wall. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "courtyard-16",
+      "file": "public/assets/original/courtyard-16.png",
+      "sha256": "b019dfe16ac69a6ca2224562cb360f8ac31220bb766fcb50abf2b21da0f85d69",
+      "bytes": 8823595,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "courtyard-16",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a masked edit composited over the previous state with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "courtyard-15",
+      "referenceSha256": "47c4f22991eabd467d543ae4c03001847ec55aa057e1e4263aa07a62f1557344",
+      "review": "The courtyard after preparation 16, \"Set the outdoor tables\": a masked edit of courtyard-15 over the stretch of back wall between the herb pots and the gate. The edit is composited through a polygon that keeps the table whole beside the parsley pot (trimming a few of its leaf tips), with a 4px ramped feather. The agent checked the image against the vanishing point of the courtyard. The user reviewed it with every other master and variant and accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "front-room-17",
+      "file": "public/assets/original/front-room-17.png",
+      "sha256": "cf464bd890b553732890a942d1c60edfe0d9392e6e1e686311aef42f60a43173",
+      "bytes": 7761583,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "front-room-17",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a masked edit composited over the previous state with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "front-room-12",
+      "referenceSha256": "2a31be7d05972c8c3c8a46d013b4704013e969143794122151fb7507852ce077",
+      "review": "The room after preparation 17, \"Collect family recipes\": a masked edit of front-room-12 over the wall between the embroidered hanging and the chalk slate. The edit is composited with an 8px ramped feather. The agent reviewed the image at full resolution, including the pages for readable text. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "courtyard-18",
+      "file": "public/assets/original/courtyard-18.png",
+      "sha256": "0af3fe57cc21ed3b1348938bac4864e435e57743e3eadc8189b50ef9240a6b6b",
+      "bytes": 8824153,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "courtyard-18",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of the previous state, of which only the table tops were composited, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "courtyard-16",
+      "referenceSha256": "b019dfe16ac69a6ca2224562cb360f8ac31220bb766fcb50abf2b21da0f85d69",
+      "review": "The courtyard after preparation 18, \"Prepare the tasting plates\": an unmasked edit of courtyard-16 (the corrective request). Only the table-top band is composited, with an 8px ramped feather. The agent reviewed the image at full resolution. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "courtyard-19",
+      "file": "public/assets/original/courtyard-19.png",
+      "sha256": "e42712279921b6795a8405cce31633323d443c8097d167b2f84d1d2db2b89a24",
+      "bytes": 8814680,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "courtyard-19",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a masked niche edit and unmasked repairs, each composited over its previous image with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "courtyard-18",
+      "referenceSha256": "0af3fe57cc21ed3b1348938bac4864e435e57743e3eadc8189b50ef9240a6b6b",
+      "review": "The courtyard after preparation 19, \"Stock the drinks cabinet\": a wall niche painted into a perspective outline over courtyard-18, with a one-handled Corund pitcher that unmasked edits painted, composited through the spot of the pitcher. The agent checked the image against the vanishing lines of the courtyard. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "courtyard-20",
+      "file": "public/assets/original/courtyard-20.png",
+      "sha256": "dd36c983d08bde99ca7bfbfb54df2c061063c822997b1bdf3dd1c9be1a3b7844",
+      "bytes": 8808115,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "courtyard-20-longtable-2",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; unmasked edits for the menu cards and a masked edit for the long table, each composited over its previous image with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "courtyard-19",
+      "referenceSha256": "e42712279921b6795a8405cce31633323d443c8097d167b2f84d1d2db2b89a24",
+      "review": "The courtyard after preparation 20, \"Print the supper menu\": a picture menu card on each small table (an unmasked edit and its ornament correction; only the two cards are composited over courtyard-19). The state also has a long shared trestle table with two benches in the near courtyard. The work painted the table into a region whose sides are vanishing lines and composited it through that region, so that the table ends clear of the small tables. The agent checked the image against the vanishing lines of the courtyard. The user accepted it and chose to let the long table first appear here and not repaint states 16 to 19.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "courtyard-21",
+      "file": "public/assets/original/courtyard-21.png",
+      "sha256": "51a42464774caa18eafa33630da2a6831756d0024d1c23372e54623f95160c59",
+      "bytes": 8815257,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "courtyard-21-festive",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; two unmasked edits, each composited over its previous image through the changed regions only, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "courtyard-20",
+      "referenceSha256": "dd36c983d08bde99ca7bfbfb54df2c061063c822997b1bdf3dd1c9be1a3b7844",
+      "review": "The courtyard after preparation 21, \"Send the invitations\": the courtyard is dressed for a village celebration, with a lit lantern on the right gate post, embroidered towels over both gate posts, pots of red geraniums by the gate and along the back wall, and a harvest wreath on the kitchen door. Only those regions are composited over courtyard-20. The agent checked the seams and the foreshortening of the wreath. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "courtyard-22",
+      "file": "public/assets/original/courtyard-22.png",
+      "sha256": "e266976df591a93dc154dd7b393ea864ffac63599f6150f8c586f2de417beb89",
+      "bytes": 8818456,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "courtyard-22-4",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a masked edit composited over the previous state through an outline traced around the painted serving table, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "courtyard-21",
+      "referenceSha256": "51a42464774caa18eafa33630da2a6831756d0024d1c23372e54623f95160c59",
+      "review": "The courtyard after preparation 22, \"Prepare the serving station\": a compact serving table in front of the kitchen door step, with a cross-stitch cloth, two lidded earthenware dishes, a stack of folk plates, and a round and a plaited loaf on a board. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "courtyard-23",
+      "file": "public/assets/original/courtyard-23.png",
+      "sha256": "9251d3e7cf7ee8907bf2cc280416b1fa799ba3fe0a16f7357204cfcead998713",
+      "bytes": 8831950,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "courtyard-23",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of the previous state, of which only the string of lights and the four vases were composited, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "courtyard-22",
+      "referenceSha256": "e266976df591a93dc154dd7b393ea864ffac63599f6150f8c586f2de417beb89",
+      "review": "The courtyard after preparation 23, \"Add the final flowers\": a string of warm lights from the gutter into the tree, and cream-and-blue wildflower vases on the two small tables and the long table. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "front-room-24",
+      "file": "public/assets/original/front-room-24.png",
+      "sha256": "58ba12a567a924564da55e93e4f022a2948f633169a3885fdbd0195b2ab22ad6",
+      "bytes": 7798123,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "front-room-24",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of the previous state, of which only the towel and the dresser regions were composited, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "front-room-17",
+      "referenceSha256": "cf464bd890b553732890a942d1c60edfe0d9392e6e1e686311aef42f60a43173",
+      "review": "The front room after preparation 24, \"Welcome the community supper\": an embroidered ștergar hung across the top of the window reveal, and a jug of wildflowers on a cross-stitch runner on the dresser. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "decoration-front",
+      "file": "public/assets/original/decoration-front.png",
+      "sha256": "58cb05805ef1cd5fb63f9f37c4f6d9535d3a8687f6a0291e448bc3eaef447964",
+      "bytes": 2515664,
+      "width": 1086,
+      "height": 1448,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "decoration-front",
+      "generation": "built-in in-chat imagegen; unchanged output",
+      "sourceGameImageInput": false,
+      "review": "The green tableware on the upper shelf and the lilacs in the dresser jug, for spec 002. The agent examined the crops against front-room-09 and front-room-24. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "decoration-courtyard",
+      "file": "public/assets/original/decoration-courtyard.png",
+      "sha256": "0629e5f807838a0606a7707e773f28fe2be7f971b40118f21bca65a57d0be8ca",
+      "bytes": 3122649,
+      "width": 1086,
+      "height": 1448,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "decoration-courtyard",
+      "generation": "built-in in-chat imagegen; unchanged output",
+      "sourceGameImageInput": false,
+      "review": "The blue embroidery on the serving-table cloth, for spec 002. The agent examined the crop against courtyard-22. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    }
+  ],
+  "note": "Only generated project images are active. The mascot revision used its earlier generated version. The final portraits revised their own first API candidate. This record is provenance, not legal clearance. front-room-00 and courtyard-13 use the generated reference paintings in the references list. Each later room state is an edit of the previous state, composited so that only its region changes.",
+  "references": [
+    {
+      "id": "counter-band",
+      "sha256": "36890c956684c287ac6d6a3f98f2c27413ab5e07211200a71f87720c420fd26d",
+      "bytes": 2998093,
+      "width": 2304,
+      "height": 768,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "counter-band",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality",
+      "sourceGameImageInput": false,
+      "use": "The reference image of front-room-00. The game does not ship it."
+    },
+    {
+      "id": "courtyard",
+      "sha256": "cb015877c8d8e9244ba04b8cc4941161ce314c616999a57c457cd72f9877aadb",
+      "bytes": 3677456,
+      "width": 2304,
+      "height": 768,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "courtyard",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality",
+      "sourceGameImageInput": false,
+      "use": "The reference image of courtyard-13. The game does not ship it."
+    }
+  ]
+}

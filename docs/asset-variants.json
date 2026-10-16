@@ -1,0 +1,1119 @@
+{
+  "tool": "tools/build-image-variants.ts",
+  "encoder": "sharp 0.35.5 (libvips 8.18.7)",
+  "settings": {
+    "avif": {
+      "quality": 66,
+      "effort": 6,
+      "chromaSubsampling": "4:4:4"
+    },
+    "webp": {
+      "quality": 86,
+      "alphaQuality": 100,
+      "effort": 6,
+      "smartSubsample": true
+    }
+  },
+  "variants": [
+    {
+      "file": "public/assets/variants/menu-atlas-1254x1254.webp",
+      "master": "menu-atlas",
+      "masterSha256": "e92eab962787d63fff30eb4ec58d5eb4fc4b7800da87472df812f02afcb20e7a",
+      "width": 1254,
+      "height": 1254,
+      "format": "webp",
+      "bytes": 547810,
+      "sha256": "576438e33875b0cb8ccb3b9dbb1524df778700fe4c1a79e9b7a8760e23c7fdd5"
+    },
+    {
+      "file": "public/assets/variants/portraits-640x640.webp",
+      "master": "portraits",
+      "masterSha256": "42ecfa1970b5b6ad9a874990ca9b5ac055fc22f4fc7d3d40c8d549c751106a92",
+      "width": 640,
+      "height": 640,
+      "format": "webp",
+      "bytes": 141060,
+      "sha256": "1d58dec5ab696c9a8f0fca6a03dec1eef9add04c989628a5d8d33a0f190852c4"
+    },
+    {
+      "file": "public/assets/variants/mascots-640x640.webp",
+      "master": "mascots",
+      "masterSha256": "c74841176f091963d8e802e4e447cc9010ccb27e5707c748aaedab02bbf179f9",
+      "width": 640,
+      "height": 640,
+      "format": "webp",
+      "bytes": 60378,
+      "sha256": "6188fc1e08d3a8e9cf736ec788672c4328f2d5ed4d764b1a0d9ae36a0ca461e4"
+    },
+    {
+      "file": "public/assets/variants/timber-tabletop-1024x1024.avif",
+      "master": "timber-tabletop",
+      "masterSha256": "fda14c8a814cfeed9f033a973cd02256c3958a9d1701d5302fadb7dbc383a2da",
+      "width": 1024,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 139194,
+      "sha256": "fac47d8fb904ae3b9706eb8758f685b953a3386d840290255f073327029919e0"
+    },
+    {
+      "file": "public/assets/variants/timber-tabletop-1024x1024.webp",
+      "master": "timber-tabletop",
+      "masterSha256": "fda14c8a814cfeed9f033a973cd02256c3958a9d1701d5302fadb7dbc383a2da",
+      "width": 1024,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 223748,
+      "sha256": "1fac12600773c2a8778dc2c308b24d19e5d1318e66ede50688b14ad310d504cb"
+    },
+    {
+      "file": "public/assets/variants/timber-tabletop-1536x1536.avif",
+      "master": "timber-tabletop",
+      "masterSha256": "fda14c8a814cfeed9f033a973cd02256c3958a9d1701d5302fadb7dbc383a2da",
+      "width": 1536,
+      "height": 1536,
+      "format": "avif",
+      "bytes": 294333,
+      "sha256": "bbcae3c37d55b0df9ff068b3c97ded9db8df7c804f520bad8a8b2ca4fff1168f"
+    },
+    {
+      "file": "public/assets/variants/timber-tabletop-1536x1536.webp",
+      "master": "timber-tabletop",
+      "masterSha256": "fda14c8a814cfeed9f033a973cd02256c3958a9d1701d5302fadb7dbc383a2da",
+      "width": 1536,
+      "height": 1536,
+      "format": "webp",
+      "bytes": 536020,
+      "sha256": "62f123b906d1e48c39fa2a2f906c7483316ebf092b9b249f8540ad15d0c8c394"
+    },
+    {
+      "file": "public/assets/variants/embroidered-runner-384x128.webp",
+      "master": "embroidered-runner",
+      "masterSha256": "a4351bbe4ed91e98851d49dd034a4e22af2268555d94520cde01204388aa6a04",
+      "width": 384,
+      "height": 128,
+      "format": "webp",
+      "bytes": 18090,
+      "sha256": "e72e46798bbe79076bab6ead744211c8a61a48cf251082f4d56421baadb3ef51"
+    },
+    {
+      "file": "public/assets/variants/front-room-00-768x1024.avif",
+      "master": "front-room-00",
+      "masterSha256": "310dd73281c6d683d553afd009a740cc7965ab87228a3489d5ce6979c7cb8962",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 128481,
+      "sha256": "a246deb775a2d67b6d42d997229742a3881379faaa02589aee80d4e29e81f574"
+    },
+    {
+      "file": "public/assets/variants/front-room-00-768x1024.webp",
+      "master": "front-room-00",
+      "masterSha256": "310dd73281c6d683d553afd009a740cc7965ab87228a3489d5ce6979c7cb8962",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 187858,
+      "sha256": "1c73a1c720339849ec830aae9660b717bccec278222874c4f716e7e8c909464f"
+    },
+    {
+      "file": "public/assets/variants/front-room-00-1536x2048.avif",
+      "master": "front-room-00",
+      "masterSha256": "310dd73281c6d683d553afd009a740cc7965ab87228a3489d5ce6979c7cb8962",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 404528,
+      "sha256": "d9ebbe295050e0835ddc5f9edf09e2872e3023176610f7fc4018109b0b489dc1"
+    },
+    {
+      "file": "public/assets/variants/front-room-00-1536x2048.webp",
+      "master": "front-room-00",
+      "masterSha256": "310dd73281c6d683d553afd009a740cc7965ab87228a3489d5ce6979c7cb8962",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 575386,
+      "sha256": "21cbd29e7a0142acd6900f9db2f6ba900bc508488a592ea86e125032ae4358bf"
+    },
+    {
+      "file": "public/assets/variants/front-room-01-768x1024.avif",
+      "master": "front-room-01",
+      "masterSha256": "87e836734b1a739b7a561a88fdfbb2fcafe3ea9fd0aba9604700767bdc22d0e2",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 129107,
+      "sha256": "6fa647277f162496f427466c48ee4d2d68f67e971d88b1f5760e94922be63838"
+    },
+    {
+      "file": "public/assets/variants/front-room-01-768x1024.webp",
+      "master": "front-room-01",
+      "masterSha256": "87e836734b1a739b7a561a88fdfbb2fcafe3ea9fd0aba9604700767bdc22d0e2",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 189072,
+      "sha256": "86f6d7f3c42a44b61bcf348dfdfb57dd9a9412c331d3d4bfbc2775aee56761a6"
+    },
+    {
+      "file": "public/assets/variants/front-room-01-1536x2048.avif",
+      "master": "front-room-01",
+      "masterSha256": "87e836734b1a739b7a561a88fdfbb2fcafe3ea9fd0aba9604700767bdc22d0e2",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 405826,
+      "sha256": "49705a051cf8cd209f44214fd0c271dc93b614e83b51b5e3b6454f1c9c57cae2"
+    },
+    {
+      "file": "public/assets/variants/front-room-01-1536x2048.webp",
+      "master": "front-room-01",
+      "masterSha256": "87e836734b1a739b7a561a88fdfbb2fcafe3ea9fd0aba9604700767bdc22d0e2",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 583184,
+      "sha256": "12b7b03f081c8df53dd67d8944dd7b2ac812299d249b844a0dffd87f90280c8e"
+    },
+    {
+      "file": "public/assets/variants/front-room-02-768x1024.avif",
+      "master": "front-room-02",
+      "masterSha256": "ea55c195874de052f803ed81c02d50790a0d1d99bcac6c18fa78b7c6b299b68d",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 129256,
+      "sha256": "d83f90f89b2aec8722d62f3efd718b7636fec7b273e6d3a467d89293d95a6542"
+    },
+    {
+      "file": "public/assets/variants/front-room-02-768x1024.webp",
+      "master": "front-room-02",
+      "masterSha256": "ea55c195874de052f803ed81c02d50790a0d1d99bcac6c18fa78b7c6b299b68d",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 189754,
+      "sha256": "01e717dd348dc12738646d2b620d48bc1cc38f3a72c58c62a258a123c8456dad"
+    },
+    {
+      "file": "public/assets/variants/front-room-02-1536x2048.avif",
+      "master": "front-room-02",
+      "masterSha256": "ea55c195874de052f803ed81c02d50790a0d1d99bcac6c18fa78b7c6b299b68d",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 403588,
+      "sha256": "70dd2a673914472a7fdb48fcf69ed3303561dc3bc8f7b27ed84ff71368f2ece4"
+    },
+    {
+      "file": "public/assets/variants/front-room-02-1536x2048.webp",
+      "master": "front-room-02",
+      "masterSha256": "ea55c195874de052f803ed81c02d50790a0d1d99bcac6c18fa78b7c6b299b68d",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 580238,
+      "sha256": "4d3157fa06138aa11f4e8d2ff64494807f35fe0c45cc891437454788cea49381"
+    },
+    {
+      "file": "public/assets/variants/front-room-03-768x1024.avif",
+      "master": "front-room-03",
+      "masterSha256": "263ef931e102166de4337a5f95214f10d825d993cf45eb8a5b5eb98b60121bbc",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 130001,
+      "sha256": "7a65a57f45d03cbb50d884e2055f1f350c8206ac82ecd64f03757b763ed391d4"
+    },
+    {
+      "file": "public/assets/variants/front-room-03-768x1024.webp",
+      "master": "front-room-03",
+      "masterSha256": "263ef931e102166de4337a5f95214f10d825d993cf45eb8a5b5eb98b60121bbc",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 190750,
+      "sha256": "f495ef70ba6c7406da1b4b2a64e2c1c490ad3becd7f377a91cff85747554b085"
+    },
+    {
+      "file": "public/assets/variants/front-room-03-1536x2048.avif",
+      "master": "front-room-03",
+      "masterSha256": "263ef931e102166de4337a5f95214f10d825d993cf45eb8a5b5eb98b60121bbc",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 405217,
+      "sha256": "7ef232a03f71dbc8c1aeb982d607a1a720d7bc610a937c04c3a06c7b0bc00aea"
+    },
+    {
+      "file": "public/assets/variants/front-room-03-1536x2048.webp",
+      "master": "front-room-03",
+      "masterSha256": "263ef931e102166de4337a5f95214f10d825d993cf45eb8a5b5eb98b60121bbc",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 583004,
+      "sha256": "09da97bf52e22fe99a477c2dea94cd5587e27d21355b32816d6ba87a4e1b458e"
+    },
+    {
+      "file": "public/assets/variants/front-room-04-768x1024.avif",
+      "master": "front-room-04",
+      "masterSha256": "c7ba08a9f5ec69368872e50a32512bcc9c4990a296b5781f3bc53db7115d7a93",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 133580,
+      "sha256": "2bed3a748f36e819459f83f74de9b75542031ad4aa1c61034abc089cfe6dcafd"
+    },
+    {
+      "file": "public/assets/variants/front-room-04-768x1024.webp",
+      "master": "front-room-04",
+      "masterSha256": "c7ba08a9f5ec69368872e50a32512bcc9c4990a296b5781f3bc53db7115d7a93",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 195618,
+      "sha256": "16c554f00cb54b2263e7815ac1b07f92a3e6f362b1830ebdaf37dad76d3fa7a1"
+    },
+    {
+      "file": "public/assets/variants/front-room-04-1536x2048.avif",
+      "master": "front-room-04",
+      "masterSha256": "c7ba08a9f5ec69368872e50a32512bcc9c4990a296b5781f3bc53db7115d7a93",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 411401,
+      "sha256": "6c3d4fee93b61e6ad48d27169e57af82eeb0d33132fe651df4faff0a3509b42c"
+    },
+    {
+      "file": "public/assets/variants/front-room-04-1536x2048.webp",
+      "master": "front-room-04",
+      "masterSha256": "c7ba08a9f5ec69368872e50a32512bcc9c4990a296b5781f3bc53db7115d7a93",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 608410,
+      "sha256": "50dc05092a9f74aafbab81e7505f1145f3b28ff78a575b8090bd8160a5c9fc64"
+    },
+    {
+      "file": "public/assets/variants/front-room-05-768x1024.avif",
+      "master": "front-room-05",
+      "masterSha256": "97c01d53f2275f99bb1051b14b6138536b95bdd12d99e75db7cbf68600b1ef1a",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 134022,
+      "sha256": "14a833ad152a8b9562180cce5941eeb73595651a9c55dacdc12850961f39411d"
+    },
+    {
+      "file": "public/assets/variants/front-room-05-768x1024.webp",
+      "master": "front-room-05",
+      "masterSha256": "97c01d53f2275f99bb1051b14b6138536b95bdd12d99e75db7cbf68600b1ef1a",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 196584,
+      "sha256": "a6c7dbd7902c03b6679a8ea87189567eb95d23f0657d25b6e4b5e8e074efdc09"
+    },
+    {
+      "file": "public/assets/variants/front-room-05-1536x2048.avif",
+      "master": "front-room-05",
+      "masterSha256": "97c01d53f2275f99bb1051b14b6138536b95bdd12d99e75db7cbf68600b1ef1a",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 412064,
+      "sha256": "11408ed3609db593696f2ca175f79b4f59821ce5dd9efef2819c949e83bc1c24"
+    },
+    {
+      "file": "public/assets/variants/front-room-05-1536x2048.webp",
+      "master": "front-room-05",
+      "masterSha256": "97c01d53f2275f99bb1051b14b6138536b95bdd12d99e75db7cbf68600b1ef1a",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 608898,
+      "sha256": "98468668082091f0f76891cd6c2a3e3d7b3e0a8f99ee6593f2d35f40e4c1733c"
+    },
+    {
+      "file": "public/assets/variants/front-room-06-768x1024.avif",
+      "master": "front-room-06",
+      "masterSha256": "47e23170aaebae6367a3eda71c6cf3733ab9692ecf6c7efbf79a04a1202cee58",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 134559,
+      "sha256": "f979e92a12250b57fce7b18b84375e035bef8629634a2ebc81e7155da91a8019"
+    },
+    {
+      "file": "public/assets/variants/front-room-06-768x1024.webp",
+      "master": "front-room-06",
+      "masterSha256": "47e23170aaebae6367a3eda71c6cf3733ab9692ecf6c7efbf79a04a1202cee58",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 196534,
+      "sha256": "7b84cfa3082302260a6313ef29c08053feee01a3fcc63520e2e28381d30012f1"
+    },
+    {
+      "file": "public/assets/variants/front-room-06-1536x2048.avif",
+      "master": "front-room-06",
+      "masterSha256": "47e23170aaebae6367a3eda71c6cf3733ab9692ecf6c7efbf79a04a1202cee58",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 411829,
+      "sha256": "6d2f94f8c3d7ebde6bfc233b3359b38e52aef3447e2d6c0d1d2f67b2716640c3"
+    },
+    {
+      "file": "public/assets/variants/front-room-06-1536x2048.webp",
+      "master": "front-room-06",
+      "masterSha256": "47e23170aaebae6367a3eda71c6cf3733ab9692ecf6c7efbf79a04a1202cee58",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 605814,
+      "sha256": "73da440aafb2d880deb7281c2dbadccf2dae09ea56795a08f99ba13adc45e6b9"
+    },
+    {
+      "file": "public/assets/variants/front-room-07-768x1024.avif",
+      "master": "front-room-07",
+      "masterSha256": "caa8ec2c5afab9a040d3a1f950fa5c68d84bb96120fc65c6877347bbc027fd2c",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 134918,
+      "sha256": "89b920bef57a4907f0da08cd5ab1bb191f225aff27ee8ab1b54d2355c99ea208"
+    },
+    {
+      "file": "public/assets/variants/front-room-07-768x1024.webp",
+      "master": "front-room-07",
+      "masterSha256": "caa8ec2c5afab9a040d3a1f950fa5c68d84bb96120fc65c6877347bbc027fd2c",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 196948,
+      "sha256": "78a09ba3be394e1cd4675ec1d311c137a21b327566797c46e96d843ec22e8a5c"
+    },
+    {
+      "file": "public/assets/variants/front-room-07-1536x2048.avif",
+      "master": "front-room-07",
+      "masterSha256": "caa8ec2c5afab9a040d3a1f950fa5c68d84bb96120fc65c6877347bbc027fd2c",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 412322,
+      "sha256": "12e728a8e2aa5d7bd5230f1bf0052b9a9c769daa0881a8531d655e35dfceb3a1"
+    },
+    {
+      "file": "public/assets/variants/front-room-07-1536x2048.webp",
+      "master": "front-room-07",
+      "masterSha256": "caa8ec2c5afab9a040d3a1f950fa5c68d84bb96120fc65c6877347bbc027fd2c",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 605112,
+      "sha256": "4312a57cff8c63b8556bf39dbde2686af1c9f4654a794263b3e7dcef20a57c7f"
+    },
+    {
+      "file": "public/assets/variants/front-room-08-768x1024.avif",
+      "master": "front-room-08",
+      "masterSha256": "4a9cf7a9b6ccdd988ea0f8e7546d388c2a16b6708c331f2baf6421525c11d847",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 135074,
+      "sha256": "04276d2945934fbcf47d7e10bdafbd755b3dc42873aaf906639c5f884f91d7da"
+    },
+    {
+      "file": "public/assets/variants/front-room-08-768x1024.webp",
+      "master": "front-room-08",
+      "masterSha256": "4a9cf7a9b6ccdd988ea0f8e7546d388c2a16b6708c331f2baf6421525c11d847",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 197640,
+      "sha256": "5787b5bbc09b63e32d80012d3d2a9517f906c35b74f4c2217081e98ef3f654a0"
+    },
+    {
+      "file": "public/assets/variants/front-room-08-1536x2048.avif",
+      "master": "front-room-08",
+      "masterSha256": "4a9cf7a9b6ccdd988ea0f8e7546d388c2a16b6708c331f2baf6421525c11d847",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 412725,
+      "sha256": "56fde406cf42bd6db2c111ad9fc45878853047afe7d2c880298f2f9e67e82b1d"
+    },
+    {
+      "file": "public/assets/variants/front-room-08-1536x2048.webp",
+      "master": "front-room-08",
+      "masterSha256": "4a9cf7a9b6ccdd988ea0f8e7546d388c2a16b6708c331f2baf6421525c11d847",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 604492,
+      "sha256": "0ab83e162f25aec898a4a8a6001c3315f9a92f2fcfd810155a97c7f25053442d"
+    },
+    {
+      "file": "public/assets/variants/front-room-09-768x1024.avif",
+      "master": "front-room-09",
+      "masterSha256": "daaa9ae94f45697cef2f4e6c69cfb93c29e7d28d599f6eeb3604e56e218d3b94",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 135981,
+      "sha256": "ebc9721295890132e40a9f761dcdd51e81bac6661e9794cfd173ef9a7f737562"
+    },
+    {
+      "file": "public/assets/variants/front-room-09-768x1024.webp",
+      "master": "front-room-09",
+      "masterSha256": "daaa9ae94f45697cef2f4e6c69cfb93c29e7d28d599f6eeb3604e56e218d3b94",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 199474,
+      "sha256": "234b9bad77519f192fae953a03427a7e347874fbddb013d2e26fd8ed87565f98"
+    },
+    {
+      "file": "public/assets/variants/front-room-09-1536x2048.avif",
+      "master": "front-room-09",
+      "masterSha256": "daaa9ae94f45697cef2f4e6c69cfb93c29e7d28d599f6eeb3604e56e218d3b94",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 414027,
+      "sha256": "e86e7f1c72f5b9873db7bf70648f9f66df534191b162887a431ae25306ca3db3"
+    },
+    {
+      "file": "public/assets/variants/front-room-09-1536x2048.webp",
+      "master": "front-room-09",
+      "masterSha256": "daaa9ae94f45697cef2f4e6c69cfb93c29e7d28d599f6eeb3604e56e218d3b94",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 608556,
+      "sha256": "928daa5387efeed5902d77d60ed78ab8e0719403662e38faa7827df8919ff605"
+    },
+    {
+      "file": "public/assets/variants/front-room-10-768x1024.avif",
+      "master": "front-room-10",
+      "masterSha256": "26049b029fcbccec5213fc12c481cb1f7692c0d802b0bea103e33f8b492c8d95",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 139437,
+      "sha256": "0c267008e952b93375cd8fa0e63f4828958c0639884aedecf2ba9d0c3f85b72e"
+    },
+    {
+      "file": "public/assets/variants/front-room-10-768x1024.webp",
+      "master": "front-room-10",
+      "masterSha256": "26049b029fcbccec5213fc12c481cb1f7692c0d802b0bea103e33f8b492c8d95",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 208182,
+      "sha256": "cb27202dee0dbcb823a0717eba6164628c2d5a8fcf459f8f3116b9ce13f91147"
+    },
+    {
+      "file": "public/assets/variants/front-room-10-1536x2048.avif",
+      "master": "front-room-10",
+      "masterSha256": "26049b029fcbccec5213fc12c481cb1f7692c0d802b0bea103e33f8b492c8d95",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 420972,
+      "sha256": "135656f81085f780010bb9000933857e1d85731cd474e5999df08100fd6bbd89"
+    },
+    {
+      "file": "public/assets/variants/front-room-10-1536x2048.webp",
+      "master": "front-room-10",
+      "masterSha256": "26049b029fcbccec5213fc12c481cb1f7692c0d802b0bea103e33f8b492c8d95",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 616148,
+      "sha256": "f6669c7fa4453ecbedc26e68ab66bac7433043cc06270848b6ca6ac13ce7f2fc"
+    },
+    {
+      "file": "public/assets/variants/front-room-11-768x1024.avif",
+      "master": "front-room-11",
+      "masterSha256": "a6e5f3f2e42cf53e66b48c2d49ccf0bbc8fc01f4253bce6df9d725d60b605626",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 139631,
+      "sha256": "3f85f52893088fbbb2199be040d508855e047aedac77f94f5893beedeb6ced9f"
+    },
+    {
+      "file": "public/assets/variants/front-room-11-768x1024.webp",
+      "master": "front-room-11",
+      "masterSha256": "a6e5f3f2e42cf53e66b48c2d49ccf0bbc8fc01f4253bce6df9d725d60b605626",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 208274,
+      "sha256": "582293ebe229457ae2afa1877988e580a2c11478f5a6d6c6fec777c6fb00d95e"
+    },
+    {
+      "file": "public/assets/variants/front-room-11-1536x2048.avif",
+      "master": "front-room-11",
+      "masterSha256": "a6e5f3f2e42cf53e66b48c2d49ccf0bbc8fc01f4253bce6df9d725d60b605626",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 421596,
+      "sha256": "8e57f8cf1ca415237f0b9229f044cfa657586fa51b753b6f22e367f40cb1b0d6"
+    },
+    {
+      "file": "public/assets/variants/front-room-11-1536x2048.webp",
+      "master": "front-room-11",
+      "masterSha256": "a6e5f3f2e42cf53e66b48c2d49ccf0bbc8fc01f4253bce6df9d725d60b605626",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 616364,
+      "sha256": "0f787b4897d640a4ddb4e49e1c9a24472bfb079a529bacdbcb3e045598c381d5"
+    },
+    {
+      "file": "public/assets/variants/front-room-12-768x1024.avif",
+      "master": "front-room-12",
+      "masterSha256": "2a31be7d05972c8c3c8a46d013b4704013e969143794122151fb7507852ce077",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 139485,
+      "sha256": "dfd6da5bfc8b26b531fed508e2ce99176dc52e2c8a5bd72fe4b16917ec25bdb6"
+    },
+    {
+      "file": "public/assets/variants/front-room-12-768x1024.webp",
+      "master": "front-room-12",
+      "masterSha256": "2a31be7d05972c8c3c8a46d013b4704013e969143794122151fb7507852ce077",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 209030,
+      "sha256": "d8f7451dcd3687dbbcf2e2bdf1bdfb4aa1c2a768e6c3a28d45a3b24bc1ded06d"
+    },
+    {
+      "file": "public/assets/variants/front-room-12-1536x2048.avif",
+      "master": "front-room-12",
+      "masterSha256": "2a31be7d05972c8c3c8a46d013b4704013e969143794122151fb7507852ce077",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 419104,
+      "sha256": "a295b572df01d92b26c1ac0d0814c98799d46e0fe043f2a725097b48ef66d2e9"
+    },
+    {
+      "file": "public/assets/variants/front-room-12-1536x2048.webp",
+      "master": "front-room-12",
+      "masterSha256": "2a31be7d05972c8c3c8a46d013b4704013e969143794122151fb7507852ce077",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 623836,
+      "sha256": "d40fdd6ee40c76d0082987c44f489cb8dff8e4e078998d41e240e9fc5525dba1"
+    },
+    {
+      "file": "public/assets/variants/courtyard-13-768x1024.avif",
+      "master": "courtyard-13",
+      "masterSha256": "bec9ec1713248a4fcfe04774ba692ccde209a8a135e4d7ff2e19fc49acf80239",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 222410,
+      "sha256": "204f971c90a0714544efffc21c8fd3fe5c111ea8b6b074a179e521739c769bf1"
+    },
+    {
+      "file": "public/assets/variants/courtyard-13-768x1024.webp",
+      "master": "courtyard-13",
+      "masterSha256": "bec9ec1713248a4fcfe04774ba692ccde209a8a135e4d7ff2e19fc49acf80239",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 321038,
+      "sha256": "22bd29d6d3d65a811976d803da532eccfc37d3a54be7a004cd7555312c2f7c8a"
+    },
+    {
+      "file": "public/assets/variants/courtyard-13-1536x2048.avif",
+      "master": "courtyard-13",
+      "masterSha256": "bec9ec1713248a4fcfe04774ba692ccde209a8a135e4d7ff2e19fc49acf80239",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 664622,
+      "sha256": "3d79456f14aae12054744c37377efe88f1304703727549fe8106f6a56b810ff5"
+    },
+    {
+      "file": "public/assets/variants/courtyard-13-1536x2048.webp",
+      "master": "courtyard-13",
+      "masterSha256": "bec9ec1713248a4fcfe04774ba692ccde209a8a135e4d7ff2e19fc49acf80239",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1058574,
+      "sha256": "c2abbb5bc08dee821451df6ce18095b094eda13710344f8acd1483b880522b98"
+    },
+    {
+      "file": "public/assets/variants/courtyard-14-768x1024.avif",
+      "master": "courtyard-14",
+      "masterSha256": "aa7f22e12dd5b0dc7a3b2e98455e9d6d0c14be9c56862bb460d43d326d72ad8e",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 222868,
+      "sha256": "d2865e11fbc74945889c6c4545ca620713018e3105c7d3436b266b2f3faa7047"
+    },
+    {
+      "file": "public/assets/variants/courtyard-14-768x1024.webp",
+      "master": "courtyard-14",
+      "masterSha256": "aa7f22e12dd5b0dc7a3b2e98455e9d6d0c14be9c56862bb460d43d326d72ad8e",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 322034,
+      "sha256": "ae05df9a8b769c78fa6d65b93f5ffc76d1b35c48f0c1ad8e65e3c0e6a7be981a"
+    },
+    {
+      "file": "public/assets/variants/courtyard-14-1536x2048.avif",
+      "master": "courtyard-14",
+      "masterSha256": "aa7f22e12dd5b0dc7a3b2e98455e9d6d0c14be9c56862bb460d43d326d72ad8e",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 666016,
+      "sha256": "889ec4844f549de3f7b7754a36bbfcbe0cf3814167e25315cbe5edb6806f432b"
+    },
+    {
+      "file": "public/assets/variants/courtyard-14-1536x2048.webp",
+      "master": "courtyard-14",
+      "masterSha256": "aa7f22e12dd5b0dc7a3b2e98455e9d6d0c14be9c56862bb460d43d326d72ad8e",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1059332,
+      "sha256": "6edd37463e3095dc375026f40aef9c3260ced3f5b57656e4752a8e6674c5197f"
+    },
+    {
+      "file": "public/assets/variants/courtyard-15-768x1024.avif",
+      "master": "courtyard-15",
+      "masterSha256": "47c4f22991eabd467d543ae4c03001847ec55aa057e1e4263aa07a62f1557344",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 222547,
+      "sha256": "1af1ed7138ce9d7568192f301367f1acc7ff7ae240ddea64b75ced605eff31a9"
+    },
+    {
+      "file": "public/assets/variants/courtyard-15-768x1024.webp",
+      "master": "courtyard-15",
+      "masterSha256": "47c4f22991eabd467d543ae4c03001847ec55aa057e1e4263aa07a62f1557344",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 324434,
+      "sha256": "860dd7808a0218c834c6d0f9e30e33cdd5639575b5717e5e7067e48c8d3f124f"
+    },
+    {
+      "file": "public/assets/variants/courtyard-15-1536x2048.avif",
+      "master": "courtyard-15",
+      "masterSha256": "47c4f22991eabd467d543ae4c03001847ec55aa057e1e4263aa07a62f1557344",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 665445,
+      "sha256": "ad83fdb0a460f9be9bec68fddabcef0c0322822312ede61f1d08d2b88fa79dd9"
+    },
+    {
+      "file": "public/assets/variants/courtyard-15-1536x2048.webp",
+      "master": "courtyard-15",
+      "masterSha256": "47c4f22991eabd467d543ae4c03001847ec55aa057e1e4263aa07a62f1557344",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1059712,
+      "sha256": "da8890764f8485c5ccd3f6ebfba3198725d0ee5bfa5d1eae68dfe3d8abbb5164"
+    },
+    {
+      "file": "public/assets/variants/courtyard-16-768x1024.avif",
+      "master": "courtyard-16",
+      "masterSha256": "b019dfe16ac69a6ca2224562cb360f8ac31220bb766fcb50abf2b21da0f85d69",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 222593,
+      "sha256": "269e0bf87ddb139b66c71ff2ed23164e3fc2f59441c21f0fe44de0e0ca325f34"
+    },
+    {
+      "file": "public/assets/variants/courtyard-16-768x1024.webp",
+      "master": "courtyard-16",
+      "masterSha256": "b019dfe16ac69a6ca2224562cb360f8ac31220bb766fcb50abf2b21da0f85d69",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 321060,
+      "sha256": "138ea19d9ffa1df80d362cac77df541e147e0d0b2ff928fb0475bf81d51fc0a4"
+    },
+    {
+      "file": "public/assets/variants/courtyard-16-1536x2048.avif",
+      "master": "courtyard-16",
+      "masterSha256": "b019dfe16ac69a6ca2224562cb360f8ac31220bb766fcb50abf2b21da0f85d69",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 664669,
+      "sha256": "5bf368378235ae05e3d42e8ba1d00aa39a1e18c2c874bc86dc91f4bee18b995f"
+    },
+    {
+      "file": "public/assets/variants/courtyard-16-1536x2048.webp",
+      "master": "courtyard-16",
+      "masterSha256": "b019dfe16ac69a6ca2224562cb360f8ac31220bb766fcb50abf2b21da0f85d69",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1059116,
+      "sha256": "f6cdc5c5863c5a333110d487cfb0522d1527c6bd01358abc008b9eaee77d9601"
+    },
+    {
+      "file": "public/assets/variants/front-room-17-768x1024.avif",
+      "master": "front-room-17",
+      "masterSha256": "cf464bd890b553732890a942d1c60edfe0d9392e6e1e686311aef42f60a43173",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 140502,
+      "sha256": "a150431cebc692be0fa03dfd6135efad3b758fdefd46b2c0c0eb0687f1eb4a39"
+    },
+    {
+      "file": "public/assets/variants/front-room-17-768x1024.webp",
+      "master": "front-room-17",
+      "masterSha256": "cf464bd890b553732890a942d1c60edfe0d9392e6e1e686311aef42f60a43173",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 209036,
+      "sha256": "433beab8687109a298170c211dca1c3936cef663d8387d7d09610705b613917f"
+    },
+    {
+      "file": "public/assets/variants/front-room-17-1536x2048.avif",
+      "master": "front-room-17",
+      "masterSha256": "cf464bd890b553732890a942d1c60edfe0d9392e6e1e686311aef42f60a43173",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 420817,
+      "sha256": "816792bba8c73a1b75e17b8538086afda8ad65582c236f5a793f75e1fafa9264"
+    },
+    {
+      "file": "public/assets/variants/front-room-17-1536x2048.webp",
+      "master": "front-room-17",
+      "masterSha256": "cf464bd890b553732890a942d1c60edfe0d9392e6e1e686311aef42f60a43173",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 625054,
+      "sha256": "5491ad60a7ba45b2af07cf25b6b62257058446fe8bb71509aa99d013d2498c89"
+    },
+    {
+      "file": "public/assets/variants/courtyard-18-768x1024.avif",
+      "master": "courtyard-18",
+      "masterSha256": "0af3fe57cc21ed3b1348938bac4864e435e57743e3eadc8189b50ef9240a6b6b",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 222328,
+      "sha256": "312ca0adbe6170253695fffa7cb8a6a80b7150490d6e6d1392578fc652d17554"
+    },
+    {
+      "file": "public/assets/variants/courtyard-18-768x1024.webp",
+      "master": "courtyard-18",
+      "masterSha256": "0af3fe57cc21ed3b1348938bac4864e435e57743e3eadc8189b50ef9240a6b6b",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 321364,
+      "sha256": "94e76136887661e30ce90bb42f46c3a3571177d2e07111af54b01c2e88c7fd05"
+    },
+    {
+      "file": "public/assets/variants/courtyard-18-1536x2048.avif",
+      "master": "courtyard-18",
+      "masterSha256": "0af3fe57cc21ed3b1348938bac4864e435e57743e3eadc8189b50ef9240a6b6b",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 664631,
+      "sha256": "fd97e4667fdf2883598ac4341fb18897256a37ae8b1e74ed01996b0ed2941a12"
+    },
+    {
+      "file": "public/assets/variants/courtyard-18-1536x2048.webp",
+      "master": "courtyard-18",
+      "masterSha256": "0af3fe57cc21ed3b1348938bac4864e435e57743e3eadc8189b50ef9240a6b6b",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1059142,
+      "sha256": "d83bb624217d78c305866efe6ffd3ee3c7af1112fbc040cb7c8c531529d201c4"
+    },
+    {
+      "file": "public/assets/variants/courtyard-19-768x1024.avif",
+      "master": "courtyard-19",
+      "masterSha256": "e42712279921b6795a8405cce31633323d443c8097d167b2f84d1d2db2b89a24",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 221349,
+      "sha256": "b1755ffb634f77324d13f5d7e87b0c9f4f55ce59530c33530afe158ed0ae6e6e"
+    },
+    {
+      "file": "public/assets/variants/courtyard-19-768x1024.webp",
+      "master": "courtyard-19",
+      "masterSha256": "e42712279921b6795a8405cce31633323d443c8097d167b2f84d1d2db2b89a24",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 321178,
+      "sha256": "1981f29bdaa2cccabb2d1274ea899fa3d326251fd7dd9e466bbb062fbb823422"
+    },
+    {
+      "file": "public/assets/variants/courtyard-19-1536x2048.avif",
+      "master": "courtyard-19",
+      "masterSha256": "e42712279921b6795a8405cce31633323d443c8097d167b2f84d1d2db2b89a24",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 663357,
+      "sha256": "5c0f717dedbad65c6110155154be8df2f8fb748f3fb7cc50bb0be11a2db123da"
+    },
+    {
+      "file": "public/assets/variants/courtyard-19-1536x2048.webp",
+      "master": "courtyard-19",
+      "masterSha256": "e42712279921b6795a8405cce31633323d443c8097d167b2f84d1d2db2b89a24",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1059836,
+      "sha256": "2a15d22b9f1a0619fd3b66ffa83ea924d635f10f3b6c50ff5c23a4b1415fa8c0"
+    },
+    {
+      "file": "public/assets/variants/courtyard-20-768x1024.avif",
+      "master": "courtyard-20",
+      "masterSha256": "dd36c983d08bde99ca7bfbfb54df2c061063c822997b1bdf3dd1c9be1a3b7844",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 213130,
+      "sha256": "d09ec8ab4d03c98ce1e674c4a244ab5b2f7c017473cc0c812cba80ce7ec19d95"
+    },
+    {
+      "file": "public/assets/variants/courtyard-20-768x1024.webp",
+      "master": "courtyard-20",
+      "masterSha256": "dd36c983d08bde99ca7bfbfb54df2c061063c822997b1bdf3dd1c9be1a3b7844",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 308988,
+      "sha256": "45ddee30175adfda13f8038b7ba7844403321c560646f06667c6fa2fc2bc4c40"
+    },
+    {
+      "file": "public/assets/variants/courtyard-20-1536x2048.avif",
+      "master": "courtyard-20",
+      "masterSha256": "dd36c983d08bde99ca7bfbfb54df2c061063c822997b1bdf3dd1c9be1a3b7844",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 635318,
+      "sha256": "deb43749a38bcc2ebc145e0411434b571c70807efef9e642713ed94657214beb"
+    },
+    {
+      "file": "public/assets/variants/courtyard-20-1536x2048.webp",
+      "master": "courtyard-20",
+      "masterSha256": "dd36c983d08bde99ca7bfbfb54df2c061063c822997b1bdf3dd1c9be1a3b7844",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1008462,
+      "sha256": "d2fcf46ab19a57f88ad41620d4dcc24acbdd498c506399919f088f5c63525bb8"
+    },
+    {
+      "file": "public/assets/variants/courtyard-21-768x1024.avif",
+      "master": "courtyard-21",
+      "masterSha256": "51a42464774caa18eafa33630da2a6831756d0024d1c23372e54623f95160c59",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 215452,
+      "sha256": "2b53a39e0443cec1de899563bb932dc9ccf3655c7754ff15ec1d34be03711bb7"
+    },
+    {
+      "file": "public/assets/variants/courtyard-21-768x1024.webp",
+      "master": "courtyard-21",
+      "masterSha256": "51a42464774caa18eafa33630da2a6831756d0024d1c23372e54623f95160c59",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 311958,
+      "sha256": "1d560dea77f22f8dfc15d92e04f01469c5e38e07049d9f8b9e3904823c77a09f"
+    },
+    {
+      "file": "public/assets/variants/courtyard-21-1536x2048.avif",
+      "master": "courtyard-21",
+      "masterSha256": "51a42464774caa18eafa33630da2a6831756d0024d1c23372e54623f95160c59",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 640797,
+      "sha256": "19f37b951d81a8e61aec79c4c0b218d334182632f52426564cce6fecb80fed20"
+    },
+    {
+      "file": "public/assets/variants/courtyard-21-1536x2048.webp",
+      "master": "courtyard-21",
+      "masterSha256": "51a42464774caa18eafa33630da2a6831756d0024d1c23372e54623f95160c59",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1001972,
+      "sha256": "a68f79992bfefca733c04c543d703a6a7215dbfa86ad634a09ee84f4295c3664"
+    },
+    {
+      "file": "public/assets/variants/courtyard-22-768x1024.avif",
+      "master": "courtyard-22",
+      "masterSha256": "e266976df591a93dc154dd7b393ea864ffac63599f6150f8c586f2de417beb89",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 213967,
+      "sha256": "cd946b5ed18917a29f59c0be68f7e9d58105145b32d4ec42c71d8f3616466779"
+    },
+    {
+      "file": "public/assets/variants/courtyard-22-768x1024.webp",
+      "master": "courtyard-22",
+      "masterSha256": "e266976df591a93dc154dd7b393ea864ffac63599f6150f8c586f2de417beb89",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 310362,
+      "sha256": "9a5dae2d8f7e498f0c1fd7b3719582741001405c4b38000a9cac2f25c0924626"
+    },
+    {
+      "file": "public/assets/variants/courtyard-22-1536x2048.avif",
+      "master": "courtyard-22",
+      "masterSha256": "e266976df591a93dc154dd7b393ea864ffac63599f6150f8c586f2de417beb89",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 634896,
+      "sha256": "b81eda5abd04c6dc60b515a54f5e28f2653234a63df11e57ee734ec0d34fed6d"
+    },
+    {
+      "file": "public/assets/variants/courtyard-22-1536x2048.webp",
+      "master": "courtyard-22",
+      "masterSha256": "e266976df591a93dc154dd7b393ea864ffac63599f6150f8c586f2de417beb89",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 992852,
+      "sha256": "e19e0435481c48f19a80ea112f0b9b7589c9187a2b9681e228567a1e25c668b1"
+    },
+    {
+      "file": "public/assets/variants/courtyard-23-768x1024.avif",
+      "master": "courtyard-23",
+      "masterSha256": "9251d3e7cf7ee8907bf2cc280416b1fa799ba3fe0a16f7357204cfcead998713",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 215884,
+      "sha256": "4cebd1f2d70ee4223510124273915f94f7a8db9235f642eecf5ba4fbcf6d20d2"
+    },
+    {
+      "file": "public/assets/variants/courtyard-23-768x1024.webp",
+      "master": "courtyard-23",
+      "masterSha256": "9251d3e7cf7ee8907bf2cc280416b1fa799ba3fe0a16f7357204cfcead998713",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 312452,
+      "sha256": "6feab6b1ebe169be1d235dde9301bf75bba8221b144f60d8965c086627045708"
+    },
+    {
+      "file": "public/assets/variants/courtyard-23-1536x2048.avif",
+      "master": "courtyard-23",
+      "masterSha256": "9251d3e7cf7ee8907bf2cc280416b1fa799ba3fe0a16f7357204cfcead998713",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 637909,
+      "sha256": "fe85415f675789076053ea317cb7502afa5815ef17c69789552d29c6217f7e33"
+    },
+    {
+      "file": "public/assets/variants/courtyard-23-1536x2048.webp",
+      "master": "courtyard-23",
+      "masterSha256": "9251d3e7cf7ee8907bf2cc280416b1fa799ba3fe0a16f7357204cfcead998713",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 992994,
+      "sha256": "84b85880af680bd680a3b8614f1554a9b70a00cbfa904de10689aad16d90e0e6"
+    },
+    {
+      "file": "public/assets/variants/front-room-24-768x1024.avif",
+      "master": "front-room-24",
+      "masterSha256": "58ba12a567a924564da55e93e4f022a2948f633169a3885fdbd0195b2ab22ad6",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 145897,
+      "sha256": "79d427a3e1d1ee3b599ebe4c27c6bbfefd82b79b466bd1be1b7248c9a306a82b"
+    },
+    {
+      "file": "public/assets/variants/front-room-24-768x1024.webp",
+      "master": "front-room-24",
+      "masterSha256": "58ba12a567a924564da55e93e4f022a2948f633169a3885fdbd0195b2ab22ad6",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 217994,
+      "sha256": "a8df3d2d9c88c729abf59e63c13cf8b4b7f66eb4b59b3124b984958e8fbb9e83"
+    },
+    {
+      "file": "public/assets/variants/front-room-24-1536x2048.avif",
+      "master": "front-room-24",
+      "masterSha256": "58ba12a567a924564da55e93e4f022a2948f633169a3885fdbd0195b2ab22ad6",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 433988,
+      "sha256": "32c5825522541692831fba0258eb1049845d139f0febaa675d4f6a5e60c0d315"
+    },
+    {
+      "file": "public/assets/variants/front-room-24-1536x2048.webp",
+      "master": "front-room-24",
+      "masterSha256": "58ba12a567a924564da55e93e4f022a2948f633169a3885fdbd0195b2ab22ad6",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 650858,
+      "sha256": "d576de7efd582a7d20a06efdbc4d2c8e59fa2f9b915ff1f65cb74c88428ac745"
+    },
+    {
+      "file": "public/assets/variants/decoration-front-1086x1448.webp",
+      "master": "decoration-front",
+      "masterSha256": "58cb05805ef1cd5fb63f9f37c4f6d9535d3a8687f6a0291e448bc3eaef447964",
+      "width": 1086,
+      "height": 1448,
+      "format": "webp",
+      "bytes": 286712,
+      "sha256": "3174a5f17629d199ead6de2861739d3b4674a16babc63b137392706c9c96e327"
+    },
+    {
+      "file": "public/assets/variants/decoration-courtyard-1086x1448.webp",
+      "master": "decoration-courtyard",
+      "masterSha256": "0629e5f807838a0606a7707e773f28fe2be7f971b40118f21bca65a57d0be8ca",
+      "width": 1086,
+      "height": 1448,
+      "format": "webp",
+      "bytes": 428870,
+      "sha256": "3a98db9e6677cd9b90521b248ebbd749ac3dd8b9593249bab07a38e14351993e"
+    }
+  ]
+}

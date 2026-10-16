@@ -1,0 +1,28 @@
+{
+  "name": "scary-snacks",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node tools/server.ts",
+    "build": "node tools/build.ts",
+    "preview": "node tools/server.ts --dist",
+    "test": "node --test tests/*.test.ts",
+    "test:browser": "playwright test",
+    "quality:full": "npm run typecheck && npm run test && npm run build && npm run test:browser",
+    "data:generate": "node tools/create-original-data.ts",
+    "saves:checkpoints": "node tools/create-checkpoint-saves.ts",
+    "release:source": "node tools/export-source.ts",
+    "typecheck": "tsc --noEmit",
+    "assets:build": "node tools/build-image-variants.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0",
+    "@types/node": "^24.19.2",
+    "sharp": "0.35.5",
+    "typescript": "7.0.2"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

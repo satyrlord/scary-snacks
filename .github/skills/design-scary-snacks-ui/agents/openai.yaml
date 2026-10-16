@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Design Scary Snacks UI'
+  short_description: 'Design the game UI with Impeccable'
+  default_prompt: 'Use $design-scary-snacks-ui and the necessary $impeccable workflow to design or examine this Scary Snacks interface scope.'
+policy:
+  allow_implicit_invocation: true

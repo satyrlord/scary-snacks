@@ -1,0 +1,35 @@
+import { mkdir, cp, rm, readFile } from 'node:fs/promises';
+import { resolve, relative, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { runtimeFiles, fontFiles } from './build.ts';
+
+const root=resolve(import.meta.dirname,'..');
+const output=resolve(root,'.release/scary-snacks-source');
+if(relative(root,output).replaceAll('\\','/')!=='.release/scary-snacks-source')throw new Error('Invalid source export directory.');
+// The export keeps the repository's own ignore rules, so a repository made from it also ignores .env.local and the local folders private/ and analysis/.
+export const sourceFiles=[...runtimeFiles,'public/data/game.json',...fontFiles.map(path=>`public/${path}`),
+  'package.json','package-lock.json','tsconfig.json','playwright.config.ts','.gitignore','README.md','PRODUCT.md','DESIGN.md',
+  'tools/build.ts','tools/build-image-variants.ts','tools/server.ts','tools/create-original-data.ts','tools/create-checkpoint-saves.ts','tools/export-source.ts',
+  'tests/assets.test.ts','tests/build.test.ts','tests/server.test.ts','tests/engine.test.ts','tests/storage.test.ts','tests/decorations.test.ts','tests/source-export.test.ts','tests/browser/game.spec.ts','tests/browser/renovation.spec.ts','tests/browser/decorations.spec.ts','tests/browser/generators.spec.ts',
+  'tests/level-rewards.test.ts','tests/browser/level-rewards.spec.ts',
+  'tests/quests.test.ts','tests/browser/quests.spec.ts',
+  'tools/campaign-balance.ts','tests/campaign-balance.test.ts','tests/campaign-goals.test.ts','tests/economy.test.ts','tests/browser/campaign-goals.spec.ts',
+  'docs/asset-prompts.json','docs/asset-provenance.json','docs/asset-variants.json','docs/font-provenance.json','docs/release-notes.md','docs/verification.md','docs/economy.md',
+  'docs/specs/001-room-states-art-plan.md','docs/specs/001-visible-renovation.md','docs/specs/002-decoration-choices.md','docs/specs/003-generator-progression.md','docs/specs/004-level-rewards.md','docs/specs/005-character-quests.md','docs/specs/006-campaign-goals-and-economy.md','docs/specs/007-board-clearing.md','docs/specs/008-chapter-story-and-finale.md','docs/specs/009-dialogue-continuation.md','docs/specs/010-guided-introduction.md','docs/specs/011-discovery-and-recipe-book.md','docs/specs/012-post-campaign-goals.md','docs/specs/013-neighbourhood-regulars.md','docs/specs/014-miez-visits.md','docs/specs/015-front-door.md','docs/specs/README.md',
+  '.github/workflows/pages.yml',
+];
+const record: { assets: { file: string }[] }=JSON.parse(await readFile(resolve(root,'docs/asset-provenance.json'),'utf8'));
+for(const asset of record.assets){
+  if(!/^public\/assets\/original\/[a-z0-9-]+\.png$/.test(asset.file))throw new Error('Unapproved export asset.');
+  sourceFiles.push(asset.file);
+}
+const variants: { variants: { file: string }[] }=JSON.parse(await readFile(resolve(root,'docs/asset-variants.json'),'utf8'));
+for(const variant of variants.variants){
+  if(!/^public\/assets\/variants\/[a-z0-9-]+-\d+x\d+\.(avif|webp)$/.test(variant.file))throw new Error('Unapproved export variant.');
+  sourceFiles.push(variant.file);
+}
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  await rm(output,{recursive:true,force:true});
+  for(const file of sourceFiles){const target=resolve(output,file);await mkdir(dirname(target),{recursive:true});await cp(resolve(root,file),target);}
+  console.log(`Exported ${sourceFiles.length} files to ${output}. No Git history and no file from private/ or analysis/ were copied.`);
+}

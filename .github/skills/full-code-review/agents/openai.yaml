@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Full Code Review'
+  short_description: 'Review code against its contracts'
+  default_prompt: 'Use $full-code-review to review this Scary Snacks scope and give findings that have evidence.'
+policy:
+  allow_implicit_invocation: true

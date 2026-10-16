@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Verify Game'
+  short_description: 'Collect production browser evidence'
+  default_prompt: 'Use $verify-game to examine Scary Snacks in its production browser build.'
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Create Skill'
+  short_description: 'Make or audit a repository skill'
+  default_prompt: 'Use $create-skill to make, import, adapt, or audit this Scary Snacks repository skill.'
+policy:
+  allow_implicit_invocation: true

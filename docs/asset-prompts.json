@@ -1,0 +1,530 @@
+{
+  "mode": "Built-in in-chat imagegen for the menu atlas, the mascots, and the two decoration paintings. OpenAI Images API (gpt-image-2.5-flare, high quality) for the portraits, timber-tabletop, embroidered-runner, the two reference paintings counter-band and courtyard, and the painted room states.",
+  "originalGameImageReferences": false,
+  "prompts": [
+    {
+      "id": "menu-atlas",
+      "prompt": "Use case: stylized-concept. Asset type: production sprite atlas for an original Transylvanian bistro merge game. Create ONE square bitmap atlas, a precisely regular 6-column by 6-row grid of 36 individual icons, each object centered within its equal-size cell, generous transparent padding, no grid lines, no text, no numbers, no letters, no logos. Truly TRANSPARENT background. All objects must stay within their own cell; no overlapping cell boundaries. Hand-painted gouache and colored-pencil culinary illustration, slightly top-down three-quarter perspective, subtle realistic ceramic and food details, warm terracotta, cream, deep spruce and plum accents. Mature cozy European illustration, elegant small silhouettes that remain readable as 64-pixel game items. NOT glossy plastic, NOT mobile cartoon bobble style. Independently designed, no reference to an existing game's designs. Exact order left to right, top to bottom: ROW 1: bowl of white flour; small ball of bread dough; three golden pogacsa savory scones; round langos flatbread with sour cream; two slices rustic bread spread with red zacusca; woven basket of mixed rustic bread. ROW 2: bowl of yellow cornmeal; mound of mamaliga polenta; baked bulz polenta ball stuffed with sheep cheese; ceramic plate of smoked cheese and herbs; plate of sarmale cabbage rolls with sour cream; red paprika goulash in a small copper pot. ROW 3: small pile of walnuts; one plain fried doughnut; Romanian papanasi doughnut with sour cream and dark berry jam; two plum dumplings coated in crumbs, one cut open; sliced walnut cozonac braided sweet bread; upright hollow kurtoskalacs chimney cake with cinnamon crust. ROW 4: cluster of cream elderflowers; glass pitcher of pale elderflower socata with lemon; steaming glass of forest-fruit tea; glass jar of cherry compote; tiny unlabelled glass carafe of deep purple blueberry afinata liqueur and one small glass; clear plum palinca in an unlabelled carafe with a plum beside it. ROW 5: one purple aubergine; two red peppers; platter of roasted aubergine and peppers; sealed red zacusca spread jar without label; rustic bowl of wild mushroom sauce; sharing board of vegetables and bread. ROW 6: wooden flour bin with scoop (generator); copper stockpot on short iron trivet (generator); cream pastry box with lid propped open (generator); generous blue ceramic drinks pitcher (generator); wicker produce basket (generator); a small antique brass service bell. No packaging brand names, no flags, no animals, no people. Every cell has exactly one coherent grouped icon. Square image, high resolution, crisp silhouettes, preserve true alpha transparency.",
+      "disposition": "superseded to correct the grid fit"
+    },
+    {
+      "id": "mascots-initial",
+      "prompt": "Use case: stylized-concept. Asset type: original mascot sprite atlas for a cosy Transylvanian bistro game. ONE square transparent PNG image with exactly four separate animal illustrations in a precise 2-column by 2-row grid, all centered with clear padding inside equal cells, no grid lines, no text or logos. Charming sophisticated hand-painted gouache and colored pencil, animal anatomy with gentle expressive personality, not a known cartoon. Top-left: Miez, a sleek BLACK CAT sitting with tail curled around paws, subtle indigo highlights, large amber eyes, ears alert, front three-quarter view. Top-right: the same black cat curled up asleep, tail around body, tiny peaceful smile. Bottom-left: a friendly small dark charcoal BAT in flight with spread leathery wings, warm brown face, tiny pointed ears, subtly smiling, complete wing tips inside cell. Bottom-right: another black cat stretching with arched back and raised tail, beautiful dark silhouette, small amber eyes. Keep all four icons wholly separate with no overlap. No collars, no props, no clothes, no round badge backgrounds, no white background. Truly transparent alpha behind the animals, legible at small game sizes, detailed enough for a 150-pixel mascot. Completely original character designs.",
+      "disposition": "superseded to correct grid padding"
+    },
+    {
+      "id": "mascots-final",
+      "prompt": "Edit this original transparent mascot sprite atlas ONLY to improve grid fitting. Preserve all four exact original animal designs and paint style: sitting black cat top-left, sleeping black cat top-right, friendly flying bat bottom-left, stretching black cat bottom-right. Recompose into four STRICTLY equal square cells in a 2-by-2 grid. Center each COMPLETE animal in its own quadrant, scale down to fit within the central 75% width and 75% height of its cell. No ear, paw, wing tip, tail or whisker may touch or cross a quadrant boundary. A wide transparent gap must separate rows and columns. True transparent background, no grid lines, no text, no frames. Keep colors and characters unchanged."
+    },
+    {
+      "id": "menu-atlas-final",
+      "prompt": "Edit this generated food sprite atlas for precise technical grid fit. Preserve all 36 exact food/drink/generator subjects, their order, and their hand-painted colors and style. The ONLY intended change is spacing and scale: recompose as an exact 6-column by 6-row square atlas, with every individual grouped icon centered in its equal square cell. Every icon INCLUDING shadows, handles, baskets, lids, leaves and steam must fit within the central 72% width and 72% height of its own cell. This means a generous completely transparent margin on ALL FOUR SIDES of EACH cell. Absolutely no element may cross into a neighbour's cell. The blue pitcher in bottom-row column 4 must have no stray bits of the pastry box or produce basket in its cell; the flour bin and copper pot must have their entire lids visible and margin above. Do not add text, gridlines, frames, new objects or labels. Keep all existing subjects exactly in the original 6x6 order, 36 icons total. Truly transparent alpha background, clean edges. Output one square image."
+    },
+    {
+      "id": "counter-band",
+      "prompt": "Use case: illustration-story. Create an original wide 3:1 panoramic background illustration for a cosy Transylvanian bistro game. DO NOT PUT ANY TEXT, LETTERING, NUMBERS OR SIGNS anywhere in the picture. It is an entirely invented place, not an existing establishment or game location. Hand-painted gouache with delicate colored pencil edges, an accomplished illustrated travel-journal feel, believable proportions and architectural perspective. Do not resemble glossy mobile-game art.\n\nSubject: the back wall of a small Saxon village bistro front room at blue hour, on the evening before it reopens, seen straight on from a seat at a table in the middle of the room, at seated eye level. The viewer's own table is not visible. The room is tidy but tired and not yet restored: quiet and slightly mysterious, but safe and inviting. Thick cream limewashed walls with faint scuffs, dark exposed wooden ceiling beams with a few bunches of dried herbs, and a teal glazed tile stove left of centre glowing softly through its small fire door; the stove is the main warm light. Two amber hanging lamps hang from the beams but are unlit. One large round leaded window right of centre has dusty, cloudy panes, through which a plum-blue dusk sky, layered Carpathian hills, a village church spire and three small bats are still visible. Its deep wooden windowsill is empty. On the back wall: a pair of bare iron shelf brackets with no shelf on them yet; a blank weathered wooden board with no writing, leaning against the wall; copper cooking vessels hanging on pegs, dulled; a stack of chairs under a pale dust sheet at the far left edge; one lit candle on a ledge; a folded rust and ivory embroidered runner with invented simple botanical motifs.\n\nComposition for an interface strip: keep the stove and the round window inside the central 70% of the width, so the image can be cropped narrower. The bottom 30% of the image is a calm, low-detail zone: a plain wooden wainscot and the top edge of a long bare back counter at mid-distance, with no objects, chairs, food or bright highlights, because head-and-shoulders figures and small speech bubbles will be placed over it. Nothing important touches the bottom edge.\n\nLight: warm stove and candle glow on the left and centre, cool plum-blue evening light from the window on the right; balanced and readable, not dark or gloomy. No people, no cats, no animals indoors, no food, no vampires, no pumpkin theme, no skulls, no horror cobwebs, no broken glass, no movie references, no logos, no writing, no frame, no vignette, no UI. Render the whole image fully finished.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "2304x768",
+        "run": "across-the-table/counter-band-1"
+      }
+    },
+    {
+      "id": "timber-tabletop",
+      "prompt": "Use case: texture. Create an original seamless tileable square texture for a cosy Transylvanian bistro game. DO NOT PUT ANY TEXT, NUMBERS OR SYMBOLS in the image. Strict top-down orthographic view of the surface of an old farmhouse kitchen table: five or six wide wooden planks running horizontally from edge to edge, warm chestnut and walnut brown with subtle honey highlights, hand-painted gouache with delicate colored pencil grain lines, in a mature, cosy European storybook illustration style. Keep it low contrast and evenly lit across the whole image: no strong knots, cracks, nail heads, glossy highlights, cast shadows, perspective or vignette, because a grid of cream tiles will sit on top of it and must stay readable. Matte finish. No objects, no cloth, no crumbs, no stains. The texture must tile seamlessly on all four edges: the plank seams and the grain continue across the left and right borders and across the top and bottom borders.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x1536",
+        "run": "across-the-table/timber-tabletop-1"
+      }
+    },
+    {
+      "id": "embroidered-runner",
+      "prompt": "Use case: texture. Create an original seamless horizontal border texture, 3:1, for a cosy Transylvanian bistro game. DO NOT PUT ANY TEXT, LETTERS OR NUMBERS in the image. Strict top-down, flat, evenly lit view of a segment of a hand-embroidered cream linen table runner that fills the entire image from edge to edge: one band of traditional Transylvanian-style counted cross-stitch running horizontally across the full width, made of bold, simple eight-point stars, diamonds and stepped zigzag lines in deep madder red with a few black accents, framed above and below by two narrow plain red stitched lines. The motifs are large and simple enough to stay readable when the strip is shown only 14 pixels tall. Hand-painted gouache with delicate colored pencil thread texture, in a mature, cosy European storybook illustration style. The motif repeats exactly three times across the width, and the image must tile seamlessly from left to right. No hooked crosses, no swastika-like shapes, no political or religious emblems, no text, no folds or wrinkles, no shadows, no perspective, no frayed ends, and no background outside the cloth.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x512",
+        "run": "across-the-table/embroidered-runner-1"
+      }
+    },
+    {
+      "id": "portraits-folk-1",
+      "prompt": "Create an original character atlas for a cosy Transylvanian bistro game: ONE square image divided into a regular 2 by 2 grid of four equal square cells, with a true transparent background (no checkerboard, no colored matte, no grid lines). Each cell holds exactly one head-and-shoulders portrait of a fictional, everyday Romanian village neighbour who works at a small bistro. They are invented people, not copies of anyone real or famous. Hand-painted gouache with delicate colored pencil edges, an accomplished illustrated travel-journal feel, natural proportions, warm and dignified, never a caricature or a costume-party joke. Consistent gentle warm lamplight from the upper left on all four.\n\nFraming, the same in every cell: the figure faces the viewer, very slightly turned, head and full natural shoulders and upper arms, cut STRAIGHT ACROSS horizontally at mid-chest at about 92% of the cell height, with the shoulders and upper arms at their full natural width (about 80 to 88% of the cell width) right down to that straight cut. NO oval vignette, NO rounded, tapered or faded bottom, NO cameo shape: the body simply continues and is cut by a level horizontal edge, as if the person stands behind a counter. Eyes at about 36% of the cell height. Transparent space above the head and on both sides; nothing crosses into another cell; no shadow on the background.\n\nDress: working Romanian village folk clothing, clearly recognisable as Romanian at a glance but practical for bistro work, clean and well kept: white linen ie blouses or shirts with cross-stitch embroidery in traditional red and black geometric and floral motifs, sheepskin or felt vests (bondita) with embroidered edges, woven aprons. Embroidery is invented, simple and folk-geometric. No modern logos, no text.\n\nTop left, Mara, the bistro owner, about 40: light warm complexion, loose wavy dark brown hair tied back under a patterned red and black headscarf (basma) knotted at the nape, a white ie blouse with red cross-stitch bands on the shoulders, a forest-green woven apron, a calm practical smile.\nTop right, Ilie, the baker, about 70: light complexion, silver hair and a full silver moustache, round wire glasses, a black lambskin caciula hat, a white linen shirt with black stitching at the collar, a brown sheepskin vest with embroidered edges, a little flour on the vest, a kind grandfatherly smile.\nBottom left, Eszter, the potter, about 35: light complexion, short dark auburn bob, a Transylvanian folk blouse with black and red stitching at the collar and cuffs, a dark felt vest, a few dry clay marks on one sleeve, a warm direct smile.\nBottom right, Sorin, the young helper, about 25: light neutral complexion, short slightly wavy chestnut hair, clean-shaven, a white linen shirt with sleeves rolled up and red stitching on the placket, a dark embroidered felt vest, a woven red and black belt just visible at the cut, a cheerful open smile.\n\nNaturally varied individual faces and builds. No text, names, numbers, logos, frames, borders, props, food, animals or background scenery. Preserve alpha transparency.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x1536",
+        "run": "across-the-table/portraits-folk-1"
+      },
+      "disposition": "The user accepted Mara and Ilie; superseded to dress Eszter in Szekely folk dress, to make Sorin's face painterly, and to ask for fully opaque figures."
+    },
+    {
+      "id": "portraits-folk-2",
+      "prompt": "Revise the single reference image: an accepted 2 by 2 character atlas for a cosy Transylvanian bistro game. Return the same atlas, same 2 by 2 grid of four equal square cells, same transparent background, same framing in every cell: head, full natural shoulders and upper arms, cut straight across horizontally at mid-chest, no oval vignette, no faded or rounded bottom. Hand-painted gouache with delicate colored pencil edges, an illustrated travel-journal feel, warm lamplight from the upper left. Every pixel of each figure is fully opaque; everything around the figures is fully transparent, with no soft halo.\n\nTop left, Mara: keep her exactly as in the reference: face, red and black headscarf, white ie blouse with red cross-stitch, green woven apron.\nTop right, Ilie: keep him exactly as in the reference: face, black lambskin caciula, round glasses, silver moustache, floury brown sheepskin vest.\n\nBottom left, Eszter, a Szekely Hungarian potter from Transylvania, about 35: keep her face, her short dark auburn bob and her warm smile from the reference, but replace her clothes with traditional Szekely women's dress: a white linen blouse with very full, gathered puffed sleeves and a small gathered collar; over it a fitted rust-red bodice (pruszlik) edged with narrow green and gold braid along the neckline and the front opening; a few strands of small white beads close around the neck; a couple of small dry clay marks on one puffed sleeve. This is Szekely folk dress, distinct from the Romanian ie and vest of the other three: no Romanian cross-stitch rosettes, no felt vest, no headscarf.\n\nBottom right, Sorin, the young bistro helper, about 25: keep his clothes exactly as in the reference (white linen shirt with red stitching, rolled sleeves, dark embroidered felt vest, red and black woven belt) and keep his short chestnut hair, but repaint his face so it matches the other three: the same visible gouache brushwork and colored pencil texture, matte skin with natural colour variation, an ordinary friendly village face rather than a glossy model or stock-photo look, a relaxed warm smile with less shine on the teeth and skin.\n\nKeep each figure inside its own cell with transparent space above the head and on both sides. No text, names, logos, frames, props, food, animals or background scenery.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x1536",
+        "run": "across-the-table/portraits-folk-2",
+        "reference": "analysis candidate portraits-folk-1 (generated by this project)"
+      }
+    },
+    {
+      "id": "courtyard",
+      "prompt": "Use case: illustration-story. Create an original wide 3:1 panoramic background illustration for a cosy Transylvanian bistro game. DO NOT PUT ANY TEXT, LETTERING, NUMBERS OR SIGNS anywhere in the picture. It is an entirely invented place, not an existing establishment or game location. Hand-painted gouache with delicate coloured-pencil edges, an accomplished illustrated travel-journal feel, believable proportions and architectural perspective. Palette and brushwork of a lamplit Saxon village bistro: thick cream limewashed plaster, dark timber, warm amber lamplight, and a plum-blue dusk sky over layered Carpathian hills. Do not resemble glossy mobile-game art.\n\nSubject: the small walled courtyard behind the same Saxon village bistro at blue hour, seen straight on at standing eye level from inside the courtyard. On the left is the back of the bistro: thick cream limewashed wall, the kitchen door with a small lit window beside it, an empty stone step, and a bare iron awning frame above the door with no canvas yet. In the centre, a cobbled path swept clear, with fallen walnut and lime leaves raked against the walls. On the right, a low stone wall with a flat, clear top and a weathered wooden gate standing ajar onto the village lane, with the church spire and layered Carpathian hills beyond under a plum-blue dusk sky. An old walnut tree leans over the wall. A wide clear route runs from the gate to the door, with open ground along the wall and a bare patch by the door, because tables, herb pots, an awning, a drinks cabinet and a serving station will be painted in later layers.\n\nArchitecture: one physically plausible building and one courtyard. The bistro wall, its roof eaves, the door, the window, the step and the awning frame share one consistent perspective and a human scale; the courtyard wall meets the building and the gate hangs on solid posts. Nothing floats, intersects, or forms an impossible second building face.\n\nLight: warm lamplight from the kitchen window across the cobbles, cool blue dusk elsewhere; balanced and readable, not dark or gloomy. No people, no cats, no animals, no food, no furniture, no strung lights yet, no vampires, no pumpkin theme, no skulls, no cobwebs, no logos, no writing, no frame, no vignette, no UI. Render the whole image fully finished.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "2304x768",
+        "run": "spec-001/courtyard-1"
+      }
+    },
+    {
+      "id": "front-room-00-base",
+      "prompt": "Use case: illustration, game background. Create one original tall 3:4 portrait painting, 1536x2048, of the front room of a small Saxon village bistro in Transylvania at blue hour, for a cosy merge game called Scary Snacks.\n\nThe reference image is this game's own accepted painting of the same room in a wide 3:1 view. Keep its architecture, materials, palette, brushwork and light, and keep every object it shows. Recompose the same room as a tall view, seen straight on at standing eye level, with believable perspective.\n\nStyle: hand-painted gouache with delicate coloured-pencil edges, an accomplished illustrated travel-journal feel, matching the reference: cream limewashed plaster, dark timber beams, copper, painted pottery, blue-hour light through the window, warm firelight, cosy and slightly eerie. Not glossy mobile-game art.\n\nComposition, from top to bottom (positions are fractions of the picture):\n- Top 12%: dark ceiling beams with bundles of drying herbs; two brass hanging lamps, UNLIT, at about 26% and 72% across; an empty iron hook on the beam beside the herbs at about 10% across.\n- Upper wall, 12-47% down: on the left, the red embroidered wall hanging (4-16% across, 18-38% down); in the centre, two EMPTY wooden wall shelves on iron brackets (36-60% across, at 22% and 33% down); on the right, the round leaded window (62-96% across, 14-46% down) showing the blue-hour village, church spire and hills. Its sill is a deep, clear, empty ledge at 47% down.\n- Middle, 40-76% down: the teal tiled stove with a small glowing fire (18-40% across, 30-76% down); a copper rail with DULL, tarnished pans (44-60% across, 44-56% down); a blank, weathered wooden board leaning against the wall under the rail (44-58% across, 60-76% down).\n- Low zone, 60-86% down: on the left, a low wooden cabinet with one lit candle on its otherwise BARE top (2-18% across, top at 62% down); in the right corner, a pale dust sheet thrown over a stack of chairs (72-98% across, 52-86% down).\n- Bottom 14%: the top edge and front of a dark timber counter, completely empty.\n\nThe bistro is unfinished and neglected. The window glass is dusty, with three soft grey cobwebs across its lower panes and frame corners, and three small round friendly house spiders on the window web. One small, plump, friendly dark spider with bright eyes hangs on a short thread just under the left bracket of the lower shelf; it is cute, never scary. Cobwebs and spiders are delicate and lit by the room's light.\n\nKeep every large object exactly where the composition says, because later edits will change this room one small region at a time. Leave the windowsill and the counter clear.\n\nDo not include: people, cats, other animals besides the spiders, text, letters, numbers, signs, logos, a frame, a vignette, UI, skulls, pumpkins, Halloween props. Render the whole image fully finished.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/front-room-00-run1",
+        "reference": "counter-band (the reference painting in the references of docs/asset-provenance.json)"
+      },
+      "disposition": "The base room. Two defects (the resident spider on the copper rail, untarnished pans) went to one corrective masked edit."
+    },
+    {
+      "id": "front-room-00-fix",
+      "prompt": "Edit this painting of the bistro's front room only inside the transparent regions of the mask. Keep everything else exactly as it is: the same gouache and coloured-pencil style, light, perspective and colours.\n\nRegion 1, the copper rail with its hanging pans (centre of the picture): keep the wooden rail, its iron hooks and the same pans in the same places, but make every pan look old and neglected: dull, tarnished brown-green copper with dark patches and almost no shine. Remove the small spider that hangs from the rail's first hook, and paint the plaster wall behind it to match.\n\nRegion 2, under the left bracket of the lower wall shelf (left of centre): one small, plump, friendly dark plum-brown spider with big bright eyes hangs on a short silk thread just below the bracket, about the same size as the spider that was on the rail. It is cute, never scary. The plaster wall behind it stays as it is.\n\nNo text, letters, numbers, people or cats.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/front-room-00-run2",
+        "reference": "analysis candidate front-room-00-run1 (generated by this project)",
+        "mask": "the copper rail and the lower shelf"
+      },
+      "disposition": "Tarnished the pans and moved the resident spider under the upper shelf's left bracket. Composited over the base through the rail and upper-bracket regions (room-states/front-room-00-run2-composite-b)."
+    },
+    {
+      "id": "front-room-00",
+      "prompt": "Edit this painting of the bistro's front room only inside the transparent region of the mask. Replace the round window with a traditional Romanian village window, seen from inside the room. Keep everything outside the region exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same light, perspective and colours.\n\nThe new window: a square, two-casement window set deep in the thick cream limewashed wall, with plaster reveals around it. It is old and neglected. Its plain, unpainted wooden frame and two thin glazing bars are weathered grey-brown and cracked. One pane is cracked across and one small pane is missing, its corner open to the evening air. The glass is dusty. Soft grey cobwebs stretch across the broken panes and into the frame corners, and three small, round, friendly house spiders sit on the webs. Through the glass: the same blue-hour village, its church spire, the hills and a plum-pink dusk sky, with a few lit windows.\n\nThe window is centred where the round window was. Its bottom rests directly on the existing wooden windowsill below the region; keep that sill unchanged and clear. Keep the bundles of drying herbs at the top right and the end of the copper rail at the left.\n\nNo people, no cats, no text, letters or numbers, no curtains, no shutters.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/front-room-00-run3",
+        "reference": "analysis composite front-room-00-run2-composite-b (generated by this project)",
+        "mask": "the window, 12px feather"
+      },
+      "disposition": "Replaced the round leaded window with a broken square two-casement village window. Composited over the previous state through the window region (room-states/front-room-00-run3-composite). The user accepted the result."
+    },
+    {
+      "id": "front-room-01",
+      "prompt": "Edit this painting of the bistro's front room only inside the transparent region of the mask: the square window and its deep plaster reveal, seen from inside the room. Keep everything outside the region exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same light, perspective and colours.\n\nThe broken window has been repaired and repainted in the Romanian village way. It is the same window in the same opening, at the same size and place, still resting on the same wooden sill below the region. Every pane has new, clean, clear glass; nothing is cracked or missing. Every cobweb and spider is gone. The inner casement frame and glazing bars are freshly painted a bright cobalt blue. Two inner wooden shutters stand folded open against the plaster reveal, one on each side; they are painted cobalt blue, and each shutter panel carries hand-painted folk motifs: nested squares and diamonds in red, white and deeper blue. The cream limewashed reveal is clean.\n\nThrough the glass: the same blue-hour village, church spire, hills and plum-pink dusk sky as before, with a few lit windows.\n\nNo people, no cats, no curtains, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/front-room-01-run3",
+        "reference": "public/assets/original/front-room-00.png",
+        "mask": "the window, 12px feather"
+      },
+      "disposition": "The window repaired with a cobalt frame and folk-painted inner shutters. Composited over front-room-00 through the window region (room-states/front-room-01-run3-composite). The user accepted the result. Accepted deviation: six panes, where the broken window has four."
+    },
+    {
+      "id": "front-room-02",
+      "prompt": "Edit this painting of the bistro's front room only inside the transparent region of the mask: the bare plaster wall between the teal tiled stove and the dust-sheeted chairs, below the copper pans, down to the skirting and the floorboards. Keep everything outside the region exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same warm candle-and-fire light, perspective and colours.\n\nThe old weathered board that leaned against this wall has been mended and hung up as the bistro's welcome board. It now hangs on the wall on its side, wider than it is tall, centred in the region a little below the pans, from a short cord over a single iron nail. Its cracks are filled and its planks are joined by two small wooden battens. Its face is freshly painted cream, with a border of small red and deep-blue folk dots, and a garland of hand-painted red folk flowers with green leaves across it, in the Romanian village style of the painted shutters. It casts a soft shadow on the plaster below and to the side.\n\nWhere the board used to lean there is now only clean bare limewashed wall, the same dark wooden skirting and the same floorboards, continuing seamlessly from either side.\n\nNo people, no cats, no text, letters or numbers on the board or anywhere.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/front-room-02-run1",
+        "reference": "public/assets/original/front-room-01.png",
+        "mask": "the wall under the pans, down to the floor"
+      },
+      "disposition": "The board mended and hung on its side, painted with red folk flowers. The candidate repainted the wall about 10% lighter, so it was composited over front-room-01 with a 64px feather (room-states/front-room-02-run1-composite-f64) to ramp out the edge. The user accepted the result."
+    },
+    {
+      "id": "front-room-03",
+      "prompt": "Edit this painting of the bistro's front room only inside the transparent region of the mask: a part of the lower wall shelf and the bare plaster just above it. Keep everything outside the region exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same warm candle-and-fire light, perspective and colours. The shelf plank, its iron brackets and the small spider hanging below the shelves stay unchanged.\n\nThe pastry shelf is set up: a small shallow round ceramic dish now stands on the lower shelf, resting flat on the plank, heaped with round golden-brown pastries, small sweet buns glazed and dusted with sugar, so that the pastries rise clearly above the rim. The dish is Romanian village pottery in the Horezu style: cream glaze with brown, ochre and green swirls and a painted rooster-and-flower motif on its visible side. It casts a soft contact shadow on the plank and a faint shadow on the plaster behind it.\n\nThe dish and its pastries are centred in the region and take no more than two thirds of its width, with bare plaster visible on both sides of the dish and above the pastries. Nothing crosses the edges of the region.\n\nThe plaster in the region keeps exactly the same tone, brightness and texture as the plaster just outside it, so that no edge can be seen. Do not brighten or relight the wall.\n\nNo people, no cats, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/front-room-03-run2",
+        "reference": "public/assets/original/front-room-02.png",
+        "mask": "the lower shelf, moved right, 12px feather"
+      },
+      "disposition": "The corrective request: a Horezu dish of sugared buns on the lower shelf, whole inside the region, with the wall at its original tone. Composited over front-room-02 (room-states/front-room-03-run2-composite). The user accepted the result."
+    },
+    {
+      "id": "front-room-04",
+      "prompt": "Edit this painting of the bistro's front room. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects and colours, with one change: the two hanging lamps under the ceiling beams are switched on.\n\nEach lamp stays exactly the same lamp: the same small, rounded, warm brass dome shade, the same size, shape and position, hanging from the same cord. Do not enlarge or restyle the lamps; no exposed bulbs hanging below the shade. The only change to each lamp is that it is lit: the inside of the shade and its lower rim glow golden, and a little warm light spills from under it.\n\nEach lit lamp casts a soft, natural pool of warm golden light on the dark ceiling beams around it and on the cream plaster wall below it, fading gently with distance. The rest of the room keeps its current light.\n\nEvery bunch of drying herbs stays in its place, including the bunch between the two lamps. The shelves, the dish of buns, the small spider under the upper shelf, the wall hanging, the window and everything else stay unchanged.\n\nNo people, no cats, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/front-room-04-run2",
+        "reference": "public/assets/original/front-room-03.png"
+      },
+      "disposition": "The corrective request, sent without a mask so that the light falls naturally. Only an oval around each lamp was composited over front-room-03, with a 96px ramped feather (room-states/front-room-04-run2-ramp-ovals). The user accepted the result."
+    },
+    {
+      "id": "front-room-05",
+      "prompt": "Edit this painting of the bistro's front room. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, lamplight and colours, with one change: the four copper pans hanging from the wooden rail beside the window are polished.\n\nThey are the same four pans: exactly the same shapes, sizes and positions, the same varied sizes (two larger pans, a small one, and a medium one on the right), the same long dark iron handles on the same hooks of the same rail. Only their copper changes: the dull green tarnish is gone, and each pan is now clean, warm, rosy copper with soft reflections of the lamps and the fire and a bright highlight along its rim, still hand-painted in the same gouache style, not glossy or photographic.\n\nEverything else stays unchanged: the rail, the wall, the stove, the window, the shelves, the dish of buns, the small spider, the welcome board and the rest of the room.\n\nNo people, no cats, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/front-room-05-run2",
+        "reference": "public/assets/original/front-room-04.png"
+      },
+      "disposition": "The corrective request, sent without a mask so that the pans keep their structure. Only the rail and the pans were composited over front-room-04, with a 16px ramped feather (room-states/front-room-05-run2-composite). The user accepted the result."
+    },
+    {
+      "id": "front-room-06",
+      "prompt": "Edit this painting of the bistro's front room. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, lamplight and colours, with one addition.\n\nAt the top left, a double iron hook is fixed to the ceiling beam, between the dark corner beam and the bunch of drying lavender. Market produce has arrived and hangs from that hook, the way it is dried in Romanian village kitchens: a short string of five or six long, deep-red dried peppers on a twine cord, and beside it a short braid of white garlic bulbs with their dried stems plaited together. Both hang close together just below the hook, in front of the bare plaster.\n\nBoth strings are short: they end no lower than the bottom of the lavender bunch, well above the rod of the embroidered wall hanging, with plenty of bare plaster between them and the rod. They may touch the side of the lavender but do not cover it. They are lit by the same warm lamplight and cast a faint shadow on the plaster.\n\nThe hook keeps its shape and position. The lavender, the beams, the lamps, the embroidered wall hanging and everything else in the room stay unchanged.\n\nNo people, no cats, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/front-room-06-run3",
+        "reference": "public/assets/original/front-room-05.png"
+      },
+      "disposition": "A third request that the user approved, with peppers and garlic strings at the user's request. The hook, the strings, the lavender and the whole wall hanging were composited over front-room-05, with a 12px ramped feather (room-states/front-room-06-run3-composite). The user accepted the deviation that the wall hanging lost its dark-red left strip. The user accepted the result."
+    },
+    {
+      "id": "front-room-07",
+      "prompt": "Edit this painting of the bistro's front room. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, lamplight and colours, with one addition.\n\nThe kitchen shelves are stocked: on the left half of the upper wall shelf, under the left hanging lamp, there now stand four glass jars of home-made preserves in a short row, resting on the shelf plank: plum jam, apricot jam, pickled red peppers and green gherkins, their colours glowing in the lamplight. Each jar has a cloth cover of red-and-white checked or plain linen tied with twine. The jars are small, in scale with the shelf, and stand fully on the plank. The right half of the upper shelf stays empty.\n\nThe shelf, its iron brackets, the small spider hanging under the upper shelf's left bracket, the dish of buns on the lower shelf, the lamp, and everything else in the room stay unchanged.\n\nNo people, no cats, no text, letters, numbers or labels.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/front-room-07-run1",
+        "reference": "public/assets/original/front-room-06.png"
+      },
+      "disposition": "Four jars of preserves on the left of the upper shelf (moved from the lower shelf with the user's agreement). Only the jars' region was composited over front-room-06, with a 12px ramped feather (room-states/front-room-07-run1-composite). The user accepted the result."
+    },
+    {
+      "id": "front-room-08",
+      "prompt": "Edit this painting of the bistro's front room. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, lamplight and colours, with one addition.\n\nThe first menu is written: on the top of the low wooden cabinet at the left, to the right of the lit candle, a small dark slate in a plain wooden frame now stands leaning against the plaster wall. It is a picture menu with no writing at all: it carries only simple white chalk drawings of food, a steaming soup bowl, a round loaf, a small fish and a bun, with a few chalk dots between them. The slate is small, about as tall as the candle with its holder, and stands fully on the cabinet top with its lower edge resting on it. It catches the warm candlelight and casts a soft shadow on the wall.\n\nThe candle, the candle holder, the cabinet, the stove and everything else in the room stay unchanged. The left end of the cabinet top stays empty.\n\nAbsolutely no letters, words, numbers, prices or text anywhere on the slate or in the painting. No people, no cats.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/front-room-08-run1",
+        "reference": "public/assets/original/front-room-07.png"
+      },
+      "disposition": "A picture-only chalk slate (bowl, loaf, fish, bun) leaning on the wall on the cabinet top. Only the slate's region was composited over front-room-07, with an 8px ramped feather (room-states/front-room-08-run1-composite). The user accepted the result."
+    },
+    {
+      "id": "front-room-09",
+      "prompt": "Edit this painting of the bistro's front room. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, lamplight and colours, with one addition.\n\nThe tableware is chosen: on the right end of the upper wall shelf, beside the four jars of preserves, there now stands a small stack of three shallow bowls with one matching plate standing upright behind them, leaning against the wall. They are Romanian village pottery in the Corund style: white glaze painted with cobalt-blue flowers, leaves and rings. They are small, in scale with the jars, rest fully on the shelf plank, and fit in the empty space between the last jar and the shelf's right bracket, without touching the jars.\n\nThe jars, the shelf, its brackets, the lamp, the window and everything else in the room stay unchanged.\n\nNo people, no cats, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/front-room-09-run1",
+        "reference": "public/assets/original/front-room-08.png"
+      },
+      "disposition": "Corund-style blue-and-white bowls and a plate at the upper shelf's right end. Only that region was composited over front-room-08, with a 10px ramped feather (room-states/front-room-09-run1-composite). The user accepted the result."
+    },
+    {
+      "id": "front-room-10",
+      "prompt": "Edit this painting of the bistro's front room. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, lamplight and colours, with one change in the right corner below the window.\n\nThe long table's chairs are restored: the dusty sheet and the old stacked chairs under it are gone. In their place, two traditional painted village chairs stand side by side on the floorboards in the corner, facing slightly into the room. They are low, sturdy folk chairs painted deep red with worn gold and ochre details: a high back with a double-arched crest rail carved in relief with two facing birds, flowers and leaves; a row of turned spindles below it with small round beads; turned posts topped with turned finials; a woven rush seat in natural straw; turned legs joined by red stretchers. The paint is a little worn at the edges, showing old wood.\n\nPaint the chairs in exactly the same loose hand-painted gouache as the rest of the room, with visible brushwork and soft coloured-pencil edges, matte and warm in the lamplight; not glossy, not smooth, not photographic. Behind them the same cream plaster wall and dark wooden skirting continue, with soft shadows of the chairs on the wall and floor.\n\nThe window, its painted shutters and its sill, the polished pans, the welcome board, the counter in the foreground and everything else in the room stay unchanged. The chairs stand behind the counter, do not overlap it, and stay to the right of the welcome board.\n\nNo people, no cats, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/front-room-10-run2",
+        "reference": "public/assets/original/front-room-09.png"
+      },
+      "disposition": "A regeneration that the user approved, after sharing a photo of a painted folk chair; the photo was not sent, and the prompt describes it. Two deep-red painted folk chairs with carved bird crests and rush seats. Only the right corner was composited over front-room-09, with a 16px ramped feather (room-states/front-room-10-run2-composite). The user accepted the result."
+    },
+    {
+      "id": "front-room-11",
+      "prompt": "Edit this painting of the bistro's front room. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, lamplight and colours, with one addition.\n\nA recipe corner is made: on the top of the low wooden cabinet at the left, at its left end beside the lit candle, there now lie a small open notebook with cream pages, showing only tiny pencil sketches of herbs and a pie and faint scribbled lines that are not readable, and a small glazed clay cup holding a few coloured pencils. They are small, in scale with the candle, rest fully on the cabinet top, and catch the warm candlelight.\n\nThe candle, its holder, the chalk slate leaning on the wall, the cabinet, the wall hanging, the strings of peppers and garlic, and everything else in the room stay unchanged.\n\nAbsolutely no readable letters, words or numbers anywhere. No people, no cats.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/front-room-11-run1",
+        "reference": "public/assets/original/front-room-10.png"
+      },
+      "disposition": "A cup of coloured pencils and an open sketch notebook beside the candle. Only the left end of the cabinet top was composited over front-room-10, with a 10px ramped feather (room-states/front-room-11-run1-composite). The user accepted the result."
+    },
+    {
+      "id": "front-room-12",
+      "prompt": "Edit this painting of the bistro's front room. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, lamplight and colours, with one change in the right corner below the window.\n\nThe shared table is open: the two red painted chairs have gone to the table and are no longer in the corner. In their place a small, low wooden dresser now stands on the floorboards against the wall: a Romanian village cupboard with two panelled doors and a drawer, painted deep red with worn gold edges and hand-painted folk flowers and birds on the door panels, matching the painted chairs. Its top is lower than the window sill and stays bare and clean. It stands behind the counter and does not overlap it, and it stays to the right of the welcome board.\n\nPaint it in exactly the same loose hand-painted gouache as the rest of the room, matte and warm in the lamplight, with a soft shadow on the wall and floor. The window, its shutters and its sill, the pans, the welcome board, the counter and everything else in the room stay unchanged.\n\nNo people, no cats, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/front-room-12-run1",
+        "reference": "analysis composite front-room-11-run1-composite (generated by this project; byte-identical to public/assets/original/front-room-11.png)"
+      },
+      "disposition": "The chairs gone to the shared table; a low red painted village dresser in the corner. Only the right corner was composited over front-room-11, with a 16px ramped feather (room-states/front-room-12-run1-composite). The user accepted the result."
+    },
+    {
+      "id": "courtyard-13",
+      "prompt": "Recompose this accepted painting of the bistro's walled courtyard as a tall 3:4 portrait painting of the same place, at the same blue hour. Keep its architecture, palette, light and objects: the back of the same Saxon village bistro, the same cobbles, the same low stone wall and wooden gate, the same walnut tree, the same church spire and Carpathian hills beyond. Hand-painted gouache with delicate coloured-pencil edges, an accomplished illustrated travel-journal feel, believable proportions and architectural perspective, matching the reference exactly in style. Not glossy mobile-game art.\n\nView: from inside the courtyard at standing eye level, looking across it towards the back wall, so the whole courtyard floor is visible.\n- Left third (from the left edge to about a quarter of the width): the thick cream limewashed back wall of the bistro, with the weathered wooden kitchen door in its lower half, an empty stone step in front of it, the small warmly lit kitchen window beside it, and the bare iron awning frame above the door, with no canvas. The roof eaves cross the top of this wall.\n- Back: the low rough-stone courtyard wall runs across the picture at about two thirds of its height, with a flat clear top. Beyond it, the village roofs, the church spire and the layered hills under a plum-blue dusk sky with a little pink, filling the top third.\n- Right: in the back wall, near the right edge, the weathered wooden gate stands ajar between two stone posts, onto the village lane. The old walnut tree leans over the wall from the right, its leafy branches across the top right corner.\n- Floor: the cobbled courtyard fills the lower third, swept clear, with fallen walnut and lime leaves raked against the walls. A wide clear route runs from the gate to the kitchen door.\n- Keep empty, because later paintings add things there: the bare cobbles by the kitchen door and the stretch of wall beside it; the open ground along the back wall in the middle of the picture; the space in front of the gate; and the open air above the courtyard.\n\nLight: warm lamplight from the kitchen window falls across the cobbles near the door; cool blue dusk elsewhere; balanced and readable, not dark or gloomy.\n\nNothing floats or intersects; the courtyard wall meets the building and the gate hangs on solid posts. No people, no cats, no animals, no furniture, no tables, no pots, no lights strung yet, no food, no text, letters, numbers, signs or logos, no frame, no vignette.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-13-run1",
+        "reference": "courtyard (the reference painting in the references of docs/asset-provenance.json)"
+      },
+      "disposition": "The courtyard base: the accepted courtyard recomposed as 3:4, swept clear, with free space by the door, along the back wall, before the gate and overhead for later states. Later edits (courtyard-13-bare, courtyard-13-hood) revised this base. The user accepted the result."
+    },
+    {
+      "id": "courtyard-14",
+      "prompt": "Edit this painting of the bistro's courtyard. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, blue-hour light and colours, with one addition.\n\nThe herb pots are planted: three terracotta clay pots of fresh herbs now stand on the cobbles in a tight group against the bistro's back wall, just to the right of the kitchen door's stone step, below the lit window. One tall pot of rosemary, one of flat-leaf parsley and one of lovage, the pots of different sizes, with rims slightly chipped and soil darkened by watering. They stand fully on the cobbles, in scale with the step and the door, catching the warm light from the window, with soft shadows on the wall and the cobbles.\n\nThe door, its step, the window, the awning frame, the walls, the gate, the walnut tree and everything else stay unchanged. The rest of the courtyard floor stays clear.\n\nNo people, no cats, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-14-run1",
+        "reference": "analysis candidate courtyard-13-run1 (generated by this project)"
+      },
+      "disposition": "Three terracotta herb pots in the corner right of the kitchen step. Only that region was composited over courtyard-13, with a 12px ramped feather (room-states/courtyard-14-rebuild-c). The user accepted the result."
+    },
+    {
+      "id": "courtyard-13-bare",
+      "prompt": "Edit this painting of the bistro's courtyard. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, blue-hour light and colours, with one change: remove the long wrought-iron awning frame above the kitchen door and window completely, with its brackets and rails, and paint the cream limewashed wall behind it, continuing the same plaster texture and the same light, so the wall above the door and the window is bare. Nothing else is added.\n\nThe door, the window, the walls, the eaves, the downpipe, the step, the gate, the walnut tree and everything else stay unchanged.\n\nNo people, no cats, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-13-run5-bare",
+        "reference": "analysis candidate courtyard-13-run1 (generated by this project)"
+      },
+      "disposition": "The iron frame removed and the wall repainted bare; composited over the frame area (room-states/courtyard-13-run5-bare-composite)."
+    },
+    {
+      "id": "courtyard-13-hood",
+      "prompt": "Edit this painting of the bistro's courtyard only inside the transparent region of the mask, above the kitchen door. Keep everything outside the region exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same blue-hour light, perspective and colours.\n\nInside the region, paint a small, old, broken wooden door hood that fills the region exactly: the long slanted band is the hood itself, a single-pitch roof of weathered wooden shingles fixed to the wall along its upper edge and sloping out over the door, seen from below at an angle, with its front edge and a thin plank end board at each end; the two small triangles under its ends are two plain wooden brackets holding it to the wall. The outline of the region is the outline of the hood: its edges along the wall follow the region's edges exactly.\n\nThe hood is in bad repair and needs fixing: it sags slightly, several shingles are missing so the bare battens show through, a couple of loose shingles hang askew, the wood is grey and mossy. It casts a faint shadow.\n\nNo people, no cats, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-13-run6-hood",
+        "reference": "analysis composite courtyard-13-run5-bare-composite (generated by this project)",
+        "mask": "a polygon outline of the hood in the wall's perspective"
+      },
+      "disposition": "The broken wooden door hood, painted into a perspective outline; composited with an outline around the painted hood, extended to take in the right bracket's foot, with a 10px ramped feather (room-states/courtyard-13-run6-hood-composite-c). The user accepted the result as the courtyard-13 master."
+    },
+    {
+      "id": "courtyard-15",
+      "prompt": "Edit this painting of the bistro's courtyard only inside the transparent region of the mask, above the kitchen door. Keep everything outside the region exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same blue-hour light, perspective and colours.\n\nInside the region, paint a small wooden door hood that fills the region exactly: the long slanted band is the hood itself, a single-pitch roof of wooden shingles fixed to the wall along its upper edge and sloping out over the door, seen from below at an angle, with its front edge and a thin plank end board at each end; the two small triangles under its ends are two plain wooden brackets holding it to the wall. The outline of the region is the outline of the hood: its edges along the wall follow the region's edges exactly.\n\nThe hood has just been repaired: its roof is covered with a full, even layer of new wooden shingles, neatly overlapping in straight courses, honey-brown fresh wood with only a little weathering; no gaps, no missing or loose shingles, no bare battens, no moss. The end boards and the brackets are solid. It casts a faint shadow.\n\nNo people, no cats, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-15-run6-hood",
+        "reference": "analysis composite courtyard-13-run5-bare-composite (generated by this project)",
+        "mask": "a polygon outline of the hood in the wall's perspective"
+      },
+      "disposition": "The repaired hood, painted on the bare wall into the same perspective outline as the broken one, then composited over courtyard-14 through the hood's outline (room-states/courtyard-15-run6-hood-composite). The user accepted the result."
+    },
+    {
+      "id": "courtyard-16",
+      "prompt": "Edit this painting of the bistro's courtyard only inside the transparent region of the mask: the stretch of cobbles and low back wall between the herb pots and the gate. Keep everything outside the region exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same blue-hour light, perspective and colours.\n\nInside the region, the outdoor tables are set: two small wooden village tables with bare scrubbed tops stand on the cobbles close in front of the back wall, side by side with a little gap between them, each seen from its long side, which is parallel to the wall. Behind each table, between it and the wall, stand two plain wooden chairs. In front of each table, with its back to the viewer, stands one of the two red painted folk chairs from the bistro's front room: deep red paint with worn gold, a carved double-arched crest with two small birds, turned spindles and finials, a rush seat. The tables are bare: no cloths, plates or food yet. Everything fits inside the region with a little cobbled ground on every side.\n\nPerspective: one-point perspective, with the vanishing point on the horizon at about the height of the top of the back wall. The tables' long edges are horizontal; their short side edges converge towards the vanishing point like the cobble joints. The tables stand far from the viewer, so they are small, their tops just below the top of the back wall. Paint them in the same matte gouache, in the blue dusk, with soft shadows on the cobbles.\n\nNo people, no cats, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-16-run4",
+        "reference": "public/assets/original/courtyard-15.png",
+        "mask": "the stretch of cobbles and back wall between the herb pots and the gate"
+      },
+      "disposition": "Two small tables side-on before the back wall, plain chairs behind, a red folk chair from the front room in front of each. Composited over courtyard-15 (room-states/courtyard-16-run4-composite). The user accepted the result after reviewing every master and variant."
+    },
+    {
+      "id": "front-room-17",
+      "prompt": "Edit this painting of the bistro's front room only inside the transparent region of the mask: the bare plaster wall between the bottom of the embroidered wall hanging and the top of the chalk slate. Keep everything outside the region exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same warm candle-and-lamp light, perspective and colours.\n\nFamily recipes are collected: three or four loose handwritten recipe pages of different sizes are now pinned to the plaster with small pins, overlapping a little, slightly curled at the corners, cream and pale ochre paper. They carry only small coloured pencil sketches of dishes (a pie, a bowl of soup, a plait of bread, a few herbs) and faint wavy lines that are not readable. They are flat against the wall, in scale with the slate below, lit by the candle, with soft shadows under their curled corners. They fit well inside the region, with bare plaster around them.\n\nAbsolutely no readable letters, words or numbers. No people, no cats.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/front-room-17-run1",
+        "reference": "public/assets/original/front-room-12.png",
+        "mask": "the bare wall between the wall hanging and the chalk slate"
+      },
+      "disposition": "Four pinned recipe pages with coloured-pencil sketches and unreadable lines. Composited over front-room-12 (room-states/front-room-17-run1-composite). The user accepted the result."
+    },
+    {
+      "id": "courtyard-18",
+      "prompt": "Edit this painting of the bistro's courtyard. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, blue-hour light and colours, with one addition.\n\nThe tasting plates are prepared: on the tops of the two small wooden tables in front of the back wall there are now small painted ceramic tasting plates, Romanian village pottery with cobalt-blue and ochre folk patterns on a cream glaze. On each table, a short stack of three small plates at one end and a single plate laid flat beside it, resting flat on the wooden top in the same perspective as the table top. They are small, in scale with the tables, and empty: no food yet.\n\nEverything else stays exactly the same: the two tables with their shape and edges, the two plain wooden chairs behind each table, and the two red painted chairs in front, whose carved crests with two small birds stand in front of the table tops. A plate behind a crest is hidden by it. No cloths.\n\nNo people, no cats, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-18-run2",
+        "reference": "public/assets/original/courtyard-16.png"
+      },
+      "disposition": "The corrective request, sent without a mask: blue-and-ochre folk tasting plates on both tables. Only the table-top band was composited over courtyard-16 (room-states/courtyard-18-run2-composite). The user accepted the result."
+    },
+    {
+      "id": "courtyard-19-niche",
+      "prompt": "Edit this painting of the bistro's courtyard only inside the transparent region of the mask, on the thick cream limewashed wall below the kitchen window. Keep everything outside the region exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same warm window light, perspective and colours.\n\nThe drinks cabinet is stocked: the region is a deep recessed niche built into the thick old stone wall, a Romanian village firidă, with a plain dark wooden frame around its opening and two thick wooden shelves inside. The outline of the region is the outline of the niche's opening: its top and bottom edges follow the region's edges exactly, sloping down to the right like the window sill above, because the wall recedes to the right.\n\nSeen from where the viewer stands, in front of and to the right of this wall and above the niche: inside the niche the inner side face on the right is visible, lit and plastered, and the inner bottom face is visible; the inner left side face and the inner top face are hidden. The back of the niche is in soft shadow. The shelves inside slope like the niche's top and bottom edges.\n\nOn the shelves stand drinks things in scale: two small glazed clay jugs, a row of small blue-painted cups, two glasses, and two corked glass bottles of pale elderflower socată. Everything sits inside the niche, which cannot move or topple.\n\nNo people, no cats, no text, letters, numbers or labels.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-19-run3-niche",
+        "reference": "analysis composite courtyard-18-run2-composite (generated by this project)",
+        "mask": "a polygon outline of the niche in the wall's perspective"
+      },
+      "disposition": "The recessed wall niche; composited over courtyard-18 (room-states/courtyard-19-run3-niche-composite). The user found its two jugs fused."
+    },
+    {
+      "id": "courtyard-19-jug-single",
+      "prompt": "Edit this painting of the bistro's courtyard. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, scale, objects, light and colours, with one small correction.\n\nIn the wall niche under the kitchen window, on the left end of the upper shelf, the two small clay jugs have merged into a malformed shape. Replace both with one single small glazed terracotta jug, no taller than the merged jugs are now, standing upright on the shelf at the left end: a simple, whole village jug with one rounded body, one narrow neck with a small spout, and exactly one handle on its right side, with a thin band of white painted dots around its belly and a soft contact shadow. Between the jug and the blue cups there is now a little bare shelf.\n\nEverything else stays exactly the same, including the niche, its shelves, the three blue cups, the bottles and glasses below, the window, the door and the herb pots.\n\nNo people, no cats, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-19-run6-jug",
+        "reference": "analysis composite courtyard-19-run3-niche-composite (generated by this project)"
+      },
+      "disposition": "One two-handled terracotta jug (room-states/courtyard-19-run6-jug-composite); the user wanted one handle."
+    },
+    {
+      "id": "courtyard-19-jug-remove",
+      "prompt": "Edit this painting of the bistro's courtyard. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, scale, objects, light and colours, with one small change: in the wall niche under the kitchen window, remove the terracotta jug from the left end of the upper shelf entirely. Where it stood there is now only the bare wooden shelf and the shadowed back wall of the niche, continuing naturally. Nothing replaces it.\n\nEverything else stays exactly the same, including the niche, its shelves, the three blue cups, the bottles and glasses below, the window, the door and the herb pots.\n\nNo people, no cats, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-19-run9-nojug",
+        "reference": "analysis composite courtyard-19-run6-jug-composite (generated by this project)"
+      },
+      "disposition": "The jug removed, leaving a bare shelf (room-states/courtyard-19-run9-nojug-composite)."
+    },
+    {
+      "id": "courtyard-19",
+      "prompt": "Edit this painting of the bistro's courtyard. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, scale, objects, light and colours, with one small addition.\n\nIn the wall niche under the kitchen window, on the empty left end of the upper shelf, to the left of the three blue cups, there now stands one small Corund-style pitcher, a little taller than the cups, seen from the side: a slender pear-shaped body on a small foot and a flaring neck whose rim is pinched into a pouring spout on its LEFT side. It has exactly ONE loop handle, on its RIGHT side, from the neck down to the shoulder; its left side is a smooth curve with no handle. Pale cream glaze painted in cobalt blue: a band of blue-and-cream checkers around the rim, another near the foot, and a blue flower-and-leaf scroll on its belly. It stands upright on the shelf with a soft contact shadow, lit by the warm window light, and does not touch the cups.\n\nEverything else stays exactly the same, including the niche, its shelves, the three blue cups, the bottles and glasses below, the window, the door and the herb pots.\n\nNo people, no cats, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-19-run10-pitcher",
+        "reference": "analysis composite courtyard-19-run9-nojug-composite (generated by this project)"
+      },
+      "disposition": "A one-handled Corund pitcher on the bare shelf, composited through the jug's spot (room-states/courtyard-19-run10-pitcher-composite). The user accepted the result."
+    },
+    {
+      "id": "courtyard-20",
+      "prompt": "Edit this painting of the bistro's courtyard. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, scale, objects, blue-hour light and colours, with one addition.\n\nThe supper menu is printed: on each of the two small wooden tables in front of the back wall there now stands one small folded menu card, a little tent of cream card standing upright on the table top, in a free spot near the plates, its face turned towards the viewer. Each card carries only tiny painted pictures of dishes in a column (a bowl, a loaf, a pie) and a thin blue folk border; no writing. The cards are small, in scale with the plates, and stand in the same perspective as the table tops, with a faint shadow.\n\nEverything else stays exactly the same: the two tables, the plates on them, the plain chairs behind the tables, the two red painted chairs in front with their carved crests of two small birds, the herb pots, the niche and the gate.\n\nAbsolutely no letters, words or numbers anywhere. No people, no cats.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-20-run1",
+        "reference": "public/assets/original/courtyard-19.png"
+      },
+      "disposition": "Rejected: the menu cards carried bands that looked like handwriting."
+    },
+    {
+      "id": "courtyard-20-fix",
+      "prompt": "Edit this painting of the bistro's courtyard. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, scale, objects, light and colours, with one small correction.\n\nOn each of the two small folded menu cards standing on the outdoor tables, the blue marks along the top and the bottom of the card look like handwriting. Replace them with a simple decorative border: a single row of small blue diamonds and dots along the top edge and along the bottom edge of each card, clearly ornament and not writing. Keep the two painted dishes in the middle of each card, the cards' size, shape and position.\n\nEverything else stays exactly the same: the tables, the plates, the chairs and their carved bird crests, the herb pots, the niche and the gate.\n\nAbsolutely no letters, words, scribbles that look like writing, or numbers anywhere. No people, no cats.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-20-run2",
+        "reference": "analysis candidate courtyard-20-run1 (generated by this project)"
+      },
+      "disposition": "The bands replaced with blue dots and diamonds; only the two cards were composited over courtyard-19 (room-states/courtyard-20-run2-composite). The user then asked for a long table in the foreground."
+    },
+    {
+      "id": "courtyard-20-longtable-2",
+      "prompt": "Edit this painting of the bistro's courtyard only inside the transparent region of the mask: a tapering region of the cobbled ground in the near half of the courtyard. Keep everything outside the region exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same blue-hour light with warm window light, perspective and colours. The two small tables at the back wall, with their chairs, plates and menu cards, stay exactly as they are.\n\nInside the region, a long shared supper table stands on the cobbles, its near end close to the viewer and its far end just in front of the small tables: a long rustic Romanian village table of thick scrubbed planks on sturdy trestle legs, pointing straight away from the viewer, with a long plain wooden bench along each of its long sides. The outline of the region is the outline of the table and its two benches: the region's slanting left and right edges are the outer edges of the two benches, and the region's top edge is the far end of the table and benches.\n\nPerspective: this is a one-point perspective view. The vanishing point lies on the horizon at the top of the low back wall, where the region's slanting edges meet if extended. The table's two long edges, its planks and the benches' long edges all run exactly towards that vanishing point, parallel to the region's slanting edges, like the cobble joints beneath them, so the table and the benches grow narrower towards their far end. The table top is flat and level. The near ends of the table and the benches are horizontal edges facing the viewer, with their sturdy legs standing on the cobbles below them, in the lower part of the picture.\n\nIt is set for the supper like the small tables: a row of the same small blue-and-ochre folk tasting plates along both long sides of the table, smaller towards the far end, and in the middle one small folded menu card of cream card, a little tent standing upright, carrying only tiny painted pictures of a bowl and a pie between a border of small blue dots and diamonds. No cloth, no food yet, no candles. Soft shadows under the table and the benches on the cobbles, in the blue dusk.\n\nNo people, no cats, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-20-run4-longtable",
+        "reference": "analysis composite courtyard-20-run2-composite (generated by this project)",
+        "mask": "a region whose sides are vanishing lines"
+      },
+      "disposition": "The long table and benches, converging on the horizon; composited through the region (room-states/courtyard-20-run4-longtable-composite). The user accepted the result."
+    },
+    {
+      "id": "courtyard-21",
+      "prompt": "Edit this painting of the bistro's courtyard. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, scale, objects, blue-hour light and colours, with one addition at the gate on the right.\n\nThe invitations are sent: on the left leaf of the wooden gate, between its two iron hinges, one sealed paper invitation is pinned, a small cream envelope with a round red wax seal, held by a small nail, its face turned towards the viewer. On the front face of the left stone gate post, just beside the gate leaf at about the height of the envelope, a small black iron lantern hangs from an iron hook, lit, with a warm candle glow behind its glass. The lantern casts a soft warm pool of light on the stone of the post, on the gate leaf and on the envelope; the rest of the courtyard keeps its blue dusk.\n\nBoth are small and in scale with the gate: the envelope is about the size of a hand, the lantern about as tall as a hinge is long. They follow the gate's perspective.\n\nEverything else stays exactly the same: the gate leaves, their hinges and latch, the stone posts and their caps, the low back wall, the village beyond, the two small tables with their chairs, plates and menu cards, the long table and its benches, the herb pots, the niche and the kitchen door.\n\nAbsolutely no letters, words or numbers anywhere, also not on the envelope. No people, no cats.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-21-run1",
+        "reference": "public/assets/original/courtyard-20.png"
+      },
+      "disposition": "An envelope on the gate and a lantern on the right post, composited through the gate area (room-states/courtyard-21-run1-composite). Rejected by the user: the envelope was out of perspective and the change too subtle."
+    },
+    {
+      "id": "courtyard-21-festive",
+      "prompt": "Edit this painting of the bistro's courtyard. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, scale, blue-hour light and colours, with these changes, which dress the courtyard for a village celebration.\n\n1. Remove the small cream envelope from the left gate leaf; the planks and hinges show there again.\n\n2. On the left gate leaf, between its two iron hinges, hangs a big round Romanian harvest wreath of wheat ears, dried corn leaves, red and white flowers and green leaves, with red and white ribbons trailing down. The leaf is turned away from the viewer at an angle, so the wreath lies flat on the leaf in the same perspective: it looks like an upright ellipse, narrower than it is tall, its top and bottom following the slope of the hinges.\n\n3. Over the caps of both stone gate posts are draped long white Romanian embroidered towels (ștergare) with red cross-stitch bands and fringed ends, hanging down the front faces of the posts, folding over the stone. The lit iron lantern on the right post stays as it is, in front of the towel.\n\n4. Along the top of the low back wall, standing on its coping between the house and the gate, is a row of clay pots of bright red geraniums, small with distance, spaced along the wall, their flowers seen against the village beyond. They stand on the wall top only and hide nothing below it.\n\n5. On the cobbles on either side of the gate, at the foot of the posts, stand two larger clay pots of red geraniums and trailing green leaves.\n\nEverything else stays exactly the same: the gate leaves, their hinges and latch, the stone posts, the lantern and its warm glow, the village beyond, the two small tables with their chairs, plates and menu cards, the long table and its benches, the herb pots, the niche, the kitchen door and the walnut tree.\n\nAbsolutely no letters, words or numbers anywhere. No people, no cats.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-21-run2",
+        "reference": "analysis composite courtyard-21-run1-composite (generated by this project)"
+      },
+      "disposition": "The envelope removed; towels, geraniums and a harvest wreath added; only the wreath, the wall top and the gate were composited (room-states/courtyard-21-run2-composite). The user accepted the result."
+    },
+    {
+      "id": "front-room-24",
+      "prompt": "Edit this painting of the bistro's front room. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, scale, objects, warm lamp-and-candle light and colours, with two additions that dress the restored room for the community supper.\n\n1. On the top of the painted dresser in the right corner lies a narrow white linen runner with a red cross-stitch border, its fringed ends hanging a little over the dresser's front edge. In the middle of the runner stands a round-bellied earthenware jug, glazed cream with a blue folk pattern, holding a generous bunch of fresh wildflowers: red poppies, blue cornflowers, white daisies, yellow buttercups and a few ears of wheat. The jug stands squarely on the dresser top, in the dresser's perspective and in scale with it, with a soft shadow on the runner and on the wall behind. The bouquet rises in front of the wall below the window and may overlap the front of the window sill; the window, its glass, its cobalt frame and its painted shutters stay unchanged above it.\n\n2. Across the top of the window's deep plaster reveal hangs a long white Romanian embroidered towel (ștergar) with red cross-stitch bands and fringed ends. It is hung from two small nails at the upper corners of the reveal, sags in one shallow swag across the top, and its two fringed ends hang straight down a short way beside the upper corners of the open shutters. It lies flat against the wall, facing the viewer like the window, and covers neither the glass nor the painted motifs of the shutters.\n\nEverything else stays exactly the same: the beams, the two lit brass lamps, the drying herbs, the red peppers and garlic on the hook, the embroidered wall hanging, the jars and blue bowls on the upper shelf, the small resident spider under the left bracket of the upper shelf, the dish of sugared buns on the lower shelf, the teal tiled stove and its fire, the copper pans on the rail, the painted welcome board, the pinned recipe pages, the chalk slate, the candle, the recipe notebook and the cup of pencils, the low cabinet, the window with its cobalt frame, painted shutters and village view, the dresser itself, the floor, and the empty counter at the bottom.\n\nAbsolutely no letters, words or numbers anywhere. No people, no cats.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/front-room-24-run1",
+        "reference": "public/assets/original/front-room-17.png"
+      },
+      "disposition": "A ștergar across the top of the window reveal and a jug of wildflowers on the dresser; only those two regions were composited (room-states/front-room-24-run1-composite). The user accepted the result."
+    },
+    {
+      "id": "courtyard-22-4",
+      "prompt": "Edit this painting of the bistro's courtyard only inside the transparent region of the mask: a small region of cobbles in the near left corner, just in front of the kitchen door step. Keep everything outside the region exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same blue-hour light with warm window light, perspective and colours.\n\nInside the region stands the serving station: one small, compact rustic serving table of scrubbed planks on four square legs, seen from the front. Its long front edge faces the viewer and is perfectly horizontal, parallel to the bottom edge of the picture; the region's top edge is the far edge of its top. The table is short and shallow: its front is about as long as the stone step is wide, it is only about half as deep as it is long, and its left end is cut by the left edge of the picture. It fills the region, with a little cobbled ground under it. It does not continue outside the region, and it does not point towards the back of the courtyard.\n\nPerspective: this is a one-point perspective view, with the vanishing point on the horizon at the top of the low back wall, far to the right of the table. The table's front and back edges are horizontal. Only its short right side is visible: it runs from the front right corner up and to the right, towards that vanishing point, like the region's slanting lower right edge. The top is flat and level, a little lower than the long table's top. Its far edge stands just in front of the stone step and hides only the lower part of the step's front.\n\nOn the table: a white linen cloth with a red cross-stitch border, hanging a little over its front edge; one round loaf of country bread and one plaited loaf on a small wooden board; a short stack of the same small blue-and-ochre folk plates that are on the long table; and two round earthenware serving dishes with domed earthenware lids. Everything stands upright, in scale with the table, and casts soft shadows on the cloth. A little warm light from the kitchen window falls on it.\n\nAbsolutely no letters, words or numbers anywhere. No people, no cats.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-22-run4",
+        "reference": "public/assets/original/courtyard-21.png",
+        "mask": "a front-facing box: the table front horizontal, its right side on a line to the vanishing point"
+      },
+      "disposition": "A compact front-facing serving table; only an outline traced around the painted table was composited (room-states/courtyard-22-run4-composite). The user accepted the result."
+    },
+    {
+      "id": "courtyard-23",
+      "prompt": "Edit this painting of the bistro's courtyard. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, scale, objects, blue-hour light with warm window light, and colours, with these additions for the supper.\n\n1. Flowers on the tables: on each of the two small wooden tables in front of the back wall stands one small earthenware vase, glazed cream with a blue folk pattern, with a little bunch of fresh wildflowers: red poppies, blue cornflowers, white daisies and a few ears of wheat. On the long table in the near courtyard stand two more vases of the same kind on its middle line, one between the far plates and one just beyond the menu card. Each vase stands upright on its table top, in the table's perspective and in scale with the plates, with a soft shadow. The plates, the menu cards and the chairs stay as they are.\n\n2. A string of warm lights: one long string of small round lamp bulbs hangs across the top of the picture, high above the courtyard, from an iron hook under the end of the house's eaves on the left to a branch of the big tree on the right. It sags in one gentle curve. Its lowest point stays above the tip of the church spire, so the string never crosses the church or the hills. The small bulbs glow warm yellow, each with a tiny soft halo. They do not light up the sky, and the courtyard keeps its blue dusk.\n\nEverything else stays exactly the same: the house, the kitchen door with its harvest wreath, the lit window, the niche, the herb pots, the serving table and everything on it, the long table with its benches, plates and menu card, the two small tables with their chairs, plates and cards, the gate with its towels, lantern and geraniums, the geraniums on the wall top, the tree, the fallen leaves, the hills and the village beyond.\n\nAbsolutely no letters, words or numbers anywhere. No people, no cats.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "room-states/courtyard-23-run1",
+        "reference": "analysis composite courtyard-22-run4-composite (generated by this project; accepted as courtyard-22)"
+      },
+      "disposition": "A string of warm lights from the gutter into the tree, and wildflower vases on the small tables and the long table; only the string band and the four vase regions were composited (room-states/courtyard-23-run1-composite). The user accepted the result."
+    },
+    {
+      "id": "decoration-front",
+      "prompt": "Edit the provided original Scary Snacks bistro painting. Preserve the exact 3:4 composition, camera, every position, scale, warm gouache brushwork, lighting, architecture and all unrelated pixels as closely as possible. Change ONLY TWO details: (1) the blue floral ceramic bowls and upright plate on the RIGHT END of the TOP wall shelf, beside the preserve jars, become richly glazed FOREST GREEN pottery with cream leaf motifs; keep their exact silhouettes and positions. (2) the bouquet and jug on the RED DRESSER below the window: replace the mixed red/yellow wildflowers with a full bouquet of soft purple and white LILACS, keep its exact overall extent and placement, retain the same blue floral jug. Do not change the shelf, jars, spider, window, curtains, dresser, stove, light or walls. No added objects, no cats, no text or UI. Produce one full opaque portrait painting, 1536x2048 if available. This is a scene edit, not a collage or isolated object.",
+      "reference": "front-room-24",
+      "disposition": "The user accepted it for spec 002. The original room states stay unchanged."
+    },
+    {
+      "id": "decoration-courtyard",
+      "prompt": "Edit this original Scary Snacks courtyard painting. Keep the exact 3:4 composition, camera, position and scale of EVERYTHING, and the gouache brushwork and warm lighting. Change ONLY the cream embroidered cloth on the small SERVING TABLE AT THE LOWER LEFT, underneath the loaves, clay pots and stacked plates. Its currently red cross-stitch floral edging becomes deep COBALT BLUE embroidery with small blue leaf motifs; the cloth body stays warm ivory. Preserve the exact cloth silhouette, drape, creases, table, dishes, bread and all background. Do not put any cloth on the large central table. No new objects, no flowers, no text, no cats or UI. Return the complete opaque portrait painting, 1536x2048 if available. Only this one small cloth changes.",
+      "reference": "courtyard-22",
+      "disposition": "The user accepted it for spec 002. The original room states stay unchanged."
+    }
+  ]
+}

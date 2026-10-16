@@ -1,0 +1,14 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+.tools/
+private/
+analysis/
+.release/
+.codex/
+.claude/
+.agents/
+.impeccable/
+.env.local
+__pycache__/

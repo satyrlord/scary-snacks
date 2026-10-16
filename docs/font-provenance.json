@@ -1,0 +1,68 @@
+{
+  "retrievedOn": "2026-10-13",
+  "convertedOn": "2026-10-14",
+  "conversion": "fontTools 4.66.1 with brotli 1.2.0: fontTools.ttLib.woff2.compress(source.ttf, target.woff2)",
+  "note": "Font and licence files come from the Google Fonts distribution at the pinned commit. The fonts ship as WOFF2. Each WOFF2 file is a lossless repackaging of the unmodified source TrueType (TTF) file, with no subsetting, no renaming, and no outline changes. If you decompress each WOFF2, the tables are byte-identical to the source, with two exceptions that the WOFF2 format requires. The first exception is head.flags bit 11 (lossless conversion) with its checksum. The second exception is the empty, unsigned DSIG stub of Grenze Gotisch, which WOFF2 drops. The local file names changed. The font names did not change. The full licence texts ship beside the fonts.",
+  "files": [
+    {
+      "family": "Inter",
+      "path": "public/assets/fonts/inter-variable.woff2",
+      "format": "WOFF2",
+      "bytes": 350460,
+      "sha256": "13b4cddc57045d40b411008e61588c8f81aa0bd72fe884624831a0ff9c4d159a",
+      "modified": false,
+      "license": "SIL Open Font License 1.1",
+      "designerUrl": "https://rsms.me/inter/",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/66928797f271fed5ee428544e7229685e2d90127/ofl/inter/Inter%5Bopsz%2Cwght%5D.ttf",
+      "repository": "https://github.com/google/fonts",
+      "commit": "66928797f271fed5ee428544e7229685e2d90127",
+      "sourceFormat": "TrueType",
+      "sourceBytes": 876576,
+      "sourceSha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031",
+      "sourceGitBlobSha1": "047c92f6e2212473dc436020afed689527076d44"
+    },
+    {
+      "family": "Inter",
+      "path": "public/assets/fonts/OFL-Inter.txt",
+      "bytes": 4377,
+      "sha256": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57",
+      "modified": false,
+      "license": "SIL Open Font License 1.1",
+      "designerUrl": "https://rsms.me/inter/",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/66928797f271fed5ee428544e7229685e2d90127/ofl/inter/OFL.txt",
+      "repository": "https://github.com/google/fonts",
+      "commit": "66928797f271fed5ee428544e7229685e2d90127",
+      "sourceGitBlobSha1": "21f6aff961064c2e429f570995e446bcdd555422"
+    },
+    {
+      "family": "Grenze Gotisch",
+      "path": "public/assets/fonts/grenze-gotisch-variable.woff2",
+      "format": "WOFF2",
+      "bytes": 81096,
+      "sha256": "c91902f59e026055fd9f57d575bd8eec88c73368dd0847a401eb28d975575924",
+      "modified": false,
+      "license": "SIL Open Font License 1.1",
+      "designerUrl": "https://www.omnibus-type.com/fonts/grenze-gotisch/",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/66928797f271fed5ee428544e7229685e2d90127/ofl/grenzegotisch/GrenzeGotisch%5Bwght%5D.ttf",
+      "repository": "https://github.com/google/fonts",
+      "commit": "66928797f271fed5ee428544e7229685e2d90127",
+      "sourceFormat": "TrueType",
+      "sourceBytes": 193492,
+      "sourceSha256": "701b299d8dc002a2b4bea2ff0f1272c0e4081a2835914354804565c410d0c637",
+      "sourceGitBlobSha1": "5d093c0a18ebe84b594dd0175e435693d1a48c43"
+    },
+    {
+      "family": "Grenze Gotisch",
+      "path": "public/assets/fonts/OFL-Grenze-Gotisch.txt",
+      "bytes": 4402,
+      "sha256": "bca29af2c3c9e142d11f523f414902ab8fb9ab8ffa3c34c63b6b72aa4e7d6acc",
+      "modified": false,
+      "license": "SIL Open Font License 1.1",
+      "designerUrl": "https://www.omnibus-type.com/fonts/grenze-gotisch/",
+      "sourceUrl": "https://raw.githubusercontent.com/google/fonts/66928797f271fed5ee428544e7229685e2d90127/ofl/grenzegotisch/OFL.txt",
+      "repository": "https://github.com/google/fonts",
+      "commit": "66928797f271fed5ee428544e7229685e2d90127",
+      "sourceGitBlobSha1": "03e84a8b44d4ec69dfe1a3e66481623c898c5a81"
+    }
+  ]
+}

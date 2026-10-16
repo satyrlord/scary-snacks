@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Dead Code Audit'
+  short_description: 'Find dead items with evidence'
+  default_prompt: 'Use $dead-code-audit to audit Scary Snacks reachability and give a status for each candidate.'
+policy:
+  allow_implicit_invocation: true

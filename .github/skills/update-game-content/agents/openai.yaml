@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Update Game Content'
+  short_description: 'Change items, characters, or dialogue'
+  default_prompt: 'Use $update-game-content to change Scary Snacks game data through its generator and validate it.'
+policy:
+  allow_implicit_invocation: true

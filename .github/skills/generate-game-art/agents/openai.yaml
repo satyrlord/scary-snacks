@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Generate Game Art'
+  short_description: 'Generate atlas and room art in chat'
+  default_prompt: 'Use $generate-game-art to generate, review, or replace Scary Snacks bitmap art.'
+policy:
+  allow_implicit_invocation: true

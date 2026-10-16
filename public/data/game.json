@@ -1,0 +1,2188 @@
+{
+  "title": "Scary Snacks",
+  "inventoryCapacity": 12,
+  "board": {
+    "columns": 6,
+    "rows": 7,
+    "initial": [
+      null,
+      "generator_bakery",
+      null,
+      null,
+      "generator_warm",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "bakery_1",
+      "bakery_1",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "warm_1",
+      null,
+      null,
+      null,
+      null,
+      "drinks_1",
+      null,
+      null,
+      null,
+      "generator_drinks",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "chains": [
+    {
+      "id": "bakery",
+      "name": "Bread counter"
+    },
+    {
+      "id": "warm",
+      "name": "Warm kitchen"
+    },
+    {
+      "id": "sweet",
+      "name": "Dessert table"
+    },
+    {
+      "id": "drinks",
+      "name": "Drinks counter"
+    },
+    {
+      "id": "pantry",
+      "name": "Market pantry"
+    }
+  ],
+  "items": {
+    "bakery_1": {
+      "id": "bakery_1",
+      "name": "Flour",
+      "chain": "bakery",
+      "stage": 1,
+      "next": "bakery_2",
+      "sprite": 0,
+      "price": 2
+    },
+    "bakery_2": {
+      "id": "bakery_2",
+      "name": "Dough",
+      "chain": "bakery",
+      "stage": 2,
+      "next": "bakery_3",
+      "sprite": 1,
+      "price": 4
+    },
+    "bakery_3": {
+      "id": "bakery_3",
+      "name": "Pogăcele",
+      "chain": "bakery",
+      "stage": 3,
+      "next": "bakery_4",
+      "sprite": 2,
+      "price": 12
+    },
+    "bakery_4": {
+      "id": "bakery_4",
+      "name": "Langoș",
+      "chain": "bakery",
+      "stage": 4,
+      "next": "bakery_5",
+      "sprite": 3,
+      "price": 22
+    },
+    "bakery_5": {
+      "id": "bakery_5",
+      "name": "Zacuscă toast",
+      "chain": "bakery",
+      "stage": 5,
+      "next": "bakery_6",
+      "sprite": 4,
+      "price": 28
+    },
+    "bakery_6": {
+      "id": "bakery_6",
+      "name": "Bread basket",
+      "chain": "bakery",
+      "stage": 6,
+      "next": null,
+      "sprite": 5,
+      "price": 35
+    },
+    "generator_bakery": {
+      "id": "generator_bakery",
+      "name": "Flour bin",
+      "chain": "bakery",
+      "stage": 0,
+      "next": null,
+      "sprite": 30,
+      "price": 0,
+      "generator": {
+        "outputs": [
+          "bakery_1"
+        ]
+      }
+    },
+    "warm_1": {
+      "id": "warm_1",
+      "name": "Cornmeal",
+      "chain": "warm",
+      "stage": 1,
+      "next": "warm_2",
+      "sprite": 6,
+      "price": 2
+    },
+    "warm_2": {
+      "id": "warm_2",
+      "name": "Mămăligă",
+      "chain": "warm",
+      "stage": 2,
+      "next": "warm_3",
+      "sprite": 7,
+      "price": 8
+    },
+    "warm_3": {
+      "id": "warm_3",
+      "name": "Bulz",
+      "chain": "warm",
+      "stage": 3,
+      "next": "warm_4",
+      "sprite": 8,
+      "price": 32
+    },
+    "warm_4": {
+      "id": "warm_4",
+      "name": "Smoked cheese plate",
+      "chain": "warm",
+      "stage": 4,
+      "next": "warm_5",
+      "sprite": 9,
+      "price": 40
+    },
+    "warm_5": {
+      "id": "warm_5",
+      "name": "Cabbage rolls",
+      "chain": "warm",
+      "stage": 5,
+      "next": "warm_6",
+      "sprite": 10,
+      "price": 50
+    },
+    "warm_6": {
+      "id": "warm_6",
+      "name": "Goulash pot",
+      "chain": "warm",
+      "stage": 6,
+      "next": null,
+      "sprite": 11,
+      "price": 80
+    },
+    "generator_warm": {
+      "id": "generator_warm",
+      "name": "Copper pot",
+      "chain": "warm",
+      "stage": 0,
+      "next": null,
+      "sprite": 31,
+      "price": 0,
+      "generator": {
+        "outputs": [
+          "warm_1"
+        ]
+      }
+    },
+    "sweet_1": {
+      "id": "sweet_1",
+      "name": "Walnuts",
+      "chain": "sweet",
+      "stage": 1,
+      "next": "sweet_2",
+      "sprite": 12,
+      "price": 3
+    },
+    "sweet_2": {
+      "id": "sweet_2",
+      "name": "Doughnut",
+      "chain": "sweet",
+      "stage": 2,
+      "next": "sweet_3",
+      "sprite": 13,
+      "price": 8
+    },
+    "sweet_3": {
+      "id": "sweet_3",
+      "name": "Papanași",
+      "chain": "sweet",
+      "stage": 3,
+      "next": "sweet_4",
+      "sprite": 14,
+      "price": 32
+    },
+    "sweet_4": {
+      "id": "sweet_4",
+      "name": "Plum dumplings",
+      "chain": "sweet",
+      "stage": 4,
+      "next": "sweet_5",
+      "sprite": 15,
+      "price": 28
+    },
+    "sweet_5": {
+      "id": "sweet_5",
+      "name": "Cozonac",
+      "chain": "sweet",
+      "stage": 5,
+      "next": "sweet_6",
+      "sprite": 16,
+      "price": 40
+    },
+    "sweet_6": {
+      "id": "sweet_6",
+      "name": "Chimney cake",
+      "chain": "sweet",
+      "stage": 6,
+      "next": null,
+      "sprite": 17,
+      "price": 35
+    },
+    "generator_sweet": {
+      "id": "generator_sweet",
+      "name": "Pastry box",
+      "chain": "sweet",
+      "stage": 0,
+      "next": null,
+      "sprite": 32,
+      "price": 0,
+      "generator": {
+        "outputs": [
+          "sweet_1"
+        ]
+      }
+    },
+    "drinks_1": {
+      "id": "drinks_1",
+      "name": "Elderflowers",
+      "chain": "drinks",
+      "stage": 1,
+      "next": "drinks_2",
+      "sprite": 18,
+      "price": 1
+    },
+    "drinks_2": {
+      "id": "drinks_2",
+      "name": "Socată",
+      "chain": "drinks",
+      "stage": 2,
+      "next": "drinks_3",
+      "sprite": 19,
+      "price": 12
+    },
+    "drinks_3": {
+      "id": "drinks_3",
+      "name": "Fruit tea",
+      "chain": "drinks",
+      "stage": 3,
+      "next": "drinks_4",
+      "sprite": 20,
+      "price": 18
+    },
+    "drinks_4": {
+      "id": "drinks_4",
+      "name": "Cherry compote",
+      "chain": "drinks",
+      "stage": 4,
+      "next": "drinks_5",
+      "sprite": 21,
+      "price": 20
+    },
+    "drinks_5": {
+      "id": "drinks_5",
+      "name": "Blueberry liqueur",
+      "chain": "drinks",
+      "stage": 5,
+      "next": "drinks_6",
+      "sprite": 22,
+      "price": 35
+    },
+    "drinks_6": {
+      "id": "drinks_6",
+      "name": "Plum brandy",
+      "chain": "drinks",
+      "stage": 6,
+      "next": null,
+      "sprite": 23,
+      "price": 40
+    },
+    "generator_drinks": {
+      "id": "generator_drinks",
+      "name": "Drinks pitcher",
+      "chain": "drinks",
+      "stage": 0,
+      "next": null,
+      "sprite": 33,
+      "price": 0,
+      "generator": {
+        "outputs": [
+          "drinks_1"
+        ]
+      }
+    },
+    "pantry_1": {
+      "id": "pantry_1",
+      "name": "Aubergine",
+      "chain": "pantry",
+      "stage": 1,
+      "next": "pantry_2",
+      "sprite": 24,
+      "price": 3
+    },
+    "pantry_2": {
+      "id": "pantry_2",
+      "name": "Peppers",
+      "chain": "pantry",
+      "stage": 2,
+      "next": "pantry_3",
+      "sprite": 25,
+      "price": 3
+    },
+    "pantry_3": {
+      "id": "pantry_3",
+      "name": "Roasted vegetables",
+      "chain": "pantry",
+      "stage": 3,
+      "next": "pantry_4",
+      "sprite": 26,
+      "price": 18
+    },
+    "pantry_4": {
+      "id": "pantry_4",
+      "name": "Zacuscă",
+      "chain": "pantry",
+      "stage": 4,
+      "next": "pantry_5",
+      "sprite": 27,
+      "price": 24
+    },
+    "pantry_5": {
+      "id": "pantry_5",
+      "name": "Wild mushroom sauce",
+      "chain": "pantry",
+      "stage": 5,
+      "next": "pantry_6",
+      "sprite": 28,
+      "price": 28
+    },
+    "pantry_6": {
+      "id": "pantry_6",
+      "name": "Sharing board",
+      "chain": "pantry",
+      "stage": 6,
+      "next": null,
+      "sprite": 29,
+      "price": 65
+    },
+    "generator_pantry": {
+      "id": "generator_pantry",
+      "name": "Produce basket",
+      "chain": "pantry",
+      "stage": 0,
+      "next": null,
+      "sprite": 34,
+      "price": 0,
+      "generator": {
+        "outputs": [
+          "pantry_1"
+        ]
+      }
+    }
+  },
+  "characters": [
+    {
+      "id": "mara",
+      "name": "Mara",
+      "role": "Bistro owner",
+      "description": "A practical host with wavy dark brown hair under a red and black headscarf, a white ie blouse with red cross-stitch, and a green woven apron.",
+      "sprite": 0,
+      "introduction": "I am Mara. I keep the bistro open and make room for neighbours who want a meal or a quiet seat. Help me try a few servings as we prepare the house.",
+      "thanks": [
+        "Good. That is how it should taste.",
+        "I will write this one on the menu.",
+        "Thank you. Now, the next table."
+      ]
+    },
+    {
+      "id": "ilie",
+      "name": "Ilie",
+      "role": "Baker",
+      "description": "An older baker with silver hair and moustache, round glasses, a black lambskin căciulă, and a floury sheepskin vest over an embroidered shirt.",
+      "sprite": 1,
+      "introduction": "I am Ilie, the baker. I bring bread and the notebook where my family kept its dishes. There is room on those pages for what we learn here.",
+      "thanks": [
+        "Still warm. You remembered!",
+        "My grandmother would approve.",
+        "I did not even need my glasses."
+      ]
+    },
+    {
+      "id": "eszter",
+      "name": "Eszter",
+      "role": "Potter",
+      "description": "A Székely potter with a short auburn bob, a white puffed-sleeve blouse, a rust-red bodice edged with green and gold braid, and white beads.",
+      "sprite": 2,
+      "introduction": "I am Eszter. I make the bowls and plates. A useful dish should sit well on the table and leave room for the person beside you.",
+      "thanks": [
+        "It looks lovely in a blue bowl.",
+        "Exactly right. Thank you.",
+        "I will tell the courtyard."
+      ]
+    },
+    {
+      "id": "sorin",
+      "name": "Sorin",
+      "role": "Bistro helper",
+      "description": "A cheerful young helper with short wavy chestnut hair, an embroidered white shirt with rolled sleeves, a dark embroidered felt vest, and a woven belt.",
+      "sprite": 3,
+      "introduction": "I am Sorin. I help at the bistro between deliveries around the neighbourhood. I know the steep streets, the quiet doors, and where to stop for lunch.",
+      "thanks": [
+        "Fuel for the hill home!",
+        "Worth every pedal. Thank you!",
+        "My lunch ride is sorted."
+      ]
+    }
+  ],
+  "chapters": [
+    "Open the shutters",
+    "A kitchen for everyone",
+    "Around one table",
+    "The courtyard",
+    "Recipes to share",
+    "The first community supper"
+  ],
+  "tasks": [
+    {
+      "id": "task_1",
+      "chapter": 1,
+      "title": "Fix the broken window",
+      "cost": 400,
+      "work": {
+        "summary": "Replace one broken pane. Prepare and repaint the existing frame and shutters. Keep the sound window structure.",
+        "materials": 200,
+        "labour": 200,
+        "hours": 4
+      },
+      "goals": {
+        "served": 8,
+        "merges": 16
+      },
+      "dialogue": [
+        {
+          "speaker": "mara",
+          "text": "That window has a cracked pane and a corner missing. The draught reaches all the way to the counter."
+        },
+        {
+          "speaker": "sorin",
+          "text": "I brought new glass on the bike. Very slowly. The ladder will have to walk."
+        },
+        {
+          "speaker": "eszter",
+          "text": "And I have cobalt paint for the frame and the shutters. The bistro can greet the street again."
+        }
+      ]
+    },
+    {
+      "id": "task_2",
+      "chapter": 1,
+      "title": "Mend the welcome board",
+      "cost": 90,
+      "work": {
+        "summary": "Sand and repaint the existing sound welcome board. Add a small flower motif.",
+        "materials": 30,
+        "labour": 60,
+        "hours": 1.5
+      },
+      "goals": {
+        "served": 11,
+        "merges": 22
+      },
+      "dialogue": [
+        {
+          "speaker": "eszter",
+          "text": "The wooden board is sound. It only needs a new surface."
+        },
+        {
+          "speaker": "mara",
+          "text": "Folk flowers, red ones, like the old plates. Miez can supervise the painting."
+        },
+        {
+          "speaker": "ilie",
+          "text": "Our black cat has already inspected the empty pastry shelf."
+        }
+      ]
+    },
+    {
+      "id": "task_3",
+      "chapter": 1,
+      "title": "Set up the pastry shelf",
+      "cost": 70,
+      "work": {
+        "summary": "Clean the existing pastry shelf. Add a tray, a liner, and the first pastry display.",
+        "materials": 30,
+        "labour": 40,
+        "hours": 1
+      },
+      "goals": {
+        "served": 13,
+        "merges": 26
+      },
+      "dialogue": [
+        {
+          "speaker": "ilie",
+          "text": "This shelf is low enough for everyone to see the pastries."
+        },
+        {
+          "speaker": "mara",
+          "text": "And high enough to keep your elbow out of the walnuts."
+        },
+        {
+          "speaker": "ilie",
+          "text": "A thoughtful design. I will bring the pastry box."
+        }
+      ],
+      "unlock": "sweet"
+    },
+    {
+      "id": "task_4",
+      "chapter": 1,
+      "title": "Light the front room",
+      "cost": 240,
+      "work": {
+        "summary": "Mount and connect two supplied lamps. Fit bulbs and check the existing connections.",
+        "materials": 40,
+        "labour": 200,
+        "hours": 3
+      },
+      "goals": {
+        "served": 19,
+        "merges": 38
+      },
+      "dialogue": [
+        {
+          "speaker": "sorin",
+          "text": "The lamps are ready. Shall we put one above each small table?"
+        },
+        {
+          "speaker": "eszter",
+          "text": "Yes, and keep the corner warm and quiet."
+        },
+        {
+          "speaker": "mara",
+          "text": "A seat for a quick lunch, and a seat for a long conversation."
+        }
+      ]
+    },
+    {
+      "id": "task_5",
+      "chapter": 2,
+      "title": "Repair the kitchen worktop",
+      "cost": 240,
+      "work": {
+        "summary": "Stabilize the existing worktop. Repair and seal its damaged edge, then polish the existing pans.",
+        "materials": 90,
+        "labour": 150,
+        "hours": 3
+      },
+      "goals": {
+        "served": 25,
+        "merges": 50
+      },
+      "dialogue": [
+        {
+          "speaker": "ilie",
+          "text": "A steady worktop makes a calm kitchen."
+        },
+        {
+          "speaker": "eszter",
+          "text": "I have sealed the edge. Give it room beside the copper pot."
+        },
+        {
+          "speaker": "mara",
+          "text": "Now there is space to prepare tomorrow together."
+        }
+      ]
+    },
+    {
+      "id": "task_6",
+      "chapter": 2,
+      "title": "Bring in market produce",
+      "cost": 120,
+      "work": {
+        "summary": "Buy one small basket of vegetables and garlic. Prepare the first display and preserves batch.",
+        "materials": 80,
+        "labour": 40,
+        "hours": 1
+      },
+      "goals": {
+        "served": 27,
+        "merges": 54
+      },
+      "dialogue": [
+        {
+          "speaker": "sorin",
+          "text": "The market had aubergines and more peppers than my basket could hold."
+        },
+        {
+          "speaker": "mara",
+          "text": "We can roast a batch and make a pantry shelf."
+        },
+        {
+          "speaker": "ilie",
+          "text": "Good. A jar of zacuscă makes a fine welcome on fresh bread."
+        }
+      ],
+      "unlock": "pantry"
+    },
+    {
+      "id": "task_7",
+      "chapter": 2,
+      "title": "Hang the kitchen shelves",
+      "cost": 180,
+      "work": {
+        "summary": "Secure and touch up the existing upper shelf. Add the first jars of preserves.",
+        "materials": 80,
+        "labour": 100,
+        "hours": 2
+      },
+      "goals": {
+        "served": 31,
+        "merges": 62
+      },
+      "dialogue": [
+        {
+          "speaker": "eszter",
+          "text": "The pastries keep the lower shelf. The jars go up top, on the left."
+        },
+        {
+          "speaker": "mara",
+          "text": "Leave the right end free. We will learn what belongs there."
+        },
+        {
+          "speaker": "ilie",
+          "text": "An empty space on a shelf is an invitation to cook."
+        }
+      ]
+    },
+    {
+      "id": "task_8",
+      "chapter": 2,
+      "title": "Write the first menu",
+      "cost": 50,
+      "work": {
+        "summary": "Use one small chalk slate and chalk. Write and draw the first menu by hand.",
+        "materials": 25,
+        "labour": 25,
+        "hours": 0.5
+      },
+      "goals": {
+        "served": 32,
+        "merges": 64
+      },
+      "dialogue": [
+        {
+          "speaker": "mara",
+          "text": "Bread, warm dishes, sweets, drinks, and something from the pantry."
+        },
+        {
+          "speaker": "ilie",
+          "text": "Draw it, then. Nobody needs glasses to read a picture of soup."
+        },
+        {
+          "speaker": "sorin",
+          "text": "I will put a copy by the door before the lunch ride."
+        }
+      ]
+    },
+    {
+      "id": "task_9",
+      "chapter": 3,
+      "title": "Choose the tableware",
+      "cost": 520,
+      "work": {
+        "summary": "Buy six handmade bowls and six cups with saucers. Wash and arrange them. Keep them for later meals.",
+        "materials": 480,
+        "labour": 40,
+        "hours": 1
+      },
+      "goals": {
+        "served": 34,
+        "merges": 68
+      },
+      "dialogue": [
+        {
+          "speaker": "eszter",
+          "text": "These bowls came from three firings. None is exactly the same blue."
+        },
+        {
+          "speaker": "mara",
+          "text": "That is why I like them. Each place will feel considered."
+        },
+        {
+          "speaker": "ilie",
+          "text": "And each bowl is deep enough for a generous serving."
+        }
+      ]
+    },
+    {
+      "id": "task_10",
+      "chapter": 3,
+      "title": "Sand the long table",
+      "cost": 600,
+      "work": {
+        "summary": "Repair, sand, and refinish the existing long table and two chairs. Keep their sound timber.",
+        "materials": 120,
+        "labour": 480,
+        "hours": 8
+      },
+      "goals": {
+        "served": 50,
+        "merges": 100
+      },
+      "dialogue": [
+        {
+          "speaker": "sorin",
+          "text": "Four people can move this table. Three people can offer advice."
+        },
+        {
+          "speaker": "mara",
+          "text": "Today all four of us are moving it. Then the old red chairs."
+        },
+        {
+          "speaker": "eszter",
+          "text": "Under that sheet they were painted with birds. A little gold, and they will sing again."
+        }
+      ]
+    },
+    {
+      "id": "task_11",
+      "chapter": 3,
+      "title": "Make a recipe corner",
+      "cost": 40,
+      "work": {
+        "summary": "Add a notebook and pencils to the existing cabinet. Arrange the recipe corner.",
+        "materials": 20,
+        "labour": 20,
+        "hours": 0.5
+      },
+      "goals": {
+        "served": 51,
+        "merges": 102
+      },
+      "dialogue": [
+        {
+          "speaker": "ilie",
+          "text": "I brought a notebook for recipes and the changes we make."
+        },
+        {
+          "speaker": "eszter",
+          "text": "Let people add a memory beside a dish, if they want."
+        },
+        {
+          "speaker": "mara",
+          "text": "We will leave pencils here. The menu can grow with the neighbourhood."
+        }
+      ]
+    },
+    {
+      "id": "task_12",
+      "chapter": 3,
+      "title": "Open the shared table",
+      "cost": 100,
+      "work": {
+        "summary": "Move the prepared table, chairs, and existing dresser. Clean and set the shared places.",
+        "materials": 20,
+        "labour": 80,
+        "hours": 2
+      },
+      "goals": {
+        "served": 55,
+        "merges": 110
+      },
+      "dialogue": [
+        {
+          "speaker": "mara",
+          "text": "The long table is ready for anyone who wants company."
+        },
+        {
+          "speaker": "sorin",
+          "text": "I can stop here between deliveries and still have room for my bag."
+        },
+        {
+          "speaker": "ilie",
+          "text": "Your bag may have a chair. Your bicycle must wait outside."
+        }
+      ]
+    },
+    {
+      "id": "task_13",
+      "chapter": 4,
+      "title": "Clear the courtyard",
+      "cost": 140,
+      "work": {
+        "summary": "Sweep a small paved courtyard of about 20 square metres. Bag the leaves and clear the path.",
+        "materials": 20,
+        "labour": 120,
+        "hours": 4
+      },
+      "goals": {
+        "served": 63,
+        "merges": 126
+      },
+      "dialogue": [
+        {
+          "speaker": "sorin",
+          "text": "There is a whole courtyard under these leaves. Miez found it before we did."
+        },
+        {
+          "speaker": "eszter",
+          "text": "Our black cat has chosen the sunny wall for a nap."
+        },
+        {
+          "speaker": "mara",
+          "text": "Let us make the path clear first, then place the tables."
+        }
+      ]
+    },
+    {
+      "id": "task_14",
+      "chapter": 4,
+      "title": "Plant the herb pots",
+      "cost": 140,
+      "work": {
+        "summary": "Plant three small herbs in three clay pots with soil and drainage.",
+        "materials": 100,
+        "labour": 40,
+        "hours": 1
+      },
+      "goals": {
+        "served": 65,
+        "merges": 130
+      },
+      "dialogue": [
+        {
+          "speaker": "eszter",
+          "text": "The pots have drainage holes and room for roots."
+        },
+        {
+          "speaker": "ilie",
+          "text": "Lovage and parsley close to the kitchen will be useful."
+        },
+        {
+          "speaker": "mara",
+          "text": "And rosemary under the window, where the warmth reaches it."
+        }
+      ]
+    },
+    {
+      "id": "task_15",
+      "chapter": 4,
+      "title": "Repair the door hood",
+      "cost": 1300,
+      "work": {
+        "summary": "Replace about two square metres of wooden shingles on the sound door hood. Renew fixings and weather seals.",
+        "materials": 900,
+        "labour": 400,
+        "hours": 8
+      },
+      "goals": {
+        "served": 81,
+        "merges": 162
+      },
+      "dialogue": [
+        {
+          "speaker": "sorin",
+          "text": "New shingles, every one. Rain will run off the front, not down the door."
+        },
+        {
+          "speaker": "mara",
+          "text": "Good. Nobody should have a surprise shower with lunch."
+        },
+        {
+          "speaker": "eszter",
+          "text": "I will move the pots before we test it with a watering can."
+        }
+      ]
+    },
+    {
+      "id": "task_16",
+      "chapter": 4,
+      "title": "Set the outdoor tables",
+      "cost": 90,
+      "work": {
+        "summary": "Move two existing outdoor tables and chairs. Clean and level them, and keep the path clear.",
+        "materials": 10,
+        "labour": 80,
+        "hours": 2
+      },
+      "goals": {
+        "served": 85,
+        "merges": 170
+      },
+      "dialogue": [
+        {
+          "speaker": "mara",
+          "text": "Keep a wide route from the gate to the door."
+        },
+        {
+          "speaker": "eszter",
+          "text": "Both tables fit along the wall, and the red chairs from the front room came out too."
+        },
+        {
+          "speaker": "ilie",
+          "text": "Now I can carry a tray outside without turning sideways."
+        }
+      ]
+    },
+    {
+      "id": "task_17",
+      "chapter": 5,
+      "title": "Collect family recipes",
+      "cost": 75,
+      "work": {
+        "summary": "Collect family recipes, copy them onto paper, and pin them above the menu.",
+        "materials": 15,
+        "labour": 60,
+        "hours": 2
+      },
+      "goals": {
+        "served": 89,
+        "merges": 178
+      },
+      "dialogue": [
+        {
+          "speaker": "ilie",
+          "text": "Every page describes a different way to finish the same dish."
+        },
+        {
+          "speaker": "mara",
+          "text": "We can keep the names of the people who shared them, with their permission."
+        },
+        {
+          "speaker": "eszter",
+          "text": "And write down what we tried, so the next cook can follow it."
+        }
+      ]
+    },
+    {
+      "id": "task_18",
+      "chapter": 5,
+      "title": "Prepare the tasting plates",
+      "cost": 150,
+      "work": {
+        "summary": "Prepare twelve small tasting portions and labels. Use the plates and bowls already bought.",
+        "materials": 90,
+        "labour": 60,
+        "hours": 2
+      },
+      "goals": {
+        "served": 93,
+        "merges": 186
+      },
+      "dialogue": [
+        {
+          "speaker": "eszter",
+          "text": "Small plates are ready. There is room for notes beside each one."
+        },
+        {
+          "speaker": "sorin",
+          "text": "I volunteered to carry them. Tasting was not mentioned, but I remain hopeful."
+        },
+        {
+          "speaker": "mara",
+          "text": "Finish the delivery, and we will sit down together."
+        }
+      ]
+    },
+    {
+      "id": "task_19",
+      "chapter": 5,
+      "title": "Stock the drinks cabinet",
+      "cost": 200,
+      "work": {
+        "summary": "Buy the first drinks, fruit, and tea stock and labels. Use the existing niche, pitcher, cups, and glasses.",
+        "materials": 160,
+        "labour": 40,
+        "hours": 1
+      },
+      "goals": {
+        "served": 95,
+        "merges": 190
+      },
+      "dialogue": [
+        {
+          "speaker": "mara",
+          "text": "Socată and fruit tea on one shelf. The traditional spirits on another."
+        },
+        {
+          "speaker": "ilie",
+          "text": "Put clear labels on everything, including the cherry compote."
+        },
+        {
+          "speaker": "sorin",
+          "text": "Tea for me. There is one more hill on the route home."
+        }
+      ]
+    },
+    {
+      "id": "task_20",
+      "chapter": 5,
+      "title": "Print the supper menu",
+      "cost": 120,
+      "work": {
+        "summary": "Print ten sturdy supper menus and add simple stands. Move the existing long table into the courtyard.",
+        "materials": 40,
+        "labour": 80,
+        "hours": 2
+      },
+      "goals": {
+        "served": 99,
+        "merges": 198
+      },
+      "dialogue": [
+        {
+          "speaker": "eszter",
+          "text": "The menu shows a picture of each dish. Anyone can ask what is in it."
+        },
+        {
+          "speaker": "mara",
+          "text": "The long table is out for the supper. The small ones stay for anyone who wants a quieter seat."
+        },
+        {
+          "speaker": "ilie",
+          "text": "Bring a pencil. A useful menu is one we can keep accurate."
+        }
+      ]
+    },
+    {
+      "id": "task_21",
+      "chapter": 6,
+      "title": "Send the invitations",
+      "cost": 220,
+      "work": {
+        "summary": "Print twenty small invitations. Dress the gate with a wreath, lantern, and three geraniums. Reuse the towels.",
+        "materials": 160,
+        "labour": 60,
+        "hours": 2
+      },
+      "goals": {
+        "served": 103,
+        "merges": 206
+      },
+      "dialogue": [
+        {
+          "speaker": "sorin",
+          "text": "I can deliver the paper invitations along my usual route."
+        },
+        {
+          "speaker": "mara",
+          "text": "Tell people they can come alone or bring company."
+        },
+        {
+          "speaker": "eszter",
+          "text": "I will dress the gate so the whole street knows. There is room at the table."
+        }
+      ]
+    },
+    {
+      "id": "task_22",
+      "chapter": 6,
+      "title": "Prepare the serving station",
+      "cost": 200,
+      "work": {
+        "summary": "Set the existing serving table with a cloth and labels. Prepare the first warm dishes and bread. Reuse the plates.",
+        "materials": 120,
+        "labour": 80,
+        "hours": 2
+      },
+      "goals": {
+        "served": 107,
+        "merges": 214
+      },
+      "dialogue": [
+        {
+          "speaker": "ilie",
+          "text": "Plates first, then the warm dishes. Bread belongs at both ends."
+        },
+        {
+          "speaker": "mara",
+          "text": "And water where everyone can reach it."
+        },
+        {
+          "speaker": "eszter",
+          "text": "I have made a little stand for each dish label."
+        }
+      ]
+    },
+    {
+      "id": "task_23",
+      "chapter": 6,
+      "title": "Add the final flowers",
+      "cost": 180,
+      "work": {
+        "summary": "Hang one outdoor light string. Arrange gathered wildflowers in existing vases.",
+        "materials": 120,
+        "labour": 60,
+        "hours": 1.5
+      },
+      "goals": {
+        "served": 110,
+        "merges": 220
+      },
+      "dialogue": [
+        {
+          "speaker": "eszter",
+          "text": "Short stems, so nobody has to talk through a bouquet."
+        },
+        {
+          "speaker": "sorin",
+          "text": "The courtyard lights are on. Two bats are circling above the roof."
+        },
+        {
+          "speaker": "mara",
+          "text": "A good evening for them, too. Let us leave their corner of the garden quiet."
+        }
+      ]
+    },
+    {
+      "id": "task_24",
+      "chapter": 6,
+      "title": "Welcome the community supper",
+      "cost": 120,
+      "work": {
+        "summary": "Top up bread, water, and food for twelve guests. Finish setting places and welcome everyone. Reuse the prepared room and tableware.",
+        "materials": 60,
+        "labour": 60,
+        "hours": 2
+      },
+      "goals": {
+        "served": 114,
+        "merges": 228
+      },
+      "dialogue": [
+        {
+          "speaker": "mara",
+          "text": "The doors are open, the food is ready, and we have a place for everyone."
+        },
+        {
+          "speaker": "ilie",
+          "text": "Then it is time to put down the notebook and pick up a plate."
+        },
+        {
+          "speaker": "eszter",
+          "text": "Tomorrow we can plan more. Tonight, we share the table."
+        }
+      ]
+    }
+  ],
+  "areas": [
+    {
+      "id": "front-room",
+      "name": "The front room",
+      "unlock": null
+    },
+    {
+      "id": "courtyard",
+      "name": "The courtyard",
+      "unlock": "task_13"
+    }
+  ],
+  "rooms": [
+    {
+      "id": "front-room-00",
+      "area": "front-room",
+      "after": null,
+      "focus": {
+        "x": 50,
+        "y": 30
+      },
+      "mark": {
+        "x": 50,
+        "y": 30
+      },
+      "label": "the unfinished room",
+      "text": "The front room at blue hour: the teal tiled stove glows, and the square window looks over the village. Cobwebs hang in the broken window, and a few small spiders keep house on the window web. One small spider lives under the upper wall shelf, by its left bracket."
+    },
+    {
+      "id": "front-room-01",
+      "area": "front-room",
+      "after": "task_1",
+      "focus": {
+        "x": 81,
+        "y": 33
+      },
+      "mark": {
+        "x": 81,
+        "y": 18
+      },
+      "label": "the mended window",
+      "text": "The broken window is fixed: new glass, a cobalt frame and folk-painted shutters. Every web is gone, and the spiders left through the window, all but one."
+    },
+    {
+      "id": "front-room-02",
+      "area": "front-room",
+      "after": "task_2",
+      "focus": {
+        "x": 51,
+        "y": 62
+      },
+      "mark": {
+        "x": 53,
+        "y": 48
+      },
+      "label": "the welcome board",
+      "text": "The welcome board hangs on the wall, mended and painted with folk flowers."
+    },
+    {
+      "id": "front-room-03",
+      "area": "front-room",
+      "after": "task_3",
+      "focus": {
+        "x": 46,
+        "y": 34
+      },
+      "mark": {
+        "x": 46,
+        "y": 23
+      },
+      "label": "the pastry plate",
+      "text": "Round pastries wait on the lower wall shelf."
+    },
+    {
+      "id": "front-room-04",
+      "area": "front-room",
+      "after": "task_4",
+      "focus": {
+        "x": 50,
+        "y": 12
+      },
+      "mark": {
+        "x": 50,
+        "y": 14,
+        "below": true
+      },
+      "label": "lamps lit",
+      "text": "Both hanging lamps are lit."
+    },
+    {
+      "id": "front-room-05",
+      "area": "front-room",
+      "after": "task_5",
+      "focus": {
+        "x": 57,
+        "y": 46
+      },
+      "mark": {
+        "x": 57,
+        "y": 38
+      },
+      "label": "polished copper",
+      "text": "The worktop is mended, and the copper pans on their pegs are polished bright."
+    },
+    {
+      "id": "front-room-06",
+      "area": "front-room",
+      "after": "task_6",
+      "focus": {
+        "x": 12,
+        "y": 10
+      },
+      "mark": {
+        "x": 6,
+        "y": 9
+      },
+      "label": "peppers and garlic",
+      "text": "Strings of red peppers and garlic from the market hang from the hook beside the herbs."
+    },
+    {
+      "id": "front-room-07",
+      "area": "front-room",
+      "after": "task_7",
+      "focus": {
+        "x": 40,
+        "y": 17
+      },
+      "mark": {
+        "x": 39,
+        "y": 14
+      },
+      "label": "jars of preserves",
+      "text": "Jars of zacuscă and preserves stand on the upper shelf."
+    },
+    {
+      "id": "front-room-08",
+      "area": "front-room",
+      "after": "task_8",
+      "focus": {
+        "x": 8,
+        "y": 58
+      },
+      "mark": {
+        "x": 12,
+        "y": 53
+      },
+      "label": "the chalk menu",
+      "text": "The first menu, drawn in chalk on a small slate, leans on the low cabinet."
+    },
+    {
+      "id": "front-room-09",
+      "area": "front-room",
+      "after": "task_9",
+      "focus": {
+        "x": 49,
+        "y": 22
+      },
+      "mark": {
+        "x": 53,
+        "y": 13
+      },
+      "label": "blue bowls",
+      "text": "Blue bowls from three firings stand beside the jars on the upper shelf."
+    },
+    {
+      "id": "front-room-10",
+      "area": "front-room",
+      "after": "task_10",
+      "focus": {
+        "x": 87,
+        "y": 72
+      },
+      "mark": {
+        "x": 82,
+        "y": 51
+      },
+      "label": "the painted chairs",
+      "text": "The old dust sheet is gone from the corner. Two restored chairs, painted red with gold birds, wait for the long table."
+    },
+    {
+      "id": "front-room-11",
+      "area": "front-room",
+      "after": "task_11",
+      "focus": {
+        "x": 12,
+        "y": 60
+      },
+      "mark": {
+        "x": 7,
+        "y": 60
+      },
+      "label": "the recipe notebook",
+      "text": "A recipe notebook and a cup of pencils sit on the low cabinet."
+    },
+    {
+      "id": "front-room-12",
+      "area": "front-room",
+      "after": "task_12",
+      "focus": {
+        "x": 87,
+        "y": 70
+      },
+      "mark": {
+        "x": 82,
+        "y": 52
+      },
+      "label": "the painted dresser",
+      "text": "The chairs have gone to the shared table, and a small dresser stands in their place."
+    },
+    {
+      "id": "courtyard-13",
+      "area": "courtyard",
+      "after": "task_13",
+      "focus": {
+        "x": 50,
+        "y": 50
+      },
+      "mark": {
+        "x": 50,
+        "y": 50
+      },
+      "label": "the swept courtyard",
+      "text": "The courtyard behind the kitchen, its cobbled path swept clear of leaves from the gate to the door."
+    },
+    {
+      "id": "courtyard-14",
+      "area": "courtyard",
+      "after": "task_14",
+      "focus": {
+        "x": 34,
+        "y": 59
+      },
+      "mark": {
+        "x": 34,
+        "y": 50
+      },
+      "label": "herb pots",
+      "text": "Clay pots of rosemary, parsley and lovage stand by the kitchen door."
+    },
+    {
+      "id": "courtyard-15",
+      "area": "courtyard",
+      "after": "task_15",
+      "focus": {
+        "x": 18,
+        "y": 30
+      },
+      "mark": {
+        "x": 13,
+        "y": 26
+      },
+      "label": "the new door hood",
+      "text": "The wooden hood over the kitchen door has new shingles and sheds the rain clear of the door."
+    },
+    {
+      "id": "courtyard-16",
+      "area": "courtyard",
+      "after": "task_16",
+      "focus": {
+        "x": 58,
+        "y": 68
+      },
+      "mark": {
+        "x": 56,
+        "y": 50
+      },
+      "label": "outdoor tables",
+      "text": "Two outdoor tables stand along the wall with the red chairs from the front room, leaving a wide path from the gate to the door."
+    },
+    {
+      "id": "front-room-17",
+      "area": "front-room",
+      "after": "task_17",
+      "focus": {
+        "x": 10,
+        "y": 50
+      },
+      "mark": {
+        "x": 12,
+        "y": 40
+      },
+      "label": "family recipes",
+      "text": "Family recipes on loose pages, sketched in coloured pencil, are pinned to the wall above the chalk menu."
+    },
+    {
+      "id": "courtyard-18",
+      "area": "courtyard",
+      "after": "task_18",
+      "focus": {
+        "x": 58,
+        "y": 64
+      },
+      "mark": {
+        "x": 56,
+        "y": 50
+      },
+      "label": "tasting plates",
+      "text": "Small blue-painted tasting plates wait on the outdoor tables."
+    },
+    {
+      "id": "courtyard-19",
+      "area": "courtyard",
+      "after": "task_19",
+      "focus": {
+        "x": 22,
+        "y": 58
+      },
+      "mark": {
+        "x": 22,
+        "y": 51
+      },
+      "label": "the drinks niche",
+      "text": "A niche in the thick old wall under the kitchen window holds a blue-painted pitcher, matching cups, glasses and bottles of socată."
+    },
+    {
+      "id": "courtyard-20",
+      "area": "courtyard",
+      "after": "task_20",
+      "focus": {
+        "x": 58,
+        "y": 63
+      },
+      "mark": {
+        "x": 55,
+        "y": 62
+      },
+      "label": "the long table",
+      "text": "A long shared table now stands in the courtyard for the supper, and a small picture menu, painted with its dishes, stands on every table. The two small tables stay for shyer guests."
+    },
+    {
+      "id": "courtyard-21",
+      "area": "courtyard",
+      "after": "task_21",
+      "focus": {
+        "x": 84,
+        "y": 52
+      },
+      "mark": {
+        "x": 88,
+        "y": 44
+      },
+      "label": "the festive gate",
+      "text": "A harvest wreath hangs on the kitchen door, embroidered towels drape the gate posts beside a warm lantern, and red geraniums line the wall: there is room at the table."
+    },
+    {
+      "id": "courtyard-22",
+      "area": "courtyard",
+      "after": "task_22",
+      "focus": {
+        "x": 12,
+        "y": 76
+      },
+      "mark": {
+        "x": 12,
+        "y": 67
+      },
+      "label": "the serving table",
+      "text": "A serving table waits by the kitchen door under a cross-stitch cloth: a stack of folk plates, two lidded earthenware dishes of warm food, and a round and a plaited loaf of bread."
+    },
+    {
+      "id": "courtyard-23",
+      "area": "courtyard",
+      "after": "task_23",
+      "focus": {
+        "x": 55,
+        "y": 40
+      },
+      "mark": {
+        "x": 55,
+        "y": 13
+      },
+      "label": "lights and flowers",
+      "text": "A string of warm lights runs across the courtyard from the gutter into the walnut tree, and vases of wildflowers stand on every table for the supper."
+    },
+    {
+      "id": "front-room-24",
+      "area": "front-room",
+      "after": "task_24",
+      "focus": {
+        "x": 80,
+        "y": 34
+      },
+      "mark": {
+        "x": 80,
+        "y": 15
+      },
+      "label": "ready for the supper",
+      "text": "The front room is ready for the supper: an embroidered towel hangs across the top of the window, and a jug of wildflowers stands on the dresser. A second black cat sleeps on the counter."
+    }
+  ],
+  "decorationSlots": [
+    {
+      "id": "tableware",
+      "name": "Tableware",
+      "area": "front-room",
+      "unlock": "task_9",
+      "default": "blue",
+      "variants": [
+        {
+          "id": "blue",
+          "name": "Blue bowls",
+          "image": "front-room-09"
+        },
+        {
+          "id": "green",
+          "name": "Green bowls",
+          "image": "decoration-front"
+        }
+      ],
+      "crop": {
+        "x": 49,
+        "y": 13,
+        "width": 10,
+        "height": 6
+      }
+    },
+    {
+      "id": "textiles",
+      "name": "Courtyard table cloth",
+      "area": "courtyard",
+      "unlock": "task_22",
+      "default": "red",
+      "variants": [
+        {
+          "id": "red",
+          "name": "Red embroidery",
+          "image": "courtyard-22"
+        },
+        {
+          "id": "blue",
+          "name": "Blue embroidery",
+          "image": "decoration-courtyard"
+        }
+      ],
+      "crop": {
+        "x": 0,
+        "y": 67,
+        "width": 26,
+        "height": 15
+      }
+    },
+    {
+      "id": "flowers",
+      "name": "Final flowers",
+      "area": "front-room",
+      "unlock": "task_24",
+      "default": "wildflowers",
+      "variants": [
+        {
+          "id": "wildflowers",
+          "name": "Wildflowers",
+          "image": "front-room-24"
+        },
+        {
+          "id": "lilacs",
+          "name": "Lilacs",
+          "image": "decoration-front"
+        }
+      ],
+      "crop": {
+        "x": 72,
+        "y": 39,
+        "width": 21,
+        "height": 15
+      }
+    }
+  ],
+  "quests": [
+    {
+      "id": "mara-welcome",
+      "character": "mara",
+      "title": "A welcome drink",
+      "afterTask": null,
+      "legacyAfter": "task_1",
+      "requirements": [
+        {
+          "item": "drinks_2",
+          "quantity": 1
+        }
+      ],
+      "reward": 16,
+      "opening": [
+        {
+          "speaker": "mara",
+          "text": "Let us try a glass of socată for the first welcome. I want something simple to offer when a neighbour comes through the door."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "mara",
+          "text": "That will do well. A glass and a seat can make the first visit easier. I will keep space on the counter."
+        }
+      ]
+    },
+    {
+      "id": "ilie-counter",
+      "character": "ilie",
+      "title": "Bread for the counter",
+      "afterTask": "task_1",
+      "legacyAfter": "task_4",
+      "requirements": [
+        {
+          "item": "bakery_3",
+          "quantity": 1
+        }
+      ],
+      "reward": 16,
+      "opening": [
+        {
+          "speaker": "ilie",
+          "text": "A few pogăcele would give the new counter a proper start. Bring me a serving and we can choose where the bread belongs."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ilie",
+          "text": "Here, within reach of the plates. Nobody should have to ask twice for bread."
+        }
+      ]
+    },
+    {
+      "id": "eszter-bowls",
+      "character": "eszter",
+      "title": "Try the bowls",
+      "afterTask": "task_4",
+      "legacyAfter": "task_8",
+      "requirements": [
+        {
+          "item": "warm_2",
+          "quantity": 2
+        }
+      ],
+      "reward": 16,
+      "opening": [
+        {
+          "speaker": "eszter",
+          "text": "Can you bring two servings of mămăligă? I want to check that the bowls leave enough room for a spoon."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "eszter",
+          "text": "Both servings fit comfortably. I will keep this shape for the bowls we use every day."
+        }
+      ]
+    },
+    {
+      "id": "sorin-lunch",
+      "character": "sorin",
+      "title": "Lunch between errands",
+      "afterTask": "task_6",
+      "legacyAfter": "task_8",
+      "requirements": [
+        {
+          "item": "bakery_3",
+          "quantity": 1
+        },
+        {
+          "item": "drinks_2",
+          "quantity": 1
+        }
+      ],
+      "reward": 16,
+      "opening": [
+        {
+          "speaker": "sorin",
+          "text": "I have a short stop between deliveries. Could you set aside pogăcele and socată so I can eat before the next hill?"
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "sorin",
+          "text": "There is time to sit down after all. I will take the empty glass back before I leave."
+        }
+      ]
+    },
+    {
+      "id": "mara-table",
+      "character": "mara",
+      "title": "A place at the table",
+      "afterTask": "task_8",
+      "legacyAfter": "task_12",
+      "afterQuest": "mara-welcome",
+      "requirements": [
+        {
+          "item": "warm_3",
+          "quantity": 1
+        }
+      ],
+      "reward": 24,
+      "opening": [
+        {
+          "speaker": "mara",
+          "text": "The shared table needs a warm dish that is easy to serve. Bring a bulz and we can test the space for plates."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "mara",
+          "text": "There is room for the dish and for people to pass it. The table feels ready for company."
+        }
+      ]
+    },
+    {
+      "id": "eszter-table",
+      "character": "eszter",
+      "title": "A small sweet plate",
+      "afterTask": "task_9",
+      "legacyAfter": "task_12",
+      "afterQuest": "eszter-bowls",
+      "requirements": [
+        {
+          "item": "sweet_3",
+          "quantity": 1
+        }
+      ],
+      "reward": 24,
+      "opening": [
+        {
+          "speaker": "eszter",
+          "text": "The new tableware needs a small sweet plate. Let me try papanași beside the bowl and cup."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "eszter",
+          "text": "The plate fits without crowding the cup. I will use this arrangement at the shared table."
+        }
+      ]
+    },
+    {
+      "id": "ilie-courtyard",
+      "character": "ilie",
+      "title": "Bread for outside",
+      "afterTask": "task_12",
+      "legacyAfter": "task_16",
+      "afterQuest": "ilie-counter",
+      "requirements": [
+        {
+          "item": "bakery_4",
+          "quantity": 1
+        }
+      ],
+      "reward": 24,
+      "opening": [
+        {
+          "speaker": "ilie",
+          "text": "Bring a langoș for a trial serving outside. I want to find a good place for the bread when the courtyard tables are ready."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ilie",
+          "text": "Near the kitchen door will work. We can bring another serving without crossing between the chairs."
+        }
+      ]
+    },
+    {
+      "id": "sorin-path",
+      "character": "sorin",
+      "title": "A courtyard break",
+      "afterTask": "task_13",
+      "legacyAfter": "task_16",
+      "afterQuest": "sorin-lunch",
+      "requirements": [
+        {
+          "item": "pantry_3",
+          "quantity": 1
+        },
+        {
+          "item": "drinks_2",
+          "quantity": 1
+        }
+      ],
+      "reward": 24,
+      "opening": [
+        {
+          "speaker": "sorin",
+          "text": "The path is clear. Could you bring roasted vegetables and socată for a break while we check the route from gate to kitchen?"
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "sorin",
+          "text": "The tray passed every chair. Now I can sit down and enjoy what I carried."
+        }
+      ]
+    },
+    {
+      "id": "ilie-family",
+      "character": "ilie",
+      "title": "A dish from the notebook",
+      "afterTask": "task_16",
+      "legacyAfter": "task_18",
+      "afterQuest": "ilie-courtyard",
+      "requirements": [
+        {
+          "item": "warm_4",
+          "quantity": 1
+        }
+      ],
+      "reward": 32,
+      "opening": [
+        {
+          "speaker": "ilie",
+          "text": "I marked a smoked cheese plate in the family notebook. Bring one so we can choose a serving for the tasting."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ilie",
+          "text": "This serving belongs at the tasting. I will write the portion beside the family notes, where the next cook can find it."
+        }
+      ]
+    },
+    {
+      "id": "eszter-tasting",
+      "character": "eszter",
+      "title": "Match the tasting plates",
+      "afterTask": "task_17",
+      "legacyAfter": "task_20",
+      "afterQuest": "eszter-table",
+      "requirements": [
+        {
+          "item": "sweet_4",
+          "quantity": 1
+        }
+      ],
+      "reward": 32,
+      "opening": [
+        {
+          "speaker": "eszter",
+          "text": "The tasting plates need their final check. Bring plum dumplings so I can see how much room the serving needs."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "eszter",
+          "text": "There is space for the serving and its label. The plates can go to the shared table."
+        }
+      ]
+    },
+    {
+      "id": "mara-supper",
+      "character": "mara",
+      "title": "The supper service",
+      "afterTask": "task_20",
+      "legacyAfter": "task_24",
+      "afterQuest": "mara-table",
+      "requirements": [
+        {
+          "item": "bakery_5",
+          "quantity": 1
+        },
+        {
+          "item": "warm_4",
+          "quantity": 1
+        }
+      ],
+      "reward": 32,
+      "opening": [
+        {
+          "speaker": "mara",
+          "text": "Let us practise one supper service with zacuscă toast and a smoked cheese plate. I want both dishes to reach the table together."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "mara",
+          "text": "Everything arrived together. We have a useful plan for the supper, and time to welcome each guest."
+        }
+      ]
+    },
+    {
+      "id": "sorin-welcome",
+      "character": "sorin",
+      "title": "Welcome from the gate",
+      "afterTask": "task_20",
+      "legacyAfter": "task_24",
+      "afterQuest": "sorin-path",
+      "requirements": [
+        {
+          "item": "drinks_3",
+          "quantity": 2
+        },
+        {
+          "item": "pantry_3",
+          "quantity": 1
+        }
+      ],
+      "reward": 32,
+      "opening": [
+        {
+          "speaker": "sorin",
+          "text": "I will meet people at the gate. Could you prepare two fruit teas and roasted vegetables for the first guests who want a seat?"
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "sorin",
+          "text": "The welcome is ready. I can show people the table and stay long enough to share it with them."
+        }
+      ]
+    },
+    {
+      "id": "ilie-bread-tasting",
+      "character": "ilie",
+      "title": "The borrowed flour bin",
+      "afterTask": "task_17",
+      "afterQuest": "ilie-family",
+      "legacyAfter": null,
+      "requirements": [
+        {
+          "item": "quest_bread_3",
+          "quantity": 2
+        }
+      ],
+      "reward": 24,
+      "opening": [
+        {
+          "speaker": "ilie",
+          "text": "I can lend a flour bin for two tasting servings of pogăcele. It needs one free board or pantry space. When the servings are ready, I will collect the bin and all unused tasting portions."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ilie",
+          "text": "Two servings are ready to share. I have collected the borrowed bin and the remaining tasting portions. Thank you for trying this small batch with me."
+        }
+      ],
+      "producer": {
+        "item": "quest_bread_source",
+        "outputs": [
+          "quest_bread_1"
+        ],
+        "exclusiveItems": [
+          "quest_bread_source",
+          "quest_bread_1",
+          "quest_bread_2",
+          "quest_bread_3"
+        ]
+      }
+    }
+  ],
+  "questItems": {
+    "quest_bread_source": {
+      "id": "quest_bread_source",
+      "name": "Tasting flour bin",
+      "chain": "quest_bread",
+      "stage": 0,
+      "next": null,
+      "sprite": 30,
+      "price": 0,
+      "generator": {
+        "outputs": [
+          "quest_bread_1"
+        ]
+      }
+    },
+    "quest_bread_1": {
+      "id": "quest_bread_1",
+      "name": "Tasting flour",
+      "chain": "quest_bread",
+      "stage": 1,
+      "next": "quest_bread_2",
+      "sprite": 0,
+      "price": 2
+    },
+    "quest_bread_2": {
+      "id": "quest_bread_2",
+      "name": "Tasting dough",
+      "chain": "quest_bread",
+      "stage": 2,
+      "next": "quest_bread_3",
+      "sprite": 1,
+      "price": 4
+    },
+    "quest_bread_3": {
+      "id": "quest_bread_3",
+      "name": "Tasting pogăcele",
+      "chain": "quest_bread",
+      "stage": 3,
+      "next": null,
+      "sprite": 2,
+      "price": 12
+    }
+  },
+  "generatorTiers": [
+    {
+      "chain": "bakery",
+      "stage": 2,
+      "after": "task_12"
+    },
+    {
+      "chain": "bakery",
+      "stage": 3,
+      "after": "task_20"
+    },
+    {
+      "chain": "warm",
+      "stage": 2,
+      "after": "task_12"
+    },
+    {
+      "chain": "warm",
+      "stage": 3,
+      "after": "task_20"
+    },
+    {
+      "chain": "sweet",
+      "stage": 2,
+      "after": "task_12"
+    },
+    {
+      "chain": "sweet",
+      "stage": 3,
+      "after": "task_20"
+    },
+    {
+      "chain": "drinks",
+      "stage": 2,
+      "after": "task_12"
+    },
+    {
+      "chain": "drinks",
+      "stage": 3,
+      "after": "task_20"
+    },
+    {
+      "chain": "pantry",
+      "stage": 2,
+      "after": "task_12"
+    },
+    {
+      "chain": "pantry",
+      "stage": 3,
+      "after": "task_20"
+    }
+  ],
+  "levelRewards": [
+    {
+      "id": "level-2",
+      "level": 2,
+      "coins": 20
+    },
+    {
+      "id": "level-3",
+      "level": 3,
+      "coins": 20
+    },
+    {
+      "id": "level-4",
+      "level": 4,
+      "coins": 20
+    },
+    {
+      "id": "level-5",
+      "level": 5,
+      "coins": 20
+    },
+    {
+      "id": "level-6",
+      "level": 6,
+      "coins": 20
+    },
+    {
+      "id": "level-7",
+      "level": 7,
+      "coins": 20
+    },
+    {
+      "id": "level-8",
+      "level": 8,
+      "coins": 20
+    },
+    {
+      "id": "level-9",
+      "level": 9,
+      "coins": 20
+    },
+    {
+      "id": "level-10",
+      "level": 10,
+      "coins": 20
+    }
+  ]
+}
