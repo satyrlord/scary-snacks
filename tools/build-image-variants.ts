@@ -8,13 +8,13 @@ import sharp from 'sharp';
 // Widths follow the largest size each image is shown at, at twice the device pixel ratio.
 // Transparent atlases ship as WebP only: its alpha is exact, while AVIF leaves faint pixels in fully clear areas.
 export const imageVariants = {
-  // Decoration edits are sampled only inside their authored regions. Do not enlarge the generated masters.
-  'decoration-front': { widths: [1086], formats: ['webp'] },
-  'decoration-courtyard': { widths: [1086], formats: ['webp'] },
+  // Decoration edits are sampled only inside their authored regions, at the full size of the room painting that they edit.
+  'decoration-front': { widths: [1536], formats: ['webp'] },
+  'decoration-courtyard': { widths: [1536], formats: ['webp'] },
   'timber-tabletop': { widths: [1024, 1536], formats: ['avif', 'webp'] },
   // The runner is drawn at most 14px tall through an SVG pattern, which takes one format.
   'embroidered-runner': { widths: [384], formats: ['webp'] },
-  'menu-atlas': { widths: [1254], formats: ['webp'] },
+  'menu-atlas': { widths: [1536], formats: ['webp'] },
   portraits: { widths: [640], formats: ['webp'] },
   mascots: { widths: [640], formats: ['webp'] },
   // The painted room states fill a 3:4 room view; phones take the half-size painting.

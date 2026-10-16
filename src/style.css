@@ -59,8 +59,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .brand { display: flex; align-items: baseline; gap: 24px; min-width: 0; }
 /* The cat is an empty box, so its bottom edge sits on the wordmark baseline. */
 .wordmark { display: flex; align-items: baseline; gap: 8px; font: 600 48px/1 'Grenze Gotisch', serif; letter-spacing: 0; color: var(--ink); white-space: nowrap; }
-/* Cropped to the sitting cat's alpha bounds (188,74)–(512,599) in the 1254px mascot atlas. */
-.wordmark .mascot { height: 1.2em; aspect-ratio: 324/525; flex-shrink: 0; background-size: 387.04% 238.86%; background-position: 20.215% 10.151%; filter: var(--cat-glow); }
+/* Cropped to the sitting cat's alpha bounds (252,119)–(638,753) in the 1536px mascot atlas. */
+.wordmark .mascot { height: 1.2em; aspect-ratio: 386/634; flex-shrink: 0; background-size: 397.93% 242.27%; background-position: 21.913% 13.193%; filter: var(--cat-glow); }
 .tagline { color: var(--muted); font-size: 13px; white-space: nowrap; }
 .header-controls { margin-left: auto; flex-shrink: 0; display: flex; align-items: center; gap: 16px; }
 .coin-count { position: relative; display: flex; align-items: baseline; gap: 8px; padding-right: 16px; border-right: 1px solid var(--line); color: var(--gold); font-variant-numeric: tabular-nums; white-space: nowrap; }

@@ -73,6 +73,8 @@ It reads each other value from the asset:
 | `timber-tabletop` | `1536x1536` | `opaque` | One image, square, tileable |
 | `embroidered-runner` | `1536x512` | `opaque` | One image, 3:1, repeats horizontally |
 | Each room state in `public/data/game.json` | `1536x2048` | `opaque` | One image, 3:4 portrait, a painted room state |
+| `decoration-front`, `decoration-courtyard` | `1536x2048` | `opaque` | One image, 3:4 portrait, a decoration edit of a room state |
+| `board-clutter` | `1536x1024` | `transparent` | 3 columns by 2 rows, the board clutter of spec 007 |
 
 To print the contract of one asset, run `plan --asset <identifier>`, as [API generation](references/api-generation.md) tells you.
 

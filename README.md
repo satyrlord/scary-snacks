@@ -60,14 +60,12 @@ The site is public. The release limits still apply. See the limits of name clear
 
 32 Portable Network Graphics (PNG) masters are the source of the game art. The game ships AV1 Image File Format (AVIF) and WebP variants of the masters. The variants have sizes for display. After a master changes, run `npm run assets:build`. See [asset variants](docs/asset-variants.json) for the files, the sizes, and the hashes.
 
-The in-chat imagegen tool produced the food atlas and the mascots.
+The OpenAI Images API (gpt-image-2.5-flare, high quality) produced all the masters:
 
-The same built-in tool made two decoration edit paintings. They supply green shelf pottery, lilacs, and blue cloth embroidery. The app samples only the authored regions. The 25 room paintings stay unchanged. The user accepted these two edits.
-
-The OpenAI Images API (gpt-image-2.5-flare, high quality) produced these masters:
-
+- the food atlas and the mascots, each 1536 by 1536 pixels: a repaint of an earlier atlas that the in-chat imagegen tool made. The mascots then had one correction of the grid fit.
 - the portraits: a text-only first candidate, then one revision of that candidate
 - the timber tabletop and the embroidered runner, each from a text-only prompt
+- the two decoration edit paintings, at the size of the room states. They supply green shelf pottery, lilacs, and blue cloth embroidery. Each is an edit of a room painting, with a design reference that the in-chat imagegen tool made. A composite applies only the changed regions. The app samples only the authored regions. The 25 room paintings stay unchanged.
 - the 25 painted room states, each 1536 by 2048 pixels
 
 The two base rooms use generated room paintings of this project as references. Each later state is an edit of the previous accepted state. A Sharp composite pastes only the changed region over the previous state. Drift cannot accumulate. The user accepted each state.

@@ -4,15 +4,16 @@
     {
       "id": "menu-atlas",
       "file": "public/assets/original/menu-atlas.png",
-      "sha256": "e92eab962787d63fff30eb4ec58d5eb4fc4b7800da87472df812f02afcb20e7a",
-      "bytes": 2370281,
-      "width": 1254,
-      "height": 1254,
+      "sha256": "4eb85ae860456d1174331d0d50dd43a0ff7a71405fe6a09756ed505f13f97df7",
+      "bytes": 4338583,
+      "width": 1536,
+      "height": 1536,
       "mode": "RGBA",
       "hasTransparency": true,
-      "promptId": "menu-atlas-final",
-      "generation": "built-in in-chat imagegen",
-      "sourceGameImageInput": false
+      "promptId": "menu-atlas-api",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an edit of the reference menu-atlas-chat that repaints it at 1536 by 1536 pixels, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "review": "The 36 food, drink, and source icons at 1536 by 1536 pixels. The agent compared each cell with menu-atlas-chat on light and dark tiles: every subject, its order, and its design are unchanged. The sprite bounds in src/app.ts are measured from this alpha channel."
     },
     {
       "id": "portraits",
@@ -30,15 +31,16 @@
     {
       "id": "mascots",
       "file": "public/assets/original/mascots.png",
-      "sha256": "c74841176f091963d8e802e4e447cc9010ccb27e5707c748aaedab02bbf179f9",
-      "bytes": 1062473,
-      "width": 1254,
-      "height": 1254,
+      "sha256": "430bae4ef7f46d76733aea852e83c6a82e13c4030a1b735b9612f194c82200c3",
+      "bytes": 2780514,
+      "width": 1536,
+      "height": 1536,
       "mode": "RGBA",
       "hasTransparency": true,
-      "promptId": "mascots-final",
-      "generation": "built-in in-chat imagegen",
-      "sourceGameImageInput": false
+      "promptId": "mascots-api-fit",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an edit of the reference mascots-chat that repaints it at 1536 by 1536 pixels, then a corrective edit of that candidate for the grid fit, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "review": "The three cat poses and the bat at 1536 by 1536 pixels. The agent compared each quadrant with mascots-chat on light and dark tiles: the poses, faces, and colours are unchanged, and each animal stays inside its quadrant. The wordmark crop in src/style.css is measured from this alpha channel."
     },
     {
       "id": "timber-tabletop",
@@ -569,41 +571,37 @@
     {
       "id": "decoration-front",
       "file": "public/assets/original/decoration-front.png",
-      "sha256": "58cb05805ef1cd5fb63f9f37c4f6d9535d3a8687f6a0291e448bc3eaef447964",
-      "bytes": 2515664,
-      "width": 1086,
-      "height": 1448,
+      "sha256": "b5f8a9ee48c5b77ff5b2085ecca2afed8bd12e53ecf89b23b12e35d4ef5c8d08",
+      "bytes": 7808023,
+      "width": 1536,
+      "height": 2048,
       "mode": "RGB",
       "hasTransparency": false,
-      "promptId": "decoration-front",
-      "generation": "built-in in-chat imagegen; unchanged output",
+      "promptId": "decoration-front-api",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of front-room-24 with decoration-front-chat as a design reference, of which only the tableware and the bouquet regions were composited, with tools in .github/skills/generate-game-art-openai/scripts",
       "sourceGameImageInput": false,
-      "review": "The green tableware on the upper shelf and the lilacs in the dresser jug, for spec 002. The agent examined the crops against front-room-09 and front-room-24. The user accepted it.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
+      "referenceAsset": "front-room-24",
+      "referenceSha256": "58ba12a567a924564da55e93e4f022a2948f633169a3885fdbd0195b2ab22ad6",
+      "review": "The green tableware on the upper shelf and the lilacs in the dresser jug, for spec 002, at the size of the room states. The agent examined the candidate, the difference map against front-room-24, and the composite at full size: the crop regions show no seam and no part of the wildflowers. The jug stays the jug of front-room-24."
     },
     {
       "id": "decoration-courtyard",
       "file": "public/assets/original/decoration-courtyard.png",
-      "sha256": "0629e5f807838a0606a7707e773f28fe2be7f971b40118f21bca65a57d0be8ca",
-      "bytes": 3122649,
-      "width": 1086,
-      "height": 1448,
+      "sha256": "29a824f1d5cfdde9cf6934620657bc30d5e3bcc51bbe2959b5ba0bd63c9e74ee",
+      "bytes": 8815078,
+      "width": 1536,
+      "height": 2048,
       "mode": "RGB",
       "hasTransparency": false,
-      "promptId": "decoration-courtyard",
-      "generation": "built-in in-chat imagegen; unchanged output",
+      "promptId": "decoration-courtyard-api",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of courtyard-22 with decoration-courtyard-chat as a design reference, of which only the cloth and the plate stack were composited, with tools in .github/skills/generate-game-art-openai/scripts",
       "sourceGameImageInput": false,
-      "review": "The blue embroidery on the serving-table cloth, for spec 002. The agent examined the crop against courtyard-22. The user accepted it.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
+      "referenceAsset": "courtyard-22",
+      "referenceSha256": "e266976df591a93dc154dd7b393ea864ffac63599f6150f8c586f2de417beb89",
+      "review": "The blue embroidery on the serving-table cloth, for spec 002, at the size of the room states. The agent examined the candidate, the difference map against courtyard-22, and the composite at full size: the crop region shows no seam and no red stitch of the base cloth."
     }
   ],
-  "note": "Only generated project images are active. The mascot revision used its earlier generated version. The final portraits revised their own first API candidate. This record is provenance, not legal clearance. front-room-00 and courtyard-13 use the generated reference paintings in the references list. Each later room state is an edit of the previous state, composited so that only its region changes.",
+  "note": "Only generated project images are active. The menu atlas and the mascots repaint the generated chat atlases in the references list. The final portraits revised their own first API candidate. This record is provenance, not legal clearance. front-room-00 and courtyard-13 use the generated reference paintings in the references list. The two decoration paintings use the generated design references in that list. Each later room state is an edit of the previous state, composited so that only its region changes.",
   "references": [
     {
       "id": "counter-band",
@@ -630,6 +628,58 @@
       "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality",
       "sourceGameImageInput": false,
       "use": "The reference image of courtyard-13. The game does not ship it."
+    },
+    {
+      "id": "decoration-front-chat",
+      "sha256": "58cb05805ef1cd5fb63f9f37c4f6d9535d3a8687f6a0291e448bc3eaef447964",
+      "bytes": 2515664,
+      "width": 1086,
+      "height": 1448,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "decoration-front",
+      "generation": "built-in in-chat imagegen; unchanged output",
+      "sourceGameImageInput": false,
+      "use": "The design reference of decoration-front. The game does not ship it."
+    },
+    {
+      "id": "decoration-courtyard-chat",
+      "sha256": "0629e5f807838a0606a7707e773f28fe2be7f971b40118f21bca65a57d0be8ca",
+      "bytes": 3122649,
+      "width": 1086,
+      "height": 1448,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "decoration-courtyard",
+      "generation": "built-in in-chat imagegen; unchanged output",
+      "sourceGameImageInput": false,
+      "use": "The design reference of decoration-courtyard. The game does not ship it."
+    },
+    {
+      "id": "menu-atlas-chat",
+      "sha256": "e92eab962787d63fff30eb4ec58d5eb4fc4b7800da87472df812f02afcb20e7a",
+      "bytes": 2370281,
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "menu-atlas-final",
+      "generation": "built-in in-chat imagegen",
+      "sourceGameImageInput": false,
+      "use": "The reference of menu-atlas. The game does not ship it."
+    },
+    {
+      "id": "mascots-chat",
+      "sha256": "c74841176f091963d8e802e4e447cc9010ccb27e5707c748aaedab02bbf179f9",
+      "bytes": 1062473,
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "mascots-final",
+      "generation": "built-in in-chat imagegen",
+      "sourceGameImageInput": false,
+      "use": "The reference of mascots. The game does not ship it."
     }
   ]
 }

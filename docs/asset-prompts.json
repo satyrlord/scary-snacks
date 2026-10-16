@@ -1,5 +1,5 @@
 {
-  "mode": "Built-in in-chat imagegen for the menu atlas, the mascots, and the two decoration paintings. OpenAI Images API (gpt-image-2.5-flare, high quality) for the portraits, timber-tabletop, embroidered-runner, the two reference paintings counter-band and courtyard, and the painted room states.",
+  "mode": "Built-in in-chat imagegen for the references of the menu atlas, the mascots, and the two decoration paintings. OpenAI Images API (gpt-image-2.5-flare, high quality) for the menu atlas, the mascots, the portraits, timber-tabletop, embroidered-runner, the two reference paintings counter-band and courtyard, the painted room states, and the two decoration paintings.",
   "originalGameImageReferences": false,
   "prompts": [
     {
@@ -14,11 +14,49 @@
     },
     {
       "id": "mascots-final",
-      "prompt": "Edit this original transparent mascot sprite atlas ONLY to improve grid fitting. Preserve all four exact original animal designs and paint style: sitting black cat top-left, sleeping black cat top-right, friendly flying bat bottom-left, stretching black cat bottom-right. Recompose into four STRICTLY equal square cells in a 2-by-2 grid. Center each COMPLETE animal in its own quadrant, scale down to fit within the central 75% width and 75% height of its cell. No ear, paw, wing tip, tail or whisker may touch or cross a quadrant boundary. A wide transparent gap must separate rows and columns. True transparent background, no grid lines, no text, no frames. Keep colors and characters unchanged."
+      "prompt": "Edit this original transparent mascot sprite atlas ONLY to improve grid fitting. Preserve all four exact original animal designs and paint style: sitting black cat top-left, sleeping black cat top-right, friendly flying bat bottom-left, stretching black cat bottom-right. Recompose into four STRICTLY equal square cells in a 2-by-2 grid. Center each COMPLETE animal in its own quadrant, scale down to fit within the central 75% width and 75% height of its cell. No ear, paw, wing tip, tail or whisker may touch or cross a quadrant boundary. A wide transparent gap must separate rows and columns. True transparent background, no grid lines, no text, no frames. Keep colors and characters unchanged.",
+      "disposition": "Its output is the reference mascots-chat."
+    },
+    {
+      "id": "mascots-api",
+      "prompt": "Repaint the provided original mascot sprite atlas at a higher resolution. It is one square atlas with exactly four separate animal illustrations in a precise 2-column by 2-row grid: top-left the sitting black cat Miez with amber eyes and tail curled around its paws; top-right the same black cat curled up asleep; bottom-left the friendly small dark charcoal bat in flight with spread wings; bottom-right the black cat stretching with arched back and raised tail. Preserve every animal EXACTLY: the same pose, silhouette, proportions, face, eye colour, subtle indigo highlights and position in its cell. Do not redesign, add or remove anything. The only change is resolution: paint each animal with crisp, finer hand-painted gouache and coloured-pencil detail and clean edges, in the same style.\nCentre each COMPLETE animal in its own equal square quadrant, within the central 75% width and 75% height of the quadrant. No ear, paw, wing tip, tail or whisker may touch or cross a quadrant boundary. Truly TRANSPARENT background: no checkerboard, no matte, no grid lines, no frames, no shadows on a floor. No text or logos. One square image with exactly four animals.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x1536",
+        "run": "atlases-1536/mascots-run1",
+        "reference": "the reference mascots-chat"
+      },
+      "disposition": "Superseded to correct the grid fit: the sitting cat and the bat wing crossed their quadrant edges."
+    },
+    {
+      "id": "mascots-api-fit",
+      "prompt": "Edit this original transparent mascot sprite atlas ONLY to fix the grid fit. Two animals cross their quadrant boundaries: the sitting cat's paws and tail at the top-left cross into the lower row, and the bat's right wing tip at the bottom-left crosses into the bottom-right quadrant. Keep all four exact animal designs, poses, faces, eye colours, fur detail, brushwork and colours unchanged: the sitting black cat top-left, the sleeping black cat top-right, the friendly bat bottom-left, the stretching black cat bottom-right.\nThe ONLY change is scale and spacing: recompose as an exact 2-by-2 grid of four equal square quadrants, and scale each COMPLETE animal down so that it fits within the central 72% width and 72% height of its own quadrant, centred. No ear, paw, wing tip, tail or whisker may touch or cross a quadrant boundary; leave a wide fully transparent gap between the rows and between the columns. Truly transparent background, no grid lines, no frames, no shadows, no text.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x1536",
+        "run": "atlases-1536/mascots-run2-fit",
+        "reference": "the candidate of mascots-run1 (generated by this project)"
+      },
+      "disposition": "Accepted for review."
     },
     {
       "id": "menu-atlas-final",
-      "prompt": "Edit this generated food sprite atlas for precise technical grid fit. Preserve all 36 exact food/drink/generator subjects, their order, and their hand-painted colors and style. The ONLY intended change is spacing and scale: recompose as an exact 6-column by 6-row square atlas, with every individual grouped icon centered in its equal square cell. Every icon INCLUDING shadows, handles, baskets, lids, leaves and steam must fit within the central 72% width and 72% height of its own cell. This means a generous completely transparent margin on ALL FOUR SIDES of EACH cell. Absolutely no element may cross into a neighbour's cell. The blue pitcher in bottom-row column 4 must have no stray bits of the pastry box or produce basket in its cell; the flour bin and copper pot must have their entire lids visible and margin above. Do not add text, gridlines, frames, new objects or labels. Keep all existing subjects exactly in the original 6x6 order, 36 icons total. Truly transparent alpha background, clean edges. Output one square image."
+      "prompt": "Edit this generated food sprite atlas for precise technical grid fit. Preserve all 36 exact food/drink/generator subjects, their order, and their hand-painted colors and style. The ONLY intended change is spacing and scale: recompose as an exact 6-column by 6-row square atlas, with every individual grouped icon centered in its equal square cell. Every icon INCLUDING shadows, handles, baskets, lids, leaves and steam must fit within the central 72% width and 72% height of its own cell. This means a generous completely transparent margin on ALL FOUR SIDES of EACH cell. Absolutely no element may cross into a neighbour's cell. The blue pitcher in bottom-row column 4 must have no stray bits of the pastry box or produce basket in its cell; the flour bin and copper pot must have their entire lids visible and margin above. Do not add text, gridlines, frames, new objects or labels. Keep all existing subjects exactly in the original 6x6 order, 36 icons total. Truly transparent alpha background, clean edges. Output one square image.",
+      "disposition": "Its output is the reference menu-atlas-chat."
+    },
+    {
+      "id": "menu-atlas-api",
+      "prompt": "Repaint the provided original food sprite atlas at a higher resolution. It is one square atlas with a precisely regular 6-column by 6-row grid of 36 separate icons. Preserve every one of the 36 subjects EXACTLY: the same dish, the same design, the same dishware, the same colours, the same count of pieces, the same viewing angle, and the same position in the grid. Do not redesign, replace, add or remove anything. The only change is resolution: paint each icon with crisp, finer hand-painted gouache and coloured-pencil detail and clean edges, in the same mature cozy European illustration style. Keep the order left to right, top to bottom, exactly as in the provided image.\nCentre each icon in its own equal square cell. Every icon, INCLUDING shadows, handles, lids, leaves and steam, fits within the central 72% width and 72% height of its own cell, with a fully transparent margin on all four sides. No element may cross into a neighbouring cell. Truly TRANSPARENT background: no checkerboard, no coloured matte, no grid lines, no frames. No text, numbers, letters, labels or logos. One square image with exactly 36 icons.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x1536",
+        "run": "atlases-1536/menu-atlas-run1",
+        "reference": "the reference menu-atlas-chat"
+      },
+      "disposition": "Accepted for review. The game clips each sprite to its measured bounds."
     },
     {
       "id": "counter-band",
@@ -518,13 +556,37 @@
       "id": "decoration-front",
       "prompt": "Edit the provided original Scary Snacks bistro painting. Preserve the exact 3:4 composition, camera, every position, scale, warm gouache brushwork, lighting, architecture and all unrelated pixels as closely as possible. Change ONLY TWO details: (1) the blue floral ceramic bowls and upright plate on the RIGHT END of the TOP wall shelf, beside the preserve jars, become richly glazed FOREST GREEN pottery with cream leaf motifs; keep their exact silhouettes and positions. (2) the bouquet and jug on the RED DRESSER below the window: replace the mixed red/yellow wildflowers with a full bouquet of soft purple and white LILACS, keep its exact overall extent and placement, retain the same blue floral jug. Do not change the shelf, jars, spider, window, curtains, dresser, stove, light or walls. No added objects, no cats, no text or UI. Produce one full opaque portrait painting, 1536x2048 if available. This is a scene edit, not a collage or isolated object.",
       "reference": "front-room-24",
-      "disposition": "The user accepted it for spec 002. The original room states stay unchanged."
+      "disposition": "The user accepted this design for spec 002. Its 1086 by 1448 output is the reference decoration-front-chat."
+    },
+    {
+      "id": "decoration-front-api",
+      "prompt": "Edit the first image, an original Scary Snacks bistro painting. Keep its exact 3:4 composition, camera, the position and scale of everything, the warm gouache brushwork, the lighting, the architecture and all unrelated details. Change ONLY TWO details. Copy their design from the second image, which shows the same room with these two changes at a lower resolution.\n(1) On the top wall shelf, to the right of the pickle jar: the blue-and-white floral bowls and the upright plate become richly glazed FOREST GREEN pottery with cream leaf and flower motifs, as in the second image. Keep their exact silhouettes, sizes and positions on the shelf.\n(2) On the red dresser below the window: the mixed wildflowers and wheat in the blue floral jug become a full bouquet of soft purple and white LILACS with green leaves, as in the second image. Keep the same blue floral jug in the same place. Keep the bouquet inside the area that the wildflowers fill now.\nDo not change the shelf, the jars, the spider, the window, the shutters, the towel, the dresser, the runner, the stove, the light or the walls. Paint both changes at the full detail and sharpness of the first image, in its brushwork and light. No added objects, no cats, no text, no interface. Return one full opaque portrait painting.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "decorations-1536/front-run1",
+        "reference": "public/assets/original/front-room-24.png, then the reference decoration-front-chat"
+      },
+      "disposition": "Green tableware and lilacs at the size of the room states; only the tableware and the bouquet regions were composited, with an 8px feather (decorations-1536/front-run1-composite-final)."
     },
     {
       "id": "decoration-courtyard",
       "prompt": "Edit this original Scary Snacks courtyard painting. Keep the exact 3:4 composition, camera, position and scale of EVERYTHING, and the gouache brushwork and warm lighting. Change ONLY the cream embroidered cloth on the small SERVING TABLE AT THE LOWER LEFT, underneath the loaves, clay pots and stacked plates. Its currently red cross-stitch floral edging becomes deep COBALT BLUE embroidery with small blue leaf motifs; the cloth body stays warm ivory. Preserve the exact cloth silhouette, drape, creases, table, dishes, bread and all background. Do not put any cloth on the large central table. No new objects, no flowers, no text, no cats or UI. Return the complete opaque portrait painting, 1536x2048 if available. Only this one small cloth changes.",
       "reference": "courtyard-22",
-      "disposition": "The user accepted it for spec 002. The original room states stay unchanged."
+      "disposition": "The user accepted this design for spec 002. Its 1086 by 1448 output is the reference decoration-courtyard-chat."
+    },
+    {
+      "id": "decoration-courtyard-api",
+      "prompt": "Edit the first image, an original Scary Snacks courtyard painting. Keep its exact 3:4 composition, camera, the position and scale of everything, the warm gouache brushwork, the evening light and all unrelated details. Change ONLY the cream embroidered cloth on the small SERVING TABLE AT THE LOWER LEFT, under the two lidded clay pots, the loaves and the stacked plates. Its red cross-stitch embroidery becomes deep COBALT BLUE cross-stitch, with the blue motifs of the second image, which shows the same change at a lower resolution. The cloth body stays warm ivory. Keep the exact cloth silhouette, drape, creases, table, pots, bread, board, plates and background. Paint the embroidery at the full detail and sharpness of the first image, in its brushwork and light. Do not put a cloth on any other table. No new objects, no flowers, no text, no cats, no interface. Return one full opaque portrait painting. Only this one cloth changes.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "decorations-1536/courtyard-run1",
+        "reference": "public/assets/original/courtyard-22.png, then the reference decoration-courtyard-chat"
+      },
+      "disposition": "Blue embroidery at the size of the room states; only the hanging cloth, its back edge, and the plate stack were composited, with an 8px feather (decorations-1536/courtyard-run1-composite-final2)."
     }
   ]
 }

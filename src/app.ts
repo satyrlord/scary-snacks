@@ -15,12 +15,13 @@ const button = (text: string, className: string, action: () => unknown) => {
   value.type = 'button'; value.addEventListener('click', () => action()); return value;
 };
 // The runtime loads image variants of the PNG masters (npm run assets:build). The atlas keeps its master size, so the sprite bounds below apply to it.
-const atlas = new URL('../assets/variants/menu-atlas-1254x1254.webp', import.meta.url).href;
+const atlas = new URL('../assets/variants/menu-atlas-1536x1536.webp', import.meta.url).href;
 // Measured from the atlas alpha channel: each sprite's bounds, padded only where no neighbouring sprite intrudes.
-// The generated sprites overflow a regular 209px grid, so clipping to these bounds isolates them without modifying pixels.
-const spriteBounds = [[21,48,190,159],[222,78,194,137],[429,43,191,165],[637,62,192,148],[843,52,190,162],[1036,30,202,181],[18,244,189,156],[217,258,203,151],[428,245,191,156],[628,240,196,164],[827,254,221,146],[1045,244,193,155],[19,449,190,161],[226,454,180,150],[425,420,183,190],[626,450,212,165],[843,419,212,198],[1086,417,120,199],[13,636,200,189],[237,622,177,204],[430,607,192,203],[655,633,156,180],[853,629,146,192],[1060,630,178,188],[23,845,187,155],[224,846,178,156],[402,840,237,158],[648,824,160,177],[821,842,206,158],[1024,843,217,170],[18,1003,189,214],[218,1018,213,198],[428,1016,223,198],[659,1015,166,202],[822,1025,240,193],[1062,1048,173,162]];
+// The generated sprites overflow a regular 256px grid, so clipping to these bounds isolates them without modifying pixels.
+// Where two sprites' bounds overlap, the bounds split at the middle of the overlap.
+const spriteBounds = [[25,53,237,208],[267,92,247,176],[519,50,241,209],[779,76,239,181],[1029,61,237,203],[1269,37,248,225],[18,292,241,204],[261,315,254,187],[519,298,242,197],[765,294,249,204],[1015,312,269,181],[1284,298,237,199],[20,544,240,205],[277,552,221,191],[522,512,226,236],[769,553,257,201],[1035,517,262,241],[1327,508,156,251],[15,779,244,237],[290,762,222,252],[523,744,241,254],[797,775,199,224],[1045,768,181,240],[1299,768,218,242],[23,1035,237,193],[276,1038,217,187],[493,1039,283,180],[791,1007,201,226],[1008,1036,249,197],[1252,1030,269,212],[23,1234,230,256],[267,1242,263,248],[529,1243,269,243],[801,1246,205,242],[1006,1257,292,233],[1299,1281,217,203]];
 // Sprites share one scale unless a side is larger than SPRITE_VIEW atlas pixels.
-const SPRITE_VIEW = 201;
+const SPRITE_VIEW = 246;
 // Rendering replaces the controls in these regions, so focus is restored by region and position.
 const FOCUS_REGIONS = '#board,#orders,#story,#item-detail,#offer,#inventory';
 const TONE_EVENTS = ['merge', 'serve', 'task'];
@@ -119,7 +120,7 @@ function food(code: string, extra = '') {
   clip.append(bounds);definitions.append(clip);value.append(definitions);
   const image = svg('image');
   image.setAttribute('href',atlas);
-  image.setAttribute('width','1254');image.setAttribute('height','1254');
+  image.setAttribute('width','1536');image.setAttribute('height','1536');
   image.setAttribute('clip-path',`url(#${clipId})`);
   value.append(image);
   value.setAttribute('aria-hidden', 'true'); return value;
@@ -971,8 +972,8 @@ function decorationImage(slot: DecorationSlot, variant: DecorationVariant, detai
   const bounds=svg('svg');bounds.setAttribute('x',String(crop.x*scaleX));bounds.setAttribute('y',String(crop.y*scaleY));
   bounds.setAttribute('width',String(crop.width*scaleX));bounds.setAttribute('height',String(crop.height*scaleY));
   bounds.setAttribute('viewBox',[crop.x*scaleX,crop.y*scaleY,crop.width*scaleX,crop.height*scaleY].join(' '));
-  const image=svg('image'),size=variant.image.startsWith('decoration-')?'1086x1448':'1536x2048';
-  image.setAttribute('href',new URL(`../assets/variants/${variant.image}-${size}.webp`,import.meta.url).href);
+  const image=svg('image');
+  image.setAttribute('href',new URL(`../assets/variants/${variant.image}-1536x2048.webp`,import.meta.url).href);
   image.setAttribute('width','1536');image.setAttribute('height','2048');bounds.append(image);value.append(bounds);return value;
 }
 function drawDecorations(holder: HTMLElement,area: string,completed: string[],choices: Record<string,string>) {

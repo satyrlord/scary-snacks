@@ -48,7 +48,7 @@ The next table lists the layouts of the Portable Network Graphics (PNG) masters 
 | `timber-tabletop.png` | The timber under the board | One tileable square | Opaque |
 | `embroidered-runner.png` | The runner strips beside the board | One image, 3:1; the game repeats only x 161, width 503 | Opaque |
 | `front-room-NN.png`, `courtyard-NN.png` | One painted room state | One image, 3:4, 1536 by 2048 pixels | Opaque |
-| `decoration-front.png`, `decoration-courtyard.png` | One decoration edit of a room state | One image, 3:4, 1086 by 1448 pixels | Opaque |
+| `decoration-front.png`, `decoration-courtyard.png` | One decoration edit of a room state | One image, 3:4, 1536 by 2048 pixels | Opaque |
 
 The build does not ship the masters.
 `npm run assets:build` makes the AV1 Image File Format (AVIF) and WebP variants that the game loads, in `public/assets/variants/`.

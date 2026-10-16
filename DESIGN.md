@@ -566,7 +566,7 @@ The three slots are Tableware, Courtyard table cloth, and Final flowers. The def
   - The two decoration masters are decoration-front and decoration-courtyard.
   - The five other masters are menu-atlas, portraits, mascots, timber-tabletop, and embroidered-runner.
 - **Do** paint each room state as a complete 3:4 painting, 1536 by 2048, opaque. Keep every pixel outside the change the same as the state before it.
-- **Do** ship room states as AVIF and WebP at 768 and 1536px wide, AVIF first. Ship the timber as AVIF and WebP at 1024 and 1536px wide. Ship the decoration paintings as WebP at 1086px wide. Ship the transparent atlases and the runner as WebP.
+- **Do** ship room states as AVIF and WebP at 768 and 1536px wide, AVIF first. Ship the timber as AVIF and WebP at 1024 and 1536px wide. Ship the decoration paintings as WebP at 1536px wide. Ship the transparent atlases and the runner as WebP.
 - **Do** keep the neighbours in working village dress: Mara, Ilie, and Sorin in Romanian dress, and Eszter in Székely dress.
 - **Do** draw every control icon as an authored vector with a 1.7 stroke and round caps and joins.
 - **Do** give every interactive boundary `--control-line` and keep every target at least 44px.

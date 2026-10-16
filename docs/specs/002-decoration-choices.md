@@ -47,10 +47,8 @@ PRODUCT.md owns these behaviors. DESIGN.md owns the design of the editor and of 
 
 `tests/decorations.test.ts` covers reducer isolation, invalid choices, defaults, content validation, and old-state conversion. `tests/storage.test.ts` covers the versioned keys, conversion, failed writes, malformed input, and atomic reset. `tests/browser/decorations.spec.ts` covers previews, cancellation, keyboard selection, repeated Apply, persistence, migration, export/import, save failure and Retry, and tab changes. The asset check at the root and at the subdirectory loads both decoration paintings.
 
-The two decoration masters are each 1086 by 1448 pixels, RGB, and fully opaque. The built-in chat image generator made both. The app uses their pixels unchanged. `docs/asset-prompts.json` holds the prompts.
+The two decoration masters are each 1536 by 2048 pixels, RGB, and fully opaque, the size of the room states. The OpenAI Images API made both as edits of front-room-24 and courtyard-22. A composite keeps every pixel of the room state outside the changed regions, so each crop edge meets the room painting. `docs/asset-prompts.json` holds the prompts.
 
-The enlarged tableware preview is soft. This limit does not block the feature.
-
-The user verified the three choices in the game with a checkpoint save and accepted the feature and the two decoration paintings.
+The user verified the three choices in the game with a checkpoint save and accepted the feature. The 1536 by 2048 decoration paintings wait for the visual acceptance of the user.
 
 These checks are open: physical phone interaction and assistive technology. The largest device gap is a physical Chromium phone playthrough with selection, cancellation, reload, and import.

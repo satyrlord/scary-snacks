@@ -19,11 +19,14 @@ export type AssetId =
   | 'mascots'
   | 'timber-tabletop'
   | 'embroidered-runner'
+  | 'decoration-front'
+  | 'decoration-courtyard'
+  | 'board-clutter'
   | RoomStateId;
 type Background = 'transparent' | 'opaque';
 interface AssetContract {
   background: Background;
-  shape: 'square' | 'landscape-3x1' | 'portrait-3x4';
+  shape: 'square' | 'landscape-3x1' | 'landscape-3x2' | 'portrait-3x4';
   columns: number;
   rows: number;
   defaultSize: string;
@@ -39,11 +42,21 @@ interface ImageRequest {
   contentType?: string;
 }
 
-// Each row names an asset of docs/asset-provenance.json: the three atlases, the timber, the runner, and the painted room states.
-// The room states are opaque 3:4 portrait paintings of the "room and drawer" screen.
+// Each row names an asset of docs/asset-provenance.json: the three atlases, the timber, the runner, the painted room states,
+// and the two decoration paintings. The board-clutter atlas of spec 007 joins that record when its feature ships.
+// The room states and the decoration paintings are opaque 3:4 portrait paintings of the "room and drawer" screen.
 const roomState: AssetContract = { background: 'opaque', shape: 'portrait-3x4', columns: 1, rows: 1, defaultSize: '1536x2048' };
 const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   ...(Object.fromEntries(gameData.rooms.map(state => [state.id, roomState])) as Record<RoomStateId, AssetContract>),
+  'decoration-front': roomState,
+  'decoration-courtyard': roomState,
+  'board-clutter': {
+    background: 'transparent',
+    shape: 'landscape-3x2',
+    columns: 3,
+    rows: 2,
+    defaultSize: '1536x1024',
+  },
   'menu-atlas': {
     background: 'transparent',
     shape: 'square',
@@ -105,6 +118,7 @@ export function validateAssetSize(assetId: unknown, size: unknown) {
   const shapes = {
     square: [width === height, 'Use a square size for this asset.'],
     'landscape-3x1': [width === height * 3, 'Use a 3:1 landscape size for this strip.'],
+    'landscape-3x2': [width * 2 === height * 3, 'Use a 3:2 landscape size for this atlas.'],
     'portrait-3x4': [width * 4 === height * 3, 'Use a 3:4 portrait size for this room state.'],
   } as const;
   const [shapeMatches, shapeError] = shapes[asset.shape];

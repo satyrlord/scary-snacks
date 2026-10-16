@@ -33,7 +33,8 @@ It also requires the shape of the asset:
 
 - Square for the three atlases and the timber.
 - 3:1 for the runner.
-- 3:4 for a room state.
+- 3:2 for the board-clutter atlas.
+- 3:4 for a room state and a decoration painting.
 
 The size must divide into equal grid cells.
 The plan sets `experimentalResolution` for a size of more than 2560 by 1440 pixels. Avoid such a size.

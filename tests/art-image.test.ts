@@ -87,6 +87,19 @@ test('room states are opaque 3:4 portrait paintings, one for each room state of 
   for (const missing of ['front-room-13', 'courtyard-17', 'courtyard-24']) assert.throws(() => planAsset(missing), /asset identifiers/u);
 });
 
+test('decoration paintings match the room states, and the board-clutter atlas is a transparent 3:2 sheet of square cells', () => {
+  for (const id of ['decoration-front', 'decoration-courtyard']) {
+    const plan = planAsset(id);
+    assert.equal(plan.size, '1536x2048');
+    assert.equal(plan.background, 'opaque');
+  }
+  const plan = planAsset('board-clutter');
+  assert.equal(plan.size, '1536x1024');
+  assert.equal(plan.background, 'transparent');
+  assert.equal(plan.width / plan.columns, plan.height / plan.rows);
+  assert.throws(() => planAsset('board-clutter', '1536x1536'), /3:2 landscape size/u);
+});
+
 test('a masked edit sends the mask with the image that it edits, and only then', () => {
   const image = { bytes: Buffer.from('previous state'), format: 'png' };
   const mask = { bytes: Buffer.from('mask'), format: 'png' };

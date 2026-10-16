@@ -16,14 +16,14 @@
   },
   "variants": [
     {
-      "file": "public/assets/variants/menu-atlas-1254x1254.webp",
+      "file": "public/assets/variants/menu-atlas-1536x1536.webp",
       "master": "menu-atlas",
-      "masterSha256": "e92eab962787d63fff30eb4ec58d5eb4fc4b7800da87472df812f02afcb20e7a",
-      "width": 1254,
-      "height": 1254,
+      "masterSha256": "4eb85ae860456d1174331d0d50dd43a0ff7a71405fe6a09756ed505f13f97df7",
+      "width": 1536,
+      "height": 1536,
       "format": "webp",
-      "bytes": 547810,
-      "sha256": "576438e33875b0cb8ccb3b9dbb1524df778700fe4c1a79e9b7a8760e23c7fdd5"
+      "bytes": 762674,
+      "sha256": "aa412a2b9cf1cbc8c893035a52edae692773e6347b3ba4eceed8bc994a9d62b2"
     },
     {
       "file": "public/assets/variants/portraits-640x640.webp",
@@ -38,12 +38,12 @@
     {
       "file": "public/assets/variants/mascots-640x640.webp",
       "master": "mascots",
-      "masterSha256": "c74841176f091963d8e802e4e447cc9010ccb27e5707c748aaedab02bbf179f9",
+      "masterSha256": "430bae4ef7f46d76733aea852e83c6a82e13c4030a1b735b9612f194c82200c3",
       "width": 640,
       "height": 640,
       "format": "webp",
-      "bytes": 60378,
-      "sha256": "6188fc1e08d3a8e9cf736ec788672c4328f2d5ed4d764b1a0d9ae36a0ca461e4"
+      "bytes": 76198,
+      "sha256": "62d0e65ced10255bbbd05a377472dcf60697bc83b7e23ed929a6fd672a72e149"
     },
     {
       "file": "public/assets/variants/timber-tabletop-1024x1024.avif",
@@ -1096,24 +1096,24 @@
       "sha256": "d576de7efd582a7d20a06efdbc4d2c8e59fa2f9b915ff1f65cb74c88428ac745"
     },
     {
-      "file": "public/assets/variants/decoration-front-1086x1448.webp",
+      "file": "public/assets/variants/decoration-front-1536x2048.webp",
       "master": "decoration-front",
-      "masterSha256": "58cb05805ef1cd5fb63f9f37c4f6d9535d3a8687f6a0291e448bc3eaef447964",
-      "width": 1086,
-      "height": 1448,
+      "masterSha256": "b5f8a9ee48c5b77ff5b2085ecca2afed8bd12e53ecf89b23b12e35d4ef5c8d08",
+      "width": 1536,
+      "height": 2048,
       "format": "webp",
-      "bytes": 286712,
-      "sha256": "3174a5f17629d199ead6de2861739d3b4674a16babc63b137392706c9c96e327"
+      "bytes": 645812,
+      "sha256": "15476117183fc1e50b0dd50c7e6f3001ab97c707c9c5b845bbe66ecc32e41cb9"
     },
     {
-      "file": "public/assets/variants/decoration-courtyard-1086x1448.webp",
+      "file": "public/assets/variants/decoration-courtyard-1536x2048.webp",
       "master": "decoration-courtyard",
-      "masterSha256": "0629e5f807838a0606a7707e773f28fe2be7f971b40118f21bca65a57d0be8ca",
-      "width": 1086,
-      "height": 1448,
+      "masterSha256": "29a824f1d5cfdde9cf6934620657bc30d5e3bcc51bbe2959b5ba0bd63c9e74ee",
+      "width": 1536,
+      "height": 2048,
       "format": "webp",
-      "bytes": 428870,
-      "sha256": "3a98db9e6677cd9b90521b248ebbd749ac3dd8b9593249bab07a38e14351993e"
+      "bytes": 991522,
+      "sha256": "b4aa1fb5b762f11e350e3ea19551d0b3579965dfc1e132f9942fa0dcd6513f43"
     }
   ]
 }
