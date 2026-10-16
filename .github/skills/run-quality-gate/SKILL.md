@@ -44,7 +44,7 @@ Get approval from the user before you add one of these items:
 ## Find the gate configuration
 
 Read `package.json`, `package-lock.json`, `tsconfig.json`, `playwright.config.ts`, and `.github/workflows/pages.yml`.
-Read `README.md` and `docs/verification.md`.
+Read `DELIVERY.md` and `docs/verification.md`.
 Examine the Git status. Do not change work that is not related to the gate.
 For each change, find the related checks.
 

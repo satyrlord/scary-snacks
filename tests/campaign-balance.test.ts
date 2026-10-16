@@ -15,6 +15,10 @@ test('legal campaign scenarios reach the finale and account for every action and
     assert.equal(report.seed, 84017);
     assert.equal(finalState.taskIndex, 24);
     assert.equal(validateGame(finalState, data), true);
+    if (scenario !== 'legacy-sales') {
+      assert.equal(finalState.layoutId, data.board.defaultLayout);
+      assert.deepEqual(finalState.resolvedObstacles, [], 'The full campaign needs no board clearing.');
+    }
     assert.equal(finalState.coins, totals.orderCoins + totals.saleCoins + totals.levelCoins + totals.questCoins - totals.preparationCoins);
     assert.equal(totals.preparationCoins, report.preparations.reduce((sum, task) => sum + task.cost, 0));
     assert.equal(totals.merges, finalState.merges);

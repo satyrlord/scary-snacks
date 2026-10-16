@@ -15,6 +15,7 @@ export const imageVariants = {
   // The runner is drawn at most 14px tall through an SVG pattern, which takes one format.
   'embroidered-runner': { widths: [384], formats: ['webp'] },
   'menu-atlas': { widths: [1536], formats: ['webp'] },
+  'board-clutter': { widths: [1536], formats: ['webp'] },
   portraits: { widths: [640], formats: ['webp'] },
   mascots: { widths: [640], formats: ['webp'] },
   // The painted room states fill a 3:4 room view; phones take the half-size painting.

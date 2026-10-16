@@ -12,3 +12,4 @@ analysis/
 .impeccable/
 .env.local
 __pycache__/
+.playwright-mcp/

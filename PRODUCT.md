@@ -20,7 +20,7 @@ The application has no runtime package and no backend. Playwright, TypeScript, S
 
 ## Play
 
-The board has six columns and seven rows. Customer requests are deterministic. The game has five ingredient sources (generators), 30 dishes and drinks, 12 pantry spaces, and 24 preparations over six chapters. Each dish or drink has an English name. If English has no name for the dish, the dish has the Romanian regional name with its diacritics. The initial layout, the prices, the progression, the characters, and the dialogue are new works.
+The board has six columns and seven rows. Customer requests are deterministic. The game has five ingredient sources (generators), 30 dishes and drinks, four characters, 12 pantry spaces, and 24 preparations over six chapters. Each dish or drink has an English name. If English has no name for the dish, the dish has the Romanian regional name with its diacritics. The initial layout, the prices, the progression, the characters, and the dialogue are new works.
 
 Serving earns coins. Preparations unlock generators and story. Each preparation visibly changes the bistro.
 
@@ -49,7 +49,11 @@ The room is the home of the game and its reward. On phones, the kitchen is a dra
 
 Each area has one painting for each of its states. The room shows the state of the highest completed preparation in that area. The room shows the area of the latest change. Preparations 13 to 16 and 18 to 23 show the courtyard. Preparations 17 and 24 return to the front room. An area switch in the corner of the room shows the other area. A locked area shows only its name and the preparation that opens it. A small "New" pin marks the latest change in the area. The pin gives the short name of the change, for example "New: lamps lit". The pin points at the edge of the change and does not cover the change. If the name does not fit, the pin says only "New".
 
+To merge, the player taps an item and then a matching item, or drags an item onto a matching item. A tap on an empty space moves the selected item there. A drag onto a different item swaps the two items. A tap on a dish in an order opens its item dialog. "Show me on the board" shows the next step to make the dish. "Find a match" in Mara's line shows a pair to merge.
+
 One tap on an ingredient source takes one ingredient and selects the source. Each further tap takes another ingredient. A drag moves the source and takes nothing. If the board is full, the source takes nothing and Mara says why.
+
+A new game starts with eight blocked edge cells on the six-by-seven board: four dusty clutter wrappers and four anchored ingredients. Webs cover the wrappers until "Fix the broken window" is complete. A pair merge clears each wrapper that shares a side with its destination. The wrapper reveals its own ingredient. An anchored ingredient stays in place until a matching movable ingredient merges into it. That merge releases the anchor and leaves the normal successor. An anchor cannot move, enter the pantry, be sold, fill an order, or fill a quest. Reveals give no extra XP or merge credit. They need no free space. Clearing is optional for campaign progress and orders. A blocked cell is not a free space for any placement or space count. The board hint can point to a matching anchor. Converted saves keep an open board with no obstacles.
 
 Each chain keeps one source. All sources gain stage-two output when preparation 12 completes and stage-three output when preparation 20 completes. Lower outputs stay available. The selected source has one Take button for each earned output, with its picture and name. A successful Take sets the output for later taps on that source. A new or converted source starts with stage one. An upgrade, a move, or pantry storage keeps the chosen output. Production is free and immediate, and does not change the random seed. Sources cannot merge or be sold.
 
@@ -71,11 +75,11 @@ Each decoration has a preview with Apply and Cancel. Preview affects only the ed
 
 The repository-only backlog at `docs/specs/README.md` records 15 feature specifications and the product direction. The direction is to include the features that players expect in a story-driven merge game. The direction is also to differ clearly from such games in the points that players dislike. The backlog index lists those points.
 
-The game implements spec 001 (visible renovation and areas), spec 002 (decoration choices), spec 003 (generator progression), spec 004 (level rewards), the independent slices of spec 005 (character quests, introductions, and a temporary tasting source), and the work-based goals and economy of spec 006. Spec 006 also supplies a legal campaign balance fixture with price and policy comparisons. Human pacing remains unverified. This document owns the implemented behavior. Quest scene continuation waits for spec 009. The repository-only art plan, `docs/specs/001-room-states-art-plan.md`, defines the 25 painted room states. Spec 011 is partly implemented: the game has the discovery cloches, the notices, and the order help. The other specs remain planned work.
+The game implements spec 001 (visible renovation and areas), spec 002 (decoration choices), spec 003 (generator progression), spec 004 (level rewards), the independent slices of spec 005 (character quests, introductions, and a temporary tasting source), the work-based goals and economy of spec 006, and the board clearing of spec 007. Spec 006 also supplies a legal campaign balance fixture with price and policy comparisons. Human pacing remains unverified. This document owns the implemented behavior. Quest scene continuation waits for spec 009. The repository-only art plan, `docs/specs/001-room-states-art-plan.md`, defines the 25 painted room states. Spec 011 is partly implemented: the game has the discovery cloches, the notices, and the order help. The other specs remain planned work.
 
 ## Identity
 
-The game has 32 generated Portable Network Graphics (PNG) masters. They provide these items:
+The game has 33 generated Portable Network Graphics (PNG) masters. They provide these items:
 
 - food
 - portraits
@@ -84,6 +88,7 @@ The game has 32 generated Portable Network Graphics (PNG) masters. They provide 
 - the timber tabletop
 - the embroidered runner
 - cat sprites and bat sprites
+- board clutter, with a web overlay and a twine overlay
 
 The room states are front-room-00 to front-room-12, front-room-17, front-room-24, courtyard-13 to courtyard-16, and courtyard-18 to courtyard-23. Each state has a painting.
 
@@ -107,11 +112,11 @@ If the game data cannot load or does not pass its checks, the kitchen says so an
 
 An import validates the envelope and the state of the save. An import rejects malformed saved data and keeps the current save. An import enforces a size limit. Load, save, import, and reset use only the save keys of this game. They do not change other browser data.
 
-Current saves have game state version 6 in envelope version 5, at `scary-snacks-save-v5`. Load uses the newest key that exists. Valid state-2, state-3, state-4, and state-5 saves use envelopes 1 through 4 at the matching `scary-snacks-save-v1` through `scary-snacks-save-v4` keys. They convert through each intervening state to state 6. Each step validates its input and output. Conversion keeps progress, items, pantry positions, counters, outstanding orders, choices, and reward claims. It adds default decorations, an empty `outputChoices` map, and an empty `claimedLevelRewards` list only where needed. Existing XP makes level rewards available, but conversion gives no coins.
+Current saves have game state version 7 in envelope version 6, at `scary-snacks-save-v6`. Load uses the newest key that exists. Valid state-2 through state-6 saves use envelopes 1 through 5 at the matching `scary-snacks-save-v1` through `scary-snacks-save-v5` keys. They convert through each intervening state to state 7. Each step validates its input and output. Conversion keeps progress, items, pantry positions, counters, outstanding orders, choices, and reward claims. It adds default decorations, an empty `outputChoices` map, and an empty `claimedLevelRewards` list only where needed. Existing XP makes level rewards available, but conversion gives no coins. Conversion gives each older save the open board layout with no resolved obstacles. New games use the authored blocked layout. State 7 records the layout ID and resolved obstacle IDs. A layout ID must remain stable after release.
 
 An order can have the pricing marker `menu-1`. That marker selects the exact authored menu-price sum. An unmarked order uses the original formula: 12 plus the sum of 3 times 2 to the power of each item's stage minus one. Unknown, null, and explicitly undefined markers are invalid. States 2 through 5 accept unmarked orders only. State 6 accepts both kinds together. Existing orders retain their exact requirements, reward, customer, and ID. Serving one pays its existing quote and creates a menu-1 replacement with the same seeded selection rules. This optional field requires no save rewrite or conversion step. A future price revision must retain exact validation for each earlier quote revision.
 
-State 6 records unique completed quest IDs, legacy-satisfied quest IDs, and active temporary sources with the next position in their output sequence. The two completion lists cannot overlap. A temporary quest has exactly one live source while active and no exclusive items after completion. Conversion marks regular quests associated with completed preparations as legacy-satisfied. It gives no reward and inserts no source. Their scenes are available in the journal. No preparation reopens. Conversion writes the current save before play uses it. Every older key stays unchanged. A failed conversion or write offers Retry saved game in the House book and blocks game changes until recovery. An invalid newer save never restores older progress. Export and import include quest progress. An explicit new game replaces only the current save, in one write.
+State 7 keeps the quest progress first recorded in state 6: unique completed quest IDs, legacy-satisfied quest IDs, and active temporary sources with the next position in their output sequence. The two completion lists cannot overlap. A temporary quest has exactly one live source while active and no exclusive items after completion. Conversion marks regular quests associated with completed preparations as legacy-satisfied. It gives no reward and inserts no source. Their scenes are available in the journal. No preparation reopens. Conversion writes the current save before play uses it. Every older key stays unchanged. A failed conversion or write offers Retry saved game in the House book and blocks game changes until recovery. An invalid newer save never restores older progress. Export and import include quest progress and the board layout. An explicit new game replaces only the current save, in one write.
 
 A load, an import, or a change from another tab can find duplicate customer names in a valid save. In that case, the game replaces each duplicate with an unused neighbour. The order requirements, the rewards, the progress, and the random seed stay unchanged. A load alone does not rewrite the save.
 
@@ -129,4 +134,4 @@ The game saves a preparation before the progress of the preparation becomes acti
 
 The game supports Chromium-based browsers (Chrome, Edge, and other browsers built on Chromium). The project does not test other browsers. Relative paths and the Content Security Policy (CSP) in the HTML support static hosting.
 
-The project publishes the game at https://satyrlord.github.io/scary-snacks/. [`README.md`](README.md) gives the Pages workflow.
+The project publishes the game at https://satyrlord.github.io/scary-snacks/. [`DELIVERY.md`](DELIVERY.md) gives the Pages workflow.

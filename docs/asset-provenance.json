@@ -599,9 +599,23 @@
       "referenceAsset": "courtyard-22",
       "referenceSha256": "e266976df591a93dc154dd7b393ea864ffac63599f6150f8c586f2de417beb89",
       "review": "The blue embroidery on the serving-table cloth, for spec 002, at the size of the room states. The agent examined the candidate, the difference map against courtyard-22, and the composite at full size: the crop region shows no seam and no red stitch of the base cloth."
+    },
+    {
+      "id": "board-clutter",
+      "file": "public/assets/original/board-clutter.png",
+      "sha256": "834d5a2c41a4c99693749f36a077809cb8171483eb57609f974f90f13cc03186",
+      "bytes": 2275541,
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "board-clutter-web-cleanup",
+      "generation": "built-in in-chat imagegen; edit of the project-generated board-clutter candidate 3 with the project-generated food atlas as a style reference",
+      "sourceGameImageInput": false,
+      "review": "The agent examined six sprite cells at full size and at 64 pixels on light and dark tiles. Four objects keep dust but no baked-in webs. The separate web and twine overlays have open centers. Visible painted pixels do not cross cell boundaries. The linen reaches within 6 pixels of the first column boundary. User visual acceptance has not been recorded."
     }
   ],
-  "note": "Only generated project images are active. The menu atlas and the mascots repaint the generated chat atlases in the references list. The final portraits revised their own first API candidate. This record is provenance, not legal clearance. front-room-00 and courtyard-13 use the generated reference paintings in the references list. The two decoration paintings use the generated design references in that list. Each later room state is an edit of the previous state, composited so that only its region changes.",
+  "note": "Only generated project images are active. The menu atlas and the mascots repaint the generated chat atlases in the references list. The final portraits revised their own first API candidate. This record is provenance, not legal clearance. front-room-00 and courtyard-13 use the generated reference paintings in the references list. The two decoration paintings use the generated design references in that list. Each later room state is an edit of the previous state, composited so that only its region changes. The board-clutter atlas was generated in chat and corrected for sprite-cell fit.",
   "references": [
     {
       "id": "counter-band",

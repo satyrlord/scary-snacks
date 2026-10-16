@@ -24,6 +24,8 @@ export type DecorationSlot = {
 };
 export type DecorationView = DecorationSlot & { unlocked: boolean; selected: DecorationVariant };
 export type LevelReward = { id: string; level: number; coins: number };
+export type BoardObstacle = { id: string; position: number; name: string; type: 'clutter' | 'anchored'; ingredient: string };
+export type BoardLayout = { id: string; obstacles: BoardObstacle[] };
 /**
  * One painted state of an area. It shows from the preparation named by after (null: from the start of the game) until the next
  * state of its area. Its id is also the id of its painting. Focus is the centre of the change, in percentages of the painting
@@ -42,7 +44,7 @@ export const roomPaintings: readonly string[] = [
   'courtyard-23',
 ];
 export type GameData = {
-  title: string; inventoryCapacity: number; board: { columns: number; rows: number; initial: (string | null)[] };
+  title: string; inventoryCapacity: number; board: { columns: number; rows: number; initial: (string | null)[]; defaultLayout: string; layouts: BoardLayout[] };
   chains: { id: string; name: string }[]; items: Record<string, Item>; characters: Character[]; chapters: string[]; tasks: Task[];
   areas: Area[]; rooms: RoomState[]; decorationSlots: DecorationSlot[];
   generatorTiers: { chain: string; stage: number; after: string }[];
@@ -57,14 +59,16 @@ export type RoomView = Area & { open: boolean; states: RoomState[]; current: Roo
 export type Cell = { code: string };
 export type Order = { id: string; requirements: string[]; reward: number; customer: string; pricing?: 'menu-1' };
 export type GameState = {
-  version: 6; board: (Cell | null)[]; inventory: Cell[]; coins: number; xp: number; taskIndex: number; orders: Order[];
+  version: 7; board: (Cell | null)[]; inventory: Cell[]; coins: number; xp: number; taskIndex: number; orders: Order[];
   discovered: string[]; seed: number; served: number; merges: number; nextOrderId: number; decorations: string[];
   decorationChoices: Record<string, string>;
   outputChoices: Record<string, string>;
   claimedLevelRewards: string[];
   completedQuests: string[]; legacySatisfiedQuests: string[]; activeQuestProducers: Record<string, number>;
+  layoutId: string; resolvedObstacles: string[];
 };
-export type LevelRewardGameState = Omit<GameState, 'version' | 'completedQuests' | 'legacySatisfiedQuests' | 'activeQuestProducers'> & { version: 5 };
+export type QuestGameState = Omit<GameState, 'version' | 'layoutId' | 'resolvedObstacles'> & { version: 6 };
+export type LevelRewardGameState = Omit<QuestGameState, 'version' | 'completedQuests' | 'legacySatisfiedQuests' | 'activeQuestProducers'> & { version: 5 };
 export type GeneratorGameState = Omit<LevelRewardGameState, 'version' | 'claimedLevelRewards'> & { version: 4 };
 export type PreviousGameState = Omit<GeneratorGameState, 'version' | 'outputChoices'> & { version: 3 };
 export type LegacyGameState = Omit<PreviousGameState, 'version' | 'decorationChoices'> & { version: 2 };
@@ -85,6 +89,16 @@ const integer = (value: unknown, min = 0, max = 1_000_000_000): value is number 
 const present = <T>(value: T): value is NonNullable<T> => Boolean(value);
 const copy = (state: GameState): GameState => structuredClone(state);
 const itemAt = (state: GameState, index: unknown) => integer(index, 0, state.board.length - 1) ? state.board[index] : null;
+export function unresolvedObstacle(state: Pick<GameState, 'layoutId' | 'resolvedObstacles'>, index: number, data: GameData): BoardObstacle | null {
+  return data.board.layouts.find(layout => layout.id === state.layoutId)?.obstacles.find(obstacle =>
+    obstacle.position === index && !state.resolvedObstacles.includes(obstacle.id)) ?? null;
+}
+export function firstFreeBoardCell(state: GameState, data: GameData): number {
+  return state.board.findIndex((cell, index) => cell === null && !unresolvedObstacle(state, index, data));
+}
+export function freeBoardCells(state: GameState, data: GameData): number {
+  return state.board.reduce((count, cell, index) => count + (cell === null && !unresolvedObstacle(state, index, data) ? 1 : 0), 0);
+}
 /** Unmarked saved orders keep this exact quote until service. */
 export const legacyOrderReward = (requirements: string[], data: GameData) => 12 + requirements.reduce((sum, code) => sum + 3 * 2 ** (data.items[code].stage - 1), 0);
 /** The menu-1 price schedule is fixed for orders that have this pricing marker. */
@@ -99,6 +113,24 @@ function random(state: GameState, count: number) {
 }
 function discover(state: GameState, code: string) {
   if (!state.discovered.includes(code)) state.discovered.push(code);
+}
+function adjacentPositions(position: number, data: GameData): number[] {
+  const column = position % data.board.columns;
+  return [
+    ...(position >= data.board.columns ? [position - data.board.columns] : []),
+    ...(position + data.board.columns < data.board.initial.length ? [position + data.board.columns] : []),
+    ...(column > 0 ? [position - 1] : []),
+    ...(column < data.board.columns - 1 ? [position + 1] : []),
+  ];
+}
+function revealAdjacentClutter(state: GameState, destination: number, data: GameData) {
+  for (const position of adjacentPositions(destination, data)) {
+    const obstacle = unresolvedObstacle(state, position, data);
+    if (obstacle?.type !== 'clutter') continue;
+    state.resolvedObstacles.push(obstacle.id);
+    state.board[position] = { code: obstacle.ingredient };
+    discover(state, obstacle.ingredient);
+  }
 }
 /** Neighbours waiting at the counter at the same time are always different people, and a served neighbour makes way for someone else. */
 function makeOrder(state: GameState, data: GameData, waiting: string[]): Order {
@@ -119,11 +151,13 @@ function makeOrder(state: GameState, data: GameData, waiting: string[]): Order {
 }
 
 export function createGame(data: GameData, seed = 271828): GameState {
+  const layoutId = data.board.defaultLayout;
   const state: GameState = {
-    version: 6,
+    version: 7, layoutId, resolvedObstacles: [],
     board: data.board.initial.map(code => code ? { code } : null),
     inventory: [], coins: 0, xp: 0, taskIndex: 0, orders: [],
-    discovered: [...new Set(data.board.initial.filter(present))],
+    discovered: [...new Set([...data.board.initial.filter(present),
+      ...(data.board.layouts.find(layout => layout.id === layoutId)?.obstacles.filter(obstacle => obstacle.type === 'anchored').map(obstacle => obstacle.ingredient) ?? [])])],
     seed: Number.isSafeInteger(seed) ? seed >>> 0 : 271828,
     served: 0, merges: 0, nextOrderId: 1, decorations: [], decorationChoices: {}, outputChoices: {}, claimedLevelRewards: [],
     completedQuests: [], legacySatisfiedQuests: [], activeQuestProducers: {},
@@ -197,20 +231,20 @@ export function resolveQuests(state: GameState, data: GameData): QuestView[] {
       ? quest.producer && !own(state.activeQuestProducers, quest.id) ? 'offer' : 'active' : 'locked' }));
 }
 
-export function questDeliveryCells(state: GameState, quest: Quest): number[] {
-  return servedCells(state, { requirements: quest.requirements.flatMap(requirement => Array<string>(requirement.quantity).fill(requirement.item)) });
+export function questDeliveryCells(state: GameState, quest: Quest, data: GameData): number[] {
+  return servedCells(state, { requirements: quest.requirements.flatMap(requirement => Array<string>(requirement.quantity).fill(requirement.item)) }, data);
 }
 
 export function canDeliverQuest(state: GameState, quest: Quest | string, data: GameData): boolean {
   const view = resolveQuests(state, data).find(view => view.quest.id === (typeof quest === 'string' ? quest : quest.id));
-  return view?.status === 'active' && questDeliveryCells(state, view.quest).every(index => index >= 0);
+  return view?.status === 'active' && questDeliveryCells(state, view.quest, data).every(index => index >= 0);
 }
 
 /** The preview lists only the exclusive leftovers after delivery, including the loaned source. */
 export function previewQuestCleanup(state: GameState, id: string, data: GameData): QuestCleanup | null {
   const quest = data.quests.find(quest => quest.id === id);
   if (!quest?.producer || !canDeliverQuest(state, quest, data)) return null;
-  const taken = questDeliveryCells(state, quest);
+  const taken = questDeliveryCells(state, quest, data);
   const exclusive = quest.producer.exclusiveItems;
   return { questId: id, token: JSON.stringify(state),
     board: state.board.flatMap((cell, index) => cell && exclusive.includes(cell.code) && !taken.includes(index) ? [{ index, item: cell.code }] : []),
@@ -382,7 +416,7 @@ export function taskEligibility(state: GameState, data: GameData): TaskEligibili
   }
   if (task.unlock) {
     const source = data.items[`generator_${task.unlock}`].name;
-    const met = state.board.includes(null) || state.inventory.length < data.inventoryCapacity;
+    const met = firstFreeBoardCell(state, data) !== -1 || state.inventory.length < data.inventoryCapacity;
     requirements.push({ kind: 'space', source, met });
     if (!met) blockers.push(`Free a space on the board or in the pantry for the ${source}.`);
   }
@@ -541,7 +575,7 @@ export function dataProblems(data: GameData, knownImages?: readonly string[]): s
     if (data.board.columns !== 6 || data.board.rows !== 7 || !Array.isArray(data.board.initial) || data.board.initial.length !== 42) {
       return ['The board needs six columns, seven rows, and 42 starting spaces.'];
     }
-    const problems = [...roomProblems(data), ...decorationProblems(data, knownImages), ...generatorTierProblems(data), ...levelRewardProblems(data),
+    const problems = [...boardLayoutProblems(data), ...roomProblems(data), ...decorationProblems(data, knownImages), ...generatorTierProblems(data), ...levelRewardProblems(data),
       ...questProblems(data), ...taskGoalProblems(data), ...economyProblems(data)];
     // The save validation relies on the other checks, so it judges the new game only after they pass.
     if (!problems.length && !validateGame(createGame(data), data)) problems.push('The starting board does not make a valid new game.');
@@ -549,17 +583,61 @@ export function dataProblems(data: GameData, knownImages?: readonly string[]): s
   } catch { return ['The game data is malformed.']; }
 }
 
+export function boardLayoutProblems(data: GameData): string[] {
+  const problems: string[] = [];
+  const layouts = data.board.layouts;
+  if (!Array.isArray(layouts) || !layouts.length || !layouts.some(layout => layout.id === data.board.defaultLayout)) return ['The board needs a default layout.'];
+  if (layouts.filter(layout => layout.id === 'legacy-open' && Array.isArray(layout.obstacles) && layout.obstacles.length === 0).length !== 1) {
+    problems.push('The legacy open layout must be empty and available for saved games.');
+  }
+  const ids = new Set<string>();
+  const startingChains = new Set(data.board.initial.filter(present).flatMap(code => data.items[code]?.generator ? [data.items[code].chain] : []));
+  for (const layout of layouts) {
+    if (!layout || typeof layout.id !== 'string' || !layout.id || ids.has(layout.id) || !Array.isArray(layout.obstacles)) {
+      problems.push('Board layout IDs must be unique, and each layout needs obstacles.');
+      continue;
+    }
+    ids.add(layout.id);
+    const obstacleIds = new Set<string>();
+    const positions = new Set<number>();
+    for (const obstacle of layout.obstacles) {
+      if (!obstacle || typeof obstacle.id !== 'string' || !obstacle.id || obstacleIds.has(obstacle.id)
+        || !integer(obstacle.position, 0, data.board.initial.length - 1) || positions.has(obstacle.position)
+        || typeof obstacle.name !== 'string' || !obstacle.name.trim()
+        || !['clutter', 'anchored'].includes(obstacle.type)
+        || data.board.initial[obstacle.position] !== null
+        || !own(data.items, obstacle.ingredient) || data.items[obstacle.ingredient].generator
+        || !startingChains.has(data.items[obstacle.ingredient].chain) || !data.items[obstacle.ingredient].next) {
+        problems.push(`Board layout ${layout.id} has an invalid obstacle.`);
+        continue;
+      }
+      obstacleIds.add(obstacle.id);
+      positions.add(obstacle.position);
+    }
+    for (const obstacle of layout.obstacles) if (obstacle?.type === 'clutter' && integer(obstacle.position, 0, data.board.initial.length - 1)) {
+      const row = Math.floor(obstacle.position / data.board.columns);
+      const column = obstacle.position % data.board.columns;
+      const sides = [[row - 1, column], [row + 1, column], [row, column - 1], [row, column + 1]];
+      if (!sides.some(([y, x]) => y >= 0 && y < data.board.rows && x >= 0 && x < data.board.columns
+        && !layout.obstacles.some(other => other.position === y * data.board.columns + x && other.type === 'clutter'))) {
+        problems.push(`Board layout ${layout.id} has clutter without a free side.`);
+      }
+    }
+  }
+  return problems;
+}
+
 /** The board cells that a serve empties: the first free matching cell for each item, or -1 if there is none. */
-export function servedCells(state: GameState, order: Pick<Order, 'requirements'>) {
+export function servedCells(state: GameState, order: Pick<Order, 'requirements'>, data: GameData) {
   const taken: number[] = [];
-  for (const code of order.requirements) taken.push(state.board.findIndex((cell, index) => cell?.code === code && !taken.includes(index)));
+  for (const code of order.requirements) taken.push(state.board.findIndex((cell, index) => cell?.code === code && !unresolvedObstacle(state, index, data) && !taken.includes(index)));
   return taken;
 }
 
 export function canServe(state: GameState, order: Pick<Order, 'requirements'> | null | undefined, data: GameData) {
   if (!order || !Array.isArray(order.requirements) || !order.requirements.length) return false;
   const counts = new Map<string, number>();
-  for (const cell of state.board) if (cell) counts.set(cell.code, (counts.get(cell.code) ?? 0) + 1);
+  for (const [index, cell] of state.board.entries()) if (cell && !unresolvedObstacle(state, index, data)) counts.set(cell.code, (counts.get(cell.code) ?? 0) + 1);
   for (const code of order.requirements) {
     const count = counts.get(code);
     if (!own(data.items, code) || data.items[code].generator || !count) return false;
@@ -594,7 +672,7 @@ function validateQuestProgress(state: GameState, data: GameData): boolean {
 }
 
 /** Accepts an untrusted save: a parsed save is checked field by field before it is treated as a game state. The data must pass dataProblems. */
-function validateState(candidate: unknown, data: GameData, version: 2 | 3 | 4 | 5 | 6): boolean {
+function validateState(candidate: unknown, data: GameData, version: 2 | 3 | 4 | 5 | 6 | 7): boolean {
   try {
     const state = candidate as Omit<GameState, 'version'> & { version: number };
     if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== version) return false;
@@ -605,12 +683,20 @@ function validateState(candidate: unknown, data: GameData, version: 2 | 3 | 4 | 
     if (!integer(state.taskIndex, 0, data.tasks.length)) return false;
     const chains = availableChains(state, data);
     if (version < 6 && ['completedQuests', 'legacySatisfiedQuests', 'activeQuestProducers'].some(key => Object.hasOwn(state, key))) return false;
-    if (version === 6 && !validateQuestProgress(state as GameState, data)) return false;
-    const active = version === 6 ? data.quests.filter(quest => own(state.activeQuestProducers, quest.id)) : [];
+    if (version < 7 && ['layoutId', 'resolvedObstacles'].some(key => Object.hasOwn(state, key))) return false;
+    if (version >= 6 && !validateQuestProgress(state as GameState, data)) return false;
+    const active = version >= 6 ? data.quests.filter(quest => own(state.activeQuestProducers, quest.id)) : [];
     const validItem = (cell: Cell | null) => cell && typeof cell === 'object' && !Array.isArray(cell)
       && Object.keys(cell).length === 1 && (own(data.items, cell.code) && chains.includes(data.items[cell.code].chain)
         || active.some(quest => quest.producer!.exclusiveItems.includes(cell.code)));
     if (!state.board.every(cell => cell === null || validItem(cell)) || !state.inventory.every(validItem)) return false;
+    if (version === 7) {
+      const layout = data.board.layouts.find(layout => layout.id === state.layoutId);
+      if (!layout || !Array.isArray(state.resolvedObstacles)
+        || new Set(state.resolvedObstacles).size !== state.resolvedObstacles.length
+        || !state.resolvedObstacles.every(id => typeof id === 'string' && layout.obstacles.some(obstacle => obstacle.id === id))
+        || layout.obstacles.some(obstacle => !state.resolvedObstacles.includes(obstacle.id) && state.board[obstacle.position] !== null)) return false;
+    }
     const cells = [...state.board, ...state.inventory].filter(present);
     for (const chain of chains) {
       if (cells.filter(cell => getItem(cell.code, data)?.generator && getItem(cell.code, data)?.chain === chain).length !== 1) return false;
@@ -619,9 +705,14 @@ function validateState(candidate: unknown, data: GameData, version: 2 | 3 | 4 | 
     if (!Array.isArray(state.discovered) || state.discovered.length > Object.keys(data.items).length + Object.keys(data.questItems).length
       || new Set(state.discovered).size !== state.discovered.length
       || !state.discovered.every(code => own(data.items, code) && chains.includes(data.items[code].chain)
-        || version === 6 && data.quests.some(quest => quest.producer?.exclusiveItems.includes(code)
+        || version >= 6 && data.quests.some(quest => quest.producer?.exclusiveItems.includes(code)
           && (own(state.activeQuestProducers, quest.id) || state.completedQuests.includes(quest.id))))
       || !cells.every(cell => state.discovered.includes(cell.code))) return false;
+    if (version === 7) {
+      const layout = data.board.layouts.find(layout => layout.id === state.layoutId)!;
+      if (layout.obstacles.some(obstacle => (obstacle.type === 'anchored' || state.resolvedObstacles.includes(obstacle.id))
+        && !state.discovered.includes(obstacle.ingredient))) return false;
+    }
     if (!Array.isArray(state.orders) || state.orders.length !== 3) return false;
     if (new Set(state.orders.map(order => order?.id)).size !== 3) return false;
     for (const order of state.orders) {
@@ -670,6 +761,10 @@ function validateState(candidate: unknown, data: GameData, version: 2 | 3 | 4 | 
 }
 
 export function validateGame(candidate: unknown, data: GameData): candidate is GameState {
+  return validateState(candidate, data, 7);
+}
+
+export function validateQuestGame(candidate: unknown, data: GameData): candidate is QuestGameState {
   return validateState(candidate, data, 6);
 }
 
@@ -714,9 +809,9 @@ export function migrateGeneratorGame(candidate: unknown, data: GameData): LevelR
 }
 
 /** Completed preparations satisfy their regular requests without a reward or a loaned source. */
-export function migrateLevelRewardGame(candidate: unknown, data: GameData): GameState {
+export function migrateLevelRewardGame(candidate: unknown, data: GameData): QuestGameState {
   if (!validateLevelRewardGame(candidate, data)) throw new Error('The older saved game has damaged or unknown game data.');
-  const state: GameState = { ...structuredClone(candidate), version: 6, completedQuests: [], activeQuestProducers: {},
+  const state: QuestGameState = { ...structuredClone(candidate), version: 6, completedQuests: [], activeQuestProducers: {},
     legacySatisfiedQuests: [] };
   const pending = data.quests.filter(quest => !quest.producer && quest.legacyAfter !== null && candidate.decorations.includes(quest.legacyAfter));
   // Cross-character prerequisites can point forward in the authored list. Keep that list's order among ready quests.
@@ -725,6 +820,14 @@ export function migrateLevelRewardGame(candidate: unknown, data: GameData): Game
     if (ready === -1) throw new Error('The converted saved game is not valid.');
     state.legacySatisfiedQuests.push(pending.splice(ready, 1)[0].id);
   }
+  if (!validateQuestGame(state, data)) throw new Error('The converted saved game is not valid.');
+  return state;
+}
+
+/** Older boards stay open. Every cell and progress value keeps its position. */
+export function migrateQuestGame(candidate: unknown, data: GameData): GameState {
+  if (!validateQuestGame(candidate, data)) throw new Error('The older saved game has damaged or unknown game data.');
+  const state: GameState = { ...structuredClone(candidate), version: 7, layoutId: 'legacy-open', resolvedObstacles: [] };
   if (!validateGame(state, data)) throw new Error('The converted saved game is not valid.');
   return state;
 }
@@ -736,6 +839,7 @@ export function saveMigrations(data: GameData) {
     2: { validate: (state: unknown) => validatePreviousGame(state, data), migrate: (state: unknown) => migratePreviousGame(state, data) },
     3: { validate: (state: unknown) => validateGeneratorGame(state, data), migrate: (state: unknown) => migrateGeneratorGame(state, data) },
     4: { validate: (state: unknown) => validateLevelRewardGame(state, data), migrate: (state: unknown) => migrateLevelRewardGame(state, data) },
+    5: { validate: (state: unknown) => validateQuestGame(state, data), migrate: (state: unknown) => migrateQuestGame(state, data) },
   };
 }
 
@@ -750,7 +854,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const view = resolveQuests(next, data).find(view => view.quest.id === action.id);
       if (view?.status !== 'offer' || !view.quest.producer) return fail('This quest offer is no longer available.');
       const code = view.quest.producer.item;
-      const empty = next.board.indexOf(null);
+      const empty = firstFreeBoardCell(next, data);
       if (empty !== -1) next.board[empty] = { code };
       else if (next.inventory.length < data.inventoryCapacity) next.inventory.push({ code });
       else return fail('Free one space on the board or in the pantry before you accept this quest.');
@@ -765,7 +869,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       if (!integer(next.coins + quest.reward)) return fail('Spend some coins before you deliver this quest.');
       const cleanup = quest.producer ? previewQuestCleanup(next, quest.id, data) : null;
       if (quest.producer && (!cleanup || action.cleanupToken !== cleanup.token)) return fail('The cleanup preview changed. Review it again before you deliver.');
-      for (const index of questDeliveryCells(next, quest)) next.board[index] = null;
+      for (const index of questDeliveryCells(next, quest, data)) next.board[index] = null;
       if (quest.producer) {
         next.board = next.board.map(cell => cell && quest.producer!.exclusiveItems.includes(cell.code) ? null : cell);
         next.inventory = next.inventory.filter(cell => !quest.producer!.exclusiveItems.includes(cell.code));
@@ -803,18 +907,25 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const source = itemAt(next, action.from);
       if (!integer(action.from, 0, next.board.length - 1) || !integer(action.to, 0, next.board.length - 1)
         || action.from === action.to || !source) return fail('Choose an item and a different space.');
+      if (unresolvedObstacle(next, action.from, data)) return fail('This item is tied to the workbench. Merge a matching item into this space.');
+      const obstacle = unresolvedObstacle(next, action.to, data);
       const target = next.board[action.to];
       const item = getItem(source.code, data)!;
-      if (target?.code === source.code && !item.generator) {
+      if (obstacle?.type === 'clutter') return fail('This space is covered. Merge beside it to clear it.');
+      if (obstacle?.type === 'anchored' && obstacle.ingredient !== source.code) return fail('Merge a matching item into this tied space.');
+      if ((target?.code === source.code || obstacle?.type === 'anchored') && !item.generator) {
         if (!item.next) return fail(`${item.name} is a final dish. Serve it to a neighbour or sell it.`);
         next.board[action.to] = { code: item.next };
         next.board[action.from] = null;
+        if (obstacle) next.resolvedObstacles.push(obstacle.id);
+        revealAdjacentClutter(next, action.to, data);
         next.merges++;
         next.xp++;
         discover(next, item.next);
         event = 'merge';
         message = `Made ${getItem(item.next, data)!.name}.`;
       } else {
+        if (obstacle) return fail('Merge a matching item into this tied space.');
         next.board[action.to] = source;
         next.board[action.from] = target;
         message = target ? 'Items swapped.' : 'Item moved.';
@@ -831,7 +942,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const code = action.output === undefined ? expected : action.output;
       if (!generatorOutputs(next, item.id, data).includes(code)) return fail('Choose an available output from this source.');
       if (quest && code !== expected) return fail('Take the next output from this quest source.');
-      const empty = next.board.indexOf(null);
+      const empty = firstFreeBoardCell(next, data);
       if (empty === -1) return fail('The board is full. Merge, store, serve, or sell an item.');
       next.board[empty] = { code };
       if (quest) next.activeQuestProducers[quest.id] = (next.activeQuestProducers[quest.id] + 1) % quest.producer!.outputs.length;
@@ -847,7 +958,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const order = next.orders[orderIndex];
       if (!canServe(next, order, data)) return fail('Put every item in this order on the board first.');
       if (!integer(next.coins + order.reward)) return fail('Spend some coins before you serve this order.');
-      for (const index of servedCells(next, order)) next.board[index] = null;
+      for (const index of servedCells(next, order, data)) next.board[index] = null;
       next.coins += order.reward;
       next.xp += order.requirements.reduce((sum, code) => sum + data.items[code].stage * 4, 0);
       next.served++;
@@ -863,7 +974,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       if (task.unlock) {
         const code = `generator_${task.unlock}`;
         const source = data.items[code].name;
-        const empty = next.board.indexOf(null);
+        const empty = firstFreeBoardCell(next, data);
         if (empty !== -1) { next.board[empty] = { code }; message += ` The ${source} is on the board.`; }
         else { next.inventory.push({ code }); message += ` The ${source} is in the pantry.`; }
         discover(next, code);
@@ -884,6 +995,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
     case 'store': {
       const cell = itemAt(next, action.index);
       if (!cell) return fail('Choose an item to store.');
+      if (unresolvedObstacle(next, action.index, data)) return fail('This item is tied to the workbench. Merge a matching item into this space.');
       if (next.inventory.length >= data.inventoryCapacity) return fail('The pantry is full. Return an item to the board first.');
       next.inventory.push(cell);
       next.board[action.index] = null;
@@ -892,7 +1004,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
     }
     case 'retrieve': {
       if (!integer(action.index, 0, next.inventory.length - 1)) return fail('Choose an item in the pantry.');
-      const empty = next.board.indexOf(null);
+      const empty = firstFreeBoardCell(next, data);
       if (empty === -1) return fail('Free a space on the board first.');
       const cell = next.inventory.splice(action.index, 1)[0];
       next.board[empty] = cell;
@@ -902,6 +1014,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
     case 'sell': {
       const cell = itemAt(next, action.index);
       if (!cell) return fail('Choose an item to sell.');
+      if (unresolvedObstacle(next, action.index, data)) return fail('This item is tied to the workbench. Merge a matching item into this space.');
       const item = getItem(cell.code, data)!;
       if (item.generator) return fail(`The ${item.name} can't be sold. Move it or store it instead.`);
       const coins = saleValue(cell.code, data);

@@ -54,8 +54,8 @@ Then do these steps:
    The comments in that file give the reasons.
 4. Run `npm run assets:build`.
 5. Add the code that shows a variant, with a path relative to the file that loads it.
-   For a room state, also add its identifier to `roomPaintings` in `src/engine.ts`, as `README.md` tells you.
-6. Update the asset statements in `PRODUCT.md`, `DESIGN.md`, and `README.md`.
+   For a room state, also add its identifier to `roomPaintings` in `src/engine.ts`.
+6. Update the asset statements in `PRODUCT.md`, `DESIGN.md`, and `DELIVERY.md`.
 
 The build collects the variants. The source export collects the masters and the variants from their records.
 

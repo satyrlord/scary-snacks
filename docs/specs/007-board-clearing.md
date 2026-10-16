@@ -1,64 +1,58 @@
 # 007: Board clearing
 
-Status: Proposed. Not implemented. The layout and contents below are draft defaults.
+Status: Implemented. Human pacing and visual acceptance remain open.
 Owner: `PRODUCT.md` for board rules; `DESIGN.md` for blocked-space presentation.
 
-## Current evidence
+## Implemented state
 
-- `tools/create-original-data.ts` authors a 42-cell board with seven initial items: three ingredient sources and four ingredients.
-- All other cells are usable immediately. No obstacle data and no locked-cell data exist.
-- `src/engine.ts` treats every `null` cell as available. Spawn, retrieval, quest-source acceptance, and preparation unlocks use the first `null` cell.
-  The free-space requirement of a preparation that unlocks a source counts every `null` cell.
-- `src/app.ts` counts every empty cell as free and allows board navigation across all cells.
-- Tests cover recovery of a full board. They do not cover boards that are partially locked.
+- `tools/create-original-data.ts` authors a 42-cell board with seven initial items and eight edge obstacles.
+- `src/engine.ts` owns the shared available-cell rule, adjacent reveals, anchored merges, and layout validation.
+- `src/storage.ts` writes state 7 in save envelope 6. Earlier valid saves convert to the open layout.
+- `src/app.ts` shows blocked cells, gives their merge rules in accessible labels, and counts only usable empty cells.
+- The Node and browser tests cover blocked cells, migration, keyboard, pointer, touch, drag, and reload.
 
 ## Outcome and scope
 
 Let merges reveal workbench space and ingredients. Give anchored items a distinct goal.
 Keep the six-by-seven board, the 12 pantry spaces, unlimited generation, and no waiting.
-Author the layout and the clutter art for this game.
+Use newly authored bistro clutter and layouts. Do not reproduce archived layouts or assets.
 Reveals use ordinary ingredients from existing chains. Do not add consumable tools,
 currencies, reward chests, timers, energy costs, or a paid Clear action.
 
-## Proposed behavior
+## Behavior
 
-1. A new game uses the authored blocked layout. Eight edge cells hold four clutter wrappers and four
+1. A fresh game uses eight authored edge cells with four clutter wrappers and four
    anchored ingredients. The remaining 34 cells keep the ordinary board behavior.
-   The obstacle cells must not overlap the initial items.
-   Theme: a clutter wrapper is old bistro clutter under dust. Until preparation 1, spider webs also cover each wrapper.
-   Preparation 1, "Fix the broken window", removes the webs from the wrappers and from the room at the same time.
-   The dusty clutter stays until a merge clears it. Spiders do not appear on the board.
-   An anchored ingredient is tied to a nail in the workbench with old twine.
+   These positions must not overlap initial items or generators.
+   A clutter wrapper is old bistro clutter under dust and spider webs.
+   Preparation 1, "Fix the broken window", removes the webs from each wrapper and the room at the same time.
+   A merge beside the wrapper clears its dusty clutter. Spiders do not appear on the board.
+   The webs are not creatures, so the rule of spec 008 about setting details still holds.
 2. Each obstacle has a stable identifier (ID), a position, a readable name, a type, and an ordinary ingredient
    code. Its chain must be available at the start of the game. Its merge successor must exist.
 3. A successful pair merge clears each clutter wrapper that shares a side with the destination of the merge. Each wrapper clears one time.
    Reveal the configured ingredient of the wrapper in its own cell. Diagonal contact does not clear clutter. Adjacency to the source cell does not clear clutter.
-4. An anchored ingredient is visible. It cannot move, swap, enter storage, sell, serve an order, or fill a quest.
+4. An anchored ingredient is visible. It cannot move, swap, enter storage, sell, or serve.
    Merge a matching movable ingredient into its cell to remove the anchor and leave the
    normal successor in that cell. The source becomes empty, as in an ordinary merge.
 5. Both ordinary pair merges and anchor-releasing pair merges can clear neighbouring clutter.
-   A revealed ingredient does not start a merge and does not clear clutter.
+   A revealed ingredient never merges alone and never clears another wrapper alone.
 6. The merge, the anchor removal, the adjacent reveals, and the discoveries form one atomic transition.
    Give normal experience points (XP) and merge credit one time for the pair merge. Never give them for each reveal.
 7. A full board or a full pantry cannot lose revealed ingredients: each ingredient uses its own obstacle
    cell. Do not use the first empty cell, an inventory fallback, or an overflow queue.
-8. One shared rule decides which cells are available. These paths use it:
-   - placement: spawn, retrieval from the pantry, moves and swaps, quest-source acceptance, and the source that a preparation unlocks;
-   - counts: the free-space requirement of a preparation, the free-space count in the board label, and the full-board messages;
-   - matches: order service, quest delivery, and the hint.
-   No placement path can put an item in an unresolved obstacle. Only the defined matching merge can target an anchored ingredient.
-   The hint treats a movable ingredient and a matching anchored ingredient as a pair. The anchored cell is the destination.
-9. Failed merges, wrong items, terminal items, moves, and swaps clear nothing and reveal nothing.
-   A failed action changes no state and no seed. A resolved obstacle never gives its ingredient a second time.
+8. All placement searches, free counts, service checks, and hints use the same obstacle rules.
+   Spawn, retrieval, movement, and generator unlocks must not occupy unresolved obstacles. Only the defined matching merge can target an anchored ingredient.
+9. Failed merges, wrong items, terminal items, moves, and swaps clear nothing. They change
+   no state and no seed. A resolved obstacle never gives its ingredient a second time.
 10. Obstacle cells stay keyboard-focusable for explanation. Labels give the location, the type,
-    the visible ingredient where applicable, and the merge rule. Do not use colour alone.
+   the visible ingredient where applicable, and the merge rule. Do not use colour alone.
 11. Clearing stays optional. The campaign and the current orders must stay achievable with
     all obstacles intact. Keep the recovery routes for merge, storage, service, and sale.
 
-### Draft layout
+### Board layout
 
-Cell numbers count from 0, left to right and then top to bottom. Each corner holds a wrapper, and an anchored ingredient sits beside it.
-A merge into the anchored cell therefore also clears the wrapper beside it.
+Cell numbers start at 0. The board counts left to right, then top to bottom.
 
 | Cell | Type | Name | Ingredient |
 | --- | --- | --- | --- |
@@ -73,65 +67,33 @@ A merge into the anchored cell therefore also clears the wrapper beside it.
 
 ## Data, state, and migration
 
-- Author the layout records and the obstacle records in `tools/create-original-data.ts`. Validate unique
-  IDs and positions, valid bounds and types, reachable ingredient codes, and separation from initial items.
-- Validate that each wrapper shares a side with at least one cell that is not a wrapper. Otherwise no merge can clear it.
-- Store a layout ID and the resolved obstacle IDs. The layout data defines the contents of unresolved obstacles. These contents are separate from movable board items. Reject movable items inside unresolved obstacles.
-- A layout never changes after it ships. A changed layout gets a new layout ID, and the old layout stays in the data for the saves that use it.
-- Validate that the layout ID is known, that the resolved IDs are known and unique, and that the cell state is consistent. Discover visible anchored
-  ingredients at the start of a new game. Discover hidden ingredients only when the game reveals them.
+- `tools/create-original-data.ts` authors the layout and obstacle records. `dataProblems` checks IDs, positions, types, ingredients, and separation from initial items. It also rejects clutter with no open side.
+- State 7 stores a layout ID and resolved obstacle IDs. The layout supplies unresolved contents. Movable items cannot occupy unresolved cells.
+- Save envelope 6 uses `scary-snacks-save-v6`. `validateGame` checks layout IDs, resolved IDs, blocked cells, and discoveries.
+- A fresh game discovers visible anchored ingredients. A hidden ingredient enters discovery when its wrapper clears.
+- Earlier valid saves convert to `legacy-open`, with no blocked cells. Conversion keeps their board, pantry, counters, coins, preparations, orders, and discoveries in place. Earlier bytes remain unchanged.
 - `engine.ts` owns availability and clear transitions. `app.ts` owns visuals and input.
-- Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
-- If this spec ships first, it takes game state version 7 in save envelope version 6 at `scary-snacks-save-v6`.
-  If another feature took that version first, use the next free version. Validate before and after conversion,
-  keep the original bytes, and make a repeated conversion give the same result.
-- All converted saves use a legacy open layout with no blocked cells. Do not put
-  obstacles beneath existing items, move items, reduce usable space, or revoke progress.
-- Keep the board order, pantry, counters, coins, preparations, orders, and discoveries exactly as they are.
-- Every new game uses the authored blocked layout. This includes a first visit with no save, a new game after an unreadable save, and "Start a new game" in the House book.
-- Invalid imports and failed writes keep the previously saved bytes and report the failure clearly.
+- Invalid imports and failed writes keep the previously saved bytes and report the failure.
 
 ## Art
 
-One new transparent atlas, `board-clutter`, holds the board art. It is 1536 by 1024 pixels, with 3 columns by 2 rows of 512-pixel cells.
-It has the gouache style and the three-quarter view of the food atlas, so the clutter sits on the board timber like the food.
+The transparent `board-clutter` atlas is 1536 by 1024 pixels. It has three columns and two rows of square cells. Four cells show dusty clutter. One cell supplies the web overlay, and one supplies the twine and nail overlay. The game ships its WebP variant. The master, prompt, provenance, and variant records identify the generated art.
 
-| Cell | Contents |
-| --- | --- |
-| 1 | Old crate: a small dusty wooden crate with a loose lid |
-| 2 | Tied sack: a dusty burlap sack, tied at the neck |
-| 3 | Covered crock: a dusty clay crock with a cloth tied over its mouth |
-| 4 | Linen bundle: a dusty stack of folded old linen, tied with string |
-| 5 | Webs: an overlay of grey cobwebs. Before preparation 1, it sits over each wrapper |
-| 6 | Twine: an overlay of old twine and a rusty nail. It sits over the food picture of each anchored ingredient |
+## Implemented slices
 
-The clutter is dusty and muted, so it does not look like food or an ingredient source.
-The overlays leave the middle of the cell open, so the object under them stays readable.
-The generated candidate waits in `analysis/art-generation/board-clutter/` until slice 3 installs it, with its prompt, provenance, and variant records.
-
-## Thin implementation slices
-
-1. Add obstacle data, shared availability rules, and atomic clearing by pair merge.
-   Exit: only clutter that is adjacent to the destination clears. Anchor matching works. Reveals do not
-   cascade and do not lose items on a full board. Every path in item 8 enforces the same rules.
-2. Add validated persistence and legacy migration.
-   Exit: resolved obstacles never give items twice. Every valid old board keeps every occupied cell and usable cell after import and reload. This includes full boards and full pantries.
-3. Add board visuals, the web removal at preparation 1, accessible explanations, hint updates, and owner-document changes.
-   Exit: all input methods can inspect and clear obstacles. The free-space counts are exact.
+1. Obstacle data, shared availability, and atomic pair-merge clearing are in the engine.
+2. Validated state 7 saves keep resolved obstacles. Migration gives older saves the open layout.
+3. The board shows clutter, webs, anchored ingredients, readable labels, and exact free-space counts. Hints can point to an anchor.
 
 ## Acceptance and evidence
 
-- Engine: test adjacency to the destination, to the source, and diagonally. Test several adjacent wrappers, no reveal cascade, and matching and wrong anchor merges. Test terminal items, blocked service, blocked quest delivery, blocked storage, and blocked sale. Test spawn, retrieval, quest-source acceptance, and preparation unlocks on a board whose only `null` cells are obstacles. Test a full board, a full pantry, discoveries, exact XP, repeated actions, and atomic failure.
-- Data: test that a layout with a wrapper surrounded by wrappers fails validation.
-- Save: cover no clearing, partial clearing, and full clearing. Also cover legacy full boards, export, import, unknown layout IDs, and duplicate IDs. Also cover migration retries and failed writes. Show that a reload keeps the layout and the resolved list, and that every new-game path selects the blocked layout.
-- Browser: follow [Verification and release](README.md#verification-and-release). Also cover keyboard navigation, pointer actions, touch actions, text labels, hints, the web removal at preparation 1, and reduced motion.
-- Manual: finish early production and late production with obstacles intact. Record the available space
-  and the recovery actions. Confirm that clutter, anchors, and movable ingredients are distinct at the phone cell size.
-- Implementation checks: typecheck, Node tests, build, browser tests, and a legal campaign
-  simulation that proves no prerequisite for clearing. The atlas needs the asset checks of `tests/assets.test.ts`.
+- Engine tests cover destination-side, source-side, and diagonal contact; several wrappers; no cascade; matching and wrong anchors; full board and pantry; discoveries; XP; and atomic failure.
+- Data tests reject duplicate positions, unknown ingredients, and trapped clutter. The asset test checks the atlas hash, variant hash, cell seams, and open overlay centers.
+- Save tests cover open, partly cleared, and fully cleared layouts through export, import, and reload. They cover old full boards, invalid IDs, migration retries, and failed writes.
+- Browser tests cover keyboard, pointer, drag, and emulated touch actions; labels; order hints; reload; the preparation 1 web removal; and reduced motion.
+- The deterministic legal campaign fixture reaches all 24 preparations with every obstacle intact. It does not measure human pace.
+- Manual play must assess early and late production, recovery actions, phone cell legibility, and the new art. A user has not accepted the visual result.
 
-## Dependencies and open decisions
+## Remaining acceptance
 
-The first slice needs no other new feature. Spec 006 must include revealed items
-in the balance fixtures. The scene areas of spec 001 are separate from board availability.
-Confirm the draft layout, the names, the ingredient codes, and the introductory explanation. Use legal campaign play and visual review. Do not claim that tests cover these choices.
+The legal campaign fixture reaches every preparation with obstacles intact. A person has not measured play pace or accepted the new art. Manual play must check early and late production, available space, recovery actions, and the distinction between clutter, anchors, and movable food on a phone.

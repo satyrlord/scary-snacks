@@ -1,6 +1,6 @@
 # Progression feature specifications
 
-These specifications define features for the Scary Snacks game. A specification does not implement its feature. [PRODUCT.md](../../PRODUCT.md), [DESIGN.md](../../DESIGN.md), and [README.md](../../README.md) own the current behavior. After the team implements a feature, change the related sections of the owner documents.
+These specifications define features for the Scary Snacks game. A specification does not implement its feature. [PRODUCT.md](../../PRODUCT.md), [DESIGN.md](../../DESIGN.md), and [DELIVERY.md](../../DELIVERY.md) own the current behavior. After the team implements a feature, change the related sections of the owner documents.
 
 The current game has six chapters and 24 preparations. It also has dialogue replay, item discovery, orders that become harder, and endless orders. The specs extend those systems. They do not replace those systems.
 
@@ -28,6 +28,8 @@ Spec 004 implements the finite coin rewards, the House book level panel, and cla
 Spec 005 implements four character arcs, optional introductions, a temporary bread-tasting source, atomic delivery, journal replay, and save conversion. Automatic scene continuation waits for 009. Spec 006 includes all quests in its economy fixture. Human balance assessment and chapter-story integration with 008 remain open.
 
 Spec 006 implements explicit food prices, work-based preparation budgets and effort, requirement feedback, compatible saved quotes, and legal campaign comparisons. The fixture includes generator upgrades, all level rewards, and optional quests. Human pacing remains unverified. The economy record gives the real-world source anchors and the authored assumptions.
+
+Spec 007 implements blocked board cells, adjacent merge reveals, anchored ingredients, an open layout for converted saves, and original clutter art. Automated checks cover the rules and the production browser build. Human pacing and visual acceptance remain open.
 
 Each entry is proposed, unless its specification records an implemented slice. Spec 011 has discovery cloches, notices, and order help. Its chain-completion marks are proposed. Priority is a suggested order of work. It does not change the approved product.
 
@@ -61,7 +63,7 @@ The table maps each gap in the current game to the specifications that close it.
 | Levels 2 through 10 offer coin rewards; human balance needs assessment | 004, 006 |
 | Character quests have authored purposes; continuation and human pacing remain | 005, 006, 009 |
 | Work-based prices and effort exist; human pacing needs assessment | 006 |
-| No recovery of board space and no reveal of ingredients through adjacent merges | 007 |
+| Board clearing has automated coverage; human pacing remains unverified | 007 |
 | Brief chapter exchanges and a limited finale | 008 |
 | Dialogue has no automatic continuation after reload | 009 |
 | Hints exist but no staged introduction | 010 |
@@ -70,7 +72,7 @@ The table maps each gap in the current game to the specifications that close it.
 | The browser tests for story and chapters are incomplete | Acceptance checks in 001, 005, 008, 009, 010, 012 |
 | Four customers are too few for a business | 013 |
 | The resident cat has no part in play | 014 |
-| The board does not show the poor early state of the bistro | 007 (draft theme: clutter under dust and webs) |
+| The blocked board shows early clutter; human visual acceptance remains | 007 |
 | No start screen. Reduced motion can be on without a notice, and the player cannot change it | 015 |
 
 Customer introductions (005) are optional journal reading. Regulars (013), Miez's visits (014), and optional post-campaign goals (012) remain proposed. Decoration choices (002) are visual choices, not a branching story.
@@ -87,7 +89,7 @@ Customer introductions (005) are optional journal reading. Regulars (013), Miez'
 
 ## Shared save compatibility
 
-The current game uses game state version 6 inside save envelope version 5 at `scary-snacks-save-v5` (spec 005). Valid states 2 through 5 in envelopes 1 through 4 convert through each intervening version. Their keys are `scary-snacks-save-v1` through `scary-snacks-save-v4`. Each step validates its input and output. The final step adds quest completion lists and an empty temporary-source map. Regular quests tied to completed preparations become legacy-satisfied without payment. Conversion never activates a temporary source or reopens a preparation. Existing level claims remain. The newest existing key controls the load. All older bytes stay unchanged. State 6 orders can also carry the optional pricing marker menu-1. Unmarked quotes retain the original exact reward formula; menu-1 quotes use explicit food prices. States 2 through 5 accept only unmarked quotes. Existing orders are never repriced. Later menu changes need a new quote revision with exact support for earlier quotes. Later features must coordinate their versions. Individual specs do not reserve separate version numbers.
+The current game uses game state version 7 inside save envelope version 6 at `scary-snacks-save-v6` (spec 007). Valid states 2 through 6 in envelopes 1 through 5 convert through each intervening version. Their keys are `scary-snacks-save-v1` through `scary-snacks-save-v5`. Each step validates its input and output. The quest step adds completion lists and an empty temporary-source map. The board step gives older saves a legacy open layout with no blocked cells and an empty resolved list. Regular quests tied to completed preparations become legacy-satisfied without payment. Conversion never activates a temporary source, reopens a preparation, moves an item, or adds a blocked cell. Existing level claims remain. The newest existing key controls the load. All older bytes stay unchanged. State 6 and state 7 orders can also carry the optional pricing marker menu-1. Unmarked quotes retain the original exact reward formula; menu-1 quotes use explicit food prices. States 2 through 5 accept only unmarked quotes. Existing orders are never repriced. Later menu changes need a new quote revision with exact support for earlier quotes. Later features must coordinate their versions. Individual specs do not reserve separate version numbers.
 
 Keep older stored bytes unchanged. Validate the old envelope and state before migration. Produce and validate the new state in memory. Then write it to a separately versioned destination. Do not remove the older save. If conversion, validation, or writing fails, keep the original save and show a recoverable error. Import must not replace live progress until the complete candidate is valid and the game knows the result of the write.
 

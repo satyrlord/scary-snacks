@@ -26,7 +26,7 @@ In that condition, give each edit or check that you did not complete in the repo
 
 ## Map the system
 
-Read `PRODUCT.md`, `DESIGN.md`, `README.md`, `package.json`, `playwright.config.ts`, and the source code in the working tree.
+Read `PRODUCT.md`, `DESIGN.md`, `DELIVERY.md`, `package.json`, `playwright.config.ts`, and the source code in the working tree.
 Map the selected behavior across these owners:
 
 - `src/engine.ts`: the rules, the state, and the state validation.

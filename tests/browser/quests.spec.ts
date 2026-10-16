@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { createGame, reduceGame, validateGame, resolveQuests, getItem, previewQuestCleanup } from '../../src/engine.ts';
+import { createGame, firstFreeBoardCell, reduceGame, validateGame, resolveQuests, getItem, previewQuestCleanup, unresolvedObstacle } from '../../src/engine.ts';
 import type { Action, GameData, GameState, Quest } from '../../src/engine.ts';
 import { SAVE_KEY, exportSave } from '../../src/storage.ts';
 
@@ -24,7 +24,7 @@ function supplied(state: GameState,quest: Quest){
   const next=structuredClone(state);
   for(const requirement of quest.requirements){
     for(let count=0;count<requirement.quantity;count++){
-      const index=next.board.findIndex(cell=>!cell);expect(index).toBeGreaterThanOrEqual(0);next.board[index]={code:requirement.item};
+      const index=firstFreeBoardCell(next,data);expect(index).toBeGreaterThanOrEqual(0);next.board[index]={code:requirement.item};
     }
     if(!next.discovered.includes(requirement.item))next.discovered.push(requirement.item);
   }
@@ -127,15 +127,16 @@ test('a surplus on the board reads as the required count in the visible and acce
   await expect(row).toBeVisible();await expect(row.locator('.quest-count')).toHaveText(`${requirement.quantity} / ${requirement.quantity} on board`);
 });
 
-test('quest ingredient help keeps focus on the source it selects on desktop and phone',async({page})=>{
+test('quest ingredient help keeps focus on the next anchored merge on desktop and phone',async({page})=>{
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
     await page.setViewportSize(viewport);await start(page,createGame(data));await quests(page);
     const quest=firstQuests[0],code=quest.requirements[0].item;
     await card(page,quest).getByRole('button',{name:new RegExp(`^${getItem(code,data)!.name}:`)}).click();
     await page.getByRole('button',{name:'Show me on the board',exact:true}).click();
     await expect(page.locator('#modal')).toBeHidden();
-    const source=page.locator('#board .selected');await expect(source).toHaveAttribute('aria-label',/Drinks pitcher/);
-    await expect(source).toBeFocused();
+    const movable=page.locator('#board .selected');await expect(movable).toHaveAttribute('aria-label',/Elderflowers/);
+    await expect(movable).toBeFocused();
+    await expect(page.locator('[data-cell="37"]')).toHaveClass(/hint/);
     // An unrelated render must not mask a focus return queued by the dialog close event.
     await page.keyboard.press('ArrowRight');await expect(page.locator('#board :focus')).toHaveCount(1);
   }
@@ -162,7 +163,7 @@ test('keyboard and emulated touch can inspect and finish quests with focus retur
 });
 
 test('an optional offer needs space and puts its sole producer in the pantry when the board is full',async({page})=>{
-  const initial=offer();initial.board=initial.board.map(cell=>cell??{code:'bakery_1'});initial.inventory=Array.from({length:data.inventoryCapacity},()=>({code:'bakery_1'}));
+  const initial=offer();initial.board=initial.board.map((cell,index)=>cell||unresolvedObstacle(initial,index,data)?cell:{code:'bakery_1'});initial.inventory=Array.from({length:data.inventoryCapacity},()=>({code:'bakery_1'}));
   const sellFlour=async()=>{const state=await saved(page);await page.locator(`[data-cell="${state.board.findIndex(cell=>cell?.code==='bakery_1')}"]`).click();await page.getByRole('button',{name:'Sell for 1 coin',exact:true}).click();};
   await start(page,initial);await quests(page);await expect(card(page,optional)).toContainText(/board|pantry/);await accept(page).click();await expect(page.locator('.quest-notice')).toContainText(/space/);expect(await saved(page)).toEqual(initial);
   await page.keyboard.press('Escape');await sellFlour();

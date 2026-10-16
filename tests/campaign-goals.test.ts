@@ -5,6 +5,7 @@ import { createGame, currentTask, dataProblems, questProblems, reduceGame, taskE
 import type { Action, GameData, GameState } from '../src/engine.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
+const openGame = (content = data) => ({ ...createGame(content), layoutId: 'legacy-open' });
 function act(state: GameState, action: Action, content = data): GameState {
   const before = structuredClone(state);
   const result = reduceGame(state, action, content);
@@ -23,7 +24,7 @@ function rejected(state: GameState, action: Action = { type: 'task' }, content =
   return result;
 }
 function checkpoint(count: number): GameState {
-  let state = createGame(data);
+  let state = openGame();
   // These controlled resources isolate the completion boundary and generator placement.
   state.coins = data.tasks.reduce((sum, task) => sum + task.cost, 0);
   Object.assign(state, data.tasks.at(-1)!.goals);
@@ -71,7 +72,7 @@ test('each preparation has explicit, nondecreasing lifetime service and merge go
 });
 
 test('eligibility lists every unmet numeric requirement and preserves the exact totals above a goal', () => {
-  const state = createGame(data);
+  const state = openGame();
   const eligibility = taskEligibility(state, data);
   assert.equal(eligibility.task, data.tasks[0]);
   assert.equal(eligibility.ready, false);
@@ -95,7 +96,7 @@ test('eligibility lists every unmet numeric requirement and preserves the exact 
 });
 
 test('exact thresholds complete once without spending counters or replacing the three live orders', () => {
-  const state = createGame(data);
+  const state = openGame();
   Object.assign(state, { coins: data.tasks[0].cost, ...data.tasks[0].goals });
   assert.ok(taskEligibility(state, data).ready);
   const completed = act(state, { type: 'task' });
@@ -111,7 +112,7 @@ test('exact thresholds complete once without spending counters or replacing the 
 });
 
 test('one missing coin blocks completion after both lifetime goals are met', () => {
-  const state = createGame(data);
+  const state = openGame();
   Object.assign(state, { coins: data.tasks[0].cost - 1, ...data.tasks[0].goals, xp: 100 });
   assert.deepEqual(taskEligibility(state, data).blockers, ['Earn 1 more coin to pay for this preparation.']);
   assert.match(rejected(state).message, /1 more coin/);
@@ -119,7 +120,7 @@ test('one missing coin blocks completion after both lifetime goals are met', () 
 });
 
 test('free generation and sales cannot complete the first preparation without service', () => {
-  let state = createGame(data);
+  let state = openGame();
   state = act(state, { type: 'move', from: 13, to: 14 });
   state = act(state, { type: 'spawn', index: 1 });
   const flour = state.board.findIndex(cell => cell?.code === 'bakery_1');
@@ -142,7 +143,7 @@ test('free generation and sales cannot complete the first preparation without se
 });
 
 test('service and sale income cannot complete a preparation without the merge goal', () => {
-  let state = createGame(data);
+  let state = openGame();
   // Prior service isolates the final service action from the separate merge requirement.
   state.served = data.tasks[0].goals.served - 1;
   const order = state.orders.find(order => order.requirements.every(code => data.items[code].stage === 1))!;
@@ -179,7 +180,7 @@ test('a named quest prerequisite is visible and unknown or cyclic prerequisites 
   const content = structuredClone(data);
   content.tasks[0].requiresQuest = 'mara-welcome';
   assert.deepEqual(dataProblems(content), []);
-  const state = createGame(content);
+  const state = openGame(content);
   Object.assign(state, { coins: data.tasks[0].cost, ...data.tasks[0].goals });
   const title = content.quests.find(quest => quest.id === 'mara-welcome')!.title;
   assert.deepEqual(taskEligibility(state, content).requirements.at(-1), { kind: 'quest', questId: 'mara-welcome', title, met: false });
@@ -211,7 +212,7 @@ test('the last preparation needs its own exact goals and repeated completion cha
 });
 
 test('only a successful merge or ordinary order service adds its own goal credit', () => {
-  let state = createGame(data);
+  let state = openGame();
   const unchanged = (action: Action) => {
     const totals = [state.served, state.merges];
     state = act(state, action);

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { createGame, menuReward, reduceGame, saleValue, taskEligibility, validateGame } from '../../src/engine.ts';
+import { createGame, firstFreeBoardCell, menuReward, reduceGame, saleValue, taskEligibility, validateGame } from '../../src/engine.ts';
 import type { GameData, GameState } from '../../src/engine.ts';
 import { SAVE_KEY as KEY, exportSave } from '../../src/storage.ts';
 import { readFileSync } from 'node:fs';
@@ -41,7 +41,7 @@ function beforeFirstRepair(){
   const act=(action: Parameters<typeof reduceGame>[1])=>{const result=reduceGame(state,action,data);expect(result.ok,result.message).toBe(true);state=result.state;};
   const produce=(code: string): number=>{
     const item=data.items[code];
-    if(item.stage===1){const empty=state.board.indexOf(null);expect(empty).toBeGreaterThanOrEqual(0);act({type:'spawn',index:state.board.findIndex(cell=>cell?.code===`generator_${item.chain}`)});return empty;}
+    if(item.stage===1){const empty=firstFreeBoardCell(state,data);expect(empty).toBeGreaterThanOrEqual(0);act({type:'spawn',index:state.board.findIndex(cell=>cell?.code===`generator_${item.chain}`)});return empty;}
     const lower=Object.values(data.items).find(candidate=>candidate.next===code)!;const first=produce(lower.id),second=produce(lower.id);act({type:'move',from:first,to:second});return second;
   };
   for(let attempt=0;attempt<1000;attempt++){
@@ -274,10 +274,10 @@ test('a served neighbour says thank you on the ticket while the next ticket arri
 
 test('the recipe book keeps undiscovered dishes under cloches and marks new ones until it is opened',async({page})=>{
   await start(page);await page.getByRole('button',{name:/The recipe book/}).click();
-  await expect(page.locator('.recipe-item.not-yet')).toHaveCount(27);await expect(page.locator('#modal')).not.toContainText('Dough');await page.getByRole('button',{name:'Close dialog'}).click();
-  await mergeStart(page);await expect(page.locator('#status')).toHaveText('Dough is a new dish! It is in the recipe book now.');
-  await expect(page.locator('#collection-button')).toHaveAttribute('data-fresh','');await expect(page.locator('#discovery-count')).toHaveText('4 of 30 dishes discovered, 1 new');
-  await page.getByRole('button',{name:/The recipe book/}).click();await expect(page.locator('.recipe-item.not-yet')).toHaveCount(26);await expect(page.locator('#modal')).toContainText('Dough');
+  await expect(page.locator('.recipe-item.not-yet')).toHaveCount(25);await expect(page.locator('#modal')).not.toContainText('Pogăcele');await page.getByRole('button',{name:'Close dialog'}).click();
+  await mergeStart(page);await tile(page,6);await expect(page.locator('#status')).toHaveText('Pogăcele is a new dish! It is in the recipe book now.');
+  await expect(page.locator('#collection-button')).toHaveAttribute('data-fresh','');await expect(page.locator('#discovery-count')).toHaveText('6 of 30 dishes discovered, 1 new');
+  await page.getByRole('button',{name:/The recipe book/}).click();await expect(page.locator('.recipe-item.not-yet')).toHaveCount(24);await expect(page.locator('#modal')).toContainText('Pogăcele');
   await page.getByRole('button',{name:'Close dialog'}).click();await expect(page.locator('#collection-button')).not.toHaveAttribute('data-fresh','');
 });
 
@@ -297,7 +297,7 @@ test('serving the selected item clears the selection',async({page})=>{
 
 test('keyboard focus stays with the item actions and returns to the board',async({page})=>{
   await start(page);await tile(page,1);const take=page.getByRole('button',{name:'Take Flour',exact:true});await take.focus();await page.keyboard.press('Enter');
-  expect((await saved(page)).board[0]?.code).toBe('bakery_1');await expect(take).toBeFocused();
+  expect((await saved(page)).board[2]?.code).toBe('bakery_1');await expect(take).toBeFocused();
   await tile(page,13);await page.getByRole('button',{name:'Sell for 1 coin',exact:true}).focus();await page.keyboard.press('Enter');
   expect((await saved(page)).board[13]).toBeNull();await expect(page.locator('[data-cell="13"]')).toBeFocused();
 });
@@ -310,13 +310,13 @@ test('one tap on an ingredient source takes one ingredient and selects the sourc
   // Enter on the focused source takes one too.
   await source.focus();await page.keyboard.press('Enter');expect(await items()).toBe(before+3);
   // A drag moves the source and takes nothing.
-  const from=(await source.boundingBox())!,to=(await page.locator('[data-cell="40"]').boundingBox())!;
+  const from=(await source.boundingBox())!,to=(await page.locator('[data-cell="39"]').boundingBox())!;
   await page.mouse.move(from.x+from.width/2,from.y+from.height/2);await page.mouse.down();await page.mouse.move(to.x+to.width/2,to.y+to.height/2,{steps:8});await page.mouse.up();
-  const moved=await saved(page);expect(moved.board[40]?.code).toBe('generator_bakery');expect(moved.board.filter(Boolean).length).toBe(before+3);
+  const moved=await saved(page);expect(moved.board[39]?.code).toBe('generator_bakery');expect(moved.board.filter(Boolean).length).toBe(before+3);
 });
 
 test('a source on a full board takes nothing and says why',async({page})=>{
-  const state=createGame(data);state.board=state.board.map(cell=>cell??{code:'bakery_1'});
+  const state=createGame(data);state.board=state.board.map((cell,index)=>cell||data.board.layouts.find(layout=>layout.id===state.layoutId)!.obstacles.some(obstacle=>obstacle.position===index)?cell:{code:'bakery_1'});
   await page.addInitScript(([key,value])=>{if(localStorage.getItem(key)===null)localStorage.setItem(key,value);},[KEY,exportSave(state,candidate=>validateGame(candidate,data))]);await start(page);
   const before=await saved(page);await tile(page,1);
   await expect(page.locator('[data-cell="1"]')).toHaveAttribute('aria-pressed','true');expect(await saved(page)).toEqual(before);
@@ -573,7 +573,7 @@ test('a second tab takes up the progress saved in the first instead of overwriti
   await tile(first,source);await tile(first,source);await expect(second.getByRole('dialog')).toBeHidden();
   // Each take is its own save, so wait for the second tab to show both before the drag measures a cell.
   const settled=await saved(first);
-  await expect(second.locator('#board .cell:not(.empty)')).toHaveCount(settled.board.filter(Boolean).length);
+  await expect(second.locator('#board .cell:not(.empty):not(.obstacle)')).toHaveCount(settled.board.filter(Boolean).length);
   const box=(await second.locator('[data-cell="14"]').boundingBox())!;await second.mouse.move(box.x+box.width/2,box.y+box.height/2);await second.mouse.down();await second.mouse.move(box.x+box.width/2+30,box.y+box.height/2+30,{steps:3});
   await expect(second.locator('.drag-ghost')).toHaveCount(1);await tile(first,source);await expect(second.locator('.drag-ghost')).toHaveCount(0);await second.mouse.up();
 });
@@ -623,7 +623,7 @@ test('blocked browser storage keeps the game playable for the visit and says tha
 
 test('narrow phones keep the whole dish name in the strip, and short screens keep the board clear of the bar',async({page})=>{
   const data: GameData=JSON.parse(readFileSync('public/data/game.json','utf8'));const state=createGame(data);
-  const longest=Object.keys(data.items).sort((a,b)=>data.items[b].name.length-data.items[a].name.length)[0];const at=state.board.indexOf(null);state.board[at]={code:longest};state.discovered.push(longest);
+  const longest=Object.keys(data.items).sort((a,b)=>data.items[b].name.length-data.items[a].name.length)[0];const at=firstFreeBoardCell(state,data);state.board[at]={code:longest};state.discovered.push(longest);
   await page.addInitScript(([key,save])=>localStorage.setItem(key,save),[KEY,exportSave(state,candidate=>validateGame(candidate,data))]);
   for(const width of [320,360,390]){
     await page.setViewportSize({width,height:740});await start(page);await tile(page,at);
@@ -643,7 +643,7 @@ test('narrow phones keep the whole dish name in the strip, and short screens kee
   // A new game on a short phone: the shorter opening line fits the line under the board.
   await page.addInitScript(key=>localStorage.removeItem(key),KEY);
   for(const width of [320,390]){
-    await page.setViewportSize({width,height:740});await start(page);await expect(page.locator('#status')).toHaveText('Merge the two Flours. Tap the Flour bin for more.');
+    await page.setViewportSize({width,height:740});await start(page);await expect(page.locator('#status')).toHaveText('Merge the two Flours. Merge beside clutter to clear it.');
     const words=await page.locator('#status').evaluate(e=>{const range=document.createRange();range.selectNodeContents(e);return range.getBoundingClientRect().bottom;});
     expect(words).toBeLessThanOrEqual((await page.locator('.phone-bar').boundingBox())!.y);
   }
@@ -692,10 +692,10 @@ test('phone recipe guidance opens the pantry sheet for a stored dish while anoth
 });
 
 test('starting a new game clears the previous game discovery notification',async({page})=>{
-  await start(page);await mergeStart(page);await expect(page.locator('#collection-button')).toHaveAttribute('data-fresh','');
+  await start(page);await mergeStart(page);await tile(page,6);await expect(page.locator('#collection-button')).toHaveAttribute('data-fresh','');
   await page.getByRole('button',{name:/House book/}).first().click();await page.getByRole('button',{name:'Start a new game',exact:true}).click();
   await page.getByRole('button',{name:'Erase and start again'}).click();
-  await expect(page.locator('#collection-button')).not.toHaveAttribute('data-fresh','');await expect(page.locator('#discovery-count')).toHaveText('3 of 30 dishes discovered');
+  await expect(page.locator('#collection-button')).not.toHaveAttribute('data-fresh','');await expect(page.locator('#discovery-count')).toHaveText('5 of 30 dishes discovered');
 });
 
 for(const route of ['load','import','another tab'])test(`saves with duplicate customers keep three different neighbours on ${route}`,async({page,context})=>{
@@ -731,7 +731,7 @@ test('a delayed storage event cannot let a stale action overwrite another tab',a
   await expect(second.locator('#status')).toContainText('another tab');expect(await saved(second)).toEqual(newer);
   await expect(second.locator('[data-cell="14"]')).toHaveAttribute('aria-label',/: Dough$/);
   // The next deliberate action applies to the updated board.
-  await tile(second,1);await tile(second,1);expect((await saved(second)).merges).toBe(1);expect((await saved(second)).board[0]?.code).toBe('bakery_1');
+  await tile(second,1);await tile(second,1);expect((await saved(second)).merges).toBe(1);expect((await saved(second)).board[2]?.code).toBe('bakery_1');
 });
 
 test('game writes wait for the shared save lock and recheck progress before changing it',async({context})=>{

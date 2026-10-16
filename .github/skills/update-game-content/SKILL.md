@@ -26,7 +26,7 @@ In that condition, give each edit or check that you did not complete in the repo
 
 ## Read the content contract
 
-Read `PRODUCT.md`, `README.md`, and `tools/create-original-data.ts`.
+Read `PRODUCT.md`, `DELIVERY.md`, and `tools/create-original-data.ts`.
 That tool is the only source of the game data.
 Read `validateGame`, `dataProblems`, and the order rules in `src/engine.ts`.
 `validateGame` checks a save against the game data.
@@ -36,10 +36,10 @@ Read the content test and the progression test in `tests/engine.test.ts`.
 Read the code in `src/app.ts` that shows items, portraits, and dialogue.
 
 `PRODUCT.md` gives the board size and the counts of the generators, the dishes and drinks, the pantry spaces, the preparations, and the chapters.
-`README.md` gives the count of the characters.
+`PRODUCT.md` gives the count of the characters.
 The content test in `tests/engine.test.ts` checks the board size and the counts of the items, the characters, and the preparations.
 A change to one of these counts is a product change.
-Get approval from the user for it. Then update `PRODUCT.md`, `README.md`, and the tests.
+Get approval from the user for it. Then update `PRODUCT.md`, `DELIVERY.md`, and the tests.
 
 ## Define the change
 
@@ -95,4 +95,4 @@ Edit mode is complete when these items agree:
 - The generator and the generated data.
 - The engine validation and the tests.
 - The atlas art and the item names.
-- `PRODUCT.md` and `README.md`.
+- `PRODUCT.md` and `DELIVERY.md`.

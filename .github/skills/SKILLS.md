@@ -1,6 +1,6 @@
 # Scary Snacks repository skills
 
-Before you use a skill, read [`PRODUCT.md`](../../PRODUCT.md), [`DESIGN.md`](../../DESIGN.md), and [`README.md`](../../README.md).
+Before you use a skill, read [`PRODUCT.md`](../../PRODUCT.md), [`DESIGN.md`](../../DESIGN.md), and [`DELIVERY.md`](../../DELIVERY.md).
 These owner documents control the product, the design, and the delivery.
 [`AGENTS.md`](../../AGENTS.md) gives the code rules, the commands, and the verification steps. All skills obey it.
 Its rules include the limits on `private/`, `analysis/`, public documents, commits, pushes, deployment, and legal clearance.

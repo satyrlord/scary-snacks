@@ -33,7 +33,7 @@ If the user tells you not to run checks, give each check that you did not run in
 
 ## Make the dependency graph
 
-Read `PRODUCT.md`, `DESIGN.md`, `README.md`, and `package.json`.
+Read `PRODUCT.md`, `DESIGN.md`, `DELIVERY.md`, and `package.json`.
 Read `playwright.config.ts`, the tools in `tools/`, and the workflow in `.github/workflows/`.
 Examine the repository status.
 Record the entry points for production, tests, content, assets, development tools, and deployment:

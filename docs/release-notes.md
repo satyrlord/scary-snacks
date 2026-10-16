@@ -44,7 +44,7 @@ They are not runtime dependencies. Do not use `private/` as an input for source 
 
 ## Art provenance
 
-The game ships image variants from 32 masters. The build excludes the PNG masters.
+The game ships image variants from 33 masters. The build excludes the PNG masters.
 
 - The OpenAI Images API (gpt-image-2.5-flare, high quality) made the food atlas and the mascots.
   Each repaints an earlier atlas that the built-in in-chat imagegen tool made for this project. The mascots then had one correction of the grid fit.
@@ -55,5 +55,7 @@ The game ships image variants from 32 masters. The build excludes the PNG master
   Each later state edits the previous state of its area. A composite applies only the changed region.
 - The same API made the two decoration edit paintings. Each edits a room state, with a design reference that the in-chat imagegen tool made.
   A composite applies only the changed regions. The app samples only their authored regions.
+- The built-in chat image generator made the board-clutter atlas. It used the food atlas only as a style reference.
+  Later edits corrected the fit of the sprite cells and removed webs from the four clutter objects.
 
 The files `docs/asset-prompts.json` and `docs/asset-provenance.json` record the prompts and the hashes. Provenance is not an intellectual-property warranty.

@@ -2,14 +2,33 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import sharp from 'sharp';
 import { runtimeFiles } from '../tools/build.ts';
 
 test('the PNG masters match their provenance records',async()=>{
   const record=JSON.parse(await readFile('docs/asset-provenance.json','utf8'));
-  assert.equal(record.assets.length,32);
+  assert.equal(record.assets.length,33);
   const names=await readdir('public/assets/original');
   assert.deepEqual(names.sort(),record.assets.map((a: { file: string })=>a.file.split('/').at(-1)).sort());
   for(const asset of record.assets){assert.equal(asset.sourceGameImageInput,false);const bytes=await readFile(asset.file);assert.equal(createHash('sha256').update(bytes).digest('hex'),asset.sha256,asset.id);assert.ok(asset.width>1000);}
+});
+
+test('each document that counts the PNG masters gives the number in the provenance record',async()=>{
+  const count=JSON.parse(await readFile('docs/asset-provenance.json','utf8')).assets.length;
+  for(const file of ['AGENTS.md','PRODUCT.md','DESIGN.md','DELIVERY.md','docs/release-notes.md']){
+    const counts=[...(await readFile(file,'utf8')).matchAll(/(\d+) (?:generated |registered )?(?:Portable Network Graphics \(PNG\) |PNG )?masters/g)].map(match=>Number(match[1]));
+    assert.ok(counts.length,file);
+    for(const value of counts)assert.equal(value,count,file);
+  }
+});
+
+test('the board clutter sprites stay inside their cells and leave overlay centers open',async()=>{
+  const {data,info}=await sharp(await readFile('public/assets/original/board-clutter.png')).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+  assert.deepEqual([info.width,info.height,info.channels],[1536,1024,4]);
+  const alpha=(x: number,y: number)=>data[(y*info.width+x)*info.channels+3];
+  for(const x of [511,512,1023,1024])for(let y=0;y<info.height;y++)assert.ok(alpha(x,y)<16,`painted pixel crosses column seam at ${x},${y}`);
+  for(const y of [511,512])for(let x=0;x<info.width;x++)assert.ok(alpha(x,y)<16,`painted pixel crosses row seam at ${x},${y}`);
+  for(const x of [768,1280])assert.ok(alpha(x,768)<16,`overlay at ${x} covers its center`);
 });
 
 test('each room-state reference has a generated record, and nothing ships or loads a reference image',async()=>{

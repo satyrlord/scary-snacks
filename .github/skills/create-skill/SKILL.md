@@ -32,7 +32,7 @@ In the report, give each edit or check that you did not do.
 
 ## Confirm that the skill is necessary
 
-Read `PRODUCT.md`, `DESIGN.md`, `README.md`, `package.json`, and the skill index.
+Read `PRODUCT.md`, `DESIGN.md`, `DELIVERY.md`, `package.json`, and the skill index.
 Confirm that no skill in the index does the same work.
 A skill must change the decisions of an agent or decrease the work that agents repeat in each task.
 Do not make a skill for a general model function.

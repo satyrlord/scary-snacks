@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { canDeliverQuest, createGame, currentTask, dataProblems, generatorOutputs, getItem, getLevel, migrateLevelRewardGame, nextOutput, previewQuestCleanup, questProblems, reduceGame, resolveQuests, taskEligibility, validateGame, validateLevelRewardGame, legacyOrderReward } from '../src/engine.ts';
+import { canDeliverQuest, createGame, currentTask, dataProblems, firstFreeBoardCell, generatorOutputs, getItem, getLevel, migrateLevelRewardGame, migrateQuestGame, nextOutput, previewQuestCleanup, questProblems, reduceGame, resolveQuests, taskEligibility, validateGame, validateLevelRewardGame, legacyOrderReward } from '../src/engine.ts';
 import type { Action, GameData, GameState, LevelRewardGameState } from '../src/engine.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
@@ -28,7 +28,7 @@ function player(initial = createGame(data), content = data) {
     const quest = content.quests.find(quest => quest.producer?.exclusiveItems.includes(code));
     const source = quest?.producer?.item ?? `generator_${item.chain}`;
     if (generatorOutputs(state, source, content).includes(code)) {
-      const empty = state.board.indexOf(null);
+      const empty = firstFreeBoardCell(state, content);
       assert.ok(empty >= 0, 'Normal production fits the board.');
       act({ type: 'spawn', index: state.board.findIndex(cell => cell?.code === source), output: code });
       assert.equal(state.board[empty]?.code, code);
@@ -65,12 +65,13 @@ function checkpoint(count: number) {
 }
 
 function oldState(state: GameState): LevelRewardGameState {
-  const { completedQuests: _complete, legacySatisfiedQuests: _legacy, activeQuestProducers: _active, ...old } = structuredClone(state);
+  const { completedQuests: _complete, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
+    layoutId: _layout, resolvedObstacles: _resolved, ...old } = structuredClone(state);
   return { ...old, version: 5, orders: old.orders.map(({ pricing: _, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, data) })) };
 }
 
 function offered() {
-  return migrateLevelRewardGame(oldState(checkpoint(18)), data);
+  return migrateQuestGame(migrateLevelRewardGame(oldState(checkpoint(18)), data), data);
 }
 
 test('four original arcs span all six chapters and keep the permanent content and ordinary orders', () => {
@@ -190,13 +191,13 @@ test('migration preserves early, middle, and final progress and never accepts th
     const old = oldState(checkpoint(count));
     const before = structuredClone(old);
     assert.equal(validateLevelRewardGame(old, data), true);
-    const converted = migrateLevelRewardGame(old, data);
+    const converted = migrateQuestGame(migrateLevelRewardGame(old, data), data);
     assert.equal(validateGame(converted, data), true);
     assert.deepEqual(oldState(converted), before);
     assert.deepEqual(converted.completedQuests, []);
     assert.deepEqual(converted.activeQuestProducers, {});
     assert.deepEqual(converted.legacySatisfiedQuests, data.quests.filter(quest => quest.legacyAfter && old.decorations.includes(quest.legacyAfter)).map(quest => quest.id));
-    assert.deepEqual(migrateLevelRewardGame(old, data), converted);
+    assert.deepEqual(migrateQuestGame(migrateLevelRewardGame(old, data), data), converted);
     assert.deepEqual(old, before);
     assert.throws(() => migrateLevelRewardGame(converted, data), /damaged or unknown/);
   }
@@ -210,14 +211,14 @@ test('migration orders a forward cross-character prerequisite before the quest w
   const old = oldState(checkpoint(4));
   const before = structuredClone(old);
   assert.equal(validateLevelRewardGame(old, content), true);
-  const converted = migrateLevelRewardGame(old, content);
+  const converted = migrateQuestGame(migrateLevelRewardGame(old, content), content);
   assert.equal(validateGame(converted, content), true);
   assert.deepEqual(converted.legacySatisfiedQuests, ['ilie-counter', 'mara-welcome']);
   assert.deepEqual(converted.completedQuests, []);
   assert.deepEqual(converted.activeQuestProducers, {});
   assert.deepEqual(oldState(converted), before, 'Conversion preserves every old progress field, including coins and items.');
   assert.deepEqual(old, before);
-  assert.deepEqual(migrateLevelRewardGame(old, content), converted);
+  assert.deepEqual(migrateQuestGame(migrateLevelRewardGame(old, content), content), converted);
 });
 
 test('quest saves reject duplicates, missing prerequisites, unknown records, and invalid producer ownership', () => {
@@ -257,7 +258,7 @@ test('producer acceptance uses board then pantry, fails when both are full, and 
   assert.deepEqual(board.state.activeQuestProducers, { [dedicatedId]: 0 });
 
   const full = player(offered());
-  while (full.state.board.includes(null)) full.produce('bakery_1');
+  while (firstFreeBoardCell(full.state, data) !== -1) full.produce('bakery_1');
   const before = structuredClone(full.state);
   full.act({ type: 'acceptQuest', id: dedicatedId });
   assert.deepEqual(full.state.board, before.board);
@@ -296,7 +297,7 @@ test('the next output that the interface names is the output that one tap takes,
   const taps = (play: ReturnType<typeof player>, source: string, count: number) => {
     for (let tap = 0; tap < count; tap++) {
       const named = nextOutput(play.state, source, play.content);
-      const empty = play.state.board.indexOf(null);
+      const empty = firstFreeBoardCell(play.state, play.content);
       play.act({ type: 'spawn', index: play.state.board.findIndex(cell => cell?.code === source) });
       assert.equal(play.state.board[empty]?.code, named);
       play.act({ type: 'sell', index: empty });

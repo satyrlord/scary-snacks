@@ -27,6 +27,7 @@ The Node.js tests cover these areas:
 - Generator progression: both tier boundaries, lower outputs, pantry sources, full-board upgrades, chosen outputs, unchanged seeds, and rejected takes. The campaign comparison reports actions, merges, orders, and XP for both production schedules.
 - Level rewards: the schedule checks, eligibility, claims, coin overflow, failed writes, and the conversion of older saves.
 - Character quests: the quest data checks, eligibility, atomic delivery, coin overflow, the temporary source, the cleanup preview, and the conversion of older saves. A legal campaign completes all 24 preparations and all 13 quests with no injected coins or items.
+- Board clearing: the layout data checks, adjacent reveals, anchored merges, blocked placement, atomic failure, the conversion of older saves to the open layout, and a campaign with every obstacle intact.
 - Assets: each master and each variant agree with its record. The runtime files and the game data load assets only from the variant and font folders.
 - Fonts: the hashes of the fonts and the complete license texts.
 - The build: the allowlist, the removal of TypeScript types, and the refusal of executable assets and linked asset directories.
@@ -43,6 +44,7 @@ The browser tests cover these areas:
 - Generator progression: payment reveals, named Take buttons, chosen output persistence, keyboard focus, pantry retrieval, touch emulation, full-board failure, envelope-2 conversion, and a still board when a phone selects an upgraded source. Geometry checks cover every source with three outputs at 360×740, 390×800, 390×844, and 1440×900 in both themes. Tier-one names and controls also fit at 320px.
 - Level rewards: independent claims, reload, the final reward, overflow, Retry save after a failed write, older saves, export and import, and two open tabs. Geometry checks cover the panel at 1440×900, 390×844, and 390×800 in both themes.
 - Character quests: delivery for each neighbour, board-only delivery, unchanged orders, journal replay, export and import, failed writes, keyboard focus, touch emulation, the temporary source, the cleanup preview, and two open tabs. Geometry and contrast checks cover the quest sheet and the cleanup review at 1440×900, 390×844, and 390×800 in both themes.
+- Board clearing: keyboard, pointer, drag, and touch emulation on blocked cells, their labels, order hints, reload, and the web removal at preparation 1.
 - Saves: reload, export, import, reset, corrupt saves, and two open tabs.
 - Assets and paths: only approved assets load, from the root path and from the Pages path.
 
@@ -54,6 +56,8 @@ The next check is a short playthrough in a Chromium-based browser on a physical 
 The playthrough must include drag cancellation, a theme change, and a save import.
 
 Generator pacing has no human acceptance result. The deterministic campaign comparison is engine evidence only. Import `.tools/checkpoint-saves/20-next-send-the-invitations.json` after `npm run saves:checkpoints`. Complete the last chapter with stage-one Take buttons, then import the same checkpoint and repeat with the highest useful outputs. Count takes, merges, serves, and payments separately. Record whether low-stage orders remain clear. The owner must judge the effort and the pace.
+
+Board clearing and its clutter art have no human acceptance result. A phone session must check that clutter, anchors, and movable food look different.
 
 Level reward balance and quest pacing have no human acceptance result. The owner must play a short phone session and judge the purpose of each request and the effort between preparations.
 

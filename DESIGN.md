@@ -490,6 +490,7 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 
 ### Board and tiles
 - **Board:** six columns by seven rows of alternating tiles. Each tile has the tile lift, a 6px radius, and 5px padding (3px on phones). An empty cell shows a 4px Smoke dot at 30% opacity.
+- **Blocked spaces:** four edge cells show dusty crate, sack, crock, and linen pictures from the transparent board-clutter atlas. Webs cover them until the first preparation. Four edge cells show an ordinary food picture with old twine and a nail over it. A blocked tile has a distinct inset boundary. The wrappers look unlike food and the twine leaves the food visible. Every blocked tile stays in the keyboard path. Its name and rule are in its accessible label. The board label counts only usable empty spaces.
 - **States:** hover draws a 2px inset outline in Selected Clay (Candle Amber in dark mode). Selection draws a 3px inset outline. A hint pulses a 4px Teal Focus inset outline three times.
 - **Ingredient sources:** a 17px badge in the corner. The badge has an action-coloured disc, a tile-coloured rim, and a plus in the On-Action colour. One tap on a source takes one ingredient and selects the source.
 - **Keyboard:** the board is one Tab stop. Arrow keys move between spaces. Home and End go to the ends of the row. With Control, they go to the first and the last space. Escape clears the selection.
@@ -561,10 +562,10 @@ The three slots are Tableware, Courtyard table cloth, and Final flowers. The def
 ## Do's and Don'ts
 
 ### Do:
-- **Do** use only the 32 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
+- **Do** use only the 33 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
   - The 25 room masters are front-room-00 to front-room-12, front-room-17, front-room-24, courtyard-13 to courtyard-16, and courtyard-18 to courtyard-23.
   - The two decoration masters are decoration-front and decoration-courtyard.
-  - The five other masters are menu-atlas, portraits, mascots, timber-tabletop, and embroidered-runner.
+  - The six other masters are menu-atlas, board-clutter, portraits, mascots, timber-tabletop, and embroidered-runner.
 - **Do** paint each room state as a complete 3:4 painting, 1536 by 2048, opaque. Keep every pixel outside the change the same as the state before it.
 - **Do** ship room states as AVIF and WebP at 768 and 1536px wide, AVIF first. Ship the timber as AVIF and WebP at 1024 and 1536px wide. Ship the decoration paintings as WebP at 1536px wide. Ship the transparent atlases and the runner as WebP.
 - **Do** keep the neighbours in working village dress: Mara, Ilie, and Sorin in Romanian dress, and Eszter in Székely dress.

@@ -1114,6 +1114,16 @@
       "format": "webp",
       "bytes": 991522,
       "sha256": "b4aa1fb5b762f11e350e3ea19551d0b3579965dfc1e132f9942fa0dcd6513f43"
+    },
+    {
+      "file": "public/assets/variants/board-clutter-1536x1024.webp",
+      "master": "board-clutter",
+      "masterSha256": "834d5a2c41a4c99693749f36a077809cb8171483eb57609f974f90f13cc03186",
+      "width": 1536,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 312496,
+      "sha256": "4b38ecdf4c216e61559167353a010802ebafca78c6683b3102bbd65564ceca31"
     }
   ]
 }

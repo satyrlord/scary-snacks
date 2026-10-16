@@ -2,7 +2,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { roomPaintings, dataProblems } from '../src/engine.ts';
-import type { Area, Character, DecorationSlot, GameData, Item, Quest, RoomState, Task } from '../src/engine.ts';
+import type { Area, BoardLayout, Character, DecorationSlot, GameData, Item, Quest, RoomState, Task } from '../src/engine.ts';
 
 const chains: [id: string, name: string, stages: string[], generator: string][] = [
   ['bakery', 'Bread counter', ['Flour', 'Dough', 'Pogăcele', 'Langoș', 'Zacuscă toast', 'Bread basket'], 'Flour bin'],
@@ -238,8 +238,21 @@ initial[13] = 'bakery_1';
 initial[14] = 'bakery_1';
 initial[22] = 'warm_1';
 initial[27] = 'drinks_1';
+const layouts: BoardLayout[] = [
+  { id: 'legacy-open', obstacles: [] },
+  { id: 'workbench-clutter-1', obstacles: [
+    { id: 'old-crate', position: 0, name: 'Old crate', type: 'clutter', ingredient: 'bakery_3' },
+    { id: 'tied-sack', position: 5, name: 'Tied sack', type: 'clutter', ingredient: 'warm_2' },
+    { id: 'covered-crock', position: 36, name: 'Covered crock', type: 'clutter', ingredient: 'drinks_2' },
+    { id: 'linen-bundle', position: 41, name: 'Linen bundle', type: 'clutter', ingredient: 'bakery_2' },
+    { id: 'tied-dough', position: 6, name: 'Tied dough', type: 'anchored', ingredient: 'bakery_2' },
+    { id: 'tied-cornmeal', position: 11, name: 'Tied cornmeal', type: 'anchored', ingredient: 'warm_1' },
+    { id: 'tied-elderflowers', position: 37, name: 'Tied elderflowers', type: 'anchored', ingredient: 'drinks_1' },
+    { id: 'tied-mamaliga', position: 40, name: 'Tied mămăligă', type: 'anchored', ingredient: 'warm_2' },
+  ] },
+];
 const data: GameData = {
-  title: 'Scary Snacks', inventoryCapacity: 12, board: { columns: 6, rows: 7, initial },
+  title: 'Scary Snacks', inventoryCapacity: 12, board: { columns: 6, rows: 7, initial, defaultLayout: 'workbench-clutter-1', layouts },
   chains: chains.map(([id, name]) => ({ id, name })), items, characters, chapters, tasks, areas, rooms, decorationSlots, quests, questItems,
   generatorTiers: chains.flatMap(([chain]) => [{ chain, stage: 2, after: 'task_12' }, { chain, stage: 3, after: 'task_20' }]),
   levelRewards: Array.from({ length: 9 }, (_, index) => ({ id: `level-${index + 2}`, level: index + 2, coins: 20 })),

@@ -182,8 +182,8 @@ Add these route details:
   Add a `generation` field to that entry with the model, the quality, the size, and the run folder name.
   If the run used a reference or a mask, add its description to that field.
   Change the top-level `mode` field so that it names each route that made an entry.
-- Examine the statements that name the in-chat imagegen tool: `README.md` (section "Assets and source") and `docs/release-notes.md`.
-  Change a statement if it is no longer true. `README.md` controls the delivery, so change it in the same task.
+- Examine the statements that name the in-chat imagegen tool in `docs/release-notes.md` (section "Art provenance").
+  Change a statement if it is no longer true.
 - Set `sourceGameImageInput` to `false` only if each reference was a shipping bitmap or a candidate of this project.
 
 Run `npm run assets:build`, `npm test`, `npm run build`, and `npm run test:browser`.

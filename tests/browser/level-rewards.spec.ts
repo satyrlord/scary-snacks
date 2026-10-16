@@ -78,7 +78,7 @@ test('a failed write keeps the claim in memory and Retry saves it once',async({p
 });
 
 test('generator saves convert retroactively and claims survive export and import',async({page})=>{
-  const {claimedLevelRewards:_claims,completedQuests:_quests,legacySatisfiedQuests:_legacy,activeQuestProducers:_producers,...old}=createGame(data);
+  const {claimedLevelRewards:_claims,completedQuests:_quests,legacySatisfiedQuests:_legacy,activeQuestProducers:_producers,layoutId:_layout,resolvedObstacles:_resolved,...old}=createGame(data);
   old.orders=old.orders.map(({pricing:_pricing,...order})=>({...order,reward:legacyOrderReward(order.requirements,data)}));
   const legacy=JSON.stringify({format:'scary-snacks',version:3,state:{...old,version:4,xp:900}});
   await page.addInitScript(([key,value])=>{if(!localStorage.getItem(key))localStorage.setItem(key,value);},[GENERATOR_SAVE_KEY,legacy]);

@@ -1,4 +1,4 @@
-import { createGame, reduceGame, validateGame, saveMigrations, getLevel, availableLevelRewards, generatorOutputs, nextOutput, dataProblems, canServe, servedCells, taskEligibility, saleValue, normalizeOrderCustomers, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, previewQuestCleanup } from './engine.ts';
+import { createGame, reduceGame, validateGame, saveMigrations, getLevel, availableLevelRewards, generatorOutputs, nextOutput, dataProblems, canServe, servedCells, taskEligibility, saleValue, normalizeOrderCustomers, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, previewQuestCleanup, unresolvedObstacle, freeBoardCells } from './engine.ts';
 import type { Action, DecorationSlot, DecorationVariant, GameData, GameState, Order, Quest, RoomView, Task } from './engine.ts';
 import { loadSave, saveGame, exportSave, importSave, resetSave, SAVE_KEY, MAX_SAVE_BYTES } from './storage.ts';
 import type { WriteResult } from './storage.ts';
@@ -78,6 +78,8 @@ const character = (id: string) => data.characters.find(value => value.id === id)
 const sourceOf = (chain: string) => [...Object.values(data.items),...Object.values(data.questItems)].find(item => item.generator && item.chain === chain)!;
 const chosenOutput = (code: string) => nextOutput(state,code,data)!;
 const sourceOutput = (code: string) => generatorOutputs(state,code,data).map(itemName).join(' or ');
+const matchingAnchor = (code: string) => data.board.layouts.find(layout => layout.id === state.layoutId)?.obstacles.find(obstacle =>
+  obstacle.type === 'anchored' && obstacle.ingredient === code && unresolvedObstacle(state,obstacle.position,data));
 function status(text: string) { $('#status').textContent = text; }
 /** Mara's note for a selected item, which the status region announces. On phones the note leaves out the name, which the selection strip shows. */
 function selectionLine(code: string) {
@@ -124,6 +126,11 @@ function food(code: string, extra = '') {
   image.setAttribute('clip-path',`url(#${clipId})`);
   value.append(image);
   value.setAttribute('aria-hidden', 'true'); return value;
+}
+function clutterArt(index: number, className: string) {
+  const value = element('span', `clutter-art clutter-art-${index} ${className}`);
+  value.setAttribute('aria-hidden', 'true');
+  return value;
 }
 /** Both theme-color metas take the resolved page colour, so the browser chrome follows a forced theme too. */
 function syncThemeColor() {
@@ -235,7 +242,7 @@ function markRecipeBook() {
 function serve(order: Order) { return changeGame(() => {
   const slot = state.orders.findIndex(value => value.id === order.id);
   const card = $('#orders').children[slot] as HTMLElement | undefined;
-  const from = servedCells(state, order).filter(index => index >= 0).map(index => $(`[data-cell="${index}"]`).getBoundingClientRect());
+  const from = servedCells(state, order, data).filter(index => index >= 0).map(index => $(`[data-cell="${index}"]`).getBoundingClientRect());
   const leaving = card?.cloneNode(true) as HTMLElement | undefined, box = card?.getBoundingClientRect(), stage = $('.tickets').getBoundingClientRect();
   const now = performance.now();
   arriving[slot] = now;
@@ -330,6 +337,18 @@ function celebrateCoins(gain: number) {
 }
 function chooseCell(index: number) {
   if (ignoreClick) return;
+  const obstacle = unresolvedObstacle(state,index,data);
+  if (obstacle) {
+    const held = selected !== null ? state.board[selected] : null;
+    if (obstacle.type === 'anchored' && held?.code === obstacle.ingredient) {
+      act({ type:'move', from:selected!, to:index }, index);
+    } else {
+      status(obstacle.type === 'clutter'
+        ? `${obstacle.name}: merge into a space beside it to clear the clutter and reveal an ingredient.`
+        : `${obstacle.name}: merge a movable ${itemName(obstacle.ingredient)} into this space to release it.`);
+    }
+    return;
+  }
   const cell = state.board[index];
   // One tap on an ingredient source takes an ingredient and selects the source, so its actions stay in view. A drag only moves it.
   if (cell && definition(cell.code).generator) { selected = index; act({ type:'spawn', index }); return; }
@@ -355,13 +374,18 @@ function render() {
   $('.game-layout').toggleAttribute('data-selected', selected !== null);
   renderRoom();
   renderCoins();
-  const free = state.board.filter(value => !value).length;
+  const free = freeBoardCells(state,data);
   const board = $('#board'); board.replaceChildren();
   board.setAttribute('aria-label', `Merge board, ${data.board.columns} columns and ${data.board.rows} rows, ${free} free ${free === 1 ? 'space' : 'spaces'}`);
   state.board.forEach((cell, index) => {
-    const value = button('', `cell ${cell ? '' : 'empty'} ${selected === index ? 'selected' : ''}`, () => chooseCell(index));
+    const obstacle = unresolvedObstacle(state,index,data);
+    const value = button('', `cell ${obstacle ? `obstacle ${obstacle.type}` : cell ? '' : 'empty'} ${selected === index ? 'selected' : ''}`, () => chooseCell(index));
     value.dataset.cell = String(index);
-    const what = !cell ? 'empty' : definition(cell.code).generator ? `${itemName(cell.code)}, source of ${sourceOutput(cell.code)}: tap to take an ingredient` : itemName(cell.code);
+    const what = obstacle
+      ? obstacle.type === 'clutter'
+        ? `${obstacle.name}, clutter. Merge into a space beside it to reveal an ingredient${state.taskIndex === 0 ? '. Covered in webs' : ''}`
+        : `${obstacle.name}, anchored ${itemName(obstacle.ingredient)}. Merge a matching movable ingredient into this space to release it`
+      : !cell ? 'empty' : definition(cell.code).generator ? `${itemName(cell.code)}, source of ${sourceOutput(cell.code)}: tap to take an ingredient` : itemName(cell.code);
     value.setAttribute('aria-label', `Row ${Math.floor(index / data.board.columns) + 1}, column ${index % data.board.columns + 1}: ${what}`);
     // One tab stop for the whole board; the arrow keys move between spaces.
     value.tabIndex = index === (selected ?? boardFocus) ? 0 : -1;
@@ -369,6 +393,15 @@ function render() {
     if (cell) {
       value.append(food(cell.code));
       if (definition(cell.code).generator) value.append(sourceMark());
+    }
+    if (obstacle?.type === 'clutter') {
+      const artIndex = ['old-crate','tied-sack','covered-crock','linen-bundle'].indexOf(obstacle.id);
+      value.append(clutterArt(Math.max(0,artIndex), 'clutter-object'));
+      if (state.taskIndex === 0) value.append(clutterArt(4, 'clutter-overlay'));
+    }
+    if (obstacle?.type === 'anchored') {
+      value.append(food(obstacle.ingredient));
+      value.append(clutterArt(5, 'clutter-overlay'));
     }
     board.append(value);
   });
@@ -393,7 +426,7 @@ function renderOrders() {
     const since = arriving[slot] ? performance.now() - arriving[slot] : Infinity;
     if (since < ARRIVAL_MS) { card.classList.add('arriving'); card.style.setProperty('--rise-delay', `${RISE_AT - Math.round(since)}ms`); }
     const face = element('span', `portrait portrait-${person.sprite}`); face.setAttribute('aria-hidden', 'true');
-    const onBoard = servedCells(state, order).map(index => index >= 0);
+    const onBoard = servedCells(state, order, data).map(index => index >= 0);
     const labels = order.requirements.map((code, index) => `${itemName(code)}, ${onBoard[index] ? 'ready on the board' : 'not on the board yet'}`);
     // A drawer ticket is too narrow for a 44px target per dish, so two dishes share one target that opens the order.
     const shared = drawerLayout.matches && order.requirements.length > 1;
@@ -566,6 +599,8 @@ function showWay(code: string) {
   for (let stage = def.stage - 1; stage >= 1; stage--) {
     const id = `${def.chain}_${stage}`, pair = cells(id).slice(0, 2);
     if (pair.length === 2) return point(pair, `Tap the other ${itemName(id)} to merge them.`);
+    const anchor = matchingAnchor(id);
+    if (pair.length && anchor) return point([pair[0], anchor.position], `Tap the anchored ${itemName(id)} to merge and release it.`);
   }
   const source = sourceOf(def.chain), at = cells(source.id);
   const output = generatorOutputs(state,source.id,data).filter(id => definition(id).stage <= def.stage).at(-1)!;
@@ -1113,6 +1148,8 @@ function settings(focusSlot?: string) {
 function findMatch() {
   for(let from=0;from<state.board.length;from++) {
     const cell=state.board[from];if(!cell||!definition(cell.code).next)continue;
+    const anchor=matchingAnchor(cell.code);
+    if(anchor){selected=from;render();pulse([anchor.position]);status(`Tap the anchored ${itemName(cell.code)} to merge and release it.`);return;}
     const to=state.board.findIndex((other,index)=>index!==from&&other?.code===cell.code);
     // One item of the pair is selected and the other pulses, so the instruction names a single target.
     if(to>=0){selected=from;render();pulse([to]);status(`Tap the other ${itemName(cell.code)} to merge them.`);return;}
@@ -1125,7 +1162,7 @@ function findMatch() {
 function cancelDrag() { dragging?.ghost?.remove();dragging=null; }
 $('#board').addEventListener('pointerdown',event=>{
   const target=(event.target as Element).closest<HTMLElement>('[data-cell]');if(!target||event.button!==0)return;
-  const index=Number(target.dataset.cell);if(!state.board[index])return;
+  const index=Number(target.dataset.cell);if(!state.board[index]||unresolvedObstacle(state,index,data))return;
   // A second pointer, or a release that the window did not receive, must not leave a ghost behind.
   cancelDrag();
   dragging={index,id:event.pointerId,x:event.clientX,y:event.clientY,ghost:null};
@@ -1212,7 +1249,7 @@ try {
   requestAnimationFrame(()=>requestAnimationFrame(()=>{$('#room-frame').classList.add('settled');syncMiez();}));
   if(saved.status==='empty')await changeGame(persist);
   // Phones get a shorter opening line, so that it fits the line under the board.
-  status(saved.status==='loaded'?'Welcome back. The stove is still warm.':phone.matches?'Merge the two Flours. Tap the Flour bin for more.':'Tap one Flour, then the other, to merge. Tap the Flour bin for more.');
+  status(saved.status==='loaded'?'Welcome back. The stove is still warm.':phone.matches?'Merge the two Flours. Merge beside clutter to clear it.':'Tap one Flour, then the other, to merge. Merge beside clutter to clear it.');
   if(saveFailed)settings();
 }catch(error){
   status(`The kitchen could not open. ${reason(error)}`);console.error(error);

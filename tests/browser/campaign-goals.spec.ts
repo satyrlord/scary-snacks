@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { createGame, legacyOrderReward, menuReward, reduceGame, validateGame } from '../../src/engine.ts';
+import { createGame, firstFreeBoardCell, legacyOrderReward, menuReward, reduceGame, validateGame } from '../../src/engine.ts';
 import type { GameData, GameState } from '../../src/engine.ts';
 import { SAVE_KEY, exportSave } from '../../src/storage.ts';
 
@@ -43,7 +43,7 @@ test('ingredient tickets show the small menu prices and service pays exactly the
 test('saved historical tickets keep their exact quotes and only a served replacement uses menu prices', async ({ page }) => {
   const state = createGame(data);
   state.orders = state.orders.map(({ pricing: _pricing, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, data) }));
-  for (const code of state.orders[0].requirements) state.board[state.board.indexOf(null)] = { code };
+  for (const code of state.orders[0].requirements) state.board[firstFreeBoardCell(state, data)] = { code };
   for (const code of state.orders[0].requirements) if (!state.discovered.includes(code)) state.discovered.push(code);
   await page.emulateMedia({ reducedMotion: 'reduce' }); await start(page, state);
   expect(await saved(page)).toEqual(state);
@@ -127,7 +127,7 @@ test('serving the last required order makes the phone offer ready', async ({ pag
   const state = createGame(data); state.coins = first.cost; state.merges = first.goals.merges; state.served = first.goals.served - 1;
   const order = state.orders[0];
   for (const code of order.requirements) {
-    state.board[state.board.findIndex(cell => cell === null)] = { code };
+    state.board[firstFreeBoardCell(state, data)] = { code };
     if (!state.discovered.includes(code)) state.discovered.push(code);
   }
   await start(page, state);

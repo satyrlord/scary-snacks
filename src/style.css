@@ -190,6 +190,18 @@ button.order-items { min-height: 44px; padding: 0; border: 0; border-radius: var
 .cell { min-width: 0; min-height: 0; position: relative; background: var(--tile-a); border: 0; border-radius: var(--tile-radius); padding: 5px; display: grid; place-items: center; touch-action: none; box-shadow: var(--tile-lift); }
 .cell:nth-child(12n+2),.cell:nth-child(12n+4),.cell:nth-child(12n+6),.cell:nth-child(12n+7),.cell:nth-child(12n+9),.cell:nth-child(12n+11) { background: var(--tile-b); }
 .cell .food { width: 100%; height: 100%; pointer-events: none; }
+.cell.obstacle { box-shadow: inset 0 0 0 2px var(--control-line), var(--tile-lift); }
+.cell.obstacle.clutter { background: var(--tile-b); }
+.cell.obstacle.anchored .food { width: 83%; height: 83%; }
+.clutter-art { position: absolute; inset: 2px; display: block; pointer-events: none; background-image: url('../assets/variants/board-clutter-1536x1024.webp'); background-size: 300% 200%; background-repeat: no-repeat; }
+.clutter-object { z-index: 1; }
+.clutter-overlay { z-index: 2; }
+.clutter-art-0 { background-position: 0% 0%; }
+.clutter-art-1 { background-position: 50% 0%; }
+.clutter-art-2 { background-position: 100% 0%; }
+.clutter-art-3 { background-position: 0% 100%; }
+.clutter-art-4 { background-position: 50% 100%; }
+.clutter-art-5 { background-position: 100% 100%; }
 .cell.empty::after { content: ''; width: 4px; height: 4px; background: var(--muted); opacity: .3; border-radius: 50%; }
 .cell.selected { box-shadow: inset 0 0 0 3px var(--selected), var(--tile-lift); }
 .cell:focus-visible { outline-offset: -3px; }
@@ -531,6 +543,7 @@ dialog::backdrop { background: #17101ac4; }
 /* Forced colours drop the tile fills and the inset rings: spaces, buttons and the selection keep system-colour edges. */
 @media (forced-colors: active) {
   .cell,.primary-button,.secondary-button,.order-item,.order,.area-choice,.room-pin { border: 1px solid ButtonBorder; }
+  .cell.obstacle { border: 2px dashed ButtonText; }
   .cell.selected,.cell:hover { outline: 3px solid Highlight; outline-offset: -3px; }
   .order-item.ready::after,#recipes-button[data-fresh]::after,#story-button[data-ready]::after,[data-house-book][data-rewards]::after,.pin-dot { forced-color-adjust: none; background: Highlight; }
   .choice:has(input:checked),.area-choice[aria-pressed='true'],.take-button[aria-pressed='true']:not(:focus-visible) { outline: 2px solid Highlight; outline-offset: -2px; }

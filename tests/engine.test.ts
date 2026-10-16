@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, dataProblems, validateGame, reduceGame, canServe, currentTask, getLevel, normalizeOrderCustomers, resolveRooms, latestArea, roomProblems, roomPaintings, generatorOutputs, generatorTierProblems, taskEligibility, menuReward, saleValue } from '../src/engine.ts';
+import { createGame, dataProblems, validateGame, reduceGame, canServe, currentTask, firstFreeBoardCell, getLevel, normalizeOrderCustomers, resolveRooms, latestArea, roomProblems, roomPaintings, generatorOutputs, generatorTierProblems, taskEligibility, menuReward, saleValue } from '../src/engine.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import { imageVariants } from '../tools/build-image-variants.ts';
 import type { Action, GameData, GameState, Order } from '../src/engine.ts';
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
-const initial = (seed?: number) => createGame(data, seed);
+const initial = (seed?: number) => ({ ...createGame(data, seed), layoutId: 'legacy-open' });
 // Fixtures for tiers, placement, and room art isolate those rules from campaign effort.
 const withGoals = (state: GameState) => Object.assign(state, data.tasks.at(-1)!.goals);
 function apply(state: GameState, action: Action) {
@@ -228,7 +228,7 @@ test('a newly unlocked source uses the earned tier and starts with stage one sel
     assert.ok(validateGame(state, later));
   }
   assert.deepEqual(generatorOutputs(state, 'generator_sweet', later), ['sweet_1', 'sweet_2']);
-  const empty = state.board.indexOf(null);
+  const empty = firstFreeBoardCell(state, later);
   const result = reduceGame(state, { type: 'spawn', index: state.board.findIndex(cell => cell?.code === 'generator_sweet') }, later);
   assert.ok(result.ok);
   assert.equal(result.state.board[empty]?.code, 'sweet_1');
@@ -400,7 +400,7 @@ test('valid saves with duplicate waiting neighbours get distinct neighbours with
   for (const customers of [['eszter', 'ilie', 'eszter'], ['mara', 'mara', 'mara'], ['eszter', 'eszter', 'mara']]) {
     const duplicated = initial();
     duplicated.orders.forEach((order, index) => { order.customer = customers[index]; });
-    const imported = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 5, state: duplicated }),
+    const imported = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 6, state: duplicated }),
       candidate => validateGame(candidate, data));
     const before = structuredClone(imported);
     const normalized = normalizeOrderCustomers(imported, data);
@@ -456,7 +456,7 @@ test('all 24 tasks complete with production tiers and level rewards, with measur
     function produce(code: string): number {
       const item = data.items[code];
       if (generatorOutputs(state, `generator_${item.chain}`, campaignData).includes(code)) {
-        const empty = state.board.indexOf(null);
+        const empty = firstFreeBoardCell(state, campaignData);
         assert.ok(empty >= 0, 'The 42-cell board has room for normal order production.');
         act({ type: 'spawn', index: state.board.findIndex(cell => cell?.code === `generator_${item.chain}`), output: code });
         assert.equal(state.board[empty]?.code, code);
@@ -618,7 +618,7 @@ test('fresh, mid-campaign, and completed saves resolve the same rooms after relo
     state.coins = 100000;
     for (let index = 0; index < count; index++) state = apply(state, { type: 'task' });
     const validate = (candidate: unknown) => validateGame(candidate, data);
-    const reloaded = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 5, state: JSON.parse(JSON.stringify(state)) }), validate);
+    const reloaded = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 6, state: JSON.parse(JSON.stringify(state)) }), validate);
     const exported = importSave<GameState>(exportSave(reloaded, validate), validate);
     assert.deepEqual(resolveRooms(reloaded.decorations, data), roomsAt(count), `reload at ${count}`);
     assert.deepEqual(resolveRooms(exported.decorations, data), roomsAt(count), `export at ${count}`);
@@ -652,7 +652,7 @@ test('one data check gathers every content check, and the game can run it withou
 test('data checks reject a starting board that does not make a valid new game', () => {
   for (const code of ['generator_bakery', 'sweet_1']) {
     const content = structuredClone(data);
-    content.board.initial[content.board.initial.indexOf(null)] = code;
+    content.board.initial[2] = code;
     assert.match(dataProblems(content).join(' '), /valid new game/, code);
   }
 });

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, reduceGame, validateGame, validateLegacyGame, migrateGame, validatePreviousGame, migratePreviousGame, validateGeneratorGame, migrateGeneratorGame, validateLevelRewardGame, migrateLevelRewardGame, resolveDecorations, decorationProblems, legacyOrderReward, saveMigrations } from '../src/engine.ts';
+import { createGame, reduceGame, validateGame, validateLegacyGame, migrateGame, validatePreviousGame, migratePreviousGame, validateGeneratorGame, migrateGeneratorGame, validateLevelRewardGame, migrateLevelRewardGame, migrateQuestGame, resolveDecorations, decorationProblems, legacyOrderReward, saveMigrations } from '../src/engine.ts';
 import { exportSave, importSave, loadSave, saveGame, SAVE_KEY, PREVIOUS_SAVE_KEY, LEGACY_SAVE_KEY } from '../src/storage.ts';
 import type { Action, GameData, GameState } from '../src/engine.ts';
 
@@ -10,7 +10,7 @@ const provenance: { assets: { id: string }[] } = JSON.parse(await readFile(new U
 const validate = (state: unknown) => validateGame(state, data);
 const migration = saveMigrations(data);
 function checkpoint(count: number) {
-  let state = createGame(data);
+  let state = { ...createGame(data), layoutId: 'legacy-open' };
   state.coins = data.tasks.reduce((sum, task) => sum + task.cost, 0);
   state.served = data.tasks[count - 1]?.goals.served ?? 0;
   state.merges = data.tasks[count - 1]?.goals.merges ?? 0;
@@ -22,11 +22,13 @@ function checkpoint(count: number) {
   return state;
 }
 function legacy(state: GameState) {
-  const { decorationChoices: _, outputChoices: __, claimedLevelRewards: ___, completedQuests: _completed, legacySatisfiedQuests: _legacy, activeQuestProducers: _active, ...old } = structuredClone(state);
+  const { decorationChoices: _, outputChoices: __, claimedLevelRewards: ___, completedQuests: _completed, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
+    layoutId: _layout, resolvedObstacles: _resolved, ...old } = structuredClone(state);
   return { ...old, version: 2, orders: old.orders.map(({ pricing: _, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, data) })) };
 }
 function previous(state: GameState) {
-  const { outputChoices: _, claimedLevelRewards: __, completedQuests: _completed, legacySatisfiedQuests: _legacy, activeQuestProducers: _active, ...old } = structuredClone(state);
+  const { outputChoices: _, claimedLevelRewards: __, completedQuests: _completed, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
+    layoutId: _layout, resolvedObstacles: _resolved, ...old } = structuredClone(state);
   return { ...old, version: 3, orders: old.orders.map(({ pricing: _, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, data) })) };
 }
 
@@ -129,13 +131,13 @@ test('every older save preserves fresh, partial, and complete campaigns with gen
     const generatorState = migratePreviousGame(intermediate, data);
     assert.equal(validateGeneratorGame(generatorState, data), true);
     expected.legacySatisfiedQuests = data.quests.filter(quest => quest.legacyAfter !== null && expected.decorations.includes(quest.legacyAfter)).map(quest => quest.id);
-    assert.deepEqual(migrateLevelRewardGame(migrateGeneratorGame(generatorState, data), data), expected);
-    assert.deepEqual(migrateLevelRewardGame(migrateGeneratorGame(generatorState, data), data), expected);
+    assert.deepEqual(migrateQuestGame(migrateLevelRewardGame(migrateGeneratorGame(generatorState, data), data), data), expected);
+    assert.deepEqual(migrateQuestGame(migrateLevelRewardGame(migrateGeneratorGame(generatorState, data), data), data), expected);
     assert.deepEqual(old, original);
     assert.deepEqual(importSave(text, validate, migration), expected);
     assert.deepEqual(loadSave(storage, validate, migration), { state: expected, status: 'loaded', error: null });
     assert.equal(values.get(key), text);
-    assert.equal(JSON.parse(values.get(SAVE_KEY)!).version, 5);
+    assert.equal(JSON.parse(values.get(SAVE_KEY)!).version, 6);
     assert.deepEqual(loadSave(storage, validate, migration).state, expected);
     assert.equal(writes, 1, 'Reload must not migrate or reward a second time.');
     assert.deepEqual(importSave(exportSave(expected, validate), validate), expected);
@@ -162,7 +164,7 @@ test('saved output choices round trip with pantry generators and corrupt choices
     { [source.chain]: source.id }, { [source.chain]: other.id }, { [source.chain]: stageOne.id },
     { [source.chain]: tooHigh.id }, JSON.parse('{"__proto__":"unknown"}')]) {
     const invalid = { ...current, outputChoices: choices };
-    assert.throws(() => importSave(JSON.stringify({ format: 'scary-snacks', version: 5, state: invalid }), validate));
+    assert.throws(() => importSave(JSON.stringify({ format: 'scary-snacks', version: 6, state: invalid }), validate));
     assert.throws(() => exportSave(invalid, validate));
     assert.equal(saveGame(storage, invalid, validate).ok, false);
     assert.equal(values.get(SAVE_KEY), text);

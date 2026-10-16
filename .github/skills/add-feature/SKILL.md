@@ -1,6 +1,6 @@
 ---
 name: add-feature
-description: Add or change Scary Snacks product behavior and its contracts in the owner documents. Use for approved features, behavior changes, and repairs that change a contract in PRODUCT.md, DESIGN.md, or README.md.
+description: Add or change Scary Snacks product behavior and its contracts in the owner documents. Use for approved features, behavior changes, and repairs that change a contract in PRODUCT.md, DESIGN.md, or DELIVERY.md.
 ---
 
 # Add or change a feature
@@ -35,7 +35,7 @@ If the user tells you not to run checks, give each check that you did not run in
 
 ## Read the owners
 
-Read `PRODUCT.md`, `DESIGN.md`, `README.md`, and `package.json`.
+Read `PRODUCT.md`, `DESIGN.md`, `DELIVERY.md`, and `package.json`.
 Examine the repository status.
 Read the source code, callers, tests, and tools that control the behavior.
 Identify each contract that the change touches.

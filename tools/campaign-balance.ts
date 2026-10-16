@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { currentTask, createGame, generatorOutputs, getItem, getLevel, legacyOrderReward, migrateLevelRewardGame, previewQuestCleanup, reduceGame, resolveQuests, taskEligibility, validateGame, validateLevelRewardGame } from '../src/engine.ts';
+import { currentTask, createGame, firstFreeBoardCell, generatorOutputs, getItem, getLevel, legacyOrderReward, migrateLevelRewardGame, migrateQuestGame, previewQuestCleanup, reduceGame, resolveQuests, taskEligibility, validateGame, validateLevelRewardGame } from '../src/engine.ts';
 import type { Action, GameData, GameState, LevelRewardGameState, Order, Task } from '../src/engine.ts';
 
 export type CampaignScenario = 'fresh' | 'fresh-rewards' | 'legacy-sales' | 'historical';
@@ -98,7 +98,7 @@ export function runCampaignBalance(data: GameData, scenario: CampaignScenario = 
     const quest = content.quests.find(quest => quest.producer?.exclusiveItems.includes(code));
     const source = quest?.producer?.item ?? `generator_${item.chain}`;
     if (generatorOutputs(state, source, content).includes(code)) {
-      const empty = state.board.indexOf(null);
+      const empty = firstFreeBoardCell(state, content);
       assert.ok(empty >= 0, 'The board has room for request production.');
       act({ type: 'spawn', index: state.board.findIndex(cell => cell?.code === source), output: code });
       assert.equal(state.board[empty]?.code, code);
@@ -165,12 +165,13 @@ export function runCampaignBalance(data: GameData, scenario: CampaignScenario = 
     assert.equal(state.served, 0);
     assert.equal(state.merges, 0);
     // State 5 predates quests. Remove only the new fields; keep every original field and resource.
-    const { completedQuests: _completed, legacySatisfiedQuests: _legacy, activeQuestProducers: _active, ...saved } = structuredClone(state);
+    const { completedQuests: _completed, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
+      layoutId: _layout, resolvedObstacles: _resolved, ...saved } = structuredClone(state);
     const before: LevelRewardGameState = { ...saved, version: 5 };
     const oldBytes = JSON.stringify(before);
     assert.equal(validateLevelRewardGame(before, data), true);
-    state = migrateLevelRewardGame(before, data);
-    assert.deepEqual(migrateLevelRewardGame(before, data), state, 'Repeated conversion gives the same state.');
+    state = migrateQuestGame(migrateLevelRewardGame(before, data), data);
+    assert.deepEqual(migrateQuestGame(migrateLevelRewardGame(before, data), data), state, 'Repeated conversion gives the same state.');
     assert.equal(JSON.stringify(before), oldBytes, 'Conversion preserves the older saved bytes.');
     for (const key of Object.keys(before) as (keyof LevelRewardGameState)[]) {
       if (key !== 'version') assert.deepEqual(state[key], before[key], `Conversion preserves ${key}.`);

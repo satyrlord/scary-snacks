@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { createGame, legacyOrderReward, reduceGame, validateGame } from '../../src/engine.ts';
+import { createGame, legacyOrderReward, reduceGame, unresolvedObstacle, validateGame } from '../../src/engine.ts';
 import type { GameData, GameState } from '../../src/engine.ts';
 import { SAVE_KEY, PREVIOUS_SAVE_KEY, exportSave } from '../../src/storage.ts';
 
@@ -93,7 +93,7 @@ test('a pointer choice survives pantry storage, retrieval, and reload',async({pa
 
 test('a full board rejects another output without changing the saved choice',async({page})=>{
   const initial=afterPreparations(20);initial.outputChoices={bakery:'bakery_2'};
-  initial.board=initial.board.map(cell=>cell??{code:'bakery_1'});await start(page,initial);await source(page,initial).click();
+  initial.board=initial.board.map((cell,index)=>cell??(unresolvedObstacle(initial,index,data)?null:{code:'bakery_1'}));await start(page,initial);await source(page,initial).click();
   await take(page,'bakery_3').click();await expect(page.locator('#status')).toContainText('The board is full.');
   expect(await saved(page)).toEqual(initial);await expect(take(page,'bakery_2')).toHaveAttribute('aria-pressed','true');
   await expect(take(page,'bakery_3')).toHaveAttribute('aria-pressed','false');
@@ -101,7 +101,7 @@ test('a full board rejects another output without changing the saved choice',asy
 
 test('an envelope two save keeps its pantry source and starts its choice at stage one',async({page})=>{
   const initial=afterPreparations(20);const moved=reduceGame(initial,{type:'store',index:initial.board.findIndex(cell=>cell?.code==='generator_bakery')},data);
-  expect(moved.ok).toBe(true);const {outputChoices: _choices,claimedLevelRewards: _claims,completedQuests: _quests,legacySatisfiedQuests: _legacy,activeQuestProducers: _producers,...previous}=moved.state;
+  expect(moved.ok).toBe(true);const {outputChoices: _choices,claimedLevelRewards: _claims,completedQuests: _quests,legacySatisfiedQuests: _legacy,activeQuestProducers: _producers,layoutId: _layout,resolvedObstacles: _resolved,...previous}=moved.state;
   previous.orders=previous.orders.map(({pricing:_pricing,...order})=>({...order,reward:legacyOrderReward(order.requirements,data)}));
   const old=JSON.stringify({format:'scary-snacks',version:2,state:{...previous,version:3}});
   await page.addInitScript(([key,value])=>{if(localStorage.getItem(key)===null)localStorage.setItem(key,value);},[PREVIOUS_SAVE_KEY,old]);

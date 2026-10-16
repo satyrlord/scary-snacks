@@ -31,7 +31,7 @@ If the user tells you not to edit files, use interview mode.
 
 ## Prepare the decision tree
 
-Read `PRODUCT.md`, `DESIGN.md`, `README.md`, `docs/release-notes.md`, the source code in the working tree, and the tests.
+Read `PRODUCT.md`, `DESIGN.md`, `DELIVERY.md`, `docs/release-notes.md`, the source code in the working tree, and the tests.
 Use repository evidence and approved sources to find all the facts that they can give.
 Do not tell the user to find facts that you can find.
 
@@ -62,7 +62,7 @@ Give that evidence.
 ## Record the approved decisions
 
 Identify one owner document for each decision that the project must keep.
-`PRODUCT.md` controls the product, `DESIGN.md` controls the design, and `README.md` controls the delivery.
+`PRODUCT.md` controls the product, `DESIGN.md` controls the design, and `DELIVERY.md` controls the delivery.
 `docs/release-notes.md` gives the release limits.
 In record mode, update only that owner and each owner document that does not agree with the decision.
 In interview mode, give the necessary document changes in the report.

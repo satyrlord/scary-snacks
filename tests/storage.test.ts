@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { SAVE_KEY, LEVEL_REWARD_SAVE_KEY, GENERATOR_SAVE_KEY, PREVIOUS_SAVE_KEY, LEGACY_SAVE_KEY, MAX_SAVE_BYTES, loadSave, saveGame, exportSave, importSave, resetSave } from '../src/storage.ts';
-import { createGame, validateGame, validateLevelRewardGame, validateGeneratorGame, validatePreviousGame, validateLegacyGame, migrateGame, migratePreviousGame, migrateGeneratorGame, migrateLevelRewardGame, reduceGame, saveMigrations, taskEligibility, legacyOrderReward } from '../src/engine.ts';
-import type { GameData, GameState, GeneratorGameState, LevelRewardGameState } from '../src/engine.ts';
+import { SAVE_KEY, QUEST_SAVE_KEY, LEVEL_REWARD_SAVE_KEY, GENERATOR_SAVE_KEY, PREVIOUS_SAVE_KEY, LEGACY_SAVE_KEY, MAX_SAVE_BYTES, loadSave, saveGame, exportSave, importSave, resetSave } from '../src/storage.ts';
+import { createGame, validateGame, validateLevelRewardGame, validateGeneratorGame, validatePreviousGame, validateLegacyGame, migrateGame, migratePreviousGame, migrateGeneratorGame, migrateLevelRewardGame, migrateQuestGame, reduceGame, saveMigrations, taskEligibility, legacyOrderReward, firstFreeBoardCell } from '../src/engine.ts';
+import type { GameData, GameState, GeneratorGameState, LevelRewardGameState, QuestGameState } from '../src/engine.ts';
 
 type State = { coins: number; board: ({ code: string } | null)[]; story: string; self?: State };
 
@@ -24,7 +24,7 @@ const valid = (candidate: unknown) => {
   return Boolean(state && Number.isSafeInteger(state.coins) && state.coins >= 0 && Array.isArray(state.board));
 };
 const state = (): State => ({ coins: 12, board: [{ code: 'coffee_1' }, null], story: 'Mara' });
-const envelope = (value: unknown) => JSON.stringify({ format: 'scary-snacks', version: 5, state: value });
+const envelope = (value: unknown) => JSON.stringify({ format: 'scary-snacks', version: 6, state: value });
 
 test('empty storage loads without creating a save', () => {
   const storage = memoryStorage();
@@ -50,20 +50,20 @@ test('portable export and import leave their input unchanged', () => {
   const original = state();
   const before = structuredClone(original);
   const text = exportSave(original, valid);
-  assert.deepEqual(JSON.parse(text), { format: 'scary-snacks', version: 5, state: before });
+  assert.deepEqual(JSON.parse(text), { format: 'scary-snacks', version: 6, state: before });
   assert.deepEqual(importSave(text, valid), before);
   assert.deepEqual(original, before);
 });
 
 for (const [name, raw, status] of [
   ['corrupt JSON', '{broken', 'invalid'],
-  ['unknown version', JSON.stringify({ format: 'scary-snacks', version: 6, state: state() }), 'unsupported'],
+  ['unknown version', JSON.stringify({ format: 'scary-snacks', version: 7, state: state() }), 'unsupported'],
   ['zero version', JSON.stringify({ format: 'scary-snacks', version: 0, state: state() }), 'unsupported'],
   ['fractional version', JSON.stringify({ format: 'scary-snacks', version: 4.5, state: state() }), 'unsupported'],
-  ['text version', JSON.stringify({ format: 'scary-snacks', version: '5', state: state() }), 'unsupported'],
-  ['unknown format', JSON.stringify({ format: 'another-game', version: 5, state: state() }), 'unsupported'],
+  ['text version', JSON.stringify({ format: 'scary-snacks', version: '6', state: state() }), 'unsupported'],
+  ['unknown format', JSON.stringify({ format: 'another-game', version: 6, state: state() }), 'unsupported'],
   ['invalid state', envelope({ coins: -1, board: [] }), 'invalid'],
-  ['missing state', JSON.stringify({ format: 'scary-snacks', version: 5 }), 'invalid'],
+  ['missing state', JSON.stringify({ format: 'scary-snacks', version: 6 }), 'invalid'],
   ['empty string', '', 'invalid'],
 ]) {
   test(`preserves ${name} on load and subsequent save`, () => {
@@ -148,11 +148,13 @@ const legacyEnvelope = (value: unknown) => JSON.stringify({ format: 'scary-snack
 const previousEnvelope = (value: unknown) => JSON.stringify({ format: 'scary-snacks', version: 2, state: value });
 const generatorEnvelope = (value: unknown) => JSON.stringify({ format: 'scary-snacks', version: 3, state: value });
 const levelRewardEnvelope = (value: unknown) => JSON.stringify({ format: 'scary-snacks', version: 4, state: value });
+const questEnvelope = (value: unknown) => JSON.stringify({ format: 'scary-snacks', version: 5, state: value });
 const migration = {
   1: { validate: valid, migrate: (candidate: unknown) => structuredClone(candidate) },
   2: { validate: valid, migrate: (candidate: unknown) => ({ ...(candidate as State), story: 'Converted' }) },
   3: { validate: valid, migrate: (candidate: unknown) => structuredClone(candidate) },
   4: { validate: valid, migrate: (candidate: unknown) => structuredClone(candidate) },
+  5: { validate: valid, migrate: (candidate: unknown) => structuredClone(candidate) },
 };
 
 test('legacy conversion validates both states and preserves every byte on failed conversion or validation', () => {
@@ -255,10 +257,14 @@ test('older envelopes convert one version at a time and validate every intermedi
       validate: (value: unknown) => { calls.push('validate 4'); return (value as { step: number }).step === 4; },
       migrate: () => { calls.push('migrate 4'); return { step: 5 }; },
     },
+    5: {
+      validate: (value: unknown) => { calls.push('validate 5'); return (value as { step: number }).step === 5; },
+      migrate: () => { calls.push('migrate 5'); return { step: 6 }; },
+    },
   };
-  const current = (value: unknown) => { calls.push('validate 5'); return (value as { step: number }).step === 5; };
-  assert.deepEqual(importSave(legacyEnvelope({ step: 1 }), current, steps), { step: 5 });
-  assert.deepEqual(calls.filter(call => call.startsWith('migrate')), ['migrate 1', 'migrate 2', 'migrate 3', 'migrate 4']);
+  const current = (value: unknown) => { calls.push('validate 6'); return (value as { step: number }).step === 6; };
+  assert.deepEqual(importSave(legacyEnvelope({ step: 1 }), current, steps), { step: 6 });
+  assert.deepEqual(calls.filter(call => call.startsWith('migrate')), ['migrate 1', 'migrate 2', 'migrate 3', 'migrate 4', 'migrate 5']);
   assert.ok(calls.indexOf('validate 1') < calls.indexOf('migrate 1'));
   assert.ok(calls.indexOf('validate 2') > calls.indexOf('migrate 1'));
   assert.ok(calls.indexOf('validate 2') < calls.indexOf('migrate 2'));
@@ -267,6 +273,8 @@ test('older envelopes convert one version at a time and validate every intermedi
   assert.ok(calls.indexOf('validate 4') > calls.indexOf('migrate 3'));
   assert.ok(calls.indexOf('validate 4') < calls.indexOf('migrate 4'));
   assert.ok(calls.indexOf('validate 5') > calls.indexOf('migrate 4'));
+  assert.ok(calls.indexOf('validate 5') < calls.indexOf('migrate 5'));
+  assert.ok(calls.indexOf('validate 6') > calls.indexOf('migrate 5'));
   calls.length = 0;
   assert.throws(() => importSave(legacyEnvelope({ step: 1 }), current, { ...steps, 1: { ...steps[1], migrate: () => ({ step: 9 }) } }), /damaged/);
   assert.deepEqual(calls, ['validate 1', 'validate 2']);
@@ -360,30 +368,32 @@ test('the level reward key takes precedence over every older key and preserves a
   }
 });
 
-test('a current quest save takes precedence over a level reward save without rewriting either key', () => {
-  const current = envelope({ ...state(), coins: 50 });
+test('a quest save takes precedence over a level reward save and preserves both older keys', () => {
+  const current = questEnvelope({ ...state(), coins: 50 });
   const older = levelRewardEnvelope({ ...state(), coins: 90 });
-  const storage = memoryStorage([[SAVE_KEY, current], [LEVEL_REWARD_SAVE_KEY, older]]);
+  const storage = memoryStorage([[QUEST_SAVE_KEY, current], [LEVEL_REWARD_SAVE_KEY, older]]);
   assert.equal(loadSave<State>(storage, valid, migration).state!.coins, 50);
-  assert.equal(storage.values.get(SAVE_KEY), current);
+  assert.equal(storage.values.get(QUEST_SAVE_KEY), current);
   assert.equal(storage.values.get(LEVEL_REWARD_SAVE_KEY), older);
-  assert.equal(storage.writes.length, 0);
-  storage.values.set(SAVE_KEY, '{broken');
+  assert.equal(storage.writes.length, 1);
+  storage.values.delete(SAVE_KEY);
+  storage.values.set(QUEST_SAVE_KEY, '{broken');
   assert.equal(loadSave(storage, valid, migration).status, 'invalid');
-  assert.equal(storage.values.get(SAVE_KEY), '{broken');
+  assert.equal(storage.values.get(QUEST_SAVE_KEY), '{broken');
   assert.equal(storage.values.get(LEVEL_REWARD_SAVE_KEY), older);
-  assert.equal(storage.writes.length, 0);
+  assert.equal(storage.writes.length, 1);
 });
 
 test('a failed final conversion keeps every older envelope without a partial destination', () => {
-  for (const [key, text] of [[LEGACY_SAVE_KEY, legacyEnvelope(state())], [PREVIOUS_SAVE_KEY, previousEnvelope(state())], [GENERATOR_SAVE_KEY, generatorEnvelope(state())], [LEVEL_REWARD_SAVE_KEY, levelRewardEnvelope(state())]]) {
+  for (const [key, text] of [[LEGACY_SAVE_KEY, legacyEnvelope(state())], [PREVIOUS_SAVE_KEY, previousEnvelope(state())],
+    [GENERATOR_SAVE_KEY, generatorEnvelope(state())], [LEVEL_REWARD_SAVE_KEY, levelRewardEnvelope(state())], [QUEST_SAVE_KEY, questEnvelope(state())]]) {
     for (const step of [
       { validate: () => false, migrate: () => assert.fail('Invalid state must not migrate.') },
       { validate: valid, migrate: () => { throw new Error('Conversion failed'); } },
       { validate: valid, migrate: () => ({ coins: -1, board: [] }) },
     ]) {
       const storage = memoryStorage([[key, text]]);
-      assert.equal(loadSave(storage, valid, { ...migration, 4: step }).status, 'invalid');
+      assert.equal(loadSave(storage, valid, { ...migration, 5: step }).status, 'invalid');
       assert.equal(storage.values.get(key), text);
       assert.equal(storage.values.has(SAVE_KEY), false);
       assert.equal(storage.writes.length, 0);
@@ -412,7 +422,8 @@ function levelRewardCheckpoint(count: number): LevelRewardGameState {
     assert.equal(output.ok, true, output.message);
     current = reduceGame(output.state, { type: 'store', index: sourceIndex }, gameData).state;
   }
-  const { completedQuests: _completed, legacySatisfiedQuests: _legacy, activeQuestProducers: _producers, ...old } = current;
+  const { completedQuests: _completed, legacySatisfiedQuests: _legacy, activeQuestProducers: _producers,
+    layoutId: _layout, resolvedObstacles: _resolved, ...old } = current;
   return { ...old, version: 5, orders: old.orders.map(({ pricing: _, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, gameData) })) };
 }
 
@@ -421,11 +432,15 @@ function generatorCheckpoint(count: number): GeneratorGameState {
   return { ...old, version: 4 };
 }
 
-function questMigrationResult(old: LevelRewardGameState): GameState {
+function questStateResult(old: LevelRewardGameState): QuestGameState {
   return {
     ...old, version: 6, completedQuests: [], activeQuestProducers: {},
     legacySatisfiedQuests: gameData.quests.filter(quest => !quest.producer && quest.legacyAfter !== null && old.decorations.includes(quest.legacyAfter)).map(quest => quest.id),
   };
+}
+
+function questMigrationResult(old: LevelRewardGameState): GameState {
+  return { ...questStateResult(old), version: 7, layoutId: 'legacy-open', resolvedObstacles: [] };
 }
 
 test('state-four migration preserves fresh, mid-campaign, and completed saves and starts claims empty once', () => {
@@ -480,8 +495,8 @@ test('state-five migration preserves early, mid-story, and completed progress wi
     const expected = questMigrationResult(old);
     const text = levelRewardEnvelope(old);
     assert.equal(validateLevelRewardGame(old, gameData), true);
-    assert.deepEqual(migrateLevelRewardGame(old, gameData), expected);
-    assert.deepEqual(migrateLevelRewardGame(old, gameData), expected);
+    assert.deepEqual(migrateLevelRewardGame(old, gameData), questStateResult(old));
+    assert.deepEqual(migrateLevelRewardGame(old, gameData), questStateResult(old));
     assert.deepEqual(old, before);
     assert.deepEqual(importSave(text, validGame, gameMigrations), expected);
     const storage = memoryStorage([[LEVEL_REWARD_SAVE_KEY, text]]);
@@ -498,6 +513,90 @@ test('state-five migration preserves early, mid-story, and completed progress wi
     assert.deepEqual(expected.completedQuests, []);
     assert.deepEqual(expected.activeQuestProducers, {});
     assert.ok(expected.legacySatisfiedQuests.every(id => !gameData.quests.find(quest => quest.id === id)!.producer));
+  }
+});
+
+test('quest saves convert to the open layout at fresh, mid-campaign, and completed checkpoints', () => {
+  for (const count of [0, 12, 24]) {
+    const old = questStateResult(levelRewardCheckpoint(count));
+    const before = structuredClone(old);
+    const expected: GameState = { ...old, version: 7, layoutId: 'legacy-open', resolvedObstacles: [] };
+    const text = questEnvelope(old);
+    assert.deepEqual(migrateQuestGame(old, gameData), expected);
+    assert.deepEqual(migrateQuestGame(old, gameData), expected);
+    assert.deepEqual(old, before);
+    assert.deepEqual(importSave(text, validGame, gameMigrations), expected);
+    const storage = memoryStorage([[QUEST_SAVE_KEY, text]]);
+    assert.deepEqual(loadSave(storage, validGame, gameMigrations).state, expected);
+    assert.deepEqual(loadSave(storage, validGame, gameMigrations).state, expected);
+    assert.equal(storage.values.get(QUEST_SAVE_KEY), text);
+    assert.equal(storage.writes.length, 1);
+    assert.equal(JSON.parse(storage.values.get(SAVE_KEY)!).version, 6);
+    assert.deepEqual(importSave(exportSave(expected, validGame), validGame), expected);
+    for (const field of ['board', 'inventory', 'coins', 'xp', 'taskIndex', 'orders', 'discovered', 'seed', 'served', 'merges', 'nextOrderId',
+      'decorations', 'decorationChoices', 'outputChoices', 'claimedLevelRewards', 'completedQuests', 'legacySatisfiedQuests', 'activeQuestProducers'] as const) {
+      assert.deepEqual(expected[field], old[field]);
+    }
+  }
+});
+
+test('quest conversion keeps a loaned source and active quest progress', () => {
+  const current = questMigrationResult(levelRewardCheckpoint(24));
+  const quest = gameData.quests.find(candidate => candidate.producer)!;
+  const accepted = reduceGame(current, { type: 'acceptQuest', id: quest.id }, gameData);
+  assert.equal(accepted.ok, true, accepted.message);
+  const { layoutId: _layout, resolvedObstacles: _resolved, ...old } = accepted.state;
+  const previous: QuestGameState = { ...old, version: 6 };
+  const text = questEnvelope(previous);
+  const expected: GameState = { ...accepted.state, layoutId: 'legacy-open', resolvedObstacles: [] };
+  assert.deepEqual(importSave(text, validGame, gameMigrations), expected);
+  const storage = memoryStorage([[QUEST_SAVE_KEY, text]]);
+  assert.deepEqual(loadSave(storage, validGame, gameMigrations).state, expected);
+  assert.equal(storage.values.get(QUEST_SAVE_KEY), text);
+  assert.equal(storage.writes.length, 1);
+  assert.deepEqual(expected.activeQuestProducers, accepted.state.activeQuestProducers);
+});
+
+test('failed quest-save conversion preserves the original bytes and retry writes one destination', () => {
+  const old = questStateResult(levelRewardCheckpoint(12));
+  const text = questEnvelope(old);
+  const storage = memoryStorage([[QUEST_SAVE_KEY, text]]);
+  const write = storage.setItem;
+  storage.setItem = () => { throw new Error('Quota exceeded'); };
+  const failed = loadSave(storage, validGame, gameMigrations);
+  assert.equal(failed.state, null);
+  assert.equal(failed.status, 'unavailable');
+  assert.match(failed.error!, /older save was preserved/);
+  assert.equal(storage.values.get(QUEST_SAVE_KEY), text);
+  assert.equal(storage.values.has(SAVE_KEY), false);
+  storage.setItem = write;
+  assert.deepEqual(loadSave(storage, validGame, gameMigrations).state, migrateQuestGame(old, gameData));
+  assert.equal(storage.values.get(QUEST_SAVE_KEY), text);
+  assert.equal(storage.writes.length, 1);
+});
+
+test('a malformed quest save cannot replace a present destination or fall back to older progress', () => {
+  const old = questStateResult(levelRewardCheckpoint(0));
+  const earlier = levelRewardEnvelope(levelRewardCheckpoint(12));
+  const current = exportSave(createGame(gameData), validGame);
+  for (const invalid of [
+    { ...old, layoutId: 'legacy-open' },
+    { ...old, resolvedObstacles: [] },
+    { ...old, board: [{ code: 'unknown' }, ...old.board.slice(1)] },
+    { ...old, completedQuests: ['unknown'] },
+  ]) {
+    const text = questEnvelope(invalid);
+    assert.throws(() => importSave(text, validGame, gameMigrations));
+    const storage = memoryStorage([[QUEST_SAVE_KEY, text], [LEVEL_REWARD_SAVE_KEY, earlier]]);
+    assert.equal(loadSave(storage, validGame, gameMigrations).status, 'invalid');
+    assert.equal(storage.values.get(QUEST_SAVE_KEY), text);
+    assert.equal(storage.values.get(LEVEL_REWARD_SAVE_KEY), earlier);
+    assert.equal(storage.values.has(SAVE_KEY), false);
+    assert.equal(storage.writes.length, 0);
+    storage.values.set(SAVE_KEY, current);
+    assert.deepEqual(loadSave(storage, validGame, gameMigrations).state, createGame(gameData));
+    assert.equal(storage.values.get(QUEST_SAVE_KEY), text);
+    assert.equal(storage.writes.length, 0);
   }
 });
 
@@ -702,7 +801,7 @@ test('a failed quest delivery write keeps the session reward and reload restores
   const quest = gameData.quests.find(candidate => !candidate.producer && candidate.afterTask === null && !candidate.afterQuest)!;
   for (const requirement of quest.requirements) {
     for (let count = 0; count < requirement.quantity; count++) {
-      const index = current.board.findIndex(cell => cell === null);
+      const index = firstFreeBoardCell(current, gameData);
       assert.notEqual(index, -1);
       current.board[index] = { code: requirement.item };
     }
@@ -732,7 +831,7 @@ test('a failed quest delivery write keeps the session reward and reload restores
 });
 
 test('an active quest producer and its output position survive pantry storage, import, and reload', () => {
-  const current = migrateLevelRewardGame(levelRewardCheckpoint(24), gameData);
+  const current = questMigrationResult(levelRewardCheckpoint(24));
   const quest = gameData.quests.find(candidate => candidate.producer)!;
   const accepted = reduceGame(current, { type: 'acceptQuest', id: quest.id }, gameData);
   assert.equal(accepted.ok, true, accepted.message);
@@ -762,7 +861,7 @@ test('an active quest producer and its output position survive pantry storage, i
 });
 
 test('a saved producer entitlement rejects missing or duplicate producers across the board and pantry', () => {
-  const current = migrateLevelRewardGame(levelRewardCheckpoint(24), gameData);
+  const current = questMigrationResult(levelRewardCheckpoint(24));
   const quest = gameData.quests.find(candidate => candidate.producer)!;
   const accepted = reduceGame(current, { type: 'acceptQuest', id: quest.id }, gameData);
   assert.equal(accepted.ok, true, accepted.message);

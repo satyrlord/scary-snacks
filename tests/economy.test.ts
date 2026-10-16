@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, dataProblems, economyProblems, legacyOrderReward, menuReward, reduceGame, saleValue, validateGame, validateLegacyGame, validatePreviousGame, validateGeneratorGame, validateLevelRewardGame, migrateGame, migratePreviousGame, migrateGeneratorGame, migrateLevelRewardGame } from '../src/engine.ts';
+import { createGame, dataProblems, economyProblems, legacyOrderReward, menuReward, reduceGame, saleValue, validateGame, validateLegacyGame, validatePreviousGame, validateGeneratorGame, validateLevelRewardGame, migrateGame, migratePreviousGame, migrateGeneratorGame, migrateLevelRewardGame, migrateQuestGame } from '../src/engine.ts';
 import { exportSave, importSave, loadSave, saveGame, SAVE_KEY } from '../src/storage.ts';
 import type { GameData, GameState } from '../src/engine.ts';
 
@@ -112,8 +112,9 @@ test('a quote marker selects one reward contract and never accepts a reward from
 });
 
 test('all supported old state versions keep exact outstanding quotes and reject new markers before conversion', () => {
-  const state = quotedBeforeMenu();
-  const { completedQuests: _completed, legacySatisfiedQuests: _legacy, activeQuestProducers: _active, ...level } = state;
+  const state = quotedBeforeMenu({ ...createGame(data), layoutId: 'legacy-open' });
+  const { completedQuests: _completed, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
+    layoutId: _layout, resolvedObstacles: _resolved, ...level } = state;
   const state5 = { ...level, version: 5 };
   const { claimedLevelRewards: _claims, ...generator } = state5;
   const state4 = { ...generator, version: 4 };
@@ -130,9 +131,9 @@ test('all supported old state versions keep exact outstanding quotes and reject 
   for (const { old, check, convert } of cases) {
     assert.ok(check(old, data));
     const bytes = JSON.stringify(old);
-    const converted = convert(old);
+    const converted = migrateQuestGame(convert(old), data);
     assert.equal(JSON.stringify(old), bytes);
-    assert.deepEqual(convert(old), converted);
+    assert.deepEqual(migrateQuestGame(convert(old), data), converted);
     assert.deepEqual(converted, state);
     assert.ok(validate(converted));
     const tagged = structuredClone(old);
