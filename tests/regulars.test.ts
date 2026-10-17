@@ -19,24 +19,24 @@ function pay(state: GameState) {
 }
 const checkpoint = (count: number) => checkpointState(data, count);
 
-test('twelve regulars arrive in pairs: four at the start, then with preparations 4, 8, and 12, and the nobles with preparation 15', () => {
+test('twelve regulars arrive in pairs: four at the start, then with preparations 4, 8, and 12, and the nobles also with preparation 8', () => {
   assert.deepEqual(characterProblems(data), []);
   assert.deepEqual(regulars.map(person => person.id), ['vlad', 'elisabeta', 'dochia', 'victor', 'ana', 'costel', 'sanziana', 'dorian', 'ileana', 'cezar', 'catalina', 'bran']);
   const arrived = (count: number) => resolveNeighbours(checkpoint(count), data).filter(view => view.arrived && view.person.regular).map(view => view.person.id);
   assert.deepEqual(arrived(0), ['dochia', 'victor', 'ana', 'costel']);
   assert.deepEqual(arrived(3), ['dochia', 'victor', 'ana', 'costel']);
   assert.deepEqual(arrived(4), ['dochia', 'victor', 'ana', 'costel', 'sanziana', 'dorian']);
-  assert.deepEqual(arrived(8).slice(-2), ['ileana', 'cezar']);
+  assert.deepEqual(arrived(7).length, 6);
+  assert.deepEqual(arrived(8).slice(-4), ['vlad', 'elisabeta', 'ileana', 'cezar']);
+  assert.deepEqual(arrived(11).length, 10);
   assert.deepEqual(arrived(12).slice(-2), ['catalina', 'bran']);
-  assert.deepEqual(arrived(14).length, 10);
-  assert.deepEqual(arrived(15).slice(-2), ['vlad', 'elisabeta']);
   for (const person of regulars) {
     assert.equal(person.prefers!.length, 2);
     assert.ok(person.prefers!.every(chain => data.chains.some(known => known.id === chain)));
     assert.ok(person.introduction.length > 40);
   }
   const nobles = data.characters.filter(person => ['vlad', 'elisabeta'].includes(person.id));
-  assert.ok(nobles.every(person => person.arrivesAfter === 'task_15' && person.prefers!.join() === 'warm,drinks'));
+  assert.ok(nobles.every(person => person.arrivesAfter === 'task_8' && person.prefers!.join() === 'warm,drinks'));
 });
 
 test('the preparation that brings a regular queues the arrival scene once, after its story scenes', () => {
@@ -49,8 +49,8 @@ test('the preparation that brings a regular queues the arrival scene once, after
   assert.equal(reduceGame(read.state, { type: 'readScene', id: 'arrival-dorian' }, data).ok, false, 'A read arrival cannot be read again as new.');
   for (const key of ['coins', 'taskIndex', 'board', 'completedQuests'] as const) assert.deepEqual(read.state[key], after[key]);
   assert.deepEqual(pay(after).pendingScenes.slice(after.pendingScenes.length), ['task_5']);
-  const nobles = pay(checkpoint(14));
-  assert.deepEqual(nobles.pendingScenes.slice(-3), ['task_15', 'arrival-vlad', 'arrival-elisabeta']);
+  const nobles = pay(checkpoint(7));
+  assert.deepEqual(nobles.pendingScenes.slice(-6), ['task_8', 'chapter-2', 'arrival-vlad', 'arrival-elisabeta', 'arrival-ileana', 'arrival-cezar']);
 });
 
 test('a save cannot hold the arrival scene of a regular who has not arrived', () => {
@@ -68,7 +68,7 @@ test('each regular asks only after arrival, and the journal shows only arrived n
     const arrival = person.arrivesAfter === undefined ? -1 : data.tasks.findIndex(task => task.id === person.arrivesAfter);
     for (const quest of quests) assert.ok(data.tasks.findIndex(task => task.id === quest.afterTask) >= arrival, `${quest.id} opens after ${person.id} arrives.`);
   }
-  const before = checkpoint(14);
+  const before = checkpoint(7);
   assert.ok(resolveQuests(before, data).every(view => !['vlad', 'elisabeta'].includes(view.quest.character) || view.status === 'locked'));
   const after = pay(before);
   assert.ok(resolveQuests(after, data).some(view => view.quest.character === 'vlad' && view.status !== 'locked'));

@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { createGame, requiredQuests, resolveQuests } from '../../src/engine.ts';
+import { createGame, requiredQuests } from '../../src/engine.ts';
 import type { GameState } from '../../src/engine.ts';
-import { data, deliverButton, revealed, saved, start, supplies, supply, tile, toast, unguided } from './support.ts';
+import { data, deliverButton, saved, start, supplies, supply, tile, toast, unguided } from './support.ts';
 
 const first = data.tasks[0];
 const pay = (page: Page) => page.locator('#story').getByRole('button', { name: /^Pay / });
@@ -14,17 +14,6 @@ function lastRequestReady() {
   state.completedQuests = needed.slice(0, -1).map(quest => quest.id); state.coins = first.cost - last.reward;
   return { state: supply(state, supplies(last)), last };
 }
-
-test('each ticket names its reward, and Deliver pays exactly that reward', async ({ page }) => {
-  const initial = createGame(data), open = resolveQuests(initial, data).filter(view => view.status === 'active').map(view => view.quest);
-  await page.emulateMedia({ reducedMotion: 'reduce' }); await start(page, supply(initial, supplies(open[0])));
-  for (const quest of open) await expect(deliverButton(page, quest)).toHaveAccessibleName(new RegExp(` for ${quest.reward} coins$`));
-  for (const quest of open) await expect(deliverButton(page, quest)).toContainText(String(quest.reward));
-  await deliverButton(page, open[0]).click(); await expect(toast(page)).toHaveText(`${open[0].title}: delivered. Earned ${open[0].reward} coins.`);
-  const after = await saved(page);
-  expect(after.coins).toBe(open[0].reward); expect(after.completedQuests).toEqual([open[0].id]);
-  await page.reload(); expect(await saved(page)).toEqual(after);
-});
 
 for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 800 }]) {
   test(`work details explain the current budget and return focus at ${viewport.width}px`, async ({ page }, testInfo) => {
@@ -64,32 +53,6 @@ test('coins cannot hide undelivered quests', async ({ page }) => {
   await expect(page.locator('#modal').getByRole('button', { name: /^Pay / })).toBeDisabled();
   await page.keyboard.press('Escape');
   await expect(page.locator('#story-button')).toBeFocused();
-});
-
-test('delivering the last required quest enables payment, and the next preparation counts its own quests', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  const { state, last } = lastRequestReady(); await start(page, state);
-  await expect(goal(page, 'quests')).toHaveText(`Quests delivered: ${needed.length - 1} / ${needed.length}Need 1`);
-  await expect(goal(page, 'coins')).toHaveText(`Coins: ${first.cost - last.reward} / ${first.cost}Need ${last.reward}`);
-  await expect(pay(page)).toBeDisabled();
-  await deliverButton(page, last).click(); await expect(toast(page)).toHaveText(`${last.title}: delivered. Earned ${last.reward} coins.`);
-  await expect(page.locator('#story .story-waiting button')).toBeFocused();
-  await expect(goal(page, 'quests')).toHaveText(`Quests delivered: ${needed.length} / ${needed.length}Complete`);
-  await expect(goal(page, 'coins')).toHaveText(`Coins: ${first.cost} / ${first.cost}Complete`);
-  await expect(pay(page)).toBeEnabled();
-  await pay(page).click();
-  await expect(page.locator('.story-controls .primary-button')).toBeFocused();
-  const after = await saved(page);
-  expect(after.taskIndex).toBe(1); expect(after.coins).toBe(0); expect(after.pendingScenes).toEqual([last.id, 'task_1']);
-  for (let line = 0; line < 3; line++) await page.locator('.story-controls .primary-button').click();
-  await revealed(page); await expect(page.locator('#room-pin')).toBeFocused();
-  const next = requiredQuests(1, data).length;
-  await expect(goal(page, 'quests')).toHaveText(`Quests delivered: ${needed.length} / ${next}Need ${next - needed.length}`);
-  await expect(pay(page)).toBeDisabled();
-  // The tickets now carry the quests that the first preparation opened.
-  for (const quest of requiredQuests(1, data).slice(needed.length)) await expect(deliverButton(page, quest)).toBeVisible();
-  // The last line of the scene reads it. The quest's own completion still waits in Story.
-  await page.reload(); expect(await saved(page)).toEqual({ ...after, pendingScenes: [last.id] });
 });
 
 test('delivering the last required quest makes the phone offer ready', async ({ page }) => {

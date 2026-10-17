@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { boardObstacles, createGame, firstFreeBoardCell, freeBoardCells, requiredQuests, pendingPreparationObstacles, reduceGame, unresolvedObstacle, validateGame } from '../../src/engine.ts';
 import type { GameData, GameState } from '../../src/engine.ts';
 import { SAVE_KEY, exportSave } from '../../src/storage.ts';
+import { failWrites } from './support.ts';
 
 const data: GameData = JSON.parse(readFileSync('public/data/game.json', 'utf8'));
 const tile = (page: Page, index: number) => page.locator(`[data-cell="${index}"]`);
@@ -15,7 +16,7 @@ function checkpoint(count = 0) {
     const paid = reduceGame(state, { type: 'task' }, data);
     expect(paid.ok, paid.message).toBe(true); state = paid.state;
   }
-  // This checkpoint adopts the feature here. It has no earlier preparation queue.
+  // The preparation-blocker record starts at this preparation, with no earlier batch.
   state.preparationObstacles = { start: count, placed: [] };
   state.resolvedObstacles = state.resolvedObstacles.filter(id => data.board.layouts.find(layout => layout.id === state.layoutId)!.obstacles.some(obstacle => obstacle.id === id));
   state.pendingScenes = [];
@@ -87,24 +88,19 @@ test('initial blocker frames fill their tiles without sampling neighbouring spri
   for(let index=0;index<6;index++)await expectFrameFit(page.locator(`.clutter-art-${index}`).first(),3,2,index);
 });
 
-test('a failed preparation save adopts no batch and keeps the coins and progress', async ({ page }) => {
+test('a failed preparation save adopts no batch and keeps the coins, progress, and room', async ({ page }) => {
   const initial = checkpoint(); delete initial.preparationObstacles;
   await start(page, initial);
-  const label = await page.locator('#board').getAttribute('aria-label');
-  await page.evaluate(key => {
-    const original = Storage.prototype.setItem;
-    Storage.prototype.setItem = function(name, value) {
-      if (name === key) throw new DOMException('Storage is full.', 'QuotaExceededError');
-      original.call(this, name, value);
-    };
-  }, SAVE_KEY);
+  const label = await page.locator('#board').getAttribute('aria-label'), painting = await page.locator('#room-frame').getAttribute('data-painting');
+  await failWrites(page);
   await page.locator('#story').getByRole('button', { name: /^Pay / }).click();
   await expect(page.locator('#status')).toContainText('The preparation was not saved. No coins were spent.');
   expect(await saved(page)).toEqual(initial);
   await expect(page.locator('#coins')).toHaveText(String(initial.coins));
   await expect(page.locator('#board')).toHaveAttribute('aria-label', label!);
   await expect(page.locator('.preparation-art')).toHaveCount(0);
-  await expect(page.locator('.story-controls')).toHaveCount(0);
+  await expect(page.locator('.story-controls')).toHaveCount(0); await expect(page.getByRole('dialog')).toBeHidden();
+  await expect(page.locator('#room-frame')).toHaveAttribute('data-painting', painting!);
   await expect(page.locator('#room-stage')).not.toHaveAttribute('data-reveal');
   await page.reload(); expect(await saved(page)).toEqual(initial);
   await expect(page.locator('.preparation-art')).toHaveCount(0);
@@ -209,7 +205,7 @@ for (const theme of ['light', 'dark']) test(`all twelve preparation atlas tiles 
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
     const obstacle = active(state).find(obstacle => obstacle.atlas === 'preparation' && obstacle.sprite === sprite)!;
     expect(obstacle, `placed sprite ${sprite}`).toBeDefined();
-    const cell = tile(page, obstacle.position), art = cell.locator(`.preparation-art-${sprite}`);
+    const cell = tile(page, obstacle.position), art = cell.locator('.preparation-art');
     await expect(art).toBeVisible(); await expect(art).toHaveClass(new RegExp(`preparation-art-${sprite}(?: |$)`));
     await expectFrameFit(art,4,3,sprite);
     await expectPreparationImage(art);

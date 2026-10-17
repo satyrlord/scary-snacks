@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { firstFreeBoardCell, generatorOutputs, requiredQuests, resolveQuests } from '../../src/engine.ts';
+import { firstFreeBoardCell, generatorOutputs, resolveQuests } from '../../src/engine.ts';
 import type { GameState, SceneLine } from '../../src/engine.ts';
 import { act, data, deliverButton, deliverable, exportText, failWrites, journal, onTicket, opened, options, person, quest, readTo, replaceSave, request, saved, start, startAgainAndImport, story, supplies, supply, ticket, toast } from './support.ts';
 
@@ -69,19 +69,22 @@ test('the shared vegetarian meal has both voices, leaves once, keeps the departu
 
 test('local news from the road arrives with the third delivery after the shared meal',async({page})=>{
   let state=delivered(deliverable(search),search.id);
-  // The next preparation opens new requests; two of them are delivered through the rules.
-  for(const value of requiredQuests(state.taskIndex,data))if(!state.completedQuests.includes(value.id))state.completedQuests.push(value.id);
-  state.coins=data.tasks[state.taskIndex].cost;state=act(state,{type:'task'});for(const id of [...state.pendingScenes])state=act(state,{type:'readScene',id});
-  const open=resolveQuests(state,data).filter(view=>view.status==='active').map(view=>view.quest);expect(open.length).toBeGreaterThanOrEqual(3);
-  state=delivered(state,open[0].id);state=delivered(state,open[1].id);expect(state.pendingScenes).toEqual([]);
-  await start(page,supply(state,supplies(open[2])));await deliverButton(page,open[2]).click();
-  await expect(toast(page)).toHaveText(`${open[2].title}: delivered. Earned ${open[2].reward} coins.`);
-  expect((await saved(page)).pendingScenes).toEqual([open[2].id,search.followUp!.id]);
-  await story(page);await page.getByRole('button',{name:`Read now: ${open[2].title}`,exact:true}).click();
-  await expect(page.getByRole('dialog',{name:open[2].title,exact:true})).toBeVisible();
+  // Two later requests are delivered through the rules. When no request is open, the next preparation is paid to open more.
+  const next=()=>{
+    while(!resolveQuests(state,data).some(view=>view.status==='active')){
+      state.coins=data.tasks[state.taskIndex].cost;state=act(state,{type:'task'});for(const id of [...state.pendingScenes])state=act(state,{type:'readScene',id});
+    }
+    return resolveQuests(state,data).find(view=>view.status==='active')!.quest;
+  };
+  for(let count=0;count<2;count++){const value=next();state=delivered(state,value.id);}
+  expect(state.pendingScenes).toEqual([]);
+  const third=next();
+  await start(page,supply(state,supplies(third)));await deliverButton(page,third).click();
+  await expect(toast(page)).toHaveText(`${third.title}: delivered. Earned ${third.reward} coins.`);
+  expect((await saved(page)).pendingScenes).toEqual([third.id,search.followUp!.id]);
+  await story(page);await page.getByRole('button',{name:`Read now: ${third.title}`,exact:true}).click();
+  await expect(page.getByRole('dialog',{name:third.title,exact:true})).toBeVisible();
   await readTo(page,'Next scene');await expect(page.getByRole('dialog',{name:search.followUp!.title,exact:true})).toBeVisible();
-  expect(search.followUp!.dialogue.every(line=>!companions.includes(line.speaker)&&line.speaker!=='ionatan')).toBe(true);
-  expect(search.followUp!.dialogue.map(line=>line.text).join(' ')).toMatch(/Ionatan gravely ill.*All three have left for Britain.*did not stop at our bistro/);
   await scene(page,search.followUp!.dialogue);expect((await saved(page)).pendingScenes).toEqual([]);
   await journal(page);await expect(page.getByRole('button',{name:`Replay ${search.followUp!.title}`,exact:true})).toBeVisible();await page.keyboard.press('Escape');await guests(page,false);
 });

@@ -1,17 +1,11 @@
 import { test, expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
 import { createGame, firstFreeBoardCell, getItem } from '../../src/engine.ts';
 import type { GameState, Quest } from '../../src/engine.ts';
-import { data, deliverButton, deliverable, exportText, failWrites, journal, KEY, onTicket, opened, options, person, quest, ratio, readTo, request, restoreWrites, saved, serialize, start, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate } from './support.ts';
+import { data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, KEY, onTicket, opened, options, person, quest, ratio, readTo, request, restoreWrites, saved, serialize, start, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate } from './support.ts';
 
 /** The first request of each neighbour who lives in the village. */
 const firstQuests=data.characters.filter(character=>!character.visitor&&data.quests.some(value=>value.character===character.id)).map(character=>data.quests.find(value=>value.character===character.id)!);
 const itemName=(code: string)=>getItem(code,data)!.name;
-const dialogDeliver=(page: Page,value: Quest)=>page.getByRole('dialog',{name:value.title,exact:true}).getByRole('button',{name:`Deliver ${value.title} for ${value.reward.toLocaleString('en')} coins`,exact:true});
-async function finishScene(page: Page){
-  while(await page.locator('.story-controls .primary-button').textContent()==='Continue')await page.locator('.story-controls .primary-button').click();
-  await page.getByRole('button',{name:'Return',exact:true}).click();
-}
 
 for(const value of firstQuests)test(`${value.character} asks on a ticket, the request dialog explains it, and Deliver pays once across reload`,async({page})=>{
   const initial=deliverable(value);await start(page,initial);const before=await saved(page),name=person(value.character).name;

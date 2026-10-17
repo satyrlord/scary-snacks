@@ -80,7 +80,7 @@ The report measures gameplay effort under one stated policy. It does not measure
 ## Acceptance and evidence
 
 - Engine: exact and missing coins, missing quests, source placement, atomic failures, and repeated or final completion.
-- Economy: raw ingredients at 1 to 3 coins, explicit prepared-food values, the reward rule, and the rejected sale action.
+- Economy: raw ingredients at 1 to 3 coins, explicit prepared-food values, and the reward rule.
   The checks cover complete work budgets and relative costs for signs, menus, and repairs.
   They also cover the funding check and invalid authored data.
 - Saves: current saves, export and import, failed writes, and malformed data.
@@ -94,5 +94,5 @@ The report measures gameplay effort under one stated policy. It does not measure
 ## Later balancing
 
 Rerun the fixture for later economy features. Later balancing must revise an explicit scope, portion,
-cost assumption, or reward rate. It must keep the funding check true. It must not restore a task-index
-price ladder or a hidden multiplier. No waiting time is part of this economy.
+cost assumption, or menu price. It must keep the funding check true. Costs must not rise with the position
+of a preparation, and no reward multiplier is permitted. No waiting time is part of this economy.

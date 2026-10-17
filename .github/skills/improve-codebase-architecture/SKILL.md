@@ -15,7 +15,7 @@ description: Review Scary Snacks ownership, module boundaries, coupling, data fl
   Complete when each candidate has evidence, a rating, and a verification step.
 - **Implementation:** Use this mode only after the user tells you to make a named change.
   Inputs: the approved candidate and its scope.
-  Approval: the instruction of the user for that candidate. Repository skills do not increase it.
+  Approval: the instruction of the user for that candidate.
   Files to change: only the source code, the tests, and the owner documents in the approved scope.
   Output: the changed files and the checks.
   Complete when ownership, contracts, and tests agree, and the verification step of the candidate passes.
@@ -52,8 +52,7 @@ Give the file evidence for each problem.
 - One value, one owner: one function must give a value that the interface shows and the engine applies.
 
 Do not add a repository, service, manager, wrapper, port, or adapter for one operation.
-Do not add a runtime package, a backend, or a network call to another origin.
-`AGENTS.md` controls these limits.
+`AGENTS.md` gives the limits on packages, backends, and network calls.
 
 ## Rank the candidates
 
@@ -79,8 +78,7 @@ If you add, move, or remove a file, examine `runtimeFiles` in `tools/build.ts`.
 Examine the file list in `tools/export-source.ts` also.
 Update each list that names the file.
 
-Run `npm run typecheck` and `npm test` for the usual verification.
-For a change in the runtime files, run `npm run build` and then `npm run test:browser`.
+Run the checks that `AGENTS.md` gives for the scope.
 For the full gate, use [run-quality-gate](../run-quality-gate/SKILL.md).
 Obey the limits of the user on checks.
 In the report, give each check that you did not run.

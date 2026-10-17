@@ -11,7 +11,6 @@ description: Examine Scary Snacks in its production browser build. Use for evide
   Inputs: the contracts to examine and the build to use.
   Approval: the instruction to verify.
   Files to change: no tracked file. Update `docs/verification.md` only if the user tells you to update that record.
-  The build writes the ignored outputs `dist/` and `analysis/build-manifest.json`.
   Output: the report with a status for each contract.
   Complete when each applicable contract has a status.
 - **Repair:** Use this mode only if the user tells you directly to repair a defect.
@@ -55,7 +54,7 @@ Test pointer selection, drag input, the arrow keys, Enter, Space, and Escape.
 Test the save after a reload. Test export, import, and reset.
 Test a malformed save. The game must keep the stored data and show a recovery message.
 Test the Light, Dark, and System appearance modes and their persistence.
-Test the desktop and phone viewports that "The One Screen Rule" and the "Do" list in `DESIGN.md` name.
+Test the desktop and phone viewports that "The One Screen Rule" and "Required actions" in `DESIGN.md` name.
 Test the two fonts and each atlas tile.
 
 Use test assertions for state, stored values, roles, and names.

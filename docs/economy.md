@@ -134,7 +134,7 @@ The work estimates have these limits:
 - First menu: one small slate, chalk, and half an hour for text and pictures.
 - Supper menus: ten strong prints and simple stands cost approximately 40 coins.
   The labour includes movement of the existing long table into the courtyard.
-- Invitations: twenty small prints, the wreath, the lantern, and three geraniums in the painting.
+- Invitations: twenty small prints, the wreath on the kitchen door, the gate lantern, and the pots of red geraniums by the gate and on the wall.
   Existing towels stay in use. The estimate includes the gate decoration.
 - Final flowers: one outdoor light string, supplies to attach the string, and flowers in existing vases.
   The light string must be suitable for outdoor use.
@@ -177,7 +177,7 @@ Verify the source and the portion before a price revision.
 - [Herb plants](https://www.hornbach.ro/c/gradina/plante/fructe-legume-plante-aromatice/plante-aromatice/S19821/): approximately 18 lei for each small plant.
   The game uses rosemary, parsley, and lovage.
 - [Corund plate](https://www.invietraditia.ro/farfurie-ceramica-corund-albastru-cobalt-16-cm/): 60 lei for one small handmade plate.
-  [Corund sets](https://www.invietraditia.ro/arta-populara-romaneasca-si-obiecte-de-artizanat/ceramica-de-corund-korond/) inform the 159 lei allowance for six cups and saucers.
+  [Corund sets](https://www.invietraditia.ro/arta-populara-romaneasca-si-obiecte-de-artizanat/ceramica-de-corund-korond/) inform the 160 lei allowance for six cups and saucers.
   These examples inform the handmade tableware budget. The game does not use disposable plates.
 - [Outdoor light string](https://www.dedeman.ro/ro/ghirlanda-luminoasa-party-hoff-interior/-exterior-12-led-uri-multicolore-soclu-g45-10-5-m-controler/p/1051995): 104.89 lei for an outdoor example.
   The example informs the budget only. The game retains its warm lights.

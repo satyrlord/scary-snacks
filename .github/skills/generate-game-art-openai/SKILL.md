@@ -50,7 +50,6 @@ Get approval from the user before an additional request.
 A new asset identifier changes the request contract in `openai-api.ts` or the room states in `tools/create-original-data.ts`.
 Confirm that the approved scope includes the identifier before you add that identifier.
 A plan, a review, or a preview task does not approve a request or a shipping change.
-Repository skills do not increase the approval that the user gave.
 
 Do not repeat a request that finished or a request with an unknown result.
 Stop after a refusal, an authentication failure, or a timeout.

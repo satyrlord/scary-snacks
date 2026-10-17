@@ -82,8 +82,7 @@ Examine each possible finding before you put the finding in the report.
 
 In repair mode, repair only findings that have evidence and that the user approved.
 Add a regression test for each repair.
-For the usual verification, run `npm run typecheck` and `npm test`.
-For a repair in the runtime files, run `npm run build` and then `npm run test:browser`.
+Run the checks that `AGENTS.md` gives for the scope.
 For the full gate, use [run-quality-gate](../run-quality-gate/SKILL.md).
 Obey the limits of the user on checks.
 In the report, give each check that you did not run.

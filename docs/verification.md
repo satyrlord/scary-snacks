@@ -30,14 +30,14 @@ The files in `tests/` check the following areas.
 
 | Test files | Coverage |
 | --- | --- |
-| `engine.test.ts` | Production, merges, swaps, coin limits, preparation payment, room states, and game data validation. |
-| `storage.test.ts` | Save validation, size limits, export, import, reset, failed writes, recovery, invalid data, and preservation of earlier formats. |
+| `engine.test.ts` | Production, merges, swaps, the next source output, preparation payment, room states, and game data validation. |
+| `storage.test.ts` | Save validation, size limits, export, import, reset, failed writes, recovery, invalid data, saved output choices, and preservation of earlier formats. |
 | `decorations.test.ts` | Decoration slots, quest unlocks, finish choices, rejected choices, and saved choices. |
-| `economy.test.ts` | Menu prices, quest rewards, the rejected sale action, and work budgets. |
+| `economy.test.ts` | Menu prices, quest rewards, and work budgets. |
 | `campaign-goals.test.ts` | Required quests, coins, source space, failed payments, quest order, and sufficient campaign rewards. |
 | `campaign-balance.test.ts` | A complete campaign through valid actions, with accounts for actions and coins. |
-| `quests.test.ts` | Quest data, three tickets, authored order, delivery requirements, failed deliveries, and visitor order. |
-| `guests.test.ts` | Red wine requests, the shared vegetarian meal, guest departure, and later local news. |
+| `quests.test.ts` | Quest data, three tickets, authored order, delivery requirements, failed deliveries, the coin limit on delivery, and visitor order. |
+| `guests.test.ts` | Red wine requests, Ionatan's dinner and journal entry, the shared vegetarian meal, guest departure, and later local news. |
 | `regulars.test.ts` | Arrival pairs, arrival scenes, quest timing, favourite chains, the neighbours list, and cast validation. |
 | `board-clearing.test.ts` | Initial blockers, matching merges, blocked actions, placement space, discoveries, and saved progress. |
 | `preparation-blockers.test.ts` | Preparation batches, deferred placement, free space, source priority, saved history, failed writes, and retry. |
@@ -73,22 +73,22 @@ The files in `tests/browser/` check the following areas.
 
 | Test files | Coverage |
 | --- | --- |
-| `game.spec.ts` | Core play, themes, layout, input, focus, recipes, saves, asset paths, and concurrent tabs. |
-| `renovation.spec.ts` | Room checkpoints, room crops, area changes, pins, failed payments, and image failures. |
+| `game.spec.ts` | Core play, ticket rewards, the first paid preparation, themes, layout, input, focus, recipes, saves, load recovery, asset paths, and concurrent tabs. |
+| `renovation.spec.ts` | Room checkpoints, room crops, area changes, and pins. |
 | `decorations.spec.ts` | Finish switches, visible targets, keyboard focus, saved choices, failed writes, and concurrent tabs. |
 | `generators.spec.ts` | Upgrades, chosen outputs, Take controls, full boards, keyboard input, touch emulation, and geometry. |
-| `campaign-goals.spec.ts` | Rewards, work details, required quests, payment controls, and layout. |
+| `campaign-goals.spec.ts` | Work details, required quests, payment controls, and layout. |
 | `quests.spec.ts` | Tickets, request dialogs, dish help, deliveries, scenes, saves, focus, input, and concurrent tabs. |
 | `visitors.spec.ts` | Supply requests, visitor portraits, introductions, Ionatan's dinner, departure, and save failures. |
 | `guests.spec.ts` | Shared requests, both portraits, vegetarian requirements, local news, departure, and red wine. |
 | `board-clearing.spec.ts` | Blocked cells, labels, help, input, reload, and web removal at preparation 1. |
-| `preparation-blockers.spec.ts` | Payment, artwork, matching merges, deferred placement, reload, and layout. |
+| `preparation-blockers.spec.ts` | Payment, failed payment saves, artwork, matching merges, deferred placement, reload, and layout. |
 | `blocker-help.spec.ts` | Rule marks, matching ingredients, eligible targets, dismissed help, unchanged saves, contrast, and layout. |
 | `story.spec.ts` | Chapter goals, steps, scenes, reveals, saved lines, the finale, journal entries, focus, and layout. |
 | `guide.spec.ts` | The guided start, marked targets on desktop and phone, reload, completion after discovery and reveals, Skip, guest replay help, late saves, the finished campaign, failed writes, import, and layout. |
 | `portrait-framing.spec.ts` | Each portrait crop at ticket and dialogue sizes in both themes. |
 
-Play checks include pointer drag, keyboard input, selection, delivery, and the absence of a Sell control.
+Play checks include pointer drag, keyboard input, selection, and delivery.
 Room checks include reduced motion, failed image loads, and text that remains available after an image failure.
 Layout checks include the desktop and phone screens, the drawer, the phone bar, and 44px control targets.
 Theme checks include Light, Dark, System, and 4.5:1 contrast for main and muted text.

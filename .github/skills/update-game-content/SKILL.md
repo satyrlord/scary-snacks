@@ -44,9 +44,8 @@ Then update `PRODUCT.md`, `DELIVERY.md`, and the tests.
 
 ## Define the change
 
-Change the data only in `tools/create-original-data.ts`.
+Change the data only in `tools/create-original-data.ts`, as `AGENTS.md` tells you.
 Then run `npm run data:generate`.
-Do not edit `public/data/game.json` manually.
 Examine the diff of the generated file. Confirm that it contains only the approved change.
 
 Use stable identifiers.
@@ -61,7 +60,6 @@ The first four visitors use the two-by-two visitor portrait atlas.
 Characters with `portraitAtlas: 'guest'` use the two-by-two guest portrait atlas.
 Ten regulars use the two-by-two atlases `regulars-1`, `regulars-2`, and `regulars-3`, in order of arrival.
 The lower cells of `regulars-3` stay transparent.
-Vlad and Elisabeta use the guest atlas.
 Verify each assignment against `portraitAtlas` and `sprite` in the generator.
 The index goes from left to right, and then from top to bottom.
 A new item or a changed dish must have its own matching art.
@@ -69,7 +67,7 @@ Red wine uses a separate picture for `drinks_5`.
 Each preparation has one authored room state.
 A room state has an identifier that also names its painting.
 The state also gives its area and the preparation in `after`.
-It also has a focus, a pin mark, a label, and a description.
+It also has the fields `focus`, `mark`, `label`, and `text`.
 The state of the new game has `null` in `after`.
 The generator stops if an entry of `roomPaintings` in `src/engine.ts` has no approved master in `docs/asset-provenance.json`.
 Use [generate-game-art](../generate-game-art/SKILL.md) for new art. Make the name agree with the picture.
@@ -93,8 +91,7 @@ The campaign test shows this result for every preparation with no added resource
 `questProblems` checks that the quests that open before each preparation pay for it. A quest change must keep this check true.
 For each content defect that the validation did not find, add a regression test.
 
-Run `npm run typecheck` and `npm test`.
-For a change that the user can see, run `npm run build` and then `npm run test:browser`.
+Run the checks that `AGENTS.md` gives for the scope.
 For the full gate, use [run-quality-gate](../run-quality-gate/SKILL.md).
 Obey the limits of the user on checks.
 In the report, give each check that you did not run.

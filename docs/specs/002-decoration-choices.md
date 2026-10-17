@@ -33,7 +33,7 @@ Saves never supply an asset path.
 
 `src/engine.ts` owns `decorationChoices`, `resolveDecorations`, `decorationUnlocked`, validation, and the `decorate` action. The existing `decorations` list remains the prefix of completed preparations. `src/app.ts` owns the switch, the focus, and the save-before-apply boundary. `src/storage.ts` owns the current save format and key.
 
-Two full paintings supply the second finishes. The app clips each to its authored region. The 25 room paintings supply the defaults. Prompts, dimensions, hashes, agent review, and the acceptance of the user are in the asset records. The user accepted the two paintings.
+Two full paintings supply the second finishes. The app clips each to its authored region. The 25 room paintings supply the defaults. Prompts, dimensions, hashes, agent review, and the acceptance of the user are in the asset records.
 
 ## Save compatibility
 

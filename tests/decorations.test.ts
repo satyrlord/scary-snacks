@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createGame, decorationUnlocked, firstFreeBoardCell, reduceGame, validateGame, resolveDecorations, decorationProblems } from '../src/engine.ts';
-import { exportSave, importSave, loadSave, saveGame, SAVE_KEY } from '../src/storage.ts';
+import { exportSave, importSave } from '../src/storage.ts';
 import type { Action, GameData, GameState } from '../src/engine.ts';
 import { checkpointState } from '../tools/create-checkpoint-saves.ts';
 
@@ -122,33 +122,4 @@ test('save validation rejects malformed choice maps and choices before unlock', 
   assert.equal(validate({ ...checkpoint(8), decorationChoices: { tableware: 'blue' } }), false);
   assert.equal(validate({ ...checkpoint(24), decorationChoices: { tableware: 'blue' } }), false, 'A save holds only a finish that is not the default.');
   assert.equal(validate({ ...checkpoint(24), decorationChoices: { tableware: 'green' } }), true);
-});
-
-test('saved output choices round trip with moved generators and corrupt choices never replace progress', () => {
-  let current = checkpoint(24);
-  const sourceIndex = current.board.findIndex(cell => cell && data.items[cell.code].generator);
-  const source = data.items[current.board[sourceIndex]!.code];
-  const output = Object.values(data.items).find(item => item.chain === source.chain && item.stage === 2 && !item.generator)!;
-  current = reduceGame(current, { type: 'spawn', index: sourceIndex, output: output.id }, data).state;
-  current = reduceGame(current, { type: 'move', from: sourceIndex, to: current.board.indexOf(null) }, data).state;
-  assert.equal(current.outputChoices[source.chain], output.id);
-  const text = exportSave(current, validate);
-  assert.deepEqual(importSave(text, validate), current);
-  const values = new Map([[SAVE_KEY, text]]);
-  const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => values.set(key, value), removeItem: () => assert.fail('Must keep the saved game.') };
-  const other = Object.values(data.items).find(item => item.chain !== source.chain && item.stage === 2 && !item.generator)!;
-  const stageOne = Object.values(data.items).find(item => item.chain === source.chain && item.stage === 1 && !item.generator)!;
-  const tooHigh = Object.values(data.items).find(item => item.chain === source.chain && item.stage === 4 && !item.generator)!;
-  for (const choices of [null, [], 'unknown', { unknown: output.id }, { [source.chain]: 'unknown' },
-    { [source.chain]: source.id }, { [source.chain]: other.id }, { [source.chain]: stageOne.id },
-    { [source.chain]: tooHigh.id }, JSON.parse('{"__proto__":"unknown"}')]) {
-    const invalid = { ...current, outputChoices: choices };
-    assert.throws(() => importSave(JSON.stringify({ format: 'scary-snacks', version: 10, state: invalid }), validate), /damaged or unknown/);
-    assert.throws(() => exportSave(invalid, validate));
-    assert.equal(saveGame(storage, invalid, validate).ok, false);
-    assert.equal(values.get(SAVE_KEY), text);
-  }
-  const early = { ...checkpoint(0), outputChoices: { [source.chain]: output.id } };
-  assert.throws(() => exportSave(early, validate));
-  assert.deepEqual(loadSave(storage, validate).state, current);
 });

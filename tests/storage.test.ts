@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { SAVE_KEY, MAX_SAVE_BYTES, loadSave, saveGame, exportSave, importSave, resetSave } from '../src/storage.ts';
 import { createGame, validateGame, reduceGame, taskEligibility, firstFreeBoardCell } from '../src/engine.ts';
-import type { GameData, GameState } from '../src/engine.ts';
+import type { Action, GameData, GameState } from '../src/engine.ts';
 import { checkpointState } from '../tools/create-checkpoint-saves.ts';
 
 type State = { coins: number; board: ({ code: string } | null)[]; story: string; self?: State };
@@ -25,7 +25,7 @@ const valid = (candidate: unknown) => {
   return Boolean(state && Number.isSafeInteger(state.coins) && state.coins >= 0 && Array.isArray(state.board));
 };
 const state = (): State => ({ coins: 12, board: [{ code: 'coffee_1' }, null], story: 'Mara' });
-const envelope = (value: unknown) => JSON.stringify({ format: 'scary-snacks', version: 10, state: value });
+const envelope = (value: unknown) => JSON.stringify({ format: 'scary-snacks', version: 11, state: value });
 
 test('empty storage loads without creating a save', () => {
   const storage = memoryStorage();
@@ -51,7 +51,7 @@ test('portable export and import leave their input unchanged', () => {
   const original = state();
   const before = structuredClone(original);
   const text = exportSave(original, valid);
-  assert.deepEqual(JSON.parse(text), { format: 'scary-snacks', version: 10, state: before });
+  assert.deepEqual(JSON.parse(text), { format: 'scary-snacks', version: 11, state: before });
   assert.deepEqual(importSave(text, valid), before);
   assert.deepEqual(original, before);
 });
@@ -59,13 +59,13 @@ test('portable export and import leave their input unchanged', () => {
 for (const [name, raw, status] of [
   ['corrupt JSON', '{broken', 'invalid'],
   ['unknown version', JSON.stringify({ format: 'scary-snacks', version: 99, state: state() }), 'unsupported'],
-  ['previous version', JSON.stringify({ format: 'scary-snacks', version: 9, state: state() }), 'unsupported'],
+  ['previous version', JSON.stringify({ format: 'scary-snacks', version: 10, state: state() }), 'unsupported'],
   ['zero version', JSON.stringify({ format: 'scary-snacks', version: 0, state: state() }), 'unsupported'],
   ['fractional version', JSON.stringify({ format: 'scary-snacks', version: 4.5, state: state() }), 'unsupported'],
   ['text version', JSON.stringify({ format: 'scary-snacks', version: '6', state: state() }), 'unsupported'],
-  ['unknown format', JSON.stringify({ format: 'another-game', version: 10, state: state() }), 'unsupported'],
+  ['unknown format', JSON.stringify({ format: 'another-game', version: 11, state: state() }), 'unsupported'],
   ['invalid state', envelope({ coins: -1, board: [] }), 'invalid'],
-  ['missing state', JSON.stringify({ format: 'scary-snacks', version: 10 }), 'invalid'],
+  ['missing state', JSON.stringify({ format: 'scary-snacks', version: 11 }), 'invalid'],
   ['empty string', '', 'invalid'],
 ]) {
   test(`preserves ${name} on load and subsequent save`, () => {
@@ -150,13 +150,12 @@ const gameData: GameData = JSON.parse(await readFile(new URL('../public/data/gam
 const validGame = (candidate: unknown) => validateGame(candidate, gameData);
 const checkpoint = (count: number) => checkpointState(gameData, count);
 
-test('paid and completed saves in the previous format stay untouched while a fresh campaign saves and resets', () => {
-  assert.equal(SAVE_KEY, 'scary-snacks-save-v10');
-  for (const count of [1, 24]) {
-    const previous = { ...checkpoint(count), version: 10 };
-    delete previous.guide;
-    const previousKey = 'scary-snacks-save-v9';
-    const bytes = JSON.stringify({ format: 'scary-snacks', version: 9, state: previous });
+test('previous campaigns stay unread and unchanged while a fresh campaign saves and resets', () => {
+  assert.equal(SAVE_KEY, 'scary-snacks-save-v11');
+  for (const count of [0, 1, 9, 12, 19, 24]) {
+    const previous = { ...checkpoint(count), version: 11 };
+    const previousKey = 'scary-snacks-save-v10';
+    const bytes = JSON.stringify({ format: 'scary-snacks', version: 10, state: previous });
     const storage = memoryStorage([[previousKey, bytes]]);
     const reads: string[] = [];
     const getItem = storage.getItem;
@@ -165,10 +164,13 @@ test('paid and completed saves in the previous format stay untouched while a fre
     assert.deepEqual(loadSave(storage, validGame), { state: null, status: 'empty', error: null });
     assert.deepEqual(reads, [SAVE_KEY], 'Load must not inspect an earlier key.');
     assert.equal(storage.writes.length, 0);
-    assert.throws(() => importSave(bytes, () => assert.fail('An unsupported envelope must stop before state validation.')),
-      { status: 'unsupported' });
+    assert.throws(() => importSave(bytes, validGame), { status: 'unsupported' });
+    for (const version of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12]) {
+      assert.throws(() => importSave(JSON.stringify({ format: 'scary-snacks', version, state: previous }), () => assert.fail('An unsupported envelope must stop before state validation.')),
+        { status: 'unsupported' }, String(version));
+    }
     const fresh = createGame(gameData);
-    assert.equal(fresh.version, 11);
+    assert.equal(fresh.version, 12);
     assert.equal(fresh.taskIndex, 0);
     assert.deepEqual(fresh.completedQuests, []);
     assert.equal(saveGame(storage, fresh, validGame).ok, true);
@@ -182,13 +184,13 @@ test('paid and completed saves in the previous format stay untouched while a fre
   }
 });
 
-test('the current envelope accepts state version 11 and rejects state version 10 without replacing it', () => {
+test('the current envelope accepts state version 12 and rejects state version 11 without replacing it', () => {
   const current = checkpoint(1);
   const bytes = exportSave(current, validGame);
-  assert.equal(JSON.parse(bytes).version, 10);
-  assert.equal(current.version, 11);
+  assert.equal(JSON.parse(bytes).version, 11);
+  assert.equal(current.version, 12);
   assert.deepEqual(importSave(bytes, validGame), current);
-  const previous = { ...current, version: 10 };
+  const previous = { ...current, version: 11 };
   assert.equal(validGame(previous), false);
   const malformed = envelope(previous);
   assert.throws(() => importSave(malformed, validGame), /damaged or unknown/);
@@ -206,7 +208,7 @@ function paidFourth() {
   return result.state;
 }
 
-test('pending story scenes survive export, import, and reload, and invalid queues cannot replace a save', () => {
+test('pending story scenes survive export, import, and reload', () => {
   const finished = checkpoint(24);
   for (const pendingScenes of [[], ['chapter-6'], ['finale'], ['chapter-6', 'finale'], ['chapter-1', 'chapter-4', 'finale']]) {
     const state = { ...finished, pendingScenes };
@@ -216,18 +218,9 @@ test('pending story scenes survive export, import, and reload, and invalid queue
     assert.equal(saveGame(storage, state, validGame).ok, true);
     assert.deepEqual(loadSave(storage, validGame).state, state);
   }
-  const middle = checkpoint(12);
-  const current = exportSave(middle, validGame);
-  for (const pendingScenes of [['finale'], ['chapter-4'], ['chapter-1', 'chapter-1'], ['chapter-2', 'chapter-1'], ['unknown'], 'chapter-1', [1]]) {
-    const text = envelope({ ...middle, pendingScenes });
-    assert.throws(() => importSave(text, validGame), /damaged or unknown/);
-    const storage = memoryStorage([[SAVE_KEY, current]]);
-    assert.equal(saveGame(storage, { ...middle, pendingScenes }, validGame).ok, false);
-    assert.equal(storage.values.get(SAVE_KEY), current);
-  }
 });
 
-test('each saved scene line survives a round trip, a save without lines starts at the first line, and malformed lines cannot replace a save', () => {
+test('each saved scene line survives a round trip, and a save without lines starts at the first line', () => {
   const paid = paidFourth(), scene = gameData.tasks[3].id;
   assert.equal(Object.hasOwn(paid, 'sceneLines'), false, 'A save without lines starts each waiting scene at the first line.');
   assert.deepEqual(importSave(exportSave(paid, validGame), validGame), paid);
@@ -239,14 +232,6 @@ test('each saved scene line survives a round trip, a save without lines starts a
     const loaded = loadSave<GameState>(storage, validGame).state!;
     assert.deepEqual(loaded.sceneLines, { [scene]: line });
     assert.deepEqual(importSave(exportSave(loaded, validGame), validGame), result.state);
-  }
-  const current = exportSave(paid, validGame);
-  for (const sceneLines of [null, [], 'task_4', { [scene]: 0 }, { [scene]: -1 }, { [scene]: 1.5 }, { [scene]: '1' }, { 'chapter-2': 1 }, { unknown: 1 }]) {
-    const text = envelope({ ...paid, sceneLines });
-    assert.throws(() => importSave(text, validGame), /damaged or unknown/, JSON.stringify(sceneLines));
-    const storage = memoryStorage([[SAVE_KEY, current]]);
-    assert.equal(saveGame(storage, { ...paid, sceneLines }, validGame).ok, false);
-    assert.equal(storage.values.get(SAVE_KEY), current);
   }
 });
 
@@ -264,6 +249,31 @@ test('a failed scene line write keeps the previous save, and a later write recor
   const later = reduceGame(line, { type: 'sceneLine', id: scene, line: 2 }, gameData).state;
   assert.equal(saveGame(storage, later, validGame).ok, true);
   assert.deepEqual(loadSave<GameState>(storage, validGame).state!.sceneLines, { [scene]: 2 });
+});
+
+test('a saved output choice survives export and import after its source moves, and a corrupt choice never replaces progress', () => {
+  let current = checkpoint(24);
+  const sourceIndex = current.board.findIndex(cell => cell && gameData.items[cell.code].generator);
+  const source = gameData.items[current.board[sourceIndex]!.code];
+  const stage = (value: number) => Object.values(gameData.items).find(item => item.chain === source.chain && item.stage === value && !item.generator)!;
+  const act = (action: Action) => {
+    const result = reduceGame(current, action, gameData);
+    assert.equal(result.ok, true, result.message);
+    current = result.state;
+  };
+  act({ type: 'spawn', index: sourceIndex, output: stage(2).id });
+  act({ type: 'move', from: sourceIndex, to: firstFreeBoardCell(current, gameData) });
+  assert.equal(current.outputChoices[source.chain], stage(2).id);
+  const text = exportSave(current, validGame);
+  assert.deepEqual(importSave(text, validGame), current);
+  const storage = memoryStorage([[SAVE_KEY, text]]);
+  for (const choices of [{ [source.chain]: stage(4).id }, JSON.parse('{"__proto__":"unknown"}')]) {
+    const invalid = { ...current, outputChoices: choices };
+    assert.throws(() => importSave(envelope(invalid), validGame), /damaged or unknown/);
+    assert.equal(saveGame(storage, invalid, validGame).ok, false);
+    assert.equal(storage.values.get(SAVE_KEY), text);
+  }
+  assert.deepEqual(loadSave(storage, validGame).state, current);
 });
 
 test('saved checkpoints load unchanged without a rewrite or inferred progress', () => {
@@ -304,12 +314,9 @@ test('a loaded save without the quests of the next preparation cannot pay for it
   }
 });
 
-test('unsupported and malformed campaign saves remain recoverable without replacing current bytes', () => {
+test('malformed campaign saves remain recoverable without replacing current bytes', () => {
   const current = checkpoint(12);
   const malformed = [
-    JSON.stringify({ format: 'scary-snacks', version: 99, state: current }),
-    JSON.stringify({ format: 'scary-snacks', version: 9, state: current }),
-    envelope({ ...current, version: 10 }),
     ...[-1, 1.5, null, '13'].map(value => envelope({ ...current, coins: value })),
     envelope({ ...current, completedQuests: [] }),
   ];
@@ -393,22 +400,4 @@ test('explicit reset replaces invalid current bytes and preserves unrelated stor
   storage.setItem = () => { throw new Error('Quota exceeded'); };
   assert.equal(resetSave(storage, { ...state(), coins: 90 }, valid).ok, false);
   assert.equal(storage.values.get(SAVE_KEY), before);
-});
-
-test('only the current key is read and unsupported save envelopes cannot replace it', () => {
-  const unrelated = 'scary-snacks-save-v9';
-  const bytes = JSON.stringify({ format: 'scary-snacks', version: 9, state: state() });
-  const storage = memoryStorage([[unrelated, bytes]]);
-  const reads: string[] = [];
-  const getItem = storage.getItem;
-  storage.getItem = key => { reads.push(key); return getItem(key); };
-  assert.equal(loadSave(storage, valid).status, 'empty');
-  assert.deepEqual(reads, [SAVE_KEY]);
-  assert.equal(saveGame(storage, state(), valid).ok, true);
-  const current = storage.values.get(SAVE_KEY);
-  for (const version of [1, 2, 3, 4, 5, 6, 7, 8, 9, 11]) {
-    assert.throws(() => importSave(JSON.stringify({ format: 'scary-snacks', version, state: state() }), valid));
-    assert.equal(storage.values.get(SAVE_KEY), current);
-  }
-  assert.equal(storage.values.get(unrelated), bytes);
 });

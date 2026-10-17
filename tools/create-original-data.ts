@@ -51,14 +51,14 @@ const characters: Character[] = [
     description: 'A reserved young adult with fair skin, neat side-parted chestnut hair, a clean-shaven face, a charcoal travel suit, a cream shirt, a burgundy cravat, and a leather document folio.',
     introduction: 'I am Ionatan, a property agent from another country. I am travelling to the nearby castle to close a real-estate deal with a local noble. I have time for one proper dinner before I leave.' },
   { id: 'vlad', name: 'Vlad', role: 'Local baron', portraitAtlas: 'guest', sprite: 0, regular: true,
-    prefers: ['warm', 'drinks'], arrivesAfter: 'task_15',
+    prefers: ['warm', 'drinks'], arrivesAfter: 'task_8',
     arrival: [{ speaker: 'mara', text: 'A carriage has stopped at the gate. Count Vlad sends word that he will dine with us tonight.' },
-      { speaker: 'vlad', text: 'Baron, officially. Count, in spirit. Your new door hood keeps the rain off very well. I dislike the sun, and I dislike the rain only a little less.' }],
+      { speaker: 'vlad', text: 'Baron, officially. Count, in spirit. I read your new chalk menu by lamplight from my carriage. I dislike the sun, so I approve of a bistro that serves supper late.' }],
     description: 'A reserved local baron with long dark hair, a narrow moustache, a red velvet cap with a gold jewel, a dark red court coat, and a fur collar. He styles himself as a count and lives in a castle in the countryside.',
     introduction: 'Count Vlad, if you please. My castle is outside the village, so I seldom dine here. A meat dish and red wine will suit me. The country roads have given me quite an appetite.' },
   { id: 'elisabeta', name: 'Elisabeta', role: 'Visiting countess', portraitAtlas: 'guest', sprite: 1, regular: true,
-    prefers: ['warm', 'drinks'], arrivesAfter: 'task_15',
-    arrival: [{ speaker: 'eszter', text: 'Countess Elisabeta is visiting her land again. She asked whether our courtyard is quiet.' },
+    prefers: ['warm', 'drinks'], arrivesAfter: 'task_8',
+    arrival: [{ speaker: 'eszter', text: 'Countess Elisabeta is visiting her land again. She asked whether our front room is quiet.' },
       { speaker: 'elisabeta', text: 'Quiet, clean, and well lit. I shall read my estate papers here with a glass of red wine. Red suits me. It always has.' }],
     description: 'An Austro-Hungarian countess with fair skin, neatly dressed dark hair beneath a white lace headdress, a high white ruff, pearls, and a rich dark red gown. She sometimes visits her land near the village.',
     introduction: 'I am Countess Elisabeta. I have land nearby, though my visits are infrequent. Please bring a meat dish and red wine. I shall review the estate papers after dinner.' },
@@ -230,7 +230,7 @@ const workRows: [materials: number, labour: number, hours: number, summary: stri
   [90, 60, 2, 'Prepare twelve small tasting portions and labels. Use the plates and bowls already bought.'],
   [160, 40, 1, 'Buy the first drinks, fruit, and tea stock and labels. Use the existing niche, pitcher, cups, and glasses.'],
   [40, 80, 2, 'Print ten sturdy supper menus and add simple stands. Move the existing long table into the courtyard.'],
-  [160, 60, 2, 'Print twenty small invitations. Dress the gate with a wreath, lantern, and three geraniums. Reuse the towels.'],
+  [160, 60, 2, 'Print twenty small invitations. Hang a wreath on the kitchen door. Dress the gate with a lantern and pots of red geraniums, and line the wall with more. Reuse the towels.'],
   [120, 80, 2, 'Set the existing serving table with a cloth and labels. Prepare the first warm dishes and bread. Reuse the plates.'],
   [120, 60, 1.5, 'Hang one outdoor light string. Arrange gathered wildflowers in existing vases.'],
   [60, 60, 2, 'Top up bread, water, and food for twelve guests. Finish setting places and welcome everyone. Reuse the prepared room and tableware.'],
@@ -246,7 +246,8 @@ const tasks: Task[] = taskRows.map(([title, a, at, b, bt, c, ct], index) => {
 });
 // The quest campaign. A quest in window w opens after preparation w (0: in a new game), and preparation w + 1 needs it.
 // Every quest pays the menu value of its dishes. Each preparation is paid by the quests that open before it; questProblems checks the funds.
-const menuValue = (requirements: [string, number][]) => requirements.reduce((sum, [item, quantity]) => sum + items[item].price * quantity, 0);
+const request = (rows: [string, number][]) => ({ requirements: rows.map(([item, quantity]) => ({ item, quantity })),
+  reward: rows.reduce((sum, [item, quantity]) => sum + items[item].price * quantity, 0) });
 const lines = (speaker: string, text: string) => [{ speaker, text }];
 type QuestRow = [id: string, character: string, title: string, window: number, requirements: [string, number][], opening: string, completion: string];
 // The four core arcs keep their requests. The regulars ask for dishes from their favourite chains.
@@ -356,13 +357,13 @@ const questRows: QuestRow[] = [
   ['victor-thesis', 'victor', 'The thesis supper', 14, [['warm_5', 1], ['drinks_4', 2]],
     'I finished my thesis at three in the morning, during a thunderstorm. Cabbage rolls and cherry compote, please. We are celebrating.',
     'My thesis passed. The examiners said it has a life of its own. I am choosing to take that as praise.'],
-  ['vlad-after-dark', 'vlad', 'Dinner after dark', 15, [['warm_5', 1], ['drinks_5', 1]],
+  ['vlad-after-dark', 'vlad', 'Dinner after dark', 8, [['warm_5', 1], ['drinks_5', 1]],
     'I dine only after sunset. An old family habit. Cabbage rolls and a carafe of red wine, if you please.',
     'Excellent. The wine is exactly the right shade of red. I am very particular about red.'],
-  ['elisabeta-papers', 'elisabeta', 'The estate papers', 15, [['warm_5', 1], ['drinks_5', 1]],
+  ['elisabeta-papers', 'elisabeta', 'The estate papers', 8, [['warm_5', 1], ['drinks_5', 1]],
     'I have estate papers to read tonight. Cabbage rolls and red wine, please. Red helps me concentrate.',
     'The papers are in order. My neighbour’s boundary has moved a little toward my land. How odd.'],
-  ['vlad-guest', 'vlad', 'A guest at the castle', 15, [['warm_6', 1], ['drinks_5', 2]],
+  ['vlad-guest', 'vlad', 'A guest at the castle', 8, [['warm_6', 1], ['drinks_5', 2]],
     'A guest from abroad comes to my castle soon, on a matter of property. I must give him a goulash pot and plenty of red wine. First impressions matter.',
     'Splendid. My guest will feel very welcome. Nobody ever wants to leave my castle. Nobody ever does.'],
   ['cezar-castle-lights', 'cezar', 'Lights on the hill', 16, [['warm_4', 2], ['produce_3', 1]],
@@ -386,7 +387,7 @@ const questRows: QuestRow[] = [
   ['dorian-birthday', 'dorian', 'A quiet birthday', 20, [['sweet_5', 1], ['drinks_5', 1]],
     'It is my birthday. I will not say which one. A cozonac and a glass of red wine, please, and no candles. There are never enough.',
     'Thank you. The portrait in my attic sends its regards. It had a much harder day than I did.'],
-  ['elisabeta-bath', 'elisabeta', 'An evening at the manor', 20, [['warm_6', 1], ['drinks_5', 2]],
+  ['elisabeta-bath', 'elisabeta', 'An evening at the manor', 15, [['warm_6', 1], ['drinks_5', 2]],
     'I am taking the evening off for a long bath at my manor. Afterwards, a goulash pot and two carafes of red wine. Do not ask what is in the bath. Rose petals. Only rose petals.',
     'Wonderful. My maids say that I look younger every year. I tell them that it is the goulash.'],
   ['ileana-towels', 'ileana', 'Towels for the gate', 21, [['produce_5', 1], ['drinks_4', 1], ['bakery_4', 1]],
@@ -467,8 +468,7 @@ const finishes: Record<string, Quest['unlocks']> = {
   'eszter-green-bowls': { slot: 'tableware', variant: 'green' }, 'ileana-blue-cloth': { slot: 'textiles', variant: 'blue' }, 'sanziana-lilacs': { slot: 'flowers', variant: 'lilacs' },
 };
 const campaign: { window: number; quest: Quest }[] = questRows.map(([id, character, title, window, requirements, opening, completion]) => ({ window, quest: {
-  id, character, title, afterTask: window ? `task_${window}` : null, requirements: requirements.map(([item, quantity]) => ({ item, quantity })),
-  reward: menuValue(requirements), opening: lines(character, opening), completion: lines(character, completion),
+  id, character, title, afterTask: window ? `task_${window}` : null, ...request(requirements), opening: lines(character, opening), completion: lines(character, completion),
   ...(finishes[id] ? { unlocks: finishes[id] } : {}) } }));
 // The travellers return three times each, in one shared sequence, at fixed places in the campaign.
 const visitorRows: QuestRow[] = [
@@ -502,17 +502,14 @@ const visitorRows: QuestRow[] = [
 ];
 for (const [index, [id, character, title, window, requirements, opening, completion]] of visitorRows.entries()) {
   campaign.push({ window, quest: { id, character, title, afterTask: `task_${window}`, ...(index ? { afterQuest: visitorRows[index - 1][0] } : {}),
-    requirements: requirements.map(([item, quantity]) => ({ item, quantity })), reward: menuValue(requirements), opening: lines(character, opening), completion: lines(character, completion) } });
+    ...request(requirements), opening: lines(character, opening), completion: lines(character, completion) } });
 }
-campaign.push({ window: 16, quest: { id: 'ionatan-castle-dinner', character: 'ionatan', title: 'Dinner before the castle', afterTask: 'task_16', afterQuest: 'vlad-guest',
-  requirements: [{ item: 'warm_6', quantity: 1 }, { item: 'produce_6', quantity: 1 }, { item: 'sweet_6', quantity: 1 }, { item: 'drinks_6', quantity: 1 }],
-  reward: menuValue([['warm_6', 1], ['produce_6', 1], ['sweet_6', 1], ['drinks_6', 1]]),
+campaign.push({ window: 9, quest: { id: 'ionatan-castle-dinner', character: 'ionatan', title: 'Dinner before the castle', afterTask: 'task_9', afterQuest: 'vlad-guest',
+  ...request([['warm_6', 1], ['produce_6', 1], ['sweet_6', 1], ['drinks_6', 1]]),
   opening: [{ speaker: 'ionatan', text: 'I have come from abroad to close a real-estate deal with a local noble at the nearby castle. Before I continue, I would like a proper dinner: a goulash pot, a sharing board, a chimney cake, and plum brandy.' }],
   completion: [{ speaker: 'ionatan', text: 'An excellent dinner. Here is the payment, with my thanks. My papers are in order, and I must leave for the castle now. My journey takes me on from there, so I will not return. Farewell.' }] } });
-const searchRequirements = [{ item: 'bakery_5', quantity: 2 }, { item: 'produce_3', quantity: 2 }, { item: 'warm_4', quantity: 1 }, { item: 'drinks_3', quantity: 2 }];
-campaign.push({ window: 17, quest: { id: 'mina-avram-search', character: 'mina', companions: ['avram'], title: 'A meal before the search', afterTask: 'task_17',
-  afterQuest: 'ionatan-castle-dinner', requirements: searchRequirements,
-  reward: searchRequirements.reduce((sum, { item, quantity }) => sum + items[item].price * quantity, 0),
+campaign.push({ window: 10, quest: { id: 'mina-avram-search', character: 'mina', companions: ['avram'], title: 'A meal before the search', afterTask: 'task_10',
+  afterQuest: 'ionatan-castle-dinner', ...request([['bakery_5', 2], ['produce_3', 2], ['warm_4', 1], ['drinks_3', 2]]),
   opening: [{ speaker: 'mina', text: 'Ionatan is my fiancé. He came from Britain to sign a property contract at the castle, but he has not written back. Have you seen him?' },
     { speaker: 'mara', text: 'He had dinner here and left for the castle. He has not returned to the bistro.' },
     { speaker: 'avram', text: 'Then Mina and I will follow that road together. Before we leave, could you prepare a meal for two? We will both eat vegetarian food.' },
@@ -596,10 +593,10 @@ initial[22] = 'warm_1';
 initial[27] = 'drinks_1';
 const layouts: BoardLayout[] = [
   { id: 'workbench-clutter-1', obstacles: [
-    { id: 'old-crate', position: 0, name: 'Old crate', type: 'clutter', ingredient: 'bakery_3' },
-    { id: 'tied-sack', position: 5, name: 'Tied sack', type: 'clutter', ingredient: 'warm_2' },
-    { id: 'covered-crock', position: 36, name: 'Covered crock', type: 'clutter', ingredient: 'drinks_2' },
-    { id: 'linen-bundle', position: 41, name: 'Linen bundle', type: 'clutter', ingredient: 'bakery_2' },
+    { id: 'old-crate', position: 0, name: 'Old crate', type: 'clutter', ingredient: 'bakery_3', sprite: 0 },
+    { id: 'tied-sack', position: 5, name: 'Tied sack', type: 'clutter', ingredient: 'warm_2', sprite: 1 },
+    { id: 'covered-crock', position: 36, name: 'Covered crock', type: 'clutter', ingredient: 'drinks_2', sprite: 2 },
+    { id: 'linen-bundle', position: 41, name: 'Linen bundle', type: 'clutter', ingredient: 'bakery_2', sprite: 3 },
     { id: 'tied-dough', position: 6, name: 'Tied dough', type: 'anchored', ingredient: 'bakery_2' },
     { id: 'tied-cornmeal', position: 11, name: 'Tied cornmeal', type: 'anchored', ingredient: 'warm_1' },
     { id: 'tied-elderflowers', position: 37, name: 'Tied elderflowers', type: 'anchored', ingredient: 'drinks_1' },
@@ -719,7 +716,7 @@ const preparations: PreparationObstacleBatch[] = [
   ] },
 ];
 const data: GameData = {
-  title: 'Scary Snacks', board: { columns: 6, rows: 7, initial, defaultLayout: 'workbench-clutter-1', layouts, preparations },
+  board: { columns: 6, rows: 7, initial, defaultLayout: 'workbench-clutter-1', layouts, preparations },
   chains: chains.map(([id, name]) => ({ id, name })), items, characters, chapters, finale, tasks, areas, rooms, decorationSlots, quests,
   generatorTiers: chains.flatMap(([chain]) => [{ chain, stage: 2, after: 'task_12' }, { chain, stage: 3, after: 'task_20' }]),
 };

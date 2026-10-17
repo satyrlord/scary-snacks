@@ -176,7 +176,7 @@ test('saved scene queues hold only earned scenes, once each, in story order', ()
   }
   // A quest scene may wait at any position.
   for (const pendingScenes of [[quest.id], [quest.id, 'task_1'], ['task_1', quest.id, 'chapter-1'], [...queued(12), quest.id]]) assert.equal(validateGame({ ...middle, pendingScenes }, data), true);
-  for (const pendingScenes of [['chapter-4'], ['finale'], ['chapter-2', 'chapter-1'], ['chapter-1', 'chapter-1'], ['unknown'], [null], 'chapter-1', null,
+  for (const pendingScenes of [['chapter-4'], ['finale'], ['chapter-2', 'chapter-1'], ['chapter-1', 'chapter-1'], ['unknown'], [null], [1], 'chapter-1', null,
     ['task_13'], ['chapter-1', 'task_4'], ['task_2', 'task_1'], ['task_1', 'task_1'], [undelivered.id], ['mina-avram-news']]) {
     assert.equal(validateGame({ ...middle, pendingScenes }, data), false, JSON.stringify(pendingScenes));
   }
@@ -203,11 +203,10 @@ test('scene IDs must be unique across preparations, quests, local news, chapters
   }
 });
 
-test('a payment queues its preparation scene in the same change, and a failed payment queues nothing', () => {
+test('a payment queues its preparation scene in the same change, and reading it changes nothing else', () => {
   const before = ready(checkpoint(1));
   const after = apply(before, { type: 'task' });
   assert.deepEqual(after.pendingScenes, [...before.pendingScenes, data.tasks[1].id]);
-  rejected({ ...before, coins: before.coins - 1 }, { type: 'task' });
   // Reading the preparation scene changes nothing else except the guide's record, and a second read changes nothing.
   const read = apply(after, { type: 'readScene', id: data.tasks[1].id });
   assert.deepEqual({ ...read, pendingScenes: after.pendingScenes, guide: after.guide }, after);

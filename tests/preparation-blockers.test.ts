@@ -75,10 +75,16 @@ test('payment places a batch once and preserves existing items and quest progres
   assert.equal(boardObstacles(next, data)[0].context, data.board.preparations[0].context);
 });
 
-test('failed payment leaves blockers, queued batches, and the input state unchanged', () => {
-  const state = ready(); state.coins = 0;
+test('failed payment leaves placed blockers, queued batches, and the input state unchanged', () => {
+  let state = act(full(ready()), { type: 'task' });
+  for (let count = 0; count < 4; count++) state = mergeOne(state);
+  state.completedQuests = requiredQuests(state.taskIndex, data).map(quest => quest.id);
+  state.coins = 0;
+  assert.equal(active(state).length, 1);
+  assert.equal(pendingPreparationObstacles(state, data).length, 1);
   const before = structuredClone(state), result = reduceGame(state, { type: 'task' }, data);
   assert.equal(result.ok, false);
+  assert.match(result.message, /more coins/);
   assert.equal(result.state, state);
   assert.deepEqual(state, before);
 });

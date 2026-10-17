@@ -92,14 +92,14 @@ Adrian, Monica, and Janos each return for three supply requests. Their nine visi
 
 ## Single-visit dinner
 
-Ionatan is a foreign real estate agent. His only quest, `ionatan-castle-dinner`, opens after preparation 16 and after Vlad's quest "A guest at the castle" (`vlad-guest`). It needs one goulash pot, one sharing board, one chimney cake, and one plum brandy. The dinner pays its menu value of 220 coins. It is independent of the traveller sequence.
+Ionatan is a foreign real estate agent. His only quest, `ionatan-castle-dinner`, opens after preparation 9 and after Vlad's quest "A guest at the castle" (`vlad-guest`). It needs one goulash pot, one sharing board, one chimney cake, and one plum brandy. The dinner pays its menu value of 220 coins. It is independent of the traveller sequence.
 
 His introduction appears only while his request is open. Delivery records the quest ID once and queues his farewell in Story. His introduction and quest replays are then absent from the journal. Reload and export/import preserve his completed visit. A new game permits another visit. A failed write keeps the departure in the session; reload restores only durable progress.
 
 ## Shared search visit
 
 Mina and Doctor Avram share one visit per save. Their quest, `mina-avram-search`, has `mina` as its character and `avram` as its companion.
-It opens after preparation 17 and delivery of Ionatan's dinner.
+It opens after preparation 10 and delivery of Ionatan's dinner.
 The request needs two zacuscă toasts, two roasted vegetable plates, one smoked cheese plate, and two fruit teas.
 The meal is vegetarian. It has a menu value of 168 coins and pays 168 coins.
 

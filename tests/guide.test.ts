@@ -37,7 +37,7 @@ function memoryStorage() {
     removeItem: (key: string) => { values.delete(key); } };
 }
 
-test('a new game starts an active guide at its first step, and the guide gives no resources', () => {
+test('a new game starts an active guide at its first step', () => {
   const state = createGame(data);
   assert.deepEqual(state.guide, { status: 'active', stage: 'merge', done: { merge: false, take: false, deliver: false, prepare: false, story: false } });
   assert.equal(validate(state), true);
@@ -174,7 +174,7 @@ test('new, active, dismissed, and complete guides survive export, import, and re
     assert.equal(saveGame(storage, state, validate).ok, true);
     assert.deepEqual(loadSave(storage, validate).state, state);
   }
-  const malformed = JSON.stringify({ format: 'scary-snacks', version: 10, state: { ...createGame(data), guide: { status: 'complete', stage: 'merge', done: createGame(data).guide!.done } } });
+  const malformed = JSON.stringify({ format: 'scary-snacks', version: 11, state: { ...createGame(data), guide: { status: 'complete', stage: 'merge', done: createGame(data).guide!.done } } });
   assert.throws(() => importSave(malformed, validate), /damaged or unknown/);
 });
 

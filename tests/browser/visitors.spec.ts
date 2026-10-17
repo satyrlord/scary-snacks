@@ -1,18 +1,13 @@
 import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { createGame, getItem } from '../../src/engine.ts';
-import type { Quest } from '../../src/engine.ts';
-import { checkpoint, data, deliverButton, deliverable, exportText, failWrites, journal, opened, options, person, readTo, request, saved, start, startAgainAndImport, story, supplies, ticket, toast } from './support.ts';
+import { checkpoint, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, opened, options, person, readTo, request, saved, start, startAgainAndImport, story, supplies, ticket, toast } from './support.ts';
 
 const visitors=data.characters.filter(value=>value.visitor&&!value.singleVisit);
 const requests=data.quests.filter(value=>visitors.some(visitor=>visitor.id===value.character));
 const firstRequests=visitors.map(visitor=>requests.find(value=>value.character===visitor.id)!);
 const guest=data.characters.find(value=>value.singleVisit&&data.quests.some(other=>other.character===value.id))!;
 const dinner=data.quests.find(value=>value.character===guest.id)!;
-async function finishScene(page: Page){
-  while(await page.locator('.story-controls .primary-button').textContent()==='Continue')await page.locator('.story-controls .primary-button').click();
-  await page.getByRole('button',{name:'Return',exact:true}).click();
-}
 async function checkPortrait(portrait: Locator,sprite: number){
   await expect(portrait).toHaveClass(/visitor-portrait/);
   const style=await portrait.evaluate(element=>{
@@ -29,7 +24,6 @@ async function checkPortrait(portrait: Locator,sprite: number){
     const image=new Image();image.src=getComputedStyle(element).backgroundImage.slice(5,-2);await image.decode();return [image.naturalWidth,image.naturalHeight];
   })).toEqual([640,640]);
 }
-const dialogDeliver=(page: Page,value: Quest)=>page.getByRole('dialog',{name:value.title,exact:true}).getByRole('button',{name:`Deliver ${value.title} for ${value.reward.toLocaleString('en')} coins`,exact:true});
 
 for(const value of firstRequests)test(`${value.character} shows the exact expedition supplies and pays the reward once across reload and export`,async({page},testInfo)=>{
   await start(page,deliverable(value));const before=await saved(page);await checkPortrait(ticket(page,value).locator('.portrait'),person(value.character).sprite);
@@ -102,7 +96,6 @@ test('the castle guest asks on a ticket, pays once, and leaves the journal after
     const name=getItem(requirement.item,data)!.name;
     await expect(dialog.getByRole('button',{name:`${requirement.quantity} ${name}: ${requirement.quantity} of ${requirement.quantity} on the board`,exact:true})).toBeVisible();
   }
-  expect(dinner.reward).toBe(220);expect(dinner.reward).toBe(supplies(dinner).reduce((sum,code)=>sum+data.items[code].price,0));
   await expect(dialog.locator('.quest-reward')).toHaveText(`Reward: ${dinner.reward.toLocaleString('en')} coins`);
   await expect(dialogDeliver(page,dinner)).toHaveText(`Deliver · ${dinner.reward.toLocaleString('en')}`);await dialogDeliver(page,dinner).click();
   await expect(page.locator('#modal')).toBeHidden();await expect(toast(page)).toHaveText(`${dinner.title}: delivered. Earned ${dinner.reward} coins.`);

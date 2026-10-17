@@ -33,7 +33,7 @@ The kitchen guide in Options reviews the five steps and gives help for room on t
 ## State and save compatibility
 
 `GameState.guide` is optional. It holds the status, the current step, and one boolean for each step. It holds no cell or interface target.
-A save without the record has no run. The kitchen guide can start one. Current saves use game state version 11 and envelope version 10. Load reads only `scary-snacks-save-v10`. With no current save, the game starts a new campaign. Earlier local saves stay unchanged and are not read or converted. Import rejects earlier formats.
+A save without the record has no run. The kitchen guide can start one. The [shared save compatibility](README.md#shared-save-compatibility) section gives the supported format.
 Load and import validate the record. A failed write keeps the unsaved warning, and a reload repeats the last saved step.
 
 ## Acceptance

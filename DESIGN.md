@@ -343,7 +343,7 @@ The palette is warm and has low saturation. Each theme has one action colour. Th
 **Display Font:** Grenze Gotisch (with serif)
 **Body Font:** Inter (with system-ui, sans-serif)
 
-**Character:** Grenze Gotisch is the readable Germanic blackletter that the user asked for. Use it for the shop sign only. Inter is the font for all other text. Both fonts are self-hosted files in Web Open Font Format 2 (WOFF2). Each font has the SIL Open Font License (OFL) 1.1. The license texts are beside the font files.
+**Character:** Grenze Gotisch is the readable Germanic blackletter that the user asked for. Inter is the font for all other text.
 
 ### Hierarchy
 - **Display** (600, clamp(43px, 3.2vw, 48px), 1): the wordmark only, from 1024px. Below 1024px, the wordmark uses the display-phone size.
@@ -372,7 +372,7 @@ The frame places the latest change near the middle of the visible room, a little
 
 The area switch sits in a lower corner of the visible room. The top of the switch is 64px above the lower edge of the visible room. The switch stays on the side away from the change. In the front room, the switch always stays on the left, away from Miez.
 
-**Wider screens (1024px and up).** The room is fixed on the left at full height. The docked panel takes `max(50vw, 620px)` on the right. Nothing covers the room, except the pin, the area switch, and unlocked finish switches. The panel holds, from top to bottom:
+**Wider screens (1024px and up).** The room is fixed on the left at full height. The docked panel takes `max(50vw, 620px)` on the right. The panel holds, from top to bottom:
 - The masthead, with 18px 24px 12px padding. The tagline shows only from 1600px.
 - The three tickets, in three equal columns 12px apart.
 - The drawer body: the kitchen column, then the side column, 20px apart.
@@ -400,9 +400,6 @@ The bar is 56px tall plus the safe area. The safe area is the space that the dev
 **The masthead.** The cat, the wordmark, the tagline, and the coin figures share one baseline. The wordmark and the coins never touch. Below 411px, the word "coins" does not show once the total reaches 1,000. At 720px and below, a total of 10,000 or more shows in short form, for example "12.3K".
 
 The short form follows the page language. It rounds down, so it never shows more coins than the player has. Screen readers always get the exact total.
-
-**Known limits:**
-- The tests do not use physical touch or a screen reader.
 
 ### Named Rules
 **The Open Room Rule.** On wider screens, no interface covers the room, except the pin, the area switch, and unlocked finish switches. On phones, the drawer covers only the lower part of the room. The frame keeps the latest change in the visible part.
@@ -492,7 +489,7 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 ### Paper tickets
 - **Wider screens:** Fresh Linen, a hairline border, a 12px radius, and 8px padding. A 36px portrait, the name (13px, 600), and the dishes share the top row. Deliver spans the ticket below them. The tickets show the first three open requests, in authored order. With no open request, one muted 13px line takes the row: what to do next, or that every request is delivered.
 - **Phones:** 50px tall, a 9px radius, 2px × 3px padding. A 22px portrait sits on the upper-left corner with a ring of the ticket colour. The name shows only to a screen reader. Deliver fills the rest of the width.
-- **Dishes:** 38px on wider screens (30px in a 34px slot when a request needs three kinds of dish), 28px on phones. A Ready Green dot marks a dish when the board holds every portion of it. On wider screens, dishes that need several portions have an "n/q" badge at the lower-left corner. The badge uses 10px tabular figures at weight 600, Fresh Linen, and a hairline ring. Phones leave out the badge.
+- **Dishes:** 38px on wider screens (30px in a 34px slot when a request needs three kinds of dish). A Ready Green dot marks a dish when the board holds every portion of it. On wider screens, dishes that need several portions have an "n/q" badge at the lower-left corner. The badge uses 10px tabular figures at weight 600, Fresh Linen, and a hairline ring. Phones leave out the badge.
 - **Dish target:** the dishes of a ticket are one target, at least 44px tall, that opens the request dialog. Below 1024px, the dishes show as 26px pictures (22px at 360px and below). The accessible name of the target is the request title, then each dish with its quantity and the count on the board.
 - **Narrowest tickets:** at 360px and below, the ticket padding is 2px, and Deliver has 1px side padding. Each target on a ticket stays at least 44px wide down to 320px.
 - **Deliver:** "Deliver · N" with the 16px coin mark. On phones, it shows "Deliver N". If the board does not hold every portion, the button shows the dashed "not yet" style. On phones, the not-yet style shows only the reward and a 14px coin mark. The accessible name is "Deliver [request] to [name] for N coins".
@@ -531,7 +528,7 @@ These three parts share one place under the board. The place is at least 62px ta
 - **Guide:** while the guide runs, the step replaces the visible status line, and "Skip guide" replaces "Find a match". The step starts with its count, for example "1 of 5", in 12px muted type with tabular figures. The step text uses the type of Mara's line and takes at most three lines at 360px. The status line stays in the accessibility tree and announces each message. The step is also a polite live region.
 
   The guide marks its targets with the steady 3px Teal Focus ring of a tap target: an inset ring on a tile or on the phone Story item, and an outer ring on a ticket, on Pay, and on Read now. The ring has no motion. The step names each target in words, and a marked tile adds "Marked by the guide" to its label, so colour is never the only cue. Forced colours draw the ring as a dashed Highlight outline. The selected tile keeps its own ring.
-- **Offer:** Mara offers a ready preparation if the story section is off screen and no tile is selected. The offer shows the preparation name, "Ready when you are.", and a primary Pay button. The Story item of the bar then carries the copper dot. So only one Pay button shows at a time.
+- **Offer:** Mara offers a ready preparation if the story section is off screen and no tile is selected. The offer shows the preparation name, "Ready when you are.", and a primary Pay button. The Story item of the bar then carries the copper dot.
 - **Selected item:** the item picture, its name, and its rule line ("Source of …", "Two make …", or "Final dish"). The item picture is 44px (40px below 1024px). Below 411px, the item picture is 34px. At 360px and below, the item picture and the rule line do not show.
 
   At 720px and below, if the name takes two lines, the rule line does not show. The actions follow. A source has one primary Take button per earned output. Each button has the output picture and its name, such as "Take Dough".
@@ -618,20 +615,15 @@ Deliver has the dashed disabled style until the board holds every portion. Deliv
 
 Visitor requests use the same tickets, dialog, food counts, reward, and delivery controls. Adrian, Monica, Janos, and Ionatan use a separate transparent two-by-two portrait atlas. Its cells are Adrian at the top left, Monica at the top right, Janos at the bottom left, and Ionatan at the bottom right. A second transparent two-by-two atlas holds Vlad and Elisabeta in the top row.
 
-Mina and Avram occupy the bottom row, in that order. The four core portraits keep their atlas. Three transparent two-by-two atlases hold the other ten regulars in row order. The first holds Dochia, Victor, Ana, and Costel.
+Mina and Avram occupy the bottom row, in that order. The four core portraits use their own atlas. Three transparent two-by-two atlases hold the other ten regulars in row order. The first holds Dochia, Victor, Ana, and Costel.
 
 The second holds Sânziana, Dorian, Ileana, and Cezar. The third holds Cătălina and Bran in its top row, with two empty cells below. Mina and Avram share one request, and its dialog shows both names and portraits. Dialogue uses the portrait of its current speaker.
 
 Each character has an individual square source crop that keeps a consistent face scale and eye line. The crop stays inside its atlas cell and retains headwear and identifying upper-body details. Mara uses the same crop in tickets, dialogue, and the guide. Tall hats keep the small eye-line difference needed to retain the hat.
 
-The portraits keep their colours in both themes. The journal includes the arrived neighbours and the three recurring travellers. Ionatan, Mina, and Avram have introductions only while their own request is open. After delivery, the journal omits that visitor's introduction and request scenes. The farewell stays available as a waiting scene in Story.
-
-Once its delivery gate is met, the journal offers the local gossip about Mina, Avram, and Ionatan. Its dialogue shows only local speakers.
+The portraits keep their colours in both themes.
 
 Paint Adrian and Monica with Romanian village headwear and embroidered shirts. Adrian keeps his steel plate cuirass and burgundy cloak. Monica keeps her brown leather scout armour and green cloak. Paint Janos in Hungarian Roma village dress, with his felt hat, indigo waistcoat, plum neckerchief, and walking staff. Keep natural adult faces and no caricature.
-
-A delivery leaves the kitchen available while its completion scene waits. After a failed save, the delivery notice includes the unsaved warning. Options offers Retry save.
-
 
 The journal starts with Neighbours: the core characters, then the regulars in order of arrival. A neighbour row has a 44px portrait, a text column, and a muted count on the right, with 12px gaps. The text column holds the name (600), then the trade and the favourite chains in 12px muted text ("Favourites: Warm kitchen and Bread counter"). The count says "N quests", or "New scene" while an arrival scene waits.
 
@@ -674,7 +666,9 @@ The switch shows only in the area that the room shows, and only while its detail
 
 It adds no motion.
 
-Options shows the save state and any applicable Retry saved game or Retry save control. Its other sections are Appearance, Kitchen sounds, Guide, Your saved game, About, and A fresh start. The sections use the existing dialog, section, button, ink, muted, and focus styles.
+### Options
+
+Options shows the save state and any applicable Retry saved game or Retry save control. Its other sections are Appearance, Kitchen sounds, Guide, Your saved game, About Scary Snacks, and A fresh start. The sections use the existing dialog, section, button, ink, muted, and focus styles.
 
 Guide has the secondary button "Open the kitchen guide". The kitchen guide is a dialog, or a sheet at 720px and below. It lists the five steps in order, each with its name in 14px semibold and its explanation in small muted copy. A step that the current run has done says "Done" in 12px Ready Green. The current step says "Now" in Teal Focus. A save without a run shows no marks.
 

@@ -102,8 +102,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .swap-mark circle { fill: var(--surface); stroke: var(--coin-rim); stroke-width: 1.5; }.swap-mark path { stroke: var(--ink); stroke-width: 1.8; }
 .room-finish[inert] { visibility: hidden; }
 .room-stage[data-failed] :is(.room-decorations,.room-finishes) { display: none; }
-@media (max-width: 420px) {
-}
 /* Miez sits on the left end of the front room's windowsill (its top 47.2% down the painting); the sitting cat's paws are 95.5% down its sprite cell. */
 .sill-cat { position: absolute; left: 62.65%; bottom: 52.4%; width: 11.73%; aspect-ratio: 1; min-width: 44px; }
 .miez { padding: 0; border: 0; border-radius: var(--control-radius); background: transparent; }
@@ -183,7 +181,7 @@ button.ticket-items { min-height: 44px; padding: 0; border: 0; border-radius: va
 .cell.obstacle .food { width: 70%; height: 70%; }
 .blocker-mark { position: absolute; right: 2px; bottom: 2px; width: 16px; height: 16px; z-index: 4; pointer-events: none; }
 .blocker-mark circle { fill: var(--panel); stroke: var(--control-line); stroke-width: 1.7; }
-.blocker-mark path { fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.blocker-mark path { stroke: var(--ink); }
 .clutter-art,.preparation-art { position: absolute; inset: 2px; display: block; pointer-events: none; background-repeat: no-repeat; }
 .clutter-art { background-image: url('../assets/variants/board-clutter-1536x1024.webp'); }
 .clutter-object { z-index: 1; }
@@ -248,7 +246,6 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 .item-actions .take-button { max-width: 120px; }
 /* A shadow, so the focus outline does not hide the chosen output. */
 .take-button[aria-pressed='true'] { box-shadow: inset 0 0 0 2px var(--action), inset 0 0 0 4px var(--on-action); }
-.take-button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 #item-detail.multiple-outputs { flex-wrap: wrap; gap: 6px; }
 .multiple-outputs .detail-head { flex: 1; }
 .multiple-outputs .detail-next,.multiple-outputs .detail-description { display: none; }
@@ -315,7 +312,7 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 #modal-body .item-detail .secondary-button { margin-top: 18px; }
 .food { display: block; stroke: none; fill: none; }
 .portrait { display: block; background-image: url('../assets/variants/portraits-640x640.webp'); background-size: 200% 200%; background-repeat: no-repeat; border-radius: 50%; background-color: var(--inset); }
-.portrait-0 { background-position: 0 0; }.portrait-1 { background-position: 100% 0; }.portrait-2 { background-position: 0 100%; }.portrait-3 { background-position: 100% 100%; }
+.portrait-0 { background-position: 0 0; }
 .visitor-portrait { background-image: url('../assets/variants/visitor-portraits-640x640.webp'); }
 .guest-portrait { background-image: url('../assets/variants/guests-640x640.webp'); }
 .regulars-1-portrait { background-image: url('../assets/variants/regulars-1-640x640.webp'); }
@@ -373,7 +370,6 @@ dialog::backdrop { background: #17101ac4; }
 .portrait-outline { width: 44px; height: 44px; border-radius: 50%; border: 1px dashed var(--control-line); }
 .quest-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .quest-heading .portrait,.journal-entry .portrait { flex-shrink: 0; width: 44px; height: 44px; }
-.quest-heading h3 { font-size: 16px; line-height: 1.4; }
 .quest-person,.quest-note,.quest-count { color: var(--muted); font-size: 13px; line-height: 1.6; }
 .quest-person { margin: 2px 0 0; }
 .quest-note { margin: 8px 0 14px; }
@@ -400,7 +396,7 @@ dialog::backdrop { background: #17101ac4; }
 .recipe-item span:last-child { display: block; font-size: 12px; text-align: center; line-height: 1.4; margin-top: 7px; }
 /* A dish nobody has made yet waits under a dashed cloche, using the dashed "not yet" style. */
 .recipe-item.not-yet { background: transparent; border-style: dashed; border-color: var(--control-line); color: var(--muted); }
-.cloche { display: block; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; color: var(--muted); }
+.cloche { display: block; color: var(--muted); }
 .cloche-dome { stroke-dasharray: 3 3.4; }
 .recipe-item .cloche { width: 68px; height: 68px; margin: auto; }
 .chain.named .cloche { width: 44px; height: 44px; }
@@ -491,9 +487,7 @@ dialog::backdrop { background: #17101ac4; }
   .ticket-items { flex: none; gap: 0; }
   /* A phone ticket is too small for counts; the request dialog gives them. */
   .ticket-count { display: none; }
-  .ticket-item { width: 30px; }
   .ticket-items:has(>:only-child) .ticket-item { width: 44px; }
-  .ticket-item .food { width: 28px; height: 28px; }
   /* Two dishes on one target are pictures, so they draw smaller and leave Deliver its 44px. */
   button.ticket-items .ticket-item { width: 26px; }button.ticket-items .food { width: 26px; height: 26px; }
   /* Three or four dishes overlap like a fanned stack, so Deliver keeps its 44px. */
@@ -553,7 +547,6 @@ dialog::backdrop { background: #17101ac4; }
   .line-slot { min-height: 56px; }
   .phone-bar { position: static; }
 }
-/* Forced colours drop the tile fills and the inset rings: spaces, buttons and the selection keep system-colour edges. */
 /* A quest's completion notice: it reports itself and clears on its own, so delivering a request never stops play for a tap. */
 .toast-stack { position: fixed; z-index: 100; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
 .toast { pointer-events: none; max-width: 340px; padding: 10px 14px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: var(--card-radius); box-shadow: var(--shadow); font-size: 14px; line-height: 1.4; text-wrap: pretty; animation: toast-in .3s cubic-bezier(.16,1,.3,1); }
@@ -565,6 +558,7 @@ dialog::backdrop { background: #17101ac4; }
   .toast-stack { top: calc(var(--head-h) + 10px); left: 50%; translate: -50% 0; align-items: center; width: min(92vw, 360px); }
   .toast { max-width: none; width: 100%; text-align: center; }
 }
+/* Forced colours drop the tile fills and the inset rings: spaces, buttons and the selection keep system-colour edges. */
 @media (forced-colors: active) {
   .cell,.primary-button,.secondary-button,.ticket-item,.ticket,.area-choice,.room-pin { border: 1px solid ButtonBorder; }
   .cell.obstacle { border: 2px dashed ButtonText; }

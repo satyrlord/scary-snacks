@@ -1,5 +1,4 @@
 {
-  "title": "Scary Snacks",
   "board": {
     "columns": 6,
     "rows": 7,
@@ -57,28 +56,32 @@
             "position": 0,
             "name": "Old crate",
             "type": "clutter",
-            "ingredient": "bakery_3"
+            "ingredient": "bakery_3",
+            "sprite": 0
           },
           {
             "id": "tied-sack",
             "position": 5,
             "name": "Tied sack",
             "type": "clutter",
-            "ingredient": "warm_2"
+            "ingredient": "warm_2",
+            "sprite": 1
           },
           {
             "id": "covered-crock",
             "position": 36,
             "name": "Covered crock",
             "type": "clutter",
-            "ingredient": "drinks_2"
+            "ingredient": "drinks_2",
+            "sprite": 2
           },
           {
             "id": "linen-bundle",
             "position": 41,
             "name": "Linen bundle",
             "type": "clutter",
-            "ingredient": "bakery_2"
+            "ingredient": "bakery_2",
+            "sprite": 3
           },
           {
             "id": "tied-dough",
@@ -1138,7 +1141,7 @@
         "warm",
         "drinks"
       ],
-      "arrivesAfter": "task_15",
+      "arrivesAfter": "task_8",
       "arrival": [
         {
           "speaker": "mara",
@@ -1146,7 +1149,7 @@
         },
         {
           "speaker": "vlad",
-          "text": "Baron, officially. Count, in spirit. Your new door hood keeps the rain off very well. I dislike the sun, and I dislike the rain only a little less."
+          "text": "Baron, officially. Count, in spirit. I read your new chalk menu by lamplight from my carriage. I dislike the sun, so I approve of a bistro that serves supper late."
         }
       ],
       "description": "A reserved local baron with long dark hair, a narrow moustache, a red velvet cap with a gold jewel, a dark red court coat, and a fur collar. He styles himself as a count and lives in a castle in the countryside.",
@@ -1163,11 +1166,11 @@
         "warm",
         "drinks"
       ],
-      "arrivesAfter": "task_15",
+      "arrivesAfter": "task_8",
       "arrival": [
         {
           "speaker": "eszter",
-          "text": "Countess Elisabeta is visiting her land again. She asked whether our courtyard is quiet."
+          "text": "Countess Elisabeta is visiting her land again. She asked whether our front room is quiet."
         },
         {
           "speaker": "elisabeta",
@@ -2116,7 +2119,7 @@
       "title": "Send the invitations",
       "cost": 220,
       "work": {
-        "summary": "Print twenty small invitations. Dress the gate with a wreath, lantern, and three geraniums. Reuse the towels.",
+        "summary": "Print twenty small invitations. Hang a wreath on the kitchen door. Dress the gate with a lantern and pots of red geraniums, and line the wall with more. Reuse the towels.",
         "materials": 160,
         "labour": 60,
         "hours": 2
@@ -3562,6 +3565,93 @@
       ]
     },
     {
+      "id": "vlad-after-dark",
+      "character": "vlad",
+      "title": "Dinner after dark",
+      "afterTask": "task_8",
+      "requirements": [
+        {
+          "item": "warm_5",
+          "quantity": 1
+        },
+        {
+          "item": "drinks_5",
+          "quantity": 1
+        }
+      ],
+      "reward": 85,
+      "opening": [
+        {
+          "speaker": "vlad",
+          "text": "I dine only after sunset. An old family habit. Cabbage rolls and a carafe of red wine, if you please."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "vlad",
+          "text": "Excellent. The wine is exactly the right shade of red. I am very particular about red."
+        }
+      ]
+    },
+    {
+      "id": "elisabeta-papers",
+      "character": "elisabeta",
+      "title": "The estate papers",
+      "afterTask": "task_8",
+      "requirements": [
+        {
+          "item": "warm_5",
+          "quantity": 1
+        },
+        {
+          "item": "drinks_5",
+          "quantity": 1
+        }
+      ],
+      "reward": 85,
+      "opening": [
+        {
+          "speaker": "elisabeta",
+          "text": "I have estate papers to read tonight. Cabbage rolls and red wine, please. Red helps me concentrate."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "elisabeta",
+          "text": "The papers are in order. My neighbour’s boundary has moved a little toward my land. How odd."
+        }
+      ]
+    },
+    {
+      "id": "vlad-guest",
+      "character": "vlad",
+      "title": "A guest at the castle",
+      "afterTask": "task_8",
+      "requirements": [
+        {
+          "item": "warm_6",
+          "quantity": 1
+        },
+        {
+          "item": "drinks_5",
+          "quantity": 2
+        }
+      ],
+      "reward": 150,
+      "opening": [
+        {
+          "speaker": "vlad",
+          "text": "A guest from abroad comes to my castle soon, on a matter of property. I must give him a goulash pot and plenty of red wine. First impressions matter."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "vlad",
+          "text": "Splendid. My guest will feel very welcome. Nobody ever wants to leave my castle. Nobody ever does."
+        }
+      ]
+    },
+    {
       "id": "mara-candles",
       "character": "mara",
       "title": "Candles in the window",
@@ -3812,6 +3902,44 @@
       ]
     },
     {
+      "id": "ionatan-castle-dinner",
+      "character": "ionatan",
+      "title": "Dinner before the castle",
+      "afterTask": "task_9",
+      "afterQuest": "vlad-guest",
+      "requirements": [
+        {
+          "item": "warm_6",
+          "quantity": 1
+        },
+        {
+          "item": "produce_6",
+          "quantity": 1
+        },
+        {
+          "item": "sweet_6",
+          "quantity": 1
+        },
+        {
+          "item": "drinks_6",
+          "quantity": 1
+        }
+      ],
+      "reward": 220,
+      "opening": [
+        {
+          "speaker": "ionatan",
+          "text": "I have come from abroad to close a real-estate deal with a local noble at the nearby castle. Before I continue, I would like a proper dinner: a goulash pot, a sharing board, a chimney cake, and plum brandy."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ionatan",
+          "text": "An excellent dinner. Here is the payment, with my thanks. My papers are in order, and I must leave for the castle now. My journey takes me on from there, so I will not return. Farewell."
+        }
+      ]
+    },
+    {
       "id": "sanziana-meadow",
       "character": "sanziana",
       "title": "A picnic in the meadow",
@@ -3839,6 +3967,82 @@
           "text": "My sisters thank you, all of them. You may hear singing in the meadow tonight. Please do not go and count us."
         }
       ]
+    },
+    {
+      "id": "mina-avram-search",
+      "character": "mina",
+      "companions": [
+        "avram"
+      ],
+      "title": "A meal before the search",
+      "afterTask": "task_10",
+      "afterQuest": "ionatan-castle-dinner",
+      "requirements": [
+        {
+          "item": "bakery_5",
+          "quantity": 2
+        },
+        {
+          "item": "produce_3",
+          "quantity": 2
+        },
+        {
+          "item": "warm_4",
+          "quantity": 1
+        },
+        {
+          "item": "drinks_3",
+          "quantity": 2
+        }
+      ],
+      "reward": 168,
+      "opening": [
+        {
+          "speaker": "mina",
+          "text": "Ionatan is my fiancé. He came from Britain to sign a property contract at the castle, but he has not written back. Have you seen him?"
+        },
+        {
+          "speaker": "mara",
+          "text": "He had dinner here and left for the castle. He has not returned to the bistro."
+        },
+        {
+          "speaker": "avram",
+          "text": "Then Mina and I will follow that road together. Before we leave, could you prepare a meal for two? We will both eat vegetarian food."
+        },
+        {
+          "speaker": "mina",
+          "text": "Two plates of zacuscă toast, two plates of roasted vegetables, a smoked cheese plate to share, and two pots of fruit tea, please. Eggs and dairy are fine, but no meat or fish."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "mina",
+          "text": "Thank you for the meal and for telling us which road he took. We must find out why his letters stopped."
+        },
+        {
+          "speaker": "avram",
+          "text": "We shall leave for the castle together now. I have my medical bag, should he need help."
+        },
+        {
+          "speaker": "mara",
+          "text": "I hope you find him safe. Take care on the road."
+        }
+      ],
+      "followUp": {
+        "id": "mina-avram-news",
+        "title": "News from the road",
+        "afterDeliveries": 3,
+        "dialogue": [
+          {
+            "speaker": "sorin",
+            "text": "There is news going round the village. Mina and Doctor Avram found Ionatan gravely ill. All three have left for Britain. They did not stop at our bistro on the way back."
+          },
+          {
+            "speaker": "mara",
+            "text": "Then he is no longer alone. I hope he recovers at home. Thank you for bringing the news, Sorin."
+          }
+        ]
+      }
     },
     {
       "id": "dochia-march",
@@ -4290,67 +4494,9 @@
       ]
     },
     {
-      "id": "vlad-after-dark",
-      "character": "vlad",
-      "title": "Dinner after dark",
-      "afterTask": "task_15",
-      "requirements": [
-        {
-          "item": "warm_5",
-          "quantity": 1
-        },
-        {
-          "item": "drinks_5",
-          "quantity": 1
-        }
-      ],
-      "reward": 85,
-      "opening": [
-        {
-          "speaker": "vlad",
-          "text": "I dine only after sunset. An old family habit. Cabbage rolls and a carafe of red wine, if you please."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "vlad",
-          "text": "Excellent. The wine is exactly the right shade of red. I am very particular about red."
-        }
-      ]
-    },
-    {
-      "id": "elisabeta-papers",
+      "id": "elisabeta-bath",
       "character": "elisabeta",
-      "title": "The estate papers",
-      "afterTask": "task_15",
-      "requirements": [
-        {
-          "item": "warm_5",
-          "quantity": 1
-        },
-        {
-          "item": "drinks_5",
-          "quantity": 1
-        }
-      ],
-      "reward": 85,
-      "opening": [
-        {
-          "speaker": "elisabeta",
-          "text": "I have estate papers to read tonight. Cabbage rolls and red wine, please. Red helps me concentrate."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "elisabeta",
-          "text": "The papers are in order. My neighbour’s boundary has moved a little toward my land. How odd."
-        }
-      ]
-    },
-    {
-      "id": "vlad-guest",
-      "character": "vlad",
-      "title": "A guest at the castle",
+      "title": "An evening at the manor",
       "afterTask": "task_15",
       "requirements": [
         {
@@ -4365,14 +4511,14 @@
       "reward": 150,
       "opening": [
         {
-          "speaker": "vlad",
-          "text": "A guest from abroad comes to my castle soon, on a matter of property. I must give him a goulash pot and plenty of red wine. First impressions matter."
+          "speaker": "elisabeta",
+          "text": "I am taking the evening off for a long bath at my manor. Afterwards, a goulash pot and two carafes of red wine. Do not ask what is in the bath. Rose petals. Only rose petals."
         }
       ],
       "completion": [
         {
-          "speaker": "vlad",
-          "text": "Splendid. My guest will feel very welcome. Nobody ever wants to leave my castle. Nobody ever does."
+          "speaker": "elisabeta",
+          "text": "Wonderful. My maids say that I look younger every year. I tell them that it is the goulash."
         }
       ]
     },
@@ -4427,44 +4573,6 @@
         {
           "speaker": "cezar",
           "text": "The candles went out at midnight. I stayed awake for all of it. Well, for most of it."
-        }
-      ]
-    },
-    {
-      "id": "ionatan-castle-dinner",
-      "character": "ionatan",
-      "title": "Dinner before the castle",
-      "afterTask": "task_16",
-      "afterQuest": "vlad-guest",
-      "requirements": [
-        {
-          "item": "warm_6",
-          "quantity": 1
-        },
-        {
-          "item": "produce_6",
-          "quantity": 1
-        },
-        {
-          "item": "sweet_6",
-          "quantity": 1
-        },
-        {
-          "item": "drinks_6",
-          "quantity": 1
-        }
-      ],
-      "reward": 220,
-      "opening": [
-        {
-          "speaker": "ionatan",
-          "text": "I have come from abroad to close a real-estate deal with a local noble at the nearby castle. Before I continue, I would like a proper dinner: a goulash pot, a sharing board, a chimney cake, and plum brandy."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "ionatan",
-          "text": "An excellent dinner. Here is the payment, with my thanks. My papers are in order, and I must leave for the castle now. My journey takes me on from there, so I will not return. Farewell."
         }
       ]
     },
@@ -4559,82 +4667,6 @@
           "text": "These are meals worth closing a notebook for. We will keep the table clear before we spread out the pages again."
         }
       ]
-    },
-    {
-      "id": "mina-avram-search",
-      "character": "mina",
-      "companions": [
-        "avram"
-      ],
-      "title": "A meal before the search",
-      "afterTask": "task_17",
-      "afterQuest": "ionatan-castle-dinner",
-      "requirements": [
-        {
-          "item": "bakery_5",
-          "quantity": 2
-        },
-        {
-          "item": "produce_3",
-          "quantity": 2
-        },
-        {
-          "item": "warm_4",
-          "quantity": 1
-        },
-        {
-          "item": "drinks_3",
-          "quantity": 2
-        }
-      ],
-      "reward": 168,
-      "opening": [
-        {
-          "speaker": "mina",
-          "text": "Ionatan is my fiancé. He came from Britain to sign a property contract at the castle, but he has not written back. Have you seen him?"
-        },
-        {
-          "speaker": "mara",
-          "text": "He had dinner here and left for the castle. He has not returned to the bistro."
-        },
-        {
-          "speaker": "avram",
-          "text": "Then Mina and I will follow that road together. Before we leave, could you prepare a meal for two? We will both eat vegetarian food."
-        },
-        {
-          "speaker": "mina",
-          "text": "Two plates of zacuscă toast, two plates of roasted vegetables, a smoked cheese plate to share, and two pots of fruit tea, please. Eggs and dairy are fine, but no meat or fish."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "mina",
-          "text": "Thank you for the meal and for telling us which road he took. We must find out why his letters stopped."
-        },
-        {
-          "speaker": "avram",
-          "text": "We shall leave for the castle together now. I have my medical bag, should he need help."
-        },
-        {
-          "speaker": "mara",
-          "text": "I hope you find him safe. Take care on the road."
-        }
-      ],
-      "followUp": {
-        "id": "mina-avram-news",
-        "title": "News from the road",
-        "afterDeliveries": 3,
-        "dialogue": [
-          {
-            "speaker": "sorin",
-            "text": "There is news going round the village. Mina and Doctor Avram found Ionatan gravely ill. All three have left for Britain. They did not stop at our bistro on the way back."
-          },
-          {
-            "speaker": "mara",
-            "text": "Then he is no longer alone. I hope he recovers at home. Thank you for bringing the news, Sorin."
-          }
-        ]
-      }
     },
     {
       "id": "costel-doll",
@@ -4874,35 +4906,6 @@
         {
           "speaker": "dorian",
           "text": "Thank you. The portrait in my attic sends its regards. It had a much harder day than I did."
-        }
-      ]
-    },
-    {
-      "id": "elisabeta-bath",
-      "character": "elisabeta",
-      "title": "An evening at the manor",
-      "afterTask": "task_20",
-      "requirements": [
-        {
-          "item": "warm_6",
-          "quantity": 1
-        },
-        {
-          "item": "drinks_5",
-          "quantity": 2
-        }
-      ],
-      "reward": 150,
-      "opening": [
-        {
-          "speaker": "elisabeta",
-          "text": "I am taking the evening off for a long bath at my manor. Afterwards, a goulash pot and two carafes of red wine. Do not ask what is in the bath. Rose petals. Only rose petals."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "elisabeta",
-          "text": "Wonderful. My maids say that I look younger every year. I tell them that it is the goulash."
         }
       ]
     },

@@ -9,7 +9,7 @@ description: Refactor Scary Snacks without a change to product behavior or contr
 
 Use this skill only for an approved change that keeps the behavior and the contracts.
 Inputs: the approved change and its scope.
-Approval: the instruction of the user for that change. Repository skills do not increase it.
+Approval: the instruction of the user for that change.
 Files to change: only the source code, the tests, and the documentation in the approved scope.
 Output: the changed files, the measurement before and after, and the checks.
 If the user changes the scope, examine the scope again before the next edit.
@@ -60,8 +60,7 @@ If you add, move, or remove a file, examine `runtimeFiles` in `tools/build.ts`.
 Examine the file list in `tools/export-source.ts` also.
 Update each list that names the file.
 For reachability work on many files, use [dead-code-audit](../dead-code-audit/SKILL.md).
-For the usual verification, run `npm run typecheck` and `npm test`.
-For a change in the runtime files, run `npm run build` and then `npm run test:browser`.
+Run the checks that `AGENTS.md` gives for the scope.
 For the full gate, use [run-quality-gate](../run-quality-gate/SKILL.md).
 Obey the limits of the user on checks.
 In the report, give each check that you did not run.

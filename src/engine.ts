@@ -9,7 +9,7 @@ export type Character = {
   id: string; name: string; role: string; description: string; introduction: string; sprite: number; visitor?: boolean; singleVisit?: boolean;
   portraitAtlas?: PortraitAtlas; regular?: boolean; arrivesAfter?: string; prefers?: string[]; arrival?: SceneLine[];
 };
-export const portraitAtlases = ['guest', 'regulars-1', 'regulars-2', 'regulars-3'] as const;
+const portraitAtlases = ['guest', 'regulars-1', 'regulars-2', 'regulars-3'] as const;
 export type PortraitAtlas = typeof portraitAtlases[number];
 export type Task = { id: string; chapter: number; title: string; cost: number; work: { summary: string; materials: number; labour: number; hours: number }; dialogue: SceneLine[]; unlock?: string };
 export type TaskRequirement =
@@ -67,7 +67,7 @@ export const roomPaintings: readonly string[] = [
   'courtyard-23',
 ];
 export type GameData = {
-  title: string; board: { columns: number; rows: number; initial: (string | null)[]; defaultLayout: string; layouts: BoardLayout[]; preparations: PreparationObstacleBatch[] };
+  board: { columns: number; rows: number; initial: (string | null)[]; defaultLayout: string; layouts: BoardLayout[]; preparations: PreparationObstacleBatch[] };
   chains: { id: string; name: string }[]; items: Record<string, Item>; characters: Character[]; chapters: Chapter[]; finale: Finale; tasks: Task[];
   areas: Area[]; rooms: RoomState[]; decorationSlots: DecorationSlot[];
   generatorTiers: { chain: string; stage: number; after: string }[];
@@ -88,7 +88,7 @@ export type GuideStage = typeof guideStages[number];
  */
 export type Guide = { status: 'active' | 'dismissed' | 'complete'; stage: GuideStage; done: Record<GuideStage, boolean> };
 export type GameState = {
-  version: 11; board: (Cell | null)[]; coins: number; taskIndex: number;
+  version: 12; board: (Cell | null)[]; coins: number; taskIndex: number;
   discovered: string[]; decorations: string[];
   decorationChoices: Record<string, string>;
   outputChoices: Record<string, string>;
@@ -120,6 +120,15 @@ export type Result = { state: GameState; ok: boolean; message: string; event: st
 
 const own = (object: object, key: unknown): key is string => typeof key === 'string' && Object.hasOwn(object, key);
 const integer = (value: unknown, min = 0, max = 1_000_000_000): value is number => Number.isSafeInteger(value) && (value as number) >= min && (value as number) <= max;
+/** A content ID stays stable after release: lower case letters, digits, and hyphens, starting with a letter. */
+const stable = (id: unknown): id is string => typeof id === 'string' && /^[a-z][a-z0-9-]*$/.test(id);
+/** A scene line has a known speaker and words. */
+const spoken = (line: unknown, data: GameData) => !!line && typeof line === 'object' && data.characters.some(character => character.id === (line as SceneLine).speaker)
+  && typeof (line as SceneLine).text === 'string' && !!(line as SceneLine).text.trim();
+/** A scene has at least one line, and each line is spoken. */
+const scene = (lines: unknown, data: GameData): lines is SceneLine[] => Array.isArray(lines) && lines.length > 0 && lines.every(line => spoken(line, data));
+/** At most this many preparation blockers wait on the board at one time. */
+const ACTIVE_BLOCKERS = 3;
 const present = <T>(value: T): value is NonNullable<T> => Boolean(value);
 const copy = (state: GameState): GameState => structuredClone(state);
 const itemAt = (state: GameState, index: unknown) => integer(index, 0, state.board.length - 1) ? state.board[index] : null;
@@ -165,11 +174,10 @@ function placePreparationObstacles(state: GameState, data: GameData): number {
   if (!progress) return 0;
   let placed = 0;
   for (const obstacle of pendingPreparationObstacles(state, data)) {
-    if (progress.placed.filter(placement => !state.resolvedObstacles.includes(placement.id)).length >= 3 || freeBoardCells(state, data) <= 3) break;
+    if (progress.placed.filter(placement => !state.resolvedObstacles.includes(placement.id)).length >= ACTIVE_BLOCKERS || freeBoardCells(state, data) <= 3) break;
     const position = firstFreeBoardCell(state, data);
     if (position === -1) break;
     progress.placed.push({ id: obstacle.id, position });
-    discover(state, obstacle.ingredient);
     placed++;
   }
   return placed;
@@ -181,7 +189,7 @@ function questReady(state: GameState, quest: Quest, data: GameData): boolean {
 export function createGame(data: GameData): GameState {
   const layoutId = data.board.defaultLayout;
   return {
-    version: 11, layoutId, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] }, pendingScenes: [],
+    version: 12, layoutId, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] }, pendingScenes: [],
     board: data.board.initial.map(code => code ? { code } : null), coins: 0, taskIndex: 0,
     discovered: [...new Set([...data.board.initial.filter(present),
       ...(data.board.layouts.find(layout => layout.id === layoutId)?.obstacles.map(obstacle => obstacle.ingredient) ?? [])])],
@@ -238,9 +246,8 @@ export function characterProblems(data: GameData): string[] {
   const problems: string[] = [];
   try {
     const ids = new Set<string>(), portraits = new Set<string>();
-    const spoken = (line: SceneLine) => line && data.characters.some(character => character.id === line.speaker) && typeof line.text === 'string' && line.text.trim();
     for (const person of data.characters) {
-      if (!/^[a-z][a-z0-9-]*$/.test(person.id) || ids.has(person.id)) problems.push('Character IDs must be stable and unique.');
+      if (!stable(person.id) || ids.has(person.id)) problems.push('Character IDs must be stable and unique.');
       ids.add(person.id);
       if (person.portraitAtlas !== undefined && !portraitAtlases.includes(person.portraitAtlas)) problems.push(`${person.id}: unknown portrait atlas.`);
       const atlas = person.portraitAtlas ?? (person.visitor ? 'visitors' : 'core');
@@ -252,7 +259,7 @@ export function characterProblems(data: GameData): string[] {
         || !person.prefers.every(chain => data.chains.some(known => known.id === chain)))) problems.push(`${person.id}: a regular likes two different known chains.`);
       if (person.regular && !person.prefers) problems.push(`${person.id}: a regular needs two liked chains.`);
       if ((person.arrival !== undefined) !== (person.arrivesAfter !== undefined) || (person.arrival && (!Array.isArray(person.arrival) || !person.arrival.length
-        || !person.arrival.every(spoken) || !person.arrival.some(line => line.speaker === person.id)))) problems.push(`${person.id}: a regular who arrives later needs an arrival scene in which they speak.`);
+        || !person.arrival.every(line => spoken(line, data)) || !person.arrival.some(line => line.speaker === person.id)))) problems.push(`${person.id}: a regular who arrives later needs an arrival scene in which they speak.`);
     }
   } catch { problems.push('The character records are malformed.'); }
   return problems;
@@ -322,7 +329,7 @@ export function questProblems(data: GameData): string[] {
     for (const [index, task] of data.tasks.entries()) graph.set(`task:${task.id}`, index ? [`task:${data.tasks[index - 1].id}`] : []);
     for (const quest of data.quests) {
       if (!quest || typeof quest !== 'object') { problems.push('Every quest needs a record.'); continue; }
-      if (!/^[a-z][a-z0-9-]*$/.test(quest.id) || ids.has(quest.id)) problems.push('Quest IDs must be stable and unique.');
+      if (!stable(quest.id) || ids.has(quest.id)) problems.push('Quest IDs must be stable and unique.');
       ids.add(quest.id);
       if (!data.characters.some(character => character.id === quest.character) || !quest.title) problems.push(`${quest.id}: unknown character or missing title.`);
       if (quest.afterTask !== null && !data.tasks.some(task => task.id === quest.afterTask)) problems.push(`${quest.id}: unknown opening preparation.`);
@@ -330,11 +337,9 @@ export function questProblems(data: GameData): string[] {
         || new Set(quest.companions).size !== quest.companions.length
         || !quest.companions.every(id => id !== quest.character && data.characters.some(character => character.id === id && character.visitor)))) problems.push(`${quest.id}: invalid companions.`);
       if (!integer(quest.reward, 1)) problems.push(`${quest.id}: invalid coin reward.`);
-      for (const scene of [quest.opening, quest.completion]) if (!Array.isArray(scene) || !scene.length
-        || !scene.every(line => data.characters.some(character => character.id === line.speaker) && typeof line.text === 'string' && line.text.trim())) problems.push(`${quest.id}: invalid scene.`);
-      if (quest.followUp && (!/^[a-z][a-z0-9-]*$/.test(quest.followUp.id) || !quest.followUp.title
-        || !integer(quest.followUp.afterDeliveries, 1) || !Array.isArray(quest.followUp.dialogue) || !quest.followUp.dialogue.length
-        || !quest.followUp.dialogue.every(line => data.characters.some(character => character.id === line.speaker) && typeof line.text === 'string' && line.text.trim()))) problems.push(`${quest.id}: invalid follow-up scene.`);
+      if (!scene(quest.opening, data) || !scene(quest.completion, data)) problems.push(`${quest.id}: invalid scene.`);
+      if (quest.followUp && (!stable(quest.followUp.id) || !quest.followUp.title
+        || !integer(quest.followUp.afterDeliveries, 1) || !scene(quest.followUp.dialogue, data))) problems.push(`${quest.id}: invalid follow-up scene.`);
       if (!Array.isArray(quest.requirements) || !quest.requirements.length || quest.requirements.reduce((count, requirement) => count + requirement.quantity, 0) > data.board.initial.length) problems.push(`${quest.id}: invalid delivery size.`);
       for (const requirement of quest.requirements) {
         const item = getItem(requirement.item, data);
@@ -416,12 +421,36 @@ export const storyScenes = (data: GameData) => [...data.tasks.map(task => task.i
 /** The story order of preparation scenes, chapter scenes, and the finale: each chapter scene follows the preparations of its chapter. */
 const storyOrder = (data: GameData) => [...data.chapters.flatMap((chapter, index) => [...data.tasks.filter(task => task.chapter === index + 1).map(task => task.id), chapter.id]), data.finale.id];
 
-/** The lines of a scene by its ID, or null for an unknown ID. */
-function sceneDialogue(id: string, data: GameData): SceneLine[] | null {
-  return data.tasks.find(task => task.id === id)?.dialogue ?? data.quests.find(quest => quest.id === id)?.completion
-    ?? data.chapters.find(chapter => chapter.id === id)?.closing ?? (id === data.finale.id ? data.finale.dialogue : null)
-    ?? data.quests.find(quest => quest.followUp?.id === id)?.followUp!.dialogue
-    ?? data.characters.find(person => person.arrival && arrivalScene(person) === id)?.arrival ?? null;
+/** The content that a scene ID names: a preparation, a quest completion, a chapter's closing, the finale, a regular's arrival, or local news. */
+export type SceneSource =
+  | { kind: 'task'; task: Task } | { kind: 'quest'; quest: Quest } | { kind: 'chapter'; chapter: Chapter; number: number }
+  | { kind: 'finale'; finale: Finale } | { kind: 'arrival'; person: Character } | { kind: 'news'; news: NonNullable<Quest['followUp']> };
+
+/** The content of a scene by its ID, or null for an unknown ID. */
+export function sceneSource(id: string, data: GameData): SceneSource | null {
+  const task = data.tasks.find(value => value.id === id);
+  if (task) return { kind: 'task', task };
+  const quest = data.quests.find(value => value.id === id);
+  if (quest) return { kind: 'quest', quest };
+  const index = data.chapters.findIndex(chapter => chapter.id === id);
+  if (index >= 0) return { kind: 'chapter', chapter: data.chapters[index], number: index + 1 };
+  if (id === data.finale.id) return { kind: 'finale', finale: data.finale };
+  const person = data.characters.find(value => value.arrival && arrivalScene(value) === id);
+  if (person) return { kind: 'arrival', person };
+  const news = data.quests.find(value => value.followUp?.id === id)?.followUp;
+  return news ? { kind: 'news', news } : null;
+}
+
+/** The lines of a scene. */
+function sceneDialogue(source: SceneSource): SceneLine[] {
+  switch (source.kind) {
+    case 'task': return source.task.dialogue;
+    case 'quest': return source.quest.completion;
+    case 'chapter': return source.chapter.closing;
+    case 'finale': return source.finale.dialogue;
+    case 'arrival': return source.person.arrival!;
+    case 'news': return source.news.dialogue;
+  }
 }
 
 /** Completed preparations are the only input. A chapter is complete when its last preparation is complete. */
@@ -455,9 +484,6 @@ export function storyProblems(data: GameData): string[] {
   try {
     const { chapters, finale } = data;
     if (!Array.isArray(chapters) || !chapters.length || !finale || typeof finale !== 'object') return ['The story needs chapters and a finale.'];
-    const scene = (lines: unknown): lines is SceneLine[] => Array.isArray(lines) && lines.length > 0 && lines.every(line => line && typeof line === 'object'
-      && data.characters.some(character => character.id === line.speaker) && typeof line.text === 'string' && line.text.trim());
-    const stable = (id: unknown) => typeof id === 'string' && /^[a-z][a-z0-9-]*$/.test(id);
     const ids = new Set<string>();
     for (const [index, chapter] of chapters.entries()) {
       const label = `Chapter ${index + 1}`;
@@ -465,7 +491,7 @@ export function storyProblems(data: GameData): string[] {
       if (!stable(chapter.id) || ids.has(chapter.id)) problems.push('Chapter and finale IDs must be stable and unique.');
       ids.add(chapter.id);
       for (const key of ['title', 'objective', 'opening', 'payoff'] as const) if (typeof chapter[key] !== 'string' || !chapter[key].trim()) problems.push(`${label} needs its ${key}.`);
-      if (!scene(chapter.closing)) problems.push(`${label}: invalid closing scene.`);
+      if (!scene(chapter.closing, data)) problems.push(`${label}: invalid closing scene.`);
       const tasks = data.tasks.flatMap((task, at) => task.chapter === index + 1 ? [at] : []);
       if (!tasks.length) { problems.push(`${label} has no preparation.`); continue; }
       const quest = data.quests.find(quest => quest.id === chapter.contribution);
@@ -479,9 +505,9 @@ export function storyProblems(data: GameData): string[] {
     }
     if (!stable(finale.id) || ids.has(finale.id)) problems.push('Chapter and finale IDs must be stable and unique.');
     if (typeof finale.title !== 'string' || !finale.title.trim() || typeof finale.ending !== 'string' || !finale.ending.trim()) problems.push('The finale needs a title and an ending.');
-    if (!scene(finale.dialogue)) problems.push('The finale has an invalid scene.');
+    if (!scene(finale.dialogue, data)) problems.push('The finale has an invalid scene.');
     for (const character of data.characters.filter(character => !character.visitor && !isRegular(character))) {
-      if (!scene(finale.dialogue) || !finale.dialogue.some(line => line.speaker === character.id)) problems.push(`The finale must include ${character.name}.`);
+      if (!scene(finale.dialogue, data) || !finale.dialogue.some(line => line.speaker === character.id)) problems.push(`The finale must include ${character.name}.`);
       if (!chapters.some(chapter => data.quests.find(quest => quest.id === chapter?.contribution)?.character === character.id)) problems.push(`${character.name} needs a chapter contribution.`);
     }
     if (new Set(storyScenes(data)).size !== storyScenes(data).length) problems.push('Story scene IDs must be unique.');
@@ -622,12 +648,12 @@ export function decorationProblems(data: GameData, knownImages?: readonly string
   for (const slot of slots) {
     const area = data.areas.find(area => area.id === slot.area);
     const unlock = data.tasks.findIndex(task => task.id === slot.unlock);
-    if (!/^[a-z][a-z0-9-]*$/.test(slot.id) || !slot.name) problems.push('Every decoration slot needs a stable ID and a name.');
+    if (!stable(slot.id) || !slot.name) problems.push('Every decoration slot needs a stable ID and a name.');
     if (!area || unlock < 0 || (area.unlock !== null && data.tasks.findIndex(task => task.id === area.unlock) > unlock)) problems.push(`${slot.id}: invalid area or preparation.`);
     if (slot.variants.length < 2 || new Set(slot.variants.map(variant => variant.id)).size !== slot.variants.length) problems.push(`${slot.id}: needs at least two variants with unique IDs.`);
     if (!slot.variants.some(variant => variant.id === slot.default)) problems.push(`${slot.id}: unknown default.`);
     for (const variant of slot.variants) {
-      if (!/^[a-z][a-z0-9-]*$/.test(variant.id) || !variant.name || (knownImages && !knownImages.includes(variant.image))) problems.push(`${slot.id}: invalid variant or missing image.`);
+      if (!stable(variant.id) || !variant.name || (knownImages && !knownImages.includes(variant.image))) problems.push(`${slot.id}: invalid variant or missing image.`);
     }
     const { x, y, width, height } = slot.crop;
     if (![x, y, width, height].every(Number.isFinite) || x < 0 || y < 0 || width <= 0 || height <= 0 || x + width > 100 || y + height > 100) problems.push(`${slot.id}: crop must be inside the painting.`);
@@ -715,12 +741,21 @@ function itemProblems(data: GameData): string[] {
   return problems;
 }
 
+/** A blocker needs a stable ID, a name, a known type, and a movable ingredient of an open chain. A clutter blocker names its art cell. */
+function validObstacle(obstacle: Omit<BoardObstacle, 'position' | 'context'>, chains: readonly string[], data: GameData): boolean {
+  return !!obstacle && stable(obstacle.id) && typeof obstacle.name === 'string' && !!obstacle.name.trim() && ['clutter', 'anchored'].includes(obstacle.type)
+    && own(data.items, obstacle.ingredient) && !data.items[obstacle.ingredient].generator && !!data.items[obstacle.ingredient].next
+    && chains.includes(data.items[obstacle.ingredient].chain)
+    && (obstacle.atlas === undefined || obstacle.atlas === 'preparation')
+    && (obstacle.type !== 'clutter' || integer(obstacle.sprite, 0, obstacle.atlas === 'preparation' ? 11 : 3));
+}
+
 export function boardLayoutProblems(data: GameData): string[] {
   const problems: string[] = [];
   const layouts = data.board.layouts;
   if (!Array.isArray(layouts) || !layouts.length || !layouts.some(layout => layout.id === data.board.defaultLayout)) return ['The board needs a default layout.'];
   const ids = new Set<string>();
-  const startingChains = new Set(data.board.initial.filter(present).flatMap(code => data.items[code]?.generator ? [data.items[code].chain] : []));
+  const startingChains = data.board.initial.filter(present).flatMap(code => data.items[code]?.generator ? [data.items[code].chain] : []);
   for (const layout of layouts) {
     if (!layout || typeof layout.id !== 'string' || !layout.id || ids.has(layout.id) || !Array.isArray(layout.obstacles)) {
       problems.push('Board layout IDs must be unique, and each layout needs obstacles.');
@@ -730,15 +765,9 @@ export function boardLayoutProblems(data: GameData): string[] {
     const obstacleIds = new Set<string>();
     const positions = new Set<number>();
     for (const obstacle of layout.obstacles) {
-      if (!obstacle || typeof obstacle.id !== 'string' || !obstacle.id || obstacleIds.has(obstacle.id)
+      if (!validObstacle(obstacle, startingChains, data) || obstacleIds.has(obstacle.id)
         || !integer(obstacle.position, 0, data.board.initial.length - 1) || positions.has(obstacle.position)
-        || typeof obstacle.name !== 'string' || !obstacle.name.trim()
-        || !['clutter', 'anchored'].includes(obstacle.type)
-        || (obstacle.atlas !== undefined && obstacle.atlas !== 'preparation')
-        || (obstacle.sprite !== undefined && !integer(obstacle.sprite, 0, obstacle.atlas === 'preparation' ? 11 : 3))
-        || data.board.initial[obstacle.position] !== null
-        || !own(data.items, obstacle.ingredient) || data.items[obstacle.ingredient].generator
-        || !startingChains.has(data.items[obstacle.ingredient].chain) || !data.items[obstacle.ingredient].next) {
+        || data.board.initial[obstacle.position] !== null) {
         problems.push(`Board layout ${layout.id} has an invalid obstacle.`);
         continue;
       }
@@ -757,12 +786,7 @@ export function boardLayoutProblems(data: GameData): string[] {
     }
     const chains = availableChains({ taskIndex: index + 1 }, data);
     for (const obstacle of batch.obstacles) {
-      if (!obstacle || typeof obstacle.id !== 'string' || !/^[a-z][a-z0-9-]*$/.test(obstacle.id) || obstacleIds.has(obstacle.id)
-        || typeof obstacle.name !== 'string' || !obstacle.name.trim() || !['clutter', 'anchored'].includes(obstacle.type)
-        || !own(data.items, obstacle.ingredient) || data.items[obstacle.ingredient].generator || !data.items[obstacle.ingredient].next
-        || !chains.includes(data.items[obstacle.ingredient].chain)
-        || (obstacle.atlas !== undefined && obstacle.atlas !== 'preparation')
-        || (obstacle.type === 'clutter' && !integer(obstacle.sprite, 0, obstacle.atlas === 'preparation' ? 11 : 3))) {
+      if (!validObstacle(obstacle, chains, data) || obstacleIds.has(obstacle.id)) {
         problems.push(`Preparation ${batch.after} has an invalid blocker.`);
       }
       if (obstacle) obstacleIds.add(obstacle.id);
@@ -794,7 +818,7 @@ export function decorationUnlocked(state: Pick<GameState, 'completedQuests'>, sl
 export function validateGame(candidate: unknown, data: GameData): candidate is GameState {
   try {
     const state = candidate as GameState;
-    if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== 11) return false;
+    if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== 12) return false;
     if (!Array.isArray(state.board) || state.board.length !== data.board.columns * data.board.rows) return false;
     if (!integer(state.coins)) return false;
     if (!integer(state.taskIndex, 0, data.tasks.length)) return false;
@@ -832,7 +856,7 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
       const blocked = obstacles.filter(obstacle => !state.resolvedObstacles.includes(obstacle.id));
       if (new Set(blocked.map(obstacle => obstacle.position)).size !== blocked.length
         || blocked.some(obstacle => state.board[obstacle.position] !== null)
-        || (progress?.placed.filter(placement => !state.resolvedObstacles.includes(placement.id)).length ?? 0) > 3) return false;
+        || (progress?.placed.filter(placement => !state.resolvedObstacles.includes(placement.id)).length ?? 0) > ACTIVE_BLOCKERS) return false;
     }
     const cells = state.board.filter(present);
     for (const chain of chains) {
@@ -921,7 +945,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
     }
     case 'sceneLine': {
       // Only a waiting scene keeps its line, and the first line needs no record.
-      const dialogue = next.pendingScenes.includes(action.id) ? sceneDialogue(action.id, data) : null;
+      const source = next.pendingScenes.includes(action.id) ? sceneSource(action.id, data) : null, dialogue = source && sceneDialogue(source);
       if (!dialogue || !integer(action.line, 0, dialogue.length - 1)) return fail('This scene line is not available.');
       if (action.line) (next.sceneLines ??= {})[action.id] = action.line;
       else forgetLine(next, action.id);

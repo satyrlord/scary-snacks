@@ -71,7 +71,7 @@ Change only one condition at a time.
 Stop after one cause agrees with all the evidence.
 
 In diagnosis mode, use only tests that do not change tracked files or stored data.
-The build writes only the ignored outputs `dist/` and `analysis/build-manifest.json`.
+The build changes no tracked file. [run-quality-gate](../run-quality-gate/SKILL.md) gives its outputs.
 Do not show the content of a save file that a user gives, except the fields that the diagnosis needs.
 
 ## Complete the diagnosis or the repair

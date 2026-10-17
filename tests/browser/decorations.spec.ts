@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { checkpoint, data, deliverButton, deliverable, exportText, failWrites, opened, options, quest, restoreWrites, saved, serialize, start, startAgainAndImport, toast, KEY } from './support.ts';
+import { checkpoint, data, deliverButton, deliverable, exportText, failWrites, opened, options, quest, restoreWrites, saved, start, startAgainAndImport, toast, KEY } from './support.ts';
 
 const finish=(page: Page,slot: string)=>page.locator(`#room-finishes .room-finish[data-slot="${slot}"]`);
 const layer=(page: Page,slot: string,variant: string)=>page.locator(`#room-decorations svg[data-slot="${slot}"][data-variant="${variant}"]`);
@@ -113,14 +113,4 @@ test('a finish press waits for the shared save lock and then saves once',async({
   await finish(page,'tableware').click();expect(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)!).state,KEY)).toEqual(before);
   await other.evaluate(()=>document.dispatchEvent(new Event('release-test-lock')));
   await expect(layer(page,'tableware','green')).toHaveCount(1);expect((await saved(page)).decorationChoices).toEqual({tableware:'green'});await other.close();
-});
-
-test('a valid save from another tab restores play after load recovery',async({page,context})=>{
-  await page.goto('./');await page.evaluate(key=>localStorage.setItem(key,'{broken'),KEY);await page.reload();
-  await expect(page.getByRole('button',{name:'Retry saved game'})).toBeVisible();
-  const other=await context.newPage();await other.goto('./');
-  await other.evaluate(({key,text})=>localStorage.setItem(key,text),{key:KEY,text:serialize(checkpoint(9))});
-  await expect(page.locator('#modal')).not.toBeVisible();await expect(page.locator('#status')).toContainText('another tab');
-  const before=await saved(page);await page.locator('[data-cell="1"]').click();
-  expect((await saved(page)).board.filter(Boolean).length).toBe(before.board.filter(Boolean).length+1);await other.close();
 });

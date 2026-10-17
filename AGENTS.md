@@ -42,8 +42,7 @@ For a change that the user can see, also run `npm run build` and then `npm run t
 The browser tests serve `dist/`, so a run without a new build examines an old artifact.
 Install the browser once with `npx playwright install chromium`.
 `npm run quality:full` is the full gate. Use [`run-quality-gate`](.github/skills/run-quality-gate/SKILL.md) for it.
-The Pages workflow runs the type check, the Node.js tests, and the build. It does not run the browser tests.
-Run `npm run quality:full` before a push.
+Run `npm run quality:full` before a push. [`DELIVERY.md`](DELIVERY.md) gives the checks that the Pages workflow runs.
 Do not say that a check passed if the script is not in `package.json`.
 Do not say that a check passed if you did not run it.
 
@@ -96,9 +95,7 @@ Do not commit secrets.
 Do not print the key.
 Do not put the key in a command argument.
 
-The Pages workflow runs on every push to `main` and publishes only `dist/`.
-The repository's Pages source must stay set to GitHub Actions.
-Keep relative Uniform Resource Locators (URLs) so that the game runs at a repository subdirectory.
+[`DELIVERY.md`](DELIVERY.md) gives the GitHub Pages rules.
 `docs/release-notes.md` gives the release limits. A skill or a record does not give legal clearance.
 
 ## Agent workflow

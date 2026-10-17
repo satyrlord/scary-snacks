@@ -53,8 +53,7 @@ Then do these steps:
 3. Add the asset to `imageVariants` in `tools/build-image-variants.ts`.
    Use the display sizes in `DESIGN.md` and the variant choices in `tools/build-image-variants.ts`.
    Compare the required widths with the source dimensions before you generate variants.
-   The transparent atlases, the runner, and the decoration paintings get WebP variants only.
-   The room states and the timber get AVIF and WebP variants.
+   "Required actions" in `DESIGN.md` gives the formats and the widths of each asset kind.
    The comments in that file give the reasons.
 4. Run `npm run assets:build`.
 5. Add the code that shows a variant, with a path relative to the file that loads it.

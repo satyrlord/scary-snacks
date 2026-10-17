@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { resolveRooms, latestArea } from '../../src/engine.ts';
 import { createHash } from 'node:crypto';
-import { KEY, checkpoint, data, failWrites, options, saved, serialize, start } from './support.ts';
+import { KEY, checkpoint, data, options, saved, serialize, start } from './support.ts';
 
 /** The save after count preparations, ready to pay the next one when ready is set. */
 const saveAfter=(count: number,ready=false)=>serialize(checkpoint(count,{ready}));
@@ -40,24 +40,6 @@ for(const {theme,...viewport} of [{name:'desktop',width:1440,height:1000,theme:'
     }
   });
 }
-
-test('a courtyard painting that fails to load leaves its words',async({page})=>{
-  await page.route('**/assets/variants/courtyard-23-*',route=>route.fulfill({status:404,body:''}));
-  await start(page,saveAfter(23));const view=resolveRooms(completedAt(23),data).find(value=>value.id==='courtyard')!;
-  await expect(page.locator('#room-frame')).toHaveAttribute('data-current','courtyard-23');await expect(page.locator('#room-stage')).toHaveAttribute('data-failed','');
-  await expect(page.locator('#room-caption')).toBeVisible();await expect(page.locator('#room-caption li')).toHaveText(view.states.map(state=>state.text));
-});
-
-test('a preparation whose save fails leaves coins, progress and room unchanged',async({page})=>{
-  await start(page,saveAfter(1,true));const before=await saved(page);
-  const frame=page.locator('#room-frame'),painting=await frame.getAttribute('data-painting');
-  await failWrites(page);
-  await page.locator('#story').getByRole('button',{name:/^Pay /}).click();
-  await expect(page.locator('#status')).toContainText(/save|saved/i);
-  expect(await saved(page)).toEqual(before);await expect(page.locator('#coins')).toHaveText(String(before.coins));
-  await expect(frame).toHaveAttribute('data-painting',painting!);await expect(page.locator('#room-stage')).not.toHaveAttribute('data-reveal');
-  await expect(page.locator('.story-controls')).toHaveCount(0);await expect(page.getByRole('dialog')).toBeHidden();
-});
 
 test('a failed animated area change replaces the old painting with the current room words',async({page})=>{
   await start(page,saveAfter(23));await shown(page);

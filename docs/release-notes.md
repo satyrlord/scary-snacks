@@ -82,7 +82,7 @@ The provenance record distinguishes recorded user acceptance from agent review.
 
 The OpenAI Images application programming interface (API) supplies these assets through `gpt-image-2.5-flare` at high quality:
 
-- The menu atlas and mascots, from earlier project-generated atlases.
+- The menu atlas and mascots, with project-generated chat atlases as references.
 - The timber tabletop and embroidered runner, from text prompts.
 - The core portraits, from their first text-generated candidate.
 - The three regulars atlases, with project-generated portraits as style references.

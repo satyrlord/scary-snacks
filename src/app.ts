@@ -1,4 +1,4 @@
-import { createGame, reduceGame, validateGame, generatorOutputs, nextOutput, dataProblems, taskEligibility, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, questDeliveryCells, decorationUnlocked, deliveriesSince, unresolvedObstacle, boardObstacles, pendingPreparationObstacles, freeBoardCells, resolveChapters, journalCharacters, resolveNeighbours, arrivalScene, guideStages } from './engine.ts';
+import { createGame, reduceGame, validateGame, generatorOutputs, nextOutput, dataProblems, taskEligibility, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, questDeliveryCells, decorationUnlocked, deliveriesSince, unresolvedObstacle, boardObstacles, pendingPreparationObstacles, freeBoardCells, resolveChapters, journalCharacters, resolveNeighbours, arrivalScene, guideStages, sceneSource } from './engine.ts';
 import type { Action, ChapterView, DecorationSlot, DecorationVariant, GameData, GameState, GuideStage, Quest, RoomView, SceneLine, Task } from './engine.ts';
 import { loadSave, saveGame, exportSave, importSave, resetSave, SAVE_KEY, MAX_SAVE_BYTES } from './storage.ts';
 import type { WriteResult } from './storage.ts';
@@ -79,17 +79,17 @@ const unsavedScenes = new Set<string>();
 const arriving: number[] = [];
 let dragging: { index: number; id: number; x: number; y: number; ghost: SVGSVGElement | null } | null = null;
 let spriteSequence = 0, boardFocus = 0;
-// The room: the area it shows, a paid preparation whose change waits for the end of its story, and the next painting while it downloads.
 // The story scene that the paid preparation earned, which opens after its reveal.
 let earnedScene: string | null = null;
 let revealGuideDone = false;
+// The room: the area it shows, a paid preparation whose change waits for the end of its story, and the next painting while it downloads.
 let viewArea = '', held: Task | null = null, revealToken = 0, paintingToken = 0, preloaded: HTMLPictureElement | null = null, lowered = false, swipe = 0;
 let storage: Storage | null = null;
 try { storage = window.localStorage; } catch { /* Session play remains available. */ }
 const validate = (candidate: unknown) => validateGame(candidate, data);
 const definition = (code: string) => getItem(code,data)!;
-const itemName = (code: string) => definition(code)?.name || 'Item';
-const character = (id: string) => data.characters.find(value => value.id === id) || data.characters[0];
+const itemName = (code: string) => definition(code).name;
+const character = (id: string) => data.characters.find(value => value.id === id)!;
 // Players meet generators as ingredient sources: the Flour bin, the Copper pot, and so on. They take ingredients from them.
 const sourceOf = (chain: string) => Object.values(data.items).find(item => item.generator && item.chain === chain)!;
 const chosenOutput = (code: string) => nextOutput(state,code,data)!;
@@ -221,9 +221,15 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncThemeC
 
 function playTone(kind: string) {
   if (!sound) return;
+  const unavailable = () => {
+    sound = false;
+    const toggle = document.querySelector('[data-sound-toggle]');
+    if (toggle) toggle.textContent = 'Turn sound on';
+    status('Sound is unavailable in this browser.');
+  };
   try {
     const context = audioContext ||= new AudioContext();
-    context.resume().catch(() => {});
+    context.resume().catch(unavailable);
     const now = context.currentTime;
     const frequencies = kind === 'deliverQuest' ? [392, 587.33] : kind === 'task' ? [329.63, 493.88] : [293.66];
     frequencies.forEach((frequency, index) => {
@@ -236,7 +242,7 @@ function playTone(kind: string) {
       tone.start(now + index * .07); tone.stop(now + index * .07 + .18);
       tone.onended = () => { tone.disconnect(); gain.disconnect(); };
     });
-  } catch { sound = false; status('Sound is unavailable in this browser.'); }
+  } catch { unavailable(); }
 }
 function reportSave(result: WriteResult) {
   saveFailed = !result.ok;
@@ -457,8 +463,7 @@ function render() {
     }
     if (obstacle) value.append(food(obstacle.ingredient));
     if (obstacle?.type === 'clutter') {
-      const artIndex = obstacle.sprite ?? Math.max(0,['old-crate','tied-sack','covered-crock','linen-bundle'].indexOf(obstacle.id));
-      value.append(clutterArt(artIndex, 'clutter-object', obstacle.atlas === 'preparation'));
+      value.append(clutterArt(obstacle.sprite!, 'clutter-object', obstacle.atlas === 'preparation'));
       if (state.taskIndex === 0) value.append(clutterArt(4, 'clutter-overlay'));
     }
     if (obstacle?.type === 'anchored') {
@@ -557,7 +562,7 @@ function storyContent(inSheet: boolean) {
       row.dataset.requirement = requirement.kind;
       if (requirement.kind === 'space') {
         if (requirement.met) continue;
-        row.append(element('span', '', `Free one board space for the ${requirement.source}.`));
+        row.append(element('span', '', `Free a space on the board for the ${requirement.source}.`));
       } else {
         const label = requirement.kind === 'coins' ? 'Coins' : 'Quests delivered';
         row.append(element('span', '', `${label}: ${count.format(requirement.current)} / ${count.format(requirement.required)}`),
@@ -642,7 +647,6 @@ function chainOf(code: string) {
   const def = definition(code); const chain = element('ol', 'chain named'); chain.setAttribute('aria-label','Merge chain');
   for (let stage=1;stage<=6;stage++) {
     const id=`${def.chain}_${stage}`; const step=element('li', id===code?'current':'');
-    if (!getItem(id,data)) break;
     if (id===code) step.setAttribute('aria-current','step');
     const known = state.discovered.includes(id);
     step.append(known ? food(id) : cloche(), element('span', '', known ? itemName(id) : 'Not yet')); chain.append(step);
@@ -738,7 +742,7 @@ function showQuest(quest: Quest) {
   words.append(element('p','quest-person',names.format(people.map(id=>character(id).name))));
   for(const id of people)head.append(portrait(id));
   head.append(words);content.append(head);
-  for(const line of quest.opening)content.append(element('p','quest-line',people.length>1||line.speaker!==quest.character?`${character(line.speaker).name}: ${line.text}`:line.text));
+  for(const line of quest.opening)content.append(element('p','',people.length>1||line.speaker!==quest.character?`${character(line.speaker).name}: ${line.text}`:line.text));
   const requirements=element('ul','quest-requirements');
   for(const {item,quantity} of quest.requirements){
     const have=onBoard(item,quantity),row=element('li'),inspect=button('','quest-item',()=>showItem(item,()=>showQuest(quest)));
@@ -763,19 +767,16 @@ function chapterSteps(view: ChapterView, numbered: boolean) {
 }
 /** A preparation scene, a quest completion scene, a chapter's closing scene, the finale, or local news, by its saved ID. An unknown ID has no scene, so the game never invents one. */
 function storyScene(id: string) {
-  const more=(dialogue: SceneLine[])=>`${character(dialogue[0].speaker).name} has more to say.`;
-  const task=data.tasks.find(value=>value.id===id);
-  if(task)return {title:task.title,dialogue:task.dialogue,completion:data.rooms.find(room=>room.after===id)!.text,prompt:more(task.dialogue)};
-  const quest=data.quests.find(value=>value.id===id);
-  if(quest)return {title:quest.title,dialogue:quest.completion,completion:'The request is delivered.',prompt:more(quest.completion)};
-  const index=data.chapters.findIndex(chapter=>chapter.id===id);
-  if(index>=0){const chapter=data.chapters[index];return {title:`Chapter ${index+1} complete: ${chapter.title}`,dialogue:chapter.closing,completion:chapter.payoff,prompt:`Chapter ${index+1} is complete.`};}
-  if(id===data.finale.id)return {title:data.finale.title,dialogue:data.finale.dialogue,completion:data.finale.ending,prompt:'The supper can begin.'};
-  const arrival=data.characters.find(person=>person.arrival&&arrivalScene(person)===id);
-  if(arrival)return {title:`${arrival.name} arrives`,dialogue:arrival.arrival!,completion:`${arrival.name} is now a regular. Read more about ${arrival.name} in the story journal.`,prompt:'A new neighbour has arrived.'};
-  const news=data.quests.find(quest=>quest.followUp?.id===id)?.followUp;
-  if(news)return {title:news.title,dialogue:news.dialogue,completion:'The news is recorded in the story journal.',prompt:'News has reached the bistro.'};
-  return null;
+  const more=(dialogue: SceneLine[])=>`${character(dialogue[0].speaker).name} has more to say.`,source=sceneSource(id,data);
+  switch(source?.kind){
+    case 'task':{const {task}=source;return {title:task.title,dialogue:task.dialogue,completion:data.rooms.find(room=>room.after===id)!.text,prompt:more(task.dialogue)};}
+    case 'quest':{const {quest}=source;return {title:quest.title,dialogue:quest.completion,completion:'The request is delivered.',prompt:more(quest.completion)};}
+    case 'chapter':{const {chapter,number}=source;return {title:`Chapter ${number} complete: ${chapter.title}`,dialogue:chapter.closing,completion:chapter.payoff,prompt:`Chapter ${number} is complete.`};}
+    case 'finale':{const {finale}=source;return {title:finale.title,dialogue:finale.dialogue,completion:finale.ending,prompt:'The supper can begin.'};}
+    case 'arrival':{const {person}=source;return {title:`${person.name} arrives`,dialogue:person.arrival!,completion:`${person.name} is now a regular. Read more about ${person.name} in the story journal.`,prompt:'A new neighbour has arrived.'};}
+    case 'news':{const {news}=source;return {title:news.title,dialogue:news.dialogue,completion:'The news is recorded in the story journal.',prompt:'News has reached the bistro.'};}
+    default:return null;
+  }
 }
 /**
  * A waiting scene plays from its saved line until Finish or Skip, which move it to the journal and lead on to the next waiting scene.
@@ -1002,7 +1003,7 @@ function drawRoom(view: RoomView, fade = 0) {
   if(caption.dataset.key!==key){
     caption.dataset.key=key;const list=element('ol','room-changes');
     for(const room of view.states)list.append(element('li','',room.text));
-    const finishes=element('p','decoration-caption',decorations.map(slot=>`${slot.name}: ${slot.selected.name}.`).join(' '));
+    const finishes=element('p','',decorations.map(slot=>`${slot.name}: ${slot.selected.name}.`).join(' '));
     caption.replaceChildren(element('p','room-missing','The painting of this room could not load, so here it is in words.'),element('p','room-name',view.name),list,finishes);
   }
   if(frame.dataset.painting===painting.id&&!fade){pin.hidden=!marked||$('#room-stage').hasAttribute('data-failed');fitPin();return Promise.resolve();}
@@ -1122,6 +1123,7 @@ function downloadSave() {
 /** Kitchen sounds: the toggle changes its own words, so focus stays on it. */
 function soundToggle() {
   const toggle=button(sound?'Turn sound off':'Turn sound on','secondary-button',()=>{sound=!sound;playTone('deliverQuest');toggle.textContent=sound?'Turn sound off':'Turn sound on';});
+  toggle.dataset.soundToggle='';
   return toggle;
 }
 /** A finish over the room painting, cropped to its slot in scene coordinates. Saves only supply validated choice IDs. */
@@ -1171,7 +1173,7 @@ function swapMark() {
   const arrows=svg('path');arrows.setAttribute('d','M7.5 10a5 5 0 0 1 8.6-2.2M16.5 5.5v2.8h-2.8M16.5 14a5 5 0 0 1-8.6 2.2M7.5 18.5v-2.8h2.8');
   value.append(face,arrows);return value;
 }
-/** Options holds only the game's options: appearance, sound, the guide, and the saved game. */
+/** Options: appearance, sound, the guide, the saved game, About Scary Snacks, and a fresh start. */
 function options() {
   const content=element('div');content.append(element('p','modal-copy save-status',saveMessage));
   // Writes never replace an unreadable save, so only a new game (an explicit reset) lets this browser save again.

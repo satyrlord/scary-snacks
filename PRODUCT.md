@@ -42,24 +42,15 @@ These records support content and technical verification. They do not establish 
 - Protect saved progress. Validate changes and imports. Explain save failures with a recovery action.
 - Keep the authored setting coherent. Preserve the local dishes, the neighbours, and the cosy, slightly eerie tone.
 
-## Stack
-
-The game uses TypeScript 7 modules in strict mode, HyperText Markup Language (HTML), and Cascading Style Sheets (CSS). The repository has no JavaScript source files.
-
-Node.js 24 runs the tools and the tests from TypeScript directly. Node.js removes the types from the three runtime modules for the browser. Node.js also serves and packages files locally.
-
-The application has no runtime package and no backend. Playwright, TypeScript, Sharp (for image variants), and the Node.js type definitions are development dependencies.
-
 ## Play
 
 The board has six columns and seven rows. The requests are authored. The game has five ingredient sources (generators), 30 dishes and drinks, 22 characters, 81 quests, and 24 preparations over six chapters. Each dish or drink has an English name. If English has no name for the dish, the dish has the Romanian regional name with its diacritics. The initial layout, the prices, the progression, the characters, and the dialogue are new works.
 
-Quests earn coins. The game has no ordinary orders. Preparations unlock generators and story. Each preparation visibly changes the bistro.
+Quests earn coins. Preparations unlock generators and story. Each preparation visibly changes the bistro.
 
 Each food has an explicit menu price for its portion. Flour and cornmeal have a price of 2 coins each. Elderflowers have a price of 1 coin. Prepared dishes have higher prices according to their ingredients, work, and portion.
 
-The menu value of a quest is the sum of the prices of its portions. Every quest pays its menu value. No chapter, character, or visit multiplies a reward. Quests are the only income. The game has no sales.
-
+The menu value of a quest is the sum of the prices of its portions. Every quest pays its menu value. No chapter, character, or visit multiplies a reward. Quests are the only income.
 
 Each preparation has a defined work scope, material and labour costs, and estimated active person-hours. Its coin cost is materials plus labour. It does not increase with its position in the story. The cost model uses roughly one coin per Romanian leu as a reference scale.
 
@@ -73,7 +64,7 @@ Story shows the coins and the quests delivered for the next preparation. Cost de
 
 The engine checks coins, the necessary quests, and space for an unlocked source together. A failed check changes nothing. Payment spends coins once and advances one preparation. Unknown and cyclic quest prerequisites are invalid. The quests are in the order in which they open, and every quest opens before the last preparation.
 
-Three quest tickets sit on the counter, in the places of the drawer tickets. The first three open quests, in authored order, take the tickets. Other open quests wait without a ticket, and the next one takes the first ticket that is free. Each character has at most one open quest, because each quest waits for the earlier quests of its character.
+Three quest tickets sit on the counter. The first three open quests, in authored order, take the tickets. Other open quests wait without a ticket, and the next one takes the first ticket that is free. Each character has at most one open quest, because each quest waits for the earlier quests of its character.
 
 A ticket shows the character portrait and name, the dishes, and Deliver with its reward. Each dish that needs several portions shows its count on the board. Deliver is available when the board holds every portion. A tap on the dishes opens the request.
 
@@ -87,23 +78,21 @@ Adrian, Monica, and Janos are occasional travelling visitors. Each has three sup
 
 Each visit also needs the previous visitor delivery, so only one cathedral supply request is open at a time. There is no timer or expiry. The visitors do not join the community supper scene.
 
-Cathedral supply requests concern several days of supplies for a quiet investigation near the cathedral. A request needs 12 to 16 portions at merge stages 3 or 4, or 4 to 6 portions at stages 5 or 6. Delivery, replay, failed saves, and Retry save follow the quest rules. The journal has each visitor introduction and each completed request.
+Cathedral supply requests concern several days of supplies for a quiet investigation near the cathedral. A request needs 12 to 16 portions at merge stages 3 or 4, or 4 to 6 portions at stages 5 or 6. The journal has each visitor introduction and each completed request.
 
-Ionatan is a foreign real estate agent who visits once per save. His request opens after preparation 16 and Vlad's quest "A guest at the castle". It needs one goulash pot, one sharing board, one chimney cake, and one plum brandy. He stops for dinner on his way to a nearby castle.
+Ionatan is a foreign real estate agent who visits once per save. His request opens after preparation 9 and Vlad's quest "A guest at the castle". It needs one goulash pot, one sharing board, one chimney cake, and one plum brandy. He stops for dinner on his way to a nearby castle.
 
 There, he plans to close a property deal with a local noble. The dinner pays its menu value of 220 coins. His request is independent of the cathedral supply sequence and can be open beside it. It has no deadline.
 
 He never joins the finale.
 
-Delivery records his quest ID once and ends his visit. His farewell scene waits in Story. His introduction, dinner request, completion scene, and portrait are absent from the journal. Reload and export/import preserve his departure.
-
-A new game permits a new visit. A failed save follows the quest warning and Retry save rules. His departure stays in the session. Reload restores only saved progress.
+Delivery records his quest ID once and ends his visit. His farewell scene waits in Story. Reload and export/import preserve his departure. A new game permits a new visit.
 
 The neighbourhood has 16 neighbours besides the travellers: the four core characters and 12 regulars. Each regular has a name, a trade, a portrait, an introduction, and two favourite chains. Each quest of a regular asks for at least one dish from those chains. Each regular refers to a horror novel, a horror film, or local folklore in the name, the trade, or one habit.
 
-Dochia, Victor, Ana, and Costel are present from the start. Sânziana and Dorian arrive with preparation 4. Ileana and Cezar arrive with preparation 8. Cătălina and Bran arrive with preparation 12.
+Dochia, Victor, Ana, and Costel are present from the start. Sânziana and Dorian arrive with preparation 4. Vlad, Elisabeta, Ileana, and Cezar arrive with preparation 8, and their arrival scenes play in that order. Cătălina and Bran arrive with preparation 12.
 
-Vlad and Elisabeta arrive with preparation 15. Arrival comes only from completed preparations. Each later arrival has a short scene: a core character introduces the regular, and the regular answers. The payment that brings a regular queues the arrival scene after the preparation scene, the chapter scene, and the finale that it earns.
+Arrival comes only from completed preparations. Each later arrival has a short scene: a core character introduces the regular, and the regular answers. The payment that brings a regular queues the arrival scene after the preparation scene, the chapter scene, and the finale that it earns.
 
 The arrival scene follows the waiting-scene rules of the story.
 
@@ -111,19 +100,17 @@ Vlad is a local baron who styles himself as a count and lives in a countryside c
 
 Mina and Doctor Avram share one visit per save. Mina is a young British middle-class woman in Victorian dress. She seeks her fiancé Ionatan, who came to sign a property contract and stopped writing. Avram is a Hungarian Jewish doctor who travels with her.
 
-Their visit opens after Ionatan's dinner is delivered and after preparation 17. Mina and Avram arrive and leave together. They never join the finale, and they cannot meet Ionatan at the bistro.
+Their visit opens after Ionatan's dinner is delivered and after preparation 10. Mina and Avram arrive and leave together. They never join the finale, and they cannot meet Ionatan at the bistro.
 
 Their shared request is a vegetarian meal for two: two zacuscă toasts, two roasted vegetable plates, one smoked cheese plate, and two fruit teas. It permits eggs and dairy, and contains no meat or fish. The meal pays its menu value of 168 coins. Delivery ends the visit and sends them to find Ionatan.
 
-The third delivery after it earns local gossip: they found him gravely ill, and all three left for Britain. They do not visit the bistro on the return journey. The gossip uses only local speakers and gives no reward. It can be read later in the journal.
-
-Their introduction and request scenes are available only during their visit and have no journal replay after departure.
+The third delivery after it earns local news: they found him gravely ill, and all three left for Britain. They do not visit the bistro on the return journey. The news uses only local speakers and gives no reward. It can be read later in the journal.
 
 The story journal holds optional introductions for the neighbours and the three recurring travellers, plus the opening and completion scenes of finished quests. Its neighbours list shows the core characters, then the regulars in order of arrival. Each arrived neighbour shows the portrait, the name, the trade, the favourite chains, and the count of delivered quests. A neighbour who has not arrived is a "Not yet" outline without a name or a portrait.
 
 A waiting arrival scene opens from the entry of its regular. After the scene, the entry opens the introduction. Ionatan, Mina, and Avram have introductions only while their request is open. Their completed requests have no journal replay.
 
-Local gossip about the search becomes available after its delivery gate. Reading, skipping, and replaying a scene give no reward.
+Local news about the search becomes available after its delivery gate. Reading, skipping, and replaying a scene give no reward.
 
 Delivery queues the completion scene in the same change. A temporary notice reports the delivery without opening the scene or blocking play. Read now opens the waiting scene from Story. Recurring characters also have a Read completion entry in the journal. Finish and Skip mark the scene as read.
 
@@ -238,31 +225,11 @@ The player can switch again at any time. Finishes do not change progress or rewa
 
 Lower the drawer to reach a detail outside the current crop. The completion line of each finish quest says where the switch is.
 
-## Planned progression work
+## Feature specifications
 
-The repository-only backlog at `docs/specs/README.md` records 14 feature specifications and the product direction.
-The planned features extend the neighbourhood, quests, renovation, chapter story, generator upgrades, and collections.
-The backlog index gives the feature status and product limits.
-
-The game implements these specifications:
-
-- 001: visible renovation and areas.
-- 002: decoration finishes that quests unlock.
-- 003: generator progression.
-- 005: the quest campaign and introductions.
-- 006: work-based costs and economy.
-- 007: board clearing.
-- 008: chapter story and finale.
-- 009: dialogue continuation.
-- 010: the guided introduction and the kitchen guide.
-
-Spec 006 also supplies a campaign balance fixture that uses permitted game actions.
+The repository-only backlog at `docs/specs/README.md` records 14 feature specifications, their status, the product limits, and the product direction.
 This document owns the implemented behavior.
 The repository-only art plan, `docs/specs/001-room-states-art-plan.md`, defines the 25 painted room states.
-
-The game also implements spec 013: regulars, arrivals, arrival scenes, portraits, the neighbours list, and quests.
-Spec 011 is partly implemented: the game has discovery cloches, notices, and item help.
-The other specifications remain planned work.
 
 ## Identity
 
@@ -279,11 +246,7 @@ The game has 40 generated Portable Network Graphics (PNG) masters. They provide 
 - board clutter, with a web overlay and a twine overlay
 - 12 contextual preparation clutter pictures
 
-The room states are front-room-00 to front-room-12, front-room-17, front-room-24, courtyard-13 to courtyard-16, and courtyard-18 to courtyard-23. Each state has a painting.
-
-The game ships AV1 Image File Format (AVIF) and WebP variants of the masters. The variants have the sizes that the screens need. The variants come only from these masters. The local folders `private/` and `analysis/` are not release inputs.
-
-The game self-hosts the Inter font and Grenze Gotisch font as Web Open Font Format 2 (WOFF2) files. The files are lossless repackagings of the downloaded fonts. Each font has its SIL Open Font License (OFL) 1.1 license text.
+[`DELIVERY.md`](DELIVERY.md) gives the shipped image variants and the fonts.
 
 The user selected the title. A preliminary name search is not trademark clearance. The project gives no guarantee against intellectual-property claims.
 
@@ -301,7 +264,7 @@ If the game data cannot load or does not pass its checks, the kitchen says so an
 
 An import validates the envelope and the state of the save. An import rejects malformed saved data and keeps the current save. An import enforces a size limit. Load, save, import, and reset use only the save keys of this game. They do not change other browser data.
 
-Current saves use game state version 11 in envelope version 10 at `scary-snacks-save-v10`. Only this format is supported. Load reads only this key. With no current save, the game starts a new campaign.
+Current saves use game state version 12 in envelope version 11 at `scary-snacks-save-v11`. Only this format is supported. Load reads only this key. With no current save, the game starts a new campaign.
 
 Earlier local saves stay unchanged and are not read or converted. Import rejects earlier formats. New games use the authored blocked layout. Saves record its layout ID and resolved obstacle IDs.
 
@@ -311,11 +274,11 @@ The optional preparation obstacle record stores the completed-preparation baseli
 
 Reload, import, and changes from another tab preserve the record and do not place or repeat blockers. If a preparation save fails, its payment, batch, and placements do not enter the session. A failed save after a board action keeps the placement and queue in the current session. Retry save and export include that session.
 
-The state records waiting scenes. The list holds preparation scenes, quest completion scenes, chapter closing scenes, the finale, local gossip, and regular arrival scenes. Only earned scenes can enter the list. A preparation scene uses the ID of its preparation, and a quest completion scene uses the ID of its quest.
+The state records waiting scenes. The list holds preparation scenes, quest completion scenes, chapter closing scenes, the finale, local news, and regular arrival scenes. Only earned scenes can enter the list. A preparation scene uses the ID of its preparation, and a quest completion scene uses the ID of its quest.
 
-An arrival scene uses the ID `arrival-` and the ID of its regular. Each scene ID is unique across preparations, quests, gossip, chapters, the finale, and arrivals, and occurs once in the list. Preparation scenes, chapter scenes, and the finale keep one story order: each chapter scene follows the four preparations of its chapter. Quest scenes, gossip, and arrival scenes can wait at any position.
+An arrival scene uses the ID `arrival-` and the ID of its regular. Each scene ID is unique across preparations, quests, local news, chapters, the finale, and arrivals, and occurs once in the list. Preparation scenes, chapter scenes, and the finale keep one story order: each chapter scene follows the four preparations of its chapter. Quest scenes, local news, and arrival scenes can wait at any position.
 
-Completed preparations determine chapter completion. Completed quests and their delivery order determine local gossip. Scene IDs must remain stable after release. A save without a waiting entry for a scene treats that scene as read.
+Completed preparations determine chapter completion. Completed quests and their delivery order determine local news. Scene IDs must remain stable after release. A save without a waiting entry for a scene treats that scene as read.
 
 The optional line record maps a waiting scene ID to the zero-based line that the player sees. It holds only lines after the first line, and only for waiting scenes. Reading a scene removes its line. A save without this record starts each waiting scene at its first line.
 

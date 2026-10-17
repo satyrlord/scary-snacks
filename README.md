@@ -29,11 +29,3 @@ npm run quality:full
 ```
 
 You need to install the browser only once.
-
-## More
-
-- [PRODUCT.md](PRODUCT.md): the game rules and behavior.
-- [DESIGN.md](DESIGN.md): the visual design.
-- [DELIVERY.md](DELIVERY.md): hosting, assets, game data, and the source export.
-- [Verification](docs/verification.md), [economy](docs/economy.md), and [release notes](docs/release-notes.md).
-- `docs/specs/README.md`: implemented features and planned work. The source export excludes these specifications.

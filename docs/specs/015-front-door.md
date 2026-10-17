@@ -18,7 +18,7 @@ Owner: `PRODUCT.md` controls the start procedure, motion choice, and controls.
   about this, and nothing in the game can change it.
 - The game receives the reduced-motion preference through the browser media query.
   The game does not identify which device setting caused the preference.
-- Options holds appearance, sound, the saved game, About, and a fresh start.
+- Options holds appearance, sound, the guide, the saved game, About Scary Snacks, and a fresh start.
   It is the only menu of the game and stays so.
 
 ## Outcome and scope

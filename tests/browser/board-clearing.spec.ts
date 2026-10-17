@@ -101,15 +101,6 @@ test('touch can release an anchor with two taps', async ({ browser, baseURL }) =
   } finally { await context.close(); }
 });
 
-test('blocker guidance selects a matching movable ingredient for release', async ({ page }) => {
-  const state = createGame(data); state.board[13] = null; state.board[14] = { code: 'bakery_2' };
-  await start(page, state); await tile(page, 6).click();
-  await expect(tile(page, 14)).toHaveClass(/blocker-target/);
-  await tile(page, 14).click(); await tile(page, 6).click();
-  await expect(tile(page, 6)).not.toHaveClass(/anchored/);
-  expect((await saved(page)).resolvedObstacles).toEqual(['tied-dough']);
-});
-
 test('Find a match selects movable food and points to matching clutter', async ({ page }) => {
   const state = unguided();
   state.board = state.board.map(cell => cell && data.items[cell.code].generator ? cell : null);

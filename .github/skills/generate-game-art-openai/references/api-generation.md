@@ -147,7 +147,7 @@ Read `status.json` before you continue:
 | State | Meaning | Next step |
 | --- | --- | --- |
 | `request-started` | The result is unknown. | Do not repeat the request. Examine the folder, and ask the user. |
-| `request-failed` | The provider refused the request. The record has a code. | Report the code. Do not retry without approval. |
+| `request-failed` | The request gave no image. The provider rejected it, the provider failed, the response had no usable image, or a local error stopped it. The record has a code. | Report the code. Do not retry without approval. |
 | `request-failed` with the code `network-outcome-unknown` | A network error or a timeout stopped the request. The billing result is unknown. | Do not repeat the request. Report the unknown result to the user. |
 | `response-saved` | The candidate is saved. | Measure it. |
 | `candidate-undecodable` | The file is not an 8-bit RGB or RGBA PNG. | Examine the file. Do not send a new request without approval. |
@@ -195,7 +195,7 @@ Add these route details:
   Add a `generation` field to that entry with the model, the quality, the size, and the run folder name.
   If the run used a reference or a mask, add its description to that field.
   Change the top-level `mode` field so that it names each route that made an entry.
-- Examine the statements that name the in-chat imagegen tool in `docs/release-notes.md` (section "Art provenance").
+- Examine the statements that name the built-in chat image generator in `docs/release-notes.md` (section "Art provenance").
   Change a statement if it is no longer true.
 - Set `sourceGameImageInput` to `false` only if each reference was a shipping bitmap or a candidate of this project.
 

@@ -3,7 +3,6 @@
 Status: Implemented.
 The game has the regulars, their arrivals, arrival scenes, portraits, and quests.
 The journal lists the neighbours.
-The game has no ordinary orders.
 Owner: `PRODUCT.md` for the cast, the arrivals, and the quests; `DESIGN.md` for portraits and the neighbours list.
 
 In this spec, a neighbour is a core character or a regular.
@@ -28,8 +27,8 @@ The player can find who lives nearby and what they like.
 
 1. The roster has 16 neighbours: the four core characters and 12 regulars. Vlad and Elisabeta are two of the 12 regulars.
 2. Arrivals: Dochia, Victor, Ana, and Costel are present from the start, so a new game has eight neighbours.
-   Sânziana and Dorian arrive with preparation 4, Ileana and Cezar with preparation 8, and Cătălina and Bran with preparation 12.
-   Vlad and Elisabeta arrive with preparation 15.
+   Sânziana and Dorian arrive with preparation 4. Vlad, Elisabeta, Ileana, and Cezar arrive with preparation 8, in that order.
+   Cătălina and Bran arrive with preparation 12.
 3. Each regular who arrives later records an `arrivesAfter` preparation identifier (ID). The game derives arrival from
    completed preparations and does not save it.
 4. Each regular has two authored favourite chains (`prefers`). Each quest of a regular asks for at least one dish
@@ -63,12 +62,12 @@ A reference never copies text, a plot, or a design from the work.
 | Start | Costel | Clock and automaton maker | sweet, drinks | *The Sandman* (E. T. A. Hoffmann, 1816) |
 | After preparation 4 | Sânziana | Florist | sweet, produce | The Sânziene, the midsummer flower fairies. She weaves bedstraw crowns on 24 June (Romanian folklore) |
 | After preparation 4 | Dorian | Portrait painter who never seems to age | sweet, drinks | *The Picture of Dorian Gray* (Oscar Wilde, 1890) |
+| After preparation 8 | Vlad | Local baron | warm, drinks | A baron who styles himself as a count and lives in a countryside castle |
+| After preparation 8 | Elisabeta | Visiting countess | warm, drinks | An Austro-Hungarian countess who sometimes visits her land nearby |
 | After preparation 8 | Ileana | Seamstress | produce, drinks | She finishes every spindle before Maundy Thursday, for fear of Joimărița, who punishes idle spinners (Romanian folklore) |
 | After preparation 8 | Cezar | Night watchman who seems to sleepwalk his rounds | warm, produce | *The Cabinet of Dr. Caligari* (film, 1920) |
 | After preparation 12 | Cătălina | Church bell-ringer | sweet, warm | She rings the bell against hailstorms and the solomonari who ride the storm clouds (village custom) |
 | After preparation 12 | Bran | Night-bus driver who rides a horse on his days off | bakery, warm | The Headless Horseman of *The Legend of Sleepy Hollow* (Washington Irving, 1820) |
-| After preparation 15 | Vlad | Local baron | warm, drinks | A baron who styles himself as a count and lives in a countryside castle |
-| After preparation 15 | Elisabeta | Visiting countess | warm, drinks | An Austro-Hungarian countess who sometimes visits her land nearby |
 
 The night-shift nurse, the night watchman, and the bell-ringer add a slightly eerie side to the
 village. They are awake when the bats are.

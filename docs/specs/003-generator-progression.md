@@ -90,11 +90,8 @@ The fixture reports actions, takes, merges, and deliveries for each preparation 
   Check the selected source with three Take buttons at 360px, in both themes.
   Check that no unearned output shows before the payment of its preparation.
 - Implementation checks: run `npm run typecheck` and `npm test`. Then run `npm run build` and
-  `npm run test:browser`. Update the delivery evidence and the visual evidence with the measured results.
+  `npm run test:browser`.
 
-## Dependencies and open decisions
+## Dependencies
 
-The first slice depends only on the current rules for completed preparations and generators.
 A later spec may grant tiers. Such a spec must extend the tier rule in item 6.
-Spec 006 must include upgraded output in its economy checks.
-The selected tier preparations are 12 and 20.

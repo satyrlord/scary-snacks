@@ -80,7 +80,7 @@ Remove history: retired items, dated results, audit figures, and notes about an 
 `AGENTS.md` gives this rule. Do not remove provenance or a hash of a shipped asset.
 
 Do not change approved bitmaps, fonts, license texts, lockfiles, or the files in ignored paths.
-Do not edit `public/data/game.json` by hand. Change its generator and run `npm run data:generate`.
+For game data, obey the generator rule in `AGENTS.md`.
 Keep uncommitted work that is not related to the task.
 For reachability, use [dead-code-audit](../dead-code-audit/SKILL.md).
 

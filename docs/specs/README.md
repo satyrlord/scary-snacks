@@ -6,8 +6,7 @@ The current game has six chapters, 24 preparations, and 81 authored quests. It a
 
 ## Product direction
 
-The planned features extend the neighbourhood, character quests, visible renovation, chapter story, generator upgrades, and collections.
-The following boundaries apply:
+The following boundaries apply to the planned features:
 
 - unlimited energy;
 - no waiting;
@@ -20,7 +19,7 @@ The team authors the content, the art, and the rules.
 
 ## Feature register
 
-Specs 001 and 002 are implemented. The [verification record](../verification.md) gives the evidence for spec 001. Spec 002 has three second finishes. Three quests unlock them, and a switch on each detail in the room changes the finish. Its [acceptance section](002-decoration-choices.md#acceptance-and-evidence) gives the checks.
+Specs 001 and 002 are implemented. The [verification record](../verification.md) gives the test coverage for spec 001. Spec 002 has three second finishes. Three quests unlock them, and a switch on each detail in the room changes the finish. Its [acceptance section](002-decoration-choices.md#acceptance-and-evidence) gives the checks.
 
 Spec 003 implements generator tiers, output choices, and persistence. Its acceptance section records the automated evidence.
 
@@ -51,7 +50,6 @@ The guide records successful actions, marks its targets by rule, and gives no re
 
 Spec 013 implements the regulars, their arrivals, arrival scenes, portraits, and quests.
 The journal lists the neighbours.
-The game has no ordinary orders.
 
 Each entry is proposed, unless its specification records an implemented slice. Spec 011 has discovery cloches, notices, and item help. Its chain-completion marks are proposed. Priority is a suggested order of work. It does not change the approved product.
 
@@ -106,7 +104,7 @@ Neighbour introductions (005) are optional journal reading. Miez's visits (014) 
 
 ## Shared save compatibility
 
-Current saves use game state version 11 in envelope version 10 at `scary-snacks-save-v10`.
+Current saves use game state version 12 in envelope version 11 at `scary-snacks-save-v11`.
 The game supports only this format.
 Load reads only this key.
 If no current save exists, the game starts a new campaign.
@@ -129,7 +127,7 @@ Mandatory progression must not depend on an exhausted or inaccessible generator.
 
 ## Suggested delivery order
 
-1. Build Miez's visits in 014 on the quest campaign of 005. Exit: every open request stays possible, and the 006 fixture measures income with the blessing.
+1. Build Miez's visits in 014 on the quest campaign of 005. Exit: every open request stays possible, and quest rewards stay the same during the blessing.
 2. Add the remaining work of 011 and 012 as separate slices. These slices must not delay the core progression.
 
 Spec 015 adds no game state and is not part of this order. When it adds the front door, the guide of 010 starts after the front door.

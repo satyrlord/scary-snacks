@@ -53,7 +53,7 @@ Keep the entry point short.
 Put information in `references/` only when it applies to one selected branch.
 Put a script in `scripts/` only for work that occurs again and gives the same output each time.
 Write scripts as `.ts` modules that use only Node.js built-in modules and the packages in `package.json`.
-Do not add a `.js` or `.mjs` file to the repository.
+`AGENTS.md` gives the other code rules for skill scripts.
 Put a file in `assets/` only when the skill output uses it.
 
 For a long procedure with conditions, keep these items in `SKILL.md`:

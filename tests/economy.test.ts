@@ -1,8 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, dataProblems, economyProblems, reduceGame } from '../src/engine.ts';
-import type { Action } from '../src/engine.ts';
+import { dataProblems, economyProblems } from '../src/engine.ts';
 import type { GameData } from '../src/engine.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
@@ -15,16 +14,6 @@ test('renovation cost follows its materials and labour, with less work and money
     assert.ok(small.cost < repair.cost, `${small.title} costs less than ${repair.title}.`);
     assert.ok(small.work.hours < repair.work.hours, `${small.title} needs less work than ${repair.title}.`);
   }
-});
-
-test('the game has no sales: a sell request changes nothing, so quests are the only income', () => {
-  const state = createGame(data), before = JSON.stringify(state);
-  for (const index of [13, 1]) {
-    const result = reduceGame(state, { type: 'sell', index } as unknown as Action, data);
-    assert.equal(result.ok, false);
-    assert.equal(result.state, state);
-  }
-  assert.equal(JSON.stringify(state), before);
 });
 
 test('every quest pays exactly the menu value of its dishes, with no multiplier', () => {

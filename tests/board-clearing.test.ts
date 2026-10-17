@@ -25,7 +25,7 @@ function rejected(state: GameState, action: Action) {
 test('new games reserve eight obstacle cells and discover every visible blocked ingredient', () => {
   const state = start();
   assert.equal(state.layoutId, 'workbench-clutter-1');
-  assert.equal(state.version, 11);
+  assert.equal(state.version, 12);
   assert.equal(freeBoardCells(state, data), 27);
   assert.equal(firstFreeBoardCell(state, data), 2);
   assert.deepEqual([0, 5, 6, 11, 36, 37, 40, 41].map(index => unresolvedObstacle(state, index, data)?.type),
@@ -95,7 +95,7 @@ test('anchors and wrappers reject ordinary item actions and never count toward a
   state.board[7] = { code: 'bakery_1' };
   for (const action of [
     { type: 'move', from: 7, to: 6 }, { type: 'move', from: 7, to: 0 },
-    { type: 'move', from: 6, to: 7 }, { type: 'sell', index: 6 },
+    { type: 'move', from: 6, to: 7 },
   ] as Action[]) rejected(state, action);
   assert.deepEqual(state.resolvedObstacles, []);
   // The tied socata and the covered elderflower drink are on the board, but the welcome drink cannot use them.
@@ -155,7 +155,7 @@ test('open, partly cleared, and fully cleared boards survive export, import, and
   }
 });
 
-test('layout data rejects invalid content but permits blockers surrounded by blockers', () => {
+test('layout data rejects invalid content and clutter without its art cell, but permits blockers surrounded by blockers', () => {
   const duplicate = structuredClone(data);
   duplicate.board.layouts[0].obstacles[1].position = 0;
   assert.ok(boardLayoutProblems(duplicate).length);
@@ -165,14 +165,17 @@ test('layout data rejects invalid content but permits blockers surrounded by blo
   const badSprite = structuredClone(data);
   badSprite.board.layouts[0].obstacles[0].sprite = 99;
   assert.ok(boardLayoutProblems(badSprite).length);
+  const noSprite = structuredClone(data);
+  delete noSprite.board.layouts[0].obstacles[0].sprite;
+  assert.ok(boardLayoutProblems(noSprite).length);
   const badAtlas = structuredClone(data);
   Object.assign(badAtlas.board.layouts[0].obstacles[0], { atlas: 'absent' });
   assert.ok(boardLayoutProblems(badAtlas).length);
   const trapped = structuredClone(data);
   trapped.board.initial[13] = null;
   trapped.board.layouts[0].obstacles.push(
-    { id: 'center', position: 19, name: 'Center', type: 'clutter', ingredient: 'bakery_1' },
-    ...[13, 18, 20, 25].map((position, index) => ({ id: `wall-${index}`, position, name: 'Clutter', type: 'clutter' as const, ingredient: 'bakery_1' })),
+    { id: 'center', position: 19, name: 'Center', type: 'clutter', ingredient: 'bakery_1', sprite: 0 },
+    ...[13, 18, 20, 25].map((position, index) => ({ id: `wall-${index}`, position, name: 'Clutter', type: 'clutter' as const, ingredient: 'bakery_1', sprite: 0 })),
   );
   assert.deepEqual(boardLayoutProblems(trapped), []);
   assert.equal(validateGame(createGame(trapped), trapped), true);

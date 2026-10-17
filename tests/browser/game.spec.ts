@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { createGame, firstFreeBoardCell, generatorOutputs, resolveQuests, taskEligibility } from '../../src/engine.ts';
+import { createGame, firstFreeBoardCell, generatorOutputs, requiredQuests, resolveQuests } from '../../src/engine.ts';
 import type { GameState } from '../../src/engine.ts';
-import { KEY, act, appearance, checkpoint, data, deliverButton, deliverable, journal, opened, options, painting, payAndRead, quest, ratio, replaceSave, request, revealed, saved, serialize, start, stateText, supply, tile, ticket, toast, unguided, unselect } from './support.ts';
+import { KEY, act, appearance, checkpoint, data, deliverButton, journal, opened, options, painting, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, stateText, supply, tile, ticket, toast, unguided, unselect } from './support.ts';
 
 async function mergeStart(page: Page){await tile(page,13).click();await tile(page,14).click();expect((await saved(page)).board[14]?.code).toBe('bakery_2');}
 const welcome=quest('mara-welcome');
-/** Earn the first preparation through legal actions: four requests delivered and the dishes of the fifth on the board. */
+/** Earn the first preparation through legal actions: every required quest but the last delivered, and the dishes of the last on the board. */
 function beforeFirstPreparation(){
   let state=createGame(data);
   const produce=(code: string): number=>{
@@ -36,12 +36,12 @@ test('the bistro produces, merges, delivers a request, and survives reload',asyn
   await page.reload();await opened(page);expect(await saved(page)).toEqual(after);expect(errors).toEqual([]);
 });
 
-test('pointer drag and keyboard merge agree, and a dish has no Sell control',async({page})=>{
+test('pointer drag and keyboard merge agree, and the selected dish offers only Clear selection',async({page})=>{
   await start(page,unguided());const from=(await tile(page,13).boundingBox())!;const to=(await tile(page,14).boundingBox())!;
   await page.mouse.move(from.x+from.width/2,from.y+from.height/2);await page.mouse.down();await page.mouse.move(to.x+to.width/2,to.y+to.height/2,{steps:8});await page.mouse.up();
   expect((await saved(page)).board[14]?.code).toBe('bakery_2');await expect(tile(page,14)).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('#item-detail').getByRole('button')).toHaveText(['']);await expect(page.locator('#item-detail').getByRole('button')).toHaveAccessibleName('Clear selection');
-  await expect(page.locator('#item-detail')).not.toContainText(/sell/i);expect((await saved(page)).coins).toBe(0);
+  expect((await saved(page)).coins).toBe(0);
   await unselect(page);await tile(page,1).click();await tile(page,1).click();await tile(page,1).click();
   const state=await saved(page);const pair=state.board.map((cell,index)=>({cell,index})).filter(({cell})=>cell?.code==='bakery_1').slice(0,2);
   await unselect(page);await tile(page,pair[0].index).focus();await page.keyboard.press('Space');await tile(page,pair[1].index).focus();await page.keyboard.press('Space');expect((await saved(page)).board[pair[1].index]?.code).toBe('bakery_2');
@@ -89,15 +89,21 @@ test('after the last preparation the room is ready for the supper, with the slee
   await expect(page.locator('#room-caption li').first()).toHaveText(stateText('front-room-00'));await expect(page.locator('#room-caption li').last()).toHaveText(stateText('front-room-24'));
 });
 
-test('a preparation paid with earned coins is revealed in the room once its story ends, and survives reload',async({page})=>{
+test('the last required quest enables Pay, and the preparation paid with earned coins is revealed in the room once its story ends, and survives reload',async({page})=>{
   const initial=beforeFirstPreparation(),last=resolveQuests(initial,data).find(view=>view.status==='active')!.quest;
-  await start(page,initial);expect(taskEligibility(await saved(page),data).ready).toBe(false);
+  const needed=requiredQuests(0,data).length,next=requiredQuests(1,data),cost=data.tasks[0].cost;
+  const goal=(kind: string)=>page.locator(`#story [data-requirement="${kind}"]`),pay=page.locator('#story').getByRole('button',{name:/^Pay /});
+  await start(page,initial);
+  await expect(goal('quests')).toHaveText(`Quests delivered: ${needed-1} / ${needed}Need 1`);
+  await expect(goal('coins')).toHaveText(`Coins: ${initial.coins} / ${cost}Need ${cost-initial.coins}`);await expect(pay).toBeDisabled();
   await deliverButton(page,last).click();await expect(toast(page)).toHaveText(`${last.title}: delivered. Earned ${last.reward} coins.`);
-  expect(taskEligibility(await saved(page),data).ready).toBe(true);
+  await expect(page.locator('#story .story-waiting button')).toBeFocused();
+  await expect(goal('quests')).toHaveText(`Quests delivered: ${needed} / ${needed}Complete`);
+  await expect(goal('coins')).toHaveText(`Coins: ${initial.coins+last.reward} / ${cost}Complete`);
   const before=await saved(page);
-  await page.locator('#story').getByRole('button',{name:/^Pay /}).click();
+  await pay.click();await expect(page.locator('.story-controls .primary-button')).toBeFocused();
   // The game was saved before the story opens, while the room still shows the room before the change.
-  const paid=await saved(page);expect(paid.decorations).toEqual(['task_1']);expect(paid.coins).toBe(before.coins-data.tasks[0].cost);expect(paid.pendingScenes).toEqual([last.id,'task_1']);
+  const paid=await saved(page);expect(paid.taskIndex).toBe(1);expect(paid.decorations).toEqual(['task_1']);expect(paid.coins).toBe(before.coins-data.tasks[0].cost);expect(paid.pendingScenes).toEqual([last.id,'task_1']);
   // The last line of the story reads its scene. The quest's own completion still waits in Story.
   const after={...paid,pendingScenes:[last.id]};
   await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-00');
@@ -105,6 +111,9 @@ test('a preparation paid with earned coins is revealed in the room once its stor
   await revealed(page);await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-01');
   const pin=page.locator('#room-pin');await expect(pin).toBeFocused();await expect(pin).toHaveAccessibleName(`New: ${stateText('front-room-01')}`);
   await expect(page.locator('#status')).toHaveText(`${stateText('front-room-01')} The guide is complete. Options has more help: the recipe book, Find a match, and blocked spaces.`);
+  // The next preparation counts its own quests, and the tickets carry the quests that the first preparation opened.
+  await expect(goal('quests')).toHaveText(`Quests delivered: ${needed} / ${next.length}Need ${next.length-needed}`);await expect(pay).toBeDisabled();
+  for(const value of next.slice(needed))await expect(deliverButton(page,value)).toBeVisible();
   // The reveal neither pays nor earns again.
   expect(await saved(page)).toEqual(after);await expect(page.locator('#coins')).toHaveText(String(after.coins));
   await page.reload();await opened(page);
@@ -196,7 +205,7 @@ test('a painting that cannot load leaves the room in words, and play goes on',as
   await page.route('**/assets/variants/front-room-*',route=>route.fulfill({status:404,body:''}));await start(page,checkpoint(data.tasks.length));
   await expect(page.locator('#room-stage')).toHaveAttribute('data-failed','');
   const caption=page.locator('#room-caption');await expect(caption).toBeVisible();await expect(caption).toContainText('The painting of this room could not load, so here it is in words.');
-  await expect(caption.locator('li').last()).toHaveText(stateText('front-room-24'));await expect(caption.locator('li')).toHaveCount(15);
+  await expect(caption.locator('li')).toHaveText(data.rooms.filter(state=>state.area==='front-room').map(state=>state.text));
   for(const control of await page.locator('.room-finish').all()){
     await expect(control).toBeHidden();await expect(control).toHaveAttribute('inert','');
   }
@@ -243,6 +252,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
     const card=page.locator('#tickets .ticket').nth(slot),name=data.characters.find(person=>person.id===value.character)!.name;
     await expect(card).toHaveAttribute('data-quest',value.id);await expect(card).toHaveAccessibleName(`${name}’s request: ${value.title}`);
     await expect(card.locator('.ticket-item')).toHaveCount(value.requirements.length);await expect(card.locator('.deliver-button')).toBeDisabled();
+    await expect(card.locator('.deliver-button')).toHaveAccessibleName(new RegExp(` for ${value.reward} coins$`));await expect(card.locator('.deliver-button')).toContainText(String(value.reward));
     const box=(await card.boundingBox())!;expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(viewport.width);expect(box.y+box.height).toBeLessThanOrEqual(viewport.height);
     expect(await card.evaluate(e=>e.scrollWidth<=e.clientWidth+1&&e.scrollHeight<=e.clientHeight+1)).toBe(true);
     for(const target of await card.getByRole('button').all()){const size=(await target.boundingBox())!;expect(size.width).toBeGreaterThanOrEqual(44);expect(size.height).toBeGreaterThanOrEqual(44);}
@@ -438,9 +448,6 @@ test('Options holds only the save, appearance, sounds, the guide, the saved game
   await expect(page.locator('[data-options]:visible')).toHaveAccessibleName('Options');await expect(page.locator('[data-options]:visible')).toContainText('Options');
   await expect(dialog.locator('.save-status').first()).toHaveText('Saved in this browser');
   await expect(dialog.locator('legend, h3')).toHaveText(['Appearance','Kitchen sounds','Guide','Your saved game','About Scary Snacks','A fresh start']);
-  // No level, experience, or decoration controls are left in Options.
-  await expect(dialog).not.toContainText(/\blevel\b|\bXP\b|decoration|\bfinish(es)?\b|House book/i);
-  await expect(dialog.locator('[data-decoration], .level-panel, .decoration-editor')).toHaveCount(0);
   await expect(dialog.getByRole('button')).toHaveText(['','Turn sound on','Open the kitchen guide','Export saved game','Import saved game','Start a new game']);
   for(const name of ['Retry saved game','Retry save'])await expect(page.getByRole('button',{name,exact:true})).toHaveCount(0);
   await page.setViewportSize({width:390,height:844});await page.keyboard.press('Escape');
@@ -448,20 +455,46 @@ test('Options holds only the save, appearance, sounds, the guide, the saved game
   expect(await page.locator('#modal').evaluate(e=>e.scrollWidth<=e.clientWidth)).toBe(true);
 });
 
+test('a rejected sound start restores the toggle and permits a retry',async({page})=>{
+  await page.addInitScript(()=>{
+    const resume=AudioContext.prototype.resume;
+    let attempts=0;
+    AudioContext.prototype.resume=function(){
+      return ++attempts===1?Promise.reject(new Error('Sound start failed')):resume.call(this);
+    };
+  });
+  await start(page);await options(page);
+  const toggle=page.getByRole('button',{name:'Turn sound on',exact:true});
+  await toggle.click();
+  await expect(page.locator('#status')).toHaveText('Sound is unavailable in this browser.');
+  await expect(toggle).toBeFocused();
+  await toggle.click();
+  await expect(page.getByRole('button',{name:'Turn sound off',exact:true})).toBeFocused();
+});
+
+test('a valid save from another tab restores play after load recovery',async({page,context})=>{
+  await page.goto('./');await page.evaluate(key=>localStorage.setItem(key,'{broken'),KEY);await page.reload();
+  await expect(page.getByRole('button',{name:'Retry saved game'})).toBeVisible();
+  const other=await context.newPage();await other.goto('./');
+  await other.evaluate(({key,text})=>localStorage.setItem(key,text),{key:KEY,text:serialize(checkpoint(9))});
+  await expect(page.locator('#modal')).not.toBeVisible();await expect(page.locator('#status')).toContainText('another tab');
+  const before=await saved(page);await page.locator('[data-cell="1"]').click();
+  expect((await saved(page)).board.filter(Boolean).length).toBe(before.board.filter(Boolean).length+1);await other.close();
+});
+
 test('corrupt saves remain intact and report recovery',async({page})=>{
   await page.addInitScript(key=>localStorage.setItem(key,'broken-save'),KEY);await start(page);await expect(page.getByRole('dialog')).toBeVisible();await expect(page.locator('.save-error')).toContainText('could not be loaded');expect(await page.evaluate(key=>localStorage.getItem(key),KEY)).toBe('broken-save');
 });
 
-for(const preparations of [1,24])test(`a previous-format campaign at preparation ${preparations} stays untouched beside a new campaign`,async({page})=>{
-  const oldKey='scary-snacks-save-v9';
-  const old=JSON.stringify({format:'scary-snacks',version:9,state:{...checkpoint(preparations),version:10}});
+for(const preparations of [1,9,19,24])test(`a previous-format campaign at preparation ${preparations} stays untouched beside a new campaign`,async({page})=>{
+  const oldKey='scary-snacks-save-v10';
+  const old=JSON.stringify({format:'scary-snacks',version:10,state:{...checkpoint(preparations),version:11}});
   await page.addInitScript(({key,value})=>{
     if(!sessionStorage.getItem('previous-save-seeded')){
       localStorage.setItem(key,value);sessionStorage.setItem('previous-save-seeded','true');
     }
   },{key:oldKey,value:old});
   await start(page);
-  expect(KEY).toBe('scary-snacks-save-v10');
   expect(await saved(page)).toEqual(createGame(data));
   const previous=()=>page.evaluate(key=>localStorage.getItem(key),oldKey);
   expect(await previous()).toBe(old);

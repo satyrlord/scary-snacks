@@ -2,17 +2,13 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { requiredQuests } from '../../src/engine.ts';
 import type { GameState, SceneLine } from '../../src/engine.ts';
-import { KEY, act, checkpoint, data, exportText, journal, opened, options, readTo, saved, serialize, start, story } from './support.ts';
+import { KEY, act, checkpoint, data, exportText, journal, opened, options, payAndRead, readTo, saved, serialize, start, story } from './support.ts';
 
 const closing=(index: number)=>`Chapter ${index+1} complete: ${data.chapters[index].title}`;
 /** The regulars whose arrival scenes the payment of a preparation queues. */
 const arrivals=(index: number)=>data.characters.filter(person=>person.arrival&&person.arrivesAfter===data.tasks[index].id);
 /** A checkpoint ready for the next preparation, with every earlier scene read, so only new payments queue scenes. */
 const ready=(count: number)=>checkpoint(count,{ready:true});
-async function pay(page: Page){
-  await story(page);await page.getByRole('button',{name:/^Pay /}).first().click();
-  for(const label of ['Continue','Continue','See what changed'])await page.locator('.story-controls .primary-button',{hasText:label}).click();
-}
 /** Reads the open scene and then each arrival scene that the payment of preparation index queued, back to the kitchen. */
 async function readWithArrivals(page: Page,index: number){
   const people=arrivals(index);await readTo(page,people.length?'Next scene':'Back to the kitchen');
@@ -31,7 +27,7 @@ test('the story shows the chapter objective and the state of its four preparatio
 });
 
 test('the last preparation of a chapter opens its closing scene after the reveal, then the arrivals, and the next chapter starts',async({page})=>{
-  await start(page,ready(3));await pay(page);
+  await start(page,ready(3));await payAndRead(page);
   const dialog=scene(page,closing(0));await expect(dialog).toBeVisible({timeout:8000});await expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done');
   await expect(dialog).toContainText(data.chapters[0].payoff);await expect(page.locator('#story-line')).toContainText(data.chapters[0].closing[0].text);
   const paid=await saved(page);expect(paid.pendingScenes).toEqual(['chapter-1',...arrivals(3).map(person=>`arrival-${person.id}`)]);expect(paid.taskIndex).toBe(4);
@@ -47,7 +43,7 @@ test('the last preparation of a chapter opens its closing scene after the reveal
 });
 
 test('closing a chapter scene leaves it waiting through reload, and cooking never waits for it',async({page})=>{
-  await start(page,ready(7));await pay(page);await expect(scene(page,closing(1))).toBeVisible({timeout:8000});
+  await start(page,ready(7));await payAndRead(page);await expect(scene(page,closing(1))).toBeVisible({timeout:8000});
   await page.keyboard.press('Escape');await expect(page.locator('#modal')).toBeHidden();expect((await saved(page)).pendingScenes).toEqual(['chapter-2',...arrivals(7).map(person=>`arrival-${person.id}`)]);
   // The next preparation and the board stay usable while the scene waits.
   const before=await saved(page),source=before.board.findIndex(cell=>cell?.code==='generator_bakery');await page.locator(`[data-cell="${source}"]`).click();
@@ -78,7 +74,7 @@ for(const dismiss of ['Escape','Close'] as const)test(`${dismiss} on the next wa
 });
 
 test('the final preparation gives one finale after the chapter scene; Skip and replay change nothing else, and no request waits',async({page})=>{
-  const initial=ready(23);await start(page,initial);await pay(page);await expect(scene(page,closing(5))).toBeVisible({timeout:8000});
+  const initial=ready(23);await start(page,initial);await payAndRead(page);await expect(scene(page,closing(5))).toBeVisible({timeout:8000});
   const paid=await saved(page);expect(paid.pendingScenes).toEqual(['chapter-6','finale']);expect(paid.coins).toBe(initial.coins-data.tasks[23].cost);
   await readTo(page,'Next scene');const finale=scene(page,data.finale.title);await expect(finale).toBeVisible();
   await expect(finale).toContainText(data.finale.ending);await expect(page.locator('#story-line')).toContainText(data.finale.dialogue[0].text);
@@ -118,7 +114,7 @@ test('a fresh save plays through every payment, chapter scene, and the finale, a
     await expect(page.locator('#story .chapter-title')).toHaveText(chapter.title);await expect(page.locator('#story .chapter-objective')).toHaveText(chapter.objective);
     await expect(page.locator('#story .chapter-steps li').nth(index%4)).toHaveText(`${task.title}: now`);
     await expect(page.locator('#story [data-requirement="quests"] span').first()).toHaveText(`Quests delivered: ${requiredQuests(index,data).length} / ${requiredQuests(index,data).length}`);
-    await pay(page);await expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done');
+    await payAndRead(page);await expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done');
     await expect(page.locator('#status')).toHaveText(data.rooms.find(room=>room.after===task.id)!.text);
     if(index%4===3){
       await expect(scene(page,closing(task.chapter-1))).toBeVisible();await expect(page.locator('.completion-message')).toHaveText(chapter.payoff);
@@ -268,8 +264,10 @@ test('a failed line write warns once in the scene, the player reads on, and relo
 });
 
 test('a regular’s arrival scene waits in Story after a reload and then opens their journal entry',async({page})=>{
-  const index=data.tasks.findIndex(task=>arrivals(data.tasks.indexOf(task)).length>0&&data.tasks.indexOf(task)%4!==3),people=arrivals(index);
-  await page.emulateMedia({reducedMotion:'reduce'});await start(page,ready(index));await pay(page);
+  // Every arrival comes with the last preparation of a chapter, so the chapter closing plays before the first arrival.
+  const index=7,people=arrivals(index);expect(people.length).toBeGreaterThan(0);
+  await page.emulateMedia({reducedMotion:'reduce'});await start(page,ready(index));await payAndRead(page);
+  await expect(scene(page,closing(1))).toBeVisible({timeout:8000});await readTo(page,'Next scene');
   await expect(scene(page,`${people[0].name} arrives`)).toBeVisible();await expect(page.locator('.completion-message')).toHaveText(`${people[0].name} is now a regular. Read more about ${people[0].name} in the story journal.`);
   await page.keyboard.press('Escape');expect((await saved(page)).pendingScenes).toEqual(people.map(person=>`arrival-${person.id}`));
   await page.reload();await opened(page);await journal(page);

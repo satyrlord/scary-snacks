@@ -11,7 +11,6 @@ Load a reference only at the procedure step that names it.
 If the scope changes, select the modules again.
 
 Obey the limits of the user on edits and tests.
-A link to a different skill does not increase the approval that the user gave.
 Treat a proposed specification as planned work, not as implemented behavior.
 Verify each implementation claim against the source code and its tests.
 Preserve approval that the user already gave for the current scope.
@@ -33,13 +32,12 @@ For the full gate, use [`run-quality-gate`](run-quality-gate/SKILL.md).
   or a full checkout. Repair only when the user tells you to.
 - [`generate-game-art`](generate-game-art/SKILL.md): Generate, review, or
   replace bitmap art with the built-in chat image generator.
-  The art is the atlases, the timber, the runner, the painted room states, and the two decoration paintings.
+  The art is the atlases, the timber, the runner, the separate item pictures, the painted room states, and the two decoration paintings.
   If the agent has no image generator, give the user a prompt to run.
   Also start here for the OpenAI Images application programming interface (API) route.
 - [`generate-game-art-openai`](generate-game-art-openai/SKILL.md): Plan, send, and measure requests when the user chooses the API route.
   Its asset table gives the supported bitmaps, including the two decoration paintings.
-  Codex does not select it automatically. In Codex, use it by its name or through `generate-game-art`.
-  Other agents select it from its description.
+  The skill gives its selection rule.
 - [`grill-me`](grill-me/SKILL.md): Challenge a plan one decision at a time,
   when the user tells you to interview them.
 - [`improve-codebase-architecture`](improve-codebase-architecture/SKILL.md):
@@ -53,15 +51,8 @@ For the full gate, use [`run-quality-gate`](run-quality-gate/SKILL.md).
 - [`verify-game`](verify-game/SKILL.md): Examine the game in its production
   browser build, and collect the evidence.
 
-Audits, reviews, and diagnosis do not change files unless the user tells you to make a change.
 Do not change work that is not related to the task.
-Do not edit a generated file by hand. Run its generator.
 
-To show these packages to the skill discovery tools, run this command on Windows:
-
-```powershell
-pwsh -File .github/scripts/setup-skill-links.ps1
-```
-
+`AGENTS.md` gives the command that shows these packages to the skill discovery tools.
 The command makes ignored junctions at `.claude/skills`, `.agents/skills`, and `.codex/skills`.
 The junctions show the files in `.github/skills/`. They are not copies.

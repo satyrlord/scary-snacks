@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, currentTask, dataProblems, questProblems, reduceGame, requiredQuests, taskEligibility, unresolvedObstacle, validateGame } from '../src/engine.ts';
+import { createGame, dataProblems, questProblems, reduceGame, requiredQuests, taskEligibility, unresolvedObstacle, validateGame } from '../src/engine.ts';
 import type { Action, GameData, GameState } from '../src/engine.ts';
 import { checkpointState } from '../tools/create-checkpoint-saves.ts';
 

@@ -61,9 +61,10 @@ The engine validates saves in `validateGame` in `src/engine.ts`.
 Coordinate the state version and `VERSION` in `src/storage.ts` when the save shape changes.
 Do not add support for an earlier save format without user approval.
 
-If you add a runtime file, add the file to `runtimeFiles` in `tools/build.ts`.
+If you add, move, or remove a file, examine `runtimeFiles` in `tools/build.ts`.
+Examine the file list in `tools/export-source.ts` also.
+Update each list that names the file.
 The build publishes each runtime `.ts` module as a `.js` script in `dist/`. `index.html` names the `.ts` source.
-If the release must include a new file, add the file to the file list in `tools/export-source.ts`.
 
 Add the smallest tests that fail for the changed behavior.
 Update the related developer and user documentation.

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { requiredQuests } from '../../src/engine.ts';
 import type { GameState } from '../../src/engine.ts';
-import { act, checkpoint, data, deliverable, failWrites, noSideScroll, onTicket, options, quest, readTo, replaceSave, revealed, saved, start, supply, ticket, tile, toast } from './support.ts';
+import { act, checkpoint, data, deliverable, failWrites, noSideScroll, onTicket, options, quest, revealed, saved, serialize, start, supply, ticket, tile, toast } from './support.ts';
 
 const step = (page: Page) => page.locator('#guide-step');
 const skip = (page: Page) => page.getByRole('button', { name: 'Skip the guide', exact: true });
@@ -217,11 +217,13 @@ test('an import adopts the guide of the imported save only after its validation'
   imported.guide = { status: 'dismissed', stage: 'take', done: { merge: true, take: false, deliver: false, prepare: false, story: false } };
   await start(page);
   await options(page);
-  const bad = JSON.stringify({ format: 'scary-snacks', version: 10, state: { ...imported, guide: { ...imported.guide, stage: 'story' } } });
+  const bad = JSON.stringify({ ...JSON.parse(serialize(imported)), state: { ...imported, guide: { ...imported.guide, stage: 'story' } } });
   await page.locator('input[type="file"]').setInputFiles({ name: 'save.json', mimeType: 'application/json', buffer: Buffer.from(bad) });
   await expect(page.locator('#modal-title')).toHaveText('Cannot import this file');
   await expect(step(page)).toContainText('1 of 5');
-  await replaceSave(page, imported);
+  await page.getByRole('button', { name: 'Close dialog' }).click(); await options(page);
+  await page.locator('input[type="file"]').setInputFiles({ name: 'save.json', mimeType: 'application/json', buffer: Buffer.from(serialize(imported)) });
+  await page.getByRole('button', { name: 'Import this saved game' }).click();
   await expect(skip(page)).toBeHidden();
   expect((await saved(page)).guide).toEqual(imported.guide);
 });

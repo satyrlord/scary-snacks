@@ -1,7 +1,7 @@
 # 014: Miez's visits
 
 Status: Proposed. Not implemented. Intervals, dish stages, and the blessing length below are draft defaults.
-Owner: `PRODUCT.md` for the visit and reward rules; `DESIGN.md` for the request and the doubled-pay marker.
+Owner: `PRODUCT.md` for the visit and reward rules; `DESIGN.md` for the request and the blessing marker.
 
 ## Current evidence
 
@@ -17,16 +17,17 @@ Owner: `PRODUCT.md` for the visit and reward rules; `DESIGN.md` for the request 
 
 ## Outcome and scope
 
-Sometimes Miez asks for a meal. She cannot pay, but a fed cat gives a blessing:
-the next five quest deliveries pay double. The cat becomes part of play.
+Sometimes Miez asks for a meal. She cannot pay, but a fed cat gives a blessing for the next five quest deliveries.
+The cat becomes part of play. What the blessing gives is an open decision.
+It must not multiply a reward: `PRODUCT.md` says that no visit multiplies a reward.
 
 - Count the reward in deliveries, not in seconds. Use no timer, countdown, deadline, or
   real-time check. Closing the tab, reloading, or waiting changes nothing.
 - Keep the three quest tickets. The request of Miez is a fourth request beside them. It does not take a ticket,
   and no preparation needs it.
 - Keep unlimited energy and no purchases. The player has no penalty for ignoring the cat.
-- Do not change authored quest rewards or preparation costs. The blessing multiplies the
-  payout of a quest at delivery time only. The funding check of 006 stays true without the blessing.
+- Do not change authored quest rewards or preparation costs. Every quest pays its menu value during the blessing.
+  The funding check of 006 stays true.
 
 ## Proposed rules
 
@@ -44,8 +45,8 @@ the next five quest deliveries pay double. The cat becomes part of play.
 4. Feeding pays no coins. Feeding does not count as a delivery.
    Feeding does not change `completedQuests`, the dish deliveries of 012, or a neighbour's delivered count from 013.
 5. Feeding sets the blessing to five deliveries. While the blessing is above zero, each quest
-   delivered pays twice its authored reward. The blessing drops by one.
-6. The blessing applies to quest rewards only. It does not change preparation costs.
+   delivery decreases it by one.
+6. The blessing does not change quest rewards or preparation costs.
 7. While a visit waits or a blessing is active, no new visit becomes due.
    When the blessing reaches zero, the game selects a new interval, as in rule 1.
    The game sets `due` to the delivery count plus that interval.
@@ -66,9 +67,8 @@ Draft presentation. `DESIGN.md` decides the final placement at implementation.
   parchment bubble beside her holds the wanted dish, Feed, and Not now. Petting stays as it is.
 - When the drawer covers the sill: the Story tab shows a small paw mark. The Miez card in the
   Story sheet shows the request with Feed and Not now. The three quest tickets do not move.
-- During the blessing, Deliver on every ticket shows the doubled amount with a small
-  crescent-paw marker and "×2". The status line counts down in deliveries: "Miez's luck:
-  3 deliveries left". The delivery message names the doubled pay.
+- During the blessing, every ticket shows a small crescent-paw marker. The status line counts
+  down in deliveries: "Miez's luck: 3 deliveries left".
 - The first visit plays a short original scene. A core character explains the custom.
 - Use the existing sitting sprite. A begging pose is new mascot art. The begging pose needs the
   approval of the user for the asset and for each paid request. The pose is optional for the first slice.
@@ -94,22 +94,22 @@ Draft presentation. `DESIGN.md` decides the final placement at implementation.
 ## Thin implementation slices
 
 1. Engine visits, feeding, and the blessing. Exit: in a fixture game, a visit begins at its
-   due count. Feeding doubles exactly the next five quest rewards. Failed feeds, Not now, and
-   repeated input behave as specified. Reload is deterministic.
-2. The request bubble, the phone card, and the doubled-pay marker. Exit: the player can see the
+   due count. Feeding blesses exactly the next five quest deliveries, and their rewards do not change.
+   Failed feeds, Not now, and repeated input behave as specified. Reload is deterministic.
+2. The request bubble, the phone card, and the blessing marker. Exit: the player can see the
    request, feed Miez with keyboard and touch, and see how many lucky deliveries remain.
-3. Balance with 006. Exit: the campaign fixture reports income with visits and without
-   visits. The measurement sets the interval and the blessing length.
+3. Pacing with 006. Exit: the campaign fixture reports the number of visits per campaign.
+   The measurement sets the interval and the blessing length.
 
 ## Acceptance and evidence
 
 - Engine: test the due count, the request stages and unlocked chains, and the atomic feed.
   Test that no visit begins before preparation 2 or after the supper. Test that feeding gives no delivery credit.
-  Test exactly five doubled rewards and no double blessing. Test that no visit begins while one
+  Test exactly five blessed deliveries, unchanged rewards, and no double blessing. Test that no visit begins while one
   waits or a blessing runs. Test Not now. Test that the draw position changes only in successful actions.
 - Save: fresh, mid-blessing, waiting-visit, and completed saves survive a save and a load.
   Import rejects malformed `miez` records and keeps the current save.
-- Browser: follow [Verification and release](README.md#verification-and-release). Trigger a visit, feed Miez, deliver a doubled quest, and reload in
+- Browser: follow [Verification and release](README.md#verification-and-release). Trigger a visit, feed Miez, deliver a quest during the blessing, and reload in
   the middle of the blessing. Check that the request bubble does not crowd the third quest ticket.
 
 ## Dependencies and remaining decisions
@@ -118,9 +118,8 @@ Slice 1 has no prerequisite specification.
 The balance checks use 006. The first-visit scene uses 009.
 
 The interval, dish stages, and blessing length remain open decisions.
+Decide what the blessing gives. It must not multiply a reward.
 Decide whether a seed or an authored sequence selects values.
 Decide whether the Miez card shows a count of meals.
 The campaign has 81 deliveries.
 Measure the number of visits per campaign.
-A doubled large reward, such as a traveller's supply pack, needs a balance decision.
-Use the 006 fixture to adjust the balance.

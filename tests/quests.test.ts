@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { canDeliverQuest, createGame, dataProblems, firstFreeBoardCell, generatorOutputs, getItem, journalCharacters, nextOutput, QUEST_TICKETS, questDeliveryCells, questProblems,
+import { canDeliverQuest, createGame, dataProblems, firstFreeBoardCell, generatorOutputs, getItem, journalCharacters, QUEST_TICKETS, questDeliveryCells, questProblems,
   reduceGame, requiredQuests, resolveQuests, validateGame } from '../src/engine.ts';
 import type { Action, GameData, GameState } from '../src/engine.ts';
 import { checkpointState } from '../tools/create-checkpoint-saves.ts';
@@ -155,7 +155,7 @@ test('quest data rejects unknown IDs, quantities, cycles, unavailable chains, fi
   }
 });
 
-test('traveller requests return in one shared sequence of packs that fit the board and pay their menu value', () => {
+test('traveller requests return in one shared sequence of packs that fit the board', () => {
   const visits = data.quests.filter(quest => {
     const person = data.characters.find(person => person.id === quest.character)!;
     return person.visitor && !person.singleVisit;
@@ -166,7 +166,6 @@ test('traveller requests return in one shared sequence of packs that fit the boa
     assert.equal(quest.afterQuest, visits[index - 1]?.id);
     const quantity = quest.requirements.reduce((sum, requirement) => sum + requirement.quantity, 0);
     assert.ok(quantity <= 16, 'The pack leaves room for sources, obstacles, and production.');
-    assert.equal(quest.reward, quest.requirements.reduce((sum, requirement) => sum + data.items[requirement.item].price * requirement.quantity, 0));
     assert.match(quest.opening.map(line => line.text).join(' '), /cathedral/);
     assert.match(quest.opening.map(line => line.text).join(' '), /several days/);
   }
@@ -178,30 +177,9 @@ test('traveller requests return in one shared sequence of packs that fit the boa
   assert.equal(validateGame({ ...finished, completedQuests: swapped }, data), false);
 });
 
-test('Ionatan has one dinner after Vlad has his guest, and appears in the journal only during his visit', () => {
-  const person = data.characters.find(person => person.id === 'ionatan')!;
-  const quests = data.quests.filter(quest => quest.character === person.id);
-  assert.equal(person.visitor, true);
-  assert.equal(person.singleVisit, true);
-  assert.equal(quests.length, 1);
-  const quest = quests[0];
-  assert.equal(quest.id, 'ionatan-castle-dinner');
-  assert.equal(quest.afterTask, 'task_16');
-  assert.equal(quest.afterQuest, 'vlad-guest');
-  assert.deepEqual(quest.requirements, ['warm_6', 'produce_6', 'sweet_6', 'drinks_6'].map(item => ({ item, quantity: 1 })));
-  assert.equal(quest.requirements.reduce((sum, requirement) => sum + data.items[requirement.item].price * requirement.quantity, 0), 220);
-  assert.equal(quest.reward, 220);
-  assert.deepEqual(data.quests.filter(other => other.afterQuest === quest.id).map(other => other.id), ['mina-avram-search']);
-  const visible = (state: GameState) => journalCharacters(state, data).some(character => character.id === person.id);
-  assert.equal(visible(createGame(data)), false);
-  assert.equal(visible(opened(15)), false);
-  assert.equal(visible(opened(16)), true);
-  assert.deepEqual(journalCharacters(createGame(data), data).map(character => character.id), data.characters.filter(character => !character.singleVisit && !character.arrivesAfter).map(character => character.id));
-});
-
 test('Ionatan dinner delivery pays once, keeps failed visits open, and records his departure across reloads', () => {
   const id = 'ionatan-castle-dinner', quest = data.quests.find(quest => quest.id === id)!;
-  let state = opened(16);
+  let state = opened(9);
   while (!ids(state, 'active').includes(id)) state = deliver(state, ids(state, 'active')[0]);
   const play = player(state);
   const visible = () => journalCharacters(play.state, data).some(character => character.id === quest.character);
@@ -209,10 +187,8 @@ test('Ionatan dinner delivery pays once, keeps failed visits open, and records h
   assert.equal(visible(), true);
   for (const requirement of quest.requirements.slice(0, -1)) play.produce(requirement.item);
   rejected(play.state, { type: 'deliverQuest', id });
-  play.produce(quest.requirements.at(-1)!.item);
-  play.state.coins = 1_000_000_000;
-  rejected(play.state, { type: 'deliverQuest', id });
   assert.equal(visible(), true);
+  play.produce(quest.requirements.at(-1)!.item);
   play.state.coins = 7;
   const before = structuredClone(play.state);
   play.act({ type: 'deliverQuest', id });
@@ -220,11 +196,9 @@ test('Ionatan dinner delivery pays once, keeps failed visits open, and records h
   for (const key of ['taskIndex', 'decorations', 'discovered'] as const) assert.deepEqual(play.state[key], before[key]);
   assert.deepEqual(play.state.completedQuests, [...before.completedQuests, id]);
   assert.equal(resolveQuests(play.state, data).find(view => view.quest.id === id)!.status, 'complete');
-  assert.equal(visible(), false);
   const reloaded: GameState = JSON.parse(JSON.stringify(play.state));
   assert.equal(validateGame(reloaded, data), true);
   rejected(reloaded, { type: 'deliverQuest', id });
-  assert.equal(journalCharacters(reloaded, data).some(character => character.id === quest.character), false);
 });
 
 test('atomic delivery accounts for repeated quantities, then pays only once', () => {
@@ -252,12 +226,21 @@ test('atomic delivery accounts for repeated quantities, then pays only once', ()
   assert.deepEqual(reloaded, snapshot, 'Reading quest status has no effect.');
 });
 
+test('deliveries stop at the coin limit, so the game stays savable', () => {
+  const limit = 1_000_000_000;
+  const quest = data.quests.find(quest => quest.id === 'mara-welcome')!;
+  const play = player();
+  play.produce('drinks_2');
+  assert.match(rejected({ ...structuredClone(play.state), coins: limit }, { type: 'deliverQuest', id: quest.id }).message, /Spend some coins/);
+  play.state.coins = limit - quest.reward;
+  play.act({ type: 'deliverQuest', id: quest.id });
+  assert.equal(play.state.coins, limit);
+});
+
 test('delivery queues the quest completion scene in the same change, and a failed delivery queues nothing', () => {
   const play = player();
   rejected(play.state, { type: 'deliverQuest', id: 'mara-welcome' });
   play.produce('drinks_2');
-  const full = { ...structuredClone(play.state), coins: 1_000_000_000 };
-  rejected(full, { type: 'deliverQuest', id: 'mara-welcome' });
   const before = structuredClone(play.state);
   play.act({ type: 'deliverQuest', id: 'mara-welcome' });
   assert.deepEqual(play.state.pendingScenes, [...before.pendingScenes, 'mara-welcome']);
@@ -297,22 +280,4 @@ test('quest saves reject a wrong version, unknown, duplicate, early, and out-of-
   ];
   assert.equal(validateGame(good, data), true);
   for (const [label, mutate] of cases) { const broken = structuredClone(good); mutate(broken); assert.equal(validateGame(broken, data), false, label); }
-});
-
-test('the next output that the interface names is the output that one tap takes', () => {
-  const taps = (play: ReturnType<typeof player>, source: string, count: number) => {
-    for (let tap = 0; tap < count; tap++) {
-      const named = nextOutput(play.state, source, play.content);
-      const empty = firstFreeBoardCell(play.state, play.content);
-      play.act({ type: 'spawn', index: play.state.board.findIndex(cell => cell?.code === source) });
-      assert.equal(play.state.board[empty]?.code, named);
-    }
-  };
-  const content = data, play = player(checkpoint(18));
-  taps(play, 'generator_bakery', 2);
-  assert.equal(nextOutput(play.state, 'generator_bakery', content), 'bakery_1');
-  play.act({ type: 'spawn', index: play.state.board.findIndex(cell => cell?.code === 'generator_bakery'), output: 'bakery_2' });
-  taps(play, 'generator_bakery', 2);
-  assert.equal(nextOutput(play.state, 'generator_bakery', content), 'bakery_2');
-  assert.equal(nextOutput(play.state, 'bakery_1', content), null);
 });

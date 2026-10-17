@@ -582,7 +582,11 @@
       "sourceGameImageInput": false,
       "referenceAsset": "front-room-24",
       "referenceSha256": "58ba12a567a924564da55e93e4f022a2948f633169a3885fdbd0195b2ab22ad6",
-      "review": "The green tableware on the upper shelf and the lilacs in the dresser jug, for spec 002, at the size of the room states. The agent examined the candidate, the difference map against front-room-24, and the composite at full size: the crop regions show no seam and no part of the wildflowers. The jug stays the jug of front-room-24."
+      "review": "The green tableware on the upper shelf and the lilacs in the dresser jug, for spec 002, at the size of the room states. The agent examined the candidate, the difference map against front-room-24, and the composite at full size: the crop regions show no seam and no part of the wildflowers. The jug stays the jug of front-room-24. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
     },
     {
       "id": "decoration-courtyard",
@@ -598,7 +602,11 @@
       "sourceGameImageInput": false,
       "referenceAsset": "courtyard-22",
       "referenceSha256": "e266976df591a93dc154dd7b393ea864ffac63599f6150f8c586f2de417beb89",
-      "review": "The blue embroidery on the serving-table cloth, for spec 002, at the size of the room states. The agent examined the candidate, the difference map against courtyard-22, and the composite at full size: the crop region shows no seam and no red stitch of the base cloth."
+      "review": "The blue embroidery on the serving-table cloth, for spec 002, at the size of the room states. The agent examined the candidate, the difference map against courtyard-22, and the composite at full size: the crop region shows no seam and no red stitch of the base cloth. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
     },
     {
       "id": "board-clutter",
