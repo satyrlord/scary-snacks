@@ -112,8 +112,8 @@ Use the repository skill `generate-game-art` for each request. Each paid request
 - The "room and drawer" screen shows the states. `tools/create-original-data.ts` gives one state for each row of the table, with its focus and its caption.
 - The game finds the state from the completed preparations. The save does not store it.
 - The list `roomPaintings` in `src/engine.ts` names the states that have an accepted painting. Every state is in the list. [PRODUCT.md](../../PRODUCT.md) gives the fallback for a state with no painting.
-- To add a painting, follow the steps in [README.md "Assets and source"](../../README.md#assets-and-source). A new master changes the count in the asset test.
-- Spec 001, PRODUCT.md, README.md, and DESIGN.md describe the screen.
+- To add a painting, follow the steps in [DELIVERY.md "Assets"](../../DELIVERY.md#assets). A new master changes the count in the asset test.
+- Spec 001, PRODUCT.md, and DESIGN.md describe the screen.
 
 ### Fixed points measured on the states
 

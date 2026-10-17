@@ -603,16 +603,17 @@
     {
       "id": "board-clutter",
       "file": "public/assets/original/board-clutter.png",
-      "sha256": "834d5a2c41a4c99693749f36a077809cb8171483eb57609f974f90f13cc03186",
-      "bytes": 2275541,
+      "sha256": "8c0f9a47a97b80d801fb18843a244d5f5ae5a7b9b56e9cbd77283e20e9ef25d1",
+      "bytes": 2567084,
       "width": 1536,
       "height": 1024,
       "mode": "RGBA",
       "hasTransparency": true,
-      "promptId": "board-clutter-web-cleanup",
-      "generation": "built-in in-chat imagegen; edit of the project-generated board-clutter candidate 3 with the project-generated food atlas as a style reference",
+      "promptId": "board-blocker-open-centers-grid",
+      "generation": "Built-in in-chat image generation. Edit of project-generated blocker atlas.",
       "sourceGameImageInput": false,
-      "review": "The agent examined six sprite cells at full size and at 64 pixels on light and dark tiles. Four objects keep dust but no baked-in webs. The separate web and twine overlays have open centers. Visible painted pixels do not cross cell boundaries. The linen reaches within 6 pixels of the first column boundary. User visual acceptance has not been recorded."
+      "review": "The agent checked all six cells. No visible alpha crosses the internal seams. Every central 128-by-128 window is transparent. The user accepted the open-frame art direction.",
+      "visualAcceptance": "The user accepted the generated blocker designs and requested a 20% red overlay in the game."
     },
     {
       "id": "visitor-portraits",
@@ -687,16 +688,80 @@
     {
       "id": "preparation-clutter",
       "file": "public/assets/original/preparation-clutter.png",
-      "sha256": "c700c27a108078bdcbe70d915b29fa39738b8e0f6e0ed9285e3e0111bbeffb91",
-      "bytes": 1424296,
+      "sha256": "823ffead44cd83a821085ac7d4b7a5faa7a87cb9a0a548cb9d3361b8a160b21b",
+      "bytes": 1735232,
       "width": 1448,
       "height": 1086,
       "mode": "RGBA",
       "hasTransparency": true,
-      "promptId": "preparation-clutter",
-      "generation": "Built-in in-chat image generation. New image from a text prompt.",
+      "promptId": "preparation-blocker-open-centers-grid",
+      "generation": "Built-in in-chat image generation. Edit of project-generated preparation atlas, followed by user-approved precise alpha cleanup.",
       "sourceGameImageInput": false,
-      "review": "The agent checked the twelve subjects in a four-column, three-row grid, their order, and their readability on light and dark tiles. The square cells are 362 pixels wide. The internal seam alpha is at most 1. No text or grid lines appear. User visual acceptance is not recorded."
+      "review": "The agent examined all twelve frame identities on light and dark backgrounds. The 362-pixel cells have clear seams and 16-pixel margins. Every center is transparent; the natural irregular frame edges are preserved. The user accepted the art direction and approved local alpha cleanup.",
+      "visualAcceptance": "The user accepted the generated blocker designs and requested a 20% red overlay in the game.",
+      "processing": {
+        "source": "preparation-grid.png",
+        "output": "preparation-clean.png",
+        "sourceSha256": "a70c0d889bfad1a02540a623ac13c335e5ee543b14aba00fbbacbabc66930ae2",
+        "outputSha256": "823ffead44cd83a821085ac7d4b7a5faa7a87cb9a0a548cb9d3361b8a160b21b",
+        "changedAlphaPixels": 124513,
+        "operation": "Set alpha to zero in the outer 16-pixel cell margins and where alpha is below 16. Preserve RGB channels and the natural painted edges around every food window.",
+        "approval": "The user explicitly approved precise local alpha cleanup while preserving the painted frames."
+      }
+    },
+    {
+      "id": "regulars-1",
+      "file": "public/assets/original/regulars-1.png",
+      "sha256": "9322779dac85388a0e101fbc06f0f46f5cf8f0d9b3c0e19de9dd595c58636f8a",
+      "bytes": 5479324,
+      "width": 1536,
+      "height": 1536,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "regulars-1",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a masked edit repainted the top-right cell, of which only that cell was composited, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "review": "The portraits of the four regulars present from the start (spec 013): Dochia top left, Victor top right, Ana bottom left, Costel bottom right. The user asked for Victor without a pencil and slightly older; a masked edit repainted only his cell. The agent reviewed each cell at full resolution and as round crops on both themes. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "regulars-2",
+      "file": "public/assets/original/regulars-2.png",
+      "sha256": "fba50332fc97340580bae7903297c084e4a29d5187832fc14686dbaf96f2c433",
+      "bytes": 4108752,
+      "width": 1536,
+      "height": 1536,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "regulars-2",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality",
+      "sourceGameImageInput": false,
+      "review": "The portraits of the four regulars who arrive after preparations 4 and 8 (spec 013): Sânziana top left, Dorian top right, Ileana bottom left, Cezar bottom right. The agent reviewed each cell at full resolution and as round crops on both themes. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "regulars-3",
+      "file": "public/assets/original/regulars-3.png",
+      "sha256": "d4c4019ed83d1d2129fdf4bb3f8e42c55320f6d4282addf3bfdcf6dcf6beccfc",
+      "bytes": 1825057,
+      "width": 1536,
+      "height": 1536,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "regulars-3",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; each top portrait was scaled to 88% and placed inside its own cell with Sharp, without repainting",
+      "sourceGameImageInput": false,
+      "review": "The portraits of the two regulars who arrive after preparation 12 (spec 013): Cătălina top left, Bran top right. The bottom cells stay empty for later characters. The candidate cut both figures about 60 pixels too low, into the bottom cells; each figure was scaled to 88% and placed inside its own cell (regulars/regulars-3-run1-fit). The agent reviewed both cells at full resolution and as round crops on both themes. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
     }
   ],
   "note": "Only generated project images are active. The menu atlas and the mascots repaint the generated chat atlases in the references list. The final portraits revised their own first API candidate. This record is provenance, not legal clearance. front-room-00 and courtyard-13 use the generated reference paintings in the references list. The two decoration paintings use the generated design references in that list. Each later room state is an edit of the previous state, composited so that only its region changes. The board-clutter atlas was generated in chat and corrected for sprite-cell fit.",

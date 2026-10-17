@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { createGame, menuReward, reduceGame, validateGame } from '../../src/engine.ts';
+import { createGame, requiredQuests, reduceGame, validateGame } from '../../src/engine.ts';
 import type { GameData, GameState } from '../../src/engine.ts';
 import { SAVE_KEY, exportSave } from '../../src/storage.ts';
 
@@ -23,10 +23,10 @@ test('new board explains blocked spaces and counts only usable empty cells', asy
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await start(page);
   await expect(page.locator('#board')).toHaveAttribute('aria-label', /27 free spaces/);
-  await expect(tile(page, 0)).toHaveAttribute('aria-label', /Old crate, clutter.*Covered in webs/);
+  await expect(tile(page, 0)).toHaveAttribute('aria-label', /Old crate, blocked Pogăcele/);
   await expect(tile(page, 0).locator('.clutter-overlay')).toHaveCount(1);
-  await expect(tile(page, 0)).not.toHaveAttribute('aria-label', /Pogăcele/);
-  await expect(tile(page, 6)).toHaveAttribute('aria-label', /anchored Dough.*Merge a matching movable ingredient/);
+  await expect(tile(page, 0).locator('.food')).toBeVisible();
+  await expect(tile(page, 6)).toHaveAttribute('aria-label', /blocked Dough.*Merge a matching movable ingredient/);
   await tile(page, 0).focus();
   await page.keyboard.press('ArrowDown');
   await expect(tile(page, 6)).toBeFocused();
@@ -36,7 +36,7 @@ test('new board explains blocked spaces and counts only usable empty cells', asy
   await expect(page.locator('.cell.anchored')).toHaveCount(4);
 });
 
-test('a pointer merge into an anchor releases it and reveals adjacent clutter once', async ({ page }) => {
+test('a pointer merge clears only its destination and can then clear the adjacent blocker', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await start(page);
   await tile(page, 13).click();
@@ -45,11 +45,17 @@ test('a pointer merge into an anchor releases it and reveals adjacent clutter on
   await expect(tile(page, 6)).toHaveAttribute('aria-label', /Pogăcele/);
   await expect(tile(page, 0)).toHaveAttribute('aria-label', /Pogăcele/);
   const state = await saved(page);
-  expect(state.resolvedObstacles).toEqual(['tied-dough', 'old-crate']);
-  expect(state.merges).toBe(2);
+  expect(state.resolvedObstacles).toEqual(['tied-dough']);
+  expect(state.board[6]).toEqual({ code: 'bakery_3' });
+  await expect(tile(page, 0)).toHaveClass(/clutter/);
+  await expect(tile(page, 6)).toHaveAttribute('aria-pressed', 'true');
+  await tile(page, 0).click();
+  await expect(tile(page, 0)).not.toHaveClass(/clutter/);
+  expect(await tile(page, 0).evaluate(cell => getComputedStyle(cell, '::before').content)).toBe('none');
+  expect((await saved(page)).board[0]).toEqual({ code: 'bakery_4' });
   await page.reload();
-  await expect(tile(page, 0)).toHaveAttribute('aria-label', /Pogăcele/);
-  await expect(tile(page, 6)).toHaveAttribute('aria-label', /Pogăcele/);
+  await expect(tile(page, 0)).not.toHaveClass(/clutter/);
+  expect((await saved(page)).board[0]).toEqual({ code: 'bakery_4' });
 });
 
 test('dragging a matching item into an anchor clears it', async ({ page }) => {
@@ -64,7 +70,7 @@ test('dragging a matching item into an anchor clears it', async ({ page }) => {
   await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 8 });
   await page.mouse.up();
   await expect(tile(page, 6)).toHaveAttribute('aria-label', /Pogăcele/);
-  expect((await saved(page)).resolvedObstacles).toEqual(['tied-dough', 'old-crate']);
+  expect((await saved(page)).resolvedObstacles).toEqual(['tied-dough']);
 });
 
 test('keyboard selection can merge into an anchored cell', async ({ page }) => {
@@ -76,7 +82,7 @@ test('keyboard selection can merge into an anchored cell', async ({ page }) => {
   await tile(page, 6).focus();
   await page.keyboard.press('Enter');
   await expect(tile(page, 6)).toHaveAttribute('aria-label', /Pogăcele/);
-  expect((await saved(page)).resolvedObstacles).toEqual(['tied-dough', 'old-crate']);
+  expect((await saved(page)).resolvedObstacles).toEqual(['tied-dough']);
 });
 
 test('touch can release an anchor with two taps', async ({ browser, baseURL }) => {
@@ -88,33 +94,43 @@ test('touch can release an anchor with two taps', async ({ browser, baseURL }) =
     await tile(page, 14).tap();
     await tile(page, 6).tap();
     await expect(tile(page, 0)).toHaveAttribute('aria-label', /Pogăcele/);
-    expect((await saved(page)).merges).toBe(2);
+    expect((await saved(page)).resolvedObstacles).toEqual(['tied-dough']);
+    await expect(tile(page, 0)).toHaveClass(/clutter/);
   } finally { await context.close(); }
 });
 
-test('order guidance points from one movable ingredient to its matching anchor', async ({ page }) => {
+test('blocker guidance selects a matching movable ingredient for release', async ({ page }) => {
+  const state = createGame(data); state.board[13] = null; state.board[14] = { code: 'bakery_2' };
+  await start(page, state); await tile(page, 6).click();
+  await expect(tile(page, 14)).toHaveClass(/blocker-target/);
+  await tile(page, 14).click(); await tile(page, 6).click();
+  await expect(tile(page, 6)).not.toHaveClass(/anchored/);
+  expect((await saved(page)).resolvedObstacles).toEqual(['tied-dough']);
+});
+
+test('Find a match selects movable food and points to matching clutter', async ({ page }) => {
   const state = createGame(data);
-  state.board[13] = null;
-  state.board[14] = { code: 'bakery_2' };
-  state.orders[0] = { ...state.orders[0], requirements: ['bakery_3'], reward: menuReward(['bakery_3'], data), pricing: 'menu-1' };
-  await start(page, state);
-  await page.locator('#orders .order').first().locator('.order-item').first().click();
-  await page.getByRole('button', { name: 'Show me on the board' }).click();
-  await expect(tile(page, 14)).toHaveAttribute('aria-pressed', 'true');
-  await expect(tile(page, 6)).toHaveClass(/hint/);
-  await expect(page.locator('#status')).toContainText('anchored Dough');
+  state.board = state.board.map(cell => cell && data.items[cell.code].generator ? cell : null);
+  state.board[13] = { code: 'bakery_3' };
+  if (!state.discovered.includes('bakery_3')) state.discovered.push('bakery_3');
+  await start(page, state); await page.getByRole('button', { name: 'Find a match', exact: true }).click();
+  await expect(tile(page, 13)).toHaveAttribute('aria-pressed', 'true');
+  await expect(tile(page, 0)).toHaveClass(/hint/);
+  await expect(page.locator('#status')).toHaveText('Tap the blocked Pogăcele to merge and clear it.');
+  await tile(page, 0).click();
+  expect((await saved(page)).board[0]).toEqual({ code: 'bakery_4' });
+  await expect(tile(page, 0)).not.toHaveClass(/obstacle/);
 });
 
 test('the first preparation removes wrapper webs without clearing the clutter', async ({ page }) => {
   const state = createGame(data);
   state.coins = data.tasks[0].cost;
-  state.served = data.tasks[0].goals.served;
-  state.merges = data.tasks[0].goals.merges;
+  state.completedQuests = requiredQuests(0, data).map(quest => quest.id);
   const paid = reduceGame(state, { type: 'task' }, data);
   expect(paid.ok, paid.message).toBe(true);
   await start(page, paid.state);
-  await expect(tile(page, 0)).toHaveAttribute('aria-label', /Old crate, clutter/);
-  await expect(tile(page, 0)).not.toHaveAttribute('aria-label', /Covered in webs/);
+  await expect(tile(page, 0)).toHaveAttribute('aria-label', /Old crate, blocked Pogăcele/);
+  await expect(tile(page, 0).locator('.clutter-overlay')).toHaveCount(0);
   await expect(tile(page, 0).locator('.clutter-art')).toHaveCount(1);
   await expect(page.locator('.cell.clutter')).toHaveCount(4 + data.board.preparations[0].obstacles.filter(obstacle => obstacle.type === 'clutter').length);
 });

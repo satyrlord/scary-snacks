@@ -9,8 +9,8 @@ One coin uses roughly one Romanian leu as its reference scale. This keeps a smal
 and a repair budget comparable. It is a game budget, not a precise profit account.
 Production stays free. The game abstracts ingredient replenishment and operating expenses.
 
-Each ordinary food has an explicit menu price for the portion below. A new order pays the sum
-of these prices. It has no flat order bonus and no multiplier based on merge stage.
+Each food has an explicit menu price for the portion below. The menu value of a quest
+is the sum of these prices. There is no multiplier based on merge stage.
 A later merge stage is not necessarily a more expensive food. Portions and the actual dish matter.
 
 | Chain | Item and reference portion | Coins |
@@ -46,8 +46,8 @@ A later merge stage is not necessarily a more expensive food. Portions and the a
 | Produce | Wild mushroom sauce, two small portions | 28 |
 | Produce | Sharing board, a board for two | 65 |
 
-Vlad and Elisabeta order only meat cabbage rolls, goulash, and red wine. Mina and Avram's shared
-vegetarian meal costs 168 coins at these menu prices and pays 336 coins. The request includes two
+The quests of Vlad and Elisabeta ask only for meat cabbage rolls, goulash, and red wine. Mina and Avram's shared
+vegetarian meal costs 168 coins at these menu prices and pays 168 coins. The request includes two
 zacuscă toasts, two roasted vegetable plates, one smoked cheese plate, and two fruit teas. Eggs and
 dairy are permitted. The later local gossip pays nothing.
 
@@ -55,9 +55,28 @@ These are authored portion prices, informed by Romanian shop and restaurant offe
 copied menus or claims that every restaurant has these prices. The raw ingredient limit of 1 to 3
 coins follows the user's requirement. The merge chains remain game rules, not cooking recipes.
 
-A sale without a customer is a clearance action. It gives one quarter of the menu price, rounded
+A sale without a request is a clearance action. It gives one quarter of the menu price, rounded
 down, with a minimum of one coin. The discount is a stated game rule, not a claim about a resale
-market. It preserves the space-clearing action while keeping prepared customer orders more valuable.
+market. It preserves the space-clearing action while keeping quest deliveries more valuable.
+
+## Quest rewards
+
+Quests earn the coins of the campaign. A personal request pays its menu value times the rate of
+the chapter in which it opens, rounded to an even number of coins:
+
+| Chapter | 1 | 2 | 3 | 4 | 5 | 6 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Rate | 3 | 2.5 | 2 | 1.5 | 1 | 1 |
+
+The early chapters pay more, so that the first room changes come quickly. The supply packs of the
+travellers and the meal for Mina and Avram pay their menu value. Ionatan's dinner has a menu value
+of 220 coins and pays 1,100 coins.
+
+A quest that opens after preparation N is necessary for preparation N + 1. The funding rule: for each
+preparation, the rewards of the quests that open before it, added together, are never less than the
+costs of the preparations up to it, added together. `questProblems` in `src/engine.ts` checks this rule
+before the data can ship. Thus a player who delivers every open quest always has the coins for the next
+preparation. Sales are not part of the funding rule.
 
 ## Work before price
 
@@ -125,15 +144,12 @@ The specific scopes prevent several false costs:
 
 ## Effort in play
 
-Each estimated half person-hour contributes one served order and two merges to the cumulative
-campaign goals. This is an explicit play conversion. It is not a measured claim that one order
-performs carpentry or takes thirty minutes. More labour adds more effort; writing a menu adds
-much less than repairing the hood. The goals total 114 service and 228 merges over 57 modelled
-person-hours. All 24 prices total 5585 coins.
+The estimated person-hours describe the scale of the work. They are not a timer and not a play goal.
+The 24 preparations total 57 modelled person-hours and 5585 coins.
 
-Counters are lifetime totals. Earlier excess service and merges still count. Prices may go down
-from one preparation to the next. Cheap writing or arranging tasks do not become expensive because
-they are late in the story. No extra goal currency, timer, or per-chapter reset is added.
+Prices may go down from one preparation to the next. Cheap writing or arranging tasks do not become
+expensive because they are late in the story. The play effort of a preparation comes from the quests
+that it needs. No goal currency, timer, or per-chapter reset is added.
 
 ## Reference offers
 
@@ -167,16 +183,15 @@ Their amounts are reference inputs, not live promises in the game.
 
 ## Verification and limits
 
-Run `node tools/campaign-balance.ts`. The report includes costs, work, actions, service, merges,
-sales, and separate order, sale, level, and quest income for each preparation and chapter.
-The fixture runs fresh play with and without optional rewards under two policies.
-One selects the smallest ingredient requirement. The other selects quoted income per production action.
+Run `node tools/campaign-balance.ts`. The report includes costs, work, actions, takes, merges,
+sales, deliveries, and separate quest and sale income for each preparation and chapter.
+The fixture plays a fresh game under one deterministic policy: it pays each preparation when it is
+ready and otherwise delivers the first quest that has a ticket.
 
 This shows how the model changes effort. It does not establish a satisfying human session.
 The largest balance uncertainty is the first repair: it is substantial work before the first room
 reward. Play an early and late chapter before changing the next price revision. Record the device,
-seed, start save, action counts, and elapsed human play time. Do not convert bot runtime to player time.
+start save, action counts, and elapsed human play time. Do not convert bot runtime to player time.
 
-`menu-1` is the first explicit menu revision. Once shipped, its values must stay available for
-outstanding quotes. A later price change needs a new revision and exact validation for previous quotes.
-Every current order requires the `menu-1` marker.
+A price change changes the reward of each quest that uses the item. Run the funding check after every
+price or reward change.

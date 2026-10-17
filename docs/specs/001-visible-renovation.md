@@ -6,7 +6,7 @@ Status: Implemented. Priority: High. Dependencies: none.
 
 ## Current behavior and outcome
 
-[PRODUCT.md](../../PRODUCT.md), [DESIGN.md](../../DESIGN.md), and [README.md](../../README.md) own the current contracts. Decoration choices belong to [002](002-decoration-choices.md). Story sequencing belongs to [008](008-chapter-story-and-finale.md).
+[PRODUCT.md](../../PRODUCT.md), [DESIGN.md](../../DESIGN.md), and [DELIVERY.md](../../DELIVERY.md) own the current contracts. Decoration choices belong to [002](002-decoration-choices.md). Story sequencing belongs to [008](008-chapter-story-and-finale.md).
 
 ## Implemented scope
 
@@ -25,7 +25,7 @@ Status: Implemented. Priority: High. Dependencies: none.
 
 ## Data, art, and ownership
 
-[tools/create-original-data.ts](../../tools/create-original-data.ts) authors two areas and 25 room states: one for the new game and one for each preparation. Each state has these items: a stable ID, an area, a preparation prerequisite, focus coordinates, a pin mark, a pin label, and a caption. Its ID also names its painting. `roomProblems` in `src/engine.ts` checks the room states. [README.md "Assets and source"](../../README.md#assets-and-source) gives the cases in which the generator refuses to write the game data. The tests compare the painting list with the shipped variant plan. The tests also resolve all 25 campaign checkpoints.
+[tools/create-original-data.ts](../../tools/create-original-data.ts) authors two areas and 25 room states: one for the new game and one for each preparation. Each state has these items: a stable ID, an area, a preparation prerequisite, focus coordinates, a pin mark, a pin label, and a caption. Its ID also names its painting. `roomProblems` in `src/engine.ts` checks the room states. [DELIVERY.md "Game data"](../../DELIVERY.md#game-data) gives the cases in which the generator refuses to write the game data. The tests compare the painting list with the shipped variant plan. The tests also resolve all 25 campaign checkpoints.
 
 The engine owns eligibility and completed facts. Its pure `resolveRooms` function maps completed task IDs to unlocked areas, earned states, and the latest accepted painting. `latestArea` finds the area of the latest change. The interface draws the room and keeps the area preference. The game has no second mutable renovation counter. If an area preference is missing, invalid, or locked, the game uses the area of the latest change. A reveal selects the changed area.
 

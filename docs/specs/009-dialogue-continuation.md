@@ -4,7 +4,7 @@ Status: Implemented.
 
 ## Implemented scope
 
-Each earned scene waits until the player finishes or skips it. The waiting scenes are preparation scenes, quest completion scenes, local news, chapter closing scenes, and the finale.
+Each earned scene waits until the player finishes or skips it. The waiting scenes are preparation scenes, quest completion scenes, local news, arrival scenes, chapter closing scenes, and the finale.
 A reload resumes each waiting scene at its saved line. After a reload, a preparation scene resumes its conversation without another payment.
 The game keeps Back, Continue, "Skip scene", "Read now", the journal, and journal replay. Cooking never waits for a scene. Opening a scene again gives no reward.
 
@@ -19,7 +19,8 @@ The game keeps Back, Continue, "Skip scene", "Read now", the journal, and journa
 ## Rules
 
 1. A preparation scene uses the ID of its preparation. A quest completion scene uses the ID of its quest.
-   Each scene ID must be unique across preparations, quests, local news, chapters, and the finale.
+   An arrival scene uses the ID `arrival-` and the ID of its regular.
+   Each scene ID must be unique across preparations, quests, local news, arrivals, chapters, and the finale.
    `storyProblems` rejects a duplicate ID.
 2. The `task` action queues the preparation scene in the same state change as the payment.
    The `deliverQuest` action queues the quest completion scene in the same state change as the delivery.
@@ -57,7 +58,7 @@ The game keeps Back, Continue, "Skip scene", "Read now", the journal, and journa
 
 `GameState` has the optional field `sceneLines`. The field maps a waiting scene ID to a zero-based line index.
 The state stores a line only if the line is after the first line.
-A save without `sceneLines` starts each waiting scene at the first line. Current saves stay at state version 9.
+A save without `sceneLines` starts each waiting scene at the first line. The [shared save compatibility](README.md#shared-save-compatibility) section gives the state version.
 A save without a waiting entry for a scene treats that scene as read.
 
 `validateGame` accepts these scene IDs in `pendingScenes`:
@@ -65,12 +66,13 @@ A save without a waiting entry for a scene treats that scene as read.
 - the ID of a complete preparation;
 - the ID of a complete quest;
 - the ID of earned local news;
+- the arrival scene of an arrived regular;
 - the ID of a complete chapter;
 - the finale ID after preparation 24.
 
 Preparation scenes, chapter scenes, and the finale keep one story order.
 In that order, each chapter scene follows the four preparations of its chapter.
-Quest scenes and local news may occur at any position.
+Quest scenes, local news, and arrival scenes may occur at any position.
 `validateGame` rejects these `sceneLines` records:
 
 - a record that is not a plain object;

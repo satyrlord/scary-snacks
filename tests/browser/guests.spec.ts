@@ -1,160 +1,116 @@
 import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { readFileSync } from 'node:fs';
-import { createGame, firstFreeBoardCell, generatorOutputs, reduceGame, validateGame, canDeliverQuest, resolveQuests } from '../../src/engine.ts';
-import type { Action, GameData, GameState, Quest, SceneLine } from '../../src/engine.ts';
-import { SAVE_KEY, exportSave } from '../../src/storage.ts';
+import { firstFreeBoardCell, generatorOutputs, requiredQuests, resolveQuests } from '../../src/engine.ts';
+import type { GameState, SceneLine } from '../../src/engine.ts';
+import { act, data, deliverButton, deliverable, exportText, failWrites, journal, onTicket, opened, options, person, quest, readTo, replaceSave, request, saved, start, startAgainAndImport, supplies, supply, ticket } from './support.ts';
 
-const data: GameData=JSON.parse(readFileSync('public/data/game.json','utf8'));
-const validate=(candidate: unknown)=>validateGame(candidate,data);
-const dinner=data.quests.find(quest=>quest.id==='ionatan-castle-dinner')!;
-const search=data.quests.find(quest=>quest.id==='mina-avram-search')!;
+const dinner=quest('ionatan-castle-dinner');
+const search=quest('mina-avram-search');
 const companions=['mina','avram'];
-const nobles=['vlad','elisabeta'];
-const card=(page: Page)=>page.locator(`.quest-card[data-quest="${search.id}"]`);
-const deliver=(page: Page)=>page.getByRole('button',{name:`Deliver ${search.title} for ${search.reward} coins`,exact:true});
-const supplies=(quest: Quest)=>quest.requirements.flatMap(({item,quantity})=>Array<string>(quantity).fill(item));
-function act(state: GameState,action: Action){const result=reduceGame(state,action,data);expect(result.ok,result.message).toBe(true);return result.state;}
-/** Fixtures add known supplies; rule tests cover production and random order eligibility. */
-function supply(state: GameState,codes: string[]){
-  const next=structuredClone(state);
-  for(const code of codes){const index=firstFreeBoardCell(next,data);expect(index).toBeGreaterThanOrEqual(0);next.board[index]={code};if(!next.discovered.includes(code))next.discovered.push(code);}
-  expect(validate(next)).toBe(true);return next;
-}
-function departed(){
-  let state=createGame(data);state.coins=100000;state.served=Math.max(120,data.tasks[15].goals.served);state.merges=data.tasks[15].goals.merges;
-  for(let index=0;index<16;index++)state=act(state,{type:'task'});
-  state.coins=0;state.xp=0;state.pendingScenes=[];
-  return act(supply(state,supplies(dinner)),{type:'deliverQuest',id:dinner.id});
-}
-function ready(){
-  let state=departed();for(let count=0;count<3;count++)state=act(supply(state,state.orders[0].requirements),{type:'serve',id:state.orders[0].id});
-  while(state.orders.some(order=>nobles.includes(order.customer))){const order=state.orders.find(order=>nobles.includes(order.customer))!;state=act(supply(state,order.requirements),{type:'serve',id:order.id});}
-  state.xp=0;return supply(state,supplies(search));
-}
-async function saved(page: Page): Promise<GameState>{return page.evaluate(key=>navigator.locks.request(key,()=>JSON.parse(localStorage.getItem(key)!).state),SAVE_KEY);}
-async function closeOffers(page: Page,state: GameState){
-  for(const quest of data.quests.filter(quest=>canDeliverQuest(state,quest,data))){await expect(page.locator('.quest-offer h3')).toHaveText(quest.title);await page.keyboard.press('Escape');}
-  await expect(page.locator('#modal')).toBeHidden();
-}
-async function start(page: Page,state: GameState){
-  await page.addInitScript(([key,value])=>{if(localStorage.getItem(key)===null)localStorage.setItem(key,value);},[SAVE_KEY,exportSave(state,validate)]);
-  await page.goto('./');await expect(page.locator('#board button')).toHaveCount(42);await closeOffers(page,state);
-}
-async function quests(page: Page){if(!await page.locator('[data-quests]:visible').count())await page.locator('#story-button').click();await page.locator('[data-quests]:visible').click();await expect(page.getByRole('dialog',{name:'Neighbour quests',exact:true})).toBeVisible();}
-async function journal(page: Page){if(!await page.getByRole('button',{name:'Open the story journal',exact:true}).isVisible())await page.locator('#story-button').click();await page.getByRole('button',{name:'Open the story journal',exact:true}).click();}
 async function scene(page: Page,lines: SceneLine[]){
   for(const [index,line] of lines.entries()){
-    await expect(page.locator('#story-line h3')).toHaveText(data.characters.find(person=>person.id===line.speaker)!.name);
+    await expect(page.locator('#story-line h3')).toHaveText(person(line.speaker).name);
     await expect(page.locator('#story-line p')).toHaveText(line.text);
     if(index<lines.length-1)await page.getByRole('button',{name:'Continue',exact:true}).click();
   }
   await page.locator('.story-controls .primary-button').click();
 }
+/** Mina and Avram have journal introductions only while their shared request is open. */
 async function guests(page: Page,present: boolean){
   await journal(page);
-  for(const id of companions){const person=data.characters.find(person=>person.id===id)!;await expect(page.getByRole('button',{name:`Meet ${person.name}`,exact:true})).toHaveCount(present?1:0);}
-  await expect(page.getByRole('button',{name:'Meet Ionatan',exact:true})).toHaveCount(0);
+  for(const id of companions)await expect(page.getByRole('button',{name:`Meet ${person(id).name}`,exact:true})).toHaveCount(present?1:0);
   await expect(page.getByRole('button',{name:`Replay ${search.title}`,exact:true})).toHaveCount(0);await page.keyboard.press('Escape');
-}
-async function serve(page: Page,index: number){
-  const state=await saved(page),order=state.orders[index],person=data.characters.find(person=>person.id===order.customer)!;
-  await page.getByRole('button',{name:`Serve ${person.name} for ${order.reward} coins`,exact:true}).click();
-  await expect.poll(async()=>(await saved(page)).served).toBe(state.served+1);
-  while(await page.locator('#modal').isVisible())await page.keyboard.press('Escape');
+  await expect(ticket(page,search)).toHaveCount(present?1:0);
 }
 async function portrait(target: Locator,sprite: number){
   const style=await target.evaluate(element=>{const style=getComputedStyle(element);return {image:style.backgroundImage,position:style.backgroundPosition,size:style.backgroundSize,filter:style.filter};});
-  expect(style.image).toContain('/assets/variants/guests-640x640.webp');expect(style.position).toBe(['0px 0px','100% 0px','0px 100%','100% 100%'][sprite]);
-  expect(style.size).toBe('200% 200%');expect(style.filter).toBe('none');
+  expect(style.image).toContain('/assets/variants/guests-640x640.webp');await expect(target).toHaveClass(new RegExp(`portrait-${sprite}`));
+  const side=200/parseFloat(style.size),position=style.position.split(' ').map(parseFloat);
+  const left=position[0]/100*(2-side)-sprite%2,top=position[1]/100*(2-side)-Math.floor(sprite/2);
+  expect(side).toBeGreaterThan(.7);expect(side).toBeLessThan(.9);
+  expect(left).toBeGreaterThanOrEqual(-.00001);expect(top).toBeGreaterThanOrEqual(-.00001);
+  expect(left+side).toBeLessThanOrEqual(1.00001);expect(top+side).toBeLessThanOrEqual(1.00001);expect(style.filter).toBe('none');
   expect(await target.evaluate(async element=>{const image=new Image();image.src=getComputedStyle(element).backgroundImage.slice(5,-2);await image.decode();return [image.naturalWidth,image.naturalHeight];})).toEqual([640,640]);
 }
+/** Delivers through the rules, with the dishes supplied, and reads the scenes that the delivery queued. */
+function delivered(state: GameState,id: string){
+  let next=act(supply(state,supplies(quest(id))),{type:'deliverQuest',id});
+  for(const scene of [...next.pendingScenes])next=act(next,{type:'readScene',id:scene});
+  return next;
+}
 
-test('the third ordinary service after Ionatan opens the shared visit and excludes nobles from replacement orders',async({page})=>{
-  const initial=departed();initial.served+=2;const state=supply(initial,[...supplies(search),...initial.orders[0].requirements]);
-  await start(page,state);await guests(page,false);await quests(page);await expect(card(page)).toHaveCount(0);await page.keyboard.press('Escape');
-  await serve(page,0);await guests(page,true);const arrived=await saved(page);expect(arrived.served-arrived.questCompletedAt![dinner.id]).toBe(3);
-  expect(arrived.orders.every(order=>!nobles.includes(order.customer))).toBe(true);await quests(page);await expect(deliver(page)).toBeEnabled();
+test('Mina and Avram arrive only after Ionatan’s dinner and their preparation, and stay while their request is open',async({page})=>{
+  // Ionatan's dinner is open, so the shared visit is not.
+  await start(page,onTicket(dinner));await guests(page,false);await expect(ticket(page,dinner)).toHaveCount(1);
+  // The dinner is delivered, but the preparation that brings them is not done.
+  const fed=delivered(onTicket(dinner),dinner.id);expect(fed.decorations).not.toContain(search.afterTask);
+  await replaceSave(page,fed);await guests(page,false);
+  // After the preparation, both guests are in the journal and the request is on a ticket.
+  await replaceSave(page,onTicket(search));await guests(page,true);
+  await expect(ticket(page,search)).toHaveAccessibleName(`${person('mina').name}’s request: ${search.title}`);await portrait(ticket(page,search).locator('.portrait'),person('mina').sprite);
 });
 
-test('Mina and Avram arrive together after three ordinary services following Ionatan and wait for both noble tickets',async({page})=>{
-  let initial=departed();
-  for(const [index,id] of nobles.entries()){initial.orders[index]={...initial.orders[index],customer:id,requirements:['drinks_5'],reward:data.items.drinks_5.price};}
-  // Serve the third ticket three times while the nobles remain at the counter.
-  let planned=structuredClone(initial);const codes: string[]=[];
-  for(let count=0;count<3;count++){const order=planned.orders[2];codes.push(...order.requirements);planned=act(supply(planned,order.requirements),{type:'serve',id:order.id});}
-  initial=supply(initial,[...codes,'drinks_5','drinks_5',...supplies(search)]);await start(page,initial);await guests(page,false);
-  for(let count=0;count<3;count++){
-    const before=await saved(page),order=before.orders[2],person=data.characters.find(person=>person.id===order.customer)!;
-    await page.getByRole('button',{name:`Serve ${person.name} for ${order.reward} coins`,exact:true}).click();
-    await expect.poll(async()=>(await saved(page)).served).toBe(before.served+1);
-    while(await page.locator('#modal').isVisible())await page.keyboard.press('Escape');
-    await guests(page,false);
-  }
-  for(const id of nobles){
-    const state=await saved(page),order=state.orders.find(order=>order.customer===id)!,person=data.characters.find(person=>person.id===id)!;
-    await page.getByRole('button',{name:`Serve ${person.name} for ${order.reward} coins`,exact:true}).click();
-    await expect.poll(async()=>(await saved(page)).served).toBe(state.served+1);
-    while(await page.locator('#modal').isVisible())await page.keyboard.press('Escape');
-    await guests(page,id===nobles[1]);
-  }
-  const state=await saved(page);expect(state.orders.every(order=>!nobles.includes(order.customer))).toBe(true);
-  expect(resolveQuests(state,data).find(view=>view.quest.id===search.id)!.status).toBe('active');await quests(page);await expect(deliver(page)).toBeEnabled();
+test('the shared vegetarian meal has both voices, leaves once, keeps the departure through reload and import',async({page})=>{
+  await start(page,deliverable(search));await guests(page,true);await request(page,search);
+  const dialog=page.getByRole('dialog',{name:search.title,exact:true});
+  await expect(dialog.locator('.quest-person')).toHaveText('Mina and Avram');
+  for(const id of companions)await portrait(dialog.getByRole('img',{name:person(id).name,exact:true}),person(id).sprite);
+  for(const line of search.opening)await expect(dialog).toContainText(`${person(line.speaker).name}: ${line.text}`);
+  for(const {item,quantity} of search.requirements)await expect(dialog.getByRole('button',{name:`${quantity} ${data.items[item].name}: ${quantity} of ${quantity} on the board`,exact:true})).toBeVisible();
+  const before=await saved(page);await dialog.getByRole('button',{name:/^Deliver /}).click();await scene(page,search.completion);
+  const after=await saved(page);expect(after.completedQuests).toEqual([...before.completedQuests,search.id]);expect(after.coins).toBe(before.coins+search.reward);expect(after.pendingScenes).toEqual([]);
+  await guests(page,false);
+  await page.reload();await opened(page);expect(await saved(page)).toEqual(after);await guests(page,false);
+  await options(page);const text=await exportText(page);expect(JSON.parse(text).state).toEqual(after);
+  await startAgainAndImport(page,text);expect(await saved(page)).toEqual(after);await guests(page,false);
 });
 
-test('the shared vegetarian meal has both voices, leaves once, preserves departure through reload and import, and leads to local gossip',async({page})=>{
-  const initial=ready();await start(page,supply(initial,initial.orders.flatMap(order=>order.requirements)));await guests(page,true);await quests(page);
-  await expect(card(page)).toContainText('Mina');await expect(card(page)).toContainText('Avram');
-  for(const id of companions){const person=data.characters.find(person=>person.id===id)!;await portrait(card(page).getByRole('img',{name:person.name,exact:true}),person.sprite);}
-  for(const {item,quantity} of search.requirements)await expect(card(page).getByRole('button',{name:`${data.items[item].name}: ${quantity} of ${quantity} on the board`,exact:true})).toBeVisible();
-  await card(page).getByRole('button',{name:`Read request: ${search.title}`,exact:true}).click();await scene(page,search.opening);
-  const before=await saved(page);await deliver(page).click();await scene(page,search.completion);const after=await saved(page);
-  expect(after.completedQuests).toEqual([...before.completedQuests,search.id]);expect(after.questCompletedAt![search.id]).toBe(before.served);
-  expect(after.coins).toBe(before.coins+search.reward);expect(after.orders).toEqual(before.orders);expect(after.seed).toBe(before.seed);expect(after.served).toBe(before.served);expect(after.xp).toBe(before.xp);
-  await expect(deliver(page)).toHaveCount(0);await page.keyboard.press('Escape');await guests(page,false);
-  await page.reload();await closeOffers(page,after);expect(await saved(page)).toEqual(after);await guests(page,false);
-  await page.locator('[data-house-book]:visible').first().click();const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Export saved game'}).click();
-  const text=readFileSync((await (await downloadPromise).path())!,'utf8');expect(JSON.parse(text).state).toEqual(after);
-  await page.getByRole('button',{name:'Start a new game',exact:true}).click();await page.getByRole('button',{name:'Erase and start again'}).click();
-  await page.locator('[data-house-book]:visible').first().click();await page.locator('input[type="file"]').setInputFiles({name:'shared-visit.json',mimeType:'application/json',buffer:Buffer.from(text)});
-  await page.getByRole('button',{name:'Import this saved game'}).click();expect(await saved(page)).toEqual(after);await guests(page,false);
-  for(let count=0;count<3;count++){await serve(page,count);expect((await saved(page)).pendingScenes.includes(search.followUp!.id)).toBe(count===2);await guests(page,false);}
-  await journal(page);await page.getByRole('button',{name:`Read ${search.followUp!.title}`,exact:true}).click();
+test('local news from the road arrives with the third delivery after the shared meal',async({page})=>{
+  let state=delivered(deliverable(search),search.id);
+  // The next preparation opens new requests; two of them are delivered through the rules.
+  for(const value of requiredQuests(state.taskIndex,data))if(!state.completedQuests.includes(value.id))state.completedQuests.push(value.id);
+  state.coins=data.tasks[state.taskIndex].cost;state=act(state,{type:'task'});for(const id of [...state.pendingScenes])state=act(state,{type:'readScene',id});
+  const open=resolveQuests(state,data).filter(view=>view.status==='active').map(view=>view.quest);expect(open.length).toBeGreaterThanOrEqual(3);
+  state=delivered(state,open[0].id);state=delivered(state,open[1].id);expect(state.pendingScenes).toEqual([]);
+  await start(page,supply(state,supplies(open[2])));await deliverButton(page,open[2]).click();
+  await expect(page.getByRole('dialog',{name:open[2].title,exact:true})).toBeVisible();
+  expect((await saved(page)).pendingScenes).toEqual([open[2].id,search.followUp!.id]);
+  await readTo(page,'Next scene');await expect(page.getByRole('dialog',{name:search.followUp!.title,exact:true})).toBeVisible();
   expect(search.followUp!.dialogue.every(line=>!companions.includes(line.speaker)&&line.speaker!=='ionatan')).toBe(true);
   expect(search.followUp!.dialogue.map(line=>line.text).join(' ')).toMatch(/Ionatan gravely ill.*All three have left for Britain.*did not stop at our bistro/);
-  await scene(page,search.followUp!.dialogue);await expect(page.getByRole('button',{name:`Replay ${search.followUp!.title}`,exact:true})).toBeVisible();
-  expect((await saved(page)).pendingScenes).not.toContain(search.followUp!.id);await page.keyboard.press('Escape');await guests(page,false);
+  await scene(page,search.followUp!.dialogue);expect((await saved(page)).pendingScenes).toEqual([]);
+  await journal(page);await expect(page.getByRole('button',{name:`Replay ${search.followUp!.title}`,exact:true})).toBeVisible();await page.keyboard.press('Escape');await guests(page,false);
 });
 
-test('a failed shared delivery save removes both guests in the session and reload restores the durable shared visit',async({page})=>{
-  await start(page,ready());const before=await saved(page);await quests(page);
-  await page.evaluate(key=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(name,value){if(name===key)throw new Error('No space');original.call(this,name,value);};},SAVE_KEY);
-  await deliver(page).click();await expect(page.locator('.completion-message')).toContainText('This session is not saved.');await scene(page,search.completion);
-  await expect(page.getByRole('button',{name:'Retry save',exact:true})).toBeVisible();await expect(deliver(page)).toHaveCount(0);await page.keyboard.press('Escape');await guests(page,false);
-  expect(await saved(page)).toEqual(before);await page.reload();await closeOffers(page,before);await guests(page,true);await quests(page);await expect(deliver(page)).toBeEnabled();
+test('a failed shared delivery save removes both guests in the session, and reload restores the shared visit',async({page})=>{
+  await start(page,deliverable(search));const before=await saved(page);
+  await failWrites(page);await deliverButton(page,search).click();await expect(page.locator('.completion-message')).toContainText('This session is not saved.');await scene(page,search.completion);
+  await guests(page,false);expect(await saved(page)).toEqual(before);
+  await page.reload();await opened(page);await guests(page,true);await expect(deliverButton(page,search)).toBeEnabled();
 });
 
-for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`all four new guest portraits and shared meal fit ${viewport.width}x${viewport.height} in ${theme}`,async({page})=>{
-  await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});await start(page,ready());await journal(page);
-  for(const person of data.characters.filter(person=>person.portraitAtlas==='guest')){
-    const entry=page.getByRole('button',{name:`Meet ${person.name}`,exact:true});await entry.scrollIntoViewIfNeeded();await portrait(entry.locator('.portrait'),person.sprite);await expect(entry).toContainText(person.role);
-    expect(await entry.evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);await entry.click();await portrait(page.locator('.story-stage .portrait'),person.sprite);
-    await expect(page.locator('#story-line')).toContainText(person.introduction);await expect(page.getByRole('button',{name:'Return',exact:true})).toBeInViewport();
+for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`all four guest portraits and the shared meal fit ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
+  await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});await start(page,deliverable(search));await journal(page);
+  for(const guest of data.characters.filter(value=>value.portraitAtlas==='guest')){
+    const entry=page.getByRole('button',{name:`Meet ${guest.name}`,exact:true});await entry.scrollIntoViewIfNeeded();await portrait(entry.locator('.portrait'),guest.sprite);await expect(entry).toContainText(guest.role);
+    expect(await entry.evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);await entry.click();await portrait(page.locator('.story-stage .portrait'),guest.sprite);
+    await expect(page.locator('#story-line')).toContainText(guest.introduction);await expect(page.getByRole('button',{name:'Return',exact:true})).toBeInViewport();
     expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth&&element.scrollHeight<=element.clientHeight)).toBe(true);
-    await page.screenshot({path:`test-results/guests/${person.id}-${viewport.width}-${theme}.png`});await scene(page,[{speaker:person.id,text:person.introduction}]);
+    await page.screenshot({path:testInfo.outputPath(`${guest.id}.png`)});await scene(page,[{speaker:guest.id,text:guest.introduction}]);
   }
-  await page.keyboard.press('Escape');await quests(page);await card(page).scrollIntoViewIfNeeded();await portrait(card(page).locator('.portrait').first(),data.characters.find(person=>person.id==='mina')!.sprite);
-  await portrait(card(page).getByRole('img',{name:'Avram',exact:true}),data.characters.find(person=>person.id==='avram')!.sprite);
-  await expect(card(page)).toContainText('Avram');expect(await card(page).evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
-  await page.screenshot({path:`test-results/guests/shared-meal-${viewport.width}-${theme}.png`});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await page.keyboard.press('Escape');await request(page,search);const view=page.locator('.quest-view');
+  await portrait(view.getByRole('img',{name:'Mina',exact:true}),person('mina').sprite);await portrait(view.getByRole('img',{name:'Avram',exact:true}),person('avram').sprite);
+  expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
+  await page.screenshot({path:testInfo.outputPath('shared-meal.png')});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
 
-for(const id of nobles)test(`${id} has meat and red wine ordinary orders with the wine picture`,async({page})=>{
-  const state=departed(),person=data.characters.find(person=>person.id===id)!;state.orders[0]={...state.orders[0],customer:id,requirements:['warm_5','drinks_5'],reward:data.items.warm_5.price+data.items.drinks_5.price};
-  await start(page,supply(state,state.orders[0].requirements));await expect(page.locator('#orders')).toContainText(person.name);
-  const order=page.locator('#orders .order').filter({hasText:person.name});await portrait(order.locator('.portrait'),person.sprite);
-  const wine=order.getByRole('button',{name:'Red wine, ready on the board',exact:true});expect(await wine.locator('.food image').getAttribute('href')).toContain('assets/variants/red-wine-256x256.webp');
-  await wine.click();await expect(page.getByRole('dialog',{name:'Red wine',exact:true})).toBeVisible();await expect(page.getByRole('dialog')).toContainText('Merge two Cherry compote to make Red wine.');
+test('Vlad’s request shows the red wine picture on its ticket and opens the wine’s help',async({page})=>{
+  const value=quest('vlad-after-dark');expect(value.requirements.map(requirement=>requirement.item)).toContain('drinks_5');
+  await start(page,onTicket(value));await portrait(ticket(page,value).locator('.portrait'),person('vlad').sprite);
+  await winePicture(ticket(page,value));await request(page,value);
+  await page.getByRole('button',{name:`1 Red wine: 0 of 1 on the board`,exact:true}).click();
+  await expect(page.getByRole('dialog',{name:'Red wine',exact:true})).toBeVisible();await winePicture(page.locator('#modal'));
+  await expect(page.getByRole('dialog')).toContainText('Merge two Cherry compote to make Red wine.');
 });
 
 async function dismissDialogs(page: Page){while(await page.locator('#modal').isVisible())await page.keyboard.press('Escape');}
@@ -177,31 +133,20 @@ async function makeDish(page: Page,code: string): Promise<number>{
   expect((await saved(page)).board[second]?.code).toBe(code);return second;
 }
 async function winePicture(target: Locator){
-  const image=target.locator('.food image').first();await expect(image).toHaveAttribute('href',/assets\/variants\/red-wine-256x256\.webp$/);
+  const image=target.locator('.food image[href*="red-wine"]').first();
+  await expect(image).toHaveAttribute('href',/assets\/variants\/red-wine-256x256\.webp$/);
   expect(await image.evaluate(async element=>{const image=new Image();image.src=element.getAttribute('href')!;await image.decode();return [image.naturalWidth,image.naturalHeight];})).toEqual([256,256]);
 }
 
-for(const fixture of ['undiscovered-drink-save','stored-drink-save'])test(`a ${fixture} keeps its quoted order and can serve red wine through visible controls`,async({page})=>{
+test('red wine made through the visible controls readies Vlad’s request, and Deliver pays it once',async({page})=>{
   test.setTimeout(60000);await page.emulateMedia({reducedMotion:'reduce'});
-  const text=readFileSync(`tests/fixtures/${fixture}.json`,'utf8'),initial: GameState=JSON.parse(text).state,order=initial.orders[0];
-  expect(order.requirements).toEqual(['bakery_5','drinks_5']);expect(order.reward).toBe(63);
-  await page.addInitScript(([key,value])=>{if(localStorage.getItem(key)===null)localStorage.setItem(key,value);},[SAVE_KEY,text]);
-  await page.goto('./');await expect(page.locator('#board button')).toHaveCount(42);await closeOffers(page,initial);
-  expect(await page.evaluate(key=>localStorage.getItem(key),SAVE_KEY)).toBe(text);expect((await saved(page)).orders[0]).toEqual(order);
-  const ticket=page.locator('#orders .order').first(),stored=fixture==='stored-drink-save';
-  const wine=ticket.getByRole('button',{name:`Red wine, ${stored?'ready on the board':'not on the board yet'}`,exact:true});await expect(wine).toBeVisible();await winePicture(wine);
-  await expect(page.locator('body')).not.toContainText('Blueberry liqueur');await wine.click();
-  const help=page.getByRole('dialog',{name:'Red wine',exact:true});await expect(help).toBeVisible();await winePicture(help);
-  await expect(help).toContainText('Merge two Cherry compote to make Red wine.');await page.keyboard.press('Escape');
-  const oldWine=initial.board.findIndex(cell=>cell?.code==='drinks_5');
-  if(stored){expect(initial.discovered).toContain('drinks_5');await expect(page.locator(`[data-cell="${oldWine}"]`)).toHaveAttribute('aria-label',/Red wine$/);await winePicture(page.locator(`[data-cell="${oldWine}"]`));}
-  else{expect(initial.discovered).not.toContain('drinks_5');expect(oldWine).toBe(-1);}
-  await makeDish(page,'bakery_5');const wineAt=stored?oldWine:await makeDish(page,'drinks_5');
-  await expect(page.locator(`[data-cell="${wineAt}"]`)).toHaveAttribute('aria-label',/Red wine$/);await winePicture(page.locator(`[data-cell="${wineAt}"]`));
-  await expect(ticket.getByRole('button',{name:'Red wine, ready on the board',exact:true})).toBeVisible();
-  const ready=await saved(page);expect(ready.discovered).toContain('drinks_5');expect(ready.orders[0]).toEqual(order);
-  await ticket.getByRole('button',{name:'Serve Eszter for 63 coins',exact:true}).click();
-  await expect.poll(async()=>(await saved(page)).served).toBe(initial.served+1);await dismissDialogs(page);
-  const served=await saved(page);expect(served.coins).toBe(initial.coins+63);expect(served.orders.some(candidate=>candidate.id===order.id)).toBe(false);
-  await page.reload();await closeOffers(page,served);expect(await saved(page)).toEqual(served);
+  const value=quest('vlad-after-dark'),initial=supply(onTicket(value),value.requirements.filter(requirement=>requirement.item!=='drinks_5').map(requirement=>requirement.item));
+  await start(page,initial);await expect(deliverButton(page,value)).toBeDisabled();
+  const wine=await makeDish(page,'drinks_5');
+  await expect(page.locator(`[data-cell="${wine}"]`)).toHaveAttribute('aria-label',/Red wine$/);await winePicture(page.locator(`[data-cell="${wine}"]`));
+  await expect(deliverButton(page,value)).toBeEnabled();await expect(ticket(page,value).locator('.ticket-item.ready')).toHaveCount(value.requirements.length);
+  const ready=await saved(page);expect(ready.discovered).toContain('drinks_5');
+  await deliverButton(page,value).click();await readTo(page,'Back to the kitchen');
+  const after=await saved(page);expect(after.coins).toBe(ready.coins+value.reward);expect(after.completedQuests).toEqual([...ready.completedQuests,value.id]);
+  await page.reload();await opened(page);expect(await saved(page)).toEqual(after);await expect(ticket(page,value)).toHaveCount(0);
 });

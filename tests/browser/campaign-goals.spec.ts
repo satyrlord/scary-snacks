@@ -1,45 +1,30 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { readFileSync } from 'node:fs';
-import { createGame, firstFreeBoardCell, menuReward, reduceGame, validateGame } from '../../src/engine.ts';
-import type { GameData, GameState } from '../../src/engine.ts';
-import { SAVE_KEY, exportSave } from '../../src/storage.ts';
+import { createGame, requiredQuests, resolveQuests } from '../../src/engine.ts';
+import type { GameState } from '../../src/engine.ts';
+import { data, deliverButton, readTo, revealed, saved, start, supplies, supply } from './support.ts';
 
-const data: GameData = JSON.parse(readFileSync('public/data/game.json', 'utf8'));
 const first = data.tasks[0];
-const save = (state: GameState) => exportSave(state, candidate => validateGame(candidate, data));
-async function start(page: Page, state: GameState, theme = 'light') {
-  await page.addInitScript(({ key, value, theme }) => {
-    if (!localStorage.getItem(key)) localStorage.setItem(key, value);
-    localStorage.setItem('scary-snacks-theme', theme);
-  }, { key: SAVE_KEY, value: save(state), theme });
-  await page.goto('./');
-  await expect(page.locator('#board button')).toHaveCount(42);
-}
-async function saved(page: Page): Promise<GameState> {
-  return page.evaluate(key => navigator.locks.request(key, () => JSON.parse(localStorage.getItem(key)!).state), SAVE_KEY);
-}
 const pay = (page: Page) => page.locator('#story').getByRole('button', { name: /^Pay / });
 const goal = (page: Page, kind: string) => page.locator(`#story [data-requirement="${kind}"]`);
+const needed = requiredQuests(0, data);
+/** Every quest of the first preparation is delivered but the last, whose dishes are on the board, and the coins reach the cost with its reward. */
+function lastRequestReady() {
+  const state = createGame(data), last = needed.at(-1)!;
+  state.completedQuests = needed.slice(0, -1).map(quest => quest.id); state.coins = first.cost - last.reward;
+  return { state: supply(state, supplies(last)), last };
+}
 
-test('ingredient tickets show the small menu prices and service pays exactly the shown quote', async ({ page }) => {
-  const state = createGame(data);
-  for (const [index, code] of ['bakery_1', 'warm_1', 'drinks_1'].entries()) {
-    state.orders[index] = { ...state.orders[index], requirements: [code], reward: menuReward([code], data), pricing: 'menu-1' };
-    expect(state.orders[index].reward).toBeGreaterThanOrEqual(1); expect(state.orders[index].reward).toBeLessThanOrEqual(3);
-  }
-  await page.emulateMedia({ reducedMotion: 'reduce' }); await start(page, state);
-  for (const [index, order] of state.orders.entries()) {
-    await expect(page.locator('#orders .serve-button').nth(index)).toHaveAccessibleName(new RegExp(` for ${order.reward} ${order.reward === 1 ? 'coin' : 'coins'}$`));
-  }
-  await page.locator('#orders .serve-button').first().click();
+test('each ticket names its reward, and Deliver pays exactly that reward', async ({ page }) => {
+  const initial = createGame(data), open = resolveQuests(initial, data).filter(view => view.status === 'active').map(view => view.quest);
+  await page.emulateMedia({ reducedMotion: 'reduce' }); await start(page, supply(initial, supplies(open[0])));
+  for (const quest of open) await expect(deliverButton(page, quest)).toHaveAccessibleName(new RegExp(` for ${quest.reward} coins$`));
+  for (const quest of open) await expect(deliverButton(page, quest)).toContainText(String(quest.reward));
+  await deliverButton(page, open[0]).click(); await readTo(page, 'Back to the kitchen');
   const after = await saved(page);
-  expect(after.coins).toBe(state.orders[0].reward); expect(after.served).toBe(1);
-  expect(after.orders.slice(1)).toEqual(state.orders.slice(1));
-  expect(after.orders[0].pricing).toBe('menu-1'); expect(after.orders[0].reward).toBe(menuReward(after.orders[0].requirements, data));
+  expect(after.coins).toBe(open[0].reward); expect(after.completedQuests).toEqual([open[0].id]);
   await page.reload(); expect(await saved(page)).toEqual(after);
 });
-
 
 for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 800 }]) {
   test(`work details explain the current budget and return focus at ${viewport.width}px`, async ({ page }, testInfo) => {
@@ -64,80 +49,72 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 800 
   });
 }
 
-test('coins cannot hide missing service and merge requirements', async ({ page }) => {
-  const state = createGame(data); state.coins = first.cost;
+test('coins cannot hide undelivered quests', async ({ page }) => {
+  const state: GameState = createGame(data); state.coins = first.cost;
   await start(page, state);
   await expect(goal(page, 'coins')).toHaveText(`Coins: ${first.cost} / ${first.cost}Complete`);
-  await expect(goal(page, 'served')).toHaveText(`Total orders served: 0 / ${first.goals.served}Need ${first.goals.served}`);
-  await expect(goal(page, 'merges')).toHaveText(`Total merges: 0 / ${first.goals.merges}Need ${first.goals.merges}`);
+  await expect(goal(page, 'quests')).toHaveText(`Quests delivered: 0 / ${needed.length}Need ${needed.length}`);
   await expect(pay(page)).toBeDisabled();
   expect(await saved(page)).toEqual(state);
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('#offer')).toBeHidden();
   await expect(page.locator('#story-button')).not.toHaveAttribute('data-ready');
   await page.locator('#story-button').click();
-  await expect(page.locator('#modal [data-requirement="served"]')).toContainText(`Need ${first.goals.served}`);
+  await expect(page.locator('#modal [data-requirement="quests"]')).toContainText(`Need ${needed.length}`);
   await expect(page.locator('#modal').getByRole('button', { name: /^Pay / })).toBeDisabled();
   await page.keyboard.press('Escape');
   await expect(page.locator('#story-button')).toBeFocused();
 });
 
-test('the exact last merge enables payment, keeps board focus, and preserves lifetime totals', async ({ page }) => {
+test('delivering the last required quest enables payment, and the next preparation counts its own quests', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  const state = createGame(data); state.coins = first.cost; state.served = first.goals.served; state.merges = first.goals.merges - 1;
-  await start(page, state);
+  const { state, last } = lastRequestReady(); await start(page, state);
+  await expect(goal(page, 'quests')).toHaveText(`Quests delivered: ${needed.length - 1} / ${needed.length}Need 1`);
+  await expect(goal(page, 'coins')).toHaveText(`Coins: ${first.cost - last.reward} / ${first.cost}Need ${last.reward}`);
   await expect(pay(page)).toBeDisabled();
-  await page.locator('[data-cell="13"]').focus(); await page.keyboard.press('Enter');
-  await page.keyboard.press('ArrowRight'); await page.keyboard.press('Enter');
-  await expect(page.locator('[data-cell="14"]')).toBeFocused();
-  await expect(goal(page, 'merges')).toHaveText(`Total merges: ${first.goals.merges} / ${first.goals.merges}Complete`);
+  await deliverButton(page, last).click(); await readTo(page, 'Back to the kitchen');
+  await expect(goal(page, 'quests')).toHaveText(`Quests delivered: ${needed.length} / ${needed.length}Complete`);
+  await expect(goal(page, 'coins')).toHaveText(`Coins: ${first.cost} / ${first.cost}Complete`);
   await expect(pay(page)).toBeEnabled();
-  const before = await saved(page);
   await pay(page).click();
   await expect(page.locator('.story-controls .primary-button')).toBeFocused();
   const after = await saved(page);
-  expect(after.taskIndex).toBe(1); expect(after.coins).toBe(0);
-  expect(after.served).toBe(first.goals.served); expect(after.merges).toBe(first.goals.merges);
-  expect(after.orders).toEqual(before.orders); expect(after.seed).toBe(before.seed); expect(after.pendingScenes).toEqual(['task_1']);
+  expect(after.taskIndex).toBe(1); expect(after.coins).toBe(0); expect(after.pendingScenes).toEqual(['task_1']);
   for (let line = 0; line < 3; line++) await page.locator('.story-controls .primary-button').click();
-  await expect(page.locator('#room-pin')).toBeFocused();
-  await expect(goal(page, 'served')).toHaveText(`Total orders served: ${first.goals.served} / ${data.tasks[1].goals.served}Need ${data.tasks[1].goals.served - first.goals.served}`);
-  await expect(goal(page, 'merges')).toHaveText(`Total merges: ${first.goals.merges} / ${data.tasks[1].goals.merges}Need ${data.tasks[1].goals.merges - first.goals.merges}`);
+  await revealed(page); await expect(page.locator('#room-pin')).toBeFocused();
+  const next = requiredQuests(1, data).length;
+  await expect(goal(page, 'quests')).toHaveText(`Quests delivered: ${needed.length} / ${next}Need ${next - needed.length}`);
   await expect(pay(page)).toBeDisabled();
+  // The tickets now carry the quests that the first preparation opened.
+  for (const quest of requiredQuests(1, data).slice(needed.length)) await expect(deliverButton(page, quest)).toBeVisible();
   // The last line of the scene reads it, and nothing else changes.
   await page.reload(); expect(await saved(page)).toEqual({ ...after, pendingScenes: [] });
 });
 
-test('serving the last required order makes the phone offer ready', async ({ page }) => {
+test('delivering the last required quest makes the phone offer ready', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  const state = createGame(data); state.coins = first.cost; state.merges = first.goals.merges; state.served = first.goals.served - 1;
-  const order = state.orders[0];
-  for (const code of order.requirements) {
-    state.board[firstFreeBoardCell(state, data)] = { code };
-    if (!state.discovered.includes(code)) state.discovered.push(code);
-  }
-  await start(page, state);
+  const { state, last } = lastRequestReady(); await start(page, state);
   await expect(page.locator('#offer')).toBeHidden();
-  const serve = page.locator('#orders .serve-button').first();
-  await serve.focus(); await page.keyboard.press('Enter');
-  expect((await saved(page)).served).toBe(first.goals.served);
+  const deliver = deliverButton(page, last);
+  await deliver.focus(); await page.keyboard.press('Enter');
+  await readTo(page, 'Back to the kitchen');
+  expect((await saved(page)).completedQuests).toHaveLength(needed.length);
   await expect(page.locator('#story-button')).toHaveAttribute('data-ready', '');
   await expect(page.locator('#offer').getByRole('button', { name: /^Pay / })).toBeEnabled();
-  await expect(page.locator('#orders button:focus')).toHaveCount(1);
+  await expect(page.locator('.tickets-empty')).toHaveText('No requests wait now. Pay for the next preparation.');
   await page.locator('#story-button').click();
-  await expect(page.locator('#modal [data-requirement="served"]')).toHaveText(`Total orders served: ${first.goals.served} / ${first.goals.served}Complete`);
+  await expect(page.locator('#modal [data-requirement="quests"]')).toHaveText(`Quests delivered: ${needed.length} / ${needed.length}Complete`);
 });
-
 
 for (const viewport of [{ width: 1440, height: 900 }, { width: 1280, height: 800 }, { width: 390, height: 844 }, { width: 390, height: 800 }]) {
   for (const theme of ['light', 'dark']) {
-    test(`preparation goals fit ${viewport.width}x${viewport.height} in ${theme}`, async ({ page }, testInfo) => {
+    test(`preparation requirements fit ${viewport.width}x${viewport.height} in ${theme}`, async ({ page }, testInfo) => {
       await page.setViewportSize(viewport); await page.emulateMedia({ reducedMotion: 'reduce' });
       await start(page, createGame(data), theme);
       if (viewport.width < 1024) await page.locator('#story-button').click();
       const panel = page.locator(viewport.width < 1024 ? '#modal .task-content' : '#story .task-content');
-      await expect(panel.locator('li')).toHaveCount(3);
+      await expect(panel.locator('li')).toHaveCount(2);
       const geometry = await panel.evaluate(element => {
         const box = element.getBoundingClientRect();
         let surface: Element = element;

@@ -7,6 +7,17 @@ import { sourceFiles } from '../tools/export-source.ts';
 
 const root = new URL('../', import.meta.url);
 
+test('each relative TypeScript import in the source export names an exported file', async () => {
+  const exported = new Set(sourceFiles);
+  for (const file of sourceFiles.filter(path => path.endsWith('.ts'))) {
+    const text = await readFile(new URL(file, root), 'utf8');
+    for (const [, target] of text.matchAll(/^(?:import|export)\s+(?:[^;'"\n]*\sfrom\s*)?['"](\.{1,2}\/[^'"\n]+\.ts)['"]/gm)) {
+      const path = join(dirname(file), target).replaceAll('\\', '/');
+      assert.ok(exported.has(path), `${file} imports ${target}, which the source export leaves out`);
+    }
+  }
+});
+
 test('each relative link in an exported document names an exported file', async () => {
   const exported = new Set(sourceFiles);
   for (const file of sourceFiles.filter(path => path.endsWith('.md'))) {

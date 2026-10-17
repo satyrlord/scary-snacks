@@ -1,7 +1,7 @@
 /** Local-only persistence. */
 const FORMAT = 'scary-snacks';
 /** Only the current save format is supported. */
-const VERSION = 8;
+const VERSION = 9;
 export const SAVE_KEY = `scary-snacks-save-v${VERSION}`;
 export const MAX_SAVE_BYTES = 2 * 1024 * 1024;
 
@@ -9,8 +9,6 @@ export type SaveStatus = 'loaded' | 'empty' | 'invalid' | 'unsupported' | 'unava
 export type SaveStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 /** Only a result of exactly true admits a state. */
 export type Validator = (state: unknown) => unknown;
-/** Changes a parsed state of the supported format before validation, for example to remove content that the game does not have. */
-export type Upgrade = (state: unknown) => unknown;
 export type LoadResult<State> = { state: State | null; status: SaveStatus; error: string | null };
 export type WriteResult = { ok: boolean; error: string | null };
 
@@ -45,7 +43,7 @@ function validateState(state: unknown, validate: Validator | undefined) {
   if (valid !== true) throw new SaveError('The saved game has damaged or unknown game data.');
 }
 
-function parseSave<State>(text: unknown, validate: Validator | undefined, upgrade?: Upgrade): State {
+function parseSave<State>(text: unknown, validate: Validator | undefined): State {
   if (typeof text !== 'string') throw new SaveError('The save must be JSON text.');
   // Check string length first to avoid allocating a large UTF-8 buffer.
   if (text.length > MAX_SAVE_BYTES || new TextEncoder().encode(text).byteLength > MAX_SAVE_BYTES) {
@@ -66,16 +64,12 @@ function parseSave<State>(text: unknown, validate: Validator | undefined, upgrad
   if (!Object.hasOwn(envelope, 'state')) {
     throw new SaveError('The saved game has no game data in it.');
   }
-  let state: unknown = envelope.state;
-  if (upgrade) {
-    try { state = upgrade(state); } catch { throw new SaveError('The saved game could not be checked.'); }
-  }
-  validateState(state, validate);
-  return state as State;
+  validateState(envelope.state, validate);
+  return envelope.state as State;
 }
 
 /** Returns state only after the complete envelope and game state pass validation. */
-export function loadSave<State>(storage: SaveStorage | null, validate: Validator | undefined, upgrade?: Upgrade): LoadResult<State> {
+export function loadSave<State>(storage: SaveStorage | null, validate: Validator | undefined): LoadResult<State> {
   let text = null;
   try {
     text = available(storage).getItem(SAVE_KEY);
@@ -84,7 +78,7 @@ export function loadSave<State>(storage: SaveStorage | null, validate: Validator
   }
   if (text === null) return { state: null, status: 'empty', error: null };
   try {
-    const state = parseSave<State>(text, validate, upgrade);
+    const state = parseSave<State>(text, validate);
     return { state, status: 'loaded', error: null };
   } catch (error) {
     return { state: null, status: error instanceof SaveError ? error.status : 'invalid', error: message(error, 'Cannot read the saved game.') };
@@ -106,12 +100,12 @@ export function exportSave(state: unknown, validate: Validator | undefined) {
 }
 
 /** Parse before replacing live state. The caller decides when to adopt this state. */
-export function importSave<State>(text: unknown, validate: Validator | undefined, upgrade?: Upgrade): State {
-  return parseSave<State>(text, validate, upgrade);
+export function importSave<State>(text: unknown, validate: Validator | undefined): State {
+  return parseSave<State>(text, validate);
 }
 
 /** One atomic setItem. Never remove an existing save to make room for a write. */
-export function saveGame(storage: SaveStorage | null, state: unknown, validate: Validator | undefined, upgrade?: Upgrade): WriteResult {
+export function saveGame(storage: SaveStorage | null, state: unknown, validate: Validator | undefined): WriteResult {
   let text;
   try {
     text = exportSave(state, validate);
@@ -119,7 +113,7 @@ export function saveGame(storage: SaveStorage | null, state: unknown, validate: 
     return { ok: false, error: message(error, 'Cannot serialize the game data.') };
   }
   if (!storage) return { ok: false, error: 'Browser storage is unavailable.' };
-  const existing = loadSave(storage, validate, upgrade);
+  const existing = loadSave(storage, validate);
   if (existing.status !== 'empty' && existing.status !== 'loaded') {
     return { ok: false, error: `The existing save was preserved. ${existing.error}` };
   }

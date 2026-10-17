@@ -69,6 +69,8 @@ It reads each other value from the asset:
 | --- | --- | --- | --- |
 | `menu-atlas` | `1536x1536` | `transparent` | 6 columns by 6 rows |
 | `portraits` | `1536x1536` | `transparent` | 2 columns by 2 rows |
+| `regulars-1`, `regulars-2` | `1536x1536` | `transparent` | 2 columns by 2 rows |
+| `regulars-3` | `1536x1536` | `transparent` | 2 columns by 2 rows; the lower cells stay fully transparent |
 | `mascots` | `1536x1536` | `transparent` | 2 columns by 2 rows |
 | `timber-tabletop` | `1536x1536` | `opaque` | One image, square, tileable |
 | `embroidered-runner` | `1536x512` | `opaque` | One image, 3:1, repeats horizontally |

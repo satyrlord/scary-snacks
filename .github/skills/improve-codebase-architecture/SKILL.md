@@ -47,8 +47,8 @@ Give the file evidence for each problem.
 - Locality: code and contracts that change together must have one owner.
 - Dependencies: the engine must not use the Document Object Model (DOM), storage, sound, or rendering.
   The storage module must not use the DOM. It receives the browser storage from `src/app.ts`.
-- Determinism: the engine gets each random value from the seed in the state.
-  Each run with the same seed and the same actions must give the same result.
+- Determinism: the engine has no random values and no clock values.
+  Each run with the same state and the same actions must give the same result.
 - One value, one owner: one function must give a value that the interface shows and the engine applies.
 
 Do not add a repository, service, manager, wrapper, port, or adapter for one operation.

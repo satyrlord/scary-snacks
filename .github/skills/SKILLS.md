@@ -46,7 +46,7 @@ For the full gate, use [`run-quality-gate`](run-quality-gate/SKILL.md).
 - [`run-quality-gate`](run-quality-gate/SKILL.md): Run or repair the full
   quality gate of the repository. Also collect the evidence for a release.
 - [`update-game-content`](update-game-content/SKILL.md): Change items, merge chains,
-  generators, characters, chapters, preparations, dialogue, order inputs, or the initial board.
+  generators, characters, chapters, preparations, dialogue, quests, or the initial board.
 - [`verify-game`](verify-game/SKILL.md): Examine the game in its production
   browser build, and collect the evidence.
 

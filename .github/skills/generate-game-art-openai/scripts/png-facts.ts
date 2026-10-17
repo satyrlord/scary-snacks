@@ -11,6 +11,7 @@ interface InspectOptions {
   background: 'transparent' | 'opaque';
   columns: number;
   rows: number;
+  blankCells?: readonly number[];
   expectedSize?: { width: number; height: number };
   minimumWidth?: number;
 }
@@ -93,7 +94,7 @@ function decodePng(bytes: Buffer) {
 // A transparent cell needs a pixel with strong alpha, so an image with only weak alpha fails.
 export function inspectPng(bytes: Buffer, options: InspectOptions) {
   const { width, height, channels, pixels } = decodePng(bytes);
-  const { background, columns, rows, expectedSize, minimumWidth } = options;
+  const { background, columns, rows, expectedSize, minimumWidth, blankCells = [] } = options;
   const issues: string[] = [];
   const warnings: string[] = [];
   if (expectedSize && (expectedSize.width !== width || expectedSize.height !== height))
@@ -111,6 +112,7 @@ export function inspectPng(bytes: Buffer, options: InspectOptions) {
   const cellCount = columns * rows;
   const bandPixels = new Array<number>(cellCount).fill(0);
   const strongPixels = new Array<number>(cellCount).fill(0);
+  const nontransparentPixels = new Array<number>(cellCount).fill(0);
   let transparent = 0;
   let partial = 0;
   let opaque = 0;
@@ -127,6 +129,7 @@ export function inspectPng(bytes: Buffer, options: InspectOptions) {
       const column = Math.min(columns - 1, Math.floor(x / cellWidth));
       const localX = x - column * cellWidth;
       const cell = row * columns + column;
+      if (alpha > 0) nontransparentPixels[cell] += 1;
       if (alpha >= STRONG_ALPHA) strongPixels[cell] += 1;
       if (alpha >= VISIBLE_ALPHA && (rowBand || localX < band || localX >= cellWidth - band))
         bandPixels[cell] += 1;
@@ -141,6 +144,10 @@ export function inspectPng(bytes: Buffer, options: InspectOptions) {
     for (let cell = 0; cell < cellCount; cell += 1) {
       const column = (cell % columns) + 1;
       const row = Math.floor(cell / columns) + 1;
+      if (blankCells.includes(cell)) {
+        if (nontransparentPixels[cell] > 0) issues.push(`Cell ${column}, ${row} must be fully transparent.`);
+        continue;
+      }
       if (strongPixels[cell] === 0) emptyCells.push({ column, row });
       if (bandPixels[cell] > 0) edgeBandCells.push({ column, row, visiblePixels: bandPixels[cell] });
     }

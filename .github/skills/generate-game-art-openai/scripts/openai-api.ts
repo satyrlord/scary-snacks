@@ -16,6 +16,9 @@ type RoomStateId = `front-room-${string}` | `courtyard-${string}`;
 export type AssetId =
   | 'menu-atlas'
   | 'portraits'
+  | 'regulars-1'
+  | 'regulars-2'
+  | 'regulars-3'
   | 'mascots'
   | 'timber-tabletop'
   | 'embroidered-runner'
@@ -29,6 +32,7 @@ interface AssetContract {
   shape: 'square' | 'landscape-3x1' | 'landscape-3x2' | 'portrait-3x4';
   columns: number;
   rows: number;
+  blankCells?: readonly number[];
   defaultSize: string;
 }
 export interface ReferenceImage {
@@ -46,6 +50,7 @@ interface ImageRequest {
 // and the two decoration paintings. The board-clutter atlas of spec 007 joins that record when its feature ships.
 // The room states and the decoration paintings are opaque 3:4 portrait paintings of the "room and drawer" screen.
 const roomState: AssetContract = { background: 'opaque', shape: 'portrait-3x4', columns: 1, rows: 1, defaultSize: '1536x2048' };
+const portraitAtlas: AssetContract = { background: 'transparent', shape: 'square', columns: 2, rows: 2, defaultSize: '1536x1536' };
 const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   ...(Object.fromEntries(gameData.rooms.map(state => [state.id, roomState])) as Record<RoomStateId, AssetContract>),
   'decoration-front': roomState,
@@ -71,6 +76,10 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
     rows: 2,
     defaultSize: '1536x1536',
   },
+  // The portraits of the spec 013 regulars, four to an atlas in the order that they arrive.
+  'regulars-1': portraitAtlas,
+  'regulars-2': portraitAtlas,
+  'regulars-3': { ...portraitAtlas, blankCells: [2, 3] },
   mascots: {
     background: 'transparent',
     shape: 'square',

@@ -1,18 +1,31 @@
 // Original deterministic merge-game rules for the bistro browser game.
 export type Item = { id: string; name: string; chain: string; stage: number; next: string | null; sprite: number; price: number; generator?: { outputs: string[] } };
 export type SceneLine = { speaker: string; text: string };
-export type Character = { id: string; name: string; role: string; description: string; introduction: string; sprite: number; thanks: string[]; visitor?: boolean; singleVisit?: boolean; portraitAtlas?: 'guest'; orderItems?: string[]; occasional?: boolean; absentDuringQuest?: string };
-export type Task = { id: string; chapter: number; title: string; cost: number; work: { summary: string; materials: number; labour: number; hours: number }; goals: { served: number; merges: number }; dialogue: SceneLine[]; unlock?: string; requiresQuest?: string };
+/**
+ * A person of the bistro. The core characters drive the story. A regular (spec 013) is a neighbour who arrives with the preparation that
+ * arrivesAfter names, or is present from the start; arrival plays a short scene, and prefers names the two chains whose dishes they like.
+ */
+export type Character = {
+  id: string; name: string; role: string; description: string; introduction: string; sprite: number; visitor?: boolean; singleVisit?: boolean;
+  portraitAtlas?: PortraitAtlas; regular?: boolean; arrivesAfter?: string; prefers?: string[]; arrival?: SceneLine[];
+};
+export const portraitAtlases = ['guest', 'regulars-1', 'regulars-2', 'regulars-3'] as const;
+export type PortraitAtlas = typeof portraitAtlases[number];
+export type Task = { id: string; chapter: number; title: string; cost: number; work: { summary: string; materials: number; labour: number; hours: number }; dialogue: SceneLine[]; unlock?: string };
 export type TaskRequirement =
-  | { kind: 'coins' | 'served' | 'merges'; current: number; required: number; met: boolean }
-  | { kind: 'quest'; questId: string; title: string; met: boolean }
+  | { kind: 'coins' | 'quests'; current: number; required: number; met: boolean }
   | { kind: 'space'; source: string; met: boolean };
 export type TaskEligibility = { task: Task | null; ready: boolean; requirements: TaskRequirement[]; blockers: string[] };
+/**
+ * A request from a character. It opens after the preparation that afterTask names (null: in a new game), after afterQuest, and after
+ * the earlier requests of its character. Unlocks names a decoration finish that the delivery adds. A follow-up scene is earned after
+ * afterDeliveries further deliveries.
+ */
 export type Quest = {
-  id: string; character: string; title: string; afterTask: string | null; afterQuest?: string; afterServed?: number;
+  id: string; character: string; title: string; afterTask: string | null; afterQuest?: string;
   requirements: { item: string; quantity: number }[]; reward: number; opening: SceneLine[]; completion: SceneLine[];
-  companions?: string[]; afterQuestServices?: number; waitsForCustomers?: string[];
-  followUp?: { id: string; title: string; afterServices: number; dialogue: SceneLine[] };
+  companions?: string[]; unlocks?: { slot: string; variant: string };
+  followUp?: { id: string; title: string; afterDeliveries: number; dialogue: SceneLine[] };
 };
 /**
  * A chapter of the story. Its preparations are the tasks that name its number. Opening sets the scene when the chapter starts,
@@ -23,7 +36,8 @@ export type Chapter = { id: string; title: string; objective: string; opening: s
 /** The scene that plays after the last preparation. Ending is the line that returns the player to the kitchen. */
 export type Finale = { id: string; title: string; dialogue: SceneLine[]; ending: string };
 export type ChapterView = { chapter: Chapter; number: number; tasks: Task[]; done: number; status: 'complete' | 'current' | 'locked' };
-export type QuestView = { quest: Quest; status: 'active' | 'locked' | 'complete' };
+/** Active: on one of the three tickets. Waiting: open, until a ticket is free. */
+export type QuestView = { quest: Quest; status: 'active' | 'waiting' | 'locked' | 'complete' };
 /** A room of the bistro. The first area is open from the start; another opens with the preparation named by unlock. */
 export type Area = { id: string; name: string; unlock: string | null };
 export type DecorationVariant = { id: string; name: string; image: string };
@@ -32,7 +46,6 @@ export type DecorationSlot = {
   crop: { x: number; y: number; width: number; height: number };
 };
 export type DecorationView = DecorationSlot & { unlocked: boolean; selected: DecorationVariant };
-export type LevelReward = { id: string; level: number; coins: number };
 export type BoardObstacle = { id: string; position: number; name: string; type: 'clutter' | 'anchored'; ingredient: string; sprite?: number; atlas?: 'preparation'; context?: string };
 export type BoardLayout = { id: string; obstacles: BoardObstacle[] };
 export type PreparationObstacleBatch = { after: string; context: string; obstacles: Omit<BoardObstacle, 'position' | 'context'>[] };
@@ -58,7 +71,6 @@ export type GameData = {
   chains: { id: string; name: string }[]; items: Record<string, Item>; characters: Character[]; chapters: Chapter[]; finale: Finale; tasks: Task[];
   areas: Area[]; rooms: RoomState[]; decorationSlots: DecorationSlot[];
   generatorTiers: { chain: string; stage: number; after: string }[];
-  levelRewards: LevelReward[];
   quests: Quest[];
 };
 /**
@@ -67,16 +79,13 @@ export type GameData = {
  */
 export type RoomView = Area & { open: boolean; states: RoomState[]; current: RoomState | null; painting: RoomState | null };
 export type Cell = { code: string };
-export type Order = { id: string; requirements: string[]; reward: number; customer: string; pricing: 'menu-1' };
 export type GameState = {
-  version: 9; board: (Cell | null)[]; coins: number; xp: number; taskIndex: number; orders: Order[];
-  discovered: string[]; seed: number; served: number; merges: number; nextOrderId: number; decorations: string[];
+  version: 10; board: (Cell | null)[]; coins: number; taskIndex: number;
+  discovered: string[]; decorations: string[];
   decorationChoices: Record<string, string>;
   outputChoices: Record<string, string>;
-  claimedLevelRewards: string[];
+  /** The delivered quests, in the order of delivery. */
   completedQuests: string[];
-  /** Successful ordinary services at quest delivery. Missing records in existing saves start at the next service. */
-  questCompletedAt?: Record<string, number>;
   layoutId: string; resolvedObstacles: string[];
   /** Completed preparations at adoption, and permanent placement history. Missing records do not add past batches. */
   preparationObstacles?: { start: number; placed: { id: string; position: number }[] };
@@ -92,8 +101,6 @@ export type Action =
   | { type: 'move'; from: number; to: number }
   | { type: 'spawn'; index: number; output?: string }
   | { type: 'sell'; index: number }
-  | { type: 'serve'; id: string }
-  | { type: 'claimLevelReward'; id: string }
   | { type: 'deliverQuest'; id: string }
   | { type: 'decorate'; slot: string; variant: string }
   | { type: 'readScene'; id: string }
@@ -135,165 +142,87 @@ export function firstFreeBoardCell(state: GameState, data: GameData): number {
 export function freeBoardCells(state: GameState, data: GameData): number {
   return state.board.reduce((count, cell, index) => count + (cell === null && !unresolvedObstacle(state, index, data) ? 1 : 0), 0);
 }
-/** The menu-1 price schedule is fixed for orders that have this pricing marker. */
-export const menuReward = (requirements: string[], data: GameData) => requirements.reduce((sum, code) => sum + data.items[code].price, 0);
 const availableChains = (state: Pick<GameState, 'taskIndex'>, data: GameData) => [...new Set([
   ...data.board.initial.filter(present).filter(code => data.items[code].generator).map(code => data.items[code].chain),
   ...data.tasks.slice(0, state.taskIndex).flatMap(task => task.unlock ? [task.unlock] : []),
 ])];
-function random(state: GameState, count: number) {
-  state.seed = (Math.imul(state.seed, 1664525) + 1013904223) >>> 0;
-  return Math.floor(state.seed / 4294967296 * count);
-}
 function discover(state: GameState, code: string) {
   if (!state.discovered.includes(code)) state.discovered.push(code);
 }
-function adjacentPositions(position: number, data: GameData): number[] {
-  const column = position % data.board.columns;
-  return [
-    ...(position >= data.board.columns ? [position - data.board.columns] : []),
-    ...(position + data.board.columns < data.board.initial.length ? [position + data.board.columns] : []),
-    ...(column > 0 ? [position - 1] : []),
-    ...(column < data.board.columns - 1 ? [position + 1] : []),
-  ];
-}
-function revealAdjacentClutter(state: GameState, destination: number, data: GameData) {
-  for (const position of adjacentPositions(destination, data)) {
-    const obstacle = unresolvedObstacle(state, position, data);
-    if (obstacle?.type !== 'clutter') continue;
-    state.resolvedObstacles.push(obstacle.id);
-    state.board[position] = { code: obstacle.ingredient };
-    discover(state, obstacle.ingredient);
-  }
-}
-/** Keep production space and the original optional-clearing route. Place in stable cell order without using the order seed. */
+/** Keep production space. Place in stable cell order. */
 function placePreparationObstacles(state: GameState, data: GameData): number {
   const progress = state.preparationObstacles;
   if (!progress) return 0;
   let placed = 0;
   for (const obstacle of pendingPreparationObstacles(state, data)) {
     if (progress.placed.filter(placement => !state.resolvedObstacles.includes(placement.id)).length >= 3 || freeBoardCells(state, data) <= 3) break;
-    const clutter = boardObstacles(state, data).filter(value => value.type === 'clutter' && !state.resolvedObstacles.includes(value.id));
-    const position = state.board.findIndex((cell, index) => {
-      if (cell !== null || unresolvedObstacle(state, index, data)) return false;
-      const covered = new Set([...clutter.map(value => value.position), ...(obstacle.type === 'clutter' ? [index] : [])]);
-      return [...covered].every(at => adjacentPositions(at, data).some(side => !covered.has(side)));
-    });
+    const position = firstFreeBoardCell(state, data);
     if (position === -1) break;
     progress.placed.push({ id: obstacle.id, position });
-    if (obstacle.type === 'anchored') discover(state, obstacle.ingredient);
+    discover(state, obstacle.ingredient);
     placed++;
   }
   return placed;
 }
-function questServiceGate(state: GameState, quest: Quest): boolean {
-  return quest.afterQuestServices === undefined || !!quest.afterQuest
-    && own(state.questCompletedAt ?? {}, quest.afterQuest)
-    && state.served - state.questCompletedAt![quest.afterQuest] >= quest.afterQuestServices;
-}
-
 function questReady(state: GameState, quest: Quest, data: GameData): boolean {
-  return (quest.afterTask === null || state.decorations.includes(quest.afterTask))
-    && state.served >= (quest.afterServed ?? 0)
-    && questPredecessors(quest, data).every(id => questDone(state, id)) && questServiceGate(state, quest);
+  return (quest.afterTask === null || state.decorations.includes(quest.afterTask)) && questPredecessors(quest, data).every(id => questDone(state, id));
 }
 
-function customerBlocked(state: GameState, person: Character, data: GameData): boolean {
-  const quest = data.quests.find(quest => quest.id === person.absentDuringQuest);
-  // Stop new noble tickets when the visit is ready, so existing tickets can drain without delaying it forever.
-  return !!quest && !questDone(state, quest.id) && questReady(state, quest, data);
-}
-
-/** Neighbours waiting at the counter at the same time are always different people, and a served neighbour makes way for someone else. */
-function makeOrder(state: GameState, data: GameData, waiting: string[]): Order {
-  const chains = availableChains(state, data);
-  const maxStage = Math.min(6, 2 + Math.floor(state.taskIndex / 5));
-  const count = state.taskIndex >= 8 ? 1 + random(state, 2) : 1;
-  let requirements = Array.from({ length: count }, () => {
-    const chain = chains[random(state, chains.length)];
-    return `${chain}_${1 + random(state, maxStage)}`;
-  });
-  const free = data.characters.filter(person => !person.visitor && !person.occasional && !waiting.includes(person.id));
-  const occasional = data.characters.filter(person => !person.visitor && person.occasional && !waiting.includes(person.id)
-    && !customerBlocked(state, person, data) && person.orderItems?.some(code => chains.includes(data.items[code].chain) && data.items[code].stage <= maxStage));
-  const guest = occasional.length && random(state, 8) === 0 ? occasional[random(state, occasional.length)] : null;
-  if (guest) {
-    const menu = guest.orderItems!.filter(code => chains.includes(data.items[code].chain) && data.items[code].stage <= maxStage);
-    requirements = Array.from({ length: count }, () => menu[random(state, menu.length)]);
-  }
-  return {
-    id: `order_${state.nextOrderId++}`,
-    requirements,
-    reward: menuReward(requirements, data), pricing: 'menu-1',
-    customer: guest?.id ?? free[random(state, free.length)].id,
-  };
-}
-
-export function createGame(data: GameData, seed = 271828): GameState {
+export function createGame(data: GameData): GameState {
   const layoutId = data.board.defaultLayout;
-  const state: GameState = {
-    version: 9, layoutId, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] }, pendingScenes: [],
-    board: data.board.initial.map(code => code ? { code } : null),
-    coins: 0, xp: 0, taskIndex: 0, orders: [],
+  return {
+    version: 10, layoutId, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] }, pendingScenes: [],
+    board: data.board.initial.map(code => code ? { code } : null), coins: 0, taskIndex: 0,
     discovered: [...new Set([...data.board.initial.filter(present),
-      ...(data.board.layouts.find(layout => layout.id === layoutId)?.obstacles.filter(obstacle => obstacle.type === 'anchored').map(obstacle => obstacle.ingredient) ?? [])])],
-    seed: Number.isSafeInteger(seed) ? seed >>> 0 : 271828,
-    served: 0, merges: 0, nextOrderId: 1, decorations: [], decorationChoices: {}, outputChoices: {}, claimedLevelRewards: [],
-    completedQuests: [],
+      ...(data.board.layouts.find(layout => layout.id === layoutId)?.obstacles.map(obstacle => obstacle.ingredient) ?? [])])],
+    decorations: [], decorationChoices: {}, outputChoices: {}, completedQuests: [],
   };
-  for (let slot = 0; slot < 3; slot++) state.orders.push(makeOrder(state, data, state.orders.map(order => order.customer)));
-  return state;
-}
-
-/** Replaces each duplicate waiting customer with an unused neighbour. The requirements, rewards, progress, and seed stay unchanged. */
-export function normalizeOrderCustomers(state: GameState, data: GameData): GameState {
-  const waiting = new Set(state.orders.map(order => order.customer));
-  if (waiting.size === state.orders.length) return state;
-  const free = data.characters.filter(person => !person.visitor && !person.occasional && !waiting.has(person.id));
-  const seen = new Set<string>();
-  const next = copy(state);
-  let replacement = 0;
-  for (const order of next.orders) {
-    if (seen.has(order.customer)) order.customer = free[replacement++].id;
-    seen.add(order.customer);
-  }
-  return next;
-}
-
-export function getLevel(state: Pick<GameState, 'xp'>) {
-  return 1 + Math.floor(state.xp / 100);
-}
-
-/** The rewards that a claim can take: reached and not claimed. A reward that the coin limit blocks stays available. */
-export function availableLevelRewards(state: Pick<GameState, 'xp' | 'claimedLevelRewards'>, data: GameData): LevelReward[] {
-  return data.levelRewards.filter(reward => reward.level <= getLevel(state) && !state.claimedLevelRewards.includes(reward.id));
-}
-
-/** Check the finite coin schedule before the content generator writes its data. */
-export function levelRewardProblems(data: GameData): string[] {
-  if (!Array.isArray(data.levelRewards) || !data.levelRewards.length) return ['Level rewards need a finite schedule.'];
-  const problems: string[] = [];
-  const ids = new Set<string>();
-  const levels = new Set<number>();
-  for (const reward of data.levelRewards) {
-    if (!reward || typeof reward !== 'object' || Array.isArray(reward)) {
-      problems.push('Each level reward needs an ID, a level, and coins.');
-      continue;
-    }
-    if (typeof reward.id !== 'string' || !/^[a-z][a-z0-9-]*$/.test(reward.id)) problems.push('Every level reward needs a stable ID.');
-    if (!integer(reward.level, 2, 10_000_001)) problems.push('A reward level must be a supported integer above one.');
-    if (!integer(reward.coins, 1)) problems.push('A level reward must give a supported positive coin amount.');
-    if (ids.has(reward.id)) problems.push('Level reward IDs must be unique.');
-    if (levels.has(reward.level)) problems.push('Level reward levels must be unique.');
-    ids.add(reward.id);
-    levels.add(reward.level);
-  }
-  return problems;
 }
 
 /** An item by its code, or undefined for a code that the data does not know. */
 export function getItem(code: string, data: GameData): Item | undefined {
   return own(data.items, code) ? data.items[code] : undefined;
+}
+
+/** A regular is present once the preparation that brings them is complete. Everyone else is always present. */
+export function hasArrived(state: Pick<GameState, 'decorations'>, person: Character): boolean {
+  return person.arrivesAfter === undefined || state.decorations.includes(person.arrivesAfter);
+}
+/** The scene that introduces a regular on arrival. */
+export const arrivalScene = (person: Pick<Character, 'id'>) => `arrival-${person.id}`;
+const isRegular = (person: Character) => !!person.regular;
+
+/** The neighbours of the bistro: the core characters, then the regulars in order of arrival, each with their delivered quests. */
+export function resolveNeighbours(state: GameState, data: GameData) {
+  const order = (person: Character) => person.arrivesAfter === undefined ? -1 : data.tasks.findIndex(task => task.id === person.arrivesAfter);
+  return data.characters.filter(person => !person.visitor).sort((a, b) => Number(isRegular(a)) - Number(isRegular(b)) || order(a) - order(b))
+    .map(person => ({ person, arrived: hasArrived(state, person),
+      delivered: state.completedQuests.filter(id => data.quests.find(quest => quest.id === id)?.character === person.id).length }));
+}
+
+/** Check the cast: unique people and portrait cells, and for each regular, two liked chains, a known arrival, and an arrival scene. */
+export function characterProblems(data: GameData): string[] {
+  const problems: string[] = [];
+  try {
+    const ids = new Set<string>(), portraits = new Set<string>();
+    const spoken = (line: SceneLine) => line && data.characters.some(character => character.id === line.speaker) && typeof line.text === 'string' && line.text.trim();
+    for (const person of data.characters) {
+      if (!/^[a-z][a-z0-9-]*$/.test(person.id) || ids.has(person.id)) problems.push('Character IDs must be stable and unique.');
+      ids.add(person.id);
+      if (person.portraitAtlas !== undefined && !portraitAtlases.includes(person.portraitAtlas)) problems.push(`${person.id}: unknown portrait atlas.`);
+      const atlas = person.portraitAtlas ?? (person.visitor ? 'visitors' : 'core');
+      if (!integer(person.sprite, 0, 3) || portraits.has(`${atlas}:${person.sprite}`)) problems.push(`${person.id}: needs its own portrait cell.`);
+      portraits.add(`${atlas}:${person.sprite}`);
+      if (person.regular !== undefined && (person.regular !== true || person.visitor)) problems.push(`${person.id}: invalid regular flag.`);
+      if (person.arrivesAfter !== undefined && (!isRegular(person) || !data.tasks.some(task => task.id === person.arrivesAfter))) problems.push(`${person.id}: unknown arrival preparation.`);
+      if (person.prefers !== undefined && (!person.regular || !Array.isArray(person.prefers) || person.prefers.length !== 2 || person.prefers[0] === person.prefers[1]
+        || !person.prefers.every(chain => data.chains.some(known => known.id === chain)))) problems.push(`${person.id}: a regular likes two different known chains.`);
+      if (person.regular && !person.prefers) problems.push(`${person.id}: a regular needs two liked chains.`);
+      if ((person.arrival !== undefined) !== (person.arrivesAfter !== undefined) || (person.arrival && (!Array.isArray(person.arrival) || !person.arrival.length
+        || !person.arrival.every(spoken) || !person.arrival.some(line => line.speaker === person.id)))) problems.push(`${person.id}: a regular who arrives later needs an arrival scene in which they speak.`);
+    }
+  } catch { problems.push('The character records are malformed.'); }
+  return problems;
 }
 
 const questDone = (state: GameState, id: string) => state.completedQuests.includes(id);
@@ -302,21 +231,38 @@ function questPredecessors(quest: Quest, data: GameData): string[] {
   return [...new Set([...(quest.afterQuest ? [quest.afterQuest] : []), ...earlier.map(previous => previous.id)])];
 }
 
-/** At most one unfinished request per neighbour can be active. */
+/** The number of quest tickets on the counter. */
+export const QUEST_TICKETS = 3;
+
+/**
+ * Open requests take the tickets in authored order: the first three are active, and the others wait for a free ticket.
+ * A character has at most one open request, because each request waits for the earlier requests of its character.
+ */
 export function resolveQuests(state: GameState, data: GameData): QuestView[] {
-  return data.quests.map(quest => ({ quest, status: state.completedQuests.includes(quest.id) ? 'complete'
-    : questReady(state, quest, data) && !state.orders.some(order => quest.waitsForCustomers?.includes(order.customer)) ? 'active' : 'locked' }));
+  let tickets = 0;
+  return data.quests.map(quest => ({ quest, status: questDone(state, quest.id) ? 'complete'
+    : !questReady(state, quest, data) ? 'locked' : tickets++ < QUEST_TICKETS ? 'active' : 'waiting' }));
+}
+
+/** The quests that the preparation at this index needs: every quest that opens before it. */
+export function requiredQuests(taskIndex: number, data: GameData): Quest[] {
+  return data.quests.filter(quest => questOpening(quest, data) < taskIndex);
 }
 
 /** A guest who visits once has a journal introduction only while their request is open. */
 export function journalCharacters(state: GameState, data: GameData): Character[] {
   const quests = resolveQuests(state, data);
-  return data.characters.filter(character => !character.singleVisit
-    || quests.some(view => (view.quest.character === character.id || view.quest.companions?.includes(character.id)) && view.status === 'active'));
+  return data.characters.filter(character => hasArrived(state, character)).filter(character => !character.singleVisit
+    || quests.some(view => (view.quest.character === character.id || view.quest.companions?.includes(character.id)) && (view.status === 'active' || view.status === 'waiting')));
 }
 
+/** The board cells that a delivery empties: the first free matching cell for each portion, or -1 if there is none. */
 export function questDeliveryCells(state: GameState, quest: Quest, data: GameData): number[] {
-  return servedCells(state, { requirements: quest.requirements.flatMap(requirement => Array<string>(requirement.quantity).fill(requirement.item)) }, data);
+  const taken: number[] = [];
+  for (const requirement of quest.requirements) for (let count = 0; count < requirement.quantity; count++) {
+    taken.push(state.board.findIndex((cell, index) => cell?.code === requirement.item && !unresolvedObstacle(state, index, data) && !taken.includes(index)));
+  }
+  return taken;
 }
 
 export function canDeliverQuest(state: GameState, quest: Quest | string, data: GameData): boolean {
@@ -324,7 +270,10 @@ export function canDeliverQuest(state: GameState, quest: Quest | string, data: G
   return view?.status === 'active' && questDeliveryCells(state, view.quest, data).every(index => index >= 0);
 }
 
-/** Check the combined preparation and quest graph, the requested items, and chain availability. */
+/**
+ * Check the combined preparation and quest graph, the requested items, chain availability, the decoration finishes, the authored
+ * order, and the campaign funds: each preparation is paid by the rewards of the quests that open before it, so no player can be stuck.
+ */
 export function questProblems(data: GameData): string[] {
   const problems: string[] = [];
   try {
@@ -336,45 +285,37 @@ export function questProblems(data: GameData): string[] {
       if (character.singleVisit && (character.visitor !== true || data.quests.filter(quest => quest?.character === character.id || quest?.companions?.includes(character.id)).length !== 1)) {
         problems.push(`${character.id}: a single visit needs a visitor with exactly one request.`);
       }
-      if (character.occasional !== undefined && (typeof character.occasional !== 'boolean' || character.visitor)) problems.push(`${character.id}: invalid occasional customer flag.`);
-      if (character.portraitAtlas !== undefined && character.portraitAtlas !== 'guest') problems.push(`${character.id}: unknown portrait atlas.`);
-      if (character.orderItems !== undefined && (!Array.isArray(character.orderItems) || !character.orderItems.length
-        || new Set(character.orderItems).size !== character.orderItems.length
-        || !character.orderItems.every(code => own(data.items, code) && !data.items[code].generator))) problems.push(`${character.id}: invalid order menu.`);
-      if (character.occasional && !character.orderItems?.length) problems.push(`${character.id}: occasional customers need an order menu.`);
-      // The visit waits for each absent customer's tickets, so a ticket made before the visit opened never meets it.
-      if (character.absentDuringQuest !== undefined && !data.quests.some(quest => quest.id === character.absentDuringQuest
-        && Array.isArray(quest.waitsForCustomers) && quest.waitsForCustomers.includes(character.id))) problems.push(`${character.id}: the excluded quest must wait for this customer.`);
     }
-    for (const [index, task] of data.tasks.entries()) graph.set(`task:${task.id}`, [
-      ...(index ? [`task:${data.tasks[index - 1].id}`] : []), ...(task.requiresQuest ? [`quest:${task.requiresQuest}`] : []),
-    ]);
+    for (const [index, task] of data.tasks.entries()) graph.set(`task:${task.id}`, index ? [`task:${data.tasks[index - 1].id}`] : []);
     for (const quest of data.quests) {
       if (!quest || typeof quest !== 'object') { problems.push('Every quest needs a record.'); continue; }
       if (!/^[a-z][a-z0-9-]*$/.test(quest.id) || ids.has(quest.id)) problems.push('Quest IDs must be stable and unique.');
       ids.add(quest.id);
       if (!data.characters.some(character => character.id === quest.character) || !quest.title) problems.push(`${quest.id}: unknown character or missing title.`);
       if (quest.afterTask !== null && !data.tasks.some(task => task.id === quest.afterTask)) problems.push(`${quest.id}: unknown opening preparation.`);
-      if (quest.afterServed !== undefined && !integer(quest.afterServed, 1)) problems.push(`${quest.id}: invalid service goal.`);
-      if (quest.afterQuestServices !== undefined && (!integer(quest.afterQuestServices, 1) || !quest.afterQuest)) problems.push(`${quest.id}: invalid service delay.`);
       if (quest.companions !== undefined && (!Array.isArray(quest.companions) || !quest.companions.length
         || new Set(quest.companions).size !== quest.companions.length
         || !quest.companions.every(id => id !== quest.character && data.characters.some(character => character.id === id && character.visitor)))) problems.push(`${quest.id}: invalid companions.`);
-      if (quest.waitsForCustomers !== undefined && (!Array.isArray(quest.waitsForCustomers)
-        || new Set(quest.waitsForCustomers).size !== quest.waitsForCustomers.length
-        || !quest.waitsForCustomers.every(id => data.characters.some(character => character.id === id && !character.visitor && character.absentDuringQuest === quest.id)))) problems.push(`${quest.id}: invalid waiting customers.`);
       if (!integer(quest.reward, 1)) problems.push(`${quest.id}: invalid coin reward.`);
       for (const scene of [quest.opening, quest.completion]) if (!Array.isArray(scene) || !scene.length
         || !scene.every(line => data.characters.some(character => character.id === line.speaker) && typeof line.text === 'string' && line.text.trim())) problems.push(`${quest.id}: invalid scene.`);
       if (quest.followUp && (!/^[a-z][a-z0-9-]*$/.test(quest.followUp.id) || !quest.followUp.title
-        || !integer(quest.followUp.afterServices, 1) || !Array.isArray(quest.followUp.dialogue) || !quest.followUp.dialogue.length
+        || !integer(quest.followUp.afterDeliveries, 1) || !Array.isArray(quest.followUp.dialogue) || !quest.followUp.dialogue.length
         || !quest.followUp.dialogue.every(line => data.characters.some(character => character.id === line.speaker) && typeof line.text === 'string' && line.text.trim()))) problems.push(`${quest.id}: invalid follow-up scene.`);
       if (!Array.isArray(quest.requirements) || !quest.requirements.length || quest.requirements.reduce((count, requirement) => count + requirement.quantity, 0) > data.board.initial.length) problems.push(`${quest.id}: invalid delivery size.`);
       for (const requirement of quest.requirements) {
         const item = getItem(requirement.item, data);
         if (!item || item.generator || !integer(requirement.quantity, 1, data.board.initial.length)) problems.push(`${quest.id}: invalid requirement.`);
       }
+      if (quest.unlocks !== undefined) {
+        const slot = data.decorationSlots.find(value => value.id === quest.unlocks!.slot);
+        if (!slot || slot.default === quest.unlocks.variant || !slot.variants.some(variant => variant.id === quest.unlocks!.variant)
+          || data.quests.filter(other => other.unlocks?.slot === quest.unlocks!.slot && other.unlocks.variant === quest.unlocks!.variant).length !== 1) problems.push(`${quest.id}: invalid decoration finish.`);
+      }
       graph.set(`quest:${quest.id}`, [...(quest.afterTask ? [`task:${quest.afterTask}`] : []), ...questPredecessors(quest, data).map(id => `quest:${id}`)]);
+    }
+    for (const slot of data.decorationSlots) for (const variant of slot.variants) {
+      if (variant.id !== slot.default && !data.quests.some(quest => quest.unlocks?.slot === slot.id && quest.unlocks.variant === variant.id)) problems.push(`${slot.id}: ${variant.id} needs a quest.`);
     }
     const visiting = new Set<string>();
     const visited = new Set<string>();
@@ -389,6 +330,18 @@ export function questProblems(data: GameData): string[] {
       visited.add(id);
     };
     for (const id of graph.keys()) visit(id);
+    if (problems.length) return problems;
+    // The tickets show open quests in authored order, so an earlier quest never opens after a later one.
+    const openings = data.quests.map(quest => questOpening(quest, data));
+    if (openings.some((opening, at) => at && opening < openings[at - 1])) problems.push('Quests must be in the order in which they open.');
+    // Every quest opens before the last preparation, so the campaign needs it, and each preparation is paid by the quests before it.
+    if (openings.some(opening => opening >= data.tasks.length - 1)) problems.push('Every quest must open before the last preparation.');
+    let earned = 0, spent = 0;
+    for (const [index, task] of data.tasks.entries()) {
+      earned += data.quests.filter((_, at) => openings[at] === index - 1).reduce((sum, quest) => sum + quest.reward, 0);
+      spent += task.cost;
+      if (earned < spent) problems.push(`${task.id}: the quests before it pay ${earned} coins, less than the ${spent} that the preparations cost.`);
+    }
     const ancestors = (id: string, found = new Set<string>()): Set<string> => {
       for (const dependency of graph.get(id) ?? []) if (!found.has(dependency)) { found.add(dependency); ancestors(dependency, found); }
       return found;
@@ -396,6 +349,11 @@ export function questProblems(data: GameData): string[] {
     const starting = availableChains({ taskIndex: 0 }, data);
     for (const quest of data.quests) {
       const before = ancestors(`quest:${quest.id}`);
+      const person = data.characters.find(person => person.id === quest.character)!;
+      if (person.arrivesAfter && !before.has(`task:${person.arrivesAfter}`)) problems.push(`${quest.id}: the character must arrive before the quest opens.`);
+      if (person.regular && !quest.requirements.some(requirement => person.prefers?.includes(data.items[requirement.item].chain))) {
+        problems.push(`${quest.id}: a regular needs a dish from a favourite chain.`);
+      }
       for (const requirement of quest.requirements) {
         const item = getItem(requirement.item, data);
         if (item && !starting.includes(item.chain) && !data.tasks.some(task => task.unlock === item.chain && before.has(`task:${task.id}`))) problems.push(`${quest.id}: required chain is not available before activation.`);
@@ -419,7 +377,8 @@ function questOpening(quest: Quest, data: GameData, path = new Set<string>()): n
 
 /** Every scene ID: a preparation scene uses the ID of its preparation, and a quest completion scene uses the ID of its quest. */
 export const storyScenes = (data: GameData) => [...data.tasks.map(task => task.id), ...data.quests.map(quest => quest.id),
-  ...data.chapters.map(chapter => chapter.id), data.finale.id, ...data.quests.flatMap(quest => quest.followUp ? [quest.followUp.id] : [])];
+  ...data.chapters.map(chapter => chapter.id), data.finale.id, ...data.quests.flatMap(quest => quest.followUp ? [quest.followUp.id] : []),
+  ...data.characters.flatMap(person => person.arrival ? [arrivalScene(person)] : [])];
 
 /** The story order of preparation scenes, chapter scenes, and the finale: each chapter scene follows the preparations of its chapter. */
 const storyOrder = (data: GameData) => [...data.chapters.flatMap((chapter, index) => [...data.tasks.filter(task => task.chapter === index + 1).map(task => task.id), chapter.id]), data.finale.id];
@@ -428,7 +387,8 @@ const storyOrder = (data: GameData) => [...data.chapters.flatMap((chapter, index
 function sceneDialogue(id: string, data: GameData): SceneLine[] | null {
   return data.tasks.find(task => task.id === id)?.dialogue ?? data.quests.find(quest => quest.id === id)?.completion
     ?? data.chapters.find(chapter => chapter.id === id)?.closing ?? (id === data.finale.id ? data.finale.dialogue : null)
-    ?? data.quests.find(quest => quest.followUp?.id === id)?.followUp!.dialogue ?? null;
+    ?? data.quests.find(quest => quest.followUp?.id === id)?.followUp!.dialogue
+    ?? data.characters.find(person => person.arrival && arrivalScene(person) === id)?.arrival ?? null;
 }
 
 /** Completed preparations are the only input. A chapter is complete when its last preparation is complete. */
@@ -441,13 +401,19 @@ export function resolveChapters(state: Pick<GameState, 'taskIndex'>, data: GameD
   });
 }
 
+/** The deliveries after the delivery of a quest, or -1 before that delivery. */
+export function deliveriesSince(state: Pick<GameState, 'completedQuests'>, id: string): number {
+  const at = state.completedQuests.indexOf(id);
+  return at === -1 ? -1 : state.completedQuests.length - 1 - at;
+}
+
 /** The scenes that the completed preparations and quests have earned. A save can hold only these as pending scenes. */
-function earnedScenes(state: Pick<GameState, 'taskIndex' | 'completedQuests' | 'questCompletedAt' | 'served'>, data: GameData): string[] {
+function earnedScenes(state: Pick<GameState, 'taskIndex' | 'completedQuests' | 'decorations'>, data: GameData): string[] {
   return [...data.tasks.slice(0, state.taskIndex).map(task => task.id), ...state.completedQuests,
     ...resolveChapters(state, data).filter(view => view.status === 'complete').map(view => view.chapter.id),
     ...(state.taskIndex === data.tasks.length ? [data.finale.id] : []),
-    ...data.quests.flatMap(quest => quest.followUp && state.completedQuests.includes(quest.id)
-      && own(state.questCompletedAt ?? {}, quest.id) && state.served - state.questCompletedAt![quest.id] >= quest.followUp.afterServices ? [quest.followUp.id] : [])];
+    ...data.quests.flatMap(quest => quest.followUp && deliveriesSince(state, quest.id) >= quest.followUp.afterDeliveries ? [quest.followUp.id] : []),
+    ...data.characters.flatMap(person => person.arrival && hasArrived(state, person) ? [arrivalScene(person)] : [])];
 }
 
 /** Check the chapters, their scenes, their neighbour contributions, and the finale before the content can ship. */
@@ -481,7 +447,7 @@ export function storyProblems(data: GameData): string[] {
     if (!stable(finale.id) || ids.has(finale.id)) problems.push('Chapter and finale IDs must be stable and unique.');
     if (typeof finale.title !== 'string' || !finale.title.trim() || typeof finale.ending !== 'string' || !finale.ending.trim()) problems.push('The finale needs a title and an ending.');
     if (!scene(finale.dialogue)) problems.push('The finale has an invalid scene.');
-    for (const character of data.characters.filter(character => !character.visitor && !character.occasional)) {
+    for (const character of data.characters.filter(character => !character.visitor && !isRegular(character))) {
       if (!scene(finale.dialogue) || !finale.dialogue.some(line => line.speaker === character.id)) problems.push(`The finale must include ${character.name}.`);
       if (!chapters.some(chapter => data.quests.find(quest => quest.id === chapter?.contribution)?.character === character.id)) problems.push(`${character.name} needs a chapter contribution.`);
     }
@@ -519,43 +485,19 @@ export function currentTask(state: GameState, data: GameData): Task | null {
   return data.tasks[state.taskIndex] ?? null;
 }
 
-/** Goals use the recorded lifetime totals. They never reopen a completed preparation. */
-export function taskGoalProblems(data: GameData): string[] {
-  const problems: string[] = [];
-  let previous = { served: 0, merges: 0 };
-  for (const task of data.tasks) {
-    if (!task.goals || !integer(task.goals.served) || !integer(task.goals.merges)) {
-      problems.push(`${task.id}: service and merge goals must be supported nonnegative integers.`);
-      continue;
-    }
-    if (task.goals.served < previous.served || task.goals.merges < previous.merges) problems.push(`${task.id}: service and merge goals must not decrease.`);
-    previous = task.goals;
-  }
-  return problems;
-}
-
-/** The interface and completion use the same coin, lifetime goal, quest, and placement checks. */
+/** The interface and completion use the same coin, quest, and placement checks. */
 export function taskEligibility(state: GameState, data: GameData): TaskEligibility {
   const task = currentTask(state, data);
-  if (!task) return { task: null, ready: false, requirements: [], blockers: ['The community supper is ready. You can keep serving orders.'] };
+  if (!task) return { task: null, ready: false, requirements: [], blockers: ['The community supper is ready.'] };
+  const quests = requiredQuests(state.taskIndex, data), delivered = quests.filter(quest => questDone(state, quest.id)).length;
   const requirements: TaskRequirement[] = [
     { kind: 'coins', current: state.coins, required: task.cost, met: state.coins >= task.cost },
-    { kind: 'served', current: state.served, required: task.goals.served, met: state.served >= task.goals.served },
-    { kind: 'merges', current: state.merges, required: task.goals.merges, met: state.merges >= task.goals.merges },
+    { kind: 'quests', current: delivered, required: quests.length, met: delivered === quests.length },
   ];
   const blockers: string[] = [];
-  const coins = task.cost - state.coins;
-  const served = task.goals.served - state.served;
-  const merges = task.goals.merges - state.merges;
+  const coins = task.cost - state.coins, missing = quests.length - delivered;
   if (coins > 0) blockers.push(`Earn ${coins} more ${coins === 1 ? 'coin' : 'coins'} to pay for this preparation.`);
-  if (served > 0) blockers.push(`Serve ${served} more ${served === 1 ? 'order' : 'orders'} for this preparation.`);
-  if (merges > 0) blockers.push(`Make ${merges} more ${merges === 1 ? 'merge' : 'merges'} for this preparation.`);
-  if (task.requiresQuest) {
-    const title = data.quests.find(quest => quest.id === task.requiresQuest)?.title ?? task.requiresQuest;
-    const met = questDone(state, task.requiresQuest);
-    requirements.push({ kind: 'quest', questId: task.requiresQuest, title, met });
-    if (!met) blockers.push(`Complete the quest "${title}" before this preparation.`);
-  }
+  if (missing > 0) blockers.push(`Deliver ${missing} more ${missing === 1 ? 'quest' : 'quests'} for this preparation.`);
   if (task.unlock) {
     const source = data.items[`generator_${task.unlock}`].name;
     const met = firstFreeBoardCell(state, data) !== -1;
@@ -709,12 +651,40 @@ export function dataProblems(data: GameData, knownImages?: readonly string[]): s
     if (data.board.columns !== 6 || data.board.rows !== 7 || !Array.isArray(data.board.initial) || data.board.initial.length !== 42) {
       return ['The board needs six columns, seven rows, and 42 starting spaces.'];
     }
-    const problems = [...boardLayoutProblems(data), ...roomProblems(data), ...decorationProblems(data, knownImages), ...generatorTierProblems(data), ...levelRewardProblems(data),
-      ...questProblems(data), ...storyProblems(data), ...taskGoalProblems(data), ...economyProblems(data)];
+    const items = itemProblems(data);
+    if (items.length) return items;
+    const problems = [...characterProblems(data), ...boardLayoutProblems(data), ...roomProblems(data), ...decorationProblems(data, knownImages), ...generatorTierProblems(data),
+      ...questProblems(data), ...storyProblems(data), ...economyProblems(data)];
     // The save validation relies on the other checks, so it judges the new game only after they pass.
     if (!problems.length && !validateGame(createGame(data), data)) problems.push('The starting board does not make a valid new game.');
     return problems;
   } catch { return ['The game data is malformed.']; }
+}
+
+/** Validate merge paths and sources before any check or action follows their references. */
+function itemProblems(data: GameData): string[] {
+  const problems: string[] = [];
+  const chains = new Set(data.chains.map(chain => chain.id));
+  if (chains.size !== data.chains.length) problems.push('Chain IDs must be unique.');
+  for (const [code, item] of Object.entries(data.items)) {
+    if (item.id !== code || !chains.has(item.chain)) { problems.push(`${code}: invalid item ID or chain.`); continue; }
+    if (item.generator) {
+      if (code !== `generator_${item.chain}` || item.stage !== 0 || item.next !== null
+        || !Array.isArray(item.generator.outputs) || item.generator.outputs.length !== 1 || item.generator.outputs[0] !== `${item.chain}_1`) {
+        problems.push(`${code}: invalid ingredient source.`);
+      }
+    } else if (!integer(item.stage, 1, 6) || code !== `${item.chain}_${item.stage}`
+      || item.next !== (item.stage === 6 ? null : `${item.chain}_${item.stage + 1}`)) problems.push(`${code}: invalid merge path.`);
+  }
+  for (const chain of chains) {
+    if (!data.items[`generator_${chain}`]?.generator || !Array.from({ length: 6 }, (_, index) => `${chain}_${index + 1}`).every(code => own(data.items, code))) {
+      problems.push(`${chain}: needs a source and all six food stages.`);
+    }
+    const sources = data.board.initial.filter(code => code === `generator_${chain}`).length + data.tasks.filter(task => task.unlock === chain).length;
+    if (sources !== 1) problems.push(`${chain}: its source must be available exactly once.`);
+  }
+  for (const task of data.tasks) if (task.unlock !== undefined && !chains.has(task.unlock)) problems.push(`${task.id}: unknown source unlock.`);
+  return problems;
 }
 
 export function boardLayoutProblems(data: GameData): string[] {
@@ -736,6 +706,8 @@ export function boardLayoutProblems(data: GameData): string[] {
         || !integer(obstacle.position, 0, data.board.initial.length - 1) || positions.has(obstacle.position)
         || typeof obstacle.name !== 'string' || !obstacle.name.trim()
         || !['clutter', 'anchored'].includes(obstacle.type)
+        || (obstacle.atlas !== undefined && obstacle.atlas !== 'preparation')
+        || (obstacle.sprite !== undefined && !integer(obstacle.sprite, 0, obstacle.atlas === 'preparation' ? 11 : 3))
         || data.board.initial[obstacle.position] !== null
         || !own(data.items, obstacle.ingredient) || data.items[obstacle.ingredient].generator
         || !startingChains.has(data.items[obstacle.ingredient].chain) || !data.items[obstacle.ingredient].next) {
@@ -744,15 +716,6 @@ export function boardLayoutProblems(data: GameData): string[] {
       }
       obstacleIds.add(obstacle.id);
       positions.add(obstacle.position);
-    }
-    for (const obstacle of layout.obstacles) if (obstacle?.type === 'clutter' && integer(obstacle.position, 0, data.board.initial.length - 1)) {
-      const row = Math.floor(obstacle.position / data.board.columns);
-      const column = obstacle.position % data.board.columns;
-      const sides = [[row - 1, column], [row + 1, column], [row, column - 1], [row, column + 1]];
-      if (!sides.some(([y, x]) => y >= 0 && y < data.board.rows && x >= 0 && x < data.board.columns
-        && !layout.obstacles.some(other => other.position === y * data.board.columns + x && other.type === 'clutter'))) {
-        problems.push(`Board layout ${layout.id} has clutter without a free side.`);
-      }
     }
   }
   const batches = data.board.preparations;
@@ -780,81 +743,32 @@ export function boardLayoutProblems(data: GameData): string[] {
   return problems;
 }
 
-/** The board cells that a serve empties: the first free matching cell for each item, or -1 if there is none. */
-export function servedCells(state: GameState, order: Pick<Order, 'requirements'>, data: GameData) {
-  const taken: number[] = [];
-  for (const code of order.requirements) taken.push(state.board.findIndex((cell, index) => cell?.code === code && !unresolvedObstacle(state, index, data) && !taken.includes(index)));
-  return taken;
-}
-
-export function canServe(state: GameState, order: Pick<Order, 'requirements'> | null | undefined, data: GameData) {
-  if (!order || !Array.isArray(order.requirements) || !order.requirements.length) return false;
-  const counts = new Map<string, number>();
-  for (const [index, cell] of state.board.entries()) if (cell && !unresolvedObstacle(state, index, data)) counts.set(cell.code, (counts.get(cell.code) ?? 0) + 1);
-  for (const code of order.requirements) {
-    const count = counts.get(code);
-    if (!own(data.items, code) || data.items[code].generator || !count) return false;
-    counts.set(code, count - 1);
-  }
-  return true;
-}
-
+/** Delivered quests are known, unique, and opened in delivery order, and every completed preparation had its quests. */
 function validateQuestProgress(state: GameState, data: GameData): boolean {
   const complete = state.completedQuests;
-  if (!Array.isArray(complete) || complete.length > data.quests.length
-    || new Set(complete).size !== complete.length) return false;
-  const completedAt = state.questCompletedAt;
-  if (completedAt !== undefined && (!completedAt || typeof completedAt !== 'object' || Array.isArray(completedAt)
-    || ![Object.prototype, null].includes(Object.getPrototypeOf(completedAt))
-    || !Object.entries(completedAt).every(([id, service]) => complete.includes(id) && integer(service, 0, state.served)))) return false;
+  if (!Array.isArray(complete) || complete.length > data.quests.length || new Set(complete).size !== complete.length) return false;
   const done = new Set<string>();
   for (const id of complete) {
     const quest = data.quests.find(quest => quest.id === id);
-    if (!quest || (quest.afterTask !== null && !state.decorations.includes(quest.afterTask)) || state.served < (quest.afterServed ?? 0)
+    if (!quest || (quest.afterTask !== null && !state.decorations.includes(quest.afterTask))
       || !questPredecessors(quest, data).every(previous => done.has(previous))) return false;
-    if (own(completedAt ?? {}, id) && completedAt![id] < (quest.afterServed ?? 0)) return false;
-    if (quest.afterQuestServices !== undefined && (!questServiceGate(state, quest)
-      || !own(completedAt ?? {}, id) || completedAt![id] - completedAt![quest.afterQuest!] < quest.afterQuestServices)) return false;
-    if (questPredecessors(quest, data).some(previous => own(completedAt ?? {}, previous) && own(completedAt ?? {}, id)
-      && completedAt![previous] > completedAt![id])) return false;
     done.add(id);
   }
-  for (const task of data.tasks.slice(0, state.taskIndex)) if (task.requiresQuest && !done.has(task.requiresQuest)) return false;
-  return true;
+  return !state.taskIndex || requiredQuests(state.taskIndex - 1, data).every(quest => done.has(quest.id));
 }
 
-const BREAD_TASTING = 'ilie-bread-tasting', TASTING_ITEMS = ['quest_bread_source', 'quest_bread_1', 'quest_bread_2', 'quest_bread_3'];
-/**
- * A save in the current format can hold the borrowed bread tasting, which the game does not have: its record of borrowed sources,
- * its tasting source and items on the board, and its quest and scene records. This removes them before validation and keeps all other
- * progress, including the coins of a delivered tasting. Another value is returned unchanged.
- */
-export function removeBreadTasting(candidate: unknown): unknown {
-  if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) return candidate;
-  const state: Record<string, unknown> = { ...candidate };
-  delete state.activeQuestProducers;
-  const tasting = (value: unknown) => typeof value === 'string' && (TASTING_ITEMS.includes(value) || value === BREAD_TASTING);
-  if (Array.isArray(state.board)) state.board = state.board.map(cell => cell && typeof cell === 'object' && tasting((cell as Cell).code) ? null : cell);
-  for (const key of ['discovered', 'completedQuests', 'pendingScenes']) if (Array.isArray(state[key])) state[key] = (state[key] as unknown[]).filter(value => !tasting(value));
-  for (const key of ['questCompletedAt', 'sceneLines']) {
-    const record = state[key];
-    if (record && typeof record === 'object' && !Array.isArray(record) && Object.hasOwn(record, BREAD_TASTING)) {
-      const rest: Record<string, unknown> = { ...record };
-      delete rest[BREAD_TASTING];
-      state[key] = rest;
-    }
-  }
-  return state;
+/** A finish is unlocked when the quest that offers it is delivered. A default finish needs no quest. */
+export function decorationUnlocked(state: Pick<GameState, 'completedQuests'>, slot: DecorationSlot, variant: string, data: GameData): boolean {
+  return variant === slot.default || data.quests.some(quest => quest.unlocks?.slot === slot.id && quest.unlocks.variant === variant && state.completedQuests.includes(quest.id));
 }
 
 /** Accepts an untrusted save: a parsed save is checked field by field before it is treated as a game state. The data must pass dataProblems. */
 export function validateGame(candidate: unknown, data: GameData): candidate is GameState {
   try {
     const state = candidate as GameState;
-    if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== 9) return false;
+    if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== 10) return false;
     if (!Array.isArray(state.board) || state.board.length !== data.board.columns * data.board.rows) return false;
-    if (!([state.coins, state.xp, state.served, state.merges] as unknown[]).every(value => integer(value))) return false;
-    if (!integer(state.seed, 0, 4294967295) || !integer(state.nextOrderId, 4)) return false;
+    if (!integer(state.coins)) return false;
     if (!integer(state.taskIndex, 0, data.tasks.length)) return false;
     const chains = availableChains(state, data);
     {
@@ -891,8 +805,6 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
       if (new Set(blocked.map(obstacle => obstacle.position)).size !== blocked.length
         || blocked.some(obstacle => state.board[obstacle.position] !== null)
         || (progress?.placed.filter(placement => !state.resolvedObstacles.includes(placement.id)).length ?? 0) > 3) return false;
-      const clutter = new Set(blocked.filter(obstacle => obstacle.type === 'clutter').map(obstacle => obstacle.position));
-      if ([...clutter].some(at => !adjacentPositions(at, data).some(side => !clutter.has(side)))) return false;
     }
     const cells = state.board.filter(present);
     for (const chain of chains) {
@@ -906,20 +818,6 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
       if (boardObstacles(state, data).some(obstacle => (obstacle.type === 'anchored' || state.resolvedObstacles.includes(obstacle.id))
         && !state.discovered.includes(obstacle.ingredient))) return false;
     }
-    if (!Array.isArray(state.orders) || state.orders.length !== 3) return false;
-    if (new Set(state.orders.map(order => order?.id)).size !== 3) return false;
-    for (const order of state.orders) {
-      if (!order || typeof order !== 'object' || typeof order.id !== 'string' || !/^order_[1-9]\d*$/.test(order.id)) return false;
-      const number = Number(order.id.slice(6));
-      if (!integer(number, 1, state.nextOrderId - 1)) return false;
-      if (!data.characters.some(character => character.id === order.customer && !character.visitor)) return false;
-      if (!Array.isArray(order.requirements) || order.requirements.length < 1 || order.requirements.length > 2) return false;
-      if (!order.requirements.every(code => own(data.items, code) && !data.items[code].generator
-        && chains.includes(data.items[code].chain))) return false;
-      const customer = data.characters.find(character => character.id === order.customer)!;
-      if (customer.orderItems && !order.requirements.every(code => customer.orderItems!.includes(code))) return false;
-      if (order.pricing !== 'menu-1' || order.reward !== menuReward(order.requirements, data)) return false;
-    }
     if (!Array.isArray(state.decorations) || state.decorations.length !== state.taskIndex
       || !state.decorations.every((id, index) => id === data.tasks[index].id)) return false;
     const choices = state.decorationChoices;
@@ -927,8 +825,8 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
       || ![Object.prototype, null].includes(Object.getPrototypeOf(choices))) return false;
     for (const [id, value] of Object.entries(choices)) {
       const slot = data.decorationSlots.find(slot => slot.id === id);
-      if (!slot || !state.decorations.includes(slot.unlock) || typeof value !== 'string'
-        || !slot.variants.some(variant => variant.id === value)) return false;
+      if (!slot || !state.decorations.includes(slot.unlock) || typeof value !== 'string' || value === slot.default
+        || !slot.variants.some(variant => variant.id === value) || !decorationUnlocked(state, slot, value, data)) return false;
     }
     const outputs = state.outputChoices;
     if (!outputs || typeof outputs !== 'object' || Array.isArray(outputs)
@@ -938,11 +836,7 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
         || data.items[code].chain !== chain || data.items[code].stage < 2
         || !generatorOutputs(state, `generator_${chain}`, data).includes(code)) return false;
     }
-    if (!Array.isArray(state.claimedLevelRewards)
-      || state.claimedLevelRewards.length > data.levelRewards.length
-      || new Set(state.claimedLevelRewards).size !== state.claimedLevelRewards.length) return false;
-    return [...state.claimedLevelRewards].every(id => typeof id === 'string'
-      && data.levelRewards.some(reward => reward.id === id && reward.level <= getLevel(state)));
+    return true;
   } catch {
     return false;
   }
@@ -963,26 +857,15 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
   switch (action.type) {
     case 'deliverQuest': {
       const quest = data.quests.find(quest => quest.id === action.id);
-      if (!quest || !canDeliverQuest(next, quest, data)) return fail('This quest needs every required item on the board. Check that the quest is still active.');
+      if (!quest || !canDeliverQuest(next, quest, data)) return fail('This quest needs every required item on the board. Check that the quest is still on a ticket.');
       if (!integer(next.coins + quest.reward)) return fail('Spend some coins before you deliver this quest.');
       for (const index of questDeliveryCells(next, quest, data)) next.board[index] = null;
       next.completedQuests.push(quest.id);
       next.pendingScenes.push(quest.id);
-      (next.questCompletedAt ??= {})[quest.id] = next.served;
       next.coins += quest.reward;
+      // A follow-up scene waits for a count of later deliveries; it is earned by the delivery that reaches the count.
+      for (const earlier of data.quests) if (earlier.followUp && deliveriesSince(next, earlier.id) === earlier.followUp.afterDeliveries) next.pendingScenes.push(earlier.followUp.id);
       message = `${quest.title}: delivered. Earned ${quest.reward} coins.`;
-      break;
-    }
-    case 'claimLevelReward': {
-      const reward = data.levelRewards.find(reward => reward.id === action.id);
-      if (!reward) return fail('Choose a known level reward.');
-      if (!availableLevelRewards(next, data).includes(reward)) {
-        return fail(getLevel(next) < reward.level ? `Reach level ${reward.level} to claim this reward.` : 'This level reward is already claimed.');
-      }
-      if (!integer(next.coins + reward.coins)) return fail('Spend some coins before you claim this reward.');
-      next.coins += reward.coins;
-      next.claimedLevelRewards.push(reward.id);
-      message = `Claimed level ${reward.level}: ${reward.coins} coins.`;
       break;
     }
     case 'decorate': {
@@ -991,6 +874,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       if (!next.decorations.includes(slot.unlock)) return fail('Complete the preparation for this decoration first.');
       const variant = slot.variants.find(variant => variant.id === action.variant);
       if (!variant) return fail('Choose a variant of this decoration.');
+      if (!decorationUnlocked(next, slot, variant.id, data)) return fail('Deliver the quest that offers this finish first.');
       if (variant.id === slot.default) delete next.decorationChoices[slot.id];
       else next.decorationChoices[slot.id] = variant.id;
       message = `${slot.name}: ${variant.name}.`;
@@ -1023,21 +907,17 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const obstacle = unresolvedObstacle(next, action.to, data);
       const target = next.board[action.to];
       const item = getItem(source.code, data)!;
-      if (obstacle?.type === 'clutter') return fail('This space is covered. Merge beside it to clear it.');
-      if (obstacle?.type === 'anchored' && obstacle.ingredient !== source.code) return fail('Merge a matching item into this tied space.');
-      if ((target?.code === source.code || obstacle?.type === 'anchored') && !item.generator) {
-        if (!item.next) return fail(`${item.name} is a final dish. Serve it to a neighbour or sell it.`);
+      if (obstacle && obstacle.ingredient !== source.code) return fail('Merge a matching ingredient into this blocked space.');
+      if ((target?.code === source.code || obstacle) && !item.generator) {
+        if (!item.next) return fail(`${item.name} is a final dish. Deliver it to a neighbour or sell it.`);
         next.board[action.to] = { code: item.next };
         next.board[action.from] = null;
         if (obstacle) next.resolvedObstacles.push(obstacle.id);
-        revealAdjacentClutter(next, action.to, data);
-        next.merges++;
-        next.xp++;
         discover(next, item.next);
         event = 'merge';
         message = `Made ${getItem(item.next, data)!.name}.`;
       } else {
-        if (obstacle) return fail('Merge a matching item into this tied space.');
+        if (obstacle) return fail('Merge a matching ingredient into this blocked space.');
         next.board[action.to] = source;
         next.board[action.from] = target;
         message = target ? 'Items swapped.' : 'Item moved.';
@@ -1051,33 +931,12 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const code = action.output === undefined ? nextOutput(next, item.id, data)! : action.output;
       if (!generatorOutputs(next, item.id, data).includes(code)) return fail('Choose an available output from this source.');
       const empty = firstFreeBoardCell(next, data);
-      if (empty === -1) return fail('The board is full. Merge, serve, or sell an item.');
+      if (empty === -1) return fail('The board is full. Merge, deliver, or sell an item.');
       next.board[empty] = { code };
       if (data.items[code].stage === 1) delete next.outputChoices[item.chain];
       else next.outputChoices[item.chain] = code;
       discover(next, code);
       message = `Took ${getItem(code, data)!.name}.`;
-      break;
-    }
-    case 'serve': {
-      const orderIndex = next.orders.findIndex(order => order.id === action.id);
-      if (orderIndex === -1) return fail('This order is no longer available.');
-      const order = next.orders[orderIndex];
-      if (!canServe(next, order, data)) return fail('Put every item in this order on the board first.');
-      if (!integer(next.coins + order.reward)) return fail('Spend some coins before you serve this order.');
-      // An older current-format save has no delivery counters. Start its delay with this service, without inventing past progress.
-      for (const quest of data.quests) if ((quest.afterQuestServices !== undefined || quest.followUp) && (quest.afterQuest || quest.followUp)) {
-        const id = quest.afterQuestServices !== undefined ? quest.afterQuest! : quest.id;
-        if (next.completedQuests.includes(id) && !own(next.questCompletedAt ?? {}, id)) (next.questCompletedAt ??= {})[id] = next.served;
-      }
-      for (const index of servedCells(next, order, data)) next.board[index] = null;
-      next.coins += order.reward;
-      next.xp += order.requirements.reduce((sum, code) => sum + data.items[code].stage * 4, 0);
-      next.served++;
-      next.orders[orderIndex] = makeOrder(next, data, next.orders.map(waiting => waiting.customer));
-      for (const quest of data.quests) if (quest.followUp && next.completedQuests.includes(quest.id)
-        && own(next.questCompletedAt ?? {}, quest.id) && next.served - next.questCompletedAt![quest.id] === quest.followUp.afterServices) next.pendingScenes.push(quest.followUp.id);
-      message = `Served ${data.characters.find(person => person.id === order.customer)?.name ?? 'the order'}. Earned ${order.reward} coins.`;
       break;
     }
     case 'task': {
@@ -1095,12 +954,13 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       }
       next.coins -= task.cost;
       next.taskIndex++;
-      next.xp += 20;
       next.decorations.push(task.id);
       // The payment queues the preparation scene, then the closing scene of a completed chapter, then the finale, in the same change.
       next.pendingScenes.push(task.id);
       if (resolveChapters(next, data)[task.chapter - 1].status === 'complete') next.pendingScenes.push(data.chapters[task.chapter - 1].id);
       if (next.taskIndex === data.tasks.length) next.pendingScenes.push(data.finale.id);
+      // The preparation that brings a regular queues their arrival after the story scenes that it earned.
+      for (const person of data.characters) if (person.arrival && person.arrivesAfter === task.id) next.pendingScenes.push(arrivalScene(person));
       for (const chain of availableChains(next, data)) {
         const code = `generator_${chain}`;
         const before = generatorOutputs(state, code, data);
@@ -1125,12 +985,13 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
     }
     default: return fail('This action is not available.');
   }
-  if (['task', 'move', 'spawn', 'serve', 'sell', 'deliverQuest'].includes(action.type)) {
+  if (['task', 'move', 'spawn', 'sell', 'deliverQuest'].includes(action.type)) {
     const placed = placePreparationObstacles(next, data);
     if (action.type === 'task') message += ` ${data.board.preparations[next.taskIndex - 1].context}`;
     if (placed) message += ` ${placed} preparation ${placed === 1 ? 'blocker' : 'blockers'} placed.`;
     const pending = pendingPreparationObstacles(next, data).length;
     if (action.type === 'task' && pending) message += ` ${pending} ${pending === 1 ? 'blocker waits' : 'blockers wait'} for safe space.`;
   }
+  for (const obstacle of boardObstacles(next, data)) discover(next, obstacle.ingredient);
   return { state: next, ok: true, message, event };
 }

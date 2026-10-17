@@ -1118,12 +1118,12 @@
     {
       "file": "public/assets/variants/board-clutter-1536x1024.webp",
       "master": "board-clutter",
-      "masterSha256": "834d5a2c41a4c99693749f36a077809cb8171483eb57609f974f90f13cc03186",
+      "masterSha256": "8c0f9a47a97b80d801fb18843a244d5f5ae5a7b9b56e9cbd77283e20e9ef25d1",
       "width": 1536,
       "height": 1024,
       "format": "webp",
-      "bytes": 312496,
-      "sha256": "4b38ecdf4c216e61559167353a010802ebafca78c6683b3102bbd65564ceca31"
+      "bytes": 491732,
+      "sha256": "f649c3d6d1f79155b2aa5849d1b88ae7f40f62ef6d3e8fa8e3e0a0a8ced07e9d"
     },
     {
       "file": "public/assets/variants/visitor-portraits-640x640.webp",
@@ -1158,12 +1158,42 @@
     {
       "file": "public/assets/variants/preparation-clutter-1448x1086.webp",
       "master": "preparation-clutter",
-      "masterSha256": "c700c27a108078bdcbe70d915b29fa39738b8e0f6e0ed9285e3e0111bbeffb91",
+      "masterSha256": "823ffead44cd83a821085ac7d4b7a5faa7a87cb9a0a548cb9d3361b8a160b21b",
       "width": 1448,
       "height": 1086,
       "format": "webp",
-      "bytes": 357248,
-      "sha256": "44bc9a13e4ba85e76f7cc1f1d5328c46c2bb0d73003ef397438186cba650e568"
+      "bytes": 340220,
+      "sha256": "e17c48e7e7b40a3c9ec42bcbbda2a1de83dbdcf67d8cb5021fee1046ca4eea4b"
+    },
+    {
+      "file": "public/assets/variants/regulars-1-640x640.webp",
+      "master": "regulars-1",
+      "masterSha256": "9322779dac85388a0e101fbc06f0f46f5cf8f0d9b3c0e19de9dd595c58636f8a",
+      "width": 640,
+      "height": 640,
+      "format": "webp",
+      "bytes": 130180,
+      "sha256": "9ba5dfbc68279576bcfa89ddf7e455d9a9605796659310fa76387a7295917307"
+    },
+    {
+      "file": "public/assets/variants/regulars-2-640x640.webp",
+      "master": "regulars-2",
+      "masterSha256": "fba50332fc97340580bae7903297c084e4a29d5187832fc14686dbaf96f2c433",
+      "width": 640,
+      "height": 640,
+      "format": "webp",
+      "bytes": 136358,
+      "sha256": "06e8f0a6c245138a7ac1bdcf49a23c114827fd61634529046fed7acff102f8c5"
+    },
+    {
+      "file": "public/assets/variants/regulars-3-640x640.webp",
+      "master": "regulars-3",
+      "masterSha256": "d4c4019ed83d1d2129fdf4bb3f8e42c55320f6d4282addf3bfdcf6dcf6beccfc",
+      "width": 640,
+      "height": 640,
+      "format": "webp",
+      "bytes": 59222,
+      "sha256": "18a5b0804093bc607e46d2fd0b7fe2c85b91b4031ea4e12bdd91f75ba3b3966c"
     }
   ]
 }

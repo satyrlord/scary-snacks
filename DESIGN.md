@@ -2,6 +2,7 @@
 name: Scary Snacks
 description: A lamplit Transylvanian bistro with black cats, bats, and local dishes.
 colors:
+  blocker-red-overlay: "rgb(184 38 44 / 20%)"
   plum-brandy: "#6e3d50"
   light-on-action: "#fff6ea"
   candle-amber: "#e8b58e"
@@ -96,7 +97,6 @@ rounded:
   panel: "14px"
   pin: "14px"
   dialog: "18px"
-  quest-card: "22px"
 spacing:
   tile-gap: "4px"
   tile-gap-phone: "3px"
@@ -152,7 +152,7 @@ components:
     rounded: "{rounded.control}"
     padding: "10px 12px"
     height: "44px"
-  button-house-book:
+  button-options:
     backgroundColor: "{colors.light-surface}"
     textColor: "{colors.light-ink}"
     rounded: "{rounded.control}"
@@ -197,25 +197,25 @@ components:
     rounded: "2px"
     width: "96px"
     height: "44px"
-  order-ticket:
+  quest-ticket:
     backgroundColor: "{colors.light-surface}"
     textColor: "{colors.light-ink}"
     rounded: "{rounded.card}"
     padding: "8px"
-  order-ticket-phone:
+  quest-ticket-phone:
     backgroundColor: "{colors.light-surface}"
     textColor: "{colors.light-ink}"
     rounded: "{rounded.control}"
     padding: "2px 3px"
     height: "50px"
-  serve-button:
+  deliver-button:
     backgroundColor: "{colors.plum-brandy}"
     textColor: "{colors.light-on-action}"
     typography: "{typography.body-small}"
     rounded: "{rounded.control}"
     padding: "6px"
     height: "44px"
-  serve-button-phone:
+  deliver-button-phone:
     backgroundColor: "{colors.plum-brandy}"
     textColor: "{colors.light-on-action}"
     typography: "{typography.label}"
@@ -284,10 +284,10 @@ components:
 
 Scary Snacks is a warm Transylvanian bistro at dusk. The room is the home of the game and its reward. One gouache painting shows each area as the completed preparations leave it. The painting fills the screen behind everything. The kitchen is a parchment drawer over the room. On phones, the drawer is half open. On wider screens, the drawer is one parchment panel beside the room. Each paid preparation repaints the room. On phones, the drawer lowers by itself. The new painting then replaces the old painting in the same place.
 
-The setting is homely and lit by lamps. The eerie parts stay at the window: black cats on the sill and bats in the dusk. The user chose the setting, the title, the cats, the bats, and the village dress of the neighbours. The interface looks hand-made. Paper tickets carry the orders. The board rests on timber between cross-stitch runner strips. The small details are authored. These are a copper coin with a crescent moon and a cat on the wordmark baseline. The ledger has a house on its cover. The other details are a copper-glow "New" pin, dashed "not yet" outlines, and dashed cloches over unmade dishes. Light mode uses cream and parchment with plum and dark brown ink. Dark mode uses walnut and plum with ivory and candle amber. The System choice follows the device.
+The setting is homely and lit by lamps. The eerie parts stay at the window: black cats on the sill and bats in the dusk. The user chose the setting, the title, the cats, the bats, and the village dress of the neighbours. The interface looks hand-made. Paper tickets carry the requests of the neighbours. The board rests on timber between cross-stitch runner strips. The small details are authored. These are a copper coin with a crescent moon and a cat on the wordmark baseline. The other details are a copper-glow "New" pin, dashed "not yet" outlines, and dashed cloches over unmade dishes. Light mode uses cream and parchment with plum and dark brown ink. Dark mode uses walnut and plum with ivory and candle amber. The System choice follows the device.
 
 **Key Characteristics:**
-- The room is one full-height 3:4 painting for each area. On wider screens, only the pin and the area switch cover it.
+- The room is one full-height 3:4 painting for each area. On wider screens, only the pin, the area switch, and unlocked finish switches cover it.
 - The kitchen is one parchment surface. It holds three paper tickets, the board on timber, and Mara's line. On wider screens, it also holds the story and the recipe book.
 - Each preparation has its own complete painted state. The game never pastes room objects onto a painting. Only the cat and bat sprites sit over it.
 - The signature motion is the reveal. The room repaints in place, and the pin lands on the change. On phones, the drawer lowers first.
@@ -299,7 +299,7 @@ The setting is homely and lit by lamps. The eerie parts stay at the window: blac
 The palette is warm and has low saturation. Each theme has one action colour. That colour is on every primary action. Dark mode uses warm walnut and plum neutrals. It never uses cool grey.
 
 ### Primary
-- **Plum Brandy** (plum-brandy): the light-mode action and accent colour. It fills Serve, Pay, Take, and the other primary buttons. It colours links, the chapter name, and the ring of the chosen area. It also colours the border of a hovered control. Text on it is Light On-Action (light-on-action).
+- **Plum Brandy** (plum-brandy): the light-mode action and accent colour. It fills Deliver, Pay, Take, and the other primary buttons. It colours links, the chapter name, and the ring of the chosen area. It also colours the border of a hovered control. Text on it is Light On-Action (light-on-action).
 - **Candle Amber** (candle-amber): the dark-mode action colour. It fills primary buttons and draws the selected-cell outline. It also gives every cat a faint rim glow. Text on it is Dark On-Action (dark-on-action).
 - **Candle Glow** (dark-accent): the dark-mode accent for links, hover tints, the chosen-area ring, and the danger outline.
 
@@ -310,13 +310,13 @@ The palette is warm and has low saturation. Each theme has one action colour. Th
 
 ### Tertiary
 - **Teal Focus** (light-focus / dark-focus): the focus ring and the hint pulse. Nothing else uses it. It is the only cool hue in the system.
-- **Ready Green** (light-ready / dark-ready): the small dot on an order dish that the board can already supply.
+- **Ready Green** (light-ready / dark-ready): the small dot on a ticket dish when the board already holds every portion of it.
 - **Selected Clay** (light-selected): the selected-cell outline and the tile hover in light mode. In dark mode, Candle Amber does this job.
 
 ### Neutral
 - **Cream Plaster / Walnut Dusk** (light-page / dark-page): the page and the phone masthead. The browser also uses this colour as its theme colour.
 - **Parchment / Lamplit Walnut** (light-panel / dark-panel): the drawer, the docked panel, the pin, and the area switch. It also fills the phone bar and the dialogs. From 1024px, the whole page background is Parchment.
-- **Fresh Linen / Plum Lacquer** (light-surface / dark-surface): the paper tickets, the House book, journal entries, and recipe items. In light mode, Fresh Linen is also the chosen fill (`--chosen`).
+- **Fresh Linen / Plum Lacquer** (light-surface / dark-surface): the paper tickets, the Options button, journal entries, and recipe items. In light mode, Fresh Linen is also the chosen fill (`--chosen`).
 - **Flour Dust / Hearth Ash** (light-inset / dark-inset): secondary buttons and the choice track. It also fills the Miez card in the Story sheet and the current step of a chain. Portraits use it as the backing.
 - **Warm Burl** (dark-chosen): the dark-mode chosen fill, for the checked appearance and the chosen area.
 - **Board Tiles / Oiled Oak** (light-tile-a, light-tile-b / dark-tile-a, dark-tile-b): the alternating checkerboard. In dark mode, the tiles are lighter than the panels, so the board looks lit.
@@ -344,8 +344,8 @@ The palette is warm and has low saturation. Each theme has one action colour. Th
 - **Title small** (600, 15px, 1.25): the name of the selected item under the board. It also sets the Miez card and the recipe book title, at a line height of 1.4.
 - **Figure** (600, 24px, 1, tabular numerals): the coin total. It is 21px below 1024px.
 - **Body** (400, 14px, 1.7): dialog copy and control labels. Mara's line is 14px at 1.45 (13px at 1.35 below 1024px). Story dialogue is 16px at 1.75 (14px at 720px and below).
-- **Body small** (400, 13px, 1.65): the story copy, Serve, the area names, and the ticket name (600). It also sets the offer, the item actions, and the bar labels.
-- **Label** (400, 12px, 1.5): the chapter number, the save state, and the "N of 24 done" count. Screen readers hear "N of 24 preparations done". It also sets the rule line of the selected item, the pin, and Serve on phones.
+- **Body small** (400, 13px, 1.65): the story copy, Deliver, the area names, and the ticket name (600). It also sets the offer, the item actions, and the bar labels.
+- **Label** (400, 12px, 1.5): the chapter number, the save state, and the "N of 24 done" count. Screen readers hear "N of 24 preparations done". It also sets the rule line of the selected item, the pin, and Deliver on phones.
 
 ### Named Rules
 **The Shop Sign Rule.** Grenze Gotisch appears once per screen, as the wordmark. Every other heading is Inter at weight 600.
@@ -362,7 +362,7 @@ The frame places the latest change near the middle of the visible room, a little
 
 The area switch sits in a lower corner of the visible room. The top of the switch is 64px above the lower edge of the visible room. The switch stays on the side away from the change. In the front room, the switch always stays on the left, away from Miez.
 
-**Wider screens (1024px and up).** The room is fixed on the left at full height. The docked panel takes `max(50vw, 620px)` on the right. Nothing covers the room, except the pin and the area switch. The panel holds, from top to bottom:
+**Wider screens (1024px and up).** The room is fixed on the left at full height. The docked panel takes `max(50vw, 620px)` on the right. Nothing covers the room, except the pin, the area switch, and unlocked finish switches. The panel holds, from top to bottom:
 - The masthead, with 18px 24px 12px padding. The tagline shows only from 1600px.
 - The three tickets, in three equal columns 12px apart.
 - The drawer body: the kitchen column, then the side column, 20px apart.
@@ -375,7 +375,7 @@ The kitchen column is as wide as the board plus 28px. It holds the timber table 
 - The timber table with the board.
 - Mara's line, or the offer, or the selected item and its actions.
 
-The bar is 56px tall plus the safe area. The safe area is the space that the device reserves at the screen edge. The bar holds Story, Recipes, and House book. The recipe book card and the side column do not show. Each of the three bar items opens a dialog. At 720px and below, these dialogs are bottom sheets.
+The bar is 56px tall plus the safe area. The safe area is the space that the device reserves at the screen edge. The bar holds Story, Recipes, and Options. The recipe book card and the side column do not show. Each of the three bar items opens a dialog. At 720px and below, these dialogs are bottom sheets.
 
 **The lowered drawer.** The grip lowers the drawer. The drawer then shows the whole painting. The tickets stay in view, 68px above the bar. The drawer moves over 0.6s. While the drawer is lowered, the board does not accept input.
 
@@ -393,11 +393,11 @@ The bar is 56px tall plus the safe area. The safe area is the space that the dev
 - The tests do not use physical touch or a screen reader.
 
 ### Named Rules
-**The Open Room Rule.** On wider screens, no interface covers the room, except the pin and the area switch. On phones, the drawer covers only the lower part of the room. The frame keeps the latest change in the visible part.
+**The Open Room Rule.** On wider screens, no interface covers the room, except the pin, the area switch, and unlocked finish switches. On phones, the drawer covers only the lower part of the room. The frame keeps the latest change in the visible part.
 
 **The One Screen Rule.** The cell size and the visible room share one height budget. If you change one of them, recompute the other. The tickets, the whole board, and Mara's line then stay on the first screen at 1440×900 and 390×844.
 
-**The Thumb Rule.** On phones, the bottom bar holds Story, Recipes, and the House book. The masthead never holds them.
+**The Thumb Rule.** On phones, the bottom bar holds Story, Recipes, and Options. The masthead never holds them.
 
 ## Elevation & Depth
 
@@ -413,14 +413,13 @@ The system uses layers. The room is the deepest layer. The parchment lies over t
 - **Room marker lift** (`box-shadow: 0 6px 16px #1009122e`): the pin and the area switch over the painting.
 - **Dialog lift** (`box-shadow: 0 24px 70px #100b173f`): dialogs and sheets, over a plum-black backdrop (`#17101ac4`).
 - **Pressed choice** (`box-shadow: 0 1px 3px #2a1d2024`): the checked appearance and the chosen area, under a 2px inset accent ring.
-- **Carried dish** (`filter: drop-shadow(0 7px 5px #17101a65)`): the dish under the pointer (74px) and each served dish in flight.
+- **Carried dish** (`filter: drop-shadow(0 7px 5px #17101a65)`): the dish under the pointer (74px) and each delivered dish in flight.
 - **Cat glow** (`filter: drop-shadow(0 0 1px #e8b58e80) drop-shadow(0 3px 10px #e8b58e30)`): dark mode only, on the wordmark cat and on every cat in the room.
 - **Pin glow** (`box-shadow: 0 0 0 2px <panel>, 0 0 8px 3px #e8b58eb3`): the copper dot of the "New" pin.
 - **Candle dot** (`box-shadow: 0 0 0 2px <panel>, 0 0 8px 2px #e8b58e99`): the new-dish dot on the Recipes item.
-- **Candle breath** (`box-shadow: 0 0 0 1px <coin face>, 0 0 14px 4px #e8b58ecc` on an overlay): the edge of the Neighbour quests card and the ring of the face on the Story item, while a request calls the player. The overlay breathes from 25% to full opacity and back over 3.2s, with an ease-in-out curve. All breathing glows share one clock, so a render does not restart a breath.
 
 ### Named Rules
-**The Lamplight Rule.** Shadows are warm and soft. A halo with no offset is only for candle glow. Four things have one: the rim of a cat, the dot of the pin, the new-dish dot, and the candle breath of a calling request. Only the candle breath moves.
+**The Lamplight Rule.** Shadows are warm and soft. A halo with no offset is only for candle glow. Three things have one: the rim of a cat, the dot of the pin, and the new-dish dot. None of them moves.
 
 **The Clean Canvas Rule.** No shadow, gradient, or tint falls on a room painting. The docked panel shades its own edge instead.
 
@@ -428,12 +427,11 @@ The system uses layers. The room is the deepest layer. The parchment lies over t
 
 Corners grow with the size of the surface. A nested shape uses a smaller radius than the shape around it.
 - **Tile** (6px): board tiles, area choices, appearance choices, and the current step of a chain.
-- **Control** (9px): buttons, the area switch, the House book, phone tickets, journal entries, recipe items, and bar items.
+- **Control** (9px): buttons, the area switch, the Options button, phone tickets, journal entries, recipe items, and bar items.
 - **Card** (12px): desktop tickets and the phone timber table.
 - **Panel** (14px): the desktop timber table.
 - **Pin** (14px): the "New" pin, a pill 28px tall. Its tail is a rotated 10px square with a 2px radius.
 - **Dialog** (18px): every dialog, and the top corners of the drawer and of each bottom sheet.
-- **Quest card** (22px): the Neighbour quests card, a pill 44px tall.
 
 Borders are 1px. Hairlines separate content. Control Line outlines what the player can press. A dashed outline means "empty" or "not yet". It marks an unaffordable action, a locked area, or an unmade dish. A dashed panel in place of the room means that the painting did not load.
 
@@ -446,19 +444,19 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 - **Shape:** slightly rounded (9px).
 - **Primary:** in light mode, the fill is Plum Brandy with Light On-Action text. In dark mode, the fill is Candle Amber with Dark On-Action text. The weight is 600, and the padding is 11px × 15px. Hover brightens the button by 7%. A press moves the button down 1px.
 - **Not yet:** an action that the player cannot afford has a transparent fill. The border is a dashed Control Line, and the text is Smoke. The button is never a dimmed colour.
-- **Unavailable:** if the kitchen cannot open, three parts have 50% opacity and do not accept input. They are the House book, the recipe book, and the bar items. The game dims no other button.
+- **Unavailable:** if the kitchen cannot open, three parts have 50% opacity and do not accept input. They are the Options button, the recipe book, and the bar items. The game dims no other button.
 - **Secondary:** the fill is Flour Dust, the text is ink, and the border is a 1px Control Line.
 - **Danger:** a transparent fill with an accent outline and accent text. Only the reset action uses this style. A confirmation always follows.
-- **Pay:** the story shows the current and required coins, total orders served, and total merges. Each row says "Complete" or "Need N". Total means the lifetime count across all preparations. A required quest shows its name. A blocked source placement states the space needed. Pay stays disabled with the dashed not-yet style until every requirement is met. The button reads "Pay · N" with the 16px coin mark. Its accessible name is "Pay N coins: [preparation]" and its description is the requirement list. Pay and the Cost details text button share one 44px row with a 10px gap. Pay fills the remaining width. Cost details has the accessible name "Work and cost".
-- **Text button:** an underlined accent link at 13px with a 44px target. It is used by Find a match, Open the story journal, Neighbour quests while no request is open, the quest journal's Read request, Skip scene, Read now, and Try again when the kitchen cannot open.
-- **Focus:** a 3px Teal Focus ring, offset by 3px. Inside a tile, an area choice, the grip, or a bar item, the offset is -3px. In an appearance choice or a decoration choice, the offset is 2px.
+- **Pay:** the story shows the current and required coins, and the quests delivered out of the quests that the preparation needs. Each row says "Complete" or "Need N". A blocked source placement states the space needed. Pay stays disabled with the dashed not-yet style until every requirement is met. The button reads "Pay · N" with the 16px coin mark. Its accessible name is "Pay N coins: [preparation]" and its description is the requirement list. Pay and the Cost details text button share one 44px row with a 10px gap. Pay fills the remaining width. Cost details has the accessible name "Work and cost".
+- **Text button:** an underlined accent link at 13px with a 44px target. It is used by Find a match, Open the story journal, the quest journal's Read request, Skip scene, Read now, and Try again when the kitchen cannot open.
+- **Focus:** a 3px Teal Focus ring, offset by 3px. Inside a tile, an area choice, the grip, or a bar item, the offset is -3px. In an appearance choice or on a finish switch, the offset is 2px.
 
 ### The room (signature)
 - **Painting:** one 3:4 state of the area. It is never tinted, and it accepts no input. A long press or a drag does not select the image.
 - **Caption:** a visually hidden list says in words what each state added. If the painting cannot load, the caption shows in a dashed Parchment panel. The panel text is "The painting of this room could not load, so here it is in words."
 - **Miez:** the sitting cat on the left end of the front-room windowsill, as a button (at least 44px). Miez accepts input only while the sill shows above the drawer. The Story sheet also holds the Miez card.
 - **Sleeping cat:** in the finished front room (front-room-24), a second cat sleeps on the free left end of the counter. The cat is decorative.
-- **Bats:** a rectangular clip on the mended window glass holds the dusk. After each reveal and after every seventh serve, a bat crosses the clip from right to left over 2.6s. The wings flap. No bat flies in state front-room-00 or in the courtyard. No bat flies while the page is hidden or under reduced motion.
+- **Bats:** a rectangular clip on the mended window glass holds the dusk. After each reveal and after every third delivery, a bat crosses the clip from right to left over 2.6s. The wings flap. No bat flies in state front-room-00 or in the courtyard. No bat flies while the page is hidden or under reduced motion.
 
 ### "New" pin (signature)
 - **Style:** a Parchment pill with a copper-glow dot. The word "New" has weight 600. The change label has weight 400 ("New: the painted dresser"). The tail of the pin touches the edge of the change, so the pin never covers the change.
@@ -472,13 +470,13 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 - **Change:** a new area appears with a fade over 400ms. The choice is a viewing preference, saved apart from the game.
 
 ### Paper tickets
-- **Wider screens:** Fresh Linen, a hairline border, a 12px radius, and 8px padding. A 36px portrait, the name (13px, 600), and the dishes share the top row. Serve spans the ticket below them.
-- **Phones:** 50px tall, a 9px radius, 2px × 3px padding. A 22px portrait sits on the upper-left corner with a ring of the ticket colour. The name shows only to a screen reader. Serve fills the rest of the width.
-- **Dishes:** 38px on wider screens, 28px on phones. A Ready Green dot marks a dish that the board can supply. On wider screens, each dish is a 44px target, and a tap opens its item dialog.
-- **Dishes below 1024px:** one dish is a 44px target that opens its item dialog. A ticket is too narrow for two 44px dish targets, so two dishes share one target. The dishes show as 26px pictures (22px at 360px and below). A tap on the shared target opens the order sheet "[name]’s order". The order sheet shows each dish as a recipe item. A tap on a dish opens its item dialog. The accessible name of the shared target starts with "[name]’s dishes:". The name then gives each dish and its state.
-- **Narrowest tickets:** at 360px and below, the ticket padding is 2px, and Serve has 1px side padding. Each target on a ticket stays at least 44px wide down to 320px.
-- **Serve:** "Serve · N" with the 16px coin mark. On phones, it shows "Serve N". If the order cannot be served, the button shows the dashed "not yet" style. On phones, the not-yet style shows only the price and a 14px coin mark. The accessible name is "Serve [name] for N coins".
-- **Serve motion:** the dishes fly to the ticket over 600ms, 80ms apart. A copy of the ticket shows one thank-you line from the neighbour. At 1.5s, the copy fades and drops 10px over 0.3s. At 1.6s, the next ticket arrives over 450ms. Reduced motion shows the thanks at once. The next ticket then appears after the copy leaves.
+- **Wider screens:** Fresh Linen, a hairline border, a 12px radius, and 8px padding. A 36px portrait, the name (13px, 600), and the dishes share the top row. Deliver spans the ticket below them. The tickets show the first three open requests, in authored order. With no open request, one muted 13px line takes the row: what to do next, or that every request is delivered.
+- **Phones:** 50px tall, a 9px radius, 2px × 3px padding. A 22px portrait sits on the upper-left corner with a ring of the ticket colour. The name shows only to a screen reader. Deliver fills the rest of the width.
+- **Dishes:** 38px on wider screens (30px in a 34px slot when a request needs three kinds of dish), 28px on phones. A Ready Green dot marks a dish when the board holds every portion of it. On wider screens, a dish that the request needs more than once has a count badge, "n/q", at its lower-left corner: 10px, weight 600, tabular figures, on Fresh Linen with a hairline ring. Phones leave out the badge.
+- **Dish target:** the dishes of a ticket are one target, at least 44px tall, that opens the request dialog. Below 1024px, the dishes show as 26px pictures (22px at 360px and below). The accessible name of the target is the request title, then each dish with its quantity and the count on the board.
+- **Narrowest tickets:** at 360px and below, the ticket padding is 2px, and Deliver has 1px side padding. Each target on a ticket stays at least 44px wide down to 320px.
+- **Deliver:** "Deliver · N" with the 16px coin mark. On phones, it shows "Deliver N". If the board does not hold every portion, the button shows the dashed "not yet" style. On phones, the not-yet style shows only the reward and a 14px coin mark. The accessible name is "Deliver [request] to [name] for N coins".
+- **Delivery motion:** the dishes fly to the ticket over 600ms, up to 60ms apart. The completion scene of the request then opens. The next request arrives on the same ticket over 450ms, 700ms after the delivery. Reduced motion opens the scene at once, and the next ticket appears without motion.
 
 ### Timber table and runners
 - **Table:** a timber-tabletop variant covers the table, centred. The variant is 1536px wide at 1024px of screen width and above. Below 1024px of screen width, the variant is 1024px wide. Wider screens give the table a 14px radius and the resting table shadow. Phones give the table a 12px radius.
@@ -486,9 +484,10 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 
 ### Board and tiles
 - **Board:** six columns by seven rows of alternating tiles. Each tile has the tile lift, a 6px radius, and 5px padding (3px on phones). An empty cell shows a 4px Smoke dot at 30% opacity.
-- **Blocked spaces:** four edge cells show dusty crate, sack, crock, and linen pictures from the transparent board-clutter atlas. Webs cover them until the first preparation. Four edge cells show an ordinary food picture with old twine and a nail over it. A blocked tile has a distinct inset boundary. The wrappers look unlike food and the twine leaves the food visible. Every blocked tile stays in the keyboard path. Its name and rule are in its accessible label. The board label counts only usable empty spaces.
+- **Blocked spaces:** every blocked tile shows an ordinary food picture behind a painted blocker with a transparent center. Four edge cells use crate slats, sack fabric, crock pieces, or linen from the board-clutter atlas. Webs cover them until the first preparation. Four edge cells use old twine and a nail. All blockers keep the ingredient visible and use the same matching-merge rule. A blocked tile has a distinct inset boundary and a red overlay at 20% opacity (`rgb(184 38 44 / 20%)`). The overlay sits above the food and blocker art, below the help mark, and clears with the blocker. Every blocked tile stays in the keyboard path. Its name, ingredient, and rule are in its accessible label. The board label counts only usable empty spaces.
 - **Preparation blockers:** each paid preparation adds two or three contextual blockers, subject to the space and queue rules in `PRODUCT.md`. The preparation-clutter atlas supplies window offcuts, paint supplies, lamp packing, pottery pieces, leaves, seedlings, shingles, recipe papers, wrapped plates, menus, invitations, and flower cuttings. Each batch combines a new picture with familiar clutter or tied food. The new pictures use the same gouache, camera angle, clear margins, and inset tile boundary. A tap opens blocker help. The name, accessible label, and status announcement give the work context. The board label also gives the count of blockers that wait. These additions use the existing status and keyboard controls and add no motion.
-- **Blocker help:** every initial and preparation blocker has a 16px question mark in its lower-right corner. The authored vector uses the panel fill, ink, and control line. The whole tile remains the touch target. Hover gives the clearing rule. A tap selects the tile and puts its name, exact clearing instruction, and Clear selection in the existing strip under the board. The instruction remains visible when item actions or the preparation offer had occupied that strip. Clutter help marks eligible side destinations with a steady Teal Focus inset outline. If each marked destination is tied food, the instruction names its ingredient. Tied-food help marks movable matches and names the ingredient. Accessible labels describe the marked cells. The selected tile refers to the visible instruction. Help adds no dialog, vertical row, motion, or game-state change. Escape, Clear selection, or a new item selection dismisses it.
+- **Blocker framing:** each sprite uses an individual square source crop around its visible outer frame. The frame fills the tile near its edge, with a 2px layer inset. The crop keeps its original proportions and stays inside its own atlas cell. Preparation frames are centered on their painted bounds. A frame near a cell edge keeps the small offset needed to retain its full silhouette without sampling another cell. The transparent opening stays clear, and the ingredient keeps 70% of the ordinary food box. Do not shrink the ingredient to compensate for excess outer padding.
+- **Blocker help:** every initial and preparation blocker has a 16px question mark in its lower-right corner. The authored vector uses the panel fill, ink, and control line. The whole tile remains the touch target. Hover gives the clearing rule. A tap selects the tile and puts its name, exact clearing instruction, and Clear selection in the existing strip under the board. The instruction remains visible when item actions or the preparation offer had occupied that strip. Help marks movable matching ingredients with a steady Teal Focus inset outline. All blockers say "Merge another [ingredient] into this blocked space." Accessible labels describe the marked cells. The selected tile refers to the visible instruction. Help adds no dialog, vertical row, motion, or game-state change. Escape, Clear selection, or a new item selection dismisses it.
 - **States:** hover draws a 2px inset outline in Selected Clay (Candle Amber in dark mode). Selection draws a 3px inset outline. A hint pulses a 4px Teal Focus inset outline three times.
 - **Ingredient sources:** a 17px badge in the corner. The badge has an action-coloured disc, a tile-coloured rim, and a plus in the On-Action colour. One tap on a source takes one ingredient and selects the source.
 - **Keyboard:** the board is one Tab stop. Arrow keys move between spaces. Home and End go to the ends of the row. With Control, they go to the first and the last space. Escape clears the selection.
@@ -502,11 +501,11 @@ These three parts share one place under the board. The place is at least 62px ta
 - **Upgraded source:** above 1023px, the source name and Clear occupy the first row. Two or three equal-width Take buttons occupy a second row. Each Take button is at least 64px tall and has a 24px output picture. The rule line does not show. At 1023px and below, the selection does not change the height of the strip, so the board does not move under the finger. The name row does not show. The equal-width Take buttons and Clear share one row. Each Take button is at least 44px tall. It shows a 22px output picture above the output name in 11px type. Its accessible name stays "Take" and the output name. The controls fit at 360px without horizontal scroll.
 
 ### Story and recipe book
-- **Wider screens:** these are sections of the docked panel between hairlines. They are not cards. The story section shows the chapter title as its heading, the chapter objective, the chapter steps, a waiting scene if there is one, the preparation, its requirement list, and its Pay button. The Story sheet keeps the title "Our little bistro" and shows "Chapter N · [title]" in its first line. Requirement rows use 13px Inter, tabular figures, ink for totals, and muted text for status. The rows wrap within the column. They add no motion or colour code. The Neighbour quests card and Journal share one row, which wraps when the column is narrow. Journal has the accessible name "Open the story journal". The save state and progress count follow. The recipe book is an accent link with the bat sprite and the "N of 30 dishes discovered" line.
+- **Wider screens:** these are sections of the docked panel between hairlines. They are not cards. The story section shows the chapter title as its heading, the chapter objective, the chapter steps, a waiting scene if there is one, the preparation, its requirement list, and its Pay button. The Story sheet keeps the title "Our little bistro" and shows "Chapter N · [title]" in its first line. Requirement rows use 13px Inter, tabular figures, ink for totals, and muted text for status. The rows wrap within the column. They add no motion or colour code. Journal has the accessible name "Open the story journal". The save state and progress count follow. The recipe book is an accent link with the bat sprite and the "N of 30 dishes discovered" line.
 - **Phones:** each opens as a sheet from the bar.
 - **Cloche:** an unmade dish is a transparent slot with a dashed Control Line border. The slot shows a Smoke cloche and "Not yet". The cloche has a dashed dome, a knob, and a plate, at the 1.7 stroke.
 
-**The Covered Dish Rule.** The game does not preview unearned dishes or room changes. An unmade dish shows only as a "Not yet" cloche. Each room change shows only after its preparation is paid. A locked area shows only its name and the preparation that opens it. The next level reward is an explicit exception: it shows its level, XP threshold, and exact coin amount. Active requests and the request dialog also show their required food pictures and names so that the player can plan a delivery.
+**The Covered Dish Rule.** The game does not preview unearned dishes or room changes. An unmade dish shows only as a "Not yet" cloche. Each room change shows only after its preparation is paid. A locked area shows only its name and the preparation that opens it. Tickets and the request dialog show their required food pictures and names, so that the player can plan a delivery. Waiting requests do not show until they take a ticket.
 
 Generator upgrades have no preview. Before payment, the story, Mara's line, and the source controls name no future tier or output. After payment, the story completion message names each source and its new output. The Take buttons show all earned outputs, including an output that the player has not yet taken. The recipe book keeps the cloche until the player makes the dish. The room reveal keeps its sequence.
 
@@ -516,17 +515,17 @@ Cost details opens the existing dialog or phone sheet. It names the current prep
 - **Order:** the reveal starts after the story of a paid preparation. Where the kitchen is a drawer (1023px and below), the drawer lowers by itself over 0.6s. The board then does not accept input.
 - **Repaint:** the room switches to the changed area. The new painting replaces the old painting in the same place. The change uses opacity and an 8px blur over 1.2s, with an expo ease-out.
 - **Pin:** the pin lands on the change over 450ms, and focus moves to the pin. Mara's line shows the text of the change.
-- **Return:** after 1.4s, the drawer rises again, and a bat crosses the window. Then a closing scene or the finale that the payment earned opens, unless another dialog is open. A level-up dialog that the payment earned opens after the last dialog closes. A request dialog opens after that.
+- **Return:** after 1.4s, the drawer rises again, and a bat crosses the window. Then a closing scene, the finale, or an arrival scene that the payment earned opens, unless another dialog is open.
 - **Safety:** the game saves the preparation before the story opens. The reveal cannot charge or reward the player again. Reduced motion shows the new state at once.
 
 ### Navigation
-- **Wider screens:** there is no navigation. The House book is a Fresh Linen button in the masthead with a ledger icon.
-- **Phone bar:** the bar is Parchment, 56px tall plus the safe area, with a hairline on its top edge. Story, Recipes, and House book share the width. Each has a 24px authored icon over a 13px Hearth Ink label. The Story item carries the copper dot while a preparation is ready. While a request calls the player, the Story item also carries the 22px face of that neighbour on the left of its icon, with a Parchment ring and the candle breath. The accessible name then adds "[Name] is waiting" or "[Name]’s request is ready". The Recipes item carries the candle dot while new dishes wait.
+- **Wider screens:** there is no navigation. Options is a Fresh Linen button in the masthead with a sliders icon.
+- **Phone bar:** the bar is Parchment, 56px tall plus the safe area, with a hairline on its top edge. Story, Recipes, and Options share the width. Each has a 24px authored icon over a 13px Hearth Ink label. The Story item carries the copper dot while a preparation is ready. The Recipes item carries the candle dot while new dishes wait.
 
 ### Dialogs
 - **Style:** dialogs are Parchment with an 18px radius and 26px padding. A dialog is at most 560px wide. It has a headline title and a 44px close button.
 - **Bottom sheets (720px and below):** a bottom sheet has full width and is up to 88% of the viewport height. It has 20px padding plus the safe area and a top border only.
-- **Focus:** a dialog opens on its close button. The story dialog opens on Continue. Each confirmation dialog opens on its safe choice. When an open dialog changes, focus moves to the new title, without a ring. The decoration editor opens on its checked radio. Apply, Cancel, Escape, and Close return focus to the slot in the House book that opened the editor.
+- **Focus:** a dialog opens on its close button. The story dialog opens on Continue. Each confirmation dialog opens on its safe choice. When an open dialog changes, focus moves to the new title, without a ring.
 - **Story:** a 120px portrait (82px on phones) and the line at 16px. Back, the line count, and Continue follow. After a payment, the last line reads "See what changed". The sheet then closes, and the reveal runs. "Skip scene", Close, and Escape also close the sheet and start the reveal. A scene that the payment earned opens after the reveal.
 
 ### Chapter story
@@ -537,39 +536,27 @@ A waiting scene is one line under the chapter steps, above the hairline of the p
 
 A closing scene has the dialog title "Chapter N complete: [title]". The finale, a preparation scene, and a quest completion scene have the title of their finale, preparation, or quest. Each waiting scene uses the story portrait, dialogue, Back, line count, and Continue. Under the controls, a "Skip scene" text button has a 44px target, and the completion message follows: the payoff, the ending, the room change of the preparation, or the delivery result. A waiting scene opens at its saved line. If the saved line is past the end of the scene, a muted 14px notice above the portrait says "Someone lost the thread. The conversation starts again from the beginning." If a line cannot be saved, the bordered save-error box under the completion message says that the session is not saved and that the player can keep reading. The box appears once for each scene and does not take focus. The last line reads "Next scene" when another scene waits, and "Back to the kitchen" otherwise. From the journal it reads "Return". After the reveal of the payment that earned it, the scene opens and focus moves to Continue. Close and Escape leave the scene waiting. When the scene dialog closes, focus returns to the control that opened it. If Read now is no longer present, focus returns to the Journal link on wider screens or the Story button on phones. This also applies when the player closes a later scene in the same queue.
 
-The journal has a Chapters section after the neighbour quests. Each open or complete chapter is a section between hairlines with the heading "Chapter N · [title]". A running chapter shows its opening context, its goal in muted text, and its later preparations as a muted list with "Next" or "Not yet". A complete chapter shows its payoff. The neighbour help line is muted. Done preparations are journal entries with the name of their room change, for example "New: lamps lit". A done preparation whose scene waits says "New scene" instead. The closing scene and the finale are journal entries that say "New scene" or "Replay". A completed quest's "Read completion" entry says "New scene" while its scene waits, and the neighbour's name after that. These additions have no animation.
+The journal has a Chapters section after the finished quests. Each open or complete chapter is a section between hairlines with the heading "Chapter N · [title]". A running chapter shows its opening context, its goal in muted text, and its later preparations as a muted list with "Next" or "Not yet". A complete chapter shows its payoff. The neighbour help line is muted. Done preparations are journal entries with the name of their room change, for example "New: lamps lit". A done preparation whose scene waits says "New scene" instead. The closing scene and the finale are journal entries that say "New scene" or "Replay". A completed quest's "Read completion" entry says "New scene" while its scene waits, and the neighbour's name after that. These additions have no animation.
 
-### Neighbour quests
+### Requests
 
-Story has a way into Neighbour quests. With no open request, it is the text button "Neighbour quests". While requests are active, it is the quest card: a Fresh Linen pill, 44px tall, with a Control Line border and the quest card radius. The card holds up to three overlapping 30px faces of the waiting neighbours, with a Fresh Linen ring, and "Neighbour quests · N" in 13px accent text at weight 600. Hover gives the border the accent colour. A request calls the player when the board holds everything that it needs, or when it is new since Neighbour quests last opened. While a request calls, the edge of the card has the candle breath, and its faces come first. Opening Neighbour quests marks the open requests as seen, so only a ready request keeps the breath. The seen requests are a viewing preference, kept apart from the save. A new game and an import clear them. The accessible name gives the count, then "N ready to deliver" or "new request". Reduced motion holds the glow still at 85%. The card opens the existing dialog or phone sheet. It adds no ticket or control above the board. The three ordinary tickets keep their positions.
+A tap on the dishes of a ticket opens the request dialog. Its title is the request title. A 44px portrait for each person sits beside their names. The opening lines of the request follow in 16px body text; a line by another speaker starts with that speaker's name. The food rows show the exact quantity and the count on the board. Each row opens ingredient help, which returns to the request. The coin reward follows in gold, then Deliver ("Deliver · N" with the coin mark) and one muted line: "Delivery uses dishes on the board. There is no deadline." Deliver has the dashed disabled style until the board holds every portion. Deliver closes the dialog and starts the delivery motion.
 
-Each quest is a section between hairlines. A 44px portrait sits beside the request title and neighbour name. The food rows show the exact quantity and the amount on the board. Each row opens ingredient help. The coin reward follows. Read request and Deliver are separate controls. Deliver has the dashed disabled style until the board holds every required item. Titles, text, reward figures, and controls use the existing Inter, ink, muted, gold, action, and focus tokens.
 
-Visitor quests use the same sheet, food counts, reward, and delivery controls. Adrian, Monica, Janos, and Ionatan use a separate transparent two-by-two portrait atlas. Its cells are Adrian at the top left, Monica at the top right, Janos at the bottom left, and Ionatan at the bottom right. A second transparent two-by-two guest atlas holds Vlad at the top left, Elisabeta at the top right, Mina at the bottom left, and Avram at the bottom right. The four core portraits keep their atlas. Visitor cards also show the opening request text so that the supply purpose is visible before Read request. Mina and Avram share one request card with both names and portraits. Dialogue uses the portrait of its current speaker. The portraits keep their colours in both themes. The journal includes the four ordinary neighbours, two occasional noble customers, and three recurring travellers. Ionatan, Mina, and Avram have introductions only while their own visit is active. After a farewell scene, the journal shows neither that visitor's introduction nor their request scenes. Once its service gate is met, the journal offers the local gossip about Mina, Avram, and Ionatan. Its dialogue shows only local speakers.
+Visitor requests use the same tickets, dialog, food counts, reward, and delivery controls. Adrian, Monica, Janos, and Ionatan use a separate transparent two-by-two portrait atlas. Its cells are Adrian at the top left, Monica at the top right, Janos at the bottom left, and Ionatan at the bottom right. A second transparent two-by-two guest atlas holds Vlad at the top left, Elisabeta at the top right, Mina at the bottom left, and Avram at the bottom right. The four core portraits keep their atlas. Three more transparent two-by-two atlases hold the regulars in order of arrival: Dochia, Victor, Ana, and Costel; Sânziana, Dorian, Ileana, and Cezar; then Cătălina and Bran at the top, with two empty cells below. Mina and Avram share one request, and its dialog shows both names and portraits. Dialogue uses the portrait of its current speaker. Each character has an individual square source crop that keeps a consistent face scale and eye line. The crop stays inside its atlas cell and retains headwear and identifying upper-body details. Mara uses the same crop in tickets, dialogue, and the guide. Tall hats keep the small eye-line difference needed to retain the hat. The portraits keep their colours in both themes. The journal includes the arrived neighbours and the three recurring travellers. Ionatan, Mina, and Avram have introductions only while their own request is open. After a farewell scene, the journal shows neither that visitor's introduction nor their request scenes. Once its delivery gate is met, the journal offers the local gossip about Mina, Avram, and Ionatan. Its dialogue shows only local speakers.
 
 Paint Adrian and Monica with Romanian village headwear and embroidered shirts. Adrian keeps his steel plate cuirass and burgundy cloak. Monica keeps her brown leather scout armour and green cloak. Paint Janos in Hungarian Roma village dress, with his felt hat, indigo waistcoat, plum neckerchief, and walking staff. Keep natural adult faces and no caricature.
 
-Deliver in the quest sheet opens the completion scene, which returns to the quest list heading. An unsaved session has a visible warning and Retry save.
+The completion scene returns to the kitchen. After a failed save, its completion message says that the session is not saved, and Options offers Retry save.
 
-A request that becomes ready, or that is ready at load, opens the request dialog, "[Name]’s request is ready". The dialog has one muted line, the portrait and request title, the food rows with their board counts, the coin reward, Deliver, and one muted line that says that the request waits in Neighbour quests. The food rows do not open ingredient help. The dialog opens on its close button. It has no Later button, because the close button closes it. Deliver opens the completion scene. In this flow, the last scene button is "Back to the kitchen". Focus then goes to the board, or to the drawer handle when the drawer is lowered. A failed save makes the last scene button Return, which opens Neighbour quests with Retry save. The dialog adds no motion.
 
-The journal starts with Neighbours. Each portrait row opens an optional introduction. These rows have a 44px portrait and two equal text columns, with 12px gaps. Names align left beside the portraits. Roles align right. Long names and roles wrap within their columns. Finished quests have opening and completion replay controls before the chapters. Quest scenes and introductions use the existing portrait, dialogue, Back, and Continue controls. Return, Close, and Escape restore focus to their quest heading or journal entry. Closing the quest sheet returns focus to its visible Story link or to the phone Story button. These additions have no animation.
+The journal starts with Neighbours: the core characters, then the regulars in order of arrival. A neighbour row has a 44px portrait, a text column, and a muted count on the right, with 12px gaps. The text column holds the name (600), then the trade and the favourite chains in 12px muted text ("Favourites: Warm kitchen and Bread counter"). The count says "N quests", or "New scene" while an arrival scene waits. A row opens the waiting arrival scene, or else the introduction. A regular who has not arrived is a row with a dashed border, a transparent background, a 44px dashed circle, and the muted words "Not yet". Traveller rows follow, with a 44px portrait and two equal text columns: names align left, and roles align right. Long names and roles wrap within their columns. Finished quests have opening and completion replay controls before the chapters. Quest scenes and introductions use the existing portrait, dialogue, Back, and Continue controls. Return, Close, and Escape restore focus to their quest heading or journal entry. Closing the quest sheet returns focus to its visible Story link or to the phone Story button. These additions have no animation.
 
-### Level rewards
+### Finish switches
 
-The House book starts with Level rewards, before Decorations. It shows the current level, total XP, progress to the next level, and the next supported coin reward. Earned rewards are simple rows between hairlines. Each row shows its level and exact coin amount, with a primary Claim button or the word Claimed. Claims move focus to the section heading. One persistent status region announces each result. A failed save shows the unsaved session and Retry save. After the last reward, the panel says whether rewards remain to claim. It does not promise another reward.
+A finish that a quest has unlocked switches where it stands in the room. The switch is a transparent button over the crop of its detail, at least 44px each way. A 26px badge sits on its upper-right corner: a Fresh Linen disc with a Coin Rim ring and two ink arrows that turn about each other. Hover and keyboard focus draw a 2px dashed Coin Face outline around the detail. The accessible name is "[Detail]: [current finish]. Switch to [next finish]". A tap applies the next finish after the save succeeds, and the status line names the new finish. Focus stays on the switch. The switch shows only in the area that the room shows, and only while its detail is in the room. It stays hidden and cannot take focus if the painting fails or less than 44px by 44px of its target is visible inside the room crop and above the drawer. Lowering the drawer restores switches whose targets become visible. It adds no motion.
 
-A level with a reward opens the level-up dialog, "Level N reached". The dialog has one muted line, the rows of all available rewards, the status region, and one muted line that says that a reward waits in the House book. The rows are the same as in the House book. The dialog opens on its close button. It has no Later button, because the close button closes it. A Claim with more rewards left changes its row to Claimed and moves focus to the next Claim. The last Claim closes the dialog, and Mara's line gives the result. Focus then goes to the board, or to the drawer handle when the drawer is lowered. A failed save replaces the dialog with the House book, which shows the unsaved session and Retry save. The dialog adds no motion.
-
-The desktop and phone House book controls carry a copper dot while a reward is available. Their accessible names give the count. Closing the book and reloading keep the dot while rewards remain. The dot uses the existing coin face and parchment ring. The panel uses the existing dialog, section, button, ink, muted, and focus styles. It adds no motion.
-
-### Decoration choices
-
-The House book has a Decorations section before Appearance. Each unlocked row shows a cropped painting, its slot name, its saved finish, and Change. A locked row shows the preparation that opens it, with a dashed bottom edge. The rows use the parchment, ink, control, and focus tokens.
-
-Change opens a preview in the same dialog. Native radio controls name both finishes. The saved option has the text "Saved choice". A large crop shows the pending finish. Apply and Cancel are separate buttons. Cancel, Escape, and Close return to the row and restore its focus. Apply returns only after a successful save. If the write fails, the preview stays and Retry shows with an error message. Reduced motion does not change the selection.
-
-The three slots are Tableware, Courtyard table cloth, and Final flowers. The defaults are the Blue bowls, the Red embroidery, and the Wildflowers. The alternatives are the Green bowls, the Blue embroidery, and the Lilacs. Two full scene edit masters supply the alternatives. A rectangular region samples only the earned detail. The region has the same coordinates in the room, the thumbnail, and the preview. This keeps the painted perspective and background. It does not add free-standing object sprites. The original room states do not change. A region does not cover the change of another preparation.
+Options holds only the options of the game: the save state, Retry saved game or Retry save when a save failed, Appearance, Kitchen sounds, Your saved game, About, and A fresh start. The sections use the existing dialog, section, button, ink, muted, and focus styles.
 
 ### Inputs / Fields
 - **Segmented choice:** the Appearance setting is a Flour Dust track with a Control Line border and 44px options. The checked option takes the chosen fill, weight 600, a 2px inset accent ring, and the pressed choice shadow.
@@ -577,10 +564,10 @@ The three slots are Tableware, Courtyard table cloth, and Final flowers. The def
 ## Do's and Don'ts
 
 ### Do:
-- **Do** use only the 37 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
+- **Do** use only the 40 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
   - The 25 room masters are front-room-00 to front-room-12, front-room-17, front-room-24, courtyard-13 to courtyard-16, and courtyard-18 to courtyard-23.
   - The two decoration masters are decoration-front and decoration-courtyard.
-  - The ten other masters are menu-atlas, red-wine, board-clutter, preparation-clutter, portraits, visitor-portraits, guests, mascots, timber-tabletop, and embroidered-runner.
+  - The 13 other masters are menu-atlas, red-wine, board-clutter, preparation-clutter, portraits, visitor-portraits, guests, regulars-1, regulars-2, regulars-3, mascots, timber-tabletop, and embroidered-runner.
 - **Do** paint each room state as a complete 3:4 painting, 1536 by 2048, opaque. Keep every pixel outside the change the same as the state before it.
 - **Do** ship room states as AVIF and WebP at 768 and 1536px wide, AVIF first. Ship the timber as AVIF and WebP at 1024 and 1536px wide. Ship the decoration paintings as WebP at 1536px wide. Ship the transparent atlases and the runner as WebP.
 - **Do** keep the neighbours in working village dress: Mara, Ilie, and Sorin in Romanian dress, and Eszter in Székely dress.
@@ -590,18 +577,18 @@ The three slots are Tableware, Courtyard table cloth, and Final flowers. The def
 - **Do** keep one Pay button on screen at a time.
 - **Do** recompute `--cell` and the visible room together if either changes. Check 1440×900, 390×844, and 390×800.
 - **Do** respect reduced motion. Reduced motion removes every animation and transition. Reduced motion keeps every outcome and line of text.
-- **Do** use the house words: the board and a preparation. Call an ingredient source by its own name (the Flour bin). Players take, merge, serve, sell, and pay.
+- **Do** use the house words: the board and a preparation. Call an ingredient source by its own name (the Flour bin). Players take, merge, deliver, sell, and pay.
 
 ### Don't:
-- **Don't** preview unearned dishes or room changes (The Covered Dish Rule). Show the next level reward as specified above.
-- **Don't** darken, tint, or filter food, portraits, a room painting, or the timber.
+- **Don't** preview unearned dishes or room changes (The Covered Dish Rule).
+- **Don't** darken, tint, or filter food, portraits, a room painting, or the timber, except for the approved 20% red overlay on blocked board tiles.
 - **Don't** paste room objects onto a room painting as sprites. Paint a new state instead. The cats and the bat are the only sprites over the room.
-- **Don't** cover the room with interface on wider screens. Only the pin and the area switch sit on it.
+- **Don't** cover the room with interface on wider screens. Only the pin, the area switch, and unlocked finish switches sit on it.
 - **Don't** let the pin cover the change that it marks.
 - **Don't** use a visual identity, art, audio, fonts, or geometry that this project did not make or license.
 - **Don't** use Grenze Gotisch for anything except the wordmark.
 - **Don't** show an unaffordable action as a faded colour. Use the dashed "not yet" style.
 - **Don't** let the coin figures touch the wordmark at any width.
-- **Don't** put Story, Recipes, or the House book in the phone masthead.
+- **Don't** put Story, Recipes, or Options in the phone masthead.
 - **Don't** repeat the whole runner bitmap. Don't tile the timber vertically. Both actions show seams.
 - **Don't** use emoji or Unicode characters as icons.

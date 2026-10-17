@@ -1,11 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, dataProblems, economyProblems, menuReward, saleValue, validateGame } from '../src/engine.ts';
+import { createGame, dataProblems, economyProblems, saleValue } from '../src/engine.ts';
 import type { GameData } from '../src/engine.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
-const validate = (state: unknown) => validateGame(state, data);
 test('renovation cost follows its materials and labour, with less work and money for signs and menus', () => {
   assert.deepEqual(economyProblems(data), []);
   for (const task of data.tasks) assert.equal(task.cost, task.work.materials + task.work.labour);
@@ -15,10 +14,11 @@ test('renovation cost follows its materials and labour, with less work and money
     assert.ok(small.cost < repair.cost, `${small.title} costs less than ${repair.title}.`);
     assert.ok(small.work.hours < repair.work.hours, `${small.title} needs less work than ${repair.title}.`);
   }
-  assert.ok(window.cost > createGame(data).orders.reduce((sum, order) => sum + order.reward, 0), 'Three initial servings cannot buy a window repair.');
+  const food = createGame(data).board.reduce((sum, cell) => sum + (cell ? saleValue(cell.code, data) : 0), 0);
+  assert.ok(window.cost > food, 'The starting food cannot buy a window repair.');
 });
 
-test('new orders quote explicit menu prices without a flat service bonus and clearance stays below menu value', () => {
+test('clearance sells food below its menu value and a source has no sale value', () => {
   for (const item of Object.values(data.items)) {
     if (item.generator) assert.equal(saleValue(item.id, data), 0);
     else {
@@ -27,17 +27,18 @@ test('new orders quote explicit menu prices without a flat service bonus and cle
       if (item.price > 1) assert.ok(saleValue(item.id, data) < item.price);
     }
   }
-  for (const item of Object.values(data.items).filter(item => !item.generator)) {
-    assert.equal(menuReward([item.id], data), item.price);
-    assert.equal(menuReward([item.id, item.id], data), item.price * 2);
-  }
-  for (const seed of [0, 271828, 84017]) {
-    const state = createGame(data, seed);
-    assert.ok(validate(state));
-    for (const order of state.orders) {
-      assert.equal(order.pricing, 'menu-1');
-      assert.equal(order.reward, order.requirements.reduce((sum, code) => sum + data.items[code].price, 0));
-    }
+  assert.equal(saleValue('unknown', data), 0);
+});
+
+test('a personal quest pays its menu value at the rate of its chapter, and travellers pay their menu value', () => {
+  const rates = [3, 2.5, 2, 1.5, 1, 1];
+  const menuValue = (quest: GameData['quests'][number]) => quest.requirements.reduce((sum, { item, quantity }) => sum + data.items[item].price * quantity, 0);
+  for (const quest of data.quests) {
+    const window = quest.afterTask === null ? 0 : data.tasks.findIndex(task => task.id === quest.afterTask) + 1;
+    const visitor = data.characters.find(person => person.id === quest.character)!.visitor;
+    const expected = quest.id === 'ionatan-castle-dinner' ? 1100 : visitor ? menuValue(quest) : Math.round(menuValue(quest) * rates[Math.floor(window / 4)] / 2) * 2;
+    assert.equal(quest.reward, expected, quest.id);
+    if (!visitor) assert.equal(quest.reward % 2, 0, `${quest.id} pays an even reward.`);
   }
 });
 
@@ -59,19 +60,5 @@ test('authored economy rejects missing, malformed, unsupported, or inconsistent 
     mutate(content);
     assert.ok(economyProblems(content).length);
     assert.ok(dataProblems(content).length);
-  }
-});
-
-test('orders require the current price marker and exact menu reward', () => {
-  const state = createGame(data);
-  for (const pricing of [null, undefined, '', 'menu-2', 1, {}]) {
-    const invalid = structuredClone(state);
-    Object.assign(invalid.orders[0], { pricing });
-    assert.equal(validate(invalid), false);
-  }
-  for (const reward of [-1, 0, 0.5, NaN, Infinity, state.orders[0].reward + 1]) {
-    const invalid = structuredClone(state);
-    invalid.orders[0].reward = reward;
-    assert.equal(validate(invalid), false);
   }
 });

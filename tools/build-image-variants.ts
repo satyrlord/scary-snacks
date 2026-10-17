@@ -20,6 +20,9 @@ export const imageVariants = {
   portraits: { widths: [640], formats: ['webp'] },
   'visitor-portraits': { widths: [640], formats: ['webp'] },
   guests: { widths: [640], formats: ['webp'] },
+  'regulars-1': { widths: [640], formats: ['webp'] },
+  'regulars-2': { widths: [640], formats: ['webp'] },
+  'regulars-3': { widths: [640], formats: ['webp'] },
   'red-wine': { widths: [256], formats: ['webp'] },
   mascots: { widths: [640], formats: ['webp'] },
   // The painted room states fill a 3:4 room view; phones take the half-size painting.

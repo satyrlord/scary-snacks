@@ -44,7 +44,7 @@ They are not runtime dependencies. Do not use `private/` as an input for source 
 
 ## Art provenance
 
-The game ships image variants from 37 masters. The build excludes the PNG masters.
+The game ships image variants from 40 masters. The build excludes the PNG masters.
 
 Built-in in-chat image generation made the guest portrait atlas and the red wine icon. The guest atlas uses the existing visitor portraits as a style reference. The wine uses the menu atlas as a style reference.
 
@@ -52,6 +52,8 @@ Built-in in-chat image generation made the guest portrait atlas and the red wine
   Each repaints an earlier atlas that the built-in in-chat imagegen tool made for this project. The mascots then had one correction of the grid fit.
 - The same API made the timber tabletop and the embroidered runner from text-only prompts.
   The portraits are a revision of a text-only first candidate. The revision used only that candidate as its reference.
+- The same API made the three regulars atlases. They use the core portraits, and later the first regulars atlas, as style references.
+  A masked edit repainted one cell of the first atlas. The third atlas had its two portraits scaled into their cells with Sharp, without repainting.
 - The same API made the 25 painted room states.
   The two base states use generated room paintings of this project as references.
   Each later state edits the previous state of its area. A composite applies only the changed region.

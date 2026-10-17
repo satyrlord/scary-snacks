@@ -13,3 +13,4 @@ analysis/
 .env.local
 __pycache__/
 .playwright-mcp/
+tmp/

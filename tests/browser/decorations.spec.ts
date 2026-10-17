@@ -1,135 +1,126 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { readFileSync } from 'node:fs';
-import { createGame, reduceGame, validateGame } from '../../src/engine.ts';
-import type { GameData, GameState } from '../../src/engine.ts';
-import { SAVE_KEY, exportSave } from '../../src/storage.ts';
+import { checkpoint, data, deliverButton, deliverable, exportText, failWrites, opened, options, quest, readTo, restoreWrites, saved, serialize, start, startAgainAndImport, KEY } from './support.ts';
 
-const data: GameData=JSON.parse(readFileSync('public/data/game.json','utf8'));
-function checkpoint(count=24) {
-  let state=createGame(data);state.coins=100000;
-  state.served=data.tasks[count-1]?.goals.served??0;state.merges=data.tasks[count-1]?.goals.merges??0;
-  for(let index=0;index<count;index++)state=reduceGame(state,{type:'task'},data).state;
-  return state;
+const finish=(page: Page,slot: string)=>page.locator(`#room-finishes .room-finish[data-slot="${slot}"]`);
+const layer=(page: Page,slot: string,variant: string)=>page.locator(`#room-decorations svg[data-slot="${slot}"][data-variant="${variant}"]`);
+const slotOf=(id: string)=>data.decorationSlots.find(slot=>slot.id===id)!;
+/** The label of a finish switch: the slot, its current finish, and the finish that a press gives. */
+function label(id: string,current: string){
+  const slot=slotOf(id),names=slot.variants.map(variant=>variant.id),next=names[(names.indexOf(current)+1)%names.length];
+  return `${slot.name}: ${slot.variants.find(variant=>variant.id===current)!.name}. Switch to ${slot.variants.find(variant=>variant.id===next)!.name}`;
 }
-const serialized=(state: GameState)=>exportSave(state,state=>validateGame(state,data));
-async function saved(page: Page): Promise<GameState> {
-  return page.evaluate(key=>navigator.locks.request(key,()=>JSON.parse(localStorage.getItem(key)!).state),SAVE_KEY);
-}
-async function start(page: Page,count=24,theme='light') {
-  await page.addInitScript(({key,text,theme})=>{
-    if(localStorage.getItem(key)===null)localStorage.setItem(key,text);
-    localStorage.setItem('scary-snacks-theme',theme);
-  },{key:SAVE_KEY,text:serialized(checkpoint(count)),theme});
-  await page.emulateMedia({reducedMotion:'reduce'});await page.goto('./');await expect(page.locator('#board button')).toHaveCount(42);
-}
-async function house(page: Page) {
-  await page.locator('[data-house-book]:visible').first().click();await expect(page.locator('#modal-title')).toHaveText('House book');
-}
-async function edit(page: Page,slot: string) { await page.locator(`[data-decoration="${slot}"]`).click(); }
-async function choose(page: Page,variant: string) { await page.locator(`input[name="decoration"][value="${variant}"]`).check(); }
 async function waitForArt(page: Page) {
-  await page.locator('svg image').evaluateAll(async elements=>Promise.all(elements.map(async element=>{
+  await page.locator('#room-frame svg image').evaluateAll(async elements=>Promise.all(elements.map(async element=>{
     const image=new Image();image.src=element.getAttribute('href')!;await image.decode();
   })));
 }
+async function begin(page: Page,state=checkpoint(24),theme='light'){await page.emulateMedia({reducedMotion:'reduce'});await start(page,state,theme);}
+
+test('finish switches cannot take focus outside the visible room crop on a phone',async({page})=>{
+  await page.setViewportSize({width:390,height:844});await begin(page,checkpoint(10));
+  const tableware=finish(page,'tableware');
+  expect(await tableware.evaluate(element=>element.getBoundingClientRect().bottom<document.querySelector('#room-stage')!.getBoundingClientRect().top)).toBe(true);
+  await expect(tableware).toHaveAttribute('inert','');
+  await tableware.evaluate(element=>(element as HTMLElement).focus());await expect(tableware).not.toBeFocused();
+  await page.locator('#drawer-handle').click();await expect(tableware).not.toHaveAttribute('inert','');
+  await tableware.focus();await page.keyboard.press('Enter');await expect(layer(page,'tableware','green')).toHaveCount(1);
+  await page.locator('#drawer-handle').click();await expect(tableware).toHaveAttribute('inert','');
+});
 
 for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'phone',width:390,height:844}])for(const theme of ['light','dark']){
-  test(`decoration preview and durable choices at ${viewport.name} in ${theme}`,async({page},testInfo)=>{
-    await page.setViewportSize(viewport);await start(page,24,theme);const before=await saved(page);await house(page);
-    await edit(page,'tableware');await choose(page,'green');
-    await expect(page.locator('.decoration-preview svg[data-variant="green"]')).toHaveCount(1);
-    expect(await saved(page)).toEqual(before);
-    await expect(page.locator('#room-decorations svg[data-slot="tableware"]')).toHaveCount(0);
-    await page.getByRole('button',{name:'Cancel',exact:true}).click();await expect(page.locator('[data-decoration="tableware"]')).toBeFocused();
-    await expect(page.locator('[data-decoration="tableware"] [data-variant="blue"]')).toHaveCount(1);
-    await edit(page,'tableware');await expect(page.locator('input[value="blue"]')).toBeChecked();
-    await page.locator('input[value="blue"]').focus();await page.keyboard.press('ArrowDown');await expect(page.locator('input[value="green"]')).toBeChecked();
-    await waitForArt(page);
-    const geometry=await page.locator('.decoration-editor').evaluate(root=>({width:root.scrollWidth,client:root.clientWidth,targets:[...root.querySelectorAll('button,label')].map(element=>element.getBoundingClientRect().height)}));
-    expect(geometry.width).toBeLessThanOrEqual(geometry.client);expect(geometry.targets.every(height=>height>=44)).toBe(true);
-    await expect(page.getByRole('button',{name:'Apply',exact:true})).toBeInViewport();
-    await page.screenshot({path:testInfo.outputPath('editor.png')});
-    await page.getByRole('button',{name:'Apply',exact:true}).click();await expect(page.locator('[data-decoration="tableware"]')).toBeFocused();
-    const after=await saved(page);expect(after).toEqual({...before,decorationChoices:{tableware:'green'}});
-    await expect(page.locator('#room-decorations svg[data-slot="tableware"][data-variant="green"]')).toHaveCount(1);
-    for(const [slot,variant] of [['textiles','blue'],['flowers','lilacs']]){
-      await edit(page,slot);await choose(page,variant);await waitForArt(page);await page.screenshot({path:testInfo.outputPath(`editor-${slot}.png`)});await page.getByRole('button',{name:'Apply',exact:true}).click();
-    }
-    await waitForArt(page);await page.screenshot({path:testInfo.outputPath('house-book.png')});
-    const committed=await saved(page);await edit(page,'flowers');await page.getByRole('button',{name:'Apply',exact:true}).click();expect(await saved(page)).toEqual(committed);
-    await page.getByRole('button',{name:'Close dialog'}).click();await page.reload();await expect(page.locator('#board button')).toHaveCount(42);expect(await saved(page)).toEqual(committed);
-    await expect(page.locator('#room-decorations svg[data-slot="flowers"][data-variant="lilacs"]')).toHaveCount(1);
+  test(`room finish switches change each finish durably at ${viewport.name} in ${theme}`,async({page},testInfo)=>{
+    await page.setViewportSize(viewport);await begin(page,checkpoint(24),theme);const before=await saved(page);
+    // On a phone the drawer lowers, so the whole painting and its switches show.
     if(viewport.name==='phone')await page.locator('#drawer-handle').click();
+    await expect(page.locator('#room-frame')).toHaveAttribute('data-area','front-room');
+    await expect(page.locator('#room-finishes .room-finish')).toHaveCount(2);
+    const tableware=finish(page,'tableware');await expect(tableware).toHaveAccessibleName(label('tableware','blue'));
+    for(const slot of ['tableware','flowers']){
+      const box=(await finish(page,slot).boundingBox())!,room=(await page.locator('#room-stage').boundingBox())!;
+      expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);
+      expect(box.x).toBeGreaterThanOrEqual(room.x);expect(box.x+box.width).toBeLessThanOrEqual(room.x+room.width);
+      await expect(finish(page,slot)).toBeInViewport();
+    }
+    await tableware.click();await expect(page.locator('#status')).toHaveText('Tableware: Green bowls.');
+    await expect(layer(page,'tableware','green')).toHaveCount(1);await expect(tableware).toHaveAccessibleName(label('tableware','green'));await expect(tableware).toBeFocused();
+    expect(await saved(page)).toEqual({...before,decorationChoices:{tableware:'green'}});
+    await finish(page,'flowers').click();await expect(layer(page,'flowers','lilacs')).toHaveCount(1);
+    const committed=await saved(page);expect(committed.decorationChoices).toEqual({tableware:'green',flowers:'lilacs'});
     await waitForArt(page);await page.screenshot({path:testInfo.outputPath('front-room.png')});
-    await page.getByRole('button',{name:'Courtyard',exact:true}).click();await expect(page.locator('#room-decorations svg[data-slot="textiles"][data-variant="blue"]')).toHaveCount(1);
+    await page.reload();await opened(page);expect(await saved(page)).toEqual(committed);
+    await expect(layer(page,'tableware','green')).toHaveCount(1);await expect(layer(page,'flowers','lilacs')).toHaveCount(1);
+    await expect(finish(page,'flowers')).toHaveAccessibleName(label('flowers','lilacs'));
+    if(viewport.name==='phone')await page.locator('#drawer-handle').click();
+    await page.getByRole('button',{name:'Courtyard',exact:true}).click();await expect(page.locator('#room-finishes .room-finish')).toHaveCount(1);
+    await finish(page,'textiles').click();await expect(layer(page,'textiles','blue')).toHaveCount(1);await expect(finish(page,'textiles')).toHaveAccessibleName(label('textiles','blue'));
     await waitForArt(page);await page.screenshot({path:testInfo.outputPath('courtyard.png')});
+    // A second press returns to the default finish, which the save does not record.
+    await finish(page,'textiles').click();await expect(layer(page,'textiles','blue')).toHaveCount(0);expect((await saved(page)).decorationChoices).toEqual({tableware:'green',flowers:'lilacs'});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   });
 }
 
-test('locked choices explain their preparation and dismissal discards a preview',async({page})=>{
-  await start(page,9);await house(page);await expect(page.locator('.decoration-locked')).toHaveCount(2);
-  await expect(page.locator('.decoration-locked').first()).toContainText(data.tasks[21].title);
-  const before=await saved(page);await edit(page,'tableware');await choose(page,'green');await page.keyboard.press('Escape');
-  await expect(page.locator('[data-decoration="tableware"]')).toBeFocused();expect(await saved(page)).toEqual(before);
-  await edit(page,'tableware');await choose(page,'green');await page.getByRole('button',{name:'Close dialog'}).click();
-  await expect(page.locator('[data-decoration="tableware"]')).toBeFocused();expect(await saved(page)).toEqual(before);
+test('a finish switch appears only once its quest is delivered and its preparation is done',async({page})=>{
+  const bowls=quest('eszter-green-bowls');expect(bowls.unlocks).toEqual({slot:'tableware',variant:'green'});
+  // The preparation is done, but the quest that offers the green bowls is not delivered yet.
+  await begin(page,deliverable(bowls));await expect(page.locator('#room-frame')).toHaveAttribute('data-area','front-room');
+  expect((await saved(page)).decorations).toContain(slotOf('tableware').unlock);await expect(page.locator('#room-finishes .room-finish')).toHaveCount(0);
+  await deliverButton(page,bowls).click();await readTo(page,'Back to the kitchen');
+  await expect(finish(page,'tableware')).toHaveAccessibleName(label('tableware','blue'));
+  await page.reload();await opened(page);await expect(finish(page,'tableware')).toHaveCount(1);
 });
 
-test('failed Apply keeps the committed choice and Retry saves the selected finish',async({page})=>{
-  await start(page);await house(page);await edit(page,'tableware');await choose(page,'green');const before=await saved(page);
-  await page.evaluate(key=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(name,value){if(name===key)throw new DOMException('Full','QuotaExceededError');original.call(this,name,value);};},SAVE_KEY);
-  await page.getByRole('button',{name:'Apply',exact:true}).click();await expect(page.locator('.decoration-notice')).toContainText('The choice was not saved');
-  expect(await saved(page)).toEqual(before);await expect(page.locator('#room-decorations svg[data-slot="tableware"]')).toHaveCount(0);
-  // Restore the native method from a same-origin fresh realm without changing the stored snapshot.
-  await page.evaluate(()=>{const frame=document.createElement('iframe');document.body.append(frame);Storage.prototype.setItem=frame.contentWindow!.localStorage.setItem;frame.remove();});
-  await page.getByRole('button',{name:'Retry',exact:true}).click();await expect(page.locator('#modal-title')).toHaveText('House book');
-  expect((await saved(page)).decorationChoices).toEqual({tableware:'green'});
+test('a delivered quest gives no switch before the preparation that unlocks its place',async({page})=>{
+  const lilacs=quest('sanziana-lilacs'),state=checkpoint(23,{ready:true});
+  expect(state.completedQuests).toContain(lilacs.id);expect(state.decorations).not.toContain(slotOf('flowers').unlock);
+  await begin(page,state);await page.getByRole('button',{name:'Front room',exact:true}).click();await expect(page.locator('#room-frame')).toHaveAttribute('data-area','front-room');
+  await expect(finish(page,'tableware')).toHaveCount(1);await expect(finish(page,'flowers')).toHaveCount(0);
 });
 
-
-
-test('decoration choices survive current save export and import',async({page})=>{
-  await start(page);await house(page);await edit(page,'tableware');await choose(page,'green');
-  await page.getByRole('button',{name:'Apply',exact:true}).click();
-  const committed=await saved(page),pending=page.waitForEvent('download');
-  await page.getByRole('button',{name:'Export saved game'}).click();const download=await pending,path=(await download.path())!;
-  expect(JSON.parse(readFileSync(path,'utf8')).state).toEqual(committed);
-  await page.getByRole('button',{name:'Start a new game',exact:true}).click();await page.getByRole('button',{name:'Erase and start again'}).click();
-  expect(await saved(page)).not.toEqual(committed);
-  await house(page);await page.locator('input[type=file]').setInputFiles(path);await page.getByRole('button',{name:'Import this saved game'}).click();
-  expect(await saved(page)).toEqual(committed);await page.reload();await expect(page.locator('#board button')).toHaveCount(42);
-  expect(await saved(page)).toEqual(committed);await expect(page.locator('#room-decorations svg[data-slot="tableware"][data-variant="green"]')).toHaveCount(1);
+test('a failed finish write keeps the earlier finish, and a later press saves it',async({page})=>{
+  await begin(page);const before=await saved(page),tableware=finish(page,'tableware');
+  await failWrites(page);await tableware.click();
+  await expect(page.locator('#status')).toContainText('The choice was not saved. Your previous choice stays.');
+  expect(await saved(page)).toEqual(before);await expect(layer(page,'tableware','green')).toHaveCount(0);await expect(tableware).toHaveAccessibleName(label('tableware','blue'));
+  await restoreWrites(page);await tableware.click();
+  await expect(layer(page,'tableware','green')).toHaveCount(1);expect((await saved(page)).decorationChoices).toEqual({tableware:'green'});
 });
 
-test('another tab cancels a stale decoration preview without losing its newer progress',async({page,context})=>{
-  await start(page);await house(page);await edit(page,'tableware');await choose(page,'green');
-  const other=await context.newPage();await other.goto('./');await expect(other.locator('#board button')).toHaveCount(42);await other.locator('[data-cell="1"]').click();
-  const newer=await saved(other);await expect(page.locator('#modal')).not.toBeVisible();expect(await saved(page)).toEqual(newer);expect(newer.decorationChoices).toEqual({});await other.close();
+test('finishes survive export and import',async({page})=>{
+  await begin(page);await finish(page,'tableware').click();await expect(layer(page,'tableware','green')).toHaveCount(1);
+  const committed=await saved(page);await options(page);const text=await exportText(page);expect(JSON.parse(text).state).toEqual(committed);
+  await startAgainAndImport(page,text);expect(await saved(page)).toEqual(committed);
+  await page.reload();await opened(page);expect(await saved(page)).toEqual(committed);await expect(layer(page,'tableware','green')).toHaveCount(1);
+  await expect(finish(page,'tableware')).toHaveAccessibleName(label('tableware','green'));
 });
 
-test('a valid save from another tab restores play after load recovery',async({page,context})=>{
-  await page.goto('./');await page.evaluate(key=>localStorage.setItem(key,'{broken'),SAVE_KEY);await page.reload();
-  await expect(page.getByRole('button',{name:'Retry saved game'})).toBeVisible();
-  const other=await context.newPage();await other.goto('./');
-  await other.evaluate(({key,text})=>localStorage.setItem(key,text),{key:SAVE_KEY,text:serialized(checkpoint(9))});
-  await expect(page.locator('#modal')).not.toBeVisible();await expect(page.locator('#status')).toContainText('another tab');
-  const before=await saved(page);await page.locator('[data-cell="1"]').click();
-  expect((await saved(page)).board.filter(Boolean).length).toBe(before.board.filter(Boolean).length+1);await other.close();
+test('a finish chosen in another tab shows in this tab',async({page,context})=>{
+  await begin(page);const other=await context.newPage();await other.goto('./');await opened(other);
+  await finish(other,'tableware').click();await expect(layer(other,'tableware','green')).toHaveCount(1);
+  await expect(page.locator('#status')).toContainText('another tab');await expect(layer(page,'tableware','green')).toHaveCount(1);
+  await expect(finish(page,'tableware')).toHaveAccessibleName(label('tableware','green'));await other.close();
 });
 
-test('Cancel discards Apply while it waits for the shared save lock',async({page,context})=>{
-  await start(page);await house(page);await edit(page,'tableware');await choose(page,'green');const before=await saved(page);
-  const other=await context.newPage();await other.goto('./');
+test('a finish press waits for the shared save lock and then saves once',async({page,context})=>{
+  await begin(page);const before=await saved(page),other=await context.newPage();await other.goto('./');await opened(other);
   await other.evaluate(key=>{
     void navigator.locks.request(key,async()=>{
       document.body.dataset.locked='';await new Promise<void>(resolve=>document.addEventListener('release-test-lock',()=>resolve(),{once:true}));
     });
-  },SAVE_KEY);
+  },KEY);
   await expect(other.locator('body')).toHaveAttribute('data-locked','');
-  await page.getByRole('button',{name:'Apply',exact:true}).click();await expect(page.getByRole('button',{name:'Apply',exact:true})).toBeDisabled();
-  await page.getByRole('button',{name:'Cancel',exact:true}).click();
-  await other.evaluate(()=>document.dispatchEvent(new Event('release-test-lock')));expect(await saved(page)).toEqual(before);
-  await expect(page.locator('[data-decoration="tableware"]')).toBeFocused();await other.close();
+  await finish(page,'tableware').click();expect(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)!).state,KEY)).toEqual(before);
+  await other.evaluate(()=>document.dispatchEvent(new Event('release-test-lock')));
+  await expect(layer(page,'tableware','green')).toHaveCount(1);expect((await saved(page)).decorationChoices).toEqual({tableware:'green'});await other.close();
+});
+
+test('a valid save from another tab restores play after load recovery',async({page,context})=>{
+  await page.goto('./');await page.evaluate(key=>localStorage.setItem(key,'{broken'),KEY);await page.reload();
+  await expect(page.getByRole('button',{name:'Retry saved game'})).toBeVisible();
+  const other=await context.newPage();await other.goto('./');
+  await other.evaluate(({key,text})=>localStorage.setItem(key,text),{key:KEY,text:serialize(checkpoint(9))});
+  await expect(page.locator('#modal')).not.toBeVisible();await expect(page.locator('#status')).toContainText('another tab');
+  const before=await saved(page);await page.locator('[data-cell="1"]').click();
+  expect((await saved(page)).board.filter(Boolean).length).toBe(before.board.filter(Boolean).length+1);await other.close();
 });

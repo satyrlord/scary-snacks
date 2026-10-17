@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { boardObstacles, createGame, firstFreeBoardCell, freeBoardCells, menuReward, pendingPreparationObstacles, reduceGame, unresolvedObstacle, validateGame } from '../../src/engine.ts';
+import { boardObstacles, createGame, firstFreeBoardCell, freeBoardCells, requiredQuests, pendingPreparationObstacles, reduceGame, unresolvedObstacle, validateGame } from '../../src/engine.ts';
 import type { GameData, GameState } from '../../src/engine.ts';
 import { SAVE_KEY, exportSave } from '../../src/storage.ts';
 
@@ -10,7 +10,8 @@ const tile = (page: Page, index: number) => page.locator(`[data-cell="${index}"]
 function checkpoint(count = 0) {
   let state = createGame(data);
   for (let index = 0; index < count; index++) {
-    Object.assign(state, data.tasks[index].goals, { coins: data.tasks[index].cost });
+    state.completedQuests = requiredQuests(index, data).map(quest => quest.id);
+    state.coins = data.tasks[index].cost;
     const paid = reduceGame(state, { type: 'task' }, data);
     expect(paid.ok, paid.message).toBe(true); state = paid.state;
   }
@@ -18,7 +19,8 @@ function checkpoint(count = 0) {
   state.preparationObstacles = { start: count, placed: [] };
   state.resolvedObstacles = state.resolvedObstacles.filter(id => data.board.layouts.find(layout => layout.id === state.layoutId)!.obstacles.some(obstacle => obstacle.id === id));
   state.pendingScenes = [];
-  Object.assign(state, data.tasks[count].goals, { coins: data.tasks[count].cost });
+  state.completedQuests = requiredQuests(count, data).map(quest => quest.id);
+  state.coins = data.tasks[count].cost;
   expect(validateGame(state, data)).toBe(true); return state;
 }
 function paidCheckpoint(count = 0) {
@@ -53,6 +55,37 @@ async function expectPreparationImage(art: Locator) {
   });
   expect(image).toEqual({ loaded: true, local: true });
 }
+async function expectFrameFit(art: Locator, columns: number, rows: number, index: number) {
+  const fit = await art.evaluate(async (element, { columns, rows, index }) => {
+    const style = getComputedStyle(element), image = new Image();
+    image.src = style.backgroundImage.match(/url\(["']?([^"')]+)/)![1]; await image.decode();
+    const scale = style.backgroundSize.split(' ').map(parseFloat);
+    const width = image.naturalWidth * 100 / scale[0], height = image.naturalHeight * 100 / scale[1];
+    const x = parseFloat(style.backgroundPositionX) / 100 * (image.naturalWidth - width);
+    const y = parseFloat(style.backgroundPositionY) / 100 * (image.naturalHeight - height);
+    const cellWidth = image.naturalWidth / columns, cellHeight = image.naturalHeight / rows;
+    const left = index % columns * cellWidth, top = Math.floor(index / columns) * cellHeight;
+    const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256;
+    const context = canvas.getContext('2d')!; context.drawImage(image,x,y,width,height,0,0,256,256);
+    const pixels = context.getImageData(0,0,256,256).data;
+    let x0=256,y0=256,x1=-1,y1=-1;
+    for(let py=0;py<256;py++)for(let px=0;px<256;px++)if(pixels[(py*256+px)*4+3]>=128){
+      x0=Math.min(x0,px);y0=Math.min(y0,py);x1=Math.max(x1,px);y1=Math.max(y1,py);
+    }
+    return { square: Math.abs(width-height),
+      inside: x>=left-.05 && y>=top-.05 && x+width<=left+cellWidth+.05 && y+height<=top+cellHeight+.05,
+      width:(x1-x0+1)/256,height:(y1-y0+1)/256,
+      offsetX:Math.abs((x0+x1+1)/512-.5),offsetY:Math.abs((y0+y1+1)/512-.5) };
+  }, { columns, rows, index });
+  expect(fit.square).toBeLessThan(.05); expect(fit.inside).toBe(true);
+  expect(fit.width).toBeGreaterThan(.9); expect(fit.height).toBeGreaterThan(.87);
+  expect(fit.offsetX).toBeLessThan(.025); expect(fit.offsetY).toBeLessThan(.025);
+}
+
+test('initial blocker frames fill their tiles without sampling neighbouring sprites', async ({ page }) => {
+  await start(page, createGame(data));
+  for(let index=0;index<6;index++)await expectFrameFit(page.locator(`.clutter-art-${index}`).first(),3,2,index);
+});
 
 test('a failed preparation save adopts no batch and keeps the coins and progress', async ({ page }) => {
   const initial = checkpoint(); delete initial.preparationObstacles;
@@ -83,7 +116,7 @@ test('paying a preparation adds its contextual batch once and retains it after r
   await pay(page);
   const paid = await saved(page), batch = data.board.preparations[0];
   expect(paid.taskIndex).toBe(1); expect(paid.coins).toBe(0);
-  expect(paid.board).toEqual(initial.board); expect(paid.orders).toEqual(initial.orders);
+  expect(paid.board).toEqual(initial.board); expect(paid.completedQuests).toEqual(initial.completedQuests);
   expect(active(paid).map(obstacle => obstacle.id)).toEqual(batch.obstacles.map(obstacle => obstacle.id));
   for (const obstacle of active(paid)) {
     await expect(tile(page, obstacle.position)).toHaveAccessibleName(new RegExp(obstacle.name));
@@ -91,21 +124,18 @@ test('paying a preparation adds its contextual batch once and retains it after r
   }
   await tile(page, active(paid)[0].position).click();
   await expect(page.locator('#status')).toContainText(batch.context);
-  await expect(page.locator('#status')).toContainText('merge into a space beside it');
+  await expect(page.locator('#status')).toContainText('into this space to clear it');
   await page.reload(); expect(await saved(page)).toEqual(paid);
   expect(active(await saved(page))).toHaveLength(batch.obstacles.length);
 });
 
-test('a merge beside preparation clutter reveals its ingredient without respawning it', async ({ page }) => {
+test('a matching merge clears preparation clutter without respawning it', async ({ page }) => {
   const initial = paidCheckpoint(), obstacle = active(initial).find(value => value.type === 'clutter')!;
-  const neighbors = [obstacle.position - 6, obstacle.position + 6, ...(obstacle.position % 6 ? [obstacle.position - 1] : []), ...(obstacle.position % 6 < 5 ? [obstacle.position + 1] : [])];
-  const destination = neighbors.find(index => index >= 0 && index < initial.board.length && !initial.board[index] && !unresolvedObstacle(initial, index, data))!;
-  expect(destination).toBeDefined(); initial.board[destination] = { code: 'bakery_1' };
-  const source = firstFreeBoardCell(initial, data); initial.board[source] = { code: 'bakery_1' };
-  await start(page, initial); await tile(page, source).click(); await tile(page, destination).click();
+  const source = firstFreeBoardCell(initial, data); initial.board[source] = { code: obstacle.ingredient };
+  await start(page, initial); await tile(page, source).click(); await tile(page, obstacle.position).click();
   const after = await saved(page);
   expect(after.resolvedObstacles).toContain(obstacle.id);
-  expect(after.board[obstacle.position]).toEqual({ code: obstacle.ingredient });
+  expect(after.board[obstacle.position]).toEqual({ code: data.items[obstacle.ingredient].next });
   expect(after.preparationObstacles!.placed).toEqual(initial.preparationObstacles!.placed);
   await expect(tile(page, obstacle.position)).not.toHaveClass(/clutter/);
   await page.reload(); expect(await saved(page)).toEqual(after);
@@ -131,16 +161,13 @@ test('a full board defers the batch and sales place it while keeping three free 
   await page.reload(); expect(await saved(page)).toEqual(state);
 });
 
-test('order guidance finds a preparation anchor and the keyboard releases it', async ({ page }) => {
+test('blocker guidance finds a preparation ingredient and the keyboard releases it', async ({ page }) => {
   const initial = paidCheckpoint(2), anchor = active(initial).find(value => value.type === 'anchored')!;
   const source = firstFreeBoardCell(initial, data); initial.board[source] = { code: anchor.ingredient };
   const wanted = data.items[anchor.ingredient].next!;
-  initial.orders[0] = { ...initial.orders[0], requirements: [wanted], reward: menuReward([wanted], data), pricing: 'menu-1' };
-  await start(page, initial);
-  await page.locator('#orders .order').first().locator('.order-item').first().click();
-  await page.getByRole('button', { name: 'Show me on the board' }).click();
-  await expect(tile(page, source)).toHaveAttribute('aria-pressed', 'true');
-  await expect(tile(page, anchor.position)).toHaveClass(/hint/);
+  await start(page, initial); await tile(page, anchor.position).click();
+  await expect(tile(page, source)).toHaveClass(/blocker-target/);
+  await tile(page, source).focus(); await page.keyboard.press('Enter');
   await tile(page, anchor.position).focus(); await page.keyboard.press('Enter');
   await expect(tile(page, anchor.position)).not.toHaveClass(/anchored/);
   const after = await saved(page);
@@ -154,6 +181,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
     for (const obstacle of active(initial)) {
       const cell = tile(page, obstacle.position), box = (await cell.boundingBox())!;
+      expect(await cell.evaluate(element => getComputedStyle(element, '::before').backgroundColor)).toBe('rgba(184, 38, 44, 0.2)');
       expect(box.x).toBeGreaterThanOrEqual(0); expect(box.y).toBeGreaterThanOrEqual(0);
       expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1);
       expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
@@ -181,13 +209,7 @@ for (const theme of ['light', 'dark']) test(`all twelve preparation atlas tiles 
     expect(obstacle, `placed sprite ${sprite}`).toBeDefined();
     const cell = tile(page, obstacle.position), art = cell.locator(`.preparation-art-${sprite}`);
     await expect(art).toBeVisible(); await expect(art).toHaveClass(new RegExp(`preparation-art-${sprite}(?: |$)`));
-    await expect(art).toHaveCSS('background-size', '400% 300%');
-    const position = await art.evaluate(element => {
-      const style = getComputedStyle(element);
-      return [parseFloat(style.backgroundPositionX), parseFloat(style.backgroundPositionY)];
-    });
-    expect(position[0]).toBeCloseTo(sprite % 4 * 100 / 3, 3);
-    expect(position[1]).toBe(Math.floor(sprite / 4) * 50);
+    await expectFrameFit(art,4,3,sprite);
     await expectPreparationImage(art);
     await cell.screenshot({ path: testInfo.outputPath(`atlas-${sprite}.png`) });
   }

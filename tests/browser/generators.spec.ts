@@ -1,37 +1,13 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { readFileSync } from 'node:fs';
-import { createGame, getLevel, reduceGame, unresolvedObstacle, validateGame } from '../../src/engine.ts';
-import type { GameData, GameState } from '../../src/engine.ts';
-import { SAVE_KEY, exportSave } from '../../src/storage.ts';
+import { unresolvedObstacle } from '../../src/engine.ts';
+import type { GameState } from '../../src/engine.ts';
+import { appearance, checkpoint, data, saved, start } from './support.ts';
 
-const data: GameData=JSON.parse(readFileSync('public/data/game.json','utf8'));
-function afterPreparations(count: number){
-  let state=createGame(data);state.coins=100000;
-  Object.assign(state,data.tasks[Math.min(count,data.tasks.length-1)].goals);
-  for(let index=0;index<count;index++){
-    const result=reduceGame(state,{type:'task'},data);expect(result.ok,result.message).toBe(true);state=result.state;
-  }
-  state.coins=count<data.tasks.length?data.tasks[count].cost:0;
-  // Delivered requests cannot cover the output controls. The delayed shared visit stays locked without its service counter.
-  state.completedQuests=data.quests.filter(quest=>quest.afterQuestServices===undefined&&(quest.afterTask===null||state.decorations.includes(quest.afterTask))&&state.served>=(quest.afterServed??0)).map(quest=>quest.id);
-  expect(validateGame(state,data)).toBe(true);
-  return state;
-}
-async function start(page: Page,state: GameState){
-  const save=exportSave(state,candidate=>validateGame(candidate,data));
-  await page.addInitScript(([key,value])=>{if(localStorage.getItem(key)===null)localStorage.setItem(key,value);},[SAVE_KEY,save]);
-  await page.goto('./');await expect(page.locator('#board button')).toHaveCount(42);
-}
-async function saved(page: Page): Promise<GameState>{
-  return page.evaluate(key=>navigator.locks.request(key,()=>JSON.parse(localStorage.getItem(key)!).state),SAVE_KEY);
-}
+/** The game after count preparations, ready to pay the next one. Every open request is delivered, so no ticket offers a dish. */
+const afterPreparations=(count: number)=>checkpoint(count,{ready:true});
 const take=(page: Page,code: string)=>page.getByRole('button',{name:`Take ${data.items[code].name}`,exact:true});
 const source=(page: Page,state: GameState,chain='bakery')=>page.locator(`[data-cell="${state.board.findIndex(cell=>cell?.code===`generator_${chain}`)}"]`);
-async function appearance(page: Page,mode: string){
-  await page.getByRole('button',{name:/House book/}).first().click();
-  await page.getByRole('radio',{name:mode,exact:true}).check();await page.getByRole('button',{name:'Close dialog'}).click();
-}
 
 for(const [preparations,stage] of [[12,2],[20,3]])test(`preparation ${preparations} names the new outputs only after payment`,async({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'});
@@ -47,20 +23,18 @@ for(const [preparations,stage] of [[12,2],[20,3]])test(`preparation ${preparatio
   for(const chain of data.chains){
     await expect(page.locator('.completion-message')).toContainText(`The ${data.items[`generator_${chain.id}`].name} can now make ${data.items[`${chain.id}_${stage}`].name}.`);
   }
-  const paid=await saved(page);expect(paid.taskIndex).toBe(preparations);expect(paid.orders).toEqual(before.orders);
+  const paid=await saved(page);expect(paid.taskIndex).toBe(preparations);
   expect(paid.board).toEqual(before.board);expect(paid.outputChoices).toEqual(before.outputChoices);
   await page.keyboard.press('Escape');await expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done');
   // Both preparations end a chapter, so its closing scene follows the reveal.
   await expect(page.getByRole('dialog',{name:/^Chapter \d complete: /})).toBeVisible();await page.keyboard.press('Escape');
-  // Preparation 20 also reaches a level with a reward, which the game offers after the scene.
-  if(getLevel(paid)>getLevel(initial)){await expect(page.getByRole('dialog',{name:`Level ${getLevel(paid)} reached`,exact:true})).toBeVisible();await page.keyboard.press('Escape');}
   await source(page,paid).click();await expect(page.locator('#item-detail .take-button')).toHaveCount(stage);
   await expect(take(page,`bakery_${stage}`)).toBeVisible();
   for(let lower=1;lower<=stage;lower++)await expect(take(page,`bakery_${lower}`).locator('.food')).toBeVisible();
 });
 
-test('keyboard takes keep focus, preserve the seed, and can return to a lower output',async({page})=>{
-  const initial=afterPreparations(20);await start(page,initial);await appearance(page,'Light');await source(page,initial).click();
+test('keyboard takes keep focus and can return to a lower output',async({page})=>{
+  const initial=afterPreparations(20);await start(page,initial);await appearance(page,'light');await source(page,initial).click();
   const before=await saved(page);const button=take(page,'bakery_3');await button.focus();
   for(const key of ['Enter','Space']){
     await page.keyboard.press(key);await expect(button).toBeFocused();await expect(button).toHaveAttribute('aria-pressed','true');
@@ -69,7 +43,7 @@ test('keyboard takes keep focus, preserve the seed, and can return to a lower ou
     // The chosen ring stays visible under the focus ring.
     await expect(button).toHaveCSS('box-shadow',/4px inset$/);
   }
-  const higher=await saved(page);expect(higher.outputChoices).toEqual({bakery:'bakery_3'});expect(higher.seed).toBe(before.seed);
+  const higher=await saved(page);expect(higher.outputChoices).toEqual({bakery:'bakery_3'});
   expect(higher.board.filter(cell=>cell?.code==='bakery_3')).toHaveLength(before.board.filter(cell=>cell?.code==='bakery_3').length+2);
   await take(page,'bakery_1').focus();await page.keyboard.press('Enter');await expect(take(page,'bakery_1')).toBeFocused();
   expect((await saved(page)).outputChoices).toEqual({});await expect(take(page,'bakery_3')).toHaveAttribute('aria-pressed','false');

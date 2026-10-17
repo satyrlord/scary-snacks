@@ -104,6 +104,7 @@ export function planAsset(assetId: unknown, size?: string) {
     ...dimensions,
     columns: asset.columns,
     rows: asset.rows,
+    ...(asset.blankCells ? { blankCells: asset.blankCells } : {}),
     experimentalResolution: dimensions.pixels > EXPERIMENTAL_PIXELS,
   };
 }
@@ -180,6 +181,7 @@ function inspectOptions(assetId: AssetId, size?: string) {
     background: asset.background,
     columns: asset.columns,
     rows: asset.rows,
+    ...(asset.blankCells ? { blankCells: asset.blankCells } : {}),
     minimumWidth: MINIMUM_WIDTH,
     ...(expectedSize ? { expectedSize } : {}),
   };

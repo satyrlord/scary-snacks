@@ -1,5 +1,5 @@
-import { createGame, reduceGame, validateGame, getLevel, availableLevelRewards, generatorOutputs, nextOutput, dataProblems, canServe, servedCells, taskEligibility, saleValue, normalizeOrderCustomers, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, removeBreadTasting, unresolvedObstacle, boardObstacles, pendingPreparationObstacles, freeBoardCells, resolveChapters, journalCharacters } from './engine.ts';
-import type { Action, ChapterView, DecorationSlot, DecorationVariant, GameData, GameState, Order, Quest, RoomView, SceneLine, Task } from './engine.ts';
+import { createGame, reduceGame, validateGame, generatorOutputs, nextOutput, dataProblems, taskEligibility, saleValue, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, questDeliveryCells, decorationUnlocked, deliveriesSince, unresolvedObstacle, boardObstacles, pendingPreparationObstacles, freeBoardCells, resolveChapters, journalCharacters, resolveNeighbours, arrivalScene } from './engine.ts';
+import type { Action, ChapterView, DecorationSlot, DecorationVariant, GameData, GameState, Quest, RoomView, SceneLine, Task } from './engine.ts';
 import { loadSave, saveGame, exportSave, importSave, resetSave, SAVE_KEY, MAX_SAVE_BYTES } from './storage.ts';
 import type { WriteResult } from './storage.ts';
 
@@ -23,8 +23,8 @@ const spriteBounds = [[25,53,237,208],[267,92,247,176],[519,50,241,209],[779,76,
 // Sprites share one scale unless a side is larger than SPRITE_VIEW atlas pixels.
 const SPRITE_VIEW = 246;
 // Rendering replaces the controls in these regions, so focus is restored by region and position.
-const FOCUS_REGIONS = '#board,#orders,#story,#item-detail,#offer';
-const TONE_EVENTS = ['merge', 'serve', 'task'];
+const FOCUS_REGIONS = '#board,#tickets,#story,#item-detail,#offer';
+const TONE_EVENTS = ['merge', 'deliverQuest', 'task'];
 const modal = $<HTMLDialogElement>('#modal');
 const svg = <K extends keyof SVGElementTagNameMap>(tag: K) => document.createElementNS('http://www.w3.org/2000/svg', tag);
 const reason = (error: unknown) => error instanceof Error ? error.message : String(error);
@@ -39,9 +39,9 @@ const drawerLayout = matchMedia('(max-width: 1023px)');
 const movableDrawer = matchMedia('(max-width: 1023px) and (height > 600px)');
 // Reduced motion keeps every outcome and line of text, without the flights, the drawer's movement, the fades, or the bats.
 const still = matchMedia('(prefers-reduced-motion: reduce)');
-// The serve timeline: the dishes land on the ticket, the neighbour thanks you, the ticket goes, and the next neighbour's ticket arrives in the same place.
+// The delivery timeline: the dishes land on the ticket, the completion scene opens, and the next request's ticket arrives in the same place.
 // RISE_AT sets the arrival delay in style.css; ARRIVAL_MS covers the arrival.
-const FLIGHT_MS = 600, SINK_AT = 1500, FAREWELL_MS = 1850, RISE_AT = 1600, ARRIVAL_MS = 2200;
+const FLIGHT_MS = 600, RISE_AT = 700, ARRIVAL_MS = 1300;
 // The reveal timeline: the drawer lowers, the new state comes into focus, the pin lands, and the drawer rises again.
 const LOWER_MS = 650, FOCUS_MS = 1200, SETTLE_MS = 1400;
 // A room painting is shown as wide as the room: the phone's full width, or the room half of a wider screen.
@@ -59,21 +59,13 @@ const BLOCKED_STORAGE = 'Not saved: this browser blocks storage, so this game la
 let theme = 'system';
 let data: GameData, state: GameState, selected: number | null = null, sound = false, audioContext: AudioContext | null = null;
 let saveMessage = '', saveFailed = false, ignoreClick = false, catAsleep = false, freshDishes = 0;
-let observedSave: string | null = null, gameVersion = 0;
-let recoveryRequired = false, editingDecoration: string | null = null;
-let modalReturn: (() => void) | null = null, questFlow = false, sceneFlow = false, offerFlow = false;
-// The highest level whose rewards the player has seen, in the level-up dialog or the House book. Saves do not keep it.
-let offeredLevel = 1;
-// Each request that the player has seen ready to deliver, in its dialog or in Neighbour quests. Saves do not keep it, so each load offers the ready requests again.
-const offeredQuests = new Set<string>();
-// The open requests that the player saw in Neighbour quests: a viewing preference, kept apart from the save. A request that is not in it is new.
-const SEEN_KEY = 'scary-snacks-seen-quests';
-let seenQuests = new Set<string>();
-// The candle glows breathe on one clock, so a render that rebuilds a glowing control does not restart its breath.
-const BREATH_MS = 3200;
+let observedSave: string | null = null, gameVersion = 0, deliveryToken = 0;
+let recoveryRequired = false;
+let modalReturn: (() => void) | null = null, sceneFlow = false;
 // Each waiting scene whose line could not be saved has warned the player once.
 const unsavedScenes = new Set<string>();
-const arriving: number[] = [], farewells = new Map<string, number>(), spoken = new Map<string, number>();
+// The time at which each ticket slot took a new request, so its arrival survives renders.
+const arriving: number[] = [];
 let dragging: { index: number; id: number; x: number; y: number; ghost: SVGSVGElement | null } | null = null;
 let spriteSequence = 0, boardFocus = 0;
 // The room: the area it shows, a paid preparation whose change waits for the end of its story, and the next painting while it downloads.
@@ -82,7 +74,6 @@ let earnedScene: string | null = null;
 let viewArea = '', held: Task | null = null, revealToken = 0, paintingToken = 0, preloaded: HTMLPictureElement | null = null, lowered = false, swipe = 0;
 let storage: Storage | null = null;
 try { storage = window.localStorage; } catch { /* Session play remains available. */ }
-try { const list: unknown = JSON.parse(storage?.getItem(SEEN_KEY) ?? '[]'); if (Array.isArray(list)) seenQuests = new Set(list.filter(id => typeof id === 'string')); } catch { /* Every open request is new. */ }
 const validate = (candidate: unknown) => validateGame(candidate, data);
 const definition = (code: string) => getItem(code,data)!;
 const itemName = (code: string) => definition(code)?.name || 'Item';
@@ -91,20 +82,33 @@ const character = (id: string) => data.characters.find(value => value.id === id)
 const sourceOf = (chain: string) => Object.values(data.items).find(item => item.generator && item.chain === chain)!;
 const chosenOutput = (code: string) => nextOutput(state,code,data)!;
 const sourceOutput = (code: string) => generatorOutputs(state,code,data).map(itemName).join(' or ');
-const matchingAnchor = (code: string) => boardObstacles(state,data).find(obstacle =>
-  obstacle.type === 'anchored' && obstacle.ingredient === code && !state.resolvedObstacles.includes(obstacle.id));
+const matchingBlocker = (code: string) => boardObstacles(state,data).find(obstacle =>
+  obstacle.ingredient === code && !state.resolvedObstacles.includes(obstacle.id));
 function status(text: string) { $('#status').textContent = text; }
 /** Mara's note for a selected item, which the status region announces. On phones the note leaves out the name, which the selection strip shows. */
 function selectionLine(code: string) {
   const def = definition(code), name = phone.matches ? '' : `${itemName(code)}: `;
-  const line = def.generator ? `tap it to take more ${itemName(chosenOutput(code))}.` : def.next ? 'tap another to merge, or an empty space to move it.' : 'a final dish. Serve it, or tap an empty space to move it.';
+  const line = def.generator ? `tap it to take more ${itemName(chosenOutput(code))}.` : def.next ? 'tap another to merge, or an empty space to move it.' : 'a final dish. Deliver it, or tap an empty space to move it.';
   return name ? name + line : line[0].toUpperCase() + line.slice(1);
 }
 /** Board cells pulse after a render; the next render removes the pulse. */
 function pulse(cells: number[]) { for (const at of cells) $(`[data-cell="${at}"]`).classList.add('hint'); }
+// Square crops within each portrait cell: left, top, and side as fractions of the cell.
+// Face scale and eye lines guide these crops; headwear and upper-body identity remain visible.
+const portraitFrames: Record<string, readonly [number, number, number]> = {
+  mara: [.08,0,.84], ilie: [.07,0,.86], eszter: [.09,0,.82], sorin: [.1,0,.8],
+  adrian: [.11,.1,.78], monica: [.1,.14,.78], janos: [.11,.08,.8], ionatan: [.08,.045,.84],
+  vlad: [.06,0,.88], elisabeta: [.06,0,.88], mina: [.11,.07,.8], avram: [.1,.09,.8],
+  dochia: [.08,.015,.84], victor: [.08,0,.84], ana: [.08,0,.84], costel: [.07,0,.86],
+  sanziana: [.07,.015,.86], dorian: [.08,0,.84], ileana: [.09,.015,.82], cezar: [.07,.01,.86],
+  catalina: [.1,.06,.82], bran: [.1,.03,.82],
+};
 function portrait(id: string) {
   const person = character(id);
-  const value = element('span', `portrait portrait-${person.sprite}${person.portraitAtlas === 'guest' ? ' guest-portrait' : person.visitor ? ' visitor-portrait' : ''}`);
+  const value = element('span', `portrait portrait-${person.sprite}${person.portraitAtlas ? ` ${person.portraitAtlas}-portrait` : person.visitor ? ' visitor-portrait' : ''}`);
+  const [left,top,side] = portraitFrames[person.id];
+  value.style.backgroundSize = `${200/side}% ${200/side}%`;
+  value.style.backgroundPosition = `${100*(person.sprite%2+left)/(2-side)}% ${100*(Math.floor(person.sprite/2)+top)/(2-side)}%`;
   value.setAttribute('role', 'img'); value.setAttribute('aria-label', person.name); return value;
 }
 /** The ingredient-source badge on a board tile: a plus in a disc. */
@@ -141,8 +145,17 @@ function food(code: string, extra = '') {
   value.append(image);
   value.setAttribute('aria-hidden', 'true'); return value;
 }
-function clutterArt(index: number, className: string) {
-  const value = element('span', `clutter-art clutter-art-${index} ${className}`);
+// Square crops follow visible frame bounds, with a clear margin, and stay inside their source cells.
+// This brings the frame towards the tile edge without shrinking the ingredient or exposing a neighbouring sprite.
+const blockerFrames = [[47,44,446],[518,8,504],[1041,30,476],[33,515.5,470],[529,512,482],[1047,514,461]];
+const preparationFrames = [[54.5,56,263],[422,56.5,267],[766,45.5,277],[1135,65,259],[51,396,275],[419,389.5,274],[769,391,282],[1130,399,274],[40,730.5,287],[410,728,292],[768,730,286],[1120,732.5,288]];
+function clutterArt(index: number, className: string, preparation = false) {
+  const prefix = preparation ? 'preparation-art' : 'clutter-art';
+  const value = element('span', `${prefix} ${prefix}-${index} ${className}`);
+  const [x,y,side] = (preparation ? preparationFrames : blockerFrames)[index];
+  const [width,height] = preparation ? [1448,1086] : [1536,1024];
+  value.style.backgroundSize = `${100*width/side}% ${100*height/side}%`;
+  value.style.backgroundPosition = `${100*x/(width-side)}% ${100*y/(height-side)}%`;
   value.setAttribute('aria-hidden', 'true');
   return value;
 }
@@ -152,18 +165,13 @@ function blockerMark() {
   const question = svg('path'); question.setAttribute('d','M9.2 8.5a2.8 2.8 0 0 1 5.6 0c0 2-2.8 2-2.8 4M12 16v.5');
   value.append(circle,question); return value;
 }
-/** Mark merge destinations beside clutter, or movable matches for tied food. These are hints, not a clearing action. */
+/** Mark movable matches for the selected blocked ingredient. */
 function blockerTargets(index: number): number[] {
   const obstacle = unresolvedObstacle(state,index,data);
   if (!obstacle) return [];
   return state.board.flatMap((cell, at) => {
     const other = unresolvedObstacle(state,at,data);
-    if (obstacle.type === 'anchored') return !other && cell?.code === obstacle.ingredient ? [at] : [];
-    const beside = Math.abs(Math.floor(index / data.board.columns) - Math.floor(at / data.board.columns))
-      + Math.abs(index % data.board.columns - at % data.board.columns) === 1;
-    if (!beside || other?.type === 'clutter') return [];
-    const code = other?.ingredient ?? cell?.code;
-    return !code || definition(code).next && !definition(code).generator ? [at] : [];
+    return !other && cell?.code === obstacle.ingredient ? [at] : [];
   });
 }
 function clearSelectionButton() {
@@ -199,7 +207,7 @@ function playTone(kind: string) {
     const context = audioContext ||= new AudioContext();
     context.resume().catch(() => {});
     const now = context.currentTime;
-    const frequencies = kind === 'serve' ? [392, 587.33] : kind === 'task' ? [329.63, 493.88] : [293.66];
+    const frequencies = kind === 'deliverQuest' ? [392, 587.33] : kind === 'task' ? [329.63, 493.88] : [293.66];
     frequencies.forEach((frequency, index) => {
       const tone = context.createOscillator(); const gain = context.createGain();
       tone.type = 'sine'; tone.frequency.value = frequency;
@@ -218,17 +226,17 @@ function reportSave(result: WriteResult) {
   for (const line of document.querySelectorAll('.save-status')) line.textContent = saveMessage;
 }
 function persist() {
-  const result = saveGame(storage, state, validate, removeBreadTasting);
+  const result = saveGame(storage, state, validate);
   if (result.ok) observedSave = JSON.stringify(state);
   reportSave(result);
 }
 /** Reads the stored save, not the event value, so a delayed storage event cannot let an old board replace newer progress. */
 function syncSavedGame() {
-  const saved = loadSave<GameState>(storage, validate, removeBreadTasting);
+  const saved = loadSave<GameState>(storage, validate);
   if (saved.status !== 'loaded' || !saved.state || JSON.stringify(saved.state) === observedSave) return false;
   observedSave = JSON.stringify(saved.state);
   recoveryRequired = false;
-  replaceGame(saved.state, true);
+  replaceGame(saved.state);
   if (modal.open) modal.close();
   reportSave({ok:true,error:null}); render();
   status('This game moved on in another tab. The board now shows that progress.');
@@ -236,7 +244,7 @@ function syncSavedGame() {
 }
 /** All game writes share one origin-wide lock. Cancel an action if its board was replaced while it waited. */
 function changeGame(change: () => void, recovery = false) {
-  if(recoveryRequired&&!recovery){status('Your saved game could not open. Open the House book and retry.');return;}
+  if(recoveryRequired&&!recovery){status('Your saved game could not open. Open Options and retry.');return;}
   const version = gameVersion;
   const apply = () => { if (!syncSavedGame() && version === gameVersion) change(); };
   if (storage && navigator.locks) return navigator.locks.request(SAVE_KEY, apply);
@@ -250,7 +258,7 @@ function applyAction(action: Action, select?: number | null) {
   if (result.ok) {
     // A preparation must be durable before its story or visual reward appears.
     if(action.type==='task'||action.type==='decorate') {
-      const saved=saveGame(storage,result.state,validate,removeBreadTasting);reportSave(saved);
+      const saved=saveGame(storage,result.state,validate);reportSave(saved);
       if(!saved.ok) {
         const message=action.type==='decorate'?`The choice was not saved. Your previous choice stays. ${saved.error}`:`The preparation was not saved. No coins were spent. ${saved.error}`;
         render();status(message);return {state,ok:false,message,event:null};
@@ -261,7 +269,7 @@ function applyAction(action: Action, select?: number | null) {
     state = result.state; if (select !== undefined) selected = select; if(action.type!=='task'&&action.type!=='decorate')persist();
     if (result.event && TONE_EVENTS.includes(result.event)) playTone(result.event);
   }
-  render(); if(action.type!=='claimLevelReward')status(result.message);
+  render(); status(result.message);
   if (state.coins > coins) celebrateCoins(state.coins - coins);
   if (result.ok && (result.event === 'merge' || result.event === 'spawn')) {
     // A new dish settles onto its tile; the first one of its kind arrives with a little flourish and goes into the recipe book.
@@ -269,7 +277,6 @@ function applyAction(action: Action, select?: number | null) {
     const first = state.discovered.filter(code => !known.has(code) && data.items[code] && !definition(code).generator);
     if (first.length) { freshDishes += first.length; markRecipeBook(); status(`${itemName(first[0])} is a new dish! It is in the recipe book now.`); }
   }
-  if (result.ok) offerRewards();
   return result;
 }
 /** The recipe book shows how many dishes are new since it was last opened. */
@@ -280,45 +287,29 @@ function markRecipeBook() {
   const dishes = Object.values(data.items).filter(item => !item.generator).length;
   $('#discovery-count').textContent = `${state.discovered.filter(code => data.items[code] && !definition(code).generator).length} of ${dishes} dishes discovered${label}`;
 }
-/** Serving from a ticket: the dishes lift from the board and land on the ticket, the neighbour thanks you, and the next neighbour's ticket takes its place. */
-function serve(order: Order) { return changeGame(() => {
-  const slot = state.orders.findIndex(value => value.id === order.id);
-  const card = $('#orders').children[slot] as HTMLElement | undefined;
-  const from = servedCells(state, order, data).filter(index => index >= 0).map(index => $(`[data-cell="${index}"]`).getBoundingClientRect());
-  const leaving = card?.cloneNode(true) as HTMLElement | undefined, box = card?.getBoundingClientRect(), stage = $('.tickets').getBoundingClientRect();
-  const now = performance.now();
-  arriving[slot] = now;
-  const result = applyAction({ type:'serve', id:order.id });
-  if (!result.ok || !leaving || !box) { arriving[slot] = 0; renderOrders(); return; }
-  const person = character(order.customer), turn = spoken.get(person.id) ?? state.served, line = person.thanks[turn % person.thanks.length];
-  spoken.set(person.id, turn + 1);
-  status(`${person.name}: “${line}” Earned ${coinText(order.reward)}.`);
-  // With four neighbours and three tickets, the one who arrives may still be saying goodbye elsewhere: they wait until that copy has gone.
-  const farewell = farewells.get(state.orders[slot].customer);
-  if (farewell && farewell > now) arriving[slot] = farewell + 150 - RISE_AT;
-  farewells.set(person.id, now + FAREWELL_MS);
-  const arrival = arriving[slot];
-  setTimeout(() => {
-    if (arriving[slot] !== arrival) return;
-    arriving[slot] = 0;
-    $('#orders').children[slot]?.classList.remove('arriving');
-  }, arrival + ARRIVAL_MS - now);
-  // The departing ticket is a copy laid over the slot, outside #orders, so renders during the farewell leave it alone.
-  leaving.classList.remove('arriving'); leaving.classList.add('leaving'); leaving.removeAttribute('aria-label'); leaving.setAttribute('aria-hidden', 'true'); leaving.inert = true;
-  leaving.style.left = `${box.left - stage.left}px`; leaving.style.top = `${box.top - stage.top}px`; leaving.style.width = `${box.width}px`; leaving.style.height = `${box.height}px`;
-  // The ticket keeps its size and its dish slot until the dishes land; then the neighbour says thank you.
-  const thank = () => leaving.replaceChildren(portrait(person.id), element('p', 'order-name', person.name), element('p', 'thanks', line));
-  $('.tickets').append(leaving);
-  if (still.matches) thank(); else fly(order.requirements, from, leaving.querySelector('.order-items') ?? leaving).then(thank);
-  if (state.served % 7 === 0) batFlight();
-  setTimeout(() => leaving.classList.add('gone'), SINK_AT);
-  setTimeout(() => leaving.remove(), FAREWELL_MS);
+/**
+ * Delivering from a ticket: the dishes lift from the board and land on the ticket, the completion scene opens, and the next request
+ * takes the ticket's place. After a failed save, the completion says so, and Options offers Retry save.
+ */
+function deliver(quest: Quest) { return changeGame(() => {
+  const slot = activeQuests().indexOf(quest);
+  const card = $('#tickets').children[slot] as HTMLElement | undefined;
+  const cells = questDeliveryCells(state, quest, data), from = cells.filter(index => index >= 0).map(index => $(`[data-cell="${index}"]`).getBoundingClientRect());
+  const codes = quest.requirements.flatMap(requirement => Array<string>(requirement.quantity).fill(requirement.item));
+  const into = card?.getBoundingClientRect();
+  arriving[slot] = performance.now();
+  const result = applyAction({ type:'deliverQuest', id:quest.id });
+  if (!result.ok) { arriving[slot] = 0; renderTickets(); return; }
+  if (state.completedQuests.length % 3 === 0) batFlight();
+  const message = `${result.message}${saveFailed ? ' This session is not saved. Use Retry save in Options, or export before leaving.' : ''}`;
+  const token = deliveryToken;
+  const open = () => { if (token === deliveryToken && state.pendingScenes.includes(quest.id) && !modal.open) showScene(quest.id, undefined, { completion:message }); };
+  if (still.matches || !into) open(); else void fly(codes, from, into).then(open);
 }); }
-/** Served dishes lift off their tiles, arc over the board and land on the neighbour's ticket, visible all the way. */
-function fly(codes: string[], from: DOMRect[], into: Element) {
-  const target = into.getBoundingClientRect();
+/** Delivered dishes lift off their tiles, arc over the board and land on the neighbour's ticket, visible all the way. */
+function fly(codes: string[], from: DOMRect[], target: DOMRect) {
   return Promise.all(from.map((start, index) => {
-    const size = Math.min(start.width, start.height), ghost = food(codes[index], 'serve-flight');
+    const size = Math.min(start.width, start.height), ghost = food(codes[index], 'deliver-flight');
     ghost.style.left = `${start.left}px`; ghost.style.top = `${start.top}px`; ghost.style.width = ghost.style.height = `${size}px`;
     document.body.append(ghost);
     const dx = target.left + target.width / 2 - (start.left + size / 2), dy = target.top + target.height / 2 - (start.top + size / 2);
@@ -328,31 +319,19 @@ function fly(codes: string[], from: DOMRect[], into: Element) {
       { transform: `translate(${dx * .45}px, ${dy * .55 - 40}px) scale(.85)`, offset: .45, easing: 'cubic-bezier(.4,0,.2,1)' },
       { transform: `translate(${dx}px, ${dy}px) scale(${landed})`, opacity: 1, offset: .88 },
       { transform: `translate(${dx}px, ${dy}px) scale(${landed * .9})`, opacity: 0 },
-    ], { duration: FLIGHT_MS, delay: index * 80, fill: 'both' }).finished.finally(() => ghost.remove());
+    ], { duration: FLIGHT_MS, delay: Math.min(index, 5) * 60, fill: 'both' }).finished.finally(() => ghost.remove());
   }));
 }
-/** A resize or rotation moves the tickets, so any farewell still on screen ends at once and the next tickets simply stand in place. */
-function endFarewells() {
-  for (const copy of document.querySelectorAll('.tickets > .order.leaving')) copy.remove();
-  farewells.clear(); arriving.fill(0);
-  for (const card of $('#orders').children) card.classList.remove('arriving');
-}
 /** Replacing the game also ends presentation state from the previous board, including a reveal that has not run. */
-function replaceGame(next: GameState, keepQuestOffers = false) {
-  gameVersion++;
-  cancelDrag(); endFarewells();
-  for (const flight of document.querySelectorAll('.serve-flight')) flight.remove();
-  state = normalizeOrderCustomers(next, data); selected = null; freshDishes = 0; spoken.clear();
-  held = null; earnedScene = null; revealToken++; preloaded = null; viewArea = latestArea(state.decorations, data); offeredLevel = getLevel(state);
-  // Another tab must not repeat a dismissed request when its ingredients become ready again. A new or imported game has no seen request.
-  if (!keepQuestOffers) {
-    offeredQuests.clear(); seenQuests.clear();
-    try { storage?.removeItem(SEEN_KEY); } catch { /* Nothing was kept. */ }
-  }
-  seeQuests();
+function replaceGame(next: GameState) {
+  gameVersion++; deliveryToken++;
+  cancelDrag(); arriving.fill(0); ticketQuests = [];
+  for (const flight of document.querySelectorAll('.deliver-flight')) flight.remove();
+  state = next; selected = null; freshDishes = 0;
+  held = null; earnedScene = null; revealToken++; preloaded = null; viewArea = latestArea(state.decorations, data);
   $('.game-layout').classList.remove('revealing'); $('#room-stage').removeAttribute('data-reveal'); setLowered(false);
 }
-/** Now and then a bat crosses the dusk beyond the front room's mended window: after each preparation, and after every seventh serve. Never while the page is hidden, under reduced motion, or before the window is mended. */
+/** Now and then a bat crosses the dusk beyond the front room's mended window: after each preparation, and after every third delivery. Never while the page is hidden, under reduced motion, or before the window is mended. */
 function batFlight() {
   const frame = $('#room-frame');
   if (still.matches || document.hidden || frame.dataset.area !== 'front-room' || frame.dataset.painting === 'front-room-00' || $('#room-stage').hasAttribute('data-failed')) return;
@@ -388,16 +367,14 @@ function chooseCell(index: number) {
   const obstacle = unresolvedObstacle(state,index,data);
   if (obstacle) {
     const held = selected !== null ? state.board[selected] : null;
-    if (obstacle.type === 'anchored' && held?.code === obstacle.ingredient) {
+    if (held?.code === obstacle.ingredient) {
       act({ type:'move', from:selected!, to:index }, index);
     } else if (selected === index) {
       selected = null; render(); status(MOVE_HINT);
     } else {
       selected = index;
       render();
-      const rule = obstacle.type === 'clutter'
-        ? `${obstacle.name}: merge into a space beside it to clear the clutter and reveal an ingredient.`
-        : `${obstacle.name}: merge a movable ${itemName(obstacle.ingredient)} into this space to release it.`;
+      const rule = `${obstacle.name}: merge a movable ${itemName(obstacle.ingredient)} into this space to clear it.`;
       status(obstacle.context ? `${rule} ${obstacle.context}` : rule);
     }
     return;
@@ -421,7 +398,7 @@ function render() {
   const region = active?.closest<HTMLElement>(FOCUS_REGIONS) ?? null;
   const position = region ? [...region.querySelectorAll('button')].indexOf(active as HTMLButtonElement) : -1;
   const previousCell = $('#board').querySelector<HTMLElement>('.selected')?.dataset.cell;
-  // An order can use up the selected item.
+  // A delivery can use up the selected item.
   if (selected !== null && !state.board[selected] && !unresolvedObstacle(state,selected,data)) selected = null;
   // While an item is selected, its actions take the place of Mara's line.
   $('.game-layout').toggleAttribute('data-selected', selected !== null);
@@ -430,7 +407,6 @@ function render() {
   const free = freeBoardCells(state,data);
   const pending = pendingPreparationObstacles(state,data).length;
   const targets = selected === null ? [] : blockerTargets(selected);
-  const selectedObstacle = selected === null ? null : unresolvedObstacle(state,selected,data);
   const board = $('#board'); board.replaceChildren();
   board.setAttribute('aria-label', `Merge board, ${data.board.columns} columns and ${data.board.rows} rows, ${free} free ${free === 1 ? 'space' : 'spaces'}${pending ? `, ${pending} preparation blockers waiting` : ''}`);
   state.board.forEach((cell, index) => {
@@ -438,12 +414,10 @@ function render() {
     const value = button('', `cell ${obstacle ? `obstacle ${obstacle.type}` : cell ? '' : 'empty'} ${selected === index ? 'selected' : ''} ${targets.includes(index) ? 'blocker-target' : ''}`, () => chooseCell(index));
     value.dataset.cell = String(index);
     const what = obstacle
-      ? obstacle.type === 'clutter'
-        ? `${obstacle.name}, clutter. Merge into a space beside it to reveal an ingredient${state.taskIndex === 0 ? '. Covered in webs' : ''}`
-        : `${obstacle.name}, anchored ${itemName(obstacle.ingredient)}. Merge a matching movable ingredient into this space to release it`
+      ? `${obstacle.name}, blocked ${itemName(obstacle.ingredient)}. Merge a matching movable ingredient into this space to clear it`
       : !cell ? 'empty' : definition(cell.code).generator ? `${itemName(cell.code)}, source of ${sourceOutput(cell.code)}: tap to take an ingredient` : itemName(cell.code);
     value.setAttribute('aria-label', `Row ${Math.floor(index / data.board.columns) + 1}, column ${index % data.board.columns + 1}: ${what}${obstacle?.context ? `. ${obstacle.context}` : ''}`);
-    if (targets.includes(index)) value.setAttribute('aria-label', `${value.getAttribute('aria-label')}. ${selectedObstacle?.type === 'clutter' ? 'Merge here to clear the selected clutter' : 'Matching item for the selected tied ingredient'}`);
+    if (targets.includes(index)) value.setAttribute('aria-label', `${value.getAttribute('aria-label')}. Matching item for the selected blocked ingredient`);
     if (selected === index && obstacle) value.setAttribute('aria-describedby','blocker-rule');
     // One tab stop for the whole board; the arrow keys move between spaces.
     value.tabIndex = index === (selected ?? boardFocus) ? 0 : -1;
@@ -452,62 +426,69 @@ function render() {
       value.append(food(cell.code));
       if (definition(cell.code).generator) value.append(sourceMark());
     }
+    if (obstacle) value.append(food(obstacle.ingredient));
     if (obstacle?.type === 'clutter') {
       const artIndex = obstacle.sprite ?? Math.max(0,['old-crate','tied-sack','covered-crock','linen-bundle'].indexOf(obstacle.id));
-      if (obstacle.atlas === 'preparation') value.append(element('span', `preparation-art preparation-art-${artIndex} clutter-object`));
-      else value.append(clutterArt(artIndex, 'clutter-object'));
+      value.append(clutterArt(artIndex, 'clutter-object', obstacle.atlas === 'preparation'));
       if (state.taskIndex === 0) value.append(clutterArt(4, 'clutter-overlay'));
     }
     if (obstacle?.type === 'anchored') {
-      value.append(food(obstacle.ingredient));
       value.append(clutterArt(5, 'clutter-overlay'));
     }
     if (obstacle) {
       value.append(blockerMark());
-      value.title = obstacle.type === 'clutter' ? 'Merge two matching items beside this clutter to clear it. Tap for help.'
-        : `Merge another ${itemName(obstacle.ingredient)} into this tied space. Tap for help.`;
+      value.title = `Merge another ${itemName(obstacle.ingredient)} into this blocked space. Tap for help.`;
     }
     board.append(value);
   });
-  renderOrders(); $('#story').replaceChildren(storyContent(false)); renderDetail(); renderOffer();
+  renderTickets(); $('#story').replaceChildren(storyContent(false)); renderDetail(); renderOffer();
   markRecipeBook();
-  markLevelRewards();
   if (region && position >= 0) {
     const controls = [...region.querySelectorAll('button')];
     const target = [controls[position], ...controls].find(control => control && !control.disabled && control.checkVisibility({ visibilityProperty:true }))
       ?? (previousCell === undefined ? null : board.querySelector<HTMLElement>(`[data-cell="${previousCell}"]`));
     target?.focus({ preventScroll:true });
   }
+  syncRoomControls();
 }
-/** Each waiting neighbour is a paper ticket on the drawer: their portrait, the dishes they want, and Serve. */
-function renderOrders() {
-  const container = $('#orders'); container.replaceChildren();
-  state.orders.forEach((order, slot) => {
-    const ready = canServe(state, order, data);
-    const person = character(order.customer);
-    const card = element('article', 'order'); card.setAttribute('aria-label', `${person.name}’s order`);
-    // A ticket that has just taken a served neighbour's place arrives in the same slot; the delay survives renders.
+/** The request on each ticket. A request keeps its ticket, and the next open request takes the first free ticket, in authored order. */
+let ticketQuests: string[] = [];
+const activeQuests = () => {
+  const open = resolveQuests(state, data).filter(view => view.status === 'active').map(view => view.quest);
+  const waiting = open.filter(quest => !ticketQuests.includes(quest.id));
+  const kept = ticketQuests.map(id => open.find(quest => quest.id === id) ?? waiting.shift()).filter(quest => quest !== undefined);
+  const tickets = [...kept, ...waiting]; ticketQuests = tickets.map(quest => quest.id); return tickets;
+};
+/** The portions of a request that the board holds now, at most the quantity that it needs. */
+const onBoard = (code: string, quantity: number) => Math.min(quantity, state.board.filter((cell, index) => cell?.code === code && !unresolvedObstacle(state, index, data)).length);
+/** Each request on the counter is a paper ticket on the drawer: the neighbour's portrait, the dishes with their counts, and Deliver. */
+function renderTickets() {
+  const container = $('#tickets'); container.replaceChildren();
+  activeQuests().forEach((quest, slot) => {
+    const person = character(quest.character), ready = canDeliverQuest(state, quest, data);
+    const card = element('article', 'ticket'); card.setAttribute('aria-label', `${person.name}’s request: ${quest.title}`);
+    card.dataset.quest = quest.id;
+    // A ticket that has just taken a delivered request's place arrives in the same slot; the delay survives renders.
     const since = arriving[slot] ? performance.now() - arriving[slot] : Infinity;
     if (since < ARRIVAL_MS) { card.classList.add('arriving'); card.style.setProperty('--rise-delay', `${RISE_AT - Math.round(since)}ms`); }
     const face = portrait(person.id); face.setAttribute('aria-hidden', 'true');
-    const onBoard = servedCells(state, order, data).map(index => index >= 0);
-    const labels = order.requirements.map((code, index) => `${itemName(code)}, ${onBoard[index] ? 'ready on the board' : 'not on the board yet'}`);
-    // A drawer ticket is too narrow for a 44px target per dish, so two dishes share one target that opens the order.
-    const shared = drawerLayout.matches && order.requirements.length > 1;
-    const requirements = shared ? button('', 'order-items', () => showOrder(person.name, order.requirements)) : element('div', 'order-items');
-    if (shared) requirements.setAttribute('aria-label', `${person.name}’s dishes: ${labels.join('; ')}`);
-    order.requirements.forEach((code, index) => {
-      const kind = `order-item ${onBoard[index] ? 'ready' : ''}`;
-      const value = shared ? element('span', kind) : button('', kind, () => showItem(code));
-      if (!shared) value.setAttribute('aria-label', labels[index]);
-      value.append(food(code)); requirements.append(value);
-    });
-    // Phones show the price alone until the order can be served, so three tickets fit the drawer's handle.
-    const serveButton = button('', 'primary-button serve-button', () => serve(order));
-    serveButton.append(element('span', 'serve-word', 'Serve'), element('span', 'serve-dot', ' ·'), ` ${order.reward}`, coinMark());
-    serveButton.disabled = !ready; serveButton.setAttribute('aria-label', `Serve ${person.name} for ${coinText(order.reward)}`);
-    card.append(face, element('p', 'order-name', person.name), requirements, serveButton); container.append(card);
+    const labels = quest.requirements.map(({ item, quantity }) => `${quantity} ${itemName(item)}, ${onBoard(item, quantity)} on the board`);
+    // The dishes open the request: its words, each dish with its count, and Deliver.
+    const dishes = button('', `ticket-items${quest.requirements.length > 2 ? ' many' : ''}`, () => showQuest(quest));
+    dishes.setAttribute('aria-label', `${quest.title}: ${labels.join('; ')}`);
+    for (const { item, quantity } of quest.requirements) {
+      const value = element('span', `ticket-item ${onBoard(item, quantity) === quantity ? 'ready' : ''}`);
+      value.append(food(item));
+      if (quantity > 1) value.append(element('span', 'ticket-count', `${onBoard(item, quantity)}/${quantity}`));
+      dishes.append(value);
+    }
+    // Phones show the reward alone until the request can be delivered, so three tickets fit the drawer's handle.
+    const deliverButton = button('', 'primary-button deliver-button', () => deliver(quest));
+    deliverButton.append(element('span', 'deliver-word', 'Deliver'), element('span', 'deliver-dot', ' ·'), ` ${count.format(quest.reward)}`, coinMark());
+    deliverButton.disabled = !ready; deliverButton.setAttribute('aria-label', `Deliver ${quest.title} to ${person.name} for ${coinText(quest.reward)}`);
+    card.append(face, element('p', 'ticket-name', person.name), dishes, deliverButton); container.append(card);
   });
+  if (!container.childElementCount) container.append(element('p', 'tickets-empty', state.taskIndex === data.tasks.length ? 'Every request is delivered. The bistro is yours.' : 'No requests wait now. Pay for the next preparation.'));
 }
 function miezSprite() {
   const sprite = element('span', `mascot miez-sprite ${catAsleep ? 'cat-sleeping' : 'cat-sitting'}`); sprite.setAttribute('aria-hidden', 'true'); return sprite;
@@ -534,7 +515,7 @@ function storyContent(inSheet: boolean) {
     notice.append(element('p', '', scene?.prompt ?? 'A story scene is waiting.'), read); content.append(notice);
   }
   const body = element('div', 'task-content');
-  if (!task) body.append(element('h3', '', 'The table is ready.'), element('p', '', 'The community supper is open. Keep serving your neighbours and completing your menu.'));
+  if (!task) body.append(element('h3', '', 'The table is ready.'), element('p', '', 'The community supper is open, and every request is delivered. The board and the recipe book stay yours.'));
   else {
     body.append(element('h3', '', task.title));
     const requirements = element('ul', 'task-requirements');
@@ -543,13 +524,11 @@ function storyContent(inSheet: boolean) {
     for (const requirement of eligibility.requirements) {
       const row = element('li');
       row.dataset.requirement = requirement.kind;
-      if (requirement.kind === 'quest') {
-        row.append(element('span', '', `Quest: ${requirement.title}`), element('span', 'requirement-status', requirement.met ? 'Complete' : 'Required'));
-      } else if (requirement.kind === 'space') {
+      if (requirement.kind === 'space') {
         if (requirement.met) continue;
         row.append(element('span', '', `Free one board space for the ${requirement.source}.`));
       } else {
-        const label = requirement.kind === 'coins' ? 'Coins' : requirement.kind === 'served' ? 'Total orders served' : 'Total merges';
+        const label = requirement.kind === 'coins' ? 'Coins' : 'Quests delivered';
         row.append(element('span', '', `${label}: ${count.format(requirement.current)} / ${count.format(requirement.required)}`),
           element('span', 'requirement-status', requirement.met ? 'Complete' : `Need ${count.format(requirement.required - requirement.current)}`));
       }
@@ -562,7 +541,6 @@ function storyContent(inSheet: boolean) {
     actions.append(pay, details); body.append(requirements, actions);
   }
   const links = element('div', 'story-links');
-  links.append(questLink());
   const journalLink=button('Journal','text-button',journal);journalLink.setAttribute('aria-label','Open the story journal');links.append(journalLink);
   // The drawer can cover the windowsill on phones, so the cat also waits in the Story sheet there.
   const cat = button('', 'cat-visit', toggleCat); const words = element('span');
@@ -613,25 +591,17 @@ function renderOffer() {
   const eligibility = taskEligibility(state, data), task = eligibility.task, offer = $('#offer'), story = $('#story-button');
   const ready = eligibility.ready && !$('#story').checkVisibility();
   $('.game-layout').toggleAttribute('data-offer', ready);
-  // A request that calls the player puts its neighbour's face on the Story item. The same face keeps its breath through renders.
-  const calling = callingQuests()[0], person = calling && character(calling.character), shown = story.querySelector<HTMLElement>('.story-face');
-  if (shown?.dataset.person !== person?.id) {
-    shown?.remove();
-    if (person) { const face = portrait(person.id); face.classList.add('story-face'); face.removeAttribute('role'); face.removeAttribute('aria-label'); face.dataset.person = person.id; breathe(face); story.append(face); }
-  }
-  const call = calling ? canDeliverQuest(state, calling, data) ? `${person!.name}’s request is ready` : `${person!.name} is waiting` : '';
-  story.toggleAttribute('data-ready', ready); story.setAttribute('aria-label', ['Story', ready ? 'a preparation is ready' : '', call].filter(Boolean).join(', '));
+  story.toggleAttribute('data-ready', ready); story.setAttribute('aria-label', ready ? 'Story, a preparation is ready' : 'Story');
   if (!ready) { offer.replaceChildren(); return; }
-  const face = element('span', 'portrait portrait-0'), words = element('p');
+  const face = portrait('mara'), words = element('p');
   face.setAttribute('aria-hidden', 'true'); words.append(element('strong', '', task!.title), element('span', '', 'Ready when you are.'));
   offer.replaceChildren(face, words, payButton(task!));
 }
-/** The selection strip's note: how a source works, or which neighbours are waiting for the item, so a sale is never a surprise. */
+/** The selection strip's note: how a source works, or which neighbours on the tickets want the item, so a sale is never a surprise. */
 function detailNote(code: string) {
   if (definition(code).generator) return 'Tap it on the board, or use Take. It never runs out.';
-  const waiting = [...new Set([...state.orders.filter(order => order.requirements.includes(code)).map(order => character(order.customer).name),
-    ...resolveQuests(state,data).filter(view => view.status === 'active' && view.quest.requirements.some(requirement => requirement.item === code)).map(view => character(view.quest.character).name)])];
-  return waiting.length ? `${names.format(waiting)} ${waiting.length === 1 ? 'is' : 'are'} waiting for one.` : 'No one has ordered it yet.';
+  const waiting = [...new Set(activeQuests().filter(quest => quest.requirements.some(requirement => requirement.item === code)).map(quest => character(quest.character).name))];
+  return waiting.length ? `${names.format(waiting)} ${waiting.length === 1 ? 'is' : 'are'} waiting for one.` : 'No request on the counter needs it now.';
 }
 /** An item's six-stage chain as an ordered list with visible names, three to a row. */
 function chainOf(code: string) {
@@ -645,7 +615,7 @@ function chainOf(code: string) {
   }
   return chain;
 }
-/** The item dialog answers the order's question: how to get this item, and how many are at hand. Its title names the item. */
+/** The item dialog answers the request's question: how to get this item, and how many are at hand. Its title names the item. */
 function detailContent(code: string) {
   const def = definition(code), name = itemName(code), source = sourceOf(def.chain);
   const onBoard = state.board.filter(cell => cell?.code === code).length;
@@ -664,8 +634,6 @@ function detailContent(code: string) {
 }
 /** Points at the next step toward an item: the item itself, the highest pair that merges toward it, or its source. */
 function showWay(code: string) {
-  // Ingredient help transfers focus into the kitchen, so the close event must not return it to Story.
-  questFlow=false;
   modal.close();
   const def = definition(code), name = itemName(code);
   const cells = (id: string) => state.board.flatMap((cell, index) => cell?.code === id ? [index] : []);
@@ -675,8 +643,8 @@ function showWay(code: string) {
   for (let stage = def.stage - 1; stage >= 1; stage--) {
     const id = `${def.chain}_${stage}`, pair = cells(id).slice(0, 2);
     if (pair.length === 2) return point(pair, `Tap the other ${itemName(id)} to merge them.`);
-    const anchor = matchingAnchor(id);
-    if (pair.length && anchor) return point([pair[0], anchor.position], `Tap the anchored ${itemName(id)} to merge and release it.`);
+    const blocker = matchingBlocker(id);
+    if (pair.length && blocker) return point([pair[0], blocker.position], `Tap the blocked ${itemName(id)} to merge and clear it.`);
   }
   const source = sourceOf(def.chain), at = cells(source.id);
   const output = generatorOutputs(state,source.id,data).filter(id => definition(id).stage <= def.stage).at(-1)!;
@@ -692,15 +660,8 @@ function renderDetail() {
   const outputs = cell && definition(cell.code).generator ? generatorOutputs(state,cell.code,data) : [];
   container.classList.toggle('multiple-outputs', outputs.length > 1);
   if (obstacle) {
-    // When every marked space is tied food, name what to merge there instead of a pair.
-    const targets = obstacle.type === 'clutter' ? blockerTargets(selected!) : [];
-    const tied = targets.map(at => unresolvedObstacle(state,at,data)).filter(value => value?.type === 'anchored');
-    const names = [...new Set(tied.map(value => itemName(value!.ingredient)))].join(' or ');
-    const copy = element('div','blocker-copy'), rule = element('p','blocker-rule', obstacle.type === 'anchored'
-      ? `Merge another ${itemName(obstacle.ingredient)} into this tied space.`
-      : tied.length && tied.length === targets.length ? `Merge another ${names} into ${tied.length === 1 ? 'the' : 'a'} marked tied space beside it.`
-      : targets.length ? 'Merge two matching items in a marked space beside it.'
-      : 'Move a source or final dish away from beside it, then merge there.');
+    const copy = element('div','blocker-copy'), rule = element('p','blocker-rule',
+      `Merge another ${itemName(obstacle.ingredient)} into this blocked space.`);
     rule.id = 'blocker-rule';
     copy.append(element('strong','blocker-title',obstacle.name),rule);
     container.append(copy,clearSelectionButton()); fitPin(); return;
@@ -740,12 +701,25 @@ function showModal(title: string, content: Node, focus?: HTMLElement, back?: () 
   if(!modal.open)modal.showModal();
   if(focus)focus.focus();else if(replacing&&!modal.contains(document.activeElement))$('#modal-title').focus();
 }
-function showItem(code: string) { const content=element('div','item-detail');content.append(detailContent(code));showModal(itemName(code),content); }
-/** A drawer ticket's shared dish target: the order lists its dishes, and each opens its item dialog. */
-function showOrder(name: string, codes: string[]) {
-  const grid=element('div','recipe-grid');
-  for(const code of codes){const value=button('','recipe-item',()=>showItem(code));value.append(food(code),element('span','',itemName(code)));grid.append(value);}
-  showModal(`${name}’s order`,grid);
+function showItem(code: string, back?: () => void) { const content=element('div','item-detail');content.append(detailContent(code));showModal(itemName(code),content,undefined,back); }
+/** A request on a ticket: who asks and why, each dish with the count on the board, the reward, and Deliver. Each dish opens its help. */
+function showQuest(quest: Quest) {
+  const content=element('div','quest-view'),people=[quest.character,...quest.companions??[]],head=element('div','quest-heading'),words=element('div');
+  words.append(element('p','quest-person',names.format(people.map(id=>character(id).name))));
+  for(const id of people)head.append(portrait(id));
+  head.append(words);content.append(head);
+  for(const line of quest.opening)content.append(element('p','quest-line',people.length>1||line.speaker!==quest.character?`${character(line.speaker).name}: ${line.text}`:line.text));
+  const requirements=element('ul','quest-requirements');
+  for(const {item,quantity} of quest.requirements){
+    const have=onBoard(item,quantity),row=element('li'),inspect=button('','quest-item',()=>showItem(item,()=>showQuest(quest)));
+    inspect.setAttribute('aria-label',`${quantity} ${itemName(item)}: ${have} of ${quantity} on the board`);
+    inspect.append(food(item),element('span','',`${quantity} ${itemName(item)}`),element('span','quest-count',`${have} / ${quantity} on board`));row.append(inspect);requirements.append(row);
+  }
+  const deliverButton=button(`Deliver · ${count.format(quest.reward)}`,'primary-button quest-deliver',()=>{modal.close();void deliver(quest);});
+  deliverButton.append(coinMark());deliverButton.setAttribute('aria-label',`Deliver ${quest.title} for ${coinText(quest.reward)}`);deliverButton.disabled=!canDeliverQuest(state,quest,data);
+  const actions=element('div','quest-actions');actions.append(deliverButton);
+  content.append(requirements,element('p','quest-reward',`Reward: ${coinText(quest.reward)}`),actions,element('p','quest-note','Delivery uses dishes on the board. There is no deadline.'));
+  showModal(quest.title,content);
 }
 /** The chapter's preparations as steps: done, now, or not yet. Screen readers hear each name; the count repeats it for the eye. */
 function chapterSteps(view: ChapterView, numbered: boolean) {
@@ -767,6 +741,8 @@ function storyScene(id: string) {
   const index=data.chapters.findIndex(chapter=>chapter.id===id);
   if(index>=0){const chapter=data.chapters[index];return {title:`Chapter ${index+1} complete: ${chapter.title}`,dialogue:chapter.closing,completion:chapter.payoff,prompt:`Chapter ${index+1} is complete.`};}
   if(id===data.finale.id)return {title:data.finale.title,dialogue:data.finale.dialogue,completion:data.finale.ending,prompt:'The supper can begin.'};
+  const arrival=data.characters.find(person=>person.arrival&&arrivalScene(person)===id);
+  if(arrival)return {title:`${arrival.name} arrives`,dialogue:arrival.arrival!,completion:`${arrival.name} is now a regular. Read more about ${arrival.name} in the story journal.`,prompt:'A new neighbour has arrived.'};
   const news=data.quests.find(quest=>quest.followUp?.id===id)?.followUp;
   if(news)return {title:news.title,dialogue:news.dialogue,completion:'The news is recorded in the story journal.',prompt:'News has reached the bistro.'};
   return null;
@@ -814,7 +790,7 @@ function showStory(task: { title: string; dialogue: SceneLine[] }, paid = false,
   const content=element('div'),stage=element('div','story-stage'),words=element('div','story-dialogue'),speaker=element('h3'),said=element('p');
   words.id='story-line';words.setAttribute('aria-live','polite');words.setAttribute('aria-atomic','true');words.append(speaker,said);
   const counter=element('span'),controls=element('div','story-controls'),unsaved=element('p');unsaved.setAttribute('role','status');
-  const warn=()=>{unsaved.className='save-error scene-unsaved';unsaved.textContent='This session is not saved. You can keep reading. Use Retry save in the House book before you leave.';};
+  const warn=()=>{unsaved.className='save-error scene-unsaved';unsaved.textContent='This session is not saved. You can keep reading. Use Retry save in Options before you leave.';};
   const move=(step: number)=>{cursor+=step;draw();if(end)void recordLine(end.id,cursor,warn);};
   const back=button('Back','secondary-button',()=>{move(-1);if(back.disabled)forward.focus();});
   const forward=button('Continue','primary-button',()=>{if(cursor<last)move(1);else if(end)end.finish();else if(backTo)backTo();else modal.close();});
@@ -831,68 +807,25 @@ function showStory(task: { title: string; dialogue: SceneLine[] }, paid = false,
   }
   draw();showModal(task.title,content,forward,backTo);
 }
-/** Quests share the Story sheet. They leave every ordinary ticket and board space in place. */
-function questBook(focusQuest?: string, message = '') {
-  questFlow=true;seeQuests();
-  // The open requests are now seen, so the glow stops unless a request is ready.
-  if(callingQuests().some(quest=>!canDeliverQuest(state,quest,data))){markQuestsSeen();render();}
-  const content=element('div','quest-book');
-  content.append(element('p','modal-copy','Prepare something for a neighbour or a visiting traveller. These requests have no deadline. Your three ordinary orders stay at the counter.'));
-  const notice=element('p','quest-notice');notice.setAttribute('role','status');notice.textContent=message;
-  content.append(notice);
-  const views=resolveQuests(state,data),available=views.filter(view=>view.status==='active');
-  for(const {quest} of available){
-    const card=element('article','quest-card');card.dataset.quest=quest.id;
-    const heading=element('h3','',quest.title);heading.tabIndex=-1;heading.id=`heading-${quest.id}`;card.setAttribute('aria-labelledby',heading.id);
-    const head=element('div','quest-heading'),words=element('div'),people=[quest.character,...quest.companions??[]];
-    words.append(heading,element('p','quest-person',names.format(people.map(id=>character(id).name))));
-    for(const id of people)head.append(portrait(id));
-    head.append(words);card.append(head);
-    if(character(quest.character).visitor)card.append(element('p','quest-note',quest.opening[0].text));
-    const requirements=element('ul','quest-requirements'),totals=new Map<string,number>();
-    for(const requirement of quest.requirements)totals.set(requirement.item,(totals.get(requirement.item)??0)+requirement.quantity);
-    for(const [code,quantity] of totals){
-      const onBoard=Math.min(state.board.filter(cell=>cell?.code===code).length,quantity);
-      const row=element('li'),inspect=button('','quest-item',()=>{
-        const details=element('div','item-detail');details.append(detailContent(code));
-        showModal(itemName(code),details,undefined,()=>questBook(quest.id));
-      });
-      inspect.setAttribute('aria-label',`${itemName(code)}: ${onBoard} of ${quantity} on the board`);
-      inspect.append(food(code),element('span','',`${quantity} ${itemName(code)}`),element('span','quest-count',`${onBoard} / ${quantity} on board`));row.append(inspect);requirements.append(row);
-    }
-    card.append(requirements,element('p','quest-reward',`Reward: ${coinText(quest.reward)}`));
-    card.append(element('p','quest-note','Delivery uses items on the board.'));
-    const actions=element('div','quest-actions');
-    const read=button('Read request','secondary-button',()=>showStory({title:quest.title,dialogue:quest.opening},false,'',()=>questBook(quest.id)));
-    read.setAttribute('aria-label',`Read request: ${quest.title}`);actions.append(read);
-    const deliver=button(`Deliver · ${count.format(quest.reward)}`,'primary-button',()=>deliverQuest(quest,card,()=>questBook(quest.id)));
-    deliver.setAttribute('aria-label',`Deliver ${quest.title} for ${quest.reward} coins`);deliver.disabled=!canDeliverQuest(state,quest.id,data);actions.append(deliver);
-    card.append(actions);content.append(card);
-  }
-  const done=views.filter(view=>view.status==='complete').length;
-  if(!available.length)content.append(element('p','',done===views.length?'Every neighbour request is complete. You can read their conversations in the story journal.':'No request is ready yet. Continue preparations and ordinary service to open more requests.'));
-  content.append(element('p','quest-progress',`${done} of ${data.quests.length} requests complete`),element('p','save-status',saveMessage));
-  if(saveFailed&&!recoveryRequired&&storage)content.append(button('Retry save','secondary-button',()=>changeGame(()=>{
-    persist();questBook(focusQuest,saveFailed?`This session is not saved. ${saveMessage}`:'Your quests and progress are saved in this browser.');
-  })));
-  content.append(button('Open the story journal','text-button',journal));
-  const focus=focusQuest?content.querySelector<HTMLElement>(`[data-quest="${focusQuest}"] h3`)??$('#modal-title'):undefined;
-  showModal('Neighbour quests',content,focus);
-}
-/** The completion leads back to where delivery started. After a failed save it leads to Neighbour quests, which offers Retry save. */
-function deliverQuest(quest: Quest, source: HTMLElement, back?: () => void) { return changeGame(()=>{
-  if(!source.isConnected)return;
-  const result=applyAction({type:'deliverQuest',id:quest.id});
-  if(!result.ok){questBook(quest.id,result.message);return;}
-  const message=`${result.message}${saveFailed?' This session is not saved. Return to quests and use Retry save, or export before leaving.':''}`;
-  showScene(quest.id,saveFailed?()=>questBook(quest.id):back,{completion:message});
-}); }
 function journal(focusEntry?: string) {
   const content=element('div','journal-list');
   content.append(element('p','modal-copy','Meet your neighbours and read your saved conversations. Reading never gives another reward.'));
   content.append(element('h3','','Neighbours'));
   const people=journalCharacters(state,data);
-  for(const person of people){
+  // A neighbour who has not arrived is a dashed outline without a name, so the page does not spoil later chapters.
+  for(const {person,arrived,delivered} of resolveNeighbours(state,data)){
+    if(!arrived){const slot=element('div','journal-entry neighbour-entry not-yet');slot.append(element('span','portrait-outline'),element('span','','Not yet'));content.append(slot);continue;}
+    const scene=person.arrival?arrivalScene(person):null,waiting=!!scene&&state.pendingScenes.includes(scene);
+    const meet=()=>showStory({title:`Meet ${person.name}`,dialogue:[{speaker:person.id,text:person.introduction}]},false,'',()=>journal(person.id));
+    const entry=button('','journal-entry neighbour-entry',()=>waiting?showScene(scene!,()=>journal(person.id)):meet());
+    const likes=person.prefers?`Favourites: ${names.format(person.prefers.map(chain=>data.chains.find(value=>value.id===chain)!.name))}`:'';
+    const words=element('span','neighbour-words');words.append(element('strong','',person.name),element('span','',person.role));if(likes)words.append(element('span','',likes));
+    entry.dataset.journal=person.id;entry.setAttribute('aria-label',waiting?`Read ${person.name} arrives`:`Meet ${person.name}`);
+    entry.setAttribute('aria-description',`${person.role}${likes?`. ${likes}`:''}. ${delivered} ${delivered===1?'quest':'quests'} delivered.`);
+    entry.append(portrait(person.id),words,element('span','',waiting?'New scene':`${delivered} ${delivered===1?'quest':'quests'}`));content.append(entry);
+  }
+  // The travellers have their introductions too, while they are part of the story.
+  for(const person of people.filter(value=>value.visitor)){
     const entry=button('','journal-entry neighbour-introduction',()=>showStory({title:`Meet ${person.name}`,dialogue:[{speaker:person.id,text:person.introduction}]},false,'',()=>journal(person.id)));
     entry.dataset.journal=person.id;entry.setAttribute('aria-label',`Meet ${person.name}`);
     entry.append(portrait(person.id),element('strong','',person.name),element('span','',person.role));content.append(entry);
@@ -914,8 +847,8 @@ function journal(focusEntry?: string) {
     return entry;
   };
   for(const quest of data.quests){
-    const news=quest.followUp,completedAt=state.questCompletedAt?.[quest.id];
-    if(!news||completedAt===undefined||state.served-completedAt<news.afterServices)continue;
+    const news=quest.followUp;
+    if(!news||deliveriesSince(state,quest.id)<news.afterDeliveries)continue;
     const section=element('section','quest-journal');section.append(element('h4','','Local news'),sceneEntry(news.id));content.append(section);
   }
   // Each open chapter: its goal while it runs, or its payoff once it is complete, with its preparations and the help of a neighbour.
@@ -927,7 +860,7 @@ function journal(focusEntry?: string) {
     else section.append(element('p','',view.chapter.opening),element('p','small-copy',`Goal: ${view.chapter.objective}`));
     const help=quests.find(value=>value.quest.id===view.chapter.contribution)!;
     if(help.status!=='locked')section.append(element('p','small-copy',`${character(help.quest.character).name} helps: ${help.quest.title} · ${
-      help.status==='complete'?'Delivered':'Waiting in Neighbour quests'}`));
+      help.status==='complete'?'Delivered':help.status==='active'?'On the counter':'Waiting for a ticket'}`));
     const steps=element('ul','journal-steps');
     view.tasks.forEach((task,index)=>{
       if(index<view.done){
@@ -1034,7 +967,7 @@ function drawRoom(view: RoomView, fade = 0) {
     pin.replaceChildren(dot,words);pin.setAttribute('aria-label',`New: ${current.text}`);
   }
   const decorations=resolveDecorations(roomCompleted(),state.decorationChoices,data).filter(slot=>slot.unlocked&&slot.area===view.id);
-  drawDecorations($('#room-decorations'),view.id,roomCompleted(),state.decorationChoices);
+  drawDecorations($('#room-decorations'),view.id,roomCompleted(),state.decorationChoices);renderFinishes();
   const caption=$('#room-caption'),key=`${view.id}:${view.states.map(room=>room.id).join()}:${decorations.map(slot=>slot.selected.id).join()}`;
   if(caption.dataset.key!==key){
     caption.dataset.key=key;const list=element('ol','room-changes');
@@ -1045,7 +978,7 @@ function drawRoom(view: RoomView, fade = 0) {
   if(frame.dataset.painting===painting.id&&!fade){pin.hidden=!marked||$('#room-stage').hasAttribute('data-failed');fitPin();return Promise.resolve();}
   frame.dataset.painting=painting.id;
   if(fade)pin.hidden=true;else pin.hidden=!marked;
-  return showPainting(painting.id,fade).then(()=>{if(frame.dataset.current!==current.id)return;pin.hidden=!marked||$('#room-stage').hasAttribute('data-failed');syncMiez();});
+  return showPainting(painting.id,fade).then(()=>{if(frame.dataset.current!==current.id)return;pin.hidden=!marked||$('#room-stage').hasAttribute('data-failed');syncRoomControls();});
 }
 /** The area switch in the room's corner: open areas by name, and a locked one with the dashed "not yet" edge and the preparation that opens it. */
 function renderAreaSwitch(views: RoomView[], view: RoomView) {
@@ -1100,20 +1033,27 @@ async function reveal(task: Task) {
   // The earned scene continues the story, unless the player has opened another dialog meanwhile. It stays waiting in Story either way.
   const scene=earnedScene;earnedScene=null;
   if(scene&&state.pendingScenes.includes(scene)&&!modal.open)showScene(scene);
-  offerRewards();
 }
 /** Where the kitchen is a drawer, its handle lowers it to show the whole room and raises it again. */
 function setLowered(value: boolean) {
   lowered=value&&movableDrawer.matches;const handle=$('#drawer-handle'),layout=$('.game-layout');
   layout.classList.toggle('lowered',lowered);$('#drawer-body').inert=lowered||layout.classList.contains('revealing');
   handle.setAttribute('aria-expanded',String(!lowered));handle.setAttribute('aria-label',lowered?'Raise the kitchen':'Lower the kitchen to see the room');
+  syncRoomControls();
 }
-/** Miez takes input only while the windowsill shows above the drawer, so focus never lands on a hidden cat. */
-function syncMiez() {
-  const cat=$<HTMLButtonElement>('#cat-button'),box=cat.getBoundingClientRect(),stage=$('#room-stage').getBoundingClientRect();
-  const bottom=drawerLayout.matches?$('#drawer').getBoundingClientRect().top:stage.bottom;
-  cat.inert=!box.width||box.top<stage.top||box.bottom>bottom+1||box.left<stage.left||box.right>stage.right+1;
+/** Room controls take input only while their detail is inside the visible painting, above the drawer. */
+function syncRoomControls() {
   fitPin();
+  const stage=$('#room-stage').getBoundingClientRect(),failed=$('#room-stage').hasAttribute('data-failed');
+  const bottom=drawerLayout.matches?Math.min(stage.bottom,$('#drawer').getBoundingClientRect().top):stage.bottom;
+  for(const control of document.querySelectorAll<HTMLElement>('#cat-button,.room-finish')){
+    const box=control.getBoundingClientRect();
+    const visibleWidth=Math.min(box.right,stage.right)-Math.max(box.left,stage.left);
+    const visibleHeight=Math.min(box.bottom,bottom)-Math.max(box.top,stage.top);
+    control.inert=failed||!box.width||(control.classList.contains('room-finish')
+      ? visibleWidth<44||visibleHeight<44
+      : box.top<stage.top||box.bottom>bottom+1||box.left<stage.left||box.right>stage.right+1);
+  }
 }
 /**
  * Keeps the pin inside the visible room. It can use either side of its mark, shorten its label, or move the frame enough to show
@@ -1150,14 +1090,14 @@ function downloadSave() {
 }
 /** Kitchen sounds: the toggle changes its own words, so focus stays on it. */
 function soundToggle() {
-  const toggle=button(sound?'Turn sound off':'Turn sound on','secondary-button',()=>{sound=!sound;playTone('serve');toggle.textContent=sound?'Turn sound off':'Turn sound on';});
+  const toggle=button(sound?'Turn sound off':'Turn sound on','secondary-button',()=>{sound=!sound;playTone('deliverQuest');toggle.textContent=sound?'Turn sound off':'Turn sound on';});
   return toggle;
 }
-/** A crop uses the same scene coordinates in the room and in the editor. Saves only supply validated choice IDs. */
-function decorationImage(slot: DecorationSlot, variant: DecorationVariant, detail = false) {
+/** A finish over the room painting, cropped to its slot in scene coordinates. Saves only supply validated choice IDs. */
+function decorationImage(slot: DecorationSlot, variant: DecorationVariant) {
   const crop=slot.crop,scaleX=15.36,scaleY=20.48,value=svg('svg');
-  value.setAttribute('viewBox',detail?[crop.x*scaleX,crop.y*scaleY,crop.width*scaleX,crop.height*scaleY].join(' '):'0 0 1536 2048');
-  value.setAttribute('class',detail?'decoration-detail':'decoration-layer');value.setAttribute('aria-hidden','true');
+  value.setAttribute('viewBox','0 0 1536 2048');
+  value.setAttribute('class','decoration-layer');value.setAttribute('aria-hidden','true');
   value.dataset.slot=slot.id;value.dataset.variant=variant.id;
   const bounds=svg('svg');bounds.setAttribute('x',String(crop.x*scaleX));bounds.setAttribute('y',String(crop.y*scaleY));
   bounds.setAttribute('width',String(crop.width*scaleX));bounds.setAttribute('height',String(crop.height*scaleY));
@@ -1171,194 +1111,49 @@ function drawDecorations(holder: HTMLElement,area: string,completed: string[],ch
   const key=slots.map(slot=>`${slot.id}:${slot.selected.id}`).join();if(holder.dataset.key===key)return;
   holder.dataset.key=key;holder.replaceChildren(...slots.map(slot=>decorationImage(slot,slot.selected)));
 }
-/** The editor owns only a preview. Apply goes through the same lock and durable-write boundary as a preparation. */
-function editDecoration(id: string) {
-  const slot=resolveDecorations(state.decorations,state.decorationChoices,data).find(slot=>slot.id===id);
-  if(!slot?.unlocked)return;
-  editingDecoration=id;
-  let pending=slot.selected.id;
-  const content=element('div','decoration-editor'),preview=element('div','decoration-preview'),notice=element('p','decoration-notice');
-  notice.setAttribute('role','status');
-  const options=element('fieldset','choice-fieldset'),group=element('div','decoration-options');
-  options.append(element('legend','','Choose a finish'),group);
-  const refresh=()=>{
-    const variant=slot.variants.find(variant=>variant.id===pending)!;
-    preview.replaceChildren(decorationImage(slot,variant,true));
-    notice.textContent=`Preview: ${variant.name}. Saved: ${slot.selected.name}.`;
-  };
-  for(const variant of slot.variants){
-    const label=element('label','decoration-option'),input=element('input');input.type='radio';input.name='decoration';input.value=variant.id;input.checked=variant.id===pending;
-    input.addEventListener('change',()=>{pending=variant.id;refresh();});
-    label.append(input,element('span','',variant.name),element('small','',variant.id===slot.selected.id?'Saved choice':'Optional finish'));group.append(label);
-  }
-  const actions=element('div','settings-actions'),cancel=button('Cancel','secondary-button',()=>settings(id));
-  const apply=button('Apply','primary-button',()=>{
-    apply.disabled=true;
-    void Promise.resolve(changeGame(()=>{
-      // Cancel or dismissal while waiting for a lock discards the queued preview too.
-      if(editingDecoration!==id||!content.isConnected)return;
-      const result=applyAction({type:'decorate',slot:id,variant:pending});
-      if(result.ok){settings(id);status(`${slot.name}: ${slot.variants.find(variant=>variant.id===pending)!.name}. Saved in this browser.`);}
-      else{notice.textContent=`${result.message} Select Retry to save this choice.`;notice.classList.add('save-error');apply.textContent='Retry';}
-    })).finally(()=>{apply.disabled=false;});
-  });
-  actions.append(apply,cancel);refresh();content.append(element('p','modal-copy','Make this corner your own. You can change it again for free.'),preview,options,notice,actions);
-  showModal(slot.name,content,group.querySelector<HTMLInputElement>('input:checked')!);
-}
-function markLevelRewards() {
-  const ready=availableLevelRewards(state,data).length;
-  for(const opener of document.querySelectorAll<HTMLElement>('[data-house-book]')){
-    opener.toggleAttribute('data-rewards',ready>0);
-    opener.setAttribute('aria-label',`House book: settings and saved game${ready?`, ${ready} level ${ready===1?'reward':'rewards'} available`:''}`);
-  }
-}
-/** Offers wait until no dialog, story, or reveal is open. A level-up comes before a ready request. */
-function offerRewards() {
-  if(modal.open||held||['waiting','run'].includes($('#room-stage').dataset.reveal ?? ''))return;
-  offerLevelRewards();
-  if(!modal.open)offerQuest();
-}
 /**
- * A new level with a reward offers its claim once. The offer claims nothing.
- * Close leaves each reward in the House book. A failed save opens the House book, which offers Retry save.
+ * Each finish that a quest has unlocked has a switch on its place in the room. A tap moves to the next finish of the slot. The choice
+ * goes through the same lock and durable write as a preparation, so a failed write keeps the earlier finish.
  */
-function offerLevelRewards() {
-  const level=getLevel(state);
-  if(level<=offeredLevel)return;
-  const ready=availableLevelRewards(state,data),fresh=ready.some(reward=>reward.level>offeredLevel);
-  offeredLevel=level;if(!fresh)return;
-  const content=element('div','level-panel'),list=element('ul','level-rewards'),notice=element('p','modal-copy level-notice');notice.setAttribute('role','status');
-  for(const reward of ready){
-    const row=element('li','level-reward');row.append(element('span','',`Level ${reward.level} · ${coinText(reward.coins)}`));
-    const claim=button(`Claim ${coinText(reward.coins)}`,'primary-button',()=>changeGame(()=>{
-      const result=applyAction({type:'claimLevelReward',id:reward.id});
-      if(!result.ok){notice.textContent=result.message;return;}
-      if(saveFailed){settings();status(`${result.message} This session is not saved.`);return;}
-      if(!availableLevelRewards(state,data).length){modal.close();status(result.message);return;}
-      row.replaceChildren(row.firstChild!,element('span','level-claimed','Claimed'));notice.textContent=result.message;
-      list.querySelector<HTMLElement>('.primary-button')!.focus();
+function renderFinishes() {
+  const holder=$('#room-finishes'),{view}=currentView();
+  const slots=resolveDecorations(roomCompleted(),state.decorationChoices,data).filter(slot=>slot.unlocked&&slot.area===view.id
+    &&slot.variants.filter(variant=>decorationUnlocked(state,slot,variant.id,data)).length>1);
+  const key=slots.map(slot=>`${slot.id}:${slot.selected.id}`).join();if(holder.dataset.key===key)return;
+  holder.dataset.key=key;holder.replaceChildren(...slots.map(slot=>{
+    const choices=slot.variants.filter(variant=>decorationUnlocked(state,slot,variant.id,data)),next=choices[(choices.indexOf(slot.selected)+1)%choices.length];
+    const finish=button('','room-finish',()=>changeGame(()=>{
+      const result=applyAction({type:'decorate',slot:slot.id,variant:next.id});
+      if(result.ok)status(`${slot.name}: ${next.name}.`);
+      // The new switch takes the place of the one that was pressed.
+      $('#room-finishes').querySelector<HTMLElement>(`[data-slot="${slot.id}"]`)?.focus({preventScroll:true});
     }));
-    claim.setAttribute('aria-label',`Claim ${coinText(reward.coins)} for level ${reward.level}`);row.append(claim);list.append(row);
-  }
-  content.append(element('p','modal-copy','Word of your cooking is spreading.'),list,notice,element('p','modal-copy','A reward that you leave waits in the House book.'));
-  offerFlow=true;showModal(`Level ${count.format(level)} reached`,content,$('#close-modal'));
+    finish.dataset.slot=slot.id;finish.setAttribute('aria-label',`${slot.name}: ${slot.selected.name}. Switch to ${next.name}`);
+    Object.assign(finish.style,{left:`${slot.crop.x}%`,top:`${slot.crop.y}%`,width:`${slot.crop.width}%`,height:`${slot.crop.height}%`});
+    finish.append(swapMark());return finish;
+  }));
 }
-const openQuests = () => resolveQuests(state, data).filter(view => view.status === 'active').map(view => view.quest);
-/** The requests that call the player: each one that is ready to deliver, then each one that is new since Neighbour quests last opened. */
-function callingQuests() {
-  const open = openQuests(), ready = open.filter(quest => canDeliverQuest(state, quest, data));
-  return [...ready, ...open.filter(quest => !ready.includes(quest) && !seenQuests.has(quest.id))];
+/** The switch badge on a finish: two arrows that turn about each other. */
+function swapMark() {
+  const value=svg('svg');value.setAttribute('class','swap-mark');value.setAttribute('viewBox','0 0 24 24');value.setAttribute('aria-hidden','true');
+  const face=svg('circle');face.setAttribute('cx','12');face.setAttribute('cy','12');face.setAttribute('r','11');
+  const arrows=svg('path');arrows.setAttribute('d','M7.5 10a5 5 0 0 1 8.6-2.2M16.5 5.5v2.8h-2.8M16.5 14a5 5 0 0 1-8.6 2.2M7.5 18.5v-2.8h2.8');
+  value.append(face,arrows);return value;
 }
-/** Neighbour quests shows every open request, so none of them is new after it opens. */
-function markQuestsSeen() {
-  seenQuests = new Set(openQuests().map(quest => quest.id));
-  try { storage?.setItem(SEEN_KEY, JSON.stringify([...seenQuests])); } catch { /* The requests stay seen for this visit. */ }
-}
-/** A candle glow joins the shared breath at its current phase. */
-function breathe(value: HTMLElement) { value.style.setProperty('--breath-delay', `${-Math.round(performance.now() % BREATH_MS)}ms`); }
-/**
- * The way into Neighbour quests. While requests are open, it is a linen card with the faces of the waiting neighbours,
- * and its copper edge breathes while a request calls the player.
- */
-function questLink() {
-  const open = openQuests(), calling = callingQuests(), ready = open.filter(quest => canDeliverQuest(state, quest, data)).length;
-  const link = button('', open.length ? 'quest-link' : 'text-button', () => questBook()); link.dataset.quests = '';
-  if (open.length) {
-    const faces = element('span', 'quest-faces'); faces.setAttribute('aria-hidden', 'true');
-    for (const id of [...new Set([...calling, ...open].map(quest => quest.character))].slice(0, 3)) faces.append(portrait(id));
-    link.append(faces);
-  }
-  link.append(`Neighbour quests${open.length ? ` · ${open.length}` : ''}`);
-  link.setAttribute('aria-label', `Neighbour quests${open.length ? `, ${open.length} ${open.length === 1 ? 'request' : 'requests'}` : ''}${
-    ready ? `, ${ready} ready to deliver` : calling.length ? ', new request' : ''}`);
-  if (calling.length) { link.toggleAttribute('data-calling', true); breathe(link); }
-  return link;
-}
-const readyQuests = () => data.quests.filter(quest => canDeliverQuest(state, quest, data));
-function seeQuests() { for (const quest of readyQuests()) offeredQuests.add(quest.id); }
-/**
- * A request that becomes ready to deliver offers its delivery once. The offer delivers nothing.
- * Close leaves the request in Neighbour quests. Delivery plays the completion, then returns to the kitchen.
- */
-function offerQuest() {
-  const quest=readyQuests().find(value=>!offeredQuests.has(value.id));
-  if(!quest)return;
-  offeredQuests.add(quest.id);
-  const people=[quest.character,...quest.companions??[]],person=names.format(people.map(id=>character(id).name)),content=element('div','quest-offer');
-  const head=element('div','quest-heading'),words=element('div');
-  words.append(element('h3','',quest.title));
-  for(const id of people)head.append(portrait(id));
-  head.append(words);
-  const requirements=element('ul','quest-requirements');
-  for(const {item,quantity} of quest.requirements){
-    const row=element('li','quest-item');row.append(food(item),element('span','',`${quantity} ${itemName(item)}`),element('span','quest-count',`${quantity} / ${quantity} on board`));requirements.append(row);
-  }
-  const actions=element('div','quest-actions'),deliver=button(`Deliver · ${count.format(quest.reward)}`,'primary-button',()=>deliverQuest(quest,content));
-  deliver.setAttribute('aria-label',`Deliver ${quest.title} for ${quest.reward} coins`);actions.append(deliver);
-  content.append(element('p','modal-copy',`Everything that ${person} asked for is on the board.`),head,requirements,element('p','quest-reward',`Reward: ${coinText(quest.reward)}`),actions,
-    element('p','modal-copy','A request that you leave waits in Neighbour quests.'));
-  offerFlow=true;showModal(`${person}’s request is ready`,content,$('#close-modal'));
-}
-/** The notice stays mounted while claims refresh, so each result is announced once. */
-function levelPanel() {
-  const panel=element('section','settings-section level-panel');panel.setAttribute('aria-labelledby','level-heading');
-  const heading=element('h3','','Level rewards');heading.id='level-heading';heading.tabIndex=-1;
-  const details=element('div'),notice=element('p','level-notice');notice.setAttribute('role','status');
-  const refresh=()=>{
-    const level=getLevel(state),ready=availableLevelRewards(state,data),next=data.levelRewards.find(reward=>reward.level>level);
-    details.replaceChildren(element('p','level-progress',`Level ${count.format(level)} · ${count.format(state.xp)} XP`),element('p','',`${state.xp%100} of 100 XP to level ${count.format(level+1)}. Merge dishes, serve orders, and finish preparations to earn XP.`));
-    if(next)details.append(element('p','level-next',`Next reward: level ${next.level} · ${coinText(next.coins)} at ${count.format((next.level-1)*100)} XP.`));
-    else details.append(element('p','level-next',ready.length?'All level rewards earned. Claim your remaining rewards below.':'All level rewards claimed. Your level can keep rising.'));
-    if(ready.length)details.append(element('p','',`${ready.length} ${ready.length===1?'reward is':'rewards are'} ready to claim.`));
-    const list=element('ul','level-rewards');
-    for(const reward of data.levelRewards.filter(reward=>reward.level<=level)){
-      const row=element('li','level-reward');row.append(element('span','',`Level ${reward.level} · ${coinText(reward.coins)}`));
-      if(state.claimedLevelRewards.includes(reward.id))row.append(element('span','level-claimed','Claimed'));
-      else {
-        const claim=button(`Claim ${coinText(reward.coins)}`,'primary-button',()=>changeGame(()=>{
-          const result=applyAction({type:'claimLevelReward',id:reward.id});
-          refresh();heading.focus({preventScroll:true});
-          const message=result.ok&&saveFailed?`${result.message} This session is not saved.${storage?' Use Retry save before you leave.':''}`:result.message;
-          if(notice.textContent!==message)notice.textContent=message;
-        }));
-        claim.setAttribute('aria-label',`Claim ${coinText(reward.coins)} for level ${reward.level}`);row.append(claim);
-      }
-      list.append(row);
-    }
-    details.append(list,element('p','save-status',saveMessage));
-    if(saveFailed&&!recoveryRequired&&storage)details.append(button('Retry save','secondary-button',()=>changeGame(()=>{
-      persist();refresh();heading.focus({preventScroll:true});
-      const message=saveFailed?`This session is not saved. ${saveMessage}`:'Your level rewards and progress are saved in this browser.';
-      if(notice.textContent!==message)notice.textContent=message;
-    })));
-  };
-  refresh();panel.append(heading,details,notice);return panel;
-}
-function settings(focusSlot?: string) {
-  editingDecoration=null;offeredLevel=Math.max(offeredLevel,getLevel(state));
+/** Options holds only the game's options: appearance, sound, and the saved game. */
+function options() {
   const content=element('div');content.append(element('p','modal-copy save-status',saveMessage));
   // Writes never replace an unreadable save, so only a new game (an explicit reset) lets this browser save again.
-  if(saveFailed&&recoveryRequired)content.append(element('p','save-error',['invalid','unsupported'].includes(loadSave(storage,validate,removeBreadTasting).status)?`${saveMessage} To save in this browser again, start a new game below. That replaces the unreadable save.`:saveMessage));
+  if(saveFailed&&recoveryRequired)content.append(element('p','save-error',['invalid','unsupported'].includes(loadSave(storage,validate).status)?`${saveMessage} To save in this browser again, start a new game below. That replaces the unreadable save.`:saveMessage));
   if(recoveryRequired)content.append(button('Retry saved game','primary-button',()=>location.reload()));
-  content.append(levelPanel());
-  const decorationSection=element('section','settings-section');decorationSection.append(element('h3','','Decorations'),element('p','','Choose the details of your bistro. Each choice is free.'));
-  for(const slot of resolveDecorations(state.decorations,state.decorationChoices,data)){
-    const row=element('div','decoration-row');
-    if(slot.unlocked){
-      const open=button('','decoration-slot',()=>editDecoration(slot.id));open.dataset.decoration=slot.id;
-      const words=element('span','decoration-slot-words');words.append(element('strong','',slot.name),element('span','',slot.selected.name));
-      open.append(decorationImage(slot,slot.selected,true),words,element('span','decoration-edit','Change'));row.append(open);
-    }else{row.classList.add('decoration-locked');row.append(element('strong','',slot.name),element('p','',`Finish “${data.tasks.find(task=>task.id===slot.unlock)!.title}” to choose this detail.`));}
-    decorationSection.append(row);
-  }
-  content.append(decorationSection);
+  else if(saveFailed&&storage)content.append(button('Retry save','secondary-button',()=>changeGame(()=>{persist();options();status(saveFailed?`This session is not saved. ${saveMessage}`:'Your progress is saved in this browser.');})));
   const appearance=element('section','settings-section');const choices=element('fieldset','choice-fieldset');const group=element('div','choice-group');
   for(const [value,name] of THEMES) {
     const choice=element('label','choice');const input=element('input');input.type='radio';input.name='appearance';input.value=value;input.checked=theme===value;
     input.addEventListener('change',()=>setTheme(value,true));choice.append(input,element('span','',name));group.append(choice);
   }
   choices.append(element('legend','','Appearance'),element('p','','System follows your device’s light or dark setting.'),group);appearance.append(choices);content.append(appearance);
-  const audio=element('section','settings-section');audio.append(element('h3','','Kitchen sounds'),element('p','','Soft tones for merging, serving, and finishing preparations. Sound stays off until you turn it on.'),soundToggle());content.append(audio);
+  const audio=element('section','settings-section');audio.append(element('h3','','Kitchen sounds'),element('p','','Soft tones for merging, delivering, and finishing preparations. Sound stays off until you turn it on.'),soundToggle());content.append(audio);
   const saves=element('section','settings-section');saves.append(element('h3','','Your saved game'),element('p','','Export a copy to keep it safe or to carry on in another browser.'));
   const actions=element('div','settings-actions');actions.append(button('Export saved game','secondary-button',downloadSave));
   const file=element('input','hidden');file.type='file';file.accept='.json,application/json';
@@ -1366,11 +1161,11 @@ function settings(focusSlot?: string) {
     const selectedFile=file.files?.[0];if(!selectedFile)return;
     try {
       if(selectedFile.size>MAX_SAVE_BYTES)throw new Error('Select a saved game smaller than 2 MiB.');
-      const candidate=normalizeOrderCustomers(importSave<GameState>(await selectedFile.text(),validate,removeBreadTasting),data);
+      const candidate=importSave<GameState>(await selectedFile.text(),validate);
       const review=element('div');review.append(element('p','modal-copy',`Replace the current game with this saved game: ${coinText(candidate.coins)} and ${count.format(candidate.taskIndex)} of ${data.tasks.length} preparations done? Export the current game first if you want to keep it.`));
-      const keep=button('Keep the current game','secondary-button',settings),choice=element('div','settings-actions');
+      const keep=button('Keep the current game','secondary-button',options),choice=element('div','settings-actions');
       choice.append(button('Import this saved game','primary-button',()=>changeGame(()=>{
-        const result=saveGame(storage,candidate,validate,removeBreadTasting);if(!result.ok){showModal('Import failed',element('p','save-error',result.error ?? ''));return;}
+        const result=saveGame(storage,candidate,validate);if(!result.ok){showModal('Import failed',element('p','save-error',result.error ?? ''));return;}
         recoveryRequired=false;observedSave=JSON.stringify(candidate);replaceGame(candidate);reportSave(result);render();modal.close();status('Saved game imported.');
       },true)),keep);review.append(choice);showModal('Import saved game',review,keep);
     }catch(error){showModal('Cannot import this file',element('p','save-error',reason(error)));}
@@ -1379,19 +1174,19 @@ function settings(focusSlot?: string) {
   const about=element('section','settings-section');about.append(element('h3','','About Scary Snacks'),element('p','','Original setting, characters, dialogue, progression, and AI-generated artwork made for this project. No advertising, payments, accounts, or remote game services.'));content.append(about);
   const reset=element('section','settings-section');reset.append(element('h3','','A fresh start'),element('p','','Erase this game from this browser and start again. Exported files and your appearance setting stay.'),button('Start a new game','danger-button',()=>{
     // The safe choice holds focus, so a stray Enter keeps the game.
-    const keep=button('Keep this game','secondary-button',settings),choice=element('div','settings-actions');
+    const keep=button('Keep this game','secondary-button',options),choice=element('div','settings-actions');
     choice.append(button('Erase and start again','danger-button',()=>changeGame(()=>{
       const fresh=createGame(data),result=resetSave(storage,fresh,validate);if(!result.ok){showModal('Reset failed',element('p','save-error',result.error ?? ''));return;}
       recoveryRequired=false;observedSave=JSON.stringify(fresh);replaceGame(fresh);reportSave(result);render();modal.close();status('The kitchen is ready for a fresh start.');
     },true)),keep);
-    const confirm=element('div');confirm.append(element('p','modal-copy','This erases the dishes, coins, story progress, discoveries, and decoration choices saved in this browser. Export a copy first if you want to keep this game.'),choice);showModal('Start a new game?',confirm,keep);
-  }));content.append(reset);showModal('House book',content,focusSlot?content.querySelector<HTMLElement>(`[data-decoration="${focusSlot}"]`)!:modal.open?undefined:$('#close-modal'));
+    const confirm=element('div');confirm.append(element('p','modal-copy','This erases the dishes, coins, story progress, discoveries, and decoration finishes saved in this browser. Export a copy first if you want to keep this game.'),choice);showModal('Start a new game?',confirm,keep);
+  }));content.append(reset);showModal('Options',content,modal.open?undefined:$('#close-modal'));
 }
 function findMatch() {
   for(let from=0;from<state.board.length;from++) {
     const cell=state.board[from];if(!cell||!definition(cell.code).next)continue;
-    const anchor=matchingAnchor(cell.code);
-    if(anchor){selected=from;render();pulse([anchor.position]);status(`Tap the anchored ${itemName(cell.code)} to merge and release it.`);return;}
+    const blocker=matchingBlocker(cell.code);
+    if(blocker){selected=from;render();pulse([blocker.position]);status(`Tap the blocked ${itemName(cell.code)} to merge and clear it.`);return;}
     const to=state.board.findIndex((other,index)=>index!==from&&other?.code===cell.code);
     // One item of the pair is selected and the other pulses, so the instruction names a single target.
     if(to>=0){selected=from;render();pulse([to]);status(`Tap the other ${itemName(cell.code)} to merge them.`);return;}
@@ -1437,19 +1232,12 @@ $('.skip-link').addEventListener('click',event=>{
   if(lowered)setLowered(false);
   event.preventDefault();stop.focus({preventScroll:true});stop.scrollIntoView({block:'nearest'});
 });
-$('#close-modal').addEventListener('click',()=>editingDecoration?settings(editingDecoration):modalReturn?modalReturn():modal.close());
-modal.addEventListener('cancel',event=>{if(editingDecoration){event.preventDefault();settings(editingDecoration);}else if(modalReturn){event.preventDefault();modalReturn();}});
+$('#close-modal').addEventListener('click',()=>modalReturn?modalReturn():modal.close());
+modal.addEventListener('cancel',event=>{if(modalReturn){event.preventDefault();modalReturn();}});
 // The end of a paid preparation's story reveals its change.
 modal.addEventListener('close',()=>{
   if(modal.open)return;
-  editingDecoration=null;
   modalReturn=null;
-  // Offers return to the kitchen even when a reveal's pin is still the native return target.
-  if(offerFlow){
-    offerFlow=false;
-    (lowered?$('#drawer-handle'):$('#board').querySelector<HTMLElement>('[tabindex="0"]'))?.focus({preventScroll:true});
-  }
-  if(questFlow){questFlow=false;const opener=[...document.querySelectorAll<HTMLElement>('[data-quests]')].find(value=>value.checkVisibility());(opener??$('#story-button')).focus({preventScroll:true});}
   if(sceneFlow){
     sceneFlow=false;
     // Reading can remove Read now before this scene, or the next scene, closes.
@@ -1459,25 +1247,23 @@ modal.addEventListener('close',()=>{
     }
   }
   if(held){const task=held;held=null;void reveal(task);}
-  // A level or a request reached during a story or another dialog offers itself now, or after the reveal that starts here.
-  offerRewards();
 });
 $('#drawer-handle').addEventListener('pointerdown',event=>{swipe=event.clientY;});
 $('#drawer-handle').addEventListener('pointerup',event=>{swipe=event.clientY-swipe;});
 // A keyboard click has no pointer, so it toggles the drawer whatever an earlier pointer left in swipe.
 $('#drawer-handle').addEventListener('click',event=>{const moved=event.detail&&Math.abs(swipe)>20?swipe>0:!lowered;swipe=0;setLowered(moved);});
 $('#room-pin').addEventListener('click',()=>{const {view}=currentView();status(view.current!.text);});
-for(const opener of document.querySelectorAll('[data-house-book]'))opener.addEventListener('click',()=>data&&settings());
+for(const opener of document.querySelectorAll('[data-options]'))opener.addEventListener('click',()=>data&&options());
 $('#collection-button').addEventListener('click',()=>data&&recipeBook());
 $('#recipes-button').addEventListener('click',()=>data&&recipeBook());
 $('#story-button').addEventListener('click',()=>data&&showModal('Our little bistro',storyContent(true)));
 $('#hint-button').addEventListener('click',()=>state&&findMatch());
 $('#cat-button').addEventListener('click',toggleCat);
 phone.addEventListener('change',()=>{if(state){renderCoins();renderDetail();}});
-drawerLayout.addEventListener('change',()=>{setLowered(false);if(state){renderOffer();renderOrders();}});
+drawerLayout.addEventListener('change',()=>{setLowered(false);if(state){renderOffer();renderTickets();}});
 movableDrawer.addEventListener('change',()=>setLowered(false));
-window.addEventListener('resize',()=>{if(state&&farewells.size)endFarewells();syncMiez();});
-$('#room-frame').addEventListener('transitionend',syncMiez);$('.game-layout').addEventListener('transitionend',syncMiez);
+window.addEventListener('resize',syncRoomControls);
+$('#room-frame').addEventListener('transitionend',syncRoomControls);$('.game-layout').addEventListener('transitionend',syncRoomControls);
 window.addEventListener('storage',event=>{
   if(!state||event.key!==SAVE_KEY||event.newValue===null)return;
   syncSavedGame();
@@ -1487,10 +1273,12 @@ try {
   data=await response.json();
   // Data that fails its checks never reaches the save, so it cannot be mistaken for a damaged save.
   const problems=dataProblems(data);if(problems.length)throw new Error('The game data is not valid.',{cause:problems});
+  const guide=$('.guide .portrait'), guidePortrait=portrait('mara');
+  guidePortrait.setAttribute('aria-label',guide.getAttribute('aria-label')!);guide.replaceWith(guidePortrait);
   // Loading shares the game lock with writes from other tabs.
-  const load=()=>loadSave<GameState>(storage,validate,removeBreadTasting);
+  const load=()=>loadSave<GameState>(storage,validate);
   const saved=storage&&navigator.locks?await navigator.locks.request(SAVE_KEY,load):load();
-  state=saved.state?normalizeOrderCustomers(saved.state,data):createGame(data);offeredLevel=getLevel(state);
+  state=saved.state??createGame(data);
   // A reload cannot open blocked storage, so that game plays for this visit without the recovery block.
   recoveryRequired=Boolean(storage)&&!['loaded','empty'].includes(saved.status);
   observedSave=saved.state?JSON.stringify(saved.state):null;
@@ -1500,15 +1288,13 @@ try {
   try{viewArea=storage?.getItem(AREA_KEY)??'';}catch{/* Follow the latest change. */}
   render();
   // The frame pans smoothly only after it first settles, so opening the game shows the room in place.
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{$('#room-frame').classList.add('settled');syncMiez();}));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{$('#room-frame').classList.add('settled');syncRoomControls();}));
   if(saved.status==='empty')await changeGame(persist);
   // Phones get a shorter opening line, so that it fits the line under the board.
-  status(saved.status==='loaded'?`Welcome back. The stove is still warm.${state.pendingScenes.length?' A story scene is waiting in Story.':''}`:phone.matches?'Merge the two Flours. Merge beside clutter to clear it.':'Tap one Flour, then the other, to merge. Merge beside clutter to clear it.');
-  if(saveFailed)settings();
-  // A request that is ready at load offers its delivery now, or after the House book closes.
-  offerRewards();
+  status(saved.status==='loaded'?`Welcome back. The stove is still warm.${state.pendingScenes.length?' A story scene is waiting in Story.':''}`:phone.matches?'Merge the two Flours. Merge onto matching blocked food.':'Tap one Flour, then the other, to merge. Merge onto matching blocked food to clear it.');
+  if(saveFailed)options();
 }catch(error){
   status(`The kitchen could not open. ${reason(error)}`);console.error(error);
   const hint=$('#hint-button');hint.textContent='Try again';hint.addEventListener('click',()=>location.reload());
-  for(const opener of document.querySelectorAll<HTMLButtonElement>('#story-button,#recipes-button,#collection-button,[data-house-book]'))opener.disabled=true;
+  for(const opener of document.querySelectorAll<HTMLButtonElement>('#story-button,#recipes-button,#collection-button,[data-options]'))opener.disabled=true;
 }

@@ -33,7 +33,7 @@ Then give the cause in the report as a cause that you did not examine with a tes
 ## Make the test sequence
 
 Read the symptom, the owner documents, the source code, the tests, the configuration, and the environment.
-If the seed and the action sequence change the result, record the seed and the action sequence.
+If the start save and the action sequence change the result, record the start save and the action sequence.
 Record each related environment value:
 
 - The browser and its version.

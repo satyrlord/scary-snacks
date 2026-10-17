@@ -1,15 +1,15 @@
 # 015: The front door
 
 Status: Proposed. Not implemented. Wording, layout, and the motion notice below are draft defaults.
-Owner: `PRODUCT.md` for the start flow and the motion choice; `DESIGN.md` for the front door,
-the House book Motion section, and every reduced-motion rule; `README.md` for the controls.
+Owner: `PRODUCT.md` for the start flow, the motion choice, and the controls; `DESIGN.md` for the front door,
+the Options Motion section, and every reduced-motion rule.
 
 ## Current evidence
 
 - The page opens straight onto the board. `src/app.ts` fetches `data/game.json`, loads the save,
   renders, and writes a welcome line or a first-merge line into Mara's line. Until the data arrives, the
   board is empty and Mara's line reads "Opening the kitchen…".
-- If the game cannot load the save, `src/app.ts` opens the House book over the board at once.
+- If the game cannot load the save, `src/app.ts` opens Options over the board at once.
 - If the data fails to load, Mara's line reads "The kitchen could not open." with the reason.
   The Find a match button becomes "Try again" and reloads the page.
 - `src/app.ts` holds the media query `prefers-reduced-motion: reduce` in the constant `still`.
@@ -18,9 +18,9 @@ the House book Motion section, and every reduced-motion rule; `README.md` for th
   about this, and nothing in the game can change it.
 - Windows sets this preference when "Animation effects" is off or the system is set for best
   performance. Remote desktop sessions and some phone power-saving modes do the same. Many players
-  with the preference on do not know that it is on. These players miss the serve flight, the
+  with the preference on do not know that it is on. These players miss the delivery flight, the
   rising neighbours, the first-taste flourish, and the bats, without an explanation.
-- The House book holds level rewards, decorations, appearance, sound, the saved game, About, and a new game.
+- Options holds appearance, sound, the saved game, About, and a fresh start.
   It is the only menu of the game and stays so.
 
 ## Outcome and scope
@@ -31,9 +31,9 @@ learns that their device asks for less motion. The player can choose the full mo
 
 - One tap, click, or Enter opens the kitchen. Use no timer, no splash delay, no animation that
   must finish first, and no second screen.
-- The House book stays the only settings menu. The front door links to the House book and does
+- Options stays the only settings menu. The front door links to Options and does
   not copy it.
-- Add a Motion choice to the House book: System, Reduced, and Full. System stays the default, so
+- Add a Motion choice to Options: System, Reduced, and Full. System stays the default, so
   nothing changes for a player who never chooses.
 - Add no new bitmap. The front door reuses the room painting variants that the room already loads.
 - Make no change to game state, no save migration, and no engine rule. The browser stores the
@@ -53,10 +53,10 @@ learns that their device asks for less motion. The player can choose the full mo
    saved game. "Continue" stays reserved for dialogue. While the data loads, the button is
    disabled and reads "Opening the kitchen…". If the data fails, the front door shows the existing
    failure message and the "Try again" button instead.
-5. A secondary "House book" button opens the existing House book. Closing the House book returns
-   to the front door. "Start a new game" stays in the House book only, behind its confirmation.
-6. If the game cannot load the save, the front door shows the save error and points to the House
-   book. The House book does not open over the board for this error.
+5. A secondary "Options" button opens the existing Options. Closing Options returns
+   to the front door. A fresh start stays in Options only, behind its confirmation.
+6. If the game cannot load the save, the front door shows the save error and points to
+   Options. Options does not open over the board for this error.
 7. Opening the kitchen moves focus to the first occupied cell of the board. Opening the kitchen
    also writes the usual welcome line or first-merge line into Mara's line. Pressing Escape on the
    front door does nothing. The front door has no close button, only its way in.
@@ -71,13 +71,13 @@ learns that their device asks for less motion. The player can choose the full mo
    choice is System and the device asks for reduced motion. The notice reads, for example:
    "Your device asks for less motion, so dishes won't fly to the counter and the bats stay home."
    The notice has two buttons: "Show the motion" (sets Full) and "Keep it still" (sets Reduced).
-   The notice also has the line "You can change this any time in the House book." Each button
+   The notice also has the line "You can change this any time in Options." Each button
    stores an explicit choice. After an explicit choice, the notice does not return. If the player
    ignores the notice, the player sees it again on the next visit.
 10. The notice is information, not an alarm. It has no warning icon and no error colour, and it
     never blocks the primary button. The game does not show the notice after an explicit choice.
     The game also does not show the notice if the device does not ask for reduced motion.
-11. The House book Motion section uses the segmented choice of Appearance. Its text follows the
+11. The Options Motion section uses the segmented choice of Appearance. Its text follows the
     device: "Your device asks for less motion." or "System follows your device's motion setting."
 12. If browser storage is unavailable, a motion choice applies for this visit. The status says
     so, with the same wording as the appearance fallback.
@@ -115,7 +115,7 @@ Draft presentation. `DESIGN.md` decides the final layout at implementation.
 
 ## Thin implementation slices
 
-1. The Motion choice in the House book and the `data-motion` switch. Exit: Full plays the serve
+1. The Motion choice in Options and the `data-motion` switch. Exit: Full plays the delivery
    flight under emulated reduced motion. Reduced removes the flight without the emulation. System
    follows the emulation. The choice survives reload and a new game.
 2. The front door with the state line, the loading and failure states, and the focus hand-off.
@@ -130,7 +130,7 @@ Draft presentation. `DESIGN.md` decides the final layout at implementation.
 - Node: no engine or save change. The existing storage and build tests still pass.
 - Browser: follow [Verification and release](README.md#verification-and-release), at 1440×900 and 390×844. Check the front doors for these cases: fresh, saved,
   finished-campaign, broken-save, and failed-data. Also check keyboard-only entry. Check the notice
-  and both of its buttons under emulated reduced motion. Check the House book Motion choice.
+  and both of its buttons under emulated reduced motion. Check the Options Motion choice.
   Check the behaviour when storage is denied.
 
 ## Dependencies and remaining decisions

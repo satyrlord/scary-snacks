@@ -47,8 +47,8 @@ Do not use the development server from `npm run dev` as an alternative.
 ## Test the behavior that the user can see
 
 Use the controls that the interface shows, with the gestures that each control needs.
-Test generator output, merges, swaps, orders, coins, and sale values.
-Test the preparations, the chain unlocks, the dialogue, and the orders after the story.
+Test generator output, merges, swaps, quest tickets, deliveries, coins, and sale values.
+Test the preparations, the chain unlocks, the dialogue, and the board after the story.
 Test the room painting, the area switch, and the reveal after a paid preparation.
 Test pointer selection, drag input, the arrow keys, Enter, Space, and Escape.
 

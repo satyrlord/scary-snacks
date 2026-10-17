@@ -64,7 +64,7 @@ Record the evidence for that status.
 ## Act in the scope
 
 In cleanup mode, remove only the smallest set of dead items that have evidence.
-Do not remove save validation, the preservation of malformed saves, or the code for the seeded random number generator.
+Do not remove save validation or the preservation of malformed saves.
 Keep the provenance records, the license texts, and the prompt records.
 Keep the files in `private/`, `analysis/`, `.release/`, and `.tools/`. They are ignored local folders.
 Do not edit `public/data/game.json` by hand. Change its generator and run `npm run data:generate`.

@@ -1,25 +1,26 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, reduceGame, validateGame, resolveDecorations, decorationProblems } from '../src/engine.ts';
+import { createGame, decorationUnlocked, firstFreeBoardCell, reduceGame, validateGame, resolveDecorations, decorationProblems } from '../src/engine.ts';
 import { exportSave, importSave, loadSave, saveGame, SAVE_KEY } from '../src/storage.ts';
 import type { Action, GameData, GameState } from '../src/engine.ts';
+import { checkpointState } from '../tools/create-checkpoint-saves.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
 data.board.layouts.push({ id: 'test-open', obstacles: [] });
 const provenance: { assets: { id: string }[] } = JSON.parse(await readFile(new URL('../docs/asset-provenance.json', import.meta.url), 'utf8'));
 const validate = (state: unknown) => validateGame(state, data);
-function checkpoint(count: number) {
-  let state = { ...createGame(data), layoutId: 'test-open' };
-  state.coins = data.tasks.reduce((sum, task) => sum + task.cost, 0);
-  state.served = data.tasks[count - 1]?.goals.served ?? 0;
-  state.merges = data.tasks[count - 1]?.goals.merges ?? 0;
-  for (let index = 0; index < count; index++) {
-    const result = reduceGame(state, { type: 'task' }, data);
-    assert.equal(result.ok, true);
-    state = result.state;
+const checkpoint = (count: number) => checkpointState(data, count, { ...createGame(data), layoutId: 'test-open' });
+/** Deliver an active quest with its items placed on free cells. */
+function deliver(state: GameState, id: string) {
+  const next = structuredClone(state);
+  for (const { item, quantity } of data.quests.find(quest => quest.id === id)!.requirements) for (let count = 0; count < quantity; count++) {
+    next.board[firstFreeBoardCell(next, data)] = { code: item };
+    if (!next.discovered.includes(item)) next.discovered.push(item);
   }
-  return state;
+  const result = reduceGame(next, { type: 'deliverQuest', id }, data);
+  assert.equal(result.ok, true, result.message);
+  return result.state;
 }
 test('every decoration has a distinct default, a preparation, a valid crop, and known images', () => {
   const images = provenance.assets.map(asset => asset.id);
@@ -68,6 +69,37 @@ test('choices affect only their slot, remain immutable, and repeated Apply gives
   assert.deepEqual(state, original);
 });
 
+test('every second finish has exactly one quest, and the finale has them all', () => {
+  for (const slot of data.decorationSlots) for (const variant of slot.variants.filter(variant => variant.id !== slot.default)) {
+    assert.equal(data.quests.filter(quest => quest.unlocks?.slot === slot.id && quest.unlocks.variant === variant.id).length, 1, `${slot.id}: ${variant.id}`);
+  }
+  const finale = checkpoint(24);
+  assert.ok(data.decorationSlots.every(slot => slot.variants.every(variant => decorationUnlocked(finale, slot, variant.id, data))));
+});
+
+test('a finish unlocks only with the delivery of its quest, and the decorate action rejects a locked finish', () => {
+  // The tableware is in place, and the quests that open with it wait.
+  const open = { ...checkpoint(9), completedQuests: checkpoint(8).completedQuests };
+  assert.equal(validate(open), true);
+  const slot = data.decorationSlots.find(slot => slot.id === 'tableware')!;
+  assert.equal(resolveDecorations(open.decorations, open.decorationChoices, data)[0].unlocked, true);
+  assert.equal(decorationUnlocked(open, slot, 'blue', data), true, 'A default finish needs no quest.');
+  assert.equal(decorationUnlocked(open, slot, 'green', data), false);
+  const before = structuredClone(open);
+  const locked = reduceGame(open, { type: 'decorate', slot: 'tableware', variant: 'green' }, data);
+  assert.equal(locked.ok, false);
+  assert.match(locked.message, /Deliver the quest/);
+  assert.equal(locked.state, open);
+  assert.deepEqual(open, before);
+  assert.equal(validate({ ...open, decorationChoices: { tableware: 'green' } }), false, 'A save cannot hold a locked finish.');
+  const delivered = deliver(deliver(open, 'eszter-table'), 'eszter-green-bowls');
+  assert.equal(decorationUnlocked(delivered, slot, 'green', data), true);
+  const chosen = reduceGame(delivered, { type: 'decorate', slot: 'tableware', variant: 'green' }, data);
+  assert.equal(chosen.ok, true, chosen.message);
+  assert.deepEqual(chosen.state.decorationChoices, { tableware: 'green' });
+  assert.equal(validate(chosen.state), true);
+});
+
 test('locked, unknown, and mismatched choices fail without any state change', () => {
   for (const [state, action] of [
     [checkpoint(8), { type: 'decorate', slot: 'tableware', variant: 'green' }],
@@ -88,7 +120,8 @@ test('save validation rejects malformed choice maps and choices before unlock', 
     assert.equal(validate({ ...checkpoint(24), decorationChoices: choices }), false);
   }
   assert.equal(validate({ ...checkpoint(8), decorationChoices: { tableware: 'blue' } }), false);
-  assert.equal(validate({ ...checkpoint(24), decorationChoices: { tableware: 'blue' } }), true);
+  assert.equal(validate({ ...checkpoint(24), decorationChoices: { tableware: 'blue' } }), false, 'A save holds only a finish that is not the default.');
+  assert.equal(validate({ ...checkpoint(24), decorationChoices: { tableware: 'green' } }), true);
 });
 
 test('saved output choices round trip with moved generators and corrupt choices never replace progress', () => {
@@ -110,7 +143,7 @@ test('saved output choices round trip with moved generators and corrupt choices 
     { [source.chain]: source.id }, { [source.chain]: other.id }, { [source.chain]: stageOne.id },
     { [source.chain]: tooHigh.id }, JSON.parse('{"__proto__":"unknown"}')]) {
     const invalid = { ...current, outputChoices: choices };
-    assert.throws(() => importSave(JSON.stringify({ format: 'scary-snacks', version: 8, state: invalid }), validate));
+    assert.throws(() => importSave(JSON.stringify({ format: 'scary-snacks', version: 9, state: invalid }), validate));
     assert.throws(() => exportSave(invalid, validate));
     assert.equal(saveGame(storage, invalid, validate).ok, false);
     assert.equal(values.get(SAVE_KEY), text);

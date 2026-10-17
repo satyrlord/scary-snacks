@@ -55,10 +55,14 @@ export async function makeMask(width: number, height: number, boxes: Box[], elli
   return sharp(pixels, { raw: { width, height, channels: 4 } }).png().toBuffer();
 }
 
-/** The previous state with the generated pixels pasted inside the mask's region, faded in over `feather` pixels. */
+/**
+ * The previous state with the generated pixels pasted inside the mask's region, faded in over `feather` pixels.
+ * A base with an alpha channel (a portrait atlas) keeps its alpha outside the region; an opaque painting stays opaque.
+ */
 export async function compositeRegion(base: Buffer, candidate: Buffer, mask: Buffer, feather = 24, ramp = false) {
   checkMask(mask, base);
-  const read = (image: Buffer) => sharp(image).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const channels = (await sharp(base).metadata()).hasAlpha ? 4 : 3;
+  const read = (image: Buffer) => (channels === 4 ? sharp(image).ensureAlpha() : sharp(image).removeAlpha()).raw().toBuffer({ resolveWithObject: true });
   const [under, over] = await Promise.all([read(base), read(candidate)]);
   const { width, height } = under.info;
   if (over.info.width !== width || over.info.height !== height) throw new Error('Use a candidate the size of the previous state.');
@@ -74,15 +78,15 @@ export async function compositeRegion(base: Buffer, candidate: Buffer, mask: Buf
   const inside = await sharp(mask).extractChannel(3).negate().raw().toBuffer();
   // A blurred single-channel raw image has three equal channels. Read one of them.
   const soft = await (ramp && feather > 0 ? weight.extractChannel(0) : weight).raw().toBuffer();
-  const pixels = Buffer.alloc(width * height * 3);
+  const pixels = Buffer.alloc(width * height * channels);
   for (let index = 0; index < width * height; index++) {
     const share = Math.max(inside[index], soft[index]) / 255;
-    for (let channel = 0; channel < 3; channel++) {
-      const at = index * 3 + channel;
+    for (let channel = 0; channel < channels; channel++) {
+      const at = index * channels + channel;
       pixels[at] = share === 0 ? under.data[at] : Math.round(under.data[at] * (1 - share) + over.data[at] * share);
     }
   }
-  return sharp(pixels, { raw: { width, height, channels: 3 } }).png().toBuffer();
+  return sharp(pixels, { raw: { width, height, channels } }).png().toBuffer();
 }
 
 async function newOutput(file: string) {

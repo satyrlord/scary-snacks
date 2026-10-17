@@ -39,7 +39,6 @@ Before a high-risk change to structure, add a regression test.
 
 Keep the engine free of Document Object Model (DOM) access and storage access.
 Keep the storage module free of DOM access.
-Keep the seeded generator and the sequence of its calls. A different sequence changes each generated order.
 Keep the state shape, the save key, the save version, and the save validation.
 Keep the identifiers in the game data.
 

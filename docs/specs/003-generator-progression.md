@@ -8,11 +8,11 @@ Owner: `PRODUCT.md` for play; `DESIGN.md` for generator controls.
 - `tools/create-original-data.ts` authors the base outputs and production tiers.
 - Three generators start on the board. Preparations 3 and 6 unlock the other two.
 - `src/engine.ts` derives earned outputs from completed preparations and validates the chosen outputs.
-- A take gives the chosen output and leaves the seed unchanged.
+- A take gives the chosen output.
 - `validateGame` requires exactly one generator for each unlocked chain on the board.
 - `tests/engine.test.ts` covers free output, generator counts, and full-board failure.
-- The campaign test in `tests/engine.test.ts` completes all 24 preparations with legal actions.
-  The test compares both production schedules and reports orders, merges, actions, and XP by chapter.
+- The campaign test in `tests/campaign-balance.test.ts` completes all 24 preparations and all quests with legal actions.
+  It confirms that every source has its stage-three output at the end.
 - `src/storage.ts` validates and persists the current save format.
 - The Covered Dish Rule in `DESIGN.md` forbids a preview of anything that the player has not earned.
 
@@ -28,7 +28,7 @@ Generator assembly is outside this feature.
 1. Each unlocked chain has a permanent production tier and one physical generator.
 2. Tier one produces stage one. Tier two adds a stage-two output. Tier three adds a stage-three output.
 3. A generator keeps all its lower outputs. The player chooses the output of each take.
-4. A take gives exactly the chosen output. A take does not use the random seed. A take has no waiting period.
+4. A take gives exactly the chosen output. A take is not random. A take has no waiting period.
 5. All unlocked chains get tier two when preparation 12 completes.
    All unlocked chains get tier three when preparation 20 completes.
 6. The tier of a chain comes only from the completed preparations.
@@ -44,9 +44,9 @@ Generator assembly is outside this feature.
 11. A Take button takes one item of its output and makes that output the chosen output.
     A tap on the source takes one item of the chosen output.
 12. A new generator has stage one as the chosen output. An upgrade does not change the chosen output.
-13. Orders already on the counter keep their requirements and rewards after an upgrade.
+13. Open quests keep their requirements and rewards after an upgrade.
 14. A take of an unearned output, a take from a cell without a generator, or a take on a full board fails.
-    The failure changes no state, no random seed, no chosen output, and no tier.
+    The failure changes no state, no chosen output, and no tier.
     The failure message does not name an unearned output or preparation.
 15. The game does not allow the sale or the merge of a generator.
 
@@ -71,15 +71,14 @@ Generator assembly is outside this feature.
 
 ## Balance with the campaign test
 
-The campaign test in `tests/engine.test.ts` uses seed 84017. It chooses the order with the lowest total stage-one ingredient cost. It takes the highest earned output that each required item needs, then merges. It injects no coins or items. It validates every action and completes all 24 preparations with no deadlock.
+The campaign test in `tests/campaign-balance.test.ts` delivers the first open quest ticket and pays each preparation when it is ready. It takes the highest earned output that each required item needs, then merges. It injects no coins or items. It validates every action and completes all 24 preparations with no deadlock.
 
-Compare actions, merges, orders, and XP for both production schedules. The fixture measures one seeded strategy.
+The fixture reports actions, takes, merges, sales, and deliveries for each preparation and chapter. It measures one deterministic strategy.
 
 ## Acceptance and evidence
 
 - Engine: test both tier boundaries and a full board.
-  Also test unearned outputs, repeated actions, and every output that outstanding low-stage orders need.
-  Test that a take does not change the seed.
+  Also test unearned outputs, repeated actions, and every output that open low-stage quests need.
 - Save: test save and reload of a complete campaign and a partial campaign.
   Also test invalid chosen outputs, unknown IDs, write failure, import, export, and repeated load.
   No load can duplicate a reward or a generator.
@@ -93,7 +92,6 @@ Compare actions, merges, orders, and XP for both production schedules. The fixtu
 ## Dependencies and open decisions
 
 The first slice depends only on the current rules for completed preparations and generators.
-Specs 004 and 005 may later grant tiers. Such a spec must extend the tier rule in item 6. Neither spec is required to ship this feature.
+A later spec may grant tiers. Such a spec must extend the tier rule in item 6.
 Spec 006 must include upgraded output in its economy checks.
-Each merge gives one XP, so upgraded production gives less XP. Spec 004 must set its level thresholds with the upgraded production.
 The selected tier preparations are 12 and 20.

@@ -47,6 +47,17 @@ test('atlas requests preserve the square sheet and square cells', () => {
   assert.throws(() => planAsset('portraits', '1536x1024'), /square size/u);
 });
 
+test('the last regulars atlas requires two top portraits and two blank lower cells', async () => {
+  const plan = planAsset('regulars-3');
+  const portrait = await sharp({ create: { width: 8, height: 8, channels: 4, background: { r: 120, g: 80, b: 40, alpha: 1 } } }).png().toBuffer();
+  const sheet = (cells: number[]) => sharp({ create: { width: 64, height: 64, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+    .composite(cells.map(cell => ({ input: portrait, left: (cell % 2) * 32 + 12, top: Math.floor(cell / 2) * 32 + 12 }))).png().toBuffer();
+  assert.ok(inspectPng(await sheet([0, 1]), plan).valid);
+  assert.equal(inspectPng(await sheet([0]), plan).valid, false, 'Both top portraits are required.');
+  assert.equal(inspectPng(await sheet([0, 1, 2]), plan).valid, false, 'Lower cells must stay blank.');
+  assert.equal(inspectPng(await sheet([0, 1]), planAsset('regulars-1')).valid, false, 'Other regulars atlases require four portraits.');
+});
+
 test('image measurement refuses color-key transparency instead of reporting an opaque painting', () => {
   assert.throws(() => inspectPng(png(3, true), { background: 'opaque', columns: 1, rows: 1 }), /color-key transparency/u);
   const opaque = inspectPng(png(3), { background: 'opaque', columns: 1, rows: 1 });

@@ -1,6 +1,6 @@
 ---
 name: update-game-content
-description: Add or change Scary Snacks items, merge chains, generators, characters, chapters, preparations, dialogue, order inputs, or the initial board. Use for game-content changes that the project keeps. Do not use it for interface text only.
+description: Add or change Scary Snacks items, merge chains, generators, characters, chapters, preparations, dialogue, quests, or the initial board. Use for game-content changes that the project keeps. Do not use it for interface text only.
 ---
 
 # Update game content
@@ -28,11 +28,11 @@ In that condition, give each edit or check that you did not complete in the repo
 
 Read `PRODUCT.md`, `DELIVERY.md`, and `tools/create-original-data.ts`.
 That tool is the only source of the game data.
-Read `validateGame`, `dataProblems`, and the order rules in `src/engine.ts`.
+Read `validateGame`, `dataProblems`, and the quest rules in `src/engine.ts`.
 `validateGame` checks a save against the game data.
 `dataProblems` runs each data check. It also checks that the starting board makes a valid new game.
 The generator and the game both call `dataProblems`. The game does not start on data that has a problem.
-Read the content test and the progression test in `tests/engine.test.ts`.
+Read the content test in `tests/engine.test.ts` and the campaign test in `tests/campaign-balance.test.ts`.
 Read the code in `src/app.ts` that shows items, portraits, and dialogue.
 
 `PRODUCT.md` gives the board size and the counts of the generators, the dishes and drinks, the preparations, and the chapters.
@@ -58,6 +58,7 @@ Each item has a `sprite` index in the six-by-six food atlas.
 The four core characters use the two-by-two portrait atlas.
 The first four visitors use the two-by-two visitor portrait atlas.
 Characters with `portraitAtlas: 'guest'` use the two-by-two guest portrait atlas.
+The regulars use the two-by-two atlases `regulars-1`, `regulars-2`, and `regulars-3`, in order of arrival.
 The index goes from left to right, and then from top to bottom.
 A new item or a changed dish must have its own matching art.
 Red wine uses a separate picture for `drinks_5`.
@@ -82,7 +83,8 @@ Examine identifier uniqueness and each `next` reference.
 Examine each chain unlock and its preparation.
 Examine the initial board. It must hold one generator for each chain that is open at the start. Each start item must belong to an open chain.
 Confirm that the player can complete each preparation with the generators that are available at that point.
-The progression test shows this result for every preparation with no added resources.
+The campaign test shows this result for every preparation with no added resources.
+`questProblems` checks that the quests that open before each preparation pay for it. A quest change must keep this check true.
 For each content defect that the validation did not find, add a regression test.
 
 Run `npm run typecheck` and `npm test`.

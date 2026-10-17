@@ -1,30 +1,11 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { createGame, reduceGame, resolveRooms, latestArea, validateGame } from '../../src/engine.ts';
-import type { GameData, GameState } from '../../src/engine.ts';
-import { SAVE_KEY as KEY, exportSave } from '../../src/storage.ts';
-import { readFileSync } from 'node:fs';
+import { resolveRooms, latestArea } from '../../src/engine.ts';
 import { createHash } from 'node:crypto';
+import { KEY, checkpoint, data, failWrites, options, saved, serialize, start } from './support.ts';
 
-const data: GameData=JSON.parse(readFileSync('public/data/game.json','utf8'));
-function saveAfter(count: number,coins=0){
-  let state=createGame(data);state.coins=100000;
-  Object.assign(state,data.tasks[Math.min(count,data.tasks.length-1)].goals);
-  for(let index=0;index<count;index++){
-    const result=reduceGame(state,{type:'task'},data);expect(result.ok,result.message).toBe(true);state=result.state;
-  }
-  state.coins=coins;return exportSave(state,candidate=>validateGame(candidate,data));
-}
-async function saved(page: Page): Promise<GameState>{
-  return page.evaluate(key=>navigator.locks.request(key,()=>JSON.parse(localStorage.getItem(key)!).state),KEY);
-}
-async function start(page: Page,save: string,theme='light'){
-  await page.addInitScript(({key,save,theme})=>{
-    if(localStorage.getItem(key)===null)localStorage.setItem(key,save);
-    localStorage.setItem('scary-snacks-theme',theme);
-  },{key:KEY,save,theme});
-  await page.goto('./');await expect(page.locator('#board button')).toHaveCount(42);
-}
+/** The save after count preparations, ready to pay the next one when ready is set. */
+const saveAfter=(count: number,ready=false)=>serialize(checkpoint(count,{ready}));
 /** The room's painting once it has decoded, by file name. */
 const shown=(page: Page)=>page.locator('#room-paintings img').last().evaluate(async e=>{const image=e as HTMLImageElement;await image.decode().catch(()=>{});return image.complete&&image.naturalWidth>0?image.currentSrc.split('/').at(-1)!:'';});
 const completedAt=(count: number)=>data.tasks.slice(0,count).map(task=>task.id);
@@ -68,12 +49,9 @@ test('a courtyard painting that fails to load leaves its words',async({page})=>{
 });
 
 test('a preparation whose save fails leaves coins, progress and room unchanged',async({page})=>{
-  await start(page,saveAfter(1,data.tasks[1].cost));const before=await saved(page);
+  await start(page,saveAfter(1,true));const before=await saved(page);
   const frame=page.locator('#room-frame'),painting=await frame.getAttribute('data-painting');
-  await page.evaluate(key=>{
-    const original=Storage.prototype.setItem;
-    Storage.prototype.setItem=function(name,value){if(name===key)throw new DOMException('Storage is full.','QuotaExceededError');original.call(this,name,value);};
-  },KEY);
+  await failWrites(page);
   await page.locator('#story').getByRole('button',{name:/^Pay /}).click();
   await expect(page.locator('#status')).toContainText(/save|saved/i);
   expect(await saved(page)).toEqual(before);await expect(page.locator('#coins')).toHaveText(String(before.coins));
@@ -94,7 +72,7 @@ test('a failed animated area change replaces the old painting with the current r
 
 for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'phone',width:390,height:844}])test(`a painting that fails during story preload shows the fallback and restores focus at ${viewport.name}`,async({page})=>{
   await page.setViewportSize(viewport);
-  await start(page,saveAfter(0,data.tasks[0].cost));await shown(page);
+  await start(page,saveAfter(0,true));await shown(page);
   await page.route('**/assets/variants/front-room-01-*',route=>route.fulfill({status:404,body:''}));
   const failed=page.waitForResponse(response=>response.url().includes('/front-room-01-')&&response.status()===404);
   await page.getByRole('button',{name:/^Pay /}).click();await failed;
@@ -145,7 +123,7 @@ test('a new game restores its original room crop after a pin has moved the frame
   await page.evaluate(({key,save})=>localStorage.setItem(key,save),{key:KEY,save:saveAfter(23)});
   await page.reload();await expect(page.locator('#board button')).toHaveCount(42);await shown(page);
   await expect(page.locator('#room-pin')).toBeVisible();
-  await page.getByRole('button',{name:/House book/}).click();
+  await options(page);
   await page.getByRole('button',{name:'Start a new game',exact:true}).click();
   await page.getByRole('button',{name:'Erase and start again'}).click();
   await expect(page.locator('#room-frame')).toHaveAttribute('data-current','front-room-00');
