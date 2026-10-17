@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, reduceGame, validateGame, validateLegacyGame, migrateGame, validatePreviousGame, migratePreviousGame, validateGeneratorGame, migrateGeneratorGame, validateLevelRewardGame, migrateLevelRewardGame, migrateQuestGame, resolveDecorations, decorationProblems, legacyOrderReward, saveMigrations } from '../src/engine.ts';
+import { createGame, reduceGame, validateGame, validateLegacyGame, migrateGame, validatePreviousGame, migratePreviousGame, validateGeneratorGame, migrateGeneratorGame, validateLevelRewardGame, migrateLevelRewardGame, migrateQuestGame, migrateBoardGame, resolveDecorations, decorationProblems, legacyOrderReward, saveMigrations } from '../src/engine.ts';
 import { exportSave, importSave, loadSave, saveGame, SAVE_KEY, PREVIOUS_SAVE_KEY, LEGACY_SAVE_KEY } from '../src/storage.ts';
 import type { Action, GameData, GameState } from '../src/engine.ts';
 
@@ -23,12 +23,12 @@ function checkpoint(count: number) {
 }
 function legacy(state: GameState) {
   const { decorationChoices: _, outputChoices: __, claimedLevelRewards: ___, completedQuests: _completed, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
-    layoutId: _layout, resolvedObstacles: _resolved, ...old } = structuredClone(state);
+    layoutId: _layout, resolvedObstacles: _resolved, pendingScenes: _scenes, ...old } = structuredClone(state);
   return { ...old, version: 2, orders: old.orders.map(({ pricing: _, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, data) })) };
 }
 function previous(state: GameState) {
   const { outputChoices: _, claimedLevelRewards: __, completedQuests: _completed, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
-    layoutId: _layout, resolvedObstacles: _resolved, ...old } = structuredClone(state);
+    layoutId: _layout, resolvedObstacles: _resolved, pendingScenes: _scenes, ...old } = structuredClone(state);
   return { ...old, version: 3, orders: old.orders.map(({ pricing: _, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, data) })) };
 }
 
@@ -131,13 +131,15 @@ test('every older save preserves fresh, partial, and complete campaigns with gen
     const generatorState = migratePreviousGame(intermediate, data);
     assert.equal(validateGeneratorGame(generatorState, data), true);
     expected.legacySatisfiedQuests = data.quests.filter(quest => quest.legacyAfter !== null && expected.decorations.includes(quest.legacyAfter)).map(quest => quest.id);
-    assert.deepEqual(migrateQuestGame(migrateLevelRewardGame(migrateGeneratorGame(generatorState, data), data), data), expected);
-    assert.deepEqual(migrateQuestGame(migrateLevelRewardGame(migrateGeneratorGame(generatorState, data), data), data), expected);
+    // Conversion queues no earlier chapter scene. The journal derives those scenes from the preparations.
+    expected.pendingScenes = [];
+    assert.deepEqual(migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(migrateGeneratorGame(generatorState, data), data), data), data), expected);
+    assert.deepEqual(migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(migrateGeneratorGame(generatorState, data), data), data), data), expected);
     assert.deepEqual(old, original);
     assert.deepEqual(importSave(text, validate, migration), expected);
     assert.deepEqual(loadSave(storage, validate, migration), { state: expected, status: 'loaded', error: null });
     assert.equal(values.get(key), text);
-    assert.equal(JSON.parse(values.get(SAVE_KEY)!).version, 6);
+    assert.equal(JSON.parse(values.get(SAVE_KEY)!).version, 7);
     assert.deepEqual(loadSave(storage, validate, migration).state, expected);
     assert.equal(writes, 1, 'Reload must not migrate or reward a second time.');
     assert.deepEqual(importSave(exportSave(expected, validate), validate), expected);
@@ -164,7 +166,7 @@ test('saved output choices round trip with pantry generators and corrupt choices
     { [source.chain]: source.id }, { [source.chain]: other.id }, { [source.chain]: stageOne.id },
     { [source.chain]: tooHigh.id }, JSON.parse('{"__proto__":"unknown"}')]) {
     const invalid = { ...current, outputChoices: choices };
-    assert.throws(() => importSave(JSON.stringify({ format: 'scary-snacks', version: 6, state: invalid }), validate));
+    assert.throws(() => importSave(JSON.stringify({ format: 'scary-snacks', version: 7, state: invalid }), validate));
     assert.throws(() => exportSave(invalid, validate));
     assert.equal(saveGame(storage, invalid, validate).ok, false);
     assert.equal(values.get(SAVE_KEY), text);

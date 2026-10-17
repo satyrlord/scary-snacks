@@ -46,6 +46,8 @@ for(const [preparations,stage] of [[12,2],[20,3]])test(`preparation ${preparatio
   const paid=await saved(page);expect(paid.taskIndex).toBe(preparations);expect(paid.orders).toEqual(before.orders);
   expect(paid.board).toEqual(before.board);expect(paid.outputChoices).toEqual(before.outputChoices);
   await page.keyboard.press('Escape');await expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done');
+  // Both preparations end a chapter, so its closing scene follows the reveal.
+  await expect(page.getByRole('dialog',{name:/^Chapter \d complete: /})).toBeVisible();await page.keyboard.press('Escape');
   await source(page,paid).click();await expect(page.locator('#item-detail .take-button')).toHaveCount(stage);
   await expect(take(page,`bakery_${stage}`)).toBeVisible();
   for(let lower=1;lower<=stage;lower++)await expect(take(page,`bakery_${lower}`).locator('.food')).toBeVisible();
@@ -101,7 +103,7 @@ test('a full board rejects another output without changing the saved choice',asy
 
 test('an envelope two save keeps its pantry source and starts its choice at stage one',async({page})=>{
   const initial=afterPreparations(20);const moved=reduceGame(initial,{type:'store',index:initial.board.findIndex(cell=>cell?.code==='generator_bakery')},data);
-  expect(moved.ok).toBe(true);const {outputChoices: _choices,claimedLevelRewards: _claims,completedQuests: _quests,legacySatisfiedQuests: _legacy,activeQuestProducers: _producers,layoutId: _layout,resolvedObstacles: _resolved,...previous}=moved.state;
+  expect(moved.ok).toBe(true);const {outputChoices: _choices,claimedLevelRewards: _claims,completedQuests: _quests,legacySatisfiedQuests: _legacy,activeQuestProducers: _producers,layoutId: _layout,resolvedObstacles: _resolved,pendingScenes:_scenes,...previous}=moved.state;
   previous.orders=previous.orders.map(({pricing:_pricing,...order})=>({...order,reward:legacyOrderReward(order.requirements,data)}));
   const old=JSON.stringify({format:'scary-snacks',version:2,state:{...previous,version:3}});
   await page.addInitScript(([key,value])=>{if(localStorage.getItem(key)===null)localStorage.setItem(key,value);},[PREVIOUS_SAVE_KEY,old]);

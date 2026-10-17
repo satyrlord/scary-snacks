@@ -90,12 +90,12 @@ test('failed Apply keeps the committed choice and Retry saves the selected finis
 
 test('old save migration preserves its bytes and defaults, including after export and import',async({page})=>{
   const state=checkpoint(24);state.orders=state.orders.map(({pricing:_pricing,...order})=>({...order,reward:legacyOrderReward(order.requirements,data)}));
-  const old={...state,version:2} as Record<string,unknown>;for(const key of ['decorationChoices','outputChoices','claimedLevelRewards','completedQuests','legacySatisfiedQuests','activeQuestProducers','layoutId','resolvedObstacles'])delete old[key];
+  const old={...state,version:2} as Record<string,unknown>;for(const key of ['decorationChoices','outputChoices','claimedLevelRewards','completedQuests','legacySatisfiedQuests','activeQuestProducers','layoutId','resolvedObstacles','pendingScenes']) delete old[key];
   const legacy=JSON.stringify({format:'scary-snacks',version:1,state:old});
   await page.addInitScript(({key,text})=>{if(!localStorage.getItem(key))localStorage.setItem(key,text);},{key:LEGACY_SAVE_KEY,text:legacy});
   await page.goto('./');await expect(page.locator('#board button')).toHaveCount(42);
   expect(await page.evaluate(key=>localStorage.getItem(key),LEGACY_SAVE_KEY)).toBe(legacy);
-  const migrated=await saved(page);expect(migrated).toEqual({...old,version:7,layoutId:'legacy-open',resolvedObstacles:[],decorationChoices:{},outputChoices:{},claimedLevelRewards:[],completedQuests:[],legacySatisfiedQuests:data.quests.filter(quest=>!quest.producer&&quest.legacyAfter!==null).map(quest=>quest.id),activeQuestProducers:{}});
+  const migrated=await saved(page);expect(migrated).toEqual({...old,version:8,layoutId:'legacy-open',resolvedObstacles:[],pendingScenes:[],decorationChoices:{},outputChoices:{},claimedLevelRewards:[],completedQuests:[],legacySatisfiedQuests:data.quests.filter(quest=>!quest.producer&&quest.legacyAfter!==null).map(quest=>quest.id),activeQuestProducers:{}});
   await house(page);await edit(page,'flowers');await choose(page,'lilacs');await page.getByRole('button',{name:'Apply',exact:true}).click();
   const committed=await saved(page),downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Export saved game'}).click();
   const download=await downloadPromise;const text=readFileSync((await download.path())!,'utf8');expect(JSON.parse(text).state).toEqual(committed);
@@ -106,7 +106,7 @@ test('old save migration preserves its bytes and defaults, including after expor
 
 test('failed migration remains recoverable and cannot save a new board over the old game',async({page})=>{
   const state=checkpoint(9);state.orders=state.orders.map(({pricing:_pricing,...order})=>({...order,reward:legacyOrderReward(order.requirements,data)}));
-  const old={...state,version:2} as Record<string,unknown>;for(const key of ['decorationChoices','outputChoices','claimedLevelRewards','completedQuests','legacySatisfiedQuests','activeQuestProducers','layoutId','resolvedObstacles'])delete old[key];
+  const old={...state,version:2} as Record<string,unknown>;for(const key of ['decorationChoices','outputChoices','claimedLevelRewards','completedQuests','legacySatisfiedQuests','activeQuestProducers','layoutId','resolvedObstacles','pendingScenes']) delete old[key];
   const legacy=JSON.stringify({format:'scary-snacks',version:1,state:old});
   await page.addInitScript(({current,key,text})=>{
     localStorage.setItem(key,text);const original=Storage.prototype.setItem;

@@ -1,6 +1,6 @@
 # Scary Snacks
 
-A cosy, slightly eerie merge game set in a run-down Transylvanian bistro. Merge ingredients into local dishes, serve your neighbours, and fix up the bistro one repair at a time. Miez the black cat watches from the windowsill. The game has no timers, no energy, and no purchases.
+A cosy, slightly eerie merge game set in a run-down Transylvanian bistro. Merge ingredients into local dishes, serve your neighbours, and fix up the bistro one repair at a time. Six chapters of story lead to a community supper. Miez the black cat watches from the windowsill. The game has no timers, no energy, and no purchases.
 
 Play it at https://satyrlord.github.io/scary-snacks/.
 

@@ -343,13 +343,13 @@ The palette is warm and has low saturation. Each theme has one action colour. Th
 
 ### Hierarchy
 - **Display** (600, clamp(43px, 3.2vw, 48px), 1): the wordmark only, from 1024px. Below 1024px, the wordmark uses the display-phone size.
-- **Headline** (600, 21px, 1.3, -0.025em): section headings ("Our little bistro", "The pantry") and dialog titles.
+- **Headline** (600, 21px, 1.3, -0.025em): section headings ("The pantry") and dialog titles, such as "Our little bistro". The chapter title of the story section uses the same weight at 19px in the accent colour.
 - **Title** (600, 19px, 1.4, -0.025em): the preparation name, settings sections, recipe chains, and the Appearance legend.
 - **Title small** (600, 15px, 1.25): the name of the selected item under the board. It also sets the Miez card and the recipe book title, at a line height of 1.4.
 - **Figure** (600, 24px, 1, tabular numerals): the coin total. It is 21px below 1024px.
 - **Body** (400, 14px, 1.7): dialog copy and control labels. Mara's line is 14px at 1.45 (13px at 1.35 below 1024px). Story dialogue is 16px at 1.75 (14px at 720px and below).
 - **Body small** (400, 13px, 1.65): the story copy, Serve, the area names, and the ticket name (600). It also sets the offer, the item actions, and the bar labels.
-- **Label** (400, 12px, 1.5): the chapter number, the save state, and the "N of 24 preparations done" count. It also sets the pantry count, the rule line of the selected item, the pin, and Serve on phones.
+- **Label** (400, 12px, 1.5): the chapter number, the save state, and the "N of 24 done" count. Screen readers hear "N of 24 preparations done". It also sets the pantry count, the rule line of the selected item, the pin, and Serve on phones.
 
 ### Named Rules
 **The Shop Sign Rule.** Grenze Gotisch appears once per screen, as the wordmark. Every other heading is Inter at weight 600.
@@ -454,7 +454,7 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 - **Secondary:** the fill is Flour Dust, the text is ink, and the border is a 1px Control Line.
 - **Danger:** a transparent fill with an accent outline and accent text. Only the reset action uses this style. A confirmation always follows.
 - **Pay:** the story shows the current and required coins, total orders served, and total merges. Each row says "Complete" or "Need N". Total means the lifetime count across all preparations. A required quest shows its name. A blocked source placement states the space needed. Pay stays disabled with the dashed not-yet style until every requirement is met. The button reads "Pay · N" with the 16px coin mark. Its accessible name is "Pay N coins: [preparation]" and its description is the requirement list. Pay and the Cost details text button share one 44px row with a 10px gap. Pay fills the remaining width. Cost details has the accessible name "Work and cost".
-- **Text button:** an underlined accent link at 13px with a 44px target. It is used by Find a match, Open the story journal, Neighbour quests, the quest journal's Read request, and Try again when the kitchen cannot open.
+- **Text button:** an underlined accent link at 13px with a 44px target. It is used by Find a match, Open the story journal, Neighbour quests, the quest journal's Read request, Skip scene, Read now, and Try again when the kitchen cannot open.
 - **Focus:** a 3px Teal Focus ring, offset by 3px. Inside a tile, an area choice, the grip, or a bar item, the offset is -3px. In an appearance choice or a decoration choice, the offset is 2px.
 
 ### The room (signature)
@@ -504,7 +504,7 @@ These three parts share one place under the board. The place is at least 62px ta
 - **Upgraded source:** above 1023px, the source name, Store, and Clear occupy the first row. Two or three equal-width Take buttons occupy a second row. Each Take button is at least 64px tall and has a 24px output picture. The rule line does not show. At 1023px and below, the selection does not change the height of the strip, so the board does not move under the finger. The name row does not show. The equal-width Take buttons, Store, and Clear share one row. Each Take button is at least 44px tall. It shows a 22px output picture above the output name in 11px type. Its accessible name stays "Take" and the output name. The controls fit at 360px without horizontal scroll.
 
 ### Story, recipe book, and pantry
-- **Wider screens:** these are sections of the docked panel between hairlines. They are not cards. The story section shows "Our little bistro", the chapter, the preparation, its requirement list, and its Pay button. Requirement rows use 13px Inter, tabular figures, ink for totals, and muted text for status. The rows wrap within the column. They add no motion or colour code. Neighbour quests and Journal share one link row. Journal has the accessible name "Open the story journal". The save state and progress count follow. The recipe book is an accent link with the bat sprite and the "N of 30 dishes discovered" line.
+- **Wider screens:** these are sections of the docked panel between hairlines. They are not cards. The story section shows the chapter title as its heading, the chapter objective, the chapter steps, a waiting scene if there is one, the preparation, its requirement list, and its Pay button. The Story sheet keeps the title "Our little bistro" and shows "Chapter N · [title]" in its first line. Requirement rows use 13px Inter, tabular figures, ink for totals, and muted text for status. The rows wrap within the column. They add no motion or colour code. Neighbour quests and Journal share one link row. Journal has the accessible name "Open the story journal". The save state and progress count follow. The recipe book is an accent link with the bat sprite and the "N of 30 dishes discovered" line.
 - **Phones:** each opens as a sheet from the bar. The pantry sheet shows the slots in six columns.
 - **Pantry slots:** the slots are square Parchment tiles of at least 44px. They have a hairline border, a 9px radius, and 5px padding. Empty slots are dashed and transparent.
 - **Cloche:** an unmade dish is a transparent slot with a dashed Control Line border. The slot shows a Smoke cloche and "Not yet". The cloche has a dashed dome, a knob, and a plate, at the 1.7 stroke.
@@ -519,7 +519,7 @@ Cost details opens the existing dialog or phone sheet. It names the current prep
 - **Order:** the reveal starts after the story of a paid preparation. Where the kitchen is a drawer (1023px and below), the drawer lowers by itself over 0.6s. The board then does not accept input.
 - **Repaint:** the room switches to the changed area. The new painting replaces the old painting in the same place. The change uses opacity and an 8px blur over 1.2s, with an expo ease-out.
 - **Pin:** the pin lands on the change over 450ms, and focus moves to the pin. Mara's line shows the text of the change.
-- **Return:** after 1.4s, the drawer rises again, and a bat crosses the window.
+- **Return:** after 1.4s, the drawer rises again, and a bat crosses the window. Then a closing scene or the finale that the payment earned opens, unless another dialog is open.
 - **Safety:** the game saves the preparation before the story opens. The reveal cannot charge or reward the player again. Reduced motion shows the new state at once.
 
 ### Navigation
@@ -530,7 +530,17 @@ Cost details opens the existing dialog or phone sheet. It names the current prep
 - **Style:** dialogs are Parchment with an 18px radius and 26px padding. A dialog is at most 560px wide. It has a headline title and a 44px close button.
 - **Bottom sheets (720px and below):** a bottom sheet has full width and is up to 88% of the viewport height. It has 20px padding plus the safe area and a top border only.
 - **Focus:** a dialog opens on its close button. The story dialog opens on Continue. Each confirmation dialog opens on its safe choice. When an open dialog changes, focus moves to the new title, without a ring. The decoration editor opens on its checked radio. Apply, Cancel, Escape, and Close return focus to the slot in the House book that opened the editor.
-- **Story:** a 120px portrait (82px on phones) and the line at 16px. Back, the line count, and Continue follow. After a payment, the last line reads "See what changed". The sheet then closes, and the reveal runs.
+- **Story:** a 120px portrait (82px on phones) and the line at 16px. Back, the line count, and Continue follow. After a payment, the last line reads "See what changed". The sheet then closes, and the reveal runs. A scene that the payment earned opens after the reveal.
+
+### Chapter story
+
+On wider screens, the chapter title is the 19px accent heading of the story section (16px from 1024px to 1365px, so that the longest title keeps to one line). In the Story sheet, the chapter line is the accent line under the sheet title. The objective follows in 12px muted text. The chapter steps follow on one line: one 18px by 6px pip for each preparation of the chapter, then the muted 12px label. The label is "Chapter N" in the story section and "N of 4 done" in the sheet. A done pip is filled with the accent colour. The current pip has an accent outline. A later pip has the dashed Control Line edge of "not yet". The list has the accessible name "Chapter N preparations". Each pip gives the preparation name and its state to screen readers. The label is hidden from screen readers. The steps name no later scene and show no room change.
+
+A waiting scene is one line under the chapter steps, above the hairline of the preparation. The 44px target of its button reaches into the space above and below the line. It holds a short 13px line, "Chapter N is complete." or "The supper can begin.", and the "Read now" text button. The accessible name of the button names the scene. On phones, the row is in the Story sheet. The row has no motion and no dot.
+
+A closing scene has the dialog title "Chapter N complete: [title]". The finale has its own title. Both use the story portrait, dialogue, Back, line count, and Continue. Under the controls, a "Skip scene" text button has a 44px target, and the payoff or the ending follows as the completion message. The last line reads "Next scene" when another scene waits, and "Back to the kitchen" otherwise. From the journal it reads "Return". After the reveal of the payment that earned it, the scene opens and focus moves to Continue. Close and Escape leave the scene waiting. When the scene dialog closes, focus returns to the control that opened it. If Read now is no longer present, focus returns to the Journal link on wider screens or the Story button on phones. This also applies when the player closes a later scene in the same queue.
+
+The journal has a Chapters section after the neighbour quests. Each open or complete chapter is a section between hairlines with the heading "Chapter N · [title]". A running chapter shows its opening context, its goal in muted text, and its later preparations as a muted list with "Next" or "Not yet". A complete chapter shows its payoff. The neighbour help line is muted. Done preparations are journal entries with the name of their room change, for example "New: lamps lit". The closing scene and the finale are journal entries that say "New scene" or "Replay". These additions have no animation.
 
 ### Neighbour quests
 
@@ -540,7 +550,7 @@ Each quest is a section between hairlines. A 44px portrait sits beside the reque
 
 A temporary-source offer names its space requirement before Accept. Its delivery opens a cleanup review that lists the board and pantry supplies separately, with their space numbers. Keep items has initial focus. Deliver and return supplies confirms the action. Cancel, Close, and Escape return to the quest heading. The completion scene returns to the quest list heading. An unsaved session has a visible warning and Retry save.
 
-The journal starts with Neighbours. Each portrait row opens an optional introduction. Finished quests have opening and completion replay controls before the preparation entries. Quest scenes and introductions use the existing portrait, dialogue, Back, and Continue controls. Return, Close, and Escape restore focus to their quest heading or journal entry. Closing the quest sheet returns focus to its visible Story link or to the phone Story button. These additions have no animation.
+The journal starts with Neighbours. Each portrait row opens an optional introduction. These rows have a 44px portrait and two equal text columns, with 12px gaps. Names align left beside the portraits. Roles align right. Long names and roles wrap within their columns. Finished quests have opening and completion replay controls before the chapters. Quest scenes and introductions use the existing portrait, dialogue, Back, and Continue controls. Return, Close, and Escape restore focus to their quest heading or journal entry. Closing the quest sheet returns focus to its visible Story link or to the phone Story button. These additions have no animation.
 
 ### Level rewards
 

@@ -217,7 +217,9 @@ test('with reduced motion the change shows at once, and nothing animates',async(
   await revealed(page);await expect(page.locator('.game-layout')).not.toHaveClass(/revealing/);
   await expect(page.locator('#room-paintings .room-painting')).toHaveCount(1);await expect.poll(()=>painting(page)).toMatch(/^front-room-24-/);
   expect(await page.locator('#room-stage').evaluate(stage=>stage.getAnimations({subtree:true}).length)).toBe(0);
-  await expect(page.locator('.counter-cat')).toBeVisible();await expect(page.locator('#room-pin')).toBeFocused();await expect(page.locator('#status')).toHaveText(stateText('front-room-24'));
+  // The chapter scene that the payment earned follows the reveal. Escape leaves it waiting and returns focus to the pin.
+  await expect(page.getByRole('dialog',{name:'Chapter 6 complete: The first community supper'})).toBeVisible();await expect(page.locator('.story-controls .primary-button')).toBeFocused();
+  await page.keyboard.press('Escape');await expect(page.locator('.counter-cat')).toBeVisible();await expect(page.locator('#room-pin')).toBeFocused();await expect(page.locator('#status')).toHaveText(stateText('front-room-24'));
 });
 
 test('a painting that cannot load leaves the room in words, and play goes on',async({page})=>{

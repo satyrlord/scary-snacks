@@ -536,13 +536,178 @@
     }
   ],
   "chapters": [
-    "Open the shutters",
-    "A kitchen for everyone",
-    "Around one table",
-    "The courtyard",
-    "Recipes to share",
-    "The first community supper"
+    {
+      "id": "chapter-1",
+      "title": "Open the shutters",
+      "objective": "Make the neglected front room ready to greet neighbours.",
+      "opening": "Dust, webs, and a broken pane keep the street outside. Mara wants the front room to welcome people again.",
+      "payoff": "The front room is clean, lit, and free of webs, and Ilie has a place for his bread on the counter.",
+      "contribution": "ilie-counter",
+      "closing": [
+        {
+          "speaker": "mara",
+          "text": "Look at it. Clean glass, a mended board, pastries on the shelf, and both lamps lit."
+        },
+        {
+          "speaker": "ilie",
+          "text": "I will keep bread on the counter, where people can reach it. That is my first promise to this room."
+        },
+        {
+          "speaker": "sorin",
+          "text": "The spiders left with the webs. Well, all but the small one under the shelf."
+        },
+        {
+          "speaker": "eszter",
+          "text": "Let it stay. Every good room has one quiet guest."
+        }
+      ]
+    },
+    {
+      "id": "chapter-2",
+      "title": "A kitchen for everyone",
+      "objective": "Arrange a shared kitchen where anyone can help.",
+      "opening": "The front room is ready, but the kitchen is not. A shared menu needs a steady worktop, a stocked pantry, and shelves within reach.",
+      "payoff": "The team can cook together, and the first menu explains each dish.",
+      "contribution": "sorin-lunch",
+      "closing": [
+        {
+          "speaker": "mara",
+          "text": "A steady worktop, a pantry shelf, jars above, and a menu by the door. We can cook here together now."
+        },
+        {
+          "speaker": "sorin",
+          "text": "And explain it. On every street, people ask me what zacuscă is. Now they can point at the picture."
+        },
+        {
+          "speaker": "ilie",
+          "text": "A menu is a promise. Tomorrow we find out if we can keep it."
+        }
+      ]
+    },
+    {
+      "id": "chapter-3",
+      "title": "Around one table",
+      "objective": "Make shared seating that is useful and welcoming.",
+      "opening": "The food is ready, but the neighbours need a place to sit together. The old long table and the red chairs wait under a dust sheet.",
+      "payoff": "Eszter’s tableware sets every place, and the recipe corner keeps room for memories.",
+      "contribution": "eszter-table",
+      "closing": [
+        {
+          "speaker": "eszter",
+          "text": "Each place has a bowl and a cup. None of them match, and all of them belong."
+        },
+        {
+          "speaker": "ilie",
+          "text": "The notebook is on the cabinet. Somebody has already written their aunt’s name beside the papanași."
+        },
+        {
+          "speaker": "mara",
+          "text": "Then the table is open. Anyone who wants company can find it here."
+        }
+      ]
+    },
+    {
+      "id": "chapter-4",
+      "title": "The courtyard",
+      "objective": "Open an outdoor space where everyone can gather and move easily.",
+      "opening": "Behind the kitchen, a courtyard sleeps under the leaves. With a clear path and a dry door, the bistro can serve outside.",
+      "payoff": "Sorin’s practical help clears the way, and the courtyard is ready for outdoor service.",
+      "contribution": "sorin-path",
+      "closing": [
+        {
+          "speaker": "sorin",
+          "text": "I walked the route with a full tray. Gate to door, door to tables, and nothing in the way."
+        },
+        {
+          "speaker": "eszter",
+          "text": "The herbs are by the door, and the new hood keeps the rain off the step."
+        },
+        {
+          "speaker": "mara",
+          "text": "Then we can serve outside. Thank you, Sorin. You found every loose stone before a guest did."
+        }
+      ]
+    },
+    {
+      "id": "chapter-5",
+      "title": "Recipes to share",
+      "objective": "Test the dishes of the neighbourhood and write them down.",
+      "opening": "Neighbours have started to bring their own recipes. Each one needs a tasting, a label, and a place on the menu.",
+      "payoff": "The supper menu shows each dish, and neighbours can find their own recipes on it.",
+      "contribution": "ilie-family",
+      "closing": [
+        {
+          "speaker": "ilie",
+          "text": "Every recipe on the wall has a name beside it. My grandmother is on there twice."
+        },
+        {
+          "speaker": "eszter",
+          "text": "And every dish on the menu has a picture and a label, so nobody has to guess."
+        },
+        {
+          "speaker": "sorin",
+          "text": "A neighbour found her plum dumplings on the menu today. She read it out loud to the whole courtyard."
+        },
+        {
+          "speaker": "mara",
+          "text": "That is the menu I wanted. Not ours. Everyone’s."
+        }
+      ]
+    },
+    {
+      "id": "chapter-6",
+      "title": "The first community supper",
+      "objective": "Bring every preparation together and welcome the guests.",
+      "opening": "The rooms are ready and the menu is printed. Now the street needs invitations, a serving station, and the last few flowers.",
+      "payoff": "Mara and the team share the completed supper with the neighbourhood.",
+      "contribution": "mara-supper",
+      "closing": [
+        {
+          "speaker": "sorin",
+          "text": "Every invitation is delivered. Some people asked twice if they really need to bring only an appetite."
+        },
+        {
+          "speaker": "eszter",
+          "text": "The flowers are short, the lights are on, and every dish on the serving table has its label."
+        },
+        {
+          "speaker": "mara",
+          "text": "Then we are ready. Let us open the doors."
+        }
+      ]
+    }
   ],
+  "finale": {
+    "id": "finale",
+    "title": "Supper at the bistro",
+    "dialogue": [
+      {
+        "speaker": "mara",
+        "text": "Look at them. The front room is full, and the courtyard too."
+      },
+      {
+        "speaker": "ilie",
+        "text": "We opened the shutters and lit the room. Then we made a kitchen where everyone could help."
+      },
+      {
+        "speaker": "eszter",
+        "text": "We set one long table for everyone, and then we carried it out into the courtyard."
+      },
+      {
+        "speaker": "sorin",
+        "text": "And the recipes came from every street on my route. Half the menu has a neighbour’s name on it."
+      },
+      {
+        "speaker": "mara",
+        "text": "Tonight is the supper that we planned together. Tomorrow the bistro stays open, and the orders keep coming."
+      },
+      {
+        "speaker": "ilie",
+        "text": "Then I will start the dough early. Somebody will want bread for breakfast."
+      }
+    ],
+    "ending": "The supper is served, and the bistro stays open. Your neighbours keep coming with new orders."
+  },
   "tasks": [
     {
       "id": "task_1",

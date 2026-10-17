@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { availableLevelRewards, createGame, dataProblems, getLevel, levelRewardProblems, migrateGame, migratePreviousGame, migrateGeneratorGame, migrateLevelRewardGame, migrateQuestGame, reduceGame, validateGame, validateGeneratorGame, validateLevelRewardGame, validateLegacyGame, validatePreviousGame, legacyOrderReward } from '../src/engine.ts';
+import { availableLevelRewards, createGame, dataProblems, getLevel, levelRewardProblems, migrateGame, migratePreviousGame, migrateGeneratorGame, migrateLevelRewardGame, migrateQuestGame, migrateBoardGame, reduceGame, validateGame, validateGeneratorGame, validateLevelRewardGame, validateLegacyGame, validatePreviousGame, legacyOrderReward } from '../src/engine.ts';
 import type { GameData, GameState, GeneratorGameState } from '../src/engine.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
@@ -135,7 +135,7 @@ test('version four conversion preserves each campaign checkpoint and offers exis
       state.decorationChoices = { tableware: 'green' };
     }
     const { claimedLevelRewards: _, completedQuests: _complete, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
-      layoutId: _layout, resolvedObstacles: _resolved, ...previous } = structuredClone(state);
+      layoutId: _layout, resolvedObstacles: _resolved, pendingScenes: _scenes, ...previous } = structuredClone(state);
     const old: GeneratorGameState = { ...previous, version: 4, orders: previous.orders.map(({ pricing: _, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, data) })) };
     const before = structuredClone(old);
     assert.equal(validateGeneratorGame(old, data), true);
@@ -146,7 +146,7 @@ test('version four conversion preserves each campaign checkpoint and offers exis
     assert.deepEqual(migrateGeneratorGame(old, data), converted);
     assert.equal(validateLevelRewardGame(converted, data), true);
     if (count) {
-      const result = claim(migrateQuestGame(migrateLevelRewardGame(converted, data), data), 'level-10');
+      const result = claim(migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(converted, data), data), data), 'level-10');
       assert.equal(result.ok, true);
       assert.equal(result.state.coins, old.coins + 20);
       assert.throws(() => migrateGeneratorGame(result.state, data), /damaged or unknown/);
@@ -156,7 +156,7 @@ test('version four conversion preserves each campaign checkpoint and offers exis
 
 test('every older schema rejects injected claims and conversion validates both ends', () => {
   const { claimedLevelRewards: _, outputChoices: __, decorationChoices: ___, completedQuests: _complete, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
-    layoutId: _layout, resolvedObstacles: _resolved, ...base } = createGame(data);
+    layoutId: _layout, resolvedObstacles: _resolved, pendingScenes: _scenes, ...base } = createGame(data);
   const old = { ...base, version: 2, xp: 900, orders: base.orders.map(({ pricing: _, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, data) })) };
   assert.equal(validateLegacyGame(old, data), true);
   const previous = migrateGame(old, data);

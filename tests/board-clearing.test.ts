@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { boardLayoutProblems, canServe, createGame, firstFreeBoardCell, freeBoardCells, migrateQuestGame, reduceGame,
-  servedCells, unresolvedObstacle, validateGame, validateQuestGame } from '../src/engine.ts';
+import { boardLayoutProblems, canServe, createGame, firstFreeBoardCell, freeBoardCells, migrateBoardGame, migrateQuestGame, reduceGame,
+  servedCells, unresolvedObstacle, validateBoardGame, validateGame, validateQuestGame } from '../src/engine.ts';
 import type { Action, GameData, GameState } from '../src/engine.ts';
 import { exportSave, importSave, loadSave, saveGame, SAVE_KEY } from '../src/storage.ts';
 
@@ -25,7 +25,7 @@ function rejected(state: GameState, action: Action) {
 test('new games reserve eight obstacle cells and discover visible anchors only', () => {
   const state = start();
   assert.equal(state.layoutId, 'workbench-clutter-1');
-  assert.equal(state.version, 7);
+  assert.equal(state.version, 8);
   assert.equal(freeBoardCells(state, data), 27);
   assert.equal(firstFreeBoardCell(state, data), 2);
   assert.deepEqual([0, 5, 6, 11, 36, 37, 40, 41].map(index => unresolvedObstacle(state, index, data)?.type),
@@ -136,15 +136,15 @@ test('resolved IDs and blocked cell contents are validated', () => {
 
 test('state six conversion keeps every occupied cell on an open layout', () => {
   const current = start();
-  const { layoutId: _layout, resolvedObstacles: _resolved, ...older } = current;
+  const { layoutId: _layout, resolvedObstacles: _resolved, pendingScenes: _scenes, ...older } = current;
   const state = { ...older, version: 6 as const };
   assert.equal(validateQuestGame(state, data), true);
   const migrated = migrateQuestGame(state, data);
   assert.equal(migrated.layoutId, 'legacy-open');
   assert.deepEqual(migrated.resolvedObstacles, []);
   assert.deepEqual(migrated.board, state.board);
-  assert.equal(freeBoardCells(migrated, data), 35);
-  assert.equal(validateGame(migrated, data), true);
+  assert.equal(validateBoardGame(migrated, data), true);
+  assert.equal(freeBoardCells(migrateBoardGame(migrated, data), data), 35);
   assert.deepEqual(migrateQuestGame(state, data), migrated);
 });
 

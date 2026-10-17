@@ -25,11 +25,13 @@ Spec 003 implements generator tiers, output choices, and save conversion. Its ac
 
 Spec 004 implements the finite coin rewards, the House book level panel, and claim persistence. Its acceptance section separates automated checks from human balance assessment.
 
-Spec 005 implements four character arcs, optional introductions, a temporary bread-tasting source, atomic delivery, journal replay, and save conversion. Automatic scene continuation waits for 009. Spec 006 includes all quests in its economy fixture. Human balance assessment and chapter-story integration with 008 remain open.
+Spec 005 implements four character arcs, optional introductions, a temporary bread-tasting source, atomic delivery, journal replay, and save conversion. Automatic scene continuation waits for 009. Spec 006 includes all quests in its economy fixture. Spec 008 names one regular quest of each arc as a chapter contribution. Human balance assessment remains open.
 
 Spec 006 implements explicit food prices, work-based preparation budgets and effort, requirement feedback, compatible saved quotes, and legal campaign comparisons. The fixture includes generator upgrades, all level rewards, and optional quests. Human pacing remains unverified. The economy record gives the real-world source anchors and the authored assumptions.
 
 Spec 007 implements blocked board cells, adjacent merge reveals, anchored ingredients, an open layout for converted saves, and original clutter art. Automated checks cover the rules and the production browser build. Human pacing and visual acceptance remain open.
+
+Spec 008 implements chapter objectives and steps, chapter closing scenes, neighbour contributions, the finale, journal replay, and save conversion. Automated engine, save, and browser checks cover the rules. A scripted browser playthrough from a fresh save reaches the finale. The manual playthrough by a person remains open.
 
 Each entry is proposed, unless its specification records an implemented slice. Spec 011 has discovery cloches, notices, and order help. Its chain-completion marks are proposed. Priority is a suggested order of work. It does not change the approved product.
 
@@ -64,12 +66,12 @@ The table maps each gap in the current game to the specifications that close it.
 | Character quests have authored purposes; continuation and human pacing remain | 005, 006, 009 |
 | Work-based prices and effort exist; human pacing needs assessment | 006 |
 | Board clearing has automated coverage; human pacing remains unverified | 007 |
-| Brief chapter exchanges and a limited finale | 008 |
+| The finale names no regulars yet | 008, 013 |
 | Dialogue has no automatic continuation after reload | 009 |
 | Hints exist but no staged introduction | 010 |
 | The recipe book has no chain-completion marks | 011 |
 | Endless orders exist but have few long-term goals after the supper | 012 |
-| The browser tests for story and chapters are incomplete | Acceptance checks in 001, 005, 008, 009, 010, 012 |
+| The browser tests for story and chapters are incomplete | Acceptance checks in 001, 005, 009, 010, 012 |
 | Four customers are too few for a business | 013 |
 | The resident cat has no part in play | 014 |
 | The blocked board shows early clutter; human visual acceptance remains | 007 |
@@ -89,7 +91,7 @@ Customer introductions (005) are optional journal reading. Regulars (013), Miez'
 
 ## Shared save compatibility
 
-The current game uses game state version 7 inside save envelope version 6 at `scary-snacks-save-v6` (spec 007). Valid states 2 through 6 in envelopes 1 through 5 convert through each intervening version. Their keys are `scary-snacks-save-v1` through `scary-snacks-save-v5`. Each step validates its input and output. The quest step adds completion lists and an empty temporary-source map. The board step gives older saves a legacy open layout with no blocked cells and an empty resolved list. Regular quests tied to completed preparations become legacy-satisfied without payment. Conversion never activates a temporary source, reopens a preparation, moves an item, or adds a blocked cell. Existing level claims remain. The newest existing key controls the load. All older bytes stay unchanged. State 6 and state 7 orders can also carry the optional pricing marker menu-1. Unmarked quotes retain the original exact reward formula; menu-1 quotes use explicit food prices. States 2 through 5 accept only unmarked quotes. Existing orders are never repriced. Later menu changes need a new quote revision with exact support for earlier quotes. Later features must coordinate their versions. Individual specs do not reserve separate version numbers.
+The current game uses game state version 8 inside save envelope version 7 at `scary-snacks-save-v7` (spec 008). Valid states 2 through 7 in envelopes 1 through 6 convert through each intervening version. Their keys are `scary-snacks-save-v1` through `scary-snacks-save-v6`. Each step validates its input and output. The quest step adds completion lists and an empty temporary-source map. The board step gives older saves a legacy open layout with no blocked cells and an empty resolved list. The story step adds an empty list of waiting scenes. Regular quests tied to completed preparations become legacy-satisfied without payment. Conversion never activates a temporary source, reopens a preparation, moves an item, or adds a blocked cell. Existing level claims remain. The newest existing key controls the load. All older bytes stay unchanged. Orders in states 6 through 8 can also carry the optional pricing marker menu-1. Unmarked quotes retain the original exact reward formula; menu-1 quotes use explicit food prices. States 2 through 5 accept only unmarked quotes. Existing orders are never repriced. Later menu changes need a new quote revision with exact support for earlier quotes. Later features must coordinate their versions. Individual specs do not reserve separate version numbers.
 
 Keep older stored bytes unchanged. Validate the old envelope and state before migration. Produce and validate the new state in memory. Then write it to a separately versioned destination. Do not remove the older save. If conversion, validation, or writing fails, keep the original save and show a recoverable error. Import must not replace live progress until the complete candidate is valid and the game knows the result of the write.
 
@@ -102,7 +104,7 @@ A reward on a full board must have an atomic outcome: where possible, give a def
 1. Implement durable story continuation in 009. Exit: after a reload, a task scene resumes its conversation without another payment.
 2. Add the four starting regulars in 013. Check them with the campaign goals in 006 and character quests in 005. Exit: a fresh game serves eight distinct neighbours. A legal path in a fresh game needs real kitchen service and cannot be circular.
 3. Build on the generator improvement in 003 with level rewards in 004 and Miez's visits in 014. Exit: chapter rewards improve play while every outstanding order stays possible. The 006 fixture measures income with the blessing.
-4. Integrate all six chapter arcs and the ending in 008, then the guided start in 010. Exit: a fresh campaign and a migrated campaign reach the supper without added resources.
+4. Build the guided start in 010 on the chapter story of 008. Exit: a fresh campaign and a migrated campaign reach the supper without added resources.
 5. Add optional 007, the remaining work of 011, and 012 as separate slices. These slices must not delay the core progression fixes.
 
 Spec 015 adds no game state and is not part of this order. Build it before 010, so that the guided start begins behind the front door.

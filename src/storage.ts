@@ -1,10 +1,11 @@
 /** Local-only persistence. */
 const FORMAT = 'scary-snacks';
 /** The envelope version that this game writes. Envelopes 1 through VERSION - 1 load through migrations. */
-const VERSION = 6;
+const VERSION = 7;
 /** Each envelope version has its own key, so a conversion never changes the bytes of an older save. */
 const saveKey = (version: number) => `scary-snacks-save-v${version}`;
 export const SAVE_KEY = saveKey(VERSION);
+export const BOARD_SAVE_KEY = saveKey(6);
 export const QUEST_SAVE_KEY = saveKey(5);
 export const LEVEL_REWARD_SAVE_KEY = saveKey(4);
 export const GENERATOR_SAVE_KEY = saveKey(3);

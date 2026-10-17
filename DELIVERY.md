@@ -41,6 +41,6 @@ The game runs `dataProblems` when it starts, before it reads the save. The game 
 
 ## Manual checks
 
-`npm run saves:checkpoints` writes 25 saves to `.tools/checkpoint-saves/`, one for each number of paid preparations. A file name gives that number and the next preparation, for example `12-next-clear-the-courtyard.json`. Each save holds the exact coins, service, and merges for the next preparation. Import a save from the House book, and pay to see the story and the reveal. These saves do not measure campaign balance.
+`npm run saves:checkpoints` writes 25 saves to `.tools/checkpoint-saves/`, one for each number of paid preparations. A file name gives that number and the next preparation, for example `12-next-clear-the-courtyard.json`. Each save holds the exact coins, service, and merges for the next preparation. It holds no waiting scene from an earlier payment, so a chapter boundary shows only its own closing scene. The finished save holds the closing scene of chapter 6 and the finale. Import a save from the House book, and pay to see the story and the reveal. These saves do not measure campaign balance.
 
 `node tools/campaign-balance.ts` runs a reproducible campaign balance check. The [economy record](docs/economy.md) explains its report and its limits. [Verification](docs/verification.md) gives the coverage of the automated checks.

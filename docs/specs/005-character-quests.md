@@ -1,7 +1,7 @@
 # 005 - Character quests and introductions
 
 Status: Implemented independent slices, including the optional temporary producer.
-Automatic scene continuation waits for 009. Spec 006 includes all quests in its economy fixture. Human balance assessment and chapter-story integration with 008 remain open.
+Automatic scene continuation waits for 009. Spec 006 includes all quests in its economy fixture. Spec 008 names one regular quest of each arc as a chapter contribution. Human balance assessment remains open.
 
 ## Result and ownership
 
@@ -132,6 +132,6 @@ Physical touch, assistive technology, and listening remain manual checks.
 ## Remaining integration
 
 - 006 owns campaign gates and economy tuning. The current request schedule is measured by the legal simulation but has no human balance acceptance.
-- 008 owns the expanded chapter scenes and finale. Quests already reach endings beside the existing campaign.
+- 008 owns the chapter scenes and the finale. Each chapter names one regular quest that opens during it as its neighbour contribution. The journal shows the state of that quest beside the chapter. The contributions stay optional.
 - 009 owns durable dialogue continuation. Quest completion scenes must enter that system when it is implemented. Scene acknowledgement must remain independent of rewards.
 - 013 owns the neighbours page. The current optional introductions live in the story journal and do not gate ordinary orders.

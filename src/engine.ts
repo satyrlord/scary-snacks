@@ -13,6 +13,15 @@ export type Quest = {
   requirements: { item: string; quantity: number }[]; reward: number; opening: SceneLine[]; completion: SceneLine[];
   producer?: { item: string; outputs: string[]; exclusiveItems: string[] };
 };
+/**
+ * A chapter of the story. Its preparations are the tasks that name its number. Opening sets the scene when the chapter starts,
+ * objective is its goal, payoff says what the chapter changed, and closing is the scene that plays when its last preparation completes.
+ * Contribution is the optional neighbour quest that opens during the chapter.
+ */
+export type Chapter = { id: string; title: string; objective: string; opening: string; payoff: string; contribution: string; closing: SceneLine[] };
+/** The scene that plays after the last preparation. Ending is the line that returns the player to the kitchen. */
+export type Finale = { id: string; title: string; dialogue: SceneLine[]; ending: string };
+export type ChapterView = { chapter: Chapter; number: number; tasks: Task[]; done: number; status: 'complete' | 'current' | 'locked' };
 export type QuestView = { quest: Quest; status: 'active' | 'offer' | 'locked' | 'complete' | 'legacy' };
 export type QuestCleanup = { questId: string; token: string; board: { index: number; item: string }[]; inventory: { index: number; item: string }[] };
 /** A room of the bistro. The first area is open from the start; another opens with the preparation named by unlock. */
@@ -45,7 +54,7 @@ export const roomPaintings: readonly string[] = [
 ];
 export type GameData = {
   title: string; inventoryCapacity: number; board: { columns: number; rows: number; initial: (string | null)[]; defaultLayout: string; layouts: BoardLayout[] };
-  chains: { id: string; name: string }[]; items: Record<string, Item>; characters: Character[]; chapters: string[]; tasks: Task[];
+  chains: { id: string; name: string }[]; items: Record<string, Item>; characters: Character[]; chapters: Chapter[]; finale: Finale; tasks: Task[];
   areas: Area[]; rooms: RoomState[]; decorationSlots: DecorationSlot[];
   generatorTiers: { chain: string; stage: number; after: string }[];
   levelRewards: LevelReward[];
@@ -59,15 +68,18 @@ export type RoomView = Area & { open: boolean; states: RoomState[]; current: Roo
 export type Cell = { code: string };
 export type Order = { id: string; requirements: string[]; reward: number; customer: string; pricing?: 'menu-1' };
 export type GameState = {
-  version: 7; board: (Cell | null)[]; inventory: Cell[]; coins: number; xp: number; taskIndex: number; orders: Order[];
+  version: 8; board: (Cell | null)[]; inventory: Cell[]; coins: number; xp: number; taskIndex: number; orders: Order[];
   discovered: string[]; seed: number; served: number; merges: number; nextOrderId: number; decorations: string[];
   decorationChoices: Record<string, string>;
   outputChoices: Record<string, string>;
   claimedLevelRewards: string[];
   completedQuests: string[]; legacySatisfiedQuests: string[]; activeQuestProducers: Record<string, number>;
   layoutId: string; resolvedObstacles: string[];
+  /** Chapter closing scenes and the finale that the player earned and has not finished or skipped, in story order. */
+  pendingScenes: string[];
 };
-export type QuestGameState = Omit<GameState, 'version' | 'layoutId' | 'resolvedObstacles'> & { version: 6 };
+export type BoardGameState = Omit<GameState, 'version' | 'pendingScenes'> & { version: 7 };
+export type QuestGameState = Omit<BoardGameState, 'version' | 'layoutId' | 'resolvedObstacles'> & { version: 6 };
 export type LevelRewardGameState = Omit<QuestGameState, 'version' | 'completedQuests' | 'legacySatisfiedQuests' | 'activeQuestProducers'> & { version: 5 };
 export type GeneratorGameState = Omit<LevelRewardGameState, 'version' | 'claimedLevelRewards'> & { version: 4 };
 export type PreviousGameState = Omit<GeneratorGameState, 'version' | 'outputChoices'> & { version: 3 };
@@ -81,6 +93,7 @@ export type Action =
   | { type: 'acceptQuest'; id: string }
   | { type: 'deliverQuest'; id: string; cleanupToken?: string }
   | { type: 'decorate'; slot: string; variant: string }
+  | { type: 'readScene'; id: string }
   | { type: 'task' };
 export type Result = { state: GameState; ok: boolean; message: string; event: string | null };
 
@@ -153,7 +166,7 @@ function makeOrder(state: GameState, data: GameData, waiting: string[]): Order {
 export function createGame(data: GameData, seed = 271828): GameState {
   const layoutId = data.board.defaultLayout;
   const state: GameState = {
-    version: 7, layoutId, resolvedObstacles: [],
+    version: 8, layoutId, resolvedObstacles: [], pendingScenes: [],
     board: data.board.initial.map(code => code ? { code } : null),
     inventory: [], coins: 0, xp: 0, taskIndex: 0, orders: [],
     discovered: [...new Set([...data.board.initial.filter(present),
@@ -345,6 +358,76 @@ export function questProblems(data: GameData): string[] {
       || data.chains.some(chain => chain.id === item.chain) || !item.name || !integer(item.sprite, 0, 35) || !integer(item.stage, 0, 6)
       || (item.generator ? item.stage !== 0 || item.next !== null : item.stage === 0)) problems.push(`${id}: invalid quest item ownership or art.`);
   } catch { problems.push('The quest records are malformed.'); }
+  return problems;
+}
+
+/** The index of the latest preparation that a quest and its predecessors wait for: -1 when it opens in a new game. */
+function questOpening(quest: Quest, data: GameData, path = new Set<string>()): number {
+  if (path.has(quest.id)) return Infinity;
+  path.add(quest.id);
+  const opening = Math.max(data.tasks.findIndex(task => task.id === quest.afterTask), ...questPredecessors(quest, data).map(id => {
+    const previous = data.quests.find(candidate => candidate.id === id);
+    return previous ? questOpening(previous, data, path) : Infinity;
+  }));
+  path.delete(quest.id);
+  return opening;
+}
+
+/** Every story scene that can wait for the player, in story order: each chapter's closing scene, then the finale. */
+export const storyScenes = (data: GameData) => [...data.chapters.map(chapter => chapter.id), data.finale.id];
+
+/** Completed preparations are the only input. A chapter is complete when its last preparation is complete. */
+export function resolveChapters(state: Pick<GameState, 'taskIndex'>, data: GameData): ChapterView[] {
+  const current = data.tasks[state.taskIndex]?.chapter ?? data.chapters.length + 1;
+  return data.chapters.map((chapter, index) => {
+    const number = index + 1, tasks = data.tasks.filter(task => task.chapter === number);
+    return { chapter, number, tasks, done: tasks.filter(task => data.tasks.indexOf(task) < state.taskIndex).length,
+      status: number < current ? 'complete' : number === current ? 'current' : 'locked' };
+  });
+}
+
+/** The scenes that the completed preparations have earned. A save can hold only these as pending scenes. */
+function earnedScenes(state: Pick<GameState, 'taskIndex'>, data: GameData): string[] {
+  return [...resolveChapters(state, data).filter(view => view.status === 'complete').map(view => view.chapter.id),
+    ...(state.taskIndex === data.tasks.length ? [data.finale.id] : [])];
+}
+
+/** Check the chapters, their scenes, their neighbour contributions, and the finale before the content can ship. */
+export function storyProblems(data: GameData): string[] {
+  const problems: string[] = [];
+  try {
+    const { chapters, finale } = data;
+    if (!Array.isArray(chapters) || !chapters.length || !finale || typeof finale !== 'object') return ['The story needs chapters and a finale.'];
+    const scene = (lines: unknown): lines is SceneLine[] => Array.isArray(lines) && lines.length > 0 && lines.every(line => line && typeof line === 'object'
+      && data.characters.some(character => character.id === line.speaker) && typeof line.text === 'string' && line.text.trim());
+    const stable = (id: unknown) => typeof id === 'string' && /^[a-z][a-z0-9-]*$/.test(id);
+    const ids = new Set<string>();
+    for (const [index, chapter] of chapters.entries()) {
+      const label = `Chapter ${index + 1}`;
+      if (!chapter || typeof chapter !== 'object') { problems.push(`${label} needs a record.`); continue; }
+      if (!stable(chapter.id) || ids.has(chapter.id)) problems.push('Chapter and finale IDs must be stable and unique.');
+      ids.add(chapter.id);
+      for (const key of ['title', 'objective', 'opening', 'payoff'] as const) if (typeof chapter[key] !== 'string' || !chapter[key].trim()) problems.push(`${label} needs its ${key}.`);
+      if (!scene(chapter.closing)) problems.push(`${label}: invalid closing scene.`);
+      const tasks = data.tasks.flatMap((task, at) => task.chapter === index + 1 ? [at] : []);
+      if (!tasks.length) { problems.push(`${label} has no preparation.`); continue; }
+      const quest = data.quests.find(quest => quest.id === chapter.contribution);
+      if (!quest || quest.producer || quest.legacyAfter === null) { problems.push(`${label}: unknown neighbour contribution.`); continue; }
+      // The contribution opens after the previous chapter closes and before this chapter's last preparation.
+      const opening = questOpening(quest, data);
+      if (opening < tasks[0] - 1 || opening >= tasks.at(-1)!) problems.push(`${label}: its neighbour contribution must open during the chapter.`);
+    }
+    if (data.tasks.some((task, at) => !integer(task.chapter, 1, chapters.length) || (at > 0 && task.chapter < data.tasks[at - 1].chapter))) {
+      problems.push('Every preparation needs a known chapter, in story order.');
+    }
+    if (!stable(finale.id) || ids.has(finale.id)) problems.push('Chapter and finale IDs must be stable and unique.');
+    if (typeof finale.title !== 'string' || !finale.title.trim() || typeof finale.ending !== 'string' || !finale.ending.trim()) problems.push('The finale needs a title and an ending.');
+    if (!scene(finale.dialogue)) problems.push('The finale has an invalid scene.');
+    for (const character of data.characters) {
+      if (!scene(finale.dialogue) || !finale.dialogue.some(line => line.speaker === character.id)) problems.push(`The finale must include ${character.name}.`);
+      if (!chapters.some(chapter => data.quests.find(quest => quest.id === chapter?.contribution)?.character === character.id)) problems.push(`${character.name} needs a chapter contribution.`);
+    }
+  } catch { problems.push('The story records are malformed.'); }
   return problems;
 }
 
@@ -576,7 +659,7 @@ export function dataProblems(data: GameData, knownImages?: readonly string[]): s
       return ['The board needs six columns, seven rows, and 42 starting spaces.'];
     }
     const problems = [...boardLayoutProblems(data), ...roomProblems(data), ...decorationProblems(data, knownImages), ...generatorTierProblems(data), ...levelRewardProblems(data),
-      ...questProblems(data), ...taskGoalProblems(data), ...economyProblems(data)];
+      ...questProblems(data), ...storyProblems(data), ...taskGoalProblems(data), ...economyProblems(data)];
     // The save validation relies on the other checks, so it judges the new game only after they pass.
     if (!problems.length && !validateGame(createGame(data), data)) problems.push('The starting board does not make a valid new game.');
     return problems;
@@ -672,7 +755,7 @@ function validateQuestProgress(state: GameState, data: GameData): boolean {
 }
 
 /** Accepts an untrusted save: a parsed save is checked field by field before it is treated as a game state. The data must pass dataProblems. */
-function validateState(candidate: unknown, data: GameData, version: 2 | 3 | 4 | 5 | 6 | 7): boolean {
+function validateState(candidate: unknown, data: GameData, version: 2 | 3 | 4 | 5 | 6 | 7 | 8): boolean {
   try {
     const state = candidate as Omit<GameState, 'version'> & { version: number };
     if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== version) return false;
@@ -684,13 +767,20 @@ function validateState(candidate: unknown, data: GameData, version: 2 | 3 | 4 | 
     const chains = availableChains(state, data);
     if (version < 6 && ['completedQuests', 'legacySatisfiedQuests', 'activeQuestProducers'].some(key => Object.hasOwn(state, key))) return false;
     if (version < 7 && ['layoutId', 'resolvedObstacles'].some(key => Object.hasOwn(state, key))) return false;
+    if (version < 8 && Object.hasOwn(state, 'pendingScenes')) return false;
+    if (version === 8) {
+      // Pending scenes are unique, earned, and in story order, so an imported save cannot open a later scene.
+      const pending = state.pendingScenes, scenes = storyScenes(data), earned = earnedScenes(state, data);
+      if (!Array.isArray(pending) || !pending.every((id, at) => earned.includes(id)
+        && (at === 0 || scenes.indexOf(pending[at - 1]) < scenes.indexOf(id)))) return false;
+    }
     if (version >= 6 && !validateQuestProgress(state as GameState, data)) return false;
     const active = version >= 6 ? data.quests.filter(quest => own(state.activeQuestProducers, quest.id)) : [];
     const validItem = (cell: Cell | null) => cell && typeof cell === 'object' && !Array.isArray(cell)
       && Object.keys(cell).length === 1 && (own(data.items, cell.code) && chains.includes(data.items[cell.code].chain)
         || active.some(quest => quest.producer!.exclusiveItems.includes(cell.code)));
     if (!state.board.every(cell => cell === null || validItem(cell)) || !state.inventory.every(validItem)) return false;
-    if (version === 7) {
+    if (version >= 7) {
       const layout = data.board.layouts.find(layout => layout.id === state.layoutId);
       if (!layout || !Array.isArray(state.resolvedObstacles)
         || new Set(state.resolvedObstacles).size !== state.resolvedObstacles.length
@@ -708,7 +798,7 @@ function validateState(candidate: unknown, data: GameData, version: 2 | 3 | 4 | 
         || version >= 6 && data.quests.some(quest => quest.producer?.exclusiveItems.includes(code)
           && (own(state.activeQuestProducers, quest.id) || state.completedQuests.includes(quest.id))))
       || !cells.every(cell => state.discovered.includes(cell.code))) return false;
-    if (version === 7) {
+    if (version >= 7) {
       const layout = data.board.layouts.find(layout => layout.id === state.layoutId)!;
       if (layout.obstacles.some(obstacle => (obstacle.type === 'anchored' || state.resolvedObstacles.includes(obstacle.id))
         && !state.discovered.includes(obstacle.ingredient))) return false;
@@ -761,6 +851,10 @@ function validateState(candidate: unknown, data: GameData, version: 2 | 3 | 4 | 
 }
 
 export function validateGame(candidate: unknown, data: GameData): candidate is GameState {
+  return validateState(candidate, data, 8);
+}
+
+export function validateBoardGame(candidate: unknown, data: GameData): candidate is BoardGameState {
   return validateState(candidate, data, 7);
 }
 
@@ -825,9 +919,17 @@ export function migrateLevelRewardGame(candidate: unknown, data: GameData): Ques
 }
 
 /** Older boards stay open. Every cell and progress value keeps its position. */
-export function migrateQuestGame(candidate: unknown, data: GameData): GameState {
+export function migrateQuestGame(candidate: unknown, data: GameData): BoardGameState {
   if (!validateQuestGame(candidate, data)) throw new Error('The older saved game has damaged or unknown game data.');
-  const state: GameState = { ...structuredClone(candidate), version: 7, layoutId: 'legacy-open', resolvedObstacles: [] };
+  const state: BoardGameState = { ...structuredClone(candidate), version: 7, layoutId: 'legacy-open', resolvedObstacles: [] };
+  if (!validateBoardGame(state, data)) throw new Error('The converted saved game is not valid.');
+  return state;
+}
+
+/** Earlier chapters stay complete, and their scenes stay in the journal. Conversion queues no old scene and claims no reading. */
+export function migrateBoardGame(candidate: unknown, data: GameData): GameState {
+  if (!validateBoardGame(candidate, data)) throw new Error('The older saved game has damaged or unknown game data.');
+  const state: GameState = { ...structuredClone(candidate), version: 8, pendingScenes: [] };
   if (!validateGame(state, data)) throw new Error('The converted saved game is not valid.');
   return state;
 }
@@ -840,6 +942,7 @@ export function saveMigrations(data: GameData) {
     3: { validate: (state: unknown) => validateGeneratorGame(state, data), migrate: (state: unknown) => migrateGeneratorGame(state, data) },
     4: { validate: (state: unknown) => validateLevelRewardGame(state, data), migrate: (state: unknown) => migrateLevelRewardGame(state, data) },
     5: { validate: (state: unknown) => validateQuestGame(state, data), migrate: (state: unknown) => migrateQuestGame(state, data) },
+    6: { validate: (state: unknown) => validateBoardGame(state, data), migrate: (state: unknown) => migrateBoardGame(state, data) },
   };
 }
 
@@ -901,6 +1004,14 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       if (variant.id === slot.default) delete next.decorationChoices[slot.id];
       else next.decorationChoices[slot.id] = variant.id;
       message = `${slot.name}: ${variant.name}.`;
+      break;
+    }
+    case 'readScene': {
+      // Finish and Skip both end a waiting scene. A stale or repeated event changes nothing.
+      const at = next.pendingScenes.indexOf(action.id);
+      if (at === -1) return fail('This story scene is already in the journal.');
+      next.pendingScenes.splice(at, 1);
+      message = 'The scene is in the story journal.';
       break;
     }
     case 'move': {
@@ -983,6 +1094,9 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       next.taskIndex++;
       next.xp += 20;
       next.decorations.push(task.id);
+      // The last preparation of a chapter queues its closing scene, and the last of all queues the finale after it, in the same change.
+      if (resolveChapters(next, data)[task.chapter - 1].status === 'complete') next.pendingScenes.push(data.chapters[task.chapter - 1].id);
+      if (next.taskIndex === data.tasks.length) next.pendingScenes.push(data.finale.id);
       for (const chain of availableChains(next, data)) {
         const code = `generator_${chain}`;
         const before = generatorOutputs(state, code, data);

@@ -260,6 +260,18 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .section-heading>span { flex-shrink: 0; font-size: 12px; color: var(--muted); }
 .chapter-name { font-size: 13px; color: var(--accent); margin-top: 5px; }
+.chapter-title { font-size: 19px; line-height: 1.25; color: var(--accent); text-wrap: balance; }
+.chapter-objective { font-size: 12px; color: var(--muted); line-height: 1.45; margin-top: 1px; }
+/* The chapter's preparations: a filled pip for each done, a ringed pip for the current one, and a dashed pip for each still to come. */
+.chapter-steps { display: flex; align-items: center; gap: 10px; margin-top: 4px; font-size: 12px; color: var(--muted); }
+.chapter-steps ol { display: flex; gap: 5px; list-style: none; margin: 0; padding: 0; }
+.chapter-steps li { width: 18px; height: 6px; border-radius: 3px; border: 1px dashed var(--control-line); }
+.chapter-steps li[data-step='done'] { background: var(--accent); border: 1px solid var(--accent); }
+.chapter-steps li[data-step='now'] { border: 1px solid var(--accent); }
+/* The 44px target of Read now reaches into the space above and below the row, so the row adds only one line to the story. */
+.story-waiting { display: flex; align-items: center; flex-wrap: wrap; column-gap: 12px; margin-top: 4px; font-size: 13px; line-height: 1.5; }
+.story-waiting .text-button { margin-block: -12px; }
+.skip-scene { display: block; margin: 8px 0 0 auto; }
 .task-content { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
 .task-content h3 { margin-bottom: 5px; }
 .task-content p { font-size: 13px; color: var(--muted); line-height: 1.55; margin-bottom: 10px; }
@@ -354,6 +366,9 @@ dialog::backdrop { background: #17101ac4; }
 .journal-list { display: flex; flex-direction: column; gap: 8px; }
 .journal-entry { display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left; border: 1px solid var(--control-line); background: var(--surface); padding: 13px; border-radius: var(--control-radius); min-height: 44px; }
 .journal-entry>span { font-size: 12px; color: var(--muted); }
+.neighbour-introduction { display: grid; grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr); }
+.neighbour-introduction>strong,.neighbour-introduction>span { min-width: 0; overflow-wrap: anywhere; }
+.neighbour-introduction>span { text-align: right; }
 .quest-card { padding: 20px 0; border-top: 1px solid var(--line); }
 .quest-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .quest-heading .portrait,.journal-entry .portrait { flex-shrink: 0; width: 44px; height: 44px; }
@@ -375,6 +390,10 @@ dialog::backdrop { background: #17101ac4; }
 .quest-cleanup-list { padding-left: 22px; margin: 8px 0 20px; font-size: 14px; line-height: 1.7; }
 .quest-journal { padding: 14px 0; border-top: 1px solid var(--line); }
 .quest-journal .journal-entry { width: 100%; }
+.chapter-journal { display: flex; flex-direction: column; gap: 8px; padding: 14px 0; border-top: 1px solid var(--line); }
+.chapter-journal>p:not(.small-copy) { font-size: 14px; line-height: 1.65; }
+.chapter-journal .small-copy { margin: 0; }
+.journal-steps { margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.7; color: var(--muted); }
 .journal-list>h3 { margin-top: 18px; }
 .recipe-chain { border-top: 1px solid var(--line); padding: 16px 0; }
 .recipe-chain h3 { margin-bottom: 12px; }
@@ -444,6 +463,9 @@ dialog::backdrop { background: #17101ac4; }
   .drawer .side>*+* { margin-top: 10px; padding-top: 10px; }.side>.recipe-book { padding-top: 6px; }
   .storage-panel .section-heading { margin-bottom: 6px; }.inventory { gap: 4px; }.task-content p { margin-bottom: 8px; }
   .task-content { margin-top: 8px; padding-top: 8px; }.game-layout { padding-bottom: 4px; }
+  /* The longest chapter title keeps to one line. Three rows of 44px slots and the pantry heading fit the pantry. */
+  .chapter-title { font-size: 16px; }
+  .side>.storage-panel { min-height: 172px; }
 }
 
 /* Phones and tablets: the room fills the screen behind a parchment drawer that sits half open. Its handle row carries the tickets

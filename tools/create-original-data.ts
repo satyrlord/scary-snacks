@@ -2,7 +2,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { roomPaintings, dataProblems } from '../src/engine.ts';
-import type { Area, BoardLayout, Character, DecorationSlot, GameData, Item, Quest, RoomState, Task } from '../src/engine.ts';
+import type { Area, BoardLayout, Chapter, Character, DecorationSlot, Finale, GameData, Item, Quest, RoomState, Task } from '../src/engine.ts';
 
 const chains: [id: string, name: string, stages: string[], generator: string][] = [
   ['bakery', 'Bread counter', ['Flour', 'Dough', 'Pogăcele', 'Langoș', 'Zacuscă toast', 'Bread basket'], 'Flour bin'],
@@ -43,7 +43,60 @@ const characters: Character[] = [
     introduction: 'I am Sorin. I help at the bistro between deliveries around the neighbourhood. I know the steep streets, the quiet doors, and where to stop for lunch.',
     thanks: ['Fuel for the hill home!', 'Worth every pedal. Thank you!', 'My lunch ride is sorted.'] },
 ];
-const chapters = ['Open the shutters', 'A kitchen for everyone', 'Around one table', 'The courtyard', 'Recipes to share', 'The first community supper'];
+// Each chapter: its title, objective, opening context, payoff, the neighbour quest that contributes during it, and its closing scene.
+// The closing scenes name the changes that the chapter's preparations paint into the rooms.
+const chapterRows: [title: string, objective: string, opening: string, payoff: string, contribution: string, closing: [speaker: string, text: string][]][] = [
+  ['Open the shutters', 'Make the neglected front room ready to greet neighbours.',
+    'Dust, webs, and a broken pane keep the street outside. Mara wants the front room to welcome people again.',
+    'The front room is clean, lit, and free of webs, and Ilie has a place for his bread on the counter.', 'ilie-counter',
+    [['mara', 'Look at it. Clean glass, a mended board, pastries on the shelf, and both lamps lit.'],
+      ['ilie', 'I will keep bread on the counter, where people can reach it. That is my first promise to this room.'],
+      ['sorin', 'The spiders left with the webs. Well, all but the small one under the shelf.'],
+      ['eszter', 'Let it stay. Every good room has one quiet guest.']]],
+  ['A kitchen for everyone', 'Arrange a shared kitchen where anyone can help.',
+    'The front room is ready, but the kitchen is not. A shared menu needs a steady worktop, a stocked pantry, and shelves within reach.',
+    'The team can cook together, and the first menu explains each dish.', 'sorin-lunch',
+    [['mara', 'A steady worktop, a pantry shelf, jars above, and a menu by the door. We can cook here together now.'],
+      ['sorin', 'And explain it. On every street, people ask me what zacuscă is. Now they can point at the picture.'],
+      ['ilie', 'A menu is a promise. Tomorrow we find out if we can keep it.']]],
+  ['Around one table', 'Make shared seating that is useful and welcoming.',
+    'The food is ready, but the neighbours need a place to sit together. The old long table and the red chairs wait under a dust sheet.',
+    'Eszter’s tableware sets every place, and the recipe corner keeps room for memories.', 'eszter-table',
+    [['eszter', 'Each place has a bowl and a cup. None of them match, and all of them belong.'],
+      ['ilie', 'The notebook is on the cabinet. Somebody has already written their aunt’s name beside the papanași.'],
+      ['mara', 'Then the table is open. Anyone who wants company can find it here.']]],
+  ['The courtyard', 'Open an outdoor space where everyone can gather and move easily.',
+    'Behind the kitchen, a courtyard sleeps under the leaves. With a clear path and a dry door, the bistro can serve outside.',
+    'Sorin’s practical help clears the way, and the courtyard is ready for outdoor service.', 'sorin-path',
+    [['sorin', 'I walked the route with a full tray. Gate to door, door to tables, and nothing in the way.'],
+      ['eszter', 'The herbs are by the door, and the new hood keeps the rain off the step.'],
+      ['mara', 'Then we can serve outside. Thank you, Sorin. You found every loose stone before a guest did.']]],
+  ['Recipes to share', 'Test the dishes of the neighbourhood and write them down.',
+    'Neighbours have started to bring their own recipes. Each one needs a tasting, a label, and a place on the menu.',
+    'The supper menu shows each dish, and neighbours can find their own recipes on it.', 'ilie-family',
+    [['ilie', 'Every recipe on the wall has a name beside it. My grandmother is on there twice.'],
+      ['eszter', 'And every dish on the menu has a picture and a label, so nobody has to guess.'],
+      ['sorin', 'A neighbour found her plum dumplings on the menu today. She read it out loud to the whole courtyard.'],
+      ['mara', 'That is the menu I wanted. Not ours. Everyone’s.']]],
+  ['The first community supper', 'Bring every preparation together and welcome the guests.',
+    'The rooms are ready and the menu is printed. Now the street needs invitations, a serving station, and the last few flowers.',
+    'Mara and the team share the completed supper with the neighbourhood.', 'mara-supper',
+    [['sorin', 'Every invitation is delivered. Some people asked twice if they really need to bring only an appetite.'],
+      ['eszter', 'The flowers are short, the lights are on, and every dish on the serving table has its label.'],
+      ['mara', 'Then we are ready. Let us open the doors.']]],
+];
+const chapters: Chapter[] = chapterRows.map(([title, objective, opening, payoff, contribution, closing], index) => ({
+  id: `chapter-${index + 1}`, title, objective, opening, payoff, contribution, closing: closing.map(([speaker, text]) => ({ speaker, text })),
+}));
+// The finale names the outcome of each chapter, and every core character speaks. The last line returns the player to the kitchen.
+const finale: Finale = { id: 'finale', title: 'Supper at the bistro', dialogue: [
+  { speaker: 'mara', text: 'Look at them. The front room is full, and the courtyard too.' },
+  { speaker: 'ilie', text: 'We opened the shutters and lit the room. Then we made a kitchen where everyone could help.' },
+  { speaker: 'eszter', text: 'We set one long table for everyone, and then we carried it out into the courtyard.' },
+  { speaker: 'sorin', text: 'And the recipes came from every street on my route. Half the menu has a neighbour’s name on it.' },
+  { speaker: 'mara', text: 'Tonight is the supper that we planned together. Tomorrow the bistro stays open, and the orders keep coming.' },
+  { speaker: 'ilie', text: 'Then I will start the dough early. Somebody will want bread for breakfast.' },
+], ending: 'The supper is served, and the bistro stays open. Your neighbours keep coming with new orders.' };
 const taskRows = [
   ['Fix the broken window', 'mara', 'That window has a cracked pane and a corner missing. The draught reaches all the way to the counter.', 'sorin', 'I brought new glass on the bike. Very slowly. The ladder will have to walk.', 'eszter', 'And I have cobalt paint for the frame and the shutters. The bistro can greet the street again.'],
   ['Mend the welcome board', 'eszter', 'The wooden board is sound. It only needs a new surface.', 'mara', 'Folk flowers, red ones, like the old plates. Miez can supervise the painting.', 'ilie', 'Our black cat has already inspected the empty pastry shelf.'],
@@ -253,7 +306,7 @@ const layouts: BoardLayout[] = [
 ];
 const data: GameData = {
   title: 'Scary Snacks', inventoryCapacity: 12, board: { columns: 6, rows: 7, initial, defaultLayout: 'workbench-clutter-1', layouts },
-  chains: chains.map(([id, name]) => ({ id, name })), items, characters, chapters, tasks, areas, rooms, decorationSlots, quests, questItems,
+  chains: chains.map(([id, name]) => ({ id, name })), items, characters, chapters, finale, tasks, areas, rooms, decorationSlots, quests, questItems,
   generatorTiers: chains.flatMap(([chain]) => [{ chain, stage: 2, after: 'task_12' }, { chain, stage: 3, after: 'task_20' }]),
   levelRewards: Array.from({ length: 9 }, (_, index) => ({ id: `level-${index + 2}`, level: index + 2, coins: 20 })),
 };

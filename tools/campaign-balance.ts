@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { currentTask, createGame, firstFreeBoardCell, generatorOutputs, getItem, getLevel, legacyOrderReward, migrateLevelRewardGame, migrateQuestGame, previewQuestCleanup, reduceGame, resolveQuests, taskEligibility, validateGame, validateLevelRewardGame } from '../src/engine.ts';
+import { currentTask, createGame, firstFreeBoardCell, generatorOutputs, getItem, getLevel, legacyOrderReward, migrateLevelRewardGame, migrateQuestGame, migrateBoardGame, previewQuestCleanup, reduceGame, resolveQuests, taskEligibility, validateGame, validateLevelRewardGame } from '../src/engine.ts';
 import type { Action, GameData, GameState, LevelRewardGameState, Order, Task } from '../src/engine.ts';
 
 export type CampaignScenario = 'fresh' | 'fresh-rewards' | 'legacy-sales' | 'historical';
@@ -166,12 +166,12 @@ export function runCampaignBalance(data: GameData, scenario: CampaignScenario = 
     assert.equal(state.merges, 0);
     // State 5 predates quests. Remove only the new fields; keep every original field and resource.
     const { completedQuests: _completed, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
-      layoutId: _layout, resolvedObstacles: _resolved, ...saved } = structuredClone(state);
+      layoutId: _layout, resolvedObstacles: _resolved, pendingScenes: _scenes, ...saved } = structuredClone(state);
     const before: LevelRewardGameState = { ...saved, version: 5 };
     const oldBytes = JSON.stringify(before);
     assert.equal(validateLevelRewardGame(before, data), true);
-    state = migrateQuestGame(migrateLevelRewardGame(before, data), data);
-    assert.deepEqual(migrateQuestGame(migrateLevelRewardGame(before, data), data), state, 'Repeated conversion gives the same state.');
+    state = migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(before, data), data), data);
+    assert.deepEqual(migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(before, data), data), data), state, 'Repeated conversion gives the same state.');
     assert.equal(JSON.stringify(before), oldBytes, 'Conversion preserves the older saved bytes.');
     for (const key of Object.keys(before) as (keyof LevelRewardGameState)[]) {
       if (key !== 'version') assert.deepEqual(state[key], before[key], `Conversion preserves ${key}.`);

@@ -5,7 +5,8 @@ Status: Proposed. Not implemented. All rules below are draft defaults.
 ## Evidence and intended result
 
 `src/app.ts` implements `showStory` with a local `cursor` that starts at zero.
-The journal lists the completed preparations and can replay their scenes. The cursor and the unread state are not in `GameState` in `src/engine.ts` and not in exported saves.
+The journal lists the completed preparations and can replay their scenes. The cursor is not in `GameState` in `src/engine.ts` and not in exported saves.
+Spec 008 stores `pendingScenes`: the chapter closing scenes and the finale that the player did not finish or skip. Preparation and quest scenes have no unread state.
 If the player closes the tab during a conversation, the game loses the reading position. It does not lose the completed task.
 Keep the existing journal. Add a reliable route back to interrupted scenes that the player newly earned.
 

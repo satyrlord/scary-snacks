@@ -1,91 +1,76 @@
 # 008 - Chapter objectives, story payoffs, and finale
 
-Status: Proposed. Not implemented. All rules below are draft defaults.
+Status: Implemented. Automated engine, save, and browser checks cover the rules. A scripted browser playthrough from a fresh save through the finale shows that the goals, the contributions, and the payoffs agree. The manual playthrough by a person remains open.
 
-## Evidence and intended result
+## Result
 
-The story is already implemented. `tools/create-original-data.ts` supplies six named chapters,
-24 preparations, and three dialogue lines for every preparation, including the final supper.
-`src/app.ts` shows those conversations and a journal. In its end state, `src/app.ts` says that the table is ready.
-The gap has four parts. The first part is explicit chapter objectives. The second part is lasting links to character quests and renovation. The third part is chapter summaries. The fourth part is a distinct finale that the player can replay. The finale ends with a clear return to play.
-The player should understand why each preparation matters and what the chapter changed.
+`tools/create-original-data.ts` authors six chapters and one finale. Each chapter has a stable ID, its title, an objective, an opening context, a payoff, one neighbour contribution, and a closing scene.
+The 24 preparations keep their IDs, their three dialogue lines, and their chapter numbers. The chapter number of a preparation is the only link between a chapter and its preparations.
+Each preparation has one room state from 001. The journal names that change beside the preparation.
+The player can see the goal of the current chapter, the state of its four preparations, and the result of each complete chapter.
+The finale names the result of each chapter. All four core characters speak. It ends with a return to the kitchen, where ordinary orders continue.
 
 ## Scope and ownership
 
-- Keep all six chapter titles, their four preparations each, and the original cast.
-- Add the opening context of a chapter, an objective summary, a closing payoff, and a finale scene.
-- Connect scenes to the visible results in 001 and to the character quests in 005.
-- Keep the story linear. Do not add branching endings or another campaign.
-- Keep unlimited energy, local play, and the absence of timers and accounts.
-- Author content in `tools/create-original-data.ts`. Keep eligibility rules in `src/engine.ts`.
-- Put the viewing code in `src/app.ts` and persistence in `src/storage.ts`.
-- After the team implements this proposed behavior, update PRODUCT, DESIGN, and README.
+- The six chapter titles, their four preparations each, and the original cast stay.
+- The story is linear. There are no branching endings and no other campaign.
+- Unlimited energy, local play, and the absence of timers and accounts stay.
+- `tools/create-original-data.ts` authors the content. `src/engine.ts` owns `resolveChapters`, `storyScenes`, `storyProblems`, the `readScene` action, and save validation.
+- `src/app.ts` owns the story card, the scene dialogs, and the journal. `src/storage.ts` owns the envelope version.
+- PRODUCT owns the behavior. DESIGN owns the interface.
 
-## Original chapter outline
+## Chapter outline
 
-| Chapter and preparations | Objective | Payoff |
-| --- | --- | --- |
-| 1. Open the shutters; 1-4 | Make the neglected front room ready to greet neighbours | A clean, lit, welcoming room, free of webs, and Ilie's first contribution |
-| 2. A kitchen for everyone; 5-8 | Arrange a workable shared kitchen | The team can prepare and explain its first menu |
-| 3. Around one table; 9-12 | Make shared seating useful and welcoming | Eszter's tableware and a space for recipe memories |
-| 4. The courtyard; 13-16 | Open an accessible outdoor gathering space | Sorin's practical help makes outdoor service possible |
-| 5. Recipes to share; 17-20 | Test and record the community's dishes | Neighbours can recognise their contributions on the menu |
-| 6. The first community supper; 21-24 | Bring the preparations together for guests | Mara and the team share the completed supper |
+| Chapter and preparations | Objective | Payoff | Contribution |
+| --- | --- | --- | --- |
+| 1. Open the shutters; 1-4 | Make the neglected front room ready to greet neighbours | A clean, lit room, free of webs, with a place for Ilie's bread | ilie-counter |
+| 2. A kitchen for everyone; 5-8 | Arrange a shared kitchen where anyone can help | The team can cook together, and the first menu explains each dish | sorin-lunch |
+| 3. Around one table; 9-12 | Make shared seating that is useful and welcoming | Eszter's tableware sets every place, and the recipe corner keeps room for memories | eszter-table |
+| 4. The courtyard; 13-16 | Open an outdoor space where everyone can gather and move easily | Sorin's practical help clears the way for outdoor service | sorin-path |
+| 5. Recipes to share; 17-20 | Test the dishes of the neighbourhood and write them down | Neighbours can find their own recipes on the menu | ilie-family |
+| 6. The first community supper; 21-24 | Bring every preparation together and welcome the guests | Mara and the team share the completed supper | mara-supper |
 
-This outline is original. It is for existing Scary Snacks content.
-Keep Miez, the bats, and the early spiders as quiet setting details. They are not obstacles and not supernatural villains.
-The spiders and their webs show the poor state of the bistro at the start. They leave with preparation 1, as 001 describes. One friendly spider is the exception. It stays under the upper wall shelf through the finale, as 001 describes.
-Full dialogue, art staging, and the exact links from quests to preparations remain authored content work.
+Miez, the bats, and the early spiders stay quiet setting details. They are not obstacles and not supernatural villains.
+The spiders and their webs leave with preparation 1, as 001 describes. The closing scene of chapter 1 names the one friendly spider that stays under the upper wall shelf.
 
-## Proposed rules and failure behavior
+## Rules
 
-1. A chapter opens at its first eligible preparation. Show its objective and the four
-   preparation states. Do not show later scenes. Do not require a separate unlock payment.
-2. When the fourth preparation of a chapter completes, record the chapter completion and queue its closing
-   scene. Do not make reading the closing scene a prerequisite for the next preparation.
-3. Tie each preparation to a concrete result that 001 describes. Use the same stable identifiers (IDs).
-   Never keep a second editable count of completed preparations for narrative purposes.
-4. Any required quest must be reachable before its preparation. Validate the combined graph.
-   Optional quests may add journal context. They must not block the finale.
-5. After preparation 24 succeeds, record the campaign completion one time. Queue the finale
-   after any pending preparation scene and chapter scene. Do not charge the preparation again. Do not give its reward again.
-6. The finale acknowledges the six chapter outcomes and all four core characters. It may also
-   name the regulars from 013 who have arrived. It ends with
-   a clear return to the kitchen and continued ordinary orders, as the current game permits.
-7. Offer finale replay in the journal. Replay, Skip, Back, and closing a dialog have no
-   economic effect. Apply the interruption rules and ordering rules in 009.
-8. Three cases must not complete a chapter, queue its payoff, or open the finale. The cases are a failed preparation payment, missing ingredients, and a full required reward destination.
-9. Before release, reject content with missing scenes, invalid speakers, duplicate IDs, or cyclic gates.
-   If a required scene cannot be displayed, show a recoverable content error.
-   Keep the completed gameplay progress. Do not invent replacement story text.
+1. A chapter opens at its first preparation. Story shows its objective and the state of its preparations. Later scenes stay hidden. The chapter needs no separate payment.
+2. The payment for the last preparation of a chapter queues the closing scene of that chapter in the same state change. Chapter completion is derived from the completed preparations. The next preparation never waits for the scene.
+3. Each preparation keeps its one room state from 001, with the same stable IDs. The game keeps no second count of completed preparations.
+4. Each contribution is a regular quest. It opens after the previous chapter closes and before the last preparation of its chapter. The contributions together cover all four core characters. The contributions stay optional, and no preparation needs them. `questProblems` validates the combined graph of preparations and quests for cycles and reachability.
+5. After preparation 24, the finale waits after the closing scene of chapter 6. The game records it once. A preparation is not charged again, and its reward is not given again.
+6. The finale names the outcome of each chapter, and all four core characters speak. It ends with "Back to the kitchen" and its ending line. Ordinary orders continue.
+7. The journal replays each complete chapter scene and, after the supper, the finale. Replay, Skip, Back, and closing a dialog have no economic effect.
+8. A failed payment, missing goals, a missing required quest, and a full board and pantry for a new source change nothing. They complete no chapter, queue no scene, and open no finale.
+9. `storyProblems` rejects missing or blank scenes, unknown speakers, duplicate or unstable IDs, unknown or optional-producer contributions, contributions that open outside their chapter, empty chapters, and preparations with an unknown or out-of-order chapter. The generator and the game refuse such data. If a saved scene ID has no scene, the game shows a recoverable error and keeps the progress. It does not invent story text.
+
+## Scene order and reading
+
+The state holds `pendingScenes`: the earned scenes that the player did not finish or skip, in story order.
+After the reveal of a payment, the first scene that the payment queued opens, unless another dialog is open.
+Finish and Skip send `readScene`, which removes only that scene. Then the next waiting scene opens.
+A repeated, stale, or unknown `readScene` changes nothing.
+Close and Escape leave the scene waiting. Story shows the first waiting scene with Read now. After a reload, Mara's line says that a scene is waiting.
+A scene restarts at its first line. Spec 009 owns the saved line position and the reading state of preparation and quest scenes.
 
 ## State and save compatibility
 
-Derive chapter completion from the existing prefix of completed preparations. Persist only the scene
-continuation and any information that cannot be derived. Spec 009 owns the reading state.
+Game state 8 in envelope 7 at `scary-snacks-save-v7` adds `pendingScenes`.
+Validation accepts only the closing scenes of complete chapters and, after preparation 24, the finale. Each ID occurs once, in story order. Unknown IDs and scenes that the preparations did not earn fail validation.
+State 7 in envelope 6 converts by the addition of an empty list. Earlier chapters stay complete, and the journal replays their scenes. A finished game gets the finale in the journal.
+Conversion queues no old scene, gives no reward, and claims no reading. A repeated conversion gives the same result. The older bytes stay unchanged.
 Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
-Validate the old input and the migrated result. Keep the old bytes and all completed preparations.
-For older saves, keep past chapters complete and show their summaries for replay. Do not
-queue the old scenes automatically. A game that is already finished gets a journal entry for the finale.
-Migration and reload must never give chapter rewards or repeat preparation rewards. A repeated migration gives the same result.
-Unknown scene IDs and impossible combinations of chapter and scene must fail validation safely.
 
-## Thin implementation slices and exit checks
+## Acceptance and evidence
 
-1. Author the chapter outline and the scene metadata. Exit: the six objectives and payoffs cover all 24 current preparation IDs. No character is missing, and no content reference is unresolved.
-2. Add chapter summaries and completion rules. Exit: boundary tests cover preparations
-   4, 8, 12, 16, 20, and 24, including failure and migrated saves.
-3. Integrate renovation and quests. Exit: each chapter has a visible result and a reachable
-   character contribution. The complete dependency graph passes the cycle checks and reachability checks.
-4. Add the finale and the journal entry. Exit: the final legal action produces exactly one
-   finale opportunity, reload resumes it, and later orders stay playable.
+- `tests/story.test.ts` covers the outline, the content checks, every chapter boundary, failed payments, the finale once, reading events, continued orders, and the validation of saved scene queues.
+- `tests/storage.test.ts` covers the conversion of state-7 saves at every chapter boundary, a failed conversion write, malformed state-7 saves, and the round trip of each valid scene queue.
+- `tests/campaign-balance.test.ts` shows that a legal fresh campaign ends with each chapter scene and one finale waiting. A campaign that converts at preparation 12 queues only the chapters that close after the conversion.
+- `tests/browser/story.spec.ts` covers the objective and step display, the chapter change, Escape and reload with a waiting scene, the finale with Skip and replay, continued service after the finale, a finished older save, and the layout at 1440×900, 390×844, and 390×800 in both themes.
 
-## Acceptance and dependencies
-
-Engine tests must cover chapter boundaries, failed actions, finale eligibility, and reward-once behavior.
-Save tests must cover every chapter boundary, completed legacy saves, interruptions, and repeated migration.
-Built browser tests must cover objective display, chapter change, finale skip and replay, and continued orders.
-Follow [Verification and release](README.md#verification-and-release) for the browser evidence.
-Play manually from a fresh save through the finale. Check if goals, contributions, and payoffs agree.
-The outline slice is independent. Full integration depends on 001, 005, and 009.
-Spec 012 owns additional goals after the story. The final text length and the scene art are still content decisions.
+The playthrough in `tests/browser/story.spec.ts` starts from a fresh save in the built game. Between payments, the engine makes legal moves: it claims each level reward, delivers each open request, and serves or merges. The interface makes every payment, tells every preparation story, runs every reveal, plays every closing scene and the finale, and checks the journal.
+The playthrough shows that the story agrees. Each closing scene names the room changes of its four preparations. Each contribution is delivered during its chapter, and the journal shows it beside the payoff. The finale names each chapter result. Ordinary service continues after the finale.
+The engine makes the moves between payments, so the playthrough does not measure human pacing. Spec 006 owns human pacing.
+The manual check remains open: a person plays from a fresh save through the finale. The person judges whether the goals, the contributions, and the payoffs agree, and whether the scene after each reveal feels natural.
+Spec 012 owns goals after the story. Spec 013 can add the names of the regulars who have arrived to the finale. Scene art is a content decision.

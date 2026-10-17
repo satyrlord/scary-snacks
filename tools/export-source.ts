@@ -15,6 +15,7 @@ export const sourceFiles=[...runtimeFiles,'public/data/game.json',...fontFiles.m
   'tests/quests.test.ts','tests/browser/quests.spec.ts',
   'tools/campaign-balance.ts','tests/campaign-balance.test.ts','tests/campaign-goals.test.ts','tests/economy.test.ts','tests/browser/campaign-goals.spec.ts',
   'tests/board-clearing.test.ts','tests/browser/board-clearing.spec.ts',
+  'tests/story.test.ts','tests/browser/story.spec.ts',
   'docs/asset-prompts.json','docs/asset-provenance.json','docs/asset-variants.json','docs/font-provenance.json','docs/release-notes.md','docs/verification.md','docs/economy.md',
   '.github/workflows/pages.yml',
 ];

@@ -28,6 +28,7 @@ The Node.js tests cover these areas:
 - Level rewards: the schedule checks, eligibility, claims, coin overflow, failed writes, and the conversion of older saves.
 - Character quests: the quest data checks, eligibility, atomic delivery, coin overflow, the temporary source, the cleanup preview, and the conversion of older saves. A legal campaign completes all 24 preparations and all 13 quests with no injected coins or items.
 - Board clearing: the layout data checks, adjacent reveals, anchored merges, blocked placement, atomic failure, the conversion of older saves to the open layout, and a campaign with every obstacle intact.
+- Chapter story: the outline and story data checks, every chapter boundary, failed payments, the finale once, reading events, continued orders, the validation of waiting scenes, and the conversion of older saves with no queued scene. A legal campaign ends with each chapter scene and one finale waiting.
 - Assets: each master and each variant agree with its record. The runtime files and the game data load assets only from the variant and font folders.
 - Fonts: the hashes of the fonts and the complete license texts.
 - The build: the allowlist, the removal of TypeScript types, and the refusal of executable assets and linked asset directories.
@@ -45,6 +46,7 @@ The browser tests cover these areas:
 - Level rewards: independent claims, reload, the final reward, overflow, Retry save after a failed write, older saves, export and import, and two open tabs. Geometry checks cover the panel at 1440×900, 390×844, and 390×800 in both themes.
 - Character quests: delivery for each neighbour, board-only delivery, unchanged orders, journal replay, export and import, failed writes, keyboard focus, touch emulation, the temporary source, the cleanup preview, and two open tabs. Geometry and contrast checks cover the quest sheet and the cleanup review at 1440×900, 390×844, and 390×800 in both themes.
 - Board clearing: keyboard, pointer, drag, and touch emulation on blocked cells, their labels, order hints, reload, and the web removal at preparation 1.
+- Chapter story: a playthrough from a fresh save through every payment, chapter scene, and the finale, with checks that the goals, the neighbour help, and the payoffs agree. The objective and the chapter steps, the closing scene after a reveal, Escape and reload with a waiting scene, the finale with Skip and replay, service after the finale, and a finished older save. Geometry and contrast checks cover the story card, the journal, and a scene at 1440×900, 390×844, and 390×800 in both themes.
 - Saves: reload, export, import, reset, corrupt saves, and two open tabs.
 - Assets and paths: only approved assets load, from the root path and from the Pages path.
 
@@ -60,6 +62,10 @@ Generator pacing has no human acceptance result. The deterministic campaign comp
 Board clearing and its clutter art have no human acceptance result. A phone session must check that clutter, anchors, and movable food look different.
 
 Level reward balance and quest pacing have no human acceptance result. The owner must play a short phone session and judge the purpose of each request and the effort between preparations.
+
+At 1280×800, the story section of chapters 5 and 6 can push the bottom of the pantry below the screen. A waiting scene adds one line. The page then scrolls. The automated first-screen check covers a new game at that size.
+
+The chapter playthrough makes the moves between payments with the engine, so it does not measure human pacing. The chapter story has no manual acceptance result. A person must play from a fresh save through the finale and judge whether the goals, the neighbour contributions, and the payoffs agree.
 
 The largest release risk is outside the automated checks.
 The risk is the incomplete clearance of the title and of intellectual property.

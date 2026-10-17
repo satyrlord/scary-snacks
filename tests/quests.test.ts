@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { canDeliverQuest, createGame, currentTask, dataProblems, firstFreeBoardCell, generatorOutputs, getItem, getLevel, migrateLevelRewardGame, migrateQuestGame, nextOutput, previewQuestCleanup, questProblems, reduceGame, resolveQuests, taskEligibility, validateGame, validateLevelRewardGame, legacyOrderReward } from '../src/engine.ts';
+import { canDeliverQuest, createGame, currentTask, dataProblems, firstFreeBoardCell, generatorOutputs, getItem, getLevel, migrateLevelRewardGame, migrateQuestGame, migrateBoardGame, nextOutput, previewQuestCleanup, questProblems, reduceGame, resolveQuests, taskEligibility, validateGame, validateLevelRewardGame, legacyOrderReward } from '../src/engine.ts';
 import type { Action, GameData, GameState, LevelRewardGameState } from '../src/engine.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
@@ -66,12 +66,12 @@ function checkpoint(count: number) {
 
 function oldState(state: GameState): LevelRewardGameState {
   const { completedQuests: _complete, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
-    layoutId: _layout, resolvedObstacles: _resolved, ...old } = structuredClone(state);
+    layoutId: _layout, resolvedObstacles: _resolved, pendingScenes: _scenes, ...old } = structuredClone(state);
   return { ...old, version: 5, orders: old.orders.map(({ pricing: _, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, data) })) };
 }
 
 function offered() {
-  return migrateQuestGame(migrateLevelRewardGame(oldState(checkpoint(18)), data), data);
+  return migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(oldState(checkpoint(18)), data), data), data);
 }
 
 test('four original arcs span all six chapters and keep the permanent content and ordinary orders', () => {
@@ -191,13 +191,13 @@ test('migration preserves early, middle, and final progress and never accepts th
     const old = oldState(checkpoint(count));
     const before = structuredClone(old);
     assert.equal(validateLevelRewardGame(old, data), true);
-    const converted = migrateQuestGame(migrateLevelRewardGame(old, data), data);
+    const converted = migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(old, data), data), data);
     assert.equal(validateGame(converted, data), true);
     assert.deepEqual(oldState(converted), before);
     assert.deepEqual(converted.completedQuests, []);
     assert.deepEqual(converted.activeQuestProducers, {});
     assert.deepEqual(converted.legacySatisfiedQuests, data.quests.filter(quest => quest.legacyAfter && old.decorations.includes(quest.legacyAfter)).map(quest => quest.id));
-    assert.deepEqual(migrateQuestGame(migrateLevelRewardGame(old, data), data), converted);
+    assert.deepEqual(migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(old, data), data), data), converted);
     assert.deepEqual(old, before);
     assert.throws(() => migrateLevelRewardGame(converted, data), /damaged or unknown/);
   }
@@ -211,14 +211,14 @@ test('migration orders a forward cross-character prerequisite before the quest w
   const old = oldState(checkpoint(4));
   const before = structuredClone(old);
   assert.equal(validateLevelRewardGame(old, content), true);
-  const converted = migrateQuestGame(migrateLevelRewardGame(old, content), content);
+  const converted = migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(old, content), content), content);
   assert.equal(validateGame(converted, content), true);
   assert.deepEqual(converted.legacySatisfiedQuests, ['ilie-counter', 'mara-welcome']);
   assert.deepEqual(converted.completedQuests, []);
   assert.deepEqual(converted.activeQuestProducers, {});
   assert.deepEqual(oldState(converted), before, 'Conversion preserves every old progress field, including coins and items.');
   assert.deepEqual(old, before);
-  assert.deepEqual(migrateQuestGame(migrateLevelRewardGame(old, content), content), converted);
+  assert.deepEqual(migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(old, content), content), content), converted);
 });
 
 test('quest saves reject duplicates, missing prerequisites, unknown records, and invalid producer ownership', () => {

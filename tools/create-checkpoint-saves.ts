@@ -16,6 +16,8 @@ for (;;) {
   if (next) {
     state.served = next.goals.served;
     state.merges = next.goals.merges;
+    // A checkpoint keeps no scene from earlier payments, so its own payment shows only the scenes that it earns.
+    state.pendingScenes = [];
   }
   const name = `${String(state.taskIndex).padStart(2, '0')}-${next ? `next-${next.title.toLowerCase().replaceAll(' ', '-')}` : 'finished'}`;
   // The same envelope and checks as Export saved game, so every file imports.

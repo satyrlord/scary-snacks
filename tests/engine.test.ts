@@ -218,6 +218,9 @@ test('a newly unlocked source uses the earned tier and starts with stage one sel
   later.tasks[11].unlock = 'sweet';
   // This source-only fixture moves the related request to the later unlock as well.
   later.quests.find(quest => quest.id === 'eszter-table')!.afterTask = 'task_12';
+  // That request now opens as chapter 3 ends, so other requests contribute to chapters 3 and 5.
+  later.chapters[2].contribution = 'mara-table';
+  later.chapters[4].contribution = 'eszter-tasting';
   assert.deepEqual(dataProblems(later), []);
   let state = withGoals(createGame(later));
   state.coins = 100000;
@@ -400,7 +403,7 @@ test('valid saves with duplicate waiting neighbours get distinct neighbours with
   for (const customers of [['eszter', 'ilie', 'eszter'], ['mara', 'mara', 'mara'], ['eszter', 'eszter', 'mara']]) {
     const duplicated = initial();
     duplicated.orders.forEach((order, index) => { order.customer = customers[index]; });
-    const imported = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 6, state: duplicated }),
+    const imported = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 7, state: duplicated }),
       candidate => validateGame(candidate, data));
     const before = structuredClone(imported);
     const normalized = normalizeOrderCustomers(imported, data);
@@ -618,7 +621,7 @@ test('fresh, mid-campaign, and completed saves resolve the same rooms after relo
     state.coins = 100000;
     for (let index = 0; index < count; index++) state = apply(state, { type: 'task' });
     const validate = (candidate: unknown) => validateGame(candidate, data);
-    const reloaded = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 6, state: JSON.parse(JSON.stringify(state)) }), validate);
+    const reloaded = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 7, state: JSON.parse(JSON.stringify(state)) }), validate);
     const exported = importSave<GameState>(exportSave(reloaded, validate), validate);
     assert.deepEqual(resolveRooms(reloaded.decorations, data), roomsAt(count), `reload at ${count}`);
     assert.deepEqual(resolveRooms(exported.decorations, data), roomsAt(count), `export at ${count}`);

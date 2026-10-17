@@ -15,6 +15,9 @@ test('legal campaign scenarios reach the finale and account for every action and
     assert.equal(report.seed, 84017);
     assert.equal(finalState.taskIndex, 24);
     assert.equal(validateGame(finalState, data), true);
+    // The final legal payment gives one finale opportunity. Conversion at preparation 12 queues none of the chapters closed before it.
+    const closed = scenario === 'legacy-sales' ? data.chapters.slice(3) : data.chapters;
+    assert.deepEqual(finalState.pendingScenes, [...closed.map(chapter => chapter.id), data.finale.id]);
     if (scenario !== 'legacy-sales') {
       assert.equal(finalState.layoutId, data.board.defaultLayout);
       assert.deepEqual(finalState.resolvedObstacles, [], 'The full campaign needs no board clearing.');
