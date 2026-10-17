@@ -20,7 +20,7 @@ The application has no runtime package and no backend. Playwright, TypeScript, S
 
 ## Play
 
-The board has six columns and seven rows. Customer requests are deterministic. The game has five ingredient sources (generators), 30 dishes and drinks, four characters, and 24 preparations over six chapters. Each dish or drink has an English name. If English has no name for the dish, the dish has the Romanian regional name with its diacritics. The initial layout, the prices, the progression, the characters, and the dialogue are new works.
+The board has six columns and seven rows. Customer requests are deterministic. The game has five ingredient sources (generators), 30 dishes and drinks, eight characters, and 24 preparations over six chapters. Each dish or drink has an English name. If English has no name for the dish, the dish has the Romanian regional name with its diacritics. The initial layout, the prices, the progression, the characters, and the dialogue are new works.
 
 Serving earns coins. Preparations unlock generators and story. Each preparation visibly changes the bistro.
 
@@ -34,9 +34,17 @@ The engine checks coins, both goals, any named quest prerequisite, and space for
 
 Mara, Ilie, Eszter, and Sorin each have a three-request quest arc across the six chapters. Story opens Neighbour quests. Each neighbour has at most one active request, in authored order. A request shows its purpose, exact item quantities, and coin reward. Deliver takes all required items from the board in one change. A missing item, stale request, repeated delivery, or overflowing reward changes nothing. Quests give coins once and give no XP. They keep all three ordinary orders and their random seed. The player can continue preparations and ordinary service without completing a quest. When the board starts to hold every item of an active request, a request dialog shows the request with Deliver. The dialog opens once for each request. It waits until no other dialog, story, or reveal is open, and it opens after a level-up dialog. Close and Escape leave the request in Neighbour quests. Each load opens the dialog again for each ready request. An import and a change from another tab do not open the dialog. A request that Neighbour quests has shown ready does not open the dialog until the next load. Deliver in the dialog plays the completion scene, then returns to the kitchen.
 
+Adrian, Monica, and Janos are occasional travelling visitors. Each has three optional supply quests. Their nine visits alternate in that order and open at 24-order lifetime service steps, from 24 through 216. The first three also need preparation 6; the next three need preparation 12; the final three need preparation 20. Each visit needs the previous visitor delivery. Only one cathedral supply request can be active. These are cumulative thresholds: a player who has already passed them can complete the waiting visits in order. There is no timer or expiry. The visitors do not enter ordinary orders or the community supper scene.
+
+Cathedral supply requests concern several days of supplies for a quiet investigation near the cathedral. A request needs 12 to 16 portions at merge stages 3 or 4, or 4 to 6 portions at stages 5 or 6. Its coin reward is twice the total menu price. It gives no XP or service credit. Delivery, the ready dialog, replay, failed saves, and Retry save follow the neighbour quest rules. The journal has each visitor introduction and each completed request. The nine requests are finite; ordinary service continues after them. Current saves keep their state version, envelope, and storage key. The service gates use the existing lifetime service total.
+
+Ionatan is a foreign real estate agent who visits once per save. After preparation 16 and 120 ordinary orders, he requests one goulash pot, one sharing board, one chimney cake, and one plum brandy. He stops for dinner on his way to a nearby castle, where he plans to close a property deal with a local noble. The dinner costs 220 coins at menu prices and pays 1,100 coins. His request is independent of the cathedral supply sequence and can be active beside it. It is optional and has no deadline. He never enters ordinary orders or the finale.
+
+Delivery records his quest ID once and gives no XP or service credit. After his immediate farewell scene, he leaves. His introduction, dinner request, completion scene, and portrait are absent from the journal. Reload and export/import preserve his departure. A new game permits a new visit. A failed save follows the existing quest warning and Retry save rules: his departure stays in the session, and reload restores only durable progress. The save format and storage key stay unchanged.
+
 Ilie also offers an optional bread tasting after his arc. Accept places one Tasting flour bin on the board. If the board is full, nothing changes. This borrowed source takes no permanent source entitlement. It gives Tasting flour immediately and without a limit. Tasting flour, Tasting dough, and Tasting pogăcele have separate IDs and use the matching food pictures. They never enter ordinary orders or the permanent recipe collection. The source can move, but cannot be sold. Before delivery, a review lists the source and leftover tasting items on the board. Confirmation consumes the requirements, returns only those exclusive supplies, and gives the reward in one change. A stale review changes nothing.
 
-The story journal holds optional introductions for all four neighbours, plus the opening and completion scenes of finished quests. Reading, skipping, and replaying a scene give no reward. Quest scenes do not resume automatically after reload. Their completion remains recorded, and the journal can replay them. A failed quest save keeps the current session and shows an unsaved warning with Retry save. Export includes that session. Reload restores only durable progress.
+The story journal holds optional introductions for the four ordinary neighbours and three recurring travellers, plus the opening and completion scenes of their finished quests. Ionatan has an introduction only during his active visit. His completed request has no journal replay. Reading, skipping, and replaying a scene give no reward. Quest scenes do not resume automatically after reload. Their completion remains recorded, and the journal can replay them. A failed quest save keeps the current session and shows an unsaved warning with Retry save. Export includes that session. Reload restores only durable progress.
 
 The campaign has six chapters with four preparations each. Story shows the title and the objective of the current chapter. It also shows one step for each preparation of the chapter: done, now, or not yet. A chapter opens at its first preparation and needs no separate payment. Its closing scene stays hidden until the chapter is complete. Each chapter names one regular neighbour quest that opens during the chapter. That quest stays optional.
 
@@ -85,7 +93,7 @@ The game implements spec 001 (visible renovation and areas), spec 002 (decoratio
 
 ## Identity
 
-The game has 33 generated Portable Network Graphics (PNG) masters. They provide these items:
+The game has 34 generated Portable Network Graphics (PNG) masters. They provide these items:
 
 - food
 - portraits

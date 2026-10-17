@@ -7,14 +7,14 @@ In this spec, a neighbour is a core character or a regular. A customer is a neig
 
 ## Current evidence
 
-- `tools/create-original-data.ts` defines four characters: Mara, Ilie, Eszter, and Sorin.
+- `tools/create-original-data.ts` defines four ordinary customers: Mara, Ilie, Eszter, and Sorin. It also defines four quest-only visitors: Adrian, Monica, Janos, and Ionatan.
 - In `makeOrder` (`src/engine.ts`), the game picks the requirements first. Then it picks a customer
-  at random from the characters that do not wait. Three orders wait at the counter at all times.
-- With four characters, the replacement of a served order excludes all three current customers.
+  at random from the ordinary customers that do not wait. Three orders wait at the counter at all times.
+- With four ordinary customers, the replacement of a served order excludes all three current customers.
   This includes the departing neighbour. The fourth person therefore always fills the replacement.
   A bistro with four customers does not look like a business.
-- `validateGame` accepts an order only if its customer is a known character.
-- The `portraits` master holds the four portraits. No other portrait art exists.
+- `validateGame` accepts an order only if its customer is a known ordinary customer.
+- The `portraits` master holds the four core portraits. The `visitor-portraits` master holds the four visitor portraits.
 
 ## Outcome and scope
 

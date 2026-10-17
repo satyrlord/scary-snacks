@@ -25,7 +25,7 @@ Spec 003 implements generator tiers, output choices, and persistence. Its accept
 
 Spec 004 implements the finite coin rewards, the House book level panel, and claim persistence. Its acceptance section records the automated checks.
 
-Spec 005 implements four character arcs, optional introductions, a temporary bread-tasting source, atomic delivery, journal replay, and persistence. Automatic scene continuation waits for 009. Spec 006 includes all quests in its economy fixture. Spec 008 names one regular quest of each arc as a chapter contribution.
+Spec 005 implements four core character arcs, three recurring cathedral travellers, a single-visit dinner guest, optional introductions, a temporary bread-tasting source, atomic delivery, journal replay, and persistence. Automatic scene continuation waits for 009. Spec 006 includes all quests in its economy fixture. Spec 008 names one regular quest of each arc as a chapter contribution.
 
 Spec 006 implements explicit food prices, work-based preparation budgets and effort, requirement feedback, saved quotes, and legal campaign comparisons. The fixture includes generator upgrades, all level rewards, and optional quests. The economy record gives the real-world source anchors and the authored assumptions.
 

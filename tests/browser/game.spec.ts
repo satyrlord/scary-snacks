@@ -437,6 +437,10 @@ test('only approved assets load from the active root or Pages prefix, and only t
   const rooms=()=>[...new Set(loaded.filter(path=>/\/assets\/variants\/(front-room|courtyard)-\d\d-/.test(path)).map(path=>path.match(/(front-room|courtyard)-\d\d/)![0]))];
   expect(rooms()).toEqual(['front-room-00']);
   await page.getByRole('button',{name:/The recipe book/}).click();await expect(page.locator('.recipe-item')).toHaveCount(30);await page.getByRole('button',{name:'Close dialog'}).click();
+  await page.getByRole('button',{name:'Open the story journal',exact:true}).click();
+  await expect(page.locator('.neighbour-introduction .visitor-portrait')).toHaveCount(3);
+  await expect.poll(()=>loaded.some(path=>path.includes('/assets/variants/visitor-portraits-'))).toBe(true);
+  await page.getByRole('button',{name:'Close dialog'}).click();
   // The completed save opens on the front room with its selected decorations. The courtyard loads only when the player opens it.
   const decorated=saveAfter(24,0,{tableware:'green',textiles:'blue',flowers:'lilacs'});
   await page.evaluate(([key,save])=>{localStorage.setItem(key,save);localStorage.removeItem('scary-snacks-area');},[KEY,decorated]);loaded.length=0;await page.reload();await expect(page.locator('#board button')).toHaveCount(42);

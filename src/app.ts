@@ -1,4 +1,4 @@
-import { createGame, reduceGame, validateGame, getLevel, availableLevelRewards, generatorOutputs, nextOutput, dataProblems, canServe, servedCells, taskEligibility, saleValue, normalizeOrderCustomers, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, previewQuestCleanup, unresolvedObstacle, freeBoardCells, resolveChapters } from './engine.ts';
+import { createGame, reduceGame, validateGame, getLevel, availableLevelRewards, generatorOutputs, nextOutput, dataProblems, canServe, servedCells, taskEligibility, saleValue, normalizeOrderCustomers, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, previewQuestCleanup, unresolvedObstacle, freeBoardCells, resolveChapters, journalCharacters } from './engine.ts';
 import type { Action, ChapterView, DecorationSlot, DecorationVariant, GameData, GameState, Order, Quest, RoomView, SceneLine, Task } from './engine.ts';
 import { loadSave, saveGame, exportSave, importSave, resetSave, SAVE_KEY, MAX_SAVE_BYTES } from './storage.ts';
 import type { WriteResult } from './storage.ts';
@@ -96,7 +96,7 @@ function selectionLine(code: string) {
 function pulse(cells: number[]) { for (const at of cells) $(`[data-cell="${at}"]`).classList.add('hint'); }
 function portrait(id: string) {
   const person = character(id);
-  const value = element('span', `portrait portrait-${person.sprite}`);
+  const value = element('span', `portrait portrait-${person.sprite}${person.visitor ? ' visitor-portrait' : ''}`);
   value.setAttribute('role', 'img'); value.setAttribute('aria-label', person.name); return value;
 }
 /** The ingredient-source badge on a board tile: a plus in a disc. */
@@ -734,7 +734,7 @@ function showStory(task: { title: string; dialogue: SceneLine[] }, paid = false,
 function questBook(focusQuest?: string, message = '') {
   questFlow=true;seeQuests();
   const content=element('div','quest-book');
-  content.append(element('p','modal-copy','Prepare something for a neighbour. These requests have no deadline. Your three ordinary orders stay at the counter.'));
+  content.append(element('p','modal-copy','Prepare something for a neighbour or a visiting traveller. These requests have no deadline. Your three ordinary orders stay at the counter.'));
   const notice=element('p','quest-notice');notice.setAttribute('role','status');notice.textContent=message;
   content.append(notice);
   const views=resolveQuests(state,data),available=views.filter(view=>view.status==='active'||view.status==='offer');
@@ -743,6 +743,7 @@ function questBook(focusQuest?: string, message = '') {
     const heading=element('h3','',quest.title);heading.tabIndex=-1;heading.id=`heading-${quest.id}`;card.setAttribute('aria-labelledby',heading.id);
     const head=element('div','quest-heading'),words=element('div');words.append(heading,element('p','quest-person',character(quest.character).name));
     head.append(portrait(quest.character),words);card.append(head);
+    if(character(quest.character).visitor)card.append(element('p','quest-note',quest.opening[0].text));
     const requirements=element('ul','quest-requirements'),totals=new Map<string,number>();
     for(const requirement of quest.requirements)totals.set(requirement.item,(totals.get(requirement.item)??0)+requirement.quantity);
     for(const [code,quantity] of totals){
@@ -768,14 +769,14 @@ function questBook(focusQuest?: string, message = '') {
       }));
       accept.setAttribute('aria-label',`Accept ${quest.title}`);actions.append(accept);
     }else{
-      const deliver=button(`Deliver · ${quest.reward}`,'primary-button',()=>quest.producer?confirmQuestDelivery(quest,()=>questBook(quest.id)):deliverQuest(quest,card,()=>questBook(quest.id)));
+      const deliver=button(`Deliver · ${count.format(quest.reward)}`,'primary-button',()=>quest.producer?confirmQuestDelivery(quest,()=>questBook(quest.id)):deliverQuest(quest,card,()=>questBook(quest.id)));
       deliver.setAttribute('aria-label',`Deliver ${quest.title} for ${quest.reward} coins`);deliver.disabled=!canDeliverQuest(state,quest.id,data);actions.append(deliver);
       if(quest.producer)card.append(element('p','quest-note',`Before delivery, review the tasting source and leftover tasting items that will return to ${character(quest.character).name}.`));
     }
     card.append(actions);content.append(card);
   }
   const done=views.filter(view=>view.status==='complete').length;
-  if(!available.length)content.append(element('p','',done===views.length?'Every neighbour request is complete. You can read their conversations in the story journal.':'No request is ready yet. Finish more preparations to open the next neighbour request.'));
+  if(!available.length)content.append(element('p','',done===views.length?'Every neighbour request is complete. You can read their conversations in the story journal.':'No request is ready yet. Continue preparations and ordinary service to open more requests.'));
   content.append(element('p','quest-progress',`${done} of ${data.quests.length} requests complete`),element('p','save-status',saveMessage));
   if(saveFailed&&!recoveryRequired&&storage)content.append(button('Retry save','secondary-button',()=>changeGame(()=>{
     persist();questBook(focusQuest,saveFailed?`This session is not saved. ${saveMessage}`:'Your quests and progress are saved in this browser.');
@@ -809,12 +810,13 @@ function journal(focusEntry?: string) {
   const content=element('div','journal-list');
   content.append(element('p','modal-copy','Meet your neighbours and read your saved conversations. Reading never gives another reward.'));
   content.append(element('h3','','Neighbours'));
-  for(const person of data.characters){
+  const people=journalCharacters(state,data);
+  for(const person of people){
     const entry=button('','journal-entry neighbour-introduction',()=>showStory({title:`Meet ${person.name}`,dialogue:[{speaker:person.id,text:person.introduction}]},false,'',()=>journal(person.id)));
     entry.dataset.journal=person.id;entry.setAttribute('aria-label',`Meet ${person.name}`);
     entry.append(portrait(person.id),element('strong','',person.name),element('span','',person.role));content.append(entry);
   }
-  const completed=resolveQuests(state,data).filter(view=>view.status==='complete');
+  const completed=resolveQuests(state,data).filter(view=>view.status==='complete'&&people.some(person=>person.id===view.quest.character));
   if(completed.length)content.append(element('h3','','Neighbour quests'));
   for(const {quest} of completed){
     const section=element('section','quest-journal');section.append(element('h4','',quest.title));
@@ -1170,7 +1172,7 @@ function offerQuest() {
   for(const {item,quantity} of quest.requirements){
     const row=element('li','quest-item');row.append(food(item),element('span','',`${quantity} ${itemName(item)}`),element('span','quest-count',`${quantity} / ${quantity} on board`));requirements.append(row);
   }
-  const actions=element('div','quest-actions'),deliver=button(`Deliver · ${quest.reward}`,'primary-button',()=>quest.producer?confirmQuestDelivery(quest):deliverQuest(quest,content));
+  const actions=element('div','quest-actions'),deliver=button(`Deliver · ${count.format(quest.reward)}`,'primary-button',()=>quest.producer?confirmQuestDelivery(quest):deliverQuest(quest,content));
   deliver.setAttribute('aria-label',`Deliver ${quest.title} for ${quest.reward} coins`);actions.append(deliver);
   content.append(element('p','modal-copy',`Everything that ${person} asked for is on the board.`),head,requirements,element('p','quest-reward',`Reward: ${coinText(quest.reward)}`),actions,
     element('p','modal-copy','A request that you leave waits in Neighbour quests.'));

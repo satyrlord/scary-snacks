@@ -42,6 +42,22 @@ const characters: Character[] = [
   { id: 'sorin', name: 'Sorin', role: 'Bistro helper', description: 'A cheerful young helper with short wavy chestnut hair, an embroidered white shirt with rolled sleeves, a dark embroidered felt vest, and a woven belt.', sprite: 3,
     introduction: 'I am Sorin. I help at the bistro between deliveries around the neighbourhood. I know the steep streets, the quiet doors, and where to stop for lunch.',
     thanks: ['Fuel for the hill home!', 'Worth every pedal. Thank you!', 'My lunch ride is sorted.'] },
+  { id: 'adrian', name: 'Adrian', role: 'Travelling guard', visitor: true, sprite: 0,
+    description: 'A Romanian middle-aged man with short dark hair, a thick neat moustache, a black lambskin căciulă cap, a cream linen ie with red and black geometric embroidery, a practical weathered steel plate cuirass, and a burgundy wool cloak.',
+    introduction: 'I am Adrian. I travel with Monica and Janos. We are checking a few reports from the cathedral beyond the village. We may need provisions for several days at a time.',
+    thanks: ['Enough for the road. Thank you.', 'We will pack this with care.', 'A good meal before we leave.'] },
+  { id: 'monica', name: 'Monica', role: 'Pathfinder', visitor: true, sprite: 1,
+    description: 'A Romanian adult woman with dark brown hair in a braid under a red and black woven headscarf, a cream embroidered ie blouse, fitted brown leather scout armour with brass buckles and a cross-strap, and a moss-green travelling cloak.',
+    introduction: 'I am Monica. I check the paths while Adrian and Janos compare their notes. The old cathedral has more entrances than our map shows. A supply pack lets us stay a few days to look.',
+    thanks: ['These will travel well.', 'I have room in the pack.', 'Thank you. We can stay longer.'] },
+  { id: 'janos', name: 'Janos', role: 'Travelling scholar', visitor: true, sprite: 2,
+    description: 'An older Hungarian Roma scholar with a warm medium olive complexion, wavy black hair streaked with grey, a neat moustache and short beard, a black wide-brim felt hat, an indigo embroidered waistcoat over a cream shirt, a muted plum neckerchief, and a wooden walking staff.',
+    introduction: 'I am Janos. I study the marks in old stonework. Adrian and Monica help me examine the nearby cathedral. Its records leave a few questions, and a long visit needs proper meals.',
+    thanks: ['A welcome break from my notes.', 'Thank you for the provisions.', 'We can finish our work calmly.'] },
+  { id: 'ionatan', name: 'Ionatan', role: 'Foreign property agent', visitor: true, singleVisit: true, sprite: 3,
+    description: 'A reserved young adult with fair skin, neat side-parted chestnut hair, a clean-shaven face, a charcoal travel suit, a cream shirt, a burgundy cravat, and a leather document folio.',
+    introduction: 'I am Ionatan, a property agent from another country. I am travelling to the nearby castle to close a real-estate deal with a local noble. I have time for one proper dinner before I leave.',
+    thanks: ['A fine dinner. Thank you.', 'You have taken great care.', 'My compliments to the kitchen.'] },
 ];
 // Each chapter: its title, objective, opening context, payoff, the neighbour quest that contributes during it, and its closing scene.
 // The closing scenes name the changes that the chapter's preparations paint into the rooms.
@@ -210,6 +226,47 @@ const quests: Quest[] = questRows.map(([id, character, title, after, requirement
     ...(afterQuest ? { afterQuest } : {}), requirements: requirements.map(([item, quantity]) => ({ item, quantity })), reward,
     opening: [{ speaker: character, text: opening }], completion: [{ speaker: character, text: completion }] };
 });
+// The travellers return three times each. Ordinary service spaces their visits, and one shared sequence keeps only one request active.
+const visitorRows: [id: string, character: string, title: string, after: number, requirements: [string, number][], opening: string, completion: string][] = [
+  ['adrian-first-pack', 'adrian', 'Provisions for the hill', 6, [['bakery_3', 8], ['warm_3', 4], ['drinks_3', 4]],
+    'We plan to spend several days near the cathedral. A few reports need a closer look. Could you fill a large pack with pogăcele, bulz, and fruit tea before we leave?',
+    'The pack is full. We can take our time on the hill without returning for each meal. I will bring back the empty containers.'],
+  ['monica-first-pack', 'monica', 'Meals beyond the gate', 6, [['bakery_5', 2], ['produce_5', 2], ['warm_5', 2]],
+    'One path runs behind the cathedral wall. I would like several days to check where it leads. Could you prepare zacuscă toast, wild mushroom sauce, and cabbage rolls for our camp meals?',
+    'Everything is packed separately. We can share these meals while we compare the paths with our map. Thank you for taking care with the order.'],
+  ['janos-first-pack', 'janos', 'A long reading', 6, [['bakery_4', 4], ['sweet_3', 4], ['drinks_3', 4]],
+    'A few marks near the cathedral do not match the written records. Reading them may take several days. Could you prepare a full supply of langoș, papanași, and fruit tea for the three of us?',
+    'There is enough here for a long stay. We can stop to eat without losing our place in the notes. The old records can wait until after lunch.'],
+  ['adrian-second-pack', 'adrian', 'Supper for the watch', 12, [['warm_6', 2], ['bakery_6', 2]],
+    'We are going back to examine a quiet part of the cathedral grounds. This visit may last several days. Two goulash pots and two bread baskets would give us proper suppers between our rounds.',
+    'The suppers are ready to share. We will carry them up together. There is no need to rush the work when everyone has eaten.'],
+  ['monica-second-pack', 'monica', 'The longer path', 12, [['produce_3', 6], ['bakery_3', 6], ['drinks_4', 4]],
+    'Our next route starts beyond the cathedral garden. We may be away for several days while we check the old paths. Could you make a large pack of roasted vegetables, pogăcele, and cherry compote?',
+    'The provisions fit both bags. We can follow the route carefully and stop wherever the path gives us a dry place to sit.'],
+  ['janos-second-pack', 'janos', 'Meals beside the notes', 12, [['sweet_6', 2], ['produce_6', 2], ['warm_5', 2]],
+    'We found another page to compare with the cathedral stonework. It may keep us there for several days. Could you send chimney cakes, sharing boards, and cabbage rolls for our meal breaks?',
+    'These are meals worth closing a notebook for. We will keep the table clear before we spread out the pages again.'],
+  ['adrian-third-pack', 'adrian', 'One more stay', 20, [['bakery_4', 6], ['warm_4', 6], ['drinks_3', 4]],
+    'There are still a few places near the cathedral that we have not checked. We need supplies for another stay of several days. Could you pack langoș, smoked cheese plates, and fruit tea in quantity?',
+    'That will cover the stay. We will take the meals in turns and keep the path clear for anyone else who needs to pass. Thank you.'],
+  ['monica-third-pack', 'monica', 'A careful return', 20, [['bakery_6', 2], ['warm_6', 2], ['produce_6', 2]],
+    'We are checking our route around the cathedral once more. A careful visit takes several days. Could you prepare bread baskets, goulash pots, and sharing boards for the three of us?',
+    'The baskets are secure. We can share the food and compare what we saw on each path. I will keep your containers together for the return.'],
+  ['janos-third-pack', 'janos', 'The last loose pages', 20, [['sweet_5', 2], ['warm_5', 2], ['produce_5', 2]],
+    'A few loose pages still leave questions about the cathedral. We have set aside several days to read them there. Could you prepare cozonac, cabbage rolls, and wild mushroom sauce for our meals?',
+    'Our provisions are ready. Whatever those pages tell us, we will discuss them after a proper meal. There will be a warm table to come back to here.'],
+];
+for (const [index, [id, character, title, after, requirements, opening, completion]] of visitorRows.entries()) {
+  quests.push({ id, character, title, afterTask: `task_${after}`, afterServed: (index + 1) * 24,
+    ...(index ? { afterQuest: visitorRows[index - 1][0] } : {}),
+    requirements: requirements.map(([item, quantity]) => ({ item, quantity })),
+    reward: requirements.reduce((sum, [item, quantity]) => sum + items[item].price * quantity, 0) * 2,
+    opening: [{ speaker: character, text: opening }], completion: [{ speaker: character, text: completion }] });
+}
+quests.push({ id: 'ionatan-castle-dinner', character: 'ionatan', title: 'Dinner before the castle', afterTask: 'task_16', afterServed: 120,
+  requirements: [{ item: 'warm_6', quantity: 1 }, { item: 'produce_6', quantity: 1 }, { item: 'sweet_6', quantity: 1 }, { item: 'drinks_6', quantity: 1 }], reward: 1100,
+  opening: [{ speaker: 'ionatan', text: 'I have come from abroad to close a real-estate deal with a local noble at the nearby castle. Before I continue, I would like a proper dinner: a goulash pot, a sharing board, a chimney cake, and plum brandy. I will pay well for the care this meal needs.' }],
+  completion: [{ speaker: 'ionatan', text: 'An excellent dinner. Here is the payment, with my thanks. My papers are in order, and I must leave for the castle now. My journey takes me on from there, so I will not return. Farewell.' }] });
 // The borrowed flour bin and its tasting portions use their matching existing atlas art.
 const questItems: Record<string, Item> = {
   quest_bread_source: { id: 'quest_bread_source', name: 'Tasting flour bin', chain: 'quest_bread', stage: 0, next: null, sprite: 30, price: 0, generator: { outputs: ['quest_bread_1'] } },

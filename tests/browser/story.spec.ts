@@ -172,7 +172,8 @@ test('a fresh save plays through every payment, chapter scene, and the finale, a
     }else await expect(page.locator('#modal')).toBeHidden();
     state=await saved(page);expect(state.taskIndex).toBe(index+1);expect(state.pendingScenes).toEqual([]);
   }
-  expect(state.completedQuests).toHaveLength(data.quests.length);await expect(page.locator('#story')).toContainText('The table is ready.');
+  expect(new Set(state.completedQuests)).toEqual(new Set(data.quests.filter(quest=>(quest.afterServed??0)<=state.served).map(quest=>quest.id)));
+  await expect(page.locator('#story')).toContainText('The table is ready.');
   // Ordinary orders continue after the finale.
   let ready=playUntilReady(state);const order=ready.orders[0];
   for(const code of order.requirements){
@@ -202,7 +203,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:390
   });expect(Math.min(...contrast)).toBeGreaterThanOrEqual(4.5);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:testInfo.outputPath('story-card.png')});
   await page.getByRole('button',{name:'Open the story journal',exact:true}).click();
-  const neighbours=page.locator('.neighbour-introduction');await expect(neighbours).toHaveCount(data.characters.length);
+  const neighbours=page.locator('.neighbour-introduction');await expect(neighbours).toHaveCount(data.characters.filter(person=>!person.singleVisit).length);
   const checkNeighbourAlignment=async()=>{
     const rows=await neighbours.evaluateAll(entries=>entries.map(entry=>{
       const portrait=entry.querySelector('.portrait')!.getBoundingClientRect(),name=entry.querySelector('strong')!.getBoundingClientRect(),role=entry.querySelector(':scope > span:not(.portrait)')!.getBoundingClientRect();

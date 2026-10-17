@@ -528,6 +528,63 @@
         "Worth every pedal. Thank you!",
         "My lunch ride is sorted."
       ]
+    },
+    {
+      "id": "adrian",
+      "name": "Adrian",
+      "role": "Travelling guard",
+      "visitor": true,
+      "sprite": 0,
+      "description": "A Romanian middle-aged man with short dark hair, a thick neat moustache, a black lambskin căciulă cap, a cream linen ie with red and black geometric embroidery, a practical weathered steel plate cuirass, and a burgundy wool cloak.",
+      "introduction": "I am Adrian. I travel with Monica and Janos. We are checking a few reports from the cathedral beyond the village. We may need provisions for several days at a time.",
+      "thanks": [
+        "Enough for the road. Thank you.",
+        "We will pack this with care.",
+        "A good meal before we leave."
+      ]
+    },
+    {
+      "id": "monica",
+      "name": "Monica",
+      "role": "Pathfinder",
+      "visitor": true,
+      "sprite": 1,
+      "description": "A Romanian adult woman with dark brown hair in a braid under a red and black woven headscarf, a cream embroidered ie blouse, fitted brown leather scout armour with brass buckles and a cross-strap, and a moss-green travelling cloak.",
+      "introduction": "I am Monica. I check the paths while Adrian and Janos compare their notes. The old cathedral has more entrances than our map shows. A supply pack lets us stay a few days to look.",
+      "thanks": [
+        "These will travel well.",
+        "I have room in the pack.",
+        "Thank you. We can stay longer."
+      ]
+    },
+    {
+      "id": "janos",
+      "name": "Janos",
+      "role": "Travelling scholar",
+      "visitor": true,
+      "sprite": 2,
+      "description": "An older Hungarian Roma scholar with a warm medium olive complexion, wavy black hair streaked with grey, a neat moustache and short beard, a black wide-brim felt hat, an indigo embroidered waistcoat over a cream shirt, a muted plum neckerchief, and a wooden walking staff.",
+      "introduction": "I am Janos. I study the marks in old stonework. Adrian and Monica help me examine the nearby cathedral. Its records leave a few questions, and a long visit needs proper meals.",
+      "thanks": [
+        "A welcome break from my notes.",
+        "Thank you for the provisions.",
+        "We can finish our work calmly."
+      ]
+    },
+    {
+      "id": "ionatan",
+      "name": "Ionatan",
+      "role": "Foreign property agent",
+      "visitor": true,
+      "singleVisit": true,
+      "sprite": 3,
+      "description": "A reserved young adult with fair skin, neat side-parted chestnut hair, a clean-shaven face, a charcoal travel suit, a cream shirt, a burgundy cravat, and a leather document folio.",
+      "introduction": "I am Ionatan, a property agent from another country. I am travelling to the nearby castle to close a real-estate deal with a local noble. I have time for one proper dinner before I leave.",
+      "thanks": [
+        "A fine dinner. Thank you.",
+        "You have taken great care.",
+        "My compliments to the kitchen."
+      ]
     }
   ],
   "chapters": [
@@ -2216,6 +2273,354 @@
         {
           "speaker": "sorin",
           "text": "The welcome is ready. I can show people the table and stay long enough to share it with them."
+        }
+      ]
+    },
+    {
+      "id": "adrian-first-pack",
+      "character": "adrian",
+      "title": "Provisions for the hill",
+      "afterTask": "task_6",
+      "afterServed": 24,
+      "requirements": [
+        {
+          "item": "bakery_3",
+          "quantity": 8
+        },
+        {
+          "item": "warm_3",
+          "quantity": 4
+        },
+        {
+          "item": "drinks_3",
+          "quantity": 4
+        }
+      ],
+      "reward": 592,
+      "opening": [
+        {
+          "speaker": "adrian",
+          "text": "We plan to spend several days near the cathedral. A few reports need a closer look. Could you fill a large pack with pogăcele, bulz, and fruit tea before we leave?"
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "adrian",
+          "text": "The pack is full. We can take our time on the hill without returning for each meal. I will bring back the empty containers."
+        }
+      ]
+    },
+    {
+      "id": "monica-first-pack",
+      "character": "monica",
+      "title": "Meals beyond the gate",
+      "afterTask": "task_6",
+      "afterServed": 48,
+      "afterQuest": "adrian-first-pack",
+      "requirements": [
+        {
+          "item": "bakery_5",
+          "quantity": 2
+        },
+        {
+          "item": "produce_5",
+          "quantity": 2
+        },
+        {
+          "item": "warm_5",
+          "quantity": 2
+        }
+      ],
+      "reward": 424,
+      "opening": [
+        {
+          "speaker": "monica",
+          "text": "One path runs behind the cathedral wall. I would like several days to check where it leads. Could you prepare zacuscă toast, wild mushroom sauce, and cabbage rolls for our camp meals?"
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "monica",
+          "text": "Everything is packed separately. We can share these meals while we compare the paths with our map. Thank you for taking care with the order."
+        }
+      ]
+    },
+    {
+      "id": "janos-first-pack",
+      "character": "janos",
+      "title": "A long reading",
+      "afterTask": "task_6",
+      "afterServed": 72,
+      "afterQuest": "monica-first-pack",
+      "requirements": [
+        {
+          "item": "bakery_4",
+          "quantity": 4
+        },
+        {
+          "item": "sweet_3",
+          "quantity": 4
+        },
+        {
+          "item": "drinks_3",
+          "quantity": 4
+        }
+      ],
+      "reward": 576,
+      "opening": [
+        {
+          "speaker": "janos",
+          "text": "A few marks near the cathedral do not match the written records. Reading them may take several days. Could you prepare a full supply of langoș, papanași, and fruit tea for the three of us?"
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "janos",
+          "text": "There is enough here for a long stay. We can stop to eat without losing our place in the notes. The old records can wait until after lunch."
+        }
+      ]
+    },
+    {
+      "id": "adrian-second-pack",
+      "character": "adrian",
+      "title": "Supper for the watch",
+      "afterTask": "task_12",
+      "afterServed": 96,
+      "afterQuest": "janos-first-pack",
+      "requirements": [
+        {
+          "item": "warm_6",
+          "quantity": 2
+        },
+        {
+          "item": "bakery_6",
+          "quantity": 2
+        }
+      ],
+      "reward": 460,
+      "opening": [
+        {
+          "speaker": "adrian",
+          "text": "We are going back to examine a quiet part of the cathedral grounds. This visit may last several days. Two goulash pots and two bread baskets would give us proper suppers between our rounds."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "adrian",
+          "text": "The suppers are ready to share. We will carry them up together. There is no need to rush the work when everyone has eaten."
+        }
+      ]
+    },
+    {
+      "id": "monica-second-pack",
+      "character": "monica",
+      "title": "The longer path",
+      "afterTask": "task_12",
+      "afterServed": 120,
+      "afterQuest": "adrian-second-pack",
+      "requirements": [
+        {
+          "item": "produce_3",
+          "quantity": 6
+        },
+        {
+          "item": "bakery_3",
+          "quantity": 6
+        },
+        {
+          "item": "drinks_4",
+          "quantity": 4
+        }
+      ],
+      "reward": 520,
+      "opening": [
+        {
+          "speaker": "monica",
+          "text": "Our next route starts beyond the cathedral garden. We may be away for several days while we check the old paths. Could you make a large pack of roasted vegetables, pogăcele, and cherry compote?"
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "monica",
+          "text": "The provisions fit both bags. We can follow the route carefully and stop wherever the path gives us a dry place to sit."
+        }
+      ]
+    },
+    {
+      "id": "janos-second-pack",
+      "character": "janos",
+      "title": "Meals beside the notes",
+      "afterTask": "task_12",
+      "afterServed": 144,
+      "afterQuest": "monica-second-pack",
+      "requirements": [
+        {
+          "item": "sweet_6",
+          "quantity": 2
+        },
+        {
+          "item": "produce_6",
+          "quantity": 2
+        },
+        {
+          "item": "warm_5",
+          "quantity": 2
+        }
+      ],
+      "reward": 600,
+      "opening": [
+        {
+          "speaker": "janos",
+          "text": "We found another page to compare with the cathedral stonework. It may keep us there for several days. Could you send chimney cakes, sharing boards, and cabbage rolls for our meal breaks?"
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "janos",
+          "text": "These are meals worth closing a notebook for. We will keep the table clear before we spread out the pages again."
+        }
+      ]
+    },
+    {
+      "id": "adrian-third-pack",
+      "character": "adrian",
+      "title": "One more stay",
+      "afterTask": "task_20",
+      "afterServed": 168,
+      "afterQuest": "janos-second-pack",
+      "requirements": [
+        {
+          "item": "bakery_4",
+          "quantity": 6
+        },
+        {
+          "item": "warm_4",
+          "quantity": 6
+        },
+        {
+          "item": "drinks_3",
+          "quantity": 4
+        }
+      ],
+      "reward": 888,
+      "opening": [
+        {
+          "speaker": "adrian",
+          "text": "There are still a few places near the cathedral that we have not checked. We need supplies for another stay of several days. Could you pack langoș, smoked cheese plates, and fruit tea in quantity?"
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "adrian",
+          "text": "That will cover the stay. We will take the meals in turns and keep the path clear for anyone else who needs to pass. Thank you."
+        }
+      ]
+    },
+    {
+      "id": "monica-third-pack",
+      "character": "monica",
+      "title": "A careful return",
+      "afterTask": "task_20",
+      "afterServed": 192,
+      "afterQuest": "adrian-third-pack",
+      "requirements": [
+        {
+          "item": "bakery_6",
+          "quantity": 2
+        },
+        {
+          "item": "warm_6",
+          "quantity": 2
+        },
+        {
+          "item": "produce_6",
+          "quantity": 2
+        }
+      ],
+      "reward": 720,
+      "opening": [
+        {
+          "speaker": "monica",
+          "text": "We are checking our route around the cathedral once more. A careful visit takes several days. Could you prepare bread baskets, goulash pots, and sharing boards for the three of us?"
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "monica",
+          "text": "The baskets are secure. We can share the food and compare what we saw on each path. I will keep your containers together for the return."
+        }
+      ]
+    },
+    {
+      "id": "janos-third-pack",
+      "character": "janos",
+      "title": "The last loose pages",
+      "afterTask": "task_20",
+      "afterServed": 216,
+      "afterQuest": "monica-third-pack",
+      "requirements": [
+        {
+          "item": "sweet_5",
+          "quantity": 2
+        },
+        {
+          "item": "warm_5",
+          "quantity": 2
+        },
+        {
+          "item": "produce_5",
+          "quantity": 2
+        }
+      ],
+      "reward": 472,
+      "opening": [
+        {
+          "speaker": "janos",
+          "text": "A few loose pages still leave questions about the cathedral. We have set aside several days to read them there. Could you prepare cozonac, cabbage rolls, and wild mushroom sauce for our meals?"
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "janos",
+          "text": "Our provisions are ready. Whatever those pages tell us, we will discuss them after a proper meal. There will be a warm table to come back to here."
+        }
+      ]
+    },
+    {
+      "id": "ionatan-castle-dinner",
+      "character": "ionatan",
+      "title": "Dinner before the castle",
+      "afterTask": "task_16",
+      "afterServed": 120,
+      "requirements": [
+        {
+          "item": "warm_6",
+          "quantity": 1
+        },
+        {
+          "item": "produce_6",
+          "quantity": 1
+        },
+        {
+          "item": "sweet_6",
+          "quantity": 1
+        },
+        {
+          "item": "drinks_6",
+          "quantity": 1
+        }
+      ],
+      "reward": 1100,
+      "opening": [
+        {
+          "speaker": "ionatan",
+          "text": "I have come from abroad to close a real-estate deal with a local noble at the nearby castle. Before I continue, I would like a proper dinner: a goulash pot, a sharing board, a chimney cake, and plum brandy. I will pay well for the care this meal needs."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ionatan",
+          "text": "An excellent dinner. Here is the payment, with my thanks. My papers are in order, and I must leave for the castle now. My journey takes me on from there, so I will not return. Farewell."
         }
       ]
     },

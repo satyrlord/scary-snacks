@@ -1,7 +1,7 @@
 // Original deterministic merge-game rules for the bistro browser game.
 export type Item = { id: string; name: string; chain: string; stage: number; next: string | null; sprite: number; price: number; generator?: { outputs: string[] } };
 export type SceneLine = { speaker: string; text: string };
-export type Character = { id: string; name: string; role: string; description: string; introduction: string; sprite: number; thanks: string[] };
+export type Character = { id: string; name: string; role: string; description: string; introduction: string; sprite: number; thanks: string[]; visitor?: boolean; singleVisit?: boolean };
 export type Task = { id: string; chapter: number; title: string; cost: number; work: { summary: string; materials: number; labour: number; hours: number }; goals: { served: number; merges: number }; dialogue: SceneLine[]; unlock?: string; requiresQuest?: string };
 export type TaskRequirement =
   | { kind: 'coins' | 'served' | 'merges'; current: number; required: number; met: boolean }
@@ -9,7 +9,7 @@ export type TaskRequirement =
   | { kind: 'space'; source: string; met: boolean };
 export type TaskEligibility = { task: Task | null; ready: boolean; requirements: TaskRequirement[]; blockers: string[] };
 export type Quest = {
-  id: string; character: string; title: string; afterTask: string | null; afterQuest?: string;
+  id: string; character: string; title: string; afterTask: string | null; afterQuest?: string; afterServed?: number;
   requirements: { item: string; quantity: number }[]; reward: number; opening: SceneLine[]; completion: SceneLine[];
   producer?: { item: string; outputs: string[]; exclusiveItems: string[] };
 };
@@ -146,7 +146,7 @@ function makeOrder(state: GameState, data: GameData, waiting: string[]): Order {
     const chain = chains[random(state, chains.length)];
     return `${chain}_${1 + random(state, maxStage)}`;
   });
-  const free = data.characters.filter(person => !waiting.includes(person.id));
+  const free = data.characters.filter(person => !person.visitor && !waiting.includes(person.id));
   return {
     id: `order_${state.nextOrderId++}`,
     requirements,
@@ -175,7 +175,7 @@ export function createGame(data: GameData, seed = 271828): GameState {
 export function normalizeOrderCustomers(state: GameState, data: GameData): GameState {
   const waiting = new Set(state.orders.map(order => order.customer));
   if (waiting.size === state.orders.length) return state;
-  const free = data.characters.filter(person => !waiting.has(person.id));
+  const free = data.characters.filter(person => !person.visitor && !waiting.has(person.id));
   const seen = new Set<string>();
   const next = copy(state);
   let replacement = 0;
@@ -231,8 +231,15 @@ function questPredecessors(quest: Quest, data: GameData): string[] {
 /** At most one unfinished request per neighbour can be active or offered. */
 export function resolveQuests(state: GameState, data: GameData): QuestView[] {
   return data.quests.map(quest => ({ quest, status: state.completedQuests.includes(quest.id) ? 'complete'
-    : (quest.afterTask === null || state.decorations.includes(quest.afterTask)) && questPredecessors(quest, data).every(id => questDone(state, id))
+    : (quest.afterTask === null || state.decorations.includes(quest.afterTask)) && state.served >= (quest.afterServed ?? 0) && questPredecessors(quest, data).every(id => questDone(state, id))
       ? quest.producer && !own(state.activeQuestProducers, quest.id) ? 'offer' : 'active' : 'locked' }));
+}
+
+/** A guest who visits once has a journal introduction only while their request is open. */
+export function journalCharacters(state: GameState, data: GameData): Character[] {
+  const quests = resolveQuests(state, data);
+  return data.characters.filter(character => !character.singleVisit
+    || quests.some(view => view.quest.character === character.id && (view.status === 'active' || view.status === 'offer')));
 }
 
 export function questDeliveryCells(state: GameState, quest: Quest, data: GameData): number[] {
@@ -262,6 +269,12 @@ export function questProblems(data: GameData): string[] {
     const ids = new Set<string>();
     const exclusive = new Set<string>();
     const graph = new Map<string, string[]>();
+    for (const character of data.characters) {
+      if (character.singleVisit !== undefined && typeof character.singleVisit !== 'boolean') problems.push(`${character.id}: invalid single visit flag.`);
+      if (character.singleVisit && (character.visitor !== true || data.quests.filter(quest => quest?.character === character.id).length !== 1)) {
+        problems.push(`${character.id}: a single visit needs a visitor with exactly one request.`);
+      }
+    }
     for (const [index, task] of data.tasks.entries()) graph.set(`task:${task.id}`, [
       ...(index ? [`task:${data.tasks[index - 1].id}`] : []), ...(task.requiresQuest ? [`quest:${task.requiresQuest}`] : []),
     ]);
@@ -271,6 +284,7 @@ export function questProblems(data: GameData): string[] {
       ids.add(quest.id);
       if (!data.characters.some(character => character.id === quest.character) || !quest.title) problems.push(`${quest.id}: unknown character or missing title.`);
       if (quest.afterTask !== null && !data.tasks.some(task => task.id === quest.afterTask)) problems.push(`${quest.id}: unknown opening preparation.`);
+      if (quest.afterServed !== undefined && !integer(quest.afterServed, 1)) problems.push(`${quest.id}: invalid service goal.`);
       if (!integer(quest.reward, 1)) problems.push(`${quest.id}: invalid coin reward.`);
       for (const scene of [quest.opening, quest.completion]) if (!Array.isArray(scene) || !scene.length
         || !scene.every(line => data.characters.some(character => character.id === line.speaker) && typeof line.text === 'string' && line.text.trim())) problems.push(`${quest.id}: invalid scene.`);
@@ -409,7 +423,7 @@ export function storyProblems(data: GameData): string[] {
     if (!stable(finale.id) || ids.has(finale.id)) problems.push('Chapter and finale IDs must be stable and unique.');
     if (typeof finale.title !== 'string' || !finale.title.trim() || typeof finale.ending !== 'string' || !finale.ending.trim()) problems.push('The finale needs a title and an ending.');
     if (!scene(finale.dialogue)) problems.push('The finale has an invalid scene.');
-    for (const character of data.characters) {
+    for (const character of data.characters.filter(character => !character.visitor)) {
       if (!scene(finale.dialogue) || !finale.dialogue.some(line => line.speaker === character.id)) problems.push(`The finale must include ${character.name}.`);
       if (!chapters.some(chapter => data.quests.find(quest => quest.id === chapter?.contribution)?.character === character.id)) problems.push(`${character.name} needs a chapter contribution.`);
     }
@@ -719,7 +733,7 @@ function validateQuestProgress(state: GameState, data: GameData): boolean {
   const done = new Set<string>();
   for (const id of complete) {
     const quest = data.quests.find(quest => quest.id === id);
-    if (!quest || (quest.afterTask !== null && !state.decorations.includes(quest.afterTask))
+    if (!quest || (quest.afterTask !== null && !state.decorations.includes(quest.afterTask)) || state.served < (quest.afterServed ?? 0)
       || !questPredecessors(quest, data).every(previous => done.has(previous))) return false;
     done.add(id);
   }
@@ -729,6 +743,7 @@ function validateQuestProgress(state: GameState, data: GameData): boolean {
     const quest = data.quests.find(quest => quest.id === id);
     if (!quest?.producer || !integer(count, 0, quest.producer.outputs.length - 1) || done.has(id)
       || (quest.afterTask !== null && !state.decorations.includes(quest.afterTask))
+      || state.served < (quest.afterServed ?? 0)
       || !questPredecessors(quest, data).every(previous => done.has(previous))) return false;
   }
   for (const task of data.tasks.slice(0, state.taskIndex)) if (task.requiresQuest && !done.has(task.requiresQuest)) return false;
@@ -786,7 +801,7 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
       if (!order || typeof order !== 'object' || typeof order.id !== 'string' || !/^order_[1-9]\d*$/.test(order.id)) return false;
       const number = Number(order.id.slice(6));
       if (!integer(number, 1, state.nextOrderId - 1)) return false;
-      if (!data.characters.some(character => character.id === order.customer)) return false;
+      if (!data.characters.some(character => character.id === order.customer && !character.visitor)) return false;
       if (!Array.isArray(order.requirements) || order.requirements.length < 1 || order.requirements.length > 2) return false;
       if (!order.requirements.every(code => own(data.items, code) && !data.items[code].generator
         && chains.includes(data.items[code].chain))) return false;

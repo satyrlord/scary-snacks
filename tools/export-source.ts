@@ -12,7 +12,7 @@ export const sourceFiles=[...runtimeFiles,'public/data/game.json',...fontFiles.m
   'tools/build.ts','tools/build-image-variants.ts','tools/server.ts','tools/create-original-data.ts','tools/create-checkpoint-saves.ts','tools/export-source.ts',
   'tests/assets.test.ts','tests/build.test.ts','tests/server.test.ts','tests/engine.test.ts','tests/storage.test.ts','tests/decorations.test.ts','tests/source-export.test.ts','tests/browser/game.spec.ts','tests/browser/renovation.spec.ts','tests/browser/decorations.spec.ts','tests/browser/generators.spec.ts',
   'tests/level-rewards.test.ts','tests/browser/level-rewards.spec.ts',
-  'tests/quests.test.ts','tests/browser/quests.spec.ts',
+  'tests/quests.test.ts','tests/browser/quests.spec.ts','tests/browser/visitors.spec.ts',
   'tools/campaign-balance.ts','tests/campaign-balance.test.ts','tests/campaign-goals.test.ts','tests/economy.test.ts','tests/browser/campaign-goals.spec.ts',
   'tests/board-clearing.test.ts','tests/browser/board-clearing.spec.ts',
   'tests/story.test.ts','tests/browser/story.spec.ts',

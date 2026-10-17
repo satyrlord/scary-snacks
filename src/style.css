@@ -315,6 +315,7 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 .food { display: block; stroke: none; fill: none; }
 .portrait { display: block; background-image: url('../assets/variants/portraits-640x640.webp'); background-size: 200% 200%; background-repeat: no-repeat; border-radius: 50%; background-color: var(--inset); }
 .portrait-0 { background-position: 0 0; }.portrait-1 { background-position: 100% 0; }.portrait-2 { background-position: 0 100%; }.portrait-3 { background-position: 100% 100%; }
+.visitor-portrait { background-image: url('../assets/variants/visitor-portraits-640x640.webp'); }
 .mascot { display: block; background-image: url('../assets/variants/mascots-640x640.webp'); background-size: 200% 200%; background-repeat: no-repeat; }
 .cat-sitting { background-position: 0 0; }.cat-sleeping { background-position: 100% 0; }.bat { background-position: 0 100%; }
 .phone-bar { display: none; }

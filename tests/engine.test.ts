@@ -33,11 +33,12 @@ function fillBoard(state: GameState) {
   return state;
 }
 
-test('original data has 30 named stages, five generators, four characters, and 24 tasks', () => {
+test('original data has 30 named stages, five generators, eight characters, and 24 tasks', () => {
   assert.equal(data.title, 'Scary Snacks');
   assert.equal(data.board.columns * data.board.rows, 42);
   assert.equal(Object.keys(data.items).length, 35);
-  assert.equal(data.characters.length, 4);
+  assert.equal(data.characters.length, 8);
+  assert.equal(data.characters.filter(person => !person.visitor).length, 4);
   assert.equal(data.tasks.length, 24);
   assert.equal(new Set(data.tasks.map(task => task.id)).size, 24);
   for (const task of data.tasks) {
@@ -210,6 +211,7 @@ test('a newly unlocked source uses the earned tier and starts with stage one sel
   later.tasks[11].unlock = 'sweet';
   // This source-only fixture moves the related request to the later unlock as well.
   later.quests.find(quest => quest.id === 'eszter-table')!.afterTask = 'task_12';
+  later.quests.find(quest => quest.id === 'janos-first-pack')!.afterTask = 'task_12';
   // That request now opens as chapter 3 ends, so other requests contribute to chapters 3 and 5.
   later.chapters[2].contribution = 'mara-table';
   later.chapters[4].contribution = 'eszter-tasting';
@@ -351,6 +353,7 @@ test('the three neighbours waiting at the counter are always different people, a
     let state = initial(seed);
     for (let serve = 0; serve < 60; serve++) {
       assert.equal(new Set(state.orders.map(order => order.customer)).size, 3, `seed ${seed}, serve ${serve}`);
+      assert.ok(state.orders.every(order => !data.characters.find(person => person.id === order.customer)!.visitor));
       const order = state.orders[serve % 3];
       // Put the order's items on the board directly; this test covers who comes next, not how the dishes are made.
       for (const code of order.requirements) state.board[state.board.indexOf(null)] = { code };

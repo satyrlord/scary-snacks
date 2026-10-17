@@ -1124,6 +1124,16 @@
       "format": "webp",
       "bytes": 312496,
       "sha256": "4b38ecdf4c216e61559167353a010802ebafca78c6683b3102bbd65564ceca31"
+    },
+    {
+      "file": "public/assets/variants/visitor-portraits-640x640.webp",
+      "master": "visitor-portraits",
+      "masterSha256": "1effc3a91422805fb6b634ef5930d5b4151d488c494ba1f52f63fb62add5eeb4",
+      "width": 640,
+      "height": 640,
+      "format": "webp",
+      "bytes": 99536,
+      "sha256": "b1e40e76947d743908212699f031c8b321134bcfb4bbc6543b222cf2eff9ba63"
     }
   ]
 }

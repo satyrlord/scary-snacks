@@ -7,7 +7,7 @@ import { SAVE_KEY, exportSave } from '../../src/storage.ts';
 
 const data: GameData=JSON.parse(readFileSync('public/data/game.json','utf8'));
 const validate=(candidate: unknown)=>validateGame(candidate,data);
-const firstQuests=data.characters.map(character=>data.quests.find(quest=>quest.character===character.id)!);
+const firstQuests=data.characters.filter(character=>!character.visitor).map(character=>data.quests.find(quest=>quest.character===character.id)!);
 const optional=data.quests.find(quest=>quest.producer)!;
 const card=(page: Page,quest: Quest)=>page.locator(`.quest-card[data-quest="${quest.id}"]`);
 const deliver=(page: Page,quest: Quest)=>page.getByRole('button',{name:`Deliver ${quest.title} for ${quest.reward} coins`,exact:true});
@@ -101,7 +101,7 @@ for(const quest of firstQuests)test(`${quest.character} can read and deliver a n
 
 test('quest rewards survive export and import, while introductions and journal replay give no reward',async({page})=>{
   const quest=firstQuests[0];await start(page,ready(quest));await journal(page);const initial=await saved(page);
-  for(const character of data.characters){
+  for(const character of data.characters.filter(character=>!character.singleVisit)){
     await page.getByRole('button',{name:`Meet ${character.name}`,exact:true}).click();await expect(page.locator('#story-line')).toContainText(character.introduction);
     await finishScene(page);expect(await saved(page)).toEqual(initial);
   }

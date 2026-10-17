@@ -613,6 +613,44 @@
       "generation": "built-in in-chat imagegen; edit of the project-generated board-clutter candidate 3 with the project-generated food atlas as a style reference",
       "sourceGameImageInput": false,
       "review": "The agent examined six sprite cells at full size and at 64 pixels on light and dark tiles. Four objects keep dust but no baked-in webs. The separate web and twine overlays have open centers. Visible painted pixels do not cross cell boundaries. The linen reaches within 6 pixels of the first column boundary. User visual acceptance has not been recorded."
+    },
+    {
+      "id": "visitor-portraits",
+      "file": "public/assets/original/visitor-portraits.png",
+      "sha256": "1effc3a91422805fb6b634ef5930d5b4151d488c494ba1f52f63fb62add5eeb4",
+      "bytes": 2156164,
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "visitor-local-armour",
+      "generation": "Built-in in-chat imagegen for the three local visitor portraits; fixed-cell assembly preserves the accepted Janos portrait and the original Ionatan cell.",
+      "sourceGameImageInput": false,
+      "referenceAsset": "visitor-portraits-before-local-redesign",
+      "referenceSha256": "99d6424132ba0de818b8891a6aa9d58cdd198c5f995bc2bc4df6983cc394b95f",
+      "review": "The agent examined all four cells on light and dark backgrounds. Adrian retains steel plate armour with Romanian headwear and embroidery. Monica retains brown leather scout armour with Romanian headwear and embroidery. Janos has the accepted Hungarian Roma styling. The 1254-by-1254 RGBA atlas has clear borders and seams. Pixel comparison confirms that the complete Ionatan cell is unchanged. User acceptance applies to Janos; acceptance of the corrected upper portraits is not recorded.",
+      "assembly": {
+        "cells": [
+          {
+            "index": 0,
+            "promptId": "visitor-local-armour"
+          },
+          {
+            "index": 1,
+            "promptId": "visitor-local-armour"
+          },
+          {
+            "index": 2,
+            "promptId": "visitor-local-fit"
+          },
+          {
+            "index": 3,
+            "referenceAsset": "visitor-portraits-before-local-redesign"
+          }
+        ],
+        "packing": "The first three cells have a one-pixel transparent packing border. The removed border pixels had alpha below 16; every interior pixel keeps its generated value. The complete original Ionatan cell keeps every RGBA value.",
+        "ionatanRgbaSha256": "0ee43942527f2a444ea4bb87f00358651741882bc0af231993debdd219bd8ade"
+      }
     }
   ],
   "note": "Only generated project images are active. The menu atlas and the mascots repaint the generated chat atlases in the references list. The final portraits revised their own first API candidate. This record is provenance, not legal clearance. front-room-00 and courtyard-13 use the generated reference paintings in the references list. The two decoration paintings use the generated design references in that list. Each later room state is an edit of the previous state, composited so that only its region changes. The board-clutter atlas was generated in chat and corrected for sprite-cell fit.",
@@ -694,6 +732,38 @@
       "generation": "built-in in-chat imagegen",
       "sourceGameImageInput": false,
       "use": "The reference of mascots. The game does not ship it."
+    },
+    {
+      "id": "visitor-portraits-three",
+      "sha256": "e6e6ec2e5528b6490371d14e53f39ae8613127f12ce0f0f4f03afe85722efbea",
+      "bytes": 1412853,
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "visitor-portraits-fit",
+      "generation": "Built-in in-chat imagegen; a new three-portrait atlas using the core portraits only as a style reference, followed by a cell-spacing correction.",
+      "sourceGameImageInput": false,
+      "referenceAsset": "portraits",
+      "referenceSha256": "42ecfa1970b5b6ad9a874990ca9b5ac055fc22f4fc7d3d40c8d549c751106a92",
+      "review": "The agent examined all three cells and the empty fourth cell on light and dark backgrounds. The decoded sheet is 1254 by 1254 pixels with RGBA transparency. Adrian is top left, Monica top right, and Janos bottom left. Every subject stays inside its cell; all borders and central seams are transparent. User visual acceptance is not recorded.",
+      "use": "The generated reference for visitor-portraits. The game does not ship it."
+    },
+    {
+      "id": "visitor-portraits-before-local-redesign",
+      "sha256": "99d6424132ba0de818b8891a6aa9d58cdd198c5f995bc2bc4df6983cc394b95f",
+      "bytes": 1733171,
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "visitor-portraits-ionatan-clear",
+      "generation": "Built-in in-chat imagegen; an edit of visitor-portraits-three that adds Ionatan in the fourth cell, followed by a transparency correction.",
+      "sourceGameImageInput": false,
+      "referenceAsset": "visitor-portraits-three",
+      "referenceSha256": "e6e6ec2e5528b6490371d14e53f39ae8613127f12ce0f0f4f03afe85722efbea",
+      "review": "The agent examined all four cells on light and dark backgrounds. The decoded sheet is 1254 by 1254 pixels with RGBA transparency. Adrian is top left, Monica top right, Janos bottom left, and Ionatan bottom right. The three existing identities, clothes, poses, and cell mappings remain recognizable. The busts stay inside their cells. Every outer border and central seam has alpha zero. User visual acceptance is not recorded.",
+      "use": "The generated armour and style reference. Its complete Ionatan cell is retained in visitor-portraits. The game does not ship this reference."
     }
   ]
 }

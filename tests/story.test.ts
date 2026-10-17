@@ -45,7 +45,7 @@ test('six chapters keep their titles and cover all 24 preparations, each with a 
 });
 
 test('each chapter has a neighbour contribution that opens during it, and the four core characters all contribute and speak in the finale', () => {
-  const characters = data.characters.map(character => character.id);
+  const characters = data.characters.filter(character => !character.visitor).map(character => character.id);
   assert.deepEqual(new Set(data.chapters.map(chapter => data.quests.find(quest => quest.id === chapter.contribution)!.character)), new Set(characters));
   assert.deepEqual(new Set(data.finale.dialogue.map(line => line.speaker)), new Set(characters));
   for (const [index, chapter] of data.chapters.entries()) {

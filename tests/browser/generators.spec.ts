@@ -14,7 +14,7 @@ function afterPreparations(count: number){
   }
   state.coins=count<data.tasks.length?data.tasks[count].cost:0;
   // Every open request is already delivered, so a new output cannot open a request dialog over the board.
-  state.completedQuests=data.quests.filter(quest=>quest.afterTask===null||state.decorations.includes(quest.afterTask)).map(quest=>quest.id);
+  state.completedQuests=data.quests.filter(quest=>(quest.afterTask===null||state.decorations.includes(quest.afterTask))&&state.served>=(quest.afterServed??0)).map(quest=>quest.id);
   return state;
 }
 async function start(page: Page,state: GameState){

@@ -540,6 +540,10 @@ Story has a Neighbour quests link with the number of active requests and offers.
 
 Each quest is a section between hairlines. A 44px portrait sits beside the request title and neighbour name. The food rows show the exact quantity and the amount on the board. Each row opens ingredient help. The coin reward follows. Read request and Deliver are separate controls. Deliver has the dashed disabled style until the board holds every required item. Titles, text, reward figures, and controls use the existing Inter, ink, muted, gold, action, and focus tokens.
 
+Visitor quests use the same sheet, food counts, reward, and delivery controls. Adrian, Monica, Janos, and Ionatan use a separate transparent two-by-two portrait atlas. Its cells are Adrian at the top left, Monica at the top right, Janos at the bottom left, and Ionatan at the bottom right. The four core portraits keep their atlas. Visitor cards also show the opening request text so that the supply purpose is visible before Read request. The portraits keep their colours in both themes. The journal always includes the four ordinary neighbours and three recurring travellers. Ionatan has an introduction only while his dinner request is active. After the farewell scene, the journal shows neither his introduction nor his request scenes.
+
+Paint Adrian and Monica with Romanian village headwear and embroidered shirts. Adrian keeps his steel plate cuirass and burgundy cloak. Monica keeps her brown leather scout armour and green cloak. Paint Janos in Hungarian Roma village dress, with his felt hat, indigo waistcoat, plum neckerchief, and walking staff. Keep natural adult faces and no caricature.
+
 A temporary-source offer names its space requirement before Accept. Its delivery opens a cleanup review that lists the board supplies with their space numbers. Keep items has initial focus. Deliver and return supplies confirms the action. Cancel, Close, and Escape return to the quest heading. The completion scene returns to the quest list heading. An unsaved session has a visible warning and Retry save.
 
 A request that becomes ready, or that is ready at load, opens the request dialog, "[Name]’s request is ready". The dialog has one muted line, the portrait and request title, the food rows with their board counts, the coin reward, Deliver, and one muted line that says that the request waits in Neighbour quests. The food rows do not open ingredient help. The dialog opens on its close button. It has no Later button, because the close button closes it. Deliver opens the completion scene, or the cleanup review for a temporary-source request. In this flow, the last scene button is "Back to the kitchen", and Keep items closes the dialog. Focus then goes to the board, or to the drawer handle when the drawer is lowered. A failed save makes the last scene button Return, which opens Neighbour quests with Retry save. The dialog adds no motion.
@@ -568,10 +572,10 @@ The three slots are Tableware, Courtyard table cloth, and Final flowers. The def
 ## Do's and Don'ts
 
 ### Do:
-- **Do** use only the 33 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
+- **Do** use only the 34 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
   - The 25 room masters are front-room-00 to front-room-12, front-room-17, front-room-24, courtyard-13 to courtyard-16, and courtyard-18 to courtyard-23.
   - The two decoration masters are decoration-front and decoration-courtyard.
-  - The six other masters are menu-atlas, board-clutter, portraits, mascots, timber-tabletop, and embroidered-runner.
+  - The seven other masters are menu-atlas, board-clutter, portraits, visitor-portraits, mascots, timber-tabletop, and embroidered-runner.
 - **Do** paint each room state as a complete 3:4 painting, 1536 by 2048, opaque. Keep every pixel outside the change the same as the state before it.
 - **Do** ship room states as AVIF and WebP at 768 and 1536px wide, AVIF first. Ship the timber as AVIF and WebP at 1024 and 1536px wide. Ship the decoration paintings as WebP at 1536px wide. Ship the transparent atlases and the runner as WebP.
 - **Do** keep the neighbours in working village dress: Mara, Ilie, and Sorin in Romanian dress, and Eszter in Székely dress.

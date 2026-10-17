@@ -8,7 +8,7 @@ Automatic scene continuation waits for 009. Spec 006 includes all quests in its 
 Each of Mara, Ilie, Eszter, and Sorin has three authored quests across the six chapters.
 A thirteenth quest lends a temporary flour bin for Ilie's bread tasting.
 The journal has an optional introduction for each neighbour and replay of completed quest scenes.
-All four characters remain eligible for ordinary orders. Introductions never block service.
+All four core characters remain eligible for ordinary orders. Introductions never block service.
 
 The engine owns eligibility, delivery, and validation. Storage owns the envelopes and durable writes.
 The app owns the quest sheet, the dialogue, and focus return.
@@ -18,6 +18,28 @@ PRODUCT, DESIGN, and README own the current product, interface, and delivery con
 The five permanent chains, 30 permanent dishes, four core characters, 24 preparation IDs, and three ordinary orders stay.
 The temporary source and its three outputs have separate IDs and use the matching existing bread pictures.
 There is no new currency, timer, energy limit, runtime dependency, backend, or network service.
+
+## Visiting travellers
+
+Adrian, Monica, and Janos each return for three optional supply requests. They do not enter ordinary orders. Each visit waits for the previous visitor delivery and its service and preparation goals. Milestones are cumulative, so an established player can complete waiting visits in order. There is no timer. Each reward pays twice the menu value. The current save format needs no new fields.
+
+| Quest ID | Preparation | Orders served | Requirements | Coins |
+| --- | --- | --- | --- | --- |
+| adrian-first-pack | 6 | 24 | 8 Pogăcele, 4 Bulz, 4 Fruit tea | 592 |
+| monica-first-pack | 6 | 48 | 2 Zacuscă toast, 2 Wild mushroom sauce, 2 Cabbage rolls | 424 |
+| janos-first-pack | 6 | 72 | 4 Langoș, 4 Papanași, 4 Fruit tea | 576 |
+| adrian-second-pack | 12 | 96 | 2 Goulash pot, 2 Bread basket | 460 |
+| monica-second-pack | 12 | 120 | 6 Roasted vegetables, 6 Pogăcele, 4 Cherry compote | 520 |
+| janos-second-pack | 12 | 144 | 2 Chimney cake, 2 Sharing board, 2 Cabbage rolls | 600 |
+| adrian-third-pack | 20 | 168 | 6 Langoș, 6 Smoked cheese plate, 4 Fruit tea | 888 |
+| monica-third-pack | 20 | 192 | 2 Bread basket, 2 Goulash pot, 2 Sharing board | 720 |
+| janos-third-pack | 20 | 216 | 2 Cozonac, 2 Cabbage rolls, 2 Wild mushroom sauce | 472 |
+
+## Single-visit dinner
+
+Ionatan is a foreign real estate agent. His only quest, `ionatan-castle-dinner`, opens after preparation 16 and 120 ordinary services. It needs one goulash pot, one sharing board, one chimney cake, and one plum brandy. The 220-coin dinner pays 1,100 coins. It has no previous-quest prerequisite and blocks no other quest or preparation.
+
+His introduction appears only while his request is active. Delivery records the quest ID once and shows his farewell. After that scene, his introduction and quest replays are absent. He never becomes an ordinary customer. Reload and export/import preserve his completed visit. A new game permits another visit. A failed write keeps the departure in the session; reload restores only durable progress. No save fields change.
 
 ## Authored requests
 
@@ -115,7 +137,7 @@ Import adopts a valid quest state only after its write succeeds.
 The Node.js tests cover repeated quantities, atomic failure, reward-once behavior, coin overflow, prerequisite cycles, unavailable chains, and malformed quest records.
 They cover deterministic acceptance, full-board failure, source protection, reload, stale previews, and exact cleanup.
 The storage tests cover fresh, middle, and completed saves, malformed and oversized input, invalid completion lists, source ownership, failed writes, and rejection of unsupported versions.
-A legal engine campaign completes all 24 preparations and all 13 quests without injected resources. Its diagnostic output reports actions, merges, served orders, and chapter checkpoints. The fixture fails on a deadlock.
+A legal engine campaign completes all 24 preparations and all 23 quests without injected resources. Its diagnostic output reports actions, merges, served orders, and chapter checkpoints. The fixture fails on a deadlock.
 
 The built browser tests cover all four neighbours, board-only delivery, unchanged orders, keyboard focus, touch emulation, reload, export, import, scene replay, and unavailable storage.
 They cover temporary-source placement, cleanup cancellation, and confirmation.

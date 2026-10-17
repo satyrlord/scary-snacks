@@ -48,8 +48,9 @@ test('legal campaign scenarios reach the finale and account for every action and
     assert.ok(report.postCampaign.actions > 3);
     for (const chain of data.chains) assert.ok(generatorOutputs(finalState, `generator_${chain.id}`, data).includes(`${chain.id}_3`));
     assert.equal(totals.levelCoins, scenario === 'fresh' ? 0 : 180);
-    assert.equal(totals.questCoins, scenario === 'fresh-rewards' ? 312 : 0);
-    assert.equal(finalState.completedQuests.length, scenario === 'fresh-rewards' ? 13 : 0);
+    assert.equal(totals.questCoins, finalState.completedQuests.reduce((sum, id) => sum + data.quests.find(quest => quest.id === id)!.reward, 0));
+    assert.equal(finalState.completedQuests.filter(id => !data.characters.find(person => person.id === data.quests.find(quest => quest.id === id)!.character)!.visitor).length, scenario === 'fresh-rewards' ? 13 : 0);
+    if (scenario === 'fresh-rewards') assert.ok(finalState.completedQuests.some(id => data.quests.find(quest => quest.id === id)!.afterServed));
     assert.deepEqual(finalState.activeQuestProducers, {});
     t.diagnostic(`${scenario}, seed ${report.seed}: ${totals.actions} actions, ${totals.served} service, ${totals.merges} merges, ${totals.sales} sales; ${totals.orderCoins} order + ${totals.saleCoins} sale + ${totals.levelCoins} level + ${totals.questCoins} quest coins; ${finalState.coins} remain.`);
   }

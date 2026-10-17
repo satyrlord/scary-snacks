@@ -44,7 +44,7 @@ They are not runtime dependencies. Do not use `private/` as an input for source 
 
 ## Art provenance
 
-The game ships image variants from 33 masters. The build excludes the PNG masters.
+The game ships image variants from 34 masters. The build excludes the PNG masters.
 
 - The OpenAI Images API (gpt-image-2.5-flare, high quality) made the food atlas and the mascots.
   Each repaints an earlier atlas that the built-in in-chat imagegen tool made for this project. The mascots then had one correction of the grid fit.
@@ -57,5 +57,7 @@ The game ships image variants from 33 masters. The build excludes the PNG master
   A composite applies only the changed regions. The app samples only their authored regions.
 - The built-in chat image generator made the board-clutter atlas. It used the food atlas only as a style reference.
   Later edits corrected the fit of the sprite cells and removed webs from the four clutter objects.
+
+- The built-in chat image generator made the four visitor portraits in a separate atlas. The core portrait atlas supplied the style reference. The first three portraits use local Romanian and Hungarian Roma dress. Adrian keeps his steel plate armour, and Monica keeps her leather armour. Fixed-cell assembly preserves Ionatan without a pixel change.
 
 The files `docs/asset-prompts.json` and `docs/asset-provenance.json` record the prompts and the hashes. Provenance is not an intellectual-property warranty.

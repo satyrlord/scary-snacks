@@ -17,7 +17,7 @@ Do not keep retired items, dated results, audit figures, or notes about an earli
   `engine.ts` holds the rules, `storage.ts` holds the saves, and `app.ts` holds the interface.
   Keep the rules and the saves free of Document Object Model (DOM) access.
 - `public/` holds the files that the build ships: `assets/variants/` (AV1 Image File Format, or AVIF, and WebP image variants), `assets/fonts/`, and `data/game.json`.
-  `public/assets/original/` holds the 33 Portable Network Graphics (PNG) masters of those variants. The build does not ship the masters.
+  `public/assets/original/` holds the 34 Portable Network Graphics (PNG) masters of those variants. The build does not ship the masters.
 - `tools/create-original-data.ts` authors `public/data/game.json`.
   Edit the generator, and run `npm run data:generate`.
 - Git ignores the local folders `private/`, `analysis/`, `.release/`, and `.tools/`.
@@ -71,7 +71,7 @@ For a change that the user can see, give browser evidence.
 
 ## Assets, security, and deployment
 
-The 33 PNG masters in `public/assets/original/` have records in `docs/asset-provenance.json` and `docs/asset-prompts.json`.
+The 34 PNG masters in `public/assets/original/` have records in `docs/asset-provenance.json` and `docs/asset-prompts.json`.
 After a master changes, run `npm run assets:build`.
 The command uses Sharp, a development dependency, to make the AVIF and WebP variants in `public/assets/variants/`.
 The command records the variants in `docs/asset-variants.json`.
