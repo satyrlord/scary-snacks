@@ -245,9 +245,7 @@ const tasks: Task[] = taskRows.map(([title, a, at, b, bt, c, ct], index) => {
   };
 });
 // The quest campaign. A quest in window w opens after preparation w (0: in a new game), and preparation w + 1 needs it.
-// Personal requests pay their menu value times the rate of the chapter of their window. Supply packs and the meal for two pay their
-// menu value, and Ionatan pays well. Each preparation is paid by the quests that open before it; questProblems checks the funds.
-const rates = [3, 2.5, 2, 1.5, 1, 1];
+// Every quest pays the menu value of its dishes. Each preparation is paid by the quests that open before it; questProblems checks the funds.
 const menuValue = (requirements: [string, number][]) => requirements.reduce((sum, [item, quantity]) => sum + items[item].price * quantity, 0);
 const lines = (speaker: string, text: string) => [{ speaker, text }];
 type QuestRow = [id: string, character: string, title: string, window: number, requirements: [string, number][], opening: string, completion: string];
@@ -409,6 +407,60 @@ const questRows: QuestRow[] = [
   ['sanziana-lilacs', 'sanziana', 'Lilacs for the dresser', 23, [['sweet_4', 1], ['produce_3', 1], ['drinks_3', 1]],
     'Wildflowers are lovely, but lilacs smell like the evening. Bring plum dumplings, roasted vegetables, and a fruit tea, and I will bring an armful.',
     'The lilacs are ready. When the supper starts, tap the jug on the dresser in the front room to change the flowers whenever you like.'],
+  ['ilie-stove', 'ilie', 'A test for the stove', 0, [['warm_3', 2], ['bakery_3', 2]],
+    'The old stove still works, but it sulks. Two bulz and two servings of pogăcele will tell me if it sulks evenly.',
+    'Even heat on both sides. The stove sulks only at the back now, like a cat.'],
+  ['eszter-cups', 'eszter', 'Cups for the counter', 0, [['drinks_3', 2], ['bakery_3', 2]],
+    'I brought my first cups down from the workshop. Two fruit teas and two servings of pogăcele, please, so I can see if a cup and a plate get along.',
+    'They get along. The cups stay. I am taking the one with the crooked handle home, because it looks at me.'],
+  ['costel-ticking', 'costel', 'A ticking in the wall', 0, [['drinks_3', 3], ['warm_2', 2]],
+    'Something in your wall ticks, and it is not one of my clocks. Three fruit teas and two bowls of mămăligă, and I will listen to it properly.',
+    'It is a beetle with excellent timing. I have offered it an apprenticeship.'],
+  ['mara-cellar', 'mara', 'A look at the cellar', 0, [['warm_4', 1], ['drinks_3', 1]],
+    'Before we spend a coin, I want to see what the cellar kept for us. Bring a smoked cheese plate and a fruit tea. We need courage and a snack.',
+    'Three empty barrels, one good ladder, and a very polite spider. The cellar can wait for us.'],
+  ['victor-skeleton', 'victor', 'Lunch for the skeleton', 1, [['warm_3', 1], ['drinks_3', 1], ['drinks_2', 1]],
+    'The university lent me a skeleton to study at home. I set a place for him out of habit. A bulz, a fruit tea, and a socată, please. He will not eat his share.',
+    'He did not eat a bite, so I had both. I think we are becoming friends.'],
+  ['ana-garlic', 'ana', 'Garlic duty', 2, [['warm_3', 1], ['warm_2', 1], ['drinks_2', 1]],
+    'It is my turn to hang garlic on every door of the ward. That is a lot of doors. A bulz, a mămăligă, and a socată, please, before I start.',
+    'Every door has its garlic. The ward smells terrible, and nothing knocked all night. Perfect.'],
+  ['sorin-tyre', 'sorin', 'A patched tyre', 3, [['sweet_3', 1], ['bakery_4', 1], ['drinks_3', 1]],
+    'Something bit my front tyre on the forest road. Probably a nail. Probably. Papanași, a langoș, and a fruit tea while I patch it, please.',
+    'Patched. I found the nail, and I am choosing to believe that it was a nail.'],
+  ['dochia-shearing', 'dochia', 'Shearing day', 3, [['warm_4', 1], ['bakery_3', 2], ['drinks_2', 1]],
+    'Today I shear the sheep, and the sheep have opinions. A smoked cheese plate, two servings of pogăcele, and a socată, please. I need my strength.',
+    'All the sheep are shorn. Now they look cold and I look warm. I will give one sheepskin back. Maybe.'],
+  ['ilie-pickles', 'ilie', 'Jars for winter', 4, [['warm_3', 2], ['drinks_3', 1]],
+    'My grandmother pickled everything that stood still long enough. I want to fill the cellar jars the same way. Two bulz and a fruit tea while I work, please.',
+    'The jars are full and labelled. One label says "Do not open before winter". I did not write that one.'],
+  ['costel-key', 'costel', 'A key that hums', 4, [['sweet_3', 1], ['sweet_2', 2], ['drinks_3', 1]],
+    'I found an old key under the counter, and it hums near the cellar door. Papanași, two doughnuts, and a fruit tea, and I will find out what it wants.',
+    'It wanted oil. It stopped humming and started purring. I am keeping it on a ribbon.'],
+  ['eszter-kiln', 'eszter', 'Waiting for the kiln', 5, [['sweet_3', 1], ['bakery_3', 1]],
+    'The kiln needs one more hour, and I cannot leave it. Papanași and pogăcele, please. I will eat standing up and pretend that I am patient.',
+    'The kiln opened, and nothing cracked. I was patient for almost the whole hour.'],
+  ['mara-candles', 'mara', 'Candles in the window', 8, [['warm_4', 1], ['produce_3', 1], ['drinks_2', 1]],
+    'In this village, candles in the window mean that a door is open to anyone. Let us light ours and have supper by them: a smoked cheese plate, roasted vegetables, and a socată.',
+    'The candles burned all evening. Two neighbours waved, one owl stared, and the street felt friendlier.'],
+  ['sorin-postbag', 'sorin', 'A heavy post bag', 9, [['produce_3', 2], ['bakery_4', 1], ['drinks_3', 1]],
+    'Everyone in the valley is sending letters this week, and they all live up a hill. Two roasted vegetables, a langoș, and a fruit tea, please.',
+    'Every letter is delivered. One was addressed to "the house that is not there". I left it at the crossroads, and it was gone by morning.'],
+  ['dochia-fair', 'dochia', 'The sheep fair', 14, [['warm_5', 2], ['bakery_5', 2]],
+    'Tomorrow is the sheep fair, and my ram wants to win. He will not, but I bring food so that he loses with dignity. Two cabbage rolls and two zacuscă toasts, please.',
+    'He won second prize. First prize went to a goat, which is not even a sheep. We are appealing.'],
+  ['dorian-sitter', 'dorian', 'A sitter after dark', 14, [['sweet_5', 2], ['drinks_4', 2]],
+    'A gentleman from the castle wants his portrait painted, but only by candlelight. Two cozonac and two cherry compotes, please. These sittings last all night.',
+    'The portrait is finished. He was very pleased, although he could not find himself in the mirror to compare.'],
+  ['cezar-long-night', 'cezar', 'The longest night', 14, [['warm_5', 1], ['warm_4', 1], ['produce_4', 2]],
+    'Tonight is the longest night of the year, and I walk all of it. Cabbage rolls, a smoked cheese plate, and two zacuscă, please. One bite for every hour.',
+    'The sun came up at last. I counted fourteen hours, two owls, and one shadow that walked home with me. It was polite.'],
+  ['eszter-kiln-party', 'eszter', 'The kiln party', 14, [['sweet_4', 2], ['produce_4', 2], ['drinks_3', 2]],
+    'The new kiln is finished, and potters celebrate by watching it heat up. It is less exciting than it sounds. Two plum dumplings, two zacuscă, and two fruit teas, please.',
+    'We watched the kiln for three hours. Afterwards, everyone agreed that it was the best party of the year.'],
+  ['ilie-cellar', 'ilie', 'The cellar shelves', 14, [['warm_6', 1], ['bakery_5', 1]],
+    'I built new shelves in the cellar. Something keeps moving the jars to the left. A goulash pot and a zacuscă toast, please. I will eat down there and watch.',
+    'The jars stayed still while I ate. When I went upstairs, they moved to the left again. We have agreed to share the shelves.'],
 ];
 // Three requests offer a second finish for a decoration. Delivery adds the finish, and the player can then switch it in the room.
 const finishes: Record<string, Quest['unlocks']> = {
@@ -416,7 +468,7 @@ const finishes: Record<string, Quest['unlocks']> = {
 };
 const campaign: { window: number; quest: Quest }[] = questRows.map(([id, character, title, window, requirements, opening, completion]) => ({ window, quest: {
   id, character, title, afterTask: window ? `task_${window}` : null, requirements: requirements.map(([item, quantity]) => ({ item, quantity })),
-  reward: Math.round(menuValue(requirements) * rates[Math.floor(window / 4)] / 2) * 2, opening: lines(character, opening), completion: lines(character, completion),
+  reward: menuValue(requirements), opening: lines(character, opening), completion: lines(character, completion),
   ...(finishes[id] ? { unlocks: finishes[id] } : {}) } }));
 // The travellers return three times each, in one shared sequence, at fixed places in the campaign.
 const visitorRows: QuestRow[] = [
@@ -453,8 +505,9 @@ for (const [index, [id, character, title, window, requirements, opening, complet
     requirements: requirements.map(([item, quantity]) => ({ item, quantity })), reward: menuValue(requirements), opening: lines(character, opening), completion: lines(character, completion) } });
 }
 campaign.push({ window: 16, quest: { id: 'ionatan-castle-dinner', character: 'ionatan', title: 'Dinner before the castle', afterTask: 'task_16', afterQuest: 'vlad-guest',
-  requirements: [{ item: 'warm_6', quantity: 1 }, { item: 'produce_6', quantity: 1 }, { item: 'sweet_6', quantity: 1 }, { item: 'drinks_6', quantity: 1 }], reward: 1100,
-  opening: [{ speaker: 'ionatan', text: 'I have come from abroad to close a real-estate deal with a local noble at the nearby castle. Before I continue, I would like a proper dinner: a goulash pot, a sharing board, a chimney cake, and plum brandy. I will pay well for the care this meal needs.' }],
+  requirements: [{ item: 'warm_6', quantity: 1 }, { item: 'produce_6', quantity: 1 }, { item: 'sweet_6', quantity: 1 }, { item: 'drinks_6', quantity: 1 }],
+  reward: menuValue([['warm_6', 1], ['produce_6', 1], ['sweet_6', 1], ['drinks_6', 1]]),
+  opening: [{ speaker: 'ionatan', text: 'I have come from abroad to close a real-estate deal with a local noble at the nearby castle. Before I continue, I would like a proper dinner: a goulash pot, a sharing board, a chimney cake, and plum brandy.' }],
   completion: [{ speaker: 'ionatan', text: 'An excellent dinner. Here is the payment, with my thanks. My papers are in order, and I must leave for the castle now. My journey takes me on from there, so I will not return. Farewell.' }] } });
 const searchRequirements = [{ item: 'bakery_5', quantity: 2 }, { item: 'produce_3', quantity: 2 }, { item: 'warm_4', quantity: 1 }, { item: 'drinks_3', quantity: 2 }];
 campaign.push({ window: 17, quest: { id: 'mina-avram-search', character: 'mina', companions: ['avram'], title: 'A meal before the search', afterTask: 'task_17',

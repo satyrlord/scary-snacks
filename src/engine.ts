@@ -79,8 +79,16 @@ export type GameData = {
  */
 export type RoomView = Area & { open: boolean; states: RoomState[]; current: RoomState | null; painting: RoomState | null };
 export type Cell = { code: string };
+/** The steps of the guided introduction (spec 010), in order. Each step ends with one kind of successful action. */
+export const guideStages = ['merge', 'take', 'deliver', 'prepare', 'story'] as const;
+export type GuideStage = typeof guideStages[number];
+/**
+ * One run of the guide. Done records the steps whose action succeeded during the run, in any order; stage is the first step that is
+ * not done. A complete run has every step done. The guide gives no resources and unlocks nothing.
+ */
+export type Guide = { status: 'active' | 'dismissed' | 'complete'; stage: GuideStage; done: Record<GuideStage, boolean> };
 export type GameState = {
-  version: 10; board: (Cell | null)[]; coins: number; taskIndex: number;
+  version: 11; board: (Cell | null)[]; coins: number; taskIndex: number;
   discovered: string[]; decorations: string[];
   decorationChoices: Record<string, string>;
   outputChoices: Record<string, string>;
@@ -96,15 +104,17 @@ export type GameState = {
   pendingScenes: string[];
   /** The line that the player sees in a waiting scene, after its first line. A missing record starts the scene at its first line. */
   sceneLines?: Record<string, number>;
+  /** The guide run. A save without this record has no run; Options can start one. */
+  guide?: Guide;
 };
 export type Action =
   | { type: 'move'; from: number; to: number }
   | { type: 'spawn'; index: number; output?: string }
-  | { type: 'sell'; index: number }
   | { type: 'deliverQuest'; id: string }
   | { type: 'decorate'; slot: string; variant: string }
   | { type: 'readScene'; id: string }
   | { type: 'sceneLine'; id: string; line: number }
+  | { type: 'guide'; status: 'active' | 'dismissed' }
   | { type: 'task' };
 export type Result = { state: GameState; ok: boolean; message: string; event: string | null };
 
@@ -171,12 +181,35 @@ function questReady(state: GameState, quest: Quest, data: GameData): boolean {
 export function createGame(data: GameData): GameState {
   const layoutId = data.board.defaultLayout;
   return {
-    version: 10, layoutId, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] }, pendingScenes: [],
+    version: 11, layoutId, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] }, pendingScenes: [],
     board: data.board.initial.map(code => code ? { code } : null), coins: 0, taskIndex: 0,
     discovered: [...new Set([...data.board.initial.filter(present),
       ...(data.board.layouts.find(layout => layout.id === layoutId)?.obstacles.map(obstacle => obstacle.ingredient) ?? [])])],
-    decorations: [], decorationChoices: {}, outputChoices: {}, completedQuests: [],
+    decorations: [], decorationChoices: {}, outputChoices: {}, completedQuests: [], guide: newGuide(),
   };
+}
+const newGuide = (): Guide => ({ status: 'active', stage: guideStages[0], done: { merge: false, take: false, deliver: false, prepare: false, story: false } });
+/** The step that each successful event completes. */
+const guideEvents: Record<string, GuideStage> = { merge: 'merge', spawn: 'take', deliverQuest: 'deliver', task: 'prepare', readScene: 'story' };
+/** Record a step of an active run. The run moves to the first step that is not done, or completes. */
+function recordGuide(state: GameState, event: string) {
+  const guide = state.guide, stage = guideEvents[event];
+  if (guide?.status !== 'active' || !stage) return;
+  guide.done[stage] = true;
+  const next = guideStages.find(value => !guide.done[value]);
+  if (next) guide.stage = next;
+  else { guide.status = 'complete'; guide.stage = guideStages.at(-1)!; }
+}
+/** A missing guide is valid. A run has a known status, five booleans, and the first step that is not done, or every step if complete. */
+function validGuide(guide: unknown): boolean {
+  if (guide === undefined) return true;
+  const value = guide as Guide;
+  if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== 3 || !['active', 'dismissed', 'complete'].includes(value.status)) return false;
+  const done = value.done;
+  if (!done || typeof done !== 'object' || Array.isArray(done) || Object.keys(done).length !== guideStages.length
+    || !guideStages.every(stage => typeof done[stage] === 'boolean')) return false;
+  const next = guideStages.find(stage => !done[stage]);
+  return value.status === 'complete' ? !next && value.stage === guideStages.at(-1) : !!next && value.stage === next;
 }
 
 /** An item by its code, or undefined for a code that the data does not know. */
@@ -454,11 +487,6 @@ export function storyProblems(data: GameData): string[] {
     if (new Set(storyScenes(data)).size !== storyScenes(data).length) problems.push('Story scene IDs must be unique.');
   } catch { problems.push('The story records are malformed.'); }
   return problems;
-}
-
-export function saleValue(code: string, data: GameData) {
-  const item = getItem(code, data);
-  return item && !item.generator ? Math.max(1, Math.floor(item.price / 4)) : 0;
 }
 
 /** Check the authored prices and work before the content can ship. */
@@ -766,7 +794,7 @@ export function decorationUnlocked(state: Pick<GameState, 'completedQuests'>, sl
 export function validateGame(candidate: unknown, data: GameData): candidate is GameState {
   try {
     const state = candidate as GameState;
-    if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== 10) return false;
+    if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== 11) return false;
     if (!Array.isArray(state.board) || state.board.length !== data.board.columns * data.board.rows) return false;
     if (!integer(state.coins)) return false;
     if (!integer(state.taskIndex, 0, data.tasks.length)) return false;
@@ -782,7 +810,7 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
       if (lines !== undefined && (!lines || typeof lines !== 'object' || Array.isArray(lines) || ![Object.prototype, null].includes(Object.getPrototypeOf(lines))
         || !Object.entries(lines).every(([id, line]) => pending.includes(id) && integer(line, 1, Number.MAX_SAFE_INTEGER)))) return false;
     }
-    if (!validateQuestProgress(state, data)) return false;
+    if (!validateQuestProgress(state, data) || !validGuide(state.guide)) return false;
     const validItem = (cell: Cell | null) => cell && typeof cell === 'object' && !Array.isArray(cell)
       && Object.keys(cell).length === 1 && own(data.items, cell.code) && chains.includes(data.items[cell.code].chain);
     if (!state.board.every(cell => cell === null || validItem(cell))) return false;
@@ -899,6 +927,19 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       else forgetLine(next, action.id);
       break;
     }
+    case 'guide': {
+      // Skip pauses the run. Resume continues it with its recorded steps; after a complete run, it starts a new run.
+      if (action.status === 'dismissed') {
+        if (next.guide?.status !== 'active') return fail('The guide is not open.');
+        next.guide.status = 'dismissed';
+        message = 'The guide is closed. Options can open it again.';
+      } else if (action.status === 'active') {
+        if (next.guide?.status === 'active') return fail('The guide is already open.');
+        next.guide = next.guide?.status === 'dismissed' ? { ...next.guide, status: 'active' } : newGuide();
+        message = 'The guide is open.';
+      } else return fail('This action is not available.');
+      break;
+    }
     case 'move': {
       const source = itemAt(next, action.from);
       if (!integer(action.from, 0, next.board.length - 1) || !integer(action.to, 0, next.board.length - 1)
@@ -909,7 +950,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const item = getItem(source.code, data)!;
       if (obstacle && obstacle.ingredient !== source.code) return fail('Merge a matching ingredient into this blocked space.');
       if ((target?.code === source.code || obstacle) && !item.generator) {
-        if (!item.next) return fail(`${item.name} is a final dish. Deliver it to a neighbour or sell it.`);
+        if (!item.next) return fail(`${item.name} is a final dish. Deliver it to a neighbour.`);
         next.board[action.to] = { code: item.next };
         next.board[action.from] = null;
         if (obstacle) next.resolvedObstacles.push(obstacle.id);
@@ -931,7 +972,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const code = action.output === undefined ? nextOutput(next, item.id, data)! : action.output;
       if (!generatorOutputs(next, item.id, data).includes(code)) return fail('Choose an available output from this source.');
       const empty = firstFreeBoardCell(next, data);
-      if (empty === -1) return fail('The board is full. Merge, deliver, or sell an item.');
+      if (empty === -1) return fail('The board is full. Merge a pair or deliver a request.');
       next.board[empty] = { code };
       if (data.items[code].stage === 1) delete next.outputChoices[item.chain];
       else next.outputChoices[item.chain] = code;
@@ -970,22 +1011,9 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       }
       break;
     }
-    case 'sell': {
-      const cell = itemAt(next, action.index);
-      if (!cell) return fail('Choose an item to sell.');
-      if (unresolvedObstacle(next, action.index, data)) return fail('This item is tied to the workbench. Merge a matching item into this space.');
-      const item = getItem(cell.code, data)!;
-      if (item.generator) return fail(`The ${item.name} can't be sold. Move it instead.`);
-      const coins = saleValue(cell.code, data);
-      if (!integer(next.coins + coins)) return fail('Spend some coins before you sell this item.');
-      next.coins += coins;
-      next.board[action.index] = null;
-      message = `Sold ${item.name} for ${coins} ${coins === 1 ? 'coin' : 'coins'}.`;
-      break;
-    }
     default: return fail('This action is not available.');
   }
-  if (['task', 'move', 'spawn', 'sell', 'deliverQuest'].includes(action.type)) {
+  if (['task', 'move', 'spawn', 'deliverQuest'].includes(action.type)) {
     const placed = placePreparationObstacles(next, data);
     if (action.type === 'task') message += ` ${data.board.preparations[next.taskIndex - 1].context}`;
     if (placed) message += ` ${placed} preparation ${placed === 1 ? 'blocker' : 'blockers'} placed.`;
@@ -993,5 +1021,6 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
     if (action.type === 'task' && pending) message += ` ${pending} ${pending === 1 ? 'blocker waits' : 'blockers wait'} for safe space.`;
   }
   for (const obstacle of boardObstacles(next, data)) discover(next, obstacle.ingredient);
+  recordGuide(next, event);
   return { state: next, ok: true, message, event };
 }

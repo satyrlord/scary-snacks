@@ -142,16 +142,18 @@ test('a matching merge clears preparation clutter without respawning it', async 
   await expect(tile(page, obstacle.position)).not.toHaveClass(/clutter/);
 });
 
-test('a full board defers the batch and sales place it while keeping three free cells', async ({ page }) => {
+test('a full board defers the batch and merges place it while keeping three free cells', async ({ page }) => {
   const initial = checkpoint();
   initial.board = initial.board.map((cell, index) => cell ?? (unresolvedObstacle(initial, index, data) ? null : { code: 'bakery_1' }));
-  const sellable = initial.board.flatMap((cell, index) => cell?.code === 'bakery_1' ? [index] : []).slice(0, 5);
+  // Five merges of two Flours: each one frees the cell of its first Flour.
+  const flours = initial.board.flatMap((cell, index) => cell?.code === 'bakery_1' ? [index] : []);
+  const merges = Array.from({ length: 5 }, (_, at) => [flours[2 * at], flours[2 * at + 1]]);
   await start(page, initial); await pay(page);
   let state = await saved(page);
   expect(active(state)).toHaveLength(0); expect(pendingPreparationObstacles(state, data)).toHaveLength(2);
   await expect(page.locator('#board')).toHaveAttribute('aria-label', /0 free spaces, 2 preparation blockers waiting/);
-  for (const [index, position] of sellable.entries()) {
-    await tile(page, position).click(); await page.getByRole('button', { name: /^Sell for / }).click();
+  for (const [index, [from, to]] of merges.entries()) {
+    await tile(page, from).click(); await tile(page, to).click();
     state = await saved(page);
     expect(freeBoardCells(state, data)).toBe(Math.min(index + 1, 3));
     expect(active(state)).toHaveLength(Math.max(0, index - 2));

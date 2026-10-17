@@ -162,9 +162,6 @@ test('the finale needs every quest, leaves no ticket, and keeps the board playab
   assert.ok(resolveQuests(state, data).every(view => view.status === 'complete'));
   const source = state.board.findIndex(cell => cell?.code === 'generator_bakery');
   state = apply(state, { type: 'spawn', index: source });
-  const coins = state.coins;
-  state = apply(state, { type: 'sell', index: state.board.findLastIndex(cell => cell?.code === 'bakery_1') });
-  assert.equal(state.coins, coins + 1);
   assert.deepEqual(state.pendingScenes, queued(24).filter(id => id !== 'finale'));
 });
 
@@ -211,9 +208,9 @@ test('a payment queues its preparation scene in the same change, and a failed pa
   const after = apply(before, { type: 'task' });
   assert.deepEqual(after.pendingScenes, [...before.pendingScenes, data.tasks[1].id]);
   rejected({ ...before, coins: before.coins - 1 }, { type: 'task' });
-  // Reading the preparation scene changes nothing else, and a second read changes nothing.
+  // Reading the preparation scene changes nothing else except the guide's record, and a second read changes nothing.
   const read = apply(after, { type: 'readScene', id: data.tasks[1].id });
-  assert.deepEqual({ ...read, pendingScenes: after.pendingScenes }, after);
+  assert.deepEqual({ ...read, pendingScenes: after.pendingScenes, guide: after.guide }, after);
   rejected(read, { type: 'readScene', id: data.tasks[1].id });
 });
 

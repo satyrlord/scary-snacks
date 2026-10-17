@@ -43,7 +43,7 @@ The generator refuses to write the game data in these conditions:
 
 The data checks require a complete six-stage merge path for each chain and one source unlock for each later chain. Initial blockers must use valid atlas cells. A regular's quest must open after the regular arrives and request a dish from a favourite chain.
 
-The cast has the four core characters, 12 regulars, and six visitors: Adrian, Monica, Janos, Ionatan, Mina, and Avram. The 63 quests open after authored preparations and earlier quests. Nine cathedral supply quests alternate between the three travellers. Ionatan has one dinner quest, after preparation 16 and Vlad's quest "A guest at the castle".
+The cast has the four core characters, 12 regulars, and six visitors: Adrian, Monica, Janos, Ionatan, Mina, and Avram. The 81 quests open after authored preparations and earlier quests. Nine cathedral supply quests alternate between the three travellers. Ionatan has one dinner quest, after preparation 16 and Vlad's quest "A guest at the castle".
 
 Mina and Avram share one vegetarian meal request, after preparation 17 and Ionatan's completed dinner. The third delivery after the shared meal opens local gossip about the search and departure for Britain. Completed quest IDs, in delivery order, record the visits. The journal omits the single-visit guests before arrival and after departure, but retains the local gossip after its gate.
 

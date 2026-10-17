@@ -23,7 +23,7 @@ Provide a few voluntary goals after the finale, so that players who continue hav
    The regulars from 013 have no challenge in this first set.
 4. A character challenge is a sequence of three authored post-campaign requests from that character. The requests use the quest tickets, the request dialog, and the delivery rules of 005. The player chooses one active challenge at a time. Its next request takes a ticket.
 5. Starting or abandoning a challenge costs nothing. If the player resumes, the game keeps the delivered requests of that challenge. The player cannot restart a completed challenge for another one-time reward.
-6. Count dish deliveries by distinct item identifier (ID). One delivery with two copies of a dish counts as one newly delivered dish. Campaign deliveries count. Selling, discovering, storing, or replaying dialogue does not count as a delivery.
+6. Count dish deliveries by distinct item identifier (ID). One delivery with two copies of a dish counts as one newly delivered dish. Campaign deliveries count. Discovering, storing, or replaying dialogue does not count as a delivery.
 7. The initial rewards are permanent marks in the book or the goal panel, and an original short thank-you scene.
    The game grants no coins, energy, upgrade, or mandatory unlock.
    Each reward occurs once. A repeated claim grants nothing more.
@@ -56,7 +56,7 @@ Specs 008 and 009 determine the finale acknowledgement and replay.
 
 ## Acceptance checks
 
-- Engine: discovery and delivery are separate. Selling does not advance goals. Duplicated required items do not give duplicate credit for a unique dish.
+- Engine: discovery and delivery are separate. Duplicated required items do not give duplicate credit for a unique dish.
 - Engine: campaign deliveries give no challenge credit. Only the requests of the active challenge advance it.
 - Engine: a repeated claim, replay, switch, or reload does not grant duplicate marks or scenes.
 - Saves: discoveries, partial challenges, and claimed goals survive save and reload. A completed game opens the goals after the finale acknowledgement without another task reward.

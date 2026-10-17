@@ -37,7 +37,7 @@ The player can find who lives nearby and what they like.
    cabbage rolls, goulash, and red wine.
 5. Author the taste of each person from their trade and story. Never derive taste from the
    appearance or age of a neighbour. Never derive taste from an inferred ethnic or national identity.
-6. Each regular has three quests, or four for Sânziana and Ileana. Vlad and Elisabeta have two quests each.
+6. Dochia and Costel have five quests each. Victor, Ana, Sânziana, Dorian, Ileana, and Cezar have four. Cătălina and Bran have three. Vlad and Elisabeta have two quests each.
    The quests follow the campaign rules of 005.
 7. The arrival of each later regular plays a short original scene. A core character introduces the
    regular. The regular answers. The payment queues the arrival scene after its preparation scene, chapter scene, and finale.

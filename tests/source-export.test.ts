@@ -7,6 +7,16 @@ import { sourceFiles } from '../tools/export-source.ts';
 
 const root = new URL('../', import.meta.url);
 
+test('the source export includes every product test and excludes skill-specific tests', async () => {
+  const skillTests = new Set(['tests/art-image.test.ts']);
+  const exported = new Set(sourceFiles);
+  for (const entry of await readdir(new URL('tests/', root), { recursive: true })) {
+    const path = `tests/${entry.replaceAll('\\', '/')}`;
+    if (!/\.(test|spec)\.ts$/.test(path)) continue;
+    assert.equal(exported.has(path), !skillTests.has(path), path);
+  }
+});
+
 test('each relative TypeScript import in the source export names an exported file', async () => {
   const exported = new Set(sourceFiles);
   for (const file of sourceFiles.filter(path => path.endsWith('.ts'))) {

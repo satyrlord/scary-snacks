@@ -10,11 +10,13 @@ const tile = (page: Page, index: number) => page.locator(`[data-cell="${index}"]
 async function start(page: Page, state?: GameState) {
   if (state) {
     const save = exportSave(state, candidate => validateGame(candidate, data));
-    await page.addInitScript(([key, value]) => localStorage.setItem(key, value), [SAVE_KEY, save]);
+    await page.addInitScript(([key, value]) => { if (localStorage.getItem(key) === null) localStorage.setItem(key, value); }, [SAVE_KEY, save]);
   }
   await page.goto('./');
   await expect(page.locator('#board button')).toHaveCount(42);
 }
+/** A new game without a guide run, so that a merge keeps its result selected. */
+const unguided = () => { const state = createGame(data); delete state.guide; return state; };
 async function saved(page: Page): Promise<GameState> {
   return page.evaluate(key => navigator.locks.request(key, () => JSON.parse(localStorage.getItem(key)!).state), SAVE_KEY);
 }
@@ -38,7 +40,7 @@ test('new board explains blocked spaces and counts only usable empty cells', asy
 
 test('a pointer merge clears only its destination and can then clear the adjacent blocker', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await start(page);
+  await start(page, unguided());
   await tile(page, 13).click();
   await tile(page, 14).click();
   await tile(page, 6).click();
@@ -74,7 +76,7 @@ test('dragging a matching item into an anchor clears it', async ({ page }) => {
 });
 
 test('keyboard selection can merge into an anchored cell', async ({ page }) => {
-  await start(page);
+  await start(page, unguided());
   await tile(page, 13).focus();
   await page.keyboard.press('Enter');
   await tile(page, 14).focus();
@@ -89,7 +91,7 @@ test('touch can release an anchor with two taps', async ({ browser, baseURL }) =
   const context = await browser.newContext({ baseURL, viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
   try {
     const page = await context.newPage();
-    await start(page);
+    await start(page, unguided());
     await tile(page, 13).tap();
     await tile(page, 14).tap();
     await tile(page, 6).tap();
@@ -109,7 +111,7 @@ test('blocker guidance selects a matching movable ingredient for release', async
 });
 
 test('Find a match selects movable food and points to matching clutter', async ({ page }) => {
-  const state = createGame(data);
+  const state = unguided();
   state.board = state.board.map(cell => cell && data.items[cell.code].generator ? cell : null);
   state.board[13] = { code: 'bakery_3' };
   if (!state.discovered.includes('bakery_3')) state.discovered.push('bakery_3');

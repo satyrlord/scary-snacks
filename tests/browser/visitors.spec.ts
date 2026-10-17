@@ -102,7 +102,7 @@ test('the castle guest asks on a ticket, pays once, and leaves the journal after
     const name=getItem(requirement.item,data)!.name;
     await expect(dialog.getByRole('button',{name:`${requirement.quantity} ${name}: ${requirement.quantity} of ${requirement.quantity} on the board`,exact:true})).toBeVisible();
   }
-  expect(dinner.reward).toBe(1100);expect(dinner.reward).toBe(supplies(dinner).reduce((sum,code)=>sum+data.items[code].price,0)*5);
+  expect(dinner.reward).toBe(220);expect(dinner.reward).toBe(supplies(dinner).reduce((sum,code)=>sum+data.items[code].price,0));
   await expect(dialog.locator('.quest-reward')).toHaveText(`Reward: ${dinner.reward.toLocaleString('en')} coins`);
   await expect(dialogDeliver(page,dinner)).toHaveText(`Deliver · ${dinner.reward.toLocaleString('en')}`);await dialogDeliver(page,dinner).click();
   await expect(page.locator('#modal')).toBeHidden();await expect(toast(page)).toHaveText(`${dinner.title}: delivered. Earned ${dinner.reward} coins.`);

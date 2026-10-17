@@ -2694,7 +2694,7 @@
           "quantity": 1
         }
       ],
-      "reward": 36,
+      "reward": 12,
       "opening": [
         {
           "speaker": "mara",
@@ -2723,7 +2723,7 @@
           "quantity": 1
         }
       ],
-      "reward": 60,
+      "reward": 20,
       "opening": [
         {
           "speaker": "sorin",
@@ -2752,7 +2752,7 @@
           "quantity": 1
         }
       ],
-      "reward": 132,
+      "reward": 44,
       "opening": [
         {
           "speaker": "dochia",
@@ -2781,7 +2781,7 @@
           "quantity": 1
         }
       ],
-      "reward": 84,
+      "reward": 28,
       "opening": [
         {
           "speaker": "victor",
@@ -2810,7 +2810,7 @@
           "quantity": 1
         }
       ],
-      "reward": 90,
+      "reward": 30,
       "opening": [
         {
           "speaker": "ana",
@@ -2825,6 +2825,122 @@
       ]
     },
     {
+      "id": "ilie-stove",
+      "character": "ilie",
+      "title": "A test for the stove",
+      "afterTask": null,
+      "requirements": [
+        {
+          "item": "warm_3",
+          "quantity": 2
+        },
+        {
+          "item": "bakery_3",
+          "quantity": 2
+        }
+      ],
+      "reward": 88,
+      "opening": [
+        {
+          "speaker": "ilie",
+          "text": "The old stove still works, but it sulks. Two bulz and two servings of pogăcele will tell me if it sulks evenly."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ilie",
+          "text": "Even heat on both sides. The stove sulks only at the back now, like a cat."
+        }
+      ]
+    },
+    {
+      "id": "eszter-cups",
+      "character": "eszter",
+      "title": "Cups for the counter",
+      "afterTask": null,
+      "requirements": [
+        {
+          "item": "drinks_3",
+          "quantity": 2
+        },
+        {
+          "item": "bakery_3",
+          "quantity": 2
+        }
+      ],
+      "reward": 60,
+      "opening": [
+        {
+          "speaker": "eszter",
+          "text": "I brought my first cups down from the workshop. Two fruit teas and two servings of pogăcele, please, so I can see if a cup and a plate get along."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "eszter",
+          "text": "They get along. The cups stay. I am taking the one with the crooked handle home, because it looks at me."
+        }
+      ]
+    },
+    {
+      "id": "costel-ticking",
+      "character": "costel",
+      "title": "A ticking in the wall",
+      "afterTask": null,
+      "requirements": [
+        {
+          "item": "drinks_3",
+          "quantity": 3
+        },
+        {
+          "item": "warm_2",
+          "quantity": 2
+        }
+      ],
+      "reward": 70,
+      "opening": [
+        {
+          "speaker": "costel",
+          "text": "Something in your wall ticks, and it is not one of my clocks. Three fruit teas and two bowls of mămăligă, and I will listen to it properly."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "costel",
+          "text": "It is a beetle with excellent timing. I have offered it an apprenticeship."
+        }
+      ]
+    },
+    {
+      "id": "mara-cellar",
+      "character": "mara",
+      "title": "A look at the cellar",
+      "afterTask": null,
+      "requirements": [
+        {
+          "item": "warm_4",
+          "quantity": 1
+        },
+        {
+          "item": "drinks_3",
+          "quantity": 1
+        }
+      ],
+      "reward": 58,
+      "opening": [
+        {
+          "speaker": "mara",
+          "text": "Before we spend a coin, I want to see what the cellar kept for us. Bring a smoked cheese plate and a fruit tea. We need courage and a snack."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "mara",
+          "text": "Three empty barrels, one good ladder, and a very polite spider. The cellar can wait for us."
+        }
+      ]
+    },
+    {
       "id": "ilie-counter",
       "character": "ilie",
       "title": "Bread for the counter",
@@ -2835,7 +2951,7 @@
           "quantity": 1
         }
       ],
-      "reward": 36,
+      "reward": 12,
       "opening": [
         {
           "speaker": "ilie",
@@ -2864,7 +2980,7 @@
           "quantity": 1
         }
       ],
-      "reward": 60,
+      "reward": 20,
       "opening": [
         {
           "speaker": "eszter",
@@ -2875,6 +2991,39 @@
         {
           "speaker": "eszter",
           "text": "It suits it. The plate looks hungry when it is empty, and that is exactly right."
+        }
+      ]
+    },
+    {
+      "id": "victor-skeleton",
+      "character": "victor",
+      "title": "Lunch for the skeleton",
+      "afterTask": "task_1",
+      "requirements": [
+        {
+          "item": "warm_3",
+          "quantity": 1
+        },
+        {
+          "item": "drinks_3",
+          "quantity": 1
+        },
+        {
+          "item": "drinks_2",
+          "quantity": 1
+        }
+      ],
+      "reward": 62,
+      "opening": [
+        {
+          "speaker": "victor",
+          "text": "The university lent me a skeleton to study at home. I set a place for him out of habit. A bulz, a fruit tea, and a socată, please. He will not eat his share."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "victor",
+          "text": "He did not eat a bite, so I had both. I think we are becoming friends."
         }
       ]
     },
@@ -2893,7 +3042,7 @@
           "quantity": 1
         }
       ],
-      "reward": 72,
+      "reward": 24,
       "opening": [
         {
           "speaker": "costel",
@@ -2904,6 +3053,39 @@
         {
           "speaker": "costel",
           "text": "The sparrow took three crumbs and wound itself up with pride. Tick, tick. I will keep the rest."
+        }
+      ]
+    },
+    {
+      "id": "ana-garlic",
+      "character": "ana",
+      "title": "Garlic duty",
+      "afterTask": "task_2",
+      "requirements": [
+        {
+          "item": "warm_3",
+          "quantity": 1
+        },
+        {
+          "item": "warm_2",
+          "quantity": 1
+        },
+        {
+          "item": "drinks_2",
+          "quantity": 1
+        }
+      ],
+      "reward": 52,
+      "opening": [
+        {
+          "speaker": "ana",
+          "text": "It is my turn to hang garlic on every door of the ward. That is a lot of doors. A bulz, a mămăligă, and a socată, please, before I start."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ana",
+          "text": "Every door has its garlic. The ward smells terrible, and nothing knocked all night. Perfect."
         }
       ]
     },
@@ -2922,7 +3104,7 @@
           "quantity": 1
         }
       ],
-      "reward": 150,
+      "reward": 50,
       "opening": [
         {
           "speaker": "mara",
@@ -2951,7 +3133,7 @@
           "quantity": 1
         }
       ],
-      "reward": 156,
+      "reward": 52,
       "opening": [
         {
           "speaker": "dochia",
@@ -2966,6 +3148,72 @@
       ]
     },
     {
+      "id": "sorin-tyre",
+      "character": "sorin",
+      "title": "A patched tyre",
+      "afterTask": "task_3",
+      "requirements": [
+        {
+          "item": "sweet_3",
+          "quantity": 1
+        },
+        {
+          "item": "bakery_4",
+          "quantity": 1
+        },
+        {
+          "item": "drinks_3",
+          "quantity": 1
+        }
+      ],
+      "reward": 72,
+      "opening": [
+        {
+          "speaker": "sorin",
+          "text": "Something bit my front tyre on the forest road. Probably a nail. Probably. Papanași, a langoș, and a fruit tea while I patch it, please."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "sorin",
+          "text": "Patched. I found the nail, and I am choosing to believe that it was a nail."
+        }
+      ]
+    },
+    {
+      "id": "dochia-shearing",
+      "character": "dochia",
+      "title": "Shearing day",
+      "afterTask": "task_3",
+      "requirements": [
+        {
+          "item": "warm_4",
+          "quantity": 1
+        },
+        {
+          "item": "bakery_3",
+          "quantity": 2
+        },
+        {
+          "item": "drinks_2",
+          "quantity": 1
+        }
+      ],
+      "reward": 76,
+      "opening": [
+        {
+          "speaker": "dochia",
+          "text": "Today I shear the sheep, and the sheep have opinions. A smoked cheese plate, two servings of pogăcele, and a socată, please. I need my strength."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "dochia",
+          "text": "All the sheep are shorn. Now they look cold and I look warm. I will give one sheepskin back. Maybe."
+        }
+      ]
+    },
+    {
       "id": "eszter-bowls",
       "character": "eszter",
       "title": "Try the bowls",
@@ -2976,7 +3224,7 @@
           "quantity": 2
         }
       ],
-      "reward": 40,
+      "reward": 16,
       "opening": [
         {
           "speaker": "eszter",
@@ -3005,7 +3253,7 @@
           "quantity": 1
         }
       ],
-      "reward": 70,
+      "reward": 28,
       "opening": [
         {
           "speaker": "sanziana",
@@ -3034,7 +3282,7 @@
           "quantity": 1
         }
       ],
-      "reward": 126,
+      "reward": 50,
       "opening": [
         {
           "speaker": "dorian",
@@ -3045,6 +3293,68 @@
         {
           "speaker": "dorian",
           "text": "He sat perfectly still. A little too still near the end, but I think he was only asleep."
+        }
+      ]
+    },
+    {
+      "id": "ilie-pickles",
+      "character": "ilie",
+      "title": "Jars for winter",
+      "afterTask": "task_4",
+      "requirements": [
+        {
+          "item": "warm_3",
+          "quantity": 2
+        },
+        {
+          "item": "drinks_3",
+          "quantity": 1
+        }
+      ],
+      "reward": 82,
+      "opening": [
+        {
+          "speaker": "ilie",
+          "text": "My grandmother pickled everything that stood still long enough. I want to fill the cellar jars the same way. Two bulz and a fruit tea while I work, please."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ilie",
+          "text": "The jars are full and labelled. One label says \"Do not open before winter\". I did not write that one."
+        }
+      ]
+    },
+    {
+      "id": "costel-key",
+      "character": "costel",
+      "title": "A key that hums",
+      "afterTask": "task_4",
+      "requirements": [
+        {
+          "item": "sweet_3",
+          "quantity": 1
+        },
+        {
+          "item": "sweet_2",
+          "quantity": 2
+        },
+        {
+          "item": "drinks_3",
+          "quantity": 1
+        }
+      ],
+      "reward": 66,
+      "opening": [
+        {
+          "speaker": "costel",
+          "text": "I found an old key under the counter, and it hums near the cellar door. Papanași, two doughnuts, and a fruit tea, and I will find out what it wants."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "costel",
+          "text": "It wanted oil. It stopped humming and started purring. I am keeping it on a ribbon."
         }
       ]
     },
@@ -3063,7 +3373,7 @@
           "quantity": 1
         }
       ],
-      "reward": 206,
+      "reward": 82,
       "opening": [
         {
           "speaker": "victor",
@@ -3074,6 +3384,35 @@
         {
           "speaker": "victor",
           "text": "It worked. I was alive at sunrise, and the professor is very impressed. He expected a frog."
+        }
+      ]
+    },
+    {
+      "id": "eszter-kiln",
+      "character": "eszter",
+      "title": "Waiting for the kiln",
+      "afterTask": "task_5",
+      "requirements": [
+        {
+          "item": "sweet_3",
+          "quantity": 1
+        },
+        {
+          "item": "bakery_3",
+          "quantity": 1
+        }
+      ],
+      "reward": 44,
+      "opening": [
+        {
+          "speaker": "eszter",
+          "text": "The kiln needs one more hour, and I cannot leave it. Papanași and pogăcele, please. I will eat standing up and pretend that I am patient."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "eszter",
+          "text": "The kiln opened, and nothing cracked. I was patient for almost the whole hour."
         }
       ]
     },
@@ -3092,7 +3431,7 @@
           "quantity": 1
         }
       ],
-      "reward": 60,
+      "reward": 24,
       "opening": [
         {
           "speaker": "sorin",
@@ -3154,7 +3493,7 @@
           "quantity": 1
         }
       ],
-      "reward": 206,
+      "reward": 82,
       "opening": [
         {
           "speaker": "costel",
@@ -3179,7 +3518,7 @@
           "quantity": 1
         }
       ],
-      "reward": 64,
+      "reward": 32,
       "opening": [
         {
           "speaker": "mara",
@@ -3208,7 +3547,7 @@
           "quantity": 2
         }
       ],
-      "reward": 84,
+      "reward": 42,
       "opening": [
         {
           "speaker": "ileana",
@@ -3219,6 +3558,39 @@
         {
           "speaker": "ileana",
           "text": "All three dresses are done. Joimărița can inspect my house whenever she likes."
+        }
+      ]
+    },
+    {
+      "id": "mara-candles",
+      "character": "mara",
+      "title": "Candles in the window",
+      "afterTask": "task_8",
+      "requirements": [
+        {
+          "item": "warm_4",
+          "quantity": 1
+        },
+        {
+          "item": "produce_3",
+          "quantity": 1
+        },
+        {
+          "item": "drinks_2",
+          "quantity": 1
+        }
+      ],
+      "reward": 70,
+      "opening": [
+        {
+          "speaker": "mara",
+          "text": "In this village, candles in the window mean that a door is open to anyone. Let us light ours and have supper by them: a smoked cheese plate, roasted vegetables, and a socată."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "mara",
+          "text": "The candles burned all evening. Two neighbours waved, one owl stared, and the street felt friendlier."
         }
       ]
     },
@@ -3267,7 +3639,7 @@
           "quantity": 1
         }
       ],
-      "reward": 64,
+      "reward": 32,
       "opening": [
         {
           "speaker": "eszter",
@@ -3296,7 +3668,7 @@
           "quantity": 1
         }
       ],
-      "reward": 192,
+      "reward": 96,
       "opening": [
         {
           "speaker": "eszter",
@@ -3329,7 +3701,7 @@
           "quantity": 1
         }
       ],
-      "reward": 124,
+      "reward": 62,
       "opening": [
         {
           "speaker": "ana",
@@ -3358,7 +3730,7 @@
           "quantity": 1
         }
       ],
-      "reward": 100,
+      "reward": 50,
       "opening": [
         {
           "speaker": "cezar",
@@ -3369,6 +3741,39 @@
         {
           "speaker": "cezar",
           "text": "Very good. I will eat it on the way home. My feet know the way."
+        }
+      ]
+    },
+    {
+      "id": "sorin-postbag",
+      "character": "sorin",
+      "title": "A heavy post bag",
+      "afterTask": "task_9",
+      "requirements": [
+        {
+          "item": "produce_3",
+          "quantity": 2
+        },
+        {
+          "item": "bakery_4",
+          "quantity": 1
+        },
+        {
+          "item": "drinks_3",
+          "quantity": 1
+        }
+      ],
+      "reward": 76,
+      "opening": [
+        {
+          "speaker": "sorin",
+          "text": "Everyone in the valley is sending letters this week, and they all live up a hill. Two roasted vegetables, a langoș, and a fruit tea, please."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "sorin",
+          "text": "Every letter is delivered. One was addressed to \"the house that is not there\". I left it at the crossroads, and it was gone by morning."
         }
       ]
     },
@@ -3421,7 +3826,7 @@
           "quantity": 1
         }
       ],
-      "reward": 136,
+      "reward": 68,
       "opening": [
         {
           "speaker": "sanziana",
@@ -3454,7 +3859,7 @@
           "quantity": 1
         }
       ],
-      "reward": 160,
+      "reward": 80,
       "opening": [
         {
           "speaker": "dochia",
@@ -3479,7 +3884,7 @@
           "quantity": 1
         }
       ],
-      "reward": 34,
+      "reward": 22,
       "opening": [
         {
           "speaker": "ilie",
@@ -3508,7 +3913,7 @@
           "quantity": 2
         }
       ],
-      "reward": 144,
+      "reward": 96,
       "opening": [
         {
           "speaker": "dorian",
@@ -3537,7 +3942,7 @@
           "quantity": 1
         }
       ],
-      "reward": 96,
+      "reward": 64,
       "opening": [
         {
           "speaker": "catalina",
@@ -3566,7 +3971,7 @@
           "quantity": 1
         }
       ],
-      "reward": 46,
+      "reward": 30,
       "opening": [
         {
           "speaker": "sorin",
@@ -3595,7 +4000,7 @@
           "quantity": 1
         }
       ],
-      "reward": 82,
+      "reward": 54,
       "opening": [
         {
           "speaker": "bran",
@@ -3654,7 +4059,7 @@
           "quantity": 2
         }
       ],
-      "reward": 126,
+      "reward": 84,
       "opening": [
         {
           "speaker": "ileana",
@@ -3683,7 +4088,7 @@
           "quantity": 2
         }
       ],
-      "reward": 136,
+      "reward": 90,
       "opening": [
         {
           "speaker": "victor",
@@ -3694,6 +4099,159 @@
         {
           "speaker": "victor",
           "text": "My thesis passed. The examiners said it has a life of its own. I am choosing to take that as praise."
+        }
+      ]
+    },
+    {
+      "id": "dochia-fair",
+      "character": "dochia",
+      "title": "The sheep fair",
+      "afterTask": "task_14",
+      "requirements": [
+        {
+          "item": "warm_5",
+          "quantity": 2
+        },
+        {
+          "item": "bakery_5",
+          "quantity": 2
+        }
+      ],
+      "reward": 156,
+      "opening": [
+        {
+          "speaker": "dochia",
+          "text": "Tomorrow is the sheep fair, and my ram wants to win. He will not, but I bring food so that he loses with dignity. Two cabbage rolls and two zacuscă toasts, please."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "dochia",
+          "text": "He won second prize. First prize went to a goat, which is not even a sheep. We are appealing."
+        }
+      ]
+    },
+    {
+      "id": "dorian-sitter",
+      "character": "dorian",
+      "title": "A sitter after dark",
+      "afterTask": "task_14",
+      "requirements": [
+        {
+          "item": "sweet_5",
+          "quantity": 2
+        },
+        {
+          "item": "drinks_4",
+          "quantity": 2
+        }
+      ],
+      "reward": 120,
+      "opening": [
+        {
+          "speaker": "dorian",
+          "text": "A gentleman from the castle wants his portrait painted, but only by candlelight. Two cozonac and two cherry compotes, please. These sittings last all night."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "dorian",
+          "text": "The portrait is finished. He was very pleased, although he could not find himself in the mirror to compare."
+        }
+      ]
+    },
+    {
+      "id": "cezar-long-night",
+      "character": "cezar",
+      "title": "The longest night",
+      "afterTask": "task_14",
+      "requirements": [
+        {
+          "item": "warm_5",
+          "quantity": 1
+        },
+        {
+          "item": "warm_4",
+          "quantity": 1
+        },
+        {
+          "item": "produce_4",
+          "quantity": 2
+        }
+      ],
+      "reward": 138,
+      "opening": [
+        {
+          "speaker": "cezar",
+          "text": "Tonight is the longest night of the year, and I walk all of it. Cabbage rolls, a smoked cheese plate, and two zacuscă, please. One bite for every hour."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "cezar",
+          "text": "The sun came up at last. I counted fourteen hours, two owls, and one shadow that walked home with me. It was polite."
+        }
+      ]
+    },
+    {
+      "id": "eszter-kiln-party",
+      "character": "eszter",
+      "title": "The kiln party",
+      "afterTask": "task_14",
+      "requirements": [
+        {
+          "item": "sweet_4",
+          "quantity": 2
+        },
+        {
+          "item": "produce_4",
+          "quantity": 2
+        },
+        {
+          "item": "drinks_3",
+          "quantity": 2
+        }
+      ],
+      "reward": 140,
+      "opening": [
+        {
+          "speaker": "eszter",
+          "text": "The new kiln is finished, and potters celebrate by watching it heat up. It is less exciting than it sounds. Two plum dumplings, two zacuscă, and two fruit teas, please."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "eszter",
+          "text": "We watched the kiln for three hours. Afterwards, everyone agreed that it was the best party of the year."
+        }
+      ]
+    },
+    {
+      "id": "ilie-cellar",
+      "character": "ilie",
+      "title": "The cellar shelves",
+      "afterTask": "task_14",
+      "requirements": [
+        {
+          "item": "warm_6",
+          "quantity": 1
+        },
+        {
+          "item": "bakery_5",
+          "quantity": 1
+        }
+      ],
+      "reward": 108,
+      "opening": [
+        {
+          "speaker": "ilie",
+          "text": "I built new shelves in the cellar. Something keeps moving the jars to the left. A goulash pot and a zacuscă toast, please. I will eat down there and watch."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ilie",
+          "text": "The jars stayed still while I ate. When I went upstairs, they moved to the left again. We have agreed to share the shelves."
         }
       ]
     },
@@ -3746,7 +4304,7 @@
           "quantity": 1
         }
       ],
-      "reward": 128,
+      "reward": 85,
       "opening": [
         {
           "speaker": "vlad",
@@ -3775,7 +4333,7 @@
           "quantity": 1
         }
       ],
-      "reward": 128,
+      "reward": 85,
       "opening": [
         {
           "speaker": "elisabeta",
@@ -3804,7 +4362,7 @@
           "quantity": 2
         }
       ],
-      "reward": 226,
+      "reward": 150,
       "opening": [
         {
           "speaker": "vlad",
@@ -3896,11 +4454,11 @@
           "quantity": 1
         }
       ],
-      "reward": 1100,
+      "reward": 220,
       "opening": [
         {
           "speaker": "ionatan",
-          "text": "I have come from abroad to close a real-estate deal with a local noble at the nearby castle. Before I continue, I would like a proper dinner: a goulash pot, a sharing board, a chimney cake, and plum brandy. I will pay well for the care this meal needs."
+          "text": "I have come from abroad to close a real-estate deal with a local noble at the nearby castle. Before I continue, I would like a proper dinner: a goulash pot, a sharing board, a chimney cake, and plum brandy."
         }
       ],
       "completion": [
@@ -4305,7 +4863,7 @@
           "quantity": 1
         }
       ],
-      "reward": 76,
+      "reward": 75,
       "opening": [
         {
           "speaker": "dorian",
@@ -4396,7 +4954,7 @@
           "quantity": 1
         }
       ],
-      "reward": 86,
+      "reward": 85,
       "opening": [
         {
           "speaker": "bran",

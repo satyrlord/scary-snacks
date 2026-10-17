@@ -36,8 +36,10 @@ function full(state: GameState) {
   assert.ok(valid(state));
   return state;
 }
-function sellOne(state: GameState) {
-  return act(state, { type: 'sell', index: state.board.findIndex(cell => cell && !data.items[cell.code].generator) });
+/** Merge the first two Flours: the first one's cell becomes free. */
+function mergeOne(state: GameState) {
+  const [from, to] = state.board.flatMap((cell, index) => cell?.code === 'bakery_1' ? [index] : []);
+  return act(state, { type: 'move', from, to });
 }
 const active = (state: GameState) => state.preparationObstacles!.placed.filter(entry => !state.resolvedObstacles.includes(entry.id));
 
@@ -85,21 +87,21 @@ test('full-board batches queue and drain only above three free cells, with at mo
   let state = act(full(ready()), { type: 'task' });
   assert.equal(pendingPreparationObstacles(state, data).length, 2);
   for (let count = 1; count <= 3; count++) {
-    state = sellOne(state);
+    state = mergeOne(state);
     assert.equal(freeBoardCells(state, data), count);
     assert.equal(active(state).length, 0);
   }
-  state = sellOne(state);
+  state = mergeOne(state);
   assert.equal(freeBoardCells(state, data), 3);
   assert.equal(active(state).length, 1);
-  state = sellOne(state);
+  state = mergeOne(state);
   assert.equal(active(state).length, 2);
   state.completedQuests = requiredQuests(state.taskIndex, data).map(quest => quest.id);
   state = act(state, { type: 'task' });
   assert.equal(pendingPreparationObstacles(state, data).length, 3);
-  state = sellOne(state);
+  state = mergeOne(state);
   assert.equal(active(state).length, 3);
-  state = sellOne(state);
+  state = mergeOne(state);
   assert.equal(active(state).length, 3);
   assert.equal(pendingPreparationObstacles(state, data).length, 2);
 });
@@ -136,7 +138,7 @@ test('a newly unlocked source takes the last empty cell before its blocker batch
 test('existing saves adopt at the next successful preparation without adding earlier batches', () => {
   const state = ready(4); delete state.preparationObstacles;
   assert.ok(valid(state));
-  const continued = sellOne(state);
+  const continued = mergeOne(state);
   assert.equal(continued.preparationObstacles, undefined);
   const paid = act(continued, { type: 'task' });
   assert.equal(paid.preparationObstacles!.start, 4);
@@ -152,7 +154,7 @@ test('pending and partly cleared batches survive export, reload, failed writes, 
   } };
   assert.equal(saveGame(storage, state, valid).ok, true);
   const durable = structuredClone(state);
-  for (let count = 0; count < 4; count++) state = sellOne(state);
+  for (let count = 0; count < 4; count++) state = mergeOne(state);
   assert.equal(active(state)[0].position, 0);
   const obstacle = unresolvedObstacle(state, 0, data)!;
   state.board[7] = { code: obstacle.ingredient };

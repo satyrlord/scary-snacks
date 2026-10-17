@@ -25,7 +25,7 @@ the next five quest deliveries pay double. The cat becomes part of play.
 - Keep the three quest tickets. The request of Miez is a fourth request beside them. It does not take a ticket,
   and no preparation needs it.
 - Keep unlimited energy and no purchases. The player has no penalty for ignoring the cat.
-- Do not change authored quest rewards, sale prices, or preparation costs. The blessing multiplies the
+- Do not change authored quest rewards or preparation costs. The blessing multiplies the
   payout of a quest at delivery time only. The funding check of 006 stays true without the blessing.
 
 ## Proposed rules
@@ -45,7 +45,7 @@ the next five quest deliveries pay double. The cat becomes part of play.
    Feeding does not change `completedQuests`, the dish deliveries of 012, or a neighbour's delivered count from 013.
 5. Feeding sets the blessing to five deliveries. While the blessing is above zero, each quest
    delivered pays twice its authored reward. The blessing drops by one.
-6. The blessing applies to quest rewards only. It does not change sales or preparation costs.
+6. The blessing applies to quest rewards only. It does not change preparation costs.
 7. While a visit waits or a blessing is active, no new visit becomes due.
    When the blessing reaches zero, the game selects a new interval, as in rule 1.
    The game sets `due` to the delivery count plus that interval.
@@ -120,7 +120,7 @@ The balance checks use 006. The first-visit scene uses 009.
 The interval, dish stages, and blessing length remain open decisions.
 Decide whether a seed or an authored sequence selects values.
 Decide whether the Miez card shows a count of meals.
-The campaign has 63 deliveries.
+The campaign has 81 deliveries.
 Measure the number of visits per campaign.
-A doubled large reward, such as Ionatan's dinner, needs a balance decision.
+A doubled large reward, such as a traveller's supply pack, needs a balance decision.
 Use the 006 fixture to adjust the balance.

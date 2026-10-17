@@ -5,7 +5,7 @@ Spec 009 queues each quest completion scene and resumes it after reload. Spec 00
 
 ## Result and ownership
 
-The game has 63 authored quests. Quests are the only requests, and they earn the coins of the campaign. Clearance sales also earn a few coins.
+The game has 81 authored quests. Quests are the only requests, and they earn every coin of the campaign.
 The journal has an optional introduction for each neighbour and replay of completed quest scenes.
 
 The engine owns eligibility, the tickets, delivery, and validation. Storage owns the envelopes and durable writes.
@@ -27,8 +27,8 @@ There is no currency other than coins, and no timer, energy limit, runtime depen
 
 | Character group | Quests |
 | --- | --- |
-| Mara, Ilie, Eszter, and Sorin | 4, 3, 5, and 4 |
-| Ten regulars from spec 013 | 3 each, or 4 for Sânziana and Ileana |
+| Mara, Ilie, Eszter, and Sorin | 6, 6, 8, and 6 |
+| Ten regulars from spec 013 | 5 for Dochia and Costel; 4 for Victor, Ana, Sânziana, Dorian, Ileana, and Cezar; 3 for Cătălina and Bran |
 | Vlad and Elisabeta | 2 each |
 | Adrian, Monica, and Janos | 3 each |
 | Ionatan | 1 |
@@ -37,11 +37,7 @@ There is no currency other than coins, and no timer, energy limit, runtime depen
 ## Rewards
 
 Spec 006 owns the reward rule.
-A personal request pays its menu value multiplied by the rate of its opening chapter.
-The rates for chapters 1 to 6 are 3, 2.5, 2, 1.5, 1, and 1.
-The game rounds the result to an even number of coins.
-The supply packs of the travellers and the meal for Mina and Avram pay their menu value.
-Ionatan pays 1,100 coins. Rewards are coins only.
+Every quest pays its menu value. No chapter, character, or visit multiplies a reward. Rewards are coins only.
 
 ## Core character arcs
 
@@ -49,23 +45,33 @@ Ionatan pays 1,100 coins. Rewards are coins only.
 | --- | --- | --- |
 | mara-welcome | New game | 1 Socată |
 | sorin-first-ride | New game | 2 Dough, 1 Socată |
+| ilie-stove | New game | 2 Bulz, 2 Pogăcele |
+| eszter-cups | New game | 2 Fruit tea, 2 Pogăcele |
+| mara-cellar | New game | 1 Smoked cheese plate, 1 Fruit tea |
 | ilie-counter | 1 | 1 Pogăcele |
 | eszter-first-plate | 1 | 1 Mămăligă, 1 Pogăcele |
 | mara-lamp-supper | 3 | 1 Bulz, 1 Fruit tea |
+| sorin-tyre | 3 | 1 Papanași, 1 Langoș, 1 Fruit tea |
 | eszter-bowls | 4 | 2 Mămăligă |
+| ilie-pickles | 4 | 2 Bulz, 1 Fruit tea |
+| eszter-kiln | 5 | 1 Papanași, 1 Pogăcele |
 | sorin-lunch | 6 | 1 Pogăcele, 1 Socată |
 | mara-table | 8 | 1 Bulz |
+| mara-candles | 8 | 1 Smoked cheese plate, 1 Roasted vegetables, 1 Socată |
 | eszter-table | 9 | 1 Papanași |
 | eszter-green-bowls | 9 | 2 Bulz, 1 Papanași |
+| sorin-postbag | 9 | 2 Roasted vegetables, 1 Langoș, 1 Fruit tea |
 | ilie-courtyard | 12 | 1 Langoș |
 | sorin-path | 13 | 1 Roasted vegetables, 1 Socată |
+| eszter-kiln-party | 14 | 2 Plum dumplings, 2 Zacuscă, 2 Fruit tea |
+| ilie-cellar | 14 | 1 Goulash pot, 1 Zacuscă toast |
 | ilie-family | 16 | 1 Smoked cheese plate |
 | eszter-tasting | 17 | 1 Plum dumplings |
 | mara-supper | 20 | 1 Zacuscă toast, 1 Smoked cheese plate |
 | sorin-welcome | 20 | 2 Fruit tea, 1 Roasted vegetables |
 
-Mara tests a welcome and a supper service. Ilie prepares the bread counter and a family tasting dish.
-Eszter checks bowl and plate sizes, and her second glaze unlocks a finish from spec 002. Sorin prepares food around errands and the courtyard welcome.
+Mara tests a welcome, explores the cellar, and plans a supper service. Ilie tests the stove, fills the cellar, and prepares the bread counter and a family tasting dish.
+Eszter checks cups, bowls, plates, and her kiln, and her second glaze unlocks a finish from spec 002. Sorin prepares food around errands, a patched tyre, the post, and the courtyard welcome.
 The generator owns the exact rewards.
 
 ## Visiting travellers
@@ -86,7 +92,7 @@ Adrian, Monica, and Janos each return for three supply requests. Their nine visi
 
 ## Single-visit dinner
 
-Ionatan is a foreign real estate agent. His only quest, `ionatan-castle-dinner`, opens after preparation 16 and after Vlad's quest "A guest at the castle" (`vlad-guest`). It needs one goulash pot, one sharing board, one chimney cake, and one plum brandy. The 220-coin dinner pays 1,100 coins. It is independent of the traveller sequence.
+Ionatan is a foreign real estate agent. His only quest, `ionatan-castle-dinner`, opens after preparation 16 and after Vlad's quest "A guest at the castle" (`vlad-guest`). It needs one goulash pot, one sharing board, one chimney cake, and one plum brandy. The dinner pays its menu value of 220 coins. It is independent of the traveller sequence.
 
 His introduction appears only while his request is open. Delivery records the quest ID once and queues his farewell in Story. His introduction and quest replays are then absent from the journal. Reload and export/import preserve his completed visit. A new game permits another visit. A failed write keeps the departure in the session; reload restores only durable progress.
 
@@ -161,7 +167,7 @@ They also cover prerequisite cycles, unavailable chains, the funding check, and 
 The storage tests cover fresh, partial, and completed saves, malformed and oversized input, and invalid completion lists.
 They also cover failed writes and rejection of unsupported versions.
 They cover the traveller sequence, Ionatan's visit, the shared visit, the vegetarian request, and the news scene three deliveries later.
-`tests/campaign-balance.test.ts` completes all 24 preparations and all 63 quests through legal actions without injected resources. The fixture fails on a deadlock.
+`tests/campaign-balance.test.ts` completes all 24 preparations and all 81 quests through legal actions without injected resources. The fixture fails on a deadlock.
 
 The browser tests use the built game.
 They cover delivery from a ticket and from the request dialog, with items from the board only.

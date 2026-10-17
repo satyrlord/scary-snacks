@@ -30,10 +30,10 @@ The files in `tests/` check the following areas.
 
 | Test files | Coverage |
 | --- | --- |
-| `engine.test.ts` | Production, merges, swaps, sales, coin limits, preparation payment, room states, and game data validation. |
-| `storage.test.ts` | Save validation, size limits, export, import, reset, failed writes, recovery, and invalid data. |
+| `engine.test.ts` | Production, merges, swaps, coin limits, preparation payment, room states, and game data validation. |
+| `storage.test.ts` | Save validation, size limits, export, import, reset, failed writes, recovery, invalid data, and preservation of earlier formats. |
 | `decorations.test.ts` | Decoration slots, quest unlocks, finish choices, rejected choices, and saved choices. |
-| `economy.test.ts` | Menu prices, quest rewards, clearance values, and work budgets. |
+| `economy.test.ts` | Menu prices, quest rewards, the rejected sale action, and work budgets. |
 | `campaign-goals.test.ts` | Required quests, coins, source space, failed payments, quest order, and sufficient campaign rewards. |
 | `campaign-balance.test.ts` | A complete campaign through valid actions, with accounts for actions and coins. |
 | `quests.test.ts` | Quest data, three tickets, authored order, delivery requirements, failed deliveries, and visitor order. |
@@ -42,16 +42,17 @@ The files in `tests/` check the following areas.
 | `board-clearing.test.ts` | Initial blockers, matching merges, blocked actions, placement space, discoveries, and saved progress. |
 | `preparation-blockers.test.ts` | Preparation batches, deferred placement, free space, source priority, saved history, failed writes, and retry. |
 | `story.test.ts` | Chapters, scenes, the finale, queues, saved lines, failed payments, and play after the finale. |
+| `guide.test.ts` | Guide steps, recorded successes, out-of-order play, full-board recovery, Skip and resume, unchanged resources, and saved runs. |
 | `checkpoint-saves.test.ts` | Manual checkpoint saves, the next payment, and the final scenes. |
 | `assets.test.ts` | Masters, variants, hashes, portrait cells, blocker cells, references, asset paths, fonts, and license texts. |
 | `build.test.ts` | The build file list, type removal, executable asset rejection, and linked directory rejection. |
 | `server.test.ts` | Allowed paths, configured server addresses, and Windows path case. |
-| `source-export.test.ts` | Exported imports, document links, local folder exclusions, and ignore rules. |
+| `source-export.test.ts` | Product test coverage in the export, exported imports, document links, local folder exclusions, and ignore rules. |
 | `art-image.test.ts` | Art request fields, image dimensions, masks, composites, file formats, and rejected inputs. |
 
 Generator checks cover both tier boundaries, lower outputs, chosen outputs, rejected takes, and upgrades on a full board.
-The campaign fixture completes all 24 preparations and all 63 quests without injected coins or items.
-The fixture reports actions, takes, merges, sales, deliveries, and income for each preparation and chapter.
+The campaign fixture completes all 24 preparations and all 81 quests without injected coins or items.
+The fixture reports actions, takes, merges, deliveries, and income for each preparation and chapter.
 The fixture can finish without a merge that clears a blocker.
 
 Delivery checks require all portions at once. A failed delivery changes no game state.
@@ -84,9 +85,10 @@ The files in `tests/browser/` check the following areas.
 | `preparation-blockers.spec.ts` | Payment, artwork, matching merges, deferred placement, reload, and layout. |
 | `blocker-help.spec.ts` | Rule marks, matching ingredients, eligible targets, dismissed help, unchanged saves, contrast, and layout. |
 | `story.spec.ts` | Chapter goals, steps, scenes, reveals, saved lines, the finale, journal entries, focus, and layout. |
+| `guide.spec.ts` | The guided start, marked targets on desktop and phone, reload, completion after discovery and reveals, Skip, guest replay help, late saves, the finished campaign, failed writes, import, and layout. |
 | `portrait-framing.spec.ts` | Each portrait crop at ticket and dialogue sizes in both themes. |
 
-Play checks include pointer drag, keyboard input, selection, delivery, and the displayed and received sale value.
+Play checks include pointer drag, keyboard input, selection, delivery, and the absence of a Sell control.
 Room checks include reduced motion, failed image loads, and text that remains available after an image failure.
 Layout checks include the desktop and phone screens, the drawer, the phone bar, and 44px control targets.
 Theme checks include Light, Dark, System, and 4.5:1 contrast for main and muted text.

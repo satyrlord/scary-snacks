@@ -58,30 +58,19 @@ The model does not copy a menu or claim that every restaurant has these prices.
 The raw ingredient prices stay between 1 and 3 coins.
 Merge chains are game rules, not recipes for food preparation.
 
-A sale without a request clears space on the board.
-The sale gives one quarter of the menu price, rounded down, with a minimum of one coin.
-This discount is a game rule. The discount does not represent a resale market.
-Quest deliveries give more value than clearance sales.
+The game has no sales. Quests are the only income.
 
 ## Quest rewards
 
 Quests earn campaign coins.
-A personal request multiplies its menu value by the rate of the chapter in which the request opens.
-The reward rounds to an even number of coins.
-
-| Chapter | 1 | 2 | 3 | 4 | 5 | 6 |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Rate | 3 | 2.5 | 2 | 1.5 | 1 | 1 |
-
-Early chapters pay more to make the first room changes available sooner.
-Traveller supply requests and Mina and Avram's meal pay their menu value.
-Ionatan's dinner has a menu value of 220 coins and pays 1,100 coins.
+Every quest pays its menu value: the sum of the prices of its portions.
+No chapter, character, or visit multiplies a reward.
+The count of quests in each window, not a reward rate, makes the quest income cover the preparation costs.
 
 A quest that opens after preparation N is necessary for preparation N + 1.
 For each preparation, total available quest rewards must equal or exceed total preparation costs to that point.
 `questProblems` in `src/engine.ts` checks this rule before the data can ship.
 A player who delivers every open quest has sufficient coins for the next preparation.
-The rule does not count sale income.
 
 ## Work and price
 
@@ -196,14 +185,13 @@ Verify the source and the portion before a price revision.
 ## Verification and limits
 
 Run `node tools/campaign-balance.ts`.
-The report gives costs, work, actions, takes, merges, sales, and deliveries for each preparation and chapter.
-The report separates quest income from sale income.
+The report gives costs, work, actions, takes, merges, and deliveries for each preparation and chapter.
 
 The fixture plays a fresh game with one repeatable policy.
-The fixture sells the initial food and pays each preparation when payment becomes available.
+The fixture pays each preparation when payment becomes available.
 Otherwise, the fixture delivers the first quest that has a ticket.
 The fixture makes each requested dish from the highest available source output.
-If the board is full, the fixture sells the lowest-value food that the current delivery does not need.
+If the board is full, the fixture merges spare food: a pair, or a match for a blocked ingredient. A full board without such a merge is a deadlock, and the fixture fails.
 
 This check measures actions under that policy. This check does not establish a satisfactory human play experience.
 The first repair remains the largest balance uncertainty: the player does substantial work before the first room reward.

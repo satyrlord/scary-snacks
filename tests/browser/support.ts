@@ -23,7 +23,8 @@ function deliverRequired(state: GameState,index: number){for(const value of requ
 export function checkpoint(count: number,{ready=false,coins=0}: {ready?: boolean; coins?: number}={}){
   let state=createGame(data);
   for(let index=0;index<count;index++){deliverRequired(state,index);state.coins=data.tasks[index].cost;state=act(state,{type:'task'});}
-  state.pendingScenes=[];delete state.sceneLines;state.coins=coins;
+  // A checkpoint stands for a save in progress, which has no guide run.
+  state.pendingScenes=[];delete state.sceneLines;delete state.guide;state.coins=coins;
   if(ready&&count<data.tasks.length){deliverRequired(state,count);state.coins=data.tasks[count].cost;}
   expect(validate(state)).toBe(true);return state;
 }
@@ -39,6 +40,8 @@ export function onTicket(target: Quest){
   }
   throw new Error(`${target.id} never reaches a ticket.`);
 }
+/** A new game without a guide run, as a player who skipped the guide has it. */
+export function unguided(state=createGame(data)){const next=structuredClone(state);delete next.guide;return next;}
 export const supplies=(value: Quest)=>value.requirements.flatMap(({item,quantity})=>Array<string>(quantity).fill(item));
 /** Adds known dishes to the first free spaces. The rules tests cover how the player makes them. */
 export function supply(state: GameState,codes: string[]){

@@ -1,88 +1,48 @@
 # 010 - Guided introduction and resumable help
 
-Status: Proposed. Not implemented. All rules below are draft defaults.
+Status: Implemented. [PRODUCT.md](../../PRODUCT.md) owns the guide rules and the guide record. [DESIGN.md](../../DESIGN.md) owns the guide line, the target ring, and the kitchen guide.
 
-## Evidence and intended result
+## Implemented scope
 
-`src/app.ts` already gives guidance for a selected item in Mara's line (`selectionLine`). It also gives
-item details and generator instructions, and it implements Find a match. PRODUCT defines the controls.
-`GameState` has no tutorial state. There is no staged introduction and no saved teaching position.
-Keep the useful existing hints.
-Add a short, optional sequence for production, merges, quest delivery, preparation payments, and story replay.
+A new game starts a short guide in Mara's line. The guide uses the real board, ordinary actions, and the existing content.
+It keeps the existing hints: the note for a selected item, item help, source instructions, blocker help, and Find a match.
 
-## Scope and ownership
-
-- Guide the player with the real board, ordinary actions, and the existing original content.
-- Do not create a separate economy for the guidance. Do not give resources that the game does not track. Do not fake a quest.
-- Keep Skip and help available. Never require a guidance action to unlock ordinary controls.
-- Support keyboard, pointer, and touch. Do not require dragging or timed input.
-- Keep rules in `src/engine.ts`, saves in `src/storage.ts`, and guidance in `src/app.ts`.
-- If content references are necessary, author the guidance metadata in `tools/create-original-data.ts`.
-- Update PRODUCT and DESIGN with the implemented sequence and the reopening behavior.
-- Do not add timers, energy limits, network calls, accounts, or a runtime dependency.
-
-## Proposed guidance sequence
-
-| Stage | Instruction purpose | Observable success |
+| Step | Instruction | Observable success |
 | --- | --- | --- |
-| Select and merge | Show the two initial flour items and the result preview | A legal merge succeeds |
-| Take | Show the plus sign of the ingredient source and the available Take action | A legal generator action succeeds |
-| Deliver | Inspect a real quest ticket and its complete requirements | A quest is successfully delivered |
-| Prepare | Connect deliveries to the current bistro objective | The first preparation succeeds under spec 006 |
-| Read and return | Show the task scene, the journal, and the Resume route | The player returns from the scene or skips the scene |
+| Merge | The pair of the lowest stage and its result, if the player has discovered it | A legal merge succeeds |
+| Take | The source and its plus badge | A legal take succeeds |
+| Deliver | One real ticket and the control that opens its dishes | A quest is delivered |
+| Prepare | The coins, quests, and space that the next preparation still needs | A preparation payment succeeds under spec 006 |
+| Read and return | Read now in Story, Skip scene, and the Journal | The player finishes or skips a scene |
 
-After the core sequence, offer optional help for selling, the recipe book, and Find a match.
-Explain the sale value and the campaign requirements with the active economy rules. Do not say that coins alone complete a preparation: each preparation also needs its quests.
-Add help for the blockers from spec 007 when the first reachable blocker becomes relevant.
+The kitchen guide in Options reviews the five steps and gives help for room on the board, the recipe book, Find a match, and blocked spaces.
 
-## Proposed rules and failure behavior
+## Rules
 
-1. New games start with a compact introductory prompt. A visible Skip guidance action
-   exits the prompt. The action does not change resources and does not block any game feature. Help can reopen the prompt.
-2. Advance a stage only after the appropriate successful action. A click, an animation,
-   a hover, or a failed attempt does not advance a stage. Keep guidance completion separate from campaign progression.
-3. A player may act out of order. Record the observed success for the current guidance run.
-   Skip the stages that the run already satisfies. Do not repeat rewards and do not rearrange items.
-4. Highlight the current valid targets by rule, not by fixed cell indices. If the player moves,
-   merges, or sells a target, recompute the hint and keep the board usable.
-5. If no matching pair exists, explain how to produce ingredients. If the board is full,
-   use the ordinary remedies: merge, deliver, and sell. Never delete items for the guidance.
-6. For Deliver, inspect a quest ticket that the player can fill or produce. Do not add or reorder quests.
-   Do not require an inaccessible chain to produce a hint.
-7. For Prepare, show every actual prerequisite and a route toward it. Guidance must not
-   waive a coin requirement, quest requirement, or item requirement that the engine imposes.
-8. Replay help operates on the current save. It does not reset the board and does not give a
-   task reward again. Mark completed stages as explanations that the player can review.
-9. Story dialogs take precedence over guidance overlays. Use 009 for saved scene positions.
-   Never open competing modals. Never require the player to read every line to finish guidance.
-10. Keep Find a match available outside the guidance. Guide text and target names must
-    stay accessible without colour, animation, or positional directions alone.
+1. A new game starts an active guide. Skip guide closes it. Skip changes no resource and blocks no feature.
+2. A step records only its successful action. A click, a move, an animation, a hover, or a failed action records nothing. The guide record is apart from campaign progress.
+3. An active run records each success in any order and shows the first step that is not done. It repeats no reward and rearranges no item. A closed run records nothing.
+4. The guide finds its targets by rule on each render, not by fixed cells. A moved, merged, or delivered target leaves no stale mark.
+5. With no pair, the guide points to a match for a blocked ingredient or to a source. On a full board, it names the ordinary remedies. It never deletes items.
+6. Deliver points to a request on a ticket that the board can fill, or else to the request with the most of its dishes on the board. The guide adds and reorders no quests.
+7. Prepare names each requirement that the engine imposes. The guide waives no requirement.
+8. The kitchen guide works on the current save. It resets nothing and gives no reward. It marks the steps that the current run has done.
+9. The guide is not a dialog, so story dialogs always take precedence. Skip scene completes Read and return.
+10. Find a match returns when the guide closes. The step text names each target, so colour, motion, and position are never the only cues.
 
 ## State and save compatibility
 
-Persist three items for the current run: the guidance status, the current stage, and bounded flags of observed success.
-Validate known stage identifiers (IDs), coherent status, and booleans. Do not store Document Object Model (DOM) selectors or cell targets.
-Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
-Validate guidance during load and import. Keep Help available after dismissal. Guidance flags cannot create resources or unlock campaign content.
-A failed save keeps a warning that the state is unsaved. On reload, repeat only the last durable guidance
-step, without repeating its gameplay reward. Import adopts guidance only after full validation.
+`GameState.guide` is optional. It holds the status, the current step, and one boolean for each step. It holds no cell or interface target.
+A save without the record has no run. The kitchen guide can start one. Current saves use game state version 11 and envelope version 10. Load reads only `scary-snacks-save-v10`. With no current save, the game starts a new campaign. Earlier local saves stay unchanged and are not read or converted. Import rejects earlier formats.
+Load and import validate the record. A failed write keeps the unsaved warning, and a reload repeats the last saved step.
 
-## Thin implementation slices and exit checks
+## Acceptance
 
-1. Define the stages and the records of successful actions. Exit: out-of-order play and failure
-   cases advance only valid stages. No guidance transition changes economic resources.
-2. Add state validation and persistence. Exit: reload, import, repeated loads, and
-   malformed flags keep the intended guidance status and all prior game progress.
-3. Implement the first two stages and Skip. Exit: if the player moves the original flour or
-   a generator, no stale target remains. Keyboard play needs no drag gesture.
-4. Add delivery, preparation, story, and optional help. Exit: a fresh legal play session
-   gives guidance for the complete loop. An existing save can review help without a reset.
+`tests/guide.test.ts` covers the recorded successes, skipped steps, reordered play, full-board recovery, Skip and resume, unchanged resources, and new, active, dismissed, complete, imported, and failed saves.
+`tests/browser/guide.spec.ts` plays the first three steps from a fresh game and reloads during a step. It completes the guide with a payment and a skipped scene. It also skips and resumes the guide, opens the kitchen guide on a late save, and checks failed writes, import, and the layout in both themes at 360px, 390px, and 1440px.
 
-## Acceptance and dependencies
+## Remaining decisions
 
-Engine tests must cover the record of successful events, skipped stages, reordered play, and full-board recovery.
-Save tests must cover new, active, dismissed, completed, and imported games, and write failures.
-Built browser tests must complete guidance and skip guidance. They must reload during a step. They must reopen help on a late-game save.
-Follow [Verification and release](README.md#verification-and-release) for the browser evidence.
-Full integration depends on 006, 007, 009, and 015.
-The exact prompt wording, the order of optional help, and the acceptable length of the introduction remain design decisions.
+- The wording of each step and the order of the further help are draft defaults.
+- The guide starts when the kitchen opens. When spec 015 adds the front door, the guide starts after the front door.
+- A run that starts after the finale cannot complete Deliver or Prepare, because no request or preparation remains. Read and return can complete if an unread scene remains. Skip ends such a run.

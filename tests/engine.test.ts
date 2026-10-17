@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createGame, dataProblems, validateGame, reduceGame, canDeliverQuest, currentTask, firstFreeBoardCell, questDeliveryCells, requiredQuests, resolveRooms, latestArea, roomProblems, roomPaintings,
-  generatorOutputs, generatorTierProblems, saleValue } from '../src/engine.ts';
+  generatorOutputs, generatorTierProblems } from '../src/engine.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import { imageVariants } from '../tools/build-image-variants.ts';
 import type { Action, GameData, GameState, Quest } from '../src/engine.ts';
@@ -77,7 +77,7 @@ test('dish and drink names use only English and Romanian letters', () => {
 test('fresh games are valid, identical, and independent', () => {
   const state = initial();
   assert.equal(validateGame(state, data), true);
-  assert.equal(state.version, 10);
+  assert.equal(state.version, 11);
   assert.deepEqual(state, initial());
   assert.deepEqual([state.coins, state.taskIndex, state.completedQuests, state.pendingScenes], [0, 0, [], []]);
   state.board[0] = { code: 'bakery_1' };
@@ -91,10 +91,11 @@ test('generators have unlimited free output with no clock state', () => {
   const generator = state.board.findIndex(cell => cell?.code === 'generator_bakery');
   for (let index = 0; index < 100; index++) {
     state = apply(state, { type: 'spawn', index: generator });
+    // Clear the new item by hand, so the board never fills.
     const spawned = state.board.findIndex((cell, position) => position !== generator && cell?.code === 'bakery_1');
-    state = apply(state, { type: 'sell', index: spawned });
+    state = { ...state, board: state.board.map((cell, position) => position === spawned ? null : cell) };
   }
-  assert.equal(state.coins, coins + 100);
+  assert.equal(state.coins, coins);
   assert.equal('energy' in state, false);
   assert.equal('cooldowns' in state, false);
 });
@@ -220,7 +221,6 @@ test('matching ingredients merge and discover the next stage, and final dishes d
   top.board[14] = { code: 'bakery_6' };
   top.discovered.push('bakery_6');
   assert.match(fail(top, { type: 'move', from: 13, to: 14 }).message, /final dish/);
-  apply(top, { type: 'sell', index: 13 });
 });
 
 test('different items swap and empty cells accept items', () => {
@@ -233,15 +233,16 @@ test('different items swap and empty cells accept items', () => {
   assert.equal(state.board[0]?.code, 'generator_bakery');
 });
 
-test('board-full failures retain state and selling recovers space', () => {
+test('board-full failures retain state and a merge recovers space', () => {
   let state = fillBoard(initial());
-  fail(state, { type: 'spawn', index: 1 });
-  state = apply(state, { type: 'sell', index: 0 });
+  assert.match(fail(state, { type: 'spawn', index: 1 }).message, /Merge a pair or deliver a request/);
+  const flours = state.board.flatMap((cell, index) => cell?.code === 'bakery_1' ? [index] : []);
+  state = apply(state, { type: 'move', from: flours[0], to: flours[1] });
   state = apply(state, { type: 'spawn', index: 1 });
   assert.equal(state.board.includes(null), false);
 });
 
-test('deliveries and sales stop at the coin limit, so the game stays savable', () => {
+test('deliveries stop at the coin limit, so the game stays savable', () => {
   const limit = 1_000_000_000;
   const state = initial();
   const quest = data.quests.find(quest => quest.id === 'mara-welcome')!;
@@ -250,19 +251,13 @@ test('deliveries and sales stop at the coin limit, so the game stays savable', (
   assert.equal(canDeliverQuest(state, quest, data), true);
   state.coins = limit;
   assert.match(fail(state, { type: 'deliverQuest', id: quest.id }).message, /Spend some coins/);
-  assert.match(fail(state, { type: 'sell', index: 13 }).message, /Spend some coins/);
   assert.equal(apply({ ...state, coins: limit - quest.reward }, { type: 'deliverQuest', id: quest.id }).coins, limit);
-  assert.equal(apply({ ...state, coins: limit - saleValue(state.board[13]!.code, data) }, { type: 'sell', index: 13 }).coins, limit);
-});
-
-test('sources cannot be sold', () => {
-  fail(initial(), { type: 'sell', index: 1 });
 });
 
 test('a delivery takes each duplicate from its own cell', () => {
   let state = initial();
   assert.deepEqual(questDeliveryCells(state, request([{ item: 'bakery_1', quantity: 2 }]), data), [13, 14]);
-  state = apply(state, { type: 'sell', index: 13 });
+  state.board[13] = null;
   assert.deepEqual(questDeliveryCells(state, request([{ item: 'bakery_1', quantity: 2 }]), data), [14, -1]);
 });
 
@@ -278,7 +273,7 @@ test('invalid, unavailable, and retired actions do not change state', () => {
 test('save validation rejects invalid numeric fields, codes, quest records, and unsupported versions', () => {
   // Some corruptions write a value that the GameState type does not admit.
   const corruptions: ((state: any) => void)[] = [
-    state => { state.version = 1; }, state => { state.version = 9; }, state => { state.version = 11; }, state => { state.coins = -1; },
+    state => { state.version = 1; }, state => { state.version = 10; }, state => { state.version = 12; }, state => { state.coins = -1; },
     state => { state.coins = 0.5; }, state => { state.taskIndex = 25; },
     state => { state.board.pop(); }, state => { state.board[0] = { code: '__proto__' }; },
     state => { state.board[0] = { code: 'bakery_1', hidden: true }; },
@@ -313,8 +308,8 @@ test('task unlocks require a free board space and fail atomically on a full boar
   let state = fillBoard(pay(funded(), 2));
   const failure = fail(withQuests(state), { type: 'task' });
   assert.match(failure.message, /space/);
-  const space = state.board.findIndex(cell => cell?.code === 'bakery_1');
-  state = apply(state, { type: 'sell', index: space });
+  const [space, pair] = state.board.flatMap((cell, index) => cell?.code === 'bakery_1' ? [index] : []);
+  state = apply(state, { type: 'move', from: space, to: pair });
   state = pay(state);
   assert.equal(state.board[space]?.code, 'generator_sweet');
   assert.equal(state.taskIndex, 3);
@@ -427,7 +422,7 @@ test('fresh, mid-campaign, and completed saves resolve the same rooms after relo
   for (const count of [0, 12, 13, data.tasks.length]) {
     const state = pay(funded(), count);
     const validate = (candidate: unknown) => validateGame(candidate, data);
-    const reloaded = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 9, state: JSON.parse(JSON.stringify(state)) }), validate);
+    const reloaded = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 10, state: JSON.parse(JSON.stringify(state)) }), validate);
     const exported = importSave<GameState>(exportSave(reloaded, validate), validate);
     assert.deepEqual(resolveRooms(reloaded.decorations, data), roomsAt(count), `reload at ${count}`);
     assert.deepEqual(resolveRooms(exported.decorations, data), roomsAt(count), `export at ${count}`);

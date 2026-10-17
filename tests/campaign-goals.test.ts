@@ -29,15 +29,6 @@ function rejected(state: GameState, action: Action = { type: 'task' }, content =
 const checkpoint = (count: number) => checkpointState(data, count, openGame());
 /** The same checkpoint before the quests that open with the previous preparation are delivered. */
 const withoutWindow = (count: number) => ({ ...checkpoint(count), completedQuests: checkpoint(count - 1).completedQuests });
-function sellToCost(start: GameState): GameState {
-  let state = start;
-  while (state.coins < currentTask(state, data)!.cost) {
-    const index = state.board.indexOf(null);
-    state = act(state, { type: 'spawn', index: state.board.findIndex(cell => cell?.code === 'generator_bakery') });
-    state = act(state, { type: 'sell', index });
-  }
-  return state;
-}
 
 test('each preparation needs every quest that opens before it, and the finale needs every quest', () => {
   assert.deepEqual(questProblems(data), []);
@@ -98,11 +89,10 @@ test('one missing quest blocks completion with enough coins', () => {
   rejected(state);
 });
 
-test('sales alone cannot complete the first preparation without its quests', () => {
+test('coins alone cannot complete the first preparation without its quests', () => {
   let state = openGame();
   state = act(state, { type: 'move', from: 13, to: 14 });
-  state = sellToCost(state);
-  assert.ok(state.coins >= data.tasks[0].cost);
+  state.coins = data.tasks[0].cost;
   assert.deepEqual(state.completedQuests, []);
   assert.deepEqual(taskEligibility(state, data).blockers, [`Deliver ${requiredQuests(0, data).length} more quests for this preparation.`]);
   rejected(state);
@@ -179,9 +169,7 @@ test('board actions never count as quests, and invalid actions change nothing', 
   };
   unchanged({ type: 'move', from: 22, to: 0 });
   unchanged({ type: 'move', from: 0, to: 27 });
-  const empty = state.board.indexOf(null);
   unchanged({ type: 'spawn', index: 1 });
-  unchanged({ type: 'sell', index: empty });
   unchanged({ type: 'move', from: 13, to: 14 });
   rejected(state, { type: 'move', from: 13, to: 13 });
   rejected(state, { type: 'move', from: 13, to: 14 });

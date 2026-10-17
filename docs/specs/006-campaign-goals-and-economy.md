@@ -12,7 +12,7 @@ A repair costs more money and effort than writing a menu or repainting a sound s
 Task position and merge stage do not determine prices.
 
 Keep free immediate production, unlimited energy, no timers, no purchases, and no hidden limits.
-Quests earn the coins of the campaign. Sales remain a way to clear space.
+Quests earn the coins of the campaign. The game has no sales.
 
 ## Implemented economy
 
@@ -20,13 +20,9 @@ Quests earn the coins of the campaign. Sales remain a way to clear space.
    The menu value of a quest is the sum of the prices of its portions.
 2. Prices follow the item's portion and preparation. They do not have to increase at every merge stage.
    The food table and its reference portions are in the economy record.
-3. A personal request pays its menu value multiplied by the rate of its opening chapter.
-   The rates for chapters 1 to 6 are 3, 2.5, 2, 1.5, 1, and 1.
-   The game rounds the result to an even number of coins.
-   The early chapters pay more, so that the first room changes come quickly.
-4. The supply packs of the travellers and the meal for Mina and Avram pay their menu value. Ionatan pays 1,100 coins.
-5. A clearance sale gives one quarter of the menu price, rounded down, with a minimum of one coin.
-   This is a game rule. It does not claim a real resale price. Sources cannot be sold.
+3. Every quest pays its menu value. No chapter, character, or visit multiplies a reward.
+4. The count of quests in each window makes the quest income cover the preparation costs.
+5. The game has no sales. A dish leaves the board only by a merge or a delivery.
 6. Each preparation defines its work scope, material or stock allowance, labour allowance,
    and estimated active person-hours. Its price is materials plus labour, independent of task order.
 7. One coin uses roughly one Romanian leu as a reference scale. The model uses supplier and service
@@ -70,13 +66,13 @@ Failed writes preserve the current save and remain recoverable.
 
 Run `node tools/campaign-balance.ts`. `tests/campaign-balance.test.ts` runs the same checks in the full gate.
 
-The fixture starts a new game and sells the starting food. Then it pays each preparation as soon as it is ready.
+The fixture starts a new game. It pays each preparation as soon as it is ready.
 Otherwise it delivers the first quest that has a ticket. It makes each requested item from the highest output
-that its source has earned, and merges up from there. When the board is full, it sells the lowest-value food
-that the current delivery does not hold.
+that its source has earned, and merges up from there. When the board is full, it merges spare food: a pair,
+or a match for a blocked ingredient. A full board without such a merge is a deadlock, and the fixture fails.
 
-Each preparation and chapter reports successful actions, takes, merges, sales, deliveries,
-quest and sale income, preparation expense, and balance. Preparation records also include work scope
+Each preparation and chapter reports successful actions, takes, merges, deliveries,
+quest income, preparation expense, and balance. Preparation records also include work scope
 and material and labour budgets. The fixture checks state validity and every coin after each action.
 
 The report measures gameplay effort under one stated policy. It does not measure human play time.
@@ -84,7 +80,7 @@ The report measures gameplay effort under one stated policy. It does not measure
 ## Acceptance and evidence
 
 - Engine: exact and missing coins, missing quests, source placement, atomic failures, and repeated or final completion.
-- Economy: raw ingredients at 1 to 3 coins, explicit prepared-food values, the reward rule, and clearance values.
+- Economy: raw ingredients at 1 to 3 coins, explicit prepared-food values, the reward rule, and the rejected sale action.
   The checks cover complete work budgets and relative costs for signs, menus, and repairs.
   They also cover the funding check and invalid authored data.
 - Saves: current saves, export and import, failed writes, and malformed data.

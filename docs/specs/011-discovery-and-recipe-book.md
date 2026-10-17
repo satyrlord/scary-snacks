@@ -55,10 +55,10 @@ A repeated load must not replay every discovery notice. Notice acknowledgements 
 
 ## Acceptance checks
 
-- Engine: the create, merge, and grant paths discover an item once. Failed actions and previews do not discover. A sold dish stays discovered.
+- Engine: the create, merge, and grant paths discover an item once. Failed actions and previews do not discover. A delivered dish stays discovered.
 - Data: every dish that a quest requests has a readable production path. The book totals exclude generators.
 - Saves: discoveries survive a save and a load. The game rejects unknown item IDs without a change to the original save.
-- Browser: examine an undiscovered dish on a quest ticket. Make the dish with legal actions. Examine the revealed entry. Sell the dish and reload. The entry must stay revealed.
+- Browser: examine an undiscovered dish on a quest ticket. Make the dish with legal actions. Examine the revealed entry. Deliver the dish and reload. The entry must stay revealed.
 - Accessibility: unknown entries have useful names. The known or unknown status does not use color alone. Focus stays stable after a discovery refresh.
 
 ## Remaining design work

@@ -143,7 +143,7 @@ test('saved output choices round trip with moved generators and corrupt choices 
     { [source.chain]: source.id }, { [source.chain]: other.id }, { [source.chain]: stageOne.id },
     { [source.chain]: tooHigh.id }, JSON.parse('{"__proto__":"unknown"}')]) {
     const invalid = { ...current, outputChoices: choices };
-    assert.throws(() => importSave(JSON.stringify({ format: 'scary-snacks', version: 9, state: invalid }), validate));
+    assert.throws(() => importSave(JSON.stringify({ format: 'scary-snacks', version: 10, state: invalid }), validate), /damaged or unknown/);
     assert.throws(() => exportSave(invalid, validate));
     assert.equal(saveGame(storage, invalid, validate).ok, false);
     assert.equal(values.get(SAVE_KEY), text);

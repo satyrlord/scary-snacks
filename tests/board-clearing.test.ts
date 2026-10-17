@@ -25,7 +25,7 @@ function rejected(state: GameState, action: Action) {
 test('new games reserve eight obstacle cells and discover every visible blocked ingredient', () => {
   const state = start();
   assert.equal(state.layoutId, 'workbench-clutter-1');
-  assert.equal(state.version, 10);
+  assert.equal(state.version, 11);
   assert.equal(freeBoardCells(state, data), 27);
   assert.equal(firstFreeBoardCell(state, data), 2);
   assert.deepEqual([0, 5, 6, 11, 36, 37, 40, 41].map(index => unresolvedObstacle(state, index, data)?.type),
@@ -113,9 +113,9 @@ test('blocked null cells do not provide placement or preparation space', () => {
   assert.equal(freeBoardCells(state, data), 0);
   assert.equal(firstFreeBoardCell(state, data), -1);
   rejected(state, { type: 'spawn', index: 1 });
-  const sold = apply(state, { type: 'sell', index: 2 });
-  assert.equal(firstFreeBoardCell(sold, data), 2);
-  const produced = apply(sold, { type: 'spawn', index: 1 });
+  const merged = apply(state, { type: 'move', from: 2, to: 3 });
+  assert.equal(firstFreeBoardCell(merged, data), 2);
+  const produced = apply(merged, { type: 'spawn', index: 1 });
   assert.equal(produced.board[2]?.code, 'bakery_1');
 });
 

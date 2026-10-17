@@ -1,5 +1,5 @@
-import { createGame, reduceGame, validateGame, generatorOutputs, nextOutput, dataProblems, taskEligibility, saleValue, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, questDeliveryCells, decorationUnlocked, deliveriesSince, unresolvedObstacle, boardObstacles, pendingPreparationObstacles, freeBoardCells, resolveChapters, journalCharacters, resolveNeighbours, arrivalScene } from './engine.ts';
-import type { Action, ChapterView, DecorationSlot, DecorationVariant, GameData, GameState, Quest, RoomView, SceneLine, Task } from './engine.ts';
+import { createGame, reduceGame, validateGame, generatorOutputs, nextOutput, dataProblems, taskEligibility, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, questDeliveryCells, decorationUnlocked, deliveriesSince, unresolvedObstacle, boardObstacles, pendingPreparationObstacles, freeBoardCells, resolveChapters, journalCharacters, resolveNeighbours, arrivalScene, guideStages } from './engine.ts';
+import type { Action, ChapterView, DecorationSlot, DecorationVariant, GameData, GameState, GuideStage, Quest, RoomView, SceneLine, Task } from './engine.ts';
 import { loadSave, saveGame, exportSave, importSave, resetSave, SAVE_KEY, MAX_SAVE_BYTES } from './storage.ts';
 import type { WriteResult } from './storage.ts';
 
@@ -58,6 +58,15 @@ const coinText = (value: number) => `${count.format(value)} ${plural.select(valu
 // Mara's note when nothing is selected: the move gesture, in the same words as the other board guidance.
 const MOVE_HINT = 'Tap an item, then tap where it should go.';
 const BLOCKED_STORAGE = 'Not saved: this browser blocks storage, so this game lasts only for this visit.';
+const GUIDE_DONE = 'The guide is complete. Options has more help: the recipe book, Find a match, and blocked spaces.';
+// The guide's steps by name, with the explanation that the kitchen guide page keeps for review.
+const GUIDE_STEPS: Record<GuideStage, [string, string]> = {
+  merge: ['Merge', 'Tap an item, then a matching item, to merge them into the next dish. You can also drag one onto the other.'],
+  take: ['Take', 'A plus badge marks an ingredient source, such as the Flour bin. Each tap takes one ingredient. Sources never run out.'],
+  deliver: ['Deliver', 'Each ticket is a neighbour’s request. Tap its dishes to read it and to see how to make each dish. Deliver takes the dishes from the board and pays coins. There is no deadline.'],
+  prepare: ['Prepare', 'Preparations restore the bistro. Each one needs coins and every quest that opened before it. Story shows both. Pay when everything is ready, and the room changes.'],
+  story: ['Read and return', 'Each preparation has a story scene. A scene that you close waits in Story under Read now. You can skip a scene. The Journal keeps preparations and recurring characters’ scenes. One-time visitors have no replay.'],
+};
 let theme = 'system';
 let data: GameData, state: GameState, selected: number | null = null, sound = false, audioContext: AudioContext | null = null;
 let saveMessage = '', saveFailed = false, ignoreClick = false, catAsleep = false, freshDishes = 0;
@@ -73,6 +82,7 @@ let spriteSequence = 0, boardFocus = 0;
 // The room: the area it shows, a paid preparation whose change waits for the end of its story, and the next painting while it downloads.
 // The story scene that the paid preparation earned, which opens after its reveal.
 let earnedScene: string | null = null;
+let revealGuideDone = false;
 let viewArea = '', held: Task | null = null, revealToken = 0, paintingToken = 0, preloaded: HTMLPictureElement | null = null, lowered = false, swipe = 0;
 let storage: Storage | null = null;
 try { storage = window.localStorage; } catch { /* Session play remains available. */ }
@@ -262,6 +272,7 @@ function act(action: Action, select?: number | null) { return changeGame(() => {
 /** A successful action can also set the selection, so that one render shows both. */
 function applyAction(action: Action, select?: number | null) {
   const coins = state.coins, before = state.board.map(cell => cell?.code), known = new Set(state.discovered);
+  const guided = state.guide?.status === 'active' ? state.guide.stage : null;
   const result = reduceGame(state, action, data);
   if (result.ok) {
     // A preparation must be durable before its story or visual reward appears.
@@ -275,16 +286,22 @@ function applyAction(action: Action, select?: number | null) {
     }
     gameVersion++;
     state = result.state; if (select !== undefined) selected = select; if(action.type!=='task'&&action.type!=='decorate')persist();
+    // When a guide step is done, the selection clears, so that Mara's line shows the next step.
+    if (guided && (state.guide?.status !== 'active' || state.guide.stage !== guided)) selected = null;
     if (result.event && TONE_EVENTS.includes(result.event)) playTone(result.event);
   }
-  render(); status(result.message);
+  const guideDone = !!guided && state.guide?.status === 'complete';
+  if (guideDone && held) revealGuideDone = true;
+  let message = result.message;
+  render();
   if (state.coins > coins) celebrateCoins(state.coins - coins);
   if (result.ok && (result.event === 'merge' || result.event === 'spawn')) {
     // A new dish settles onto its tile; the first one of its kind arrives with a little flourish and goes into the recipe book.
     state.board.forEach((cell, index) => { if (cell && cell.code !== before[index]) $(`[data-cell="${index}"]`).classList.add(known.has(cell.code) ? 'settle' : 'first'); });
     const first = state.discovered.filter(code => !known.has(code) && data.items[code] && !definition(code).generator);
-    if (first.length) { freshDishes += first.length; markRecipeBook(); status(`${itemName(first[0])} is a new dish! It is in the recipe book now.`); }
+    if (first.length) { freshDishes += first.length; markRecipeBook(); message = `${itemName(first[0])} is a new dish! It is in the recipe book now.`; }
   }
+  status(guideDone ? `${message} ${GUIDE_DONE}` : message);
   return result;
 }
 /** The recipe book shows how many dishes are new since it was last opened. */
@@ -337,7 +354,7 @@ function replaceGame(next: GameState) {
   for (const flight of document.querySelectorAll('.deliver-flight')) flight.remove();
   toastStack.replaceChildren();
   state = next; selected = null; freshDishes = 0;
-  held = null; earnedScene = null; revealToken++; preloaded = null; viewArea = latestArea(state.decorations, data);
+  held = null; earnedScene = null; revealGuideDone = false; revealToken++; preloaded = null; viewArea = latestArea(state.decorations, data);
   $('.game-layout').classList.remove('revealing'); $('#room-stage').removeAttribute('data-reveal'); setLowered(false);
 }
 /** Now and then a bat crosses the dusk beyond the front room's mended window: after each preparation, and after every third delivery. Never while the page is hidden, under reduced motion, or before the window is mended. */
@@ -416,17 +433,20 @@ function render() {
   const free = freeBoardCells(state,data);
   const pending = pendingPreparationObstacles(state,data).length;
   const targets = selected === null ? [] : blockerTargets(selected);
+  const hint = guideHint(), guided = hint?.cells.filter(at => at !== selected) ?? [];
+  renderGuide(hint);
   const board = $('#board'); board.replaceChildren();
   board.setAttribute('aria-label', `Merge board, ${data.board.columns} columns and ${data.board.rows} rows, ${free} free ${free === 1 ? 'space' : 'spaces'}${pending ? `, ${pending} preparation blockers waiting` : ''}`);
   state.board.forEach((cell, index) => {
     const obstacle = unresolvedObstacle(state,index,data);
-    const value = button('', `cell ${obstacle ? `obstacle ${obstacle.type}` : cell ? '' : 'empty'} ${selected === index ? 'selected' : ''} ${targets.includes(index) ? 'blocker-target' : ''}`, () => chooseCell(index));
+    const value = button('', `cell ${obstacle ? `obstacle ${obstacle.type}` : cell ? '' : 'empty'} ${selected === index ? 'selected' : ''} ${targets.includes(index) ? 'blocker-target' : ''} ${guided.includes(index) ? 'guide-target' : ''}`, () => chooseCell(index));
     value.dataset.cell = String(index);
     const what = obstacle
       ? `${obstacle.name}, blocked ${itemName(obstacle.ingredient)}. Merge a matching movable ingredient into this space to clear it`
       : !cell ? 'empty' : definition(cell.code).generator ? `${itemName(cell.code)}, source of ${sourceOutput(cell.code)}: tap to take an ingredient` : itemName(cell.code);
     value.setAttribute('aria-label', `Row ${Math.floor(index / data.board.columns) + 1}, column ${index % data.board.columns + 1}: ${what}${obstacle?.context ? `. ${obstacle.context}` : ''}`);
     if (targets.includes(index)) value.setAttribute('aria-label', `${value.getAttribute('aria-label')}. Matching item for the selected blocked ingredient`);
+    if (guided.includes(index)) value.setAttribute('aria-label', `${value.getAttribute('aria-label')}. Marked by the guide`);
     if (selected === index && obstacle) value.setAttribute('aria-describedby','blocker-rule');
     // One tab stop for the whole board; the arrow keys move between spaces.
     value.tabIndex = index === (selected ?? boardFocus) ? 0 : -1;
@@ -473,10 +493,11 @@ const activeQuests = () => {
 const onBoard = (code: string, quantity: number) => Math.min(quantity, state.board.filter((cell, index) => cell?.code === code && !unresolvedObstacle(state, index, data)).length);
 /** Each request on the counter is a paper ticket on the drawer: the neighbour's portrait, the dishes with their counts, and Deliver. */
 function renderTickets() {
-  const container = $('#tickets'); container.replaceChildren();
+  const container = $('#tickets'), guided = guideHint()?.quest; container.replaceChildren();
   activeQuests().forEach((quest, slot) => {
     const person = character(quest.character), ready = canDeliverQuest(state, quest, data);
-    const card = element('article', 'ticket'); card.setAttribute('aria-label', `${person.name}’s request: ${quest.title}`);
+    const card = element('article', `ticket${quest.id === guided ? ' guide-target' : ''}`);
+    card.setAttribute('aria-label', `${person.name}’s request: ${quest.title}${quest.id === guided ? '. Marked by the guide' : ''}`);
     card.dataset.quest = quest.id;
     // A ticket that has just taken a delivered request's place arrives in the same slot; the delay survives renders.
     const since = arriving[slot] ? performance.now() - arriving[slot] : Infinity;
@@ -518,9 +539,9 @@ function storyContent(inSheet: boolean) {
   else content.append(element('h2', 'chapter-title', view.chapter.title));
   content.append(element('p', 'chapter-objective', view.chapter.objective), chapterSteps(view, !inSheet));
   // An earned scene waits here until the player finishes or skips it. Cooking never waits for it.
-  const waiting = state.pendingScenes[0], scene = waiting ? storyScene(waiting) : null;
+  const waiting = state.pendingScenes[0], scene = waiting ? storyScene(waiting) : null, guided = guideHint()?.control;
   if (waiting) {
-    const notice = element('div', 'story-waiting'), read = button('Read now', 'text-button', () => showScene(waiting));
+    const notice = element('div', 'story-waiting'), read = button('Read now', `text-button${guided === 'read' ? ' guide-target' : ''}`, () => showScene(waiting));
     read.setAttribute('aria-label', `Read now: ${scene?.title ?? 'the waiting scene'}`);
     notice.append(element('p', '', scene?.prompt ?? 'A story scene is waiting.'), read); content.append(notice);
   }
@@ -590,6 +611,7 @@ function payButton(task: Task) {
     preloadRoom(task); showScene(task.id, undefined, { paid:true, completion:result.message });
   }));
   pay.append(coinMark()); pay.setAttribute('aria-label', `Pay ${coinText(task.cost)}: ${task.title}`);
+  pay.classList.toggle('guide-target', guideHint()?.control === 'pay');
   pay.disabled = !taskEligibility(state, data).ready;
   return pay;
 }
@@ -602,12 +624,14 @@ function renderOffer() {
   const ready = eligibility.ready && !$('#story').checkVisibility();
   $('.game-layout').toggleAttribute('data-offer', ready);
   story.toggleAttribute('data-ready', ready); story.setAttribute('aria-label', ready ? 'Story, a preparation is ready' : 'Story');
+  // Where the story lives in a sheet, the guide marks the Story button for a waiting scene.
+  story.classList.toggle('guide-target', guideHint()?.control === 'read' && !$('#story').checkVisibility());
   if (!ready) { offer.replaceChildren(); return; }
   const face = portrait('mara'), words = element('p');
   face.setAttribute('aria-hidden', 'true'); words.append(element('strong', '', task!.title), element('span', '', 'Ready when you are.'));
   offer.replaceChildren(face, words, payButton(task!));
 }
-/** The selection strip's note: how a source works, or which neighbours on the tickets want the item, so a sale is never a surprise. */
+/** The selection strip's note: how a source works, or which neighbours on the tickets want the item. */
 function detailNote(code: string) {
   if (definition(code).generator) return 'Tap it on the board, or use Take. It never runs out.';
   const waiting = [...new Set(activeQuests().filter(quest => quest.requirements.some(requirement => requirement.item === code)).map(quest => character(quest.character).name))];
@@ -692,10 +716,6 @@ function renderDetail() {
     takes.append(take);
   }
   if (outputs.length === 1) actions.append(takes);
-  if (!def.generator) {
-    const value = saleValue(cell.code,data), sell = button(`Sell · ${count.format(value)}`,'secondary-button sell-button',() => act({type:'sell',index:at},null));
-    sell.append(coinMark()); sell.setAttribute('aria-label', `Sell for ${coinText(value)}`); actions.append(sell);
-  }
   actions.append(clearSelectionButton());
   container.append(head, actions);
   if (outputs.length > 1) container.append(takes);
@@ -1020,6 +1040,7 @@ function chooseArea(id: string) {
  */
 async function reveal(task: Task) {
   const token=++revealToken,changed=data.rooms.find(room=>room.after===task.id)!,layout=$('.game-layout'),stage=$('#room-stage');
+  const guideDone=revealGuideDone;revealGuideDone=false;
   viewArea=changed.area;try{storage?.setItem(AREA_KEY,viewArea);}catch{/* The room still follows the change. */}
   const {views,view}=currentView(),pause=(ms: number)=>new Promise(resolve=>setTimeout(resolve,ms));
   const land=()=>{if(!$('#room-pin').hidden&&!still.matches)$('#room-pin').animate([{opacity:0,transform:'translateY(-14px) scale(.6)'},{opacity:1,transform:'none'}],{duration:450,easing:'cubic-bezier(.16,1,.3,1)'});};
@@ -1031,7 +1052,7 @@ async function reveal(task: Task) {
   renderAreaSwitch(views,view);
   stage.dataset.reveal='run';await drawRoom(view,still.matches?0:FOCUS_MS);
   if(token!==revealToken)return;
-  land();status(changed.text);
+  land();status(guideDone ? `${changed.text} ${GUIDE_DONE}` : changed.text);
   // The pin is described by the change, so focus lands where the change is.
   if(!$('#room-pin').hidden)$('#room-pin').focus({preventScroll:true});
   if(!still.matches)await pause(SETTLE_MS);
@@ -1150,7 +1171,7 @@ function swapMark() {
   const arrows=svg('path');arrows.setAttribute('d','M7.5 10a5 5 0 0 1 8.6-2.2M16.5 5.5v2.8h-2.8M16.5 14a5 5 0 0 1-8.6 2.2M7.5 18.5v-2.8h2.8');
   value.append(face,arrows);return value;
 }
-/** Options holds only the game's options: appearance, sound, and the saved game. */
+/** Options holds only the game's options: appearance, sound, the guide, and the saved game. */
 function options() {
   const content=element('div');content.append(element('p','modal-copy save-status',saveMessage));
   // Writes never replace an unreadable save, so only a new game (an explicit reset) lets this browser save again.
@@ -1164,6 +1185,7 @@ function options() {
   }
   choices.append(element('legend','','Appearance'),element('p','','System follows your device’s light or dark setting.'),group);appearance.append(choices);content.append(appearance);
   const audio=element('section','settings-section');audio.append(element('h3','','Kitchen sounds'),element('p','','Soft tones for merging, delivering, and finishing preparations. Sound stays off until you turn it on.'),soundToggle());content.append(audio);
+  const help=element('section','settings-section');help.append(element('h3','','Guide'),element('p','','Review the five steps of the kitchen, read more help, or let Mara guide you again on this board.'),button('Open the kitchen guide','secondary-button',guidePage));content.append(help);
   const saves=element('section','settings-section');saves.append(element('h3','','Your saved game'),element('p','','Export a copy to keep it safe or to carry on in another browser.'));
   const actions=element('div','settings-actions');actions.append(button('Export saved game','secondary-button',downloadSave));
   const file=element('input','hidden');file.type='file';file.accept='.json,application/json';
@@ -1204,6 +1226,103 @@ function findMatch() {
   const index=state.board.findIndex(cell=>cell&&definition(cell.code).generator);
   if(index>=0){const code=state.board[index]!.code;selected=index;render();status(`No matches yet. Tap the ${itemName(code)} to take ${itemName(chosenOutput(code))}.`);return;}
   status('No matches yet.');
+}
+/** The guide's next step on the board as it stands: its words, the cells and the ticket that it points to, and the story control, if any. */
+type GuideHint = { stage: GuideStage; text: string; cells: number[]; quest?: string; control?: 'pay' | 'read' };
+function guideHint(): GuideHint | null {
+  const guide = state.guide;
+  if (guide?.status !== 'active') return null;
+  const stage = guide.stage, free = freeBoardCells(state,data) > 0, hint = (text: string, cells: number[] = [], more: Partial<GuideHint> = {}) => ({ stage, text, cells, ...more });
+  const items = state.board.flatMap((cell, index) => cell && definition(cell.code).next ? [index] : []);
+  const source = state.board.findIndex(cell => cell && definition(cell.code).generator);
+  if (stage === 'merge') {
+    // The lowest pair first, so a new game points at its two Flours. Then a match for a blocked ingredient, then the way to make a pair.
+    const pairs = items.map(at => items.filter(other => state.board[other]!.code === state.board[at]!.code)).filter(cells => cells.length > 1)
+      .sort((a, b) => definition(state.board[a[0]]!.code).stage - definition(state.board[b[0]]!.code).stage);
+    if (pairs.length) {
+      const code = state.board[pairs[0][0]]!.code, next = definition(code).next!;
+      return hint(`Tap one ${itemName(code)}, then the other, to merge them. Two make ${state.discovered.includes(next) ? itemName(next) : 'a new dish'}.`, pairs[0].slice(0, 2));
+    }
+    const match = items.find(at => matchingBlocker(state.board[at]!.code));
+    if (match !== undefined) return hint(`Merge the ${itemName(state.board[match]!.code)} into the blocked one to clear it.`, [match, matchingBlocker(state.board[match]!.code)!.position]);
+    if (!free) return hint('The board is full. Deliver a request to make room.');
+    if (source >= 0) return hint(`No pair yet. Tap the ${itemName(state.board[source]!.code)} twice, then merge the two.`, [source]);
+  }
+  if (stage === 'take') {
+    if (!free) return hint('The board is full. Merge a pair or deliver a request to make room.');
+    if (source >= 0) {
+      const code = state.board[source]!.code;
+      return hint(`Tap the ${itemName(code)}. The plus badge marks a source: each tap takes ${itemName(chosenOutput(code))}.`, [source]);
+    }
+  }
+  if (stage === 'deliver') {
+    // A request that the board can fill now, or else the one with the most of its dishes on the board. Every ticket can be made.
+    const share = (quest: Quest) => quest.requirements.reduce((sum, { item, quantity }) => sum + onBoard(item, quantity) / quantity, 0) / quest.requirements.length;
+    const quest = [...activeQuests()].sort((a, b) => Number(canDeliverQuest(state, b, data)) - Number(canDeliverQuest(state, a, data)) || share(b) - share(a))[0];
+    if (!quest) return hint(state.taskIndex === data.tasks.length
+      ? 'No requests remain after the supper. Use Skip guide to close the guide.'
+      : 'No request waits now. Pay for the next preparation to open more.');
+    const person = character(quest.character).name;
+    if (canDeliverQuest(state, quest, data)) return hint(`${person}’s request is ready. Tap Deliver on the ticket.`, [], { quest: quest.id });
+    return hint(`${person}’s request is on the marked ticket. Tap its dishes for help.`, [], { quest: quest.id });
+  }
+  if (stage === 'prepare') {
+    const eligibility = taskEligibility(state, data), task = eligibility.task;
+    if (!task) return hint('Every preparation is paid. The supper is ready.');
+    if (eligibility.ready) return hint(`Everything is ready. Pay for “${task.title}” to change the room.`, [], { control: 'pay' });
+    const needs = eligibility.requirements.flatMap(requirement => {
+      if (requirement.met) return [];
+      if (requirement.kind === 'space') return [`space for the ${requirement.source}`];
+      const missing = requirement.required - requirement.current, one = plural.select(missing) === 'one';
+      return [`${count.format(missing)} more ${requirement.kind === 'coins' ? one ? 'coin' : 'coins' : one ? 'quest' : 'quests'}`];
+    });
+    return hint(`“${task.title}” needs ${names.format(needs)}. Quests pay coins.`);
+  }
+  if (stage === 'story') {
+    if (state.pendingScenes.length) return hint('A story scene waits. Tap Read now in Story. You can skip it.', [], { control: 'read' });
+    return hint('When a scene waits, Read now in Story opens it. Options has more help.');
+  }
+  return hint('Merge a pair or deliver a request to make room.');
+}
+/** While the guide runs, Mara's line shows its step and Skip guide in place of the last message and Find a match. The status line still announces each message. */
+function renderGuide(hint: GuideHint | null) {
+  $('.game-layout').toggleAttribute('data-guiding', !!hint);
+  const line = $('#guide-step'), key = hint ? `${hint.stage}:${hint.text}` : '';
+  if (line.dataset.key === key) return;
+  line.dataset.key = key; line.replaceChildren();
+  if (!hint) return;
+  const number = guideStages.indexOf(hint.stage) + 1, label = element('span', 'guide-count', `${number} of ${guideStages.length}`);
+  label.prepend(element('span', 'visually-hidden', 'Guide, step '));
+  line.append(label, ` ${hint.text}`);
+}
+function skipGuide() {
+  return changeGame(() => { if (applyAction({ type:'guide', status:'dismissed' }).ok) $('#hint-button').focus({ preventScroll:true }); });
+}
+/** The kitchen guide: the five steps, marked for the current run, and more help. Reading it changes nothing; its button skips, resumes, or restarts the run. */
+function guidePage() {
+  const guide = state.guide, content = element('div', 'guide-page');
+  content.append(element('p', 'modal-copy', 'Five steps cover the whole kitchen. Reading this page changes nothing in your game.'));
+  const steps = element('ol', 'guide-steps');
+  for (const stage of guideStages) {
+    const [title, text] = GUIDE_STEPS[stage], row = element('li'), head = element('p', 'guide-step-title');
+    head.append(element('strong', '', title));
+    const mark = !guide ? '' : guide.done[stage] ? 'Done' : guide.status === 'active' && guide.stage === stage ? 'Now' : '';
+    if (mark) head.append(element('span', `guide-mark${mark === 'Now' ? ' now' : ''}`, mark));
+    row.append(head, element('p', 'small-copy', text)); steps.append(row);
+  }
+  const more = element('dl', 'guide-more');
+  for (const [title, text] of [
+    ['Room on the board', 'Dishes leave the board when you merge them or deliver them. Keep space free: take only what a request needs.'],
+    ['The recipe book', 'Every dish that you make goes into the recipe book. A dish that you have not made waits under a cloche.'],
+    ['Find a match', 'Find a match, under the board, selects an item that you can merge and marks its partner. With no pair, it selects a source to tap.'],
+    ['Blocked spaces', 'A blocked space holds an ingredient that cannot move. Merge a matching ingredient into it to clear it. Tap a blocked space for its help.'],
+  ]) more.append(element('dt', '', title), element('dd', 'small-copy', text));
+  const active = guide?.status === 'active', label = active ? 'Skip the guide' : !guide ? 'Guide me' : guide.status === 'dismissed' ? 'Resume the guide' : 'Guide me again';
+  const action = button(label, active ? 'secondary-button' : 'primary-button', () => changeGame(() => {
+    if (applyAction({ type:'guide', status: active ? 'dismissed' : 'active' }).ok) modal.close();
+  }));
+  content.append(steps, element('h3', '', 'More help'), more, action);
+  showModal('The kitchen guide', content, undefined, options);
 }
 function cancelDrag() { dragging?.ghost?.remove();dragging=null; }
 $('#board').addEventListener('pointerdown',event=>{
@@ -1268,6 +1387,7 @@ $('#collection-button').addEventListener('click',()=>data&&recipeBook());
 $('#recipes-button').addEventListener('click',()=>data&&recipeBook());
 $('#story-button').addEventListener('click',()=>data&&showModal('Our little bistro',storyContent(true)));
 $('#hint-button').addEventListener('click',()=>state&&findMatch());
+$('#skip-guide').addEventListener('click',()=>state&&skipGuide());
 $('#cat-button').addEventListener('click',toggleCat);
 phone.addEventListener('change',()=>{if(state){renderCoins();renderDetail();}});
 drawerLayout.addEventListener('change',()=>{setLowered(false);if(state){renderOffer();renderTickets();}});

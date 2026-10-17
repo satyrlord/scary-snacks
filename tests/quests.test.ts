@@ -72,7 +72,7 @@ const ids = (state: GameState, status: string) => resolveQuests(state, data).fil
 
 test('every neighbour asks across the whole campaign, and every quest opens before the last preparation', () => {
   assert.deepEqual(questProblems(data), []);
-  assert.equal(data.quests.length, 63);
+  assert.equal(data.quests.length, 81);
   assert.equal(Object.keys(data.items).length, 35);
   assert.equal(data.chains.length, 5);
   assert.equal(data.tasks.length, 24);
@@ -90,7 +90,8 @@ test('every neighbour asks across the whole campaign, and every quest opens befo
 test('tickets show at most three active quests in authored order, and a waiting quest takes a freed ticket', () => {
   assert.equal(QUEST_TICKETS, 3);
   const start = createGame(data);
-  const open = data.quests.filter(quest => quest.afterTask === null).map(quest => quest.id);
+  // A second request of a character in the same window waits for the first, so it is locked, not waiting.
+  const open = data.quests.filter((quest, at) => quest.afterTask === null && !data.quests.slice(0, at).some(earlier => earlier.character === quest.character)).map(quest => quest.id);
   assert.deepEqual(ids(start, 'active'), open.slice(0, 3));
   assert.deepEqual(ids(start, 'waiting'), open.slice(3));
   // Delivering the second ticket keeps the authored order of the others, and the first waiting quest takes the free ticket.
@@ -177,7 +178,7 @@ test('traveller requests return in one shared sequence of packs that fit the boa
   assert.equal(validateGame({ ...finished, completedQuests: swapped }, data), false);
 });
 
-test('Ionatan has one costly dinner after Vlad has his guest, and appears in the journal only during his visit', () => {
+test('Ionatan has one dinner after Vlad has his guest, and appears in the journal only during his visit', () => {
   const person = data.characters.find(person => person.id === 'ionatan')!;
   const quests = data.quests.filter(quest => quest.character === person.id);
   assert.equal(person.visitor, true);
@@ -189,7 +190,7 @@ test('Ionatan has one costly dinner after Vlad has his guest, and appears in the
   assert.equal(quest.afterQuest, 'vlad-guest');
   assert.deepEqual(quest.requirements, ['warm_6', 'produce_6', 'sweet_6', 'drinks_6'].map(item => ({ item, quantity: 1 })));
   assert.equal(quest.requirements.reduce((sum, requirement) => sum + data.items[requirement.item].price * requirement.quantity, 0), 220);
-  assert.equal(quest.reward, 1100);
+  assert.equal(quest.reward, 220);
   assert.deepEqual(data.quests.filter(other => other.afterQuest === quest.id).map(other => other.id), ['mina-avram-search']);
   const visible = (state: GameState) => journalCharacters(state, data).some(character => character.id === person.id);
   assert.equal(visible(createGame(data)), false);
@@ -215,7 +216,7 @@ test('Ionatan dinner delivery pays once, keeps failed visits open, and records h
   play.state.coins = 7;
   const before = structuredClone(play.state);
   play.act({ type: 'deliverQuest', id });
-  assert.equal(play.state.coins, 1107);
+  assert.equal(play.state.coins, 7 + 220);
   for (const key of ['taskIndex', 'decorations', 'discovered'] as const) assert.deepEqual(play.state[key], before[key]);
   assert.deepEqual(play.state.completedQuests, [...before.completedQuests, id]);
   assert.equal(resolveQuests(play.state, data).find(view => view.quest.id === id)!.status, 'complete');
@@ -305,7 +306,6 @@ test('the next output that the interface names is the output that one tap takes'
       const empty = firstFreeBoardCell(play.state, play.content);
       play.act({ type: 'spawn', index: play.state.board.findIndex(cell => cell?.code === source) });
       assert.equal(play.state.board[empty]?.code, named);
-      play.act({ type: 'sell', index: empty });
     }
   };
   const content = data, play = player(checkpoint(18));

@@ -50,7 +50,7 @@ Generator assembly is outside this feature.
     A take on a full board fails.
     The failure changes no state, no chosen output, and no tier.
     The failure message does not name an unearned output or preparation.
-15. The game does not allow the sale or the merge of a generator.
+15. The game does not allow the merge of a generator.
 
 ## Data and state
 
@@ -76,7 +76,7 @@ Generator assembly is outside this feature.
 
 The campaign test in `tests/campaign-balance.test.ts` delivers the first open quest ticket and pays each preparation when it is ready. It takes the highest earned output that each required item needs, then merges. It injects no coins or items. It validates every action and completes all 24 preparations with no deadlock.
 
-The fixture reports actions, takes, merges, sales, and deliveries for each preparation and chapter. It measures one deterministic strategy.
+The fixture reports actions, takes, merges, and deliveries for each preparation and chapter. It measures one deterministic strategy.
 
 ## Acceptance and evidence
 

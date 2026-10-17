@@ -11,7 +11,7 @@ movable ingredient into that cell to clear the blocker and leave the normal
 successor. The source cell becomes empty. All blocker pictures use this one rule.
 Merges beside blockers clear nothing.
 
-A blocked ingredient cannot move, swap, sell, or fill a quest. It is not an empty
+A blocked ingredient cannot move, swap, or fill a quest. It is not an empty
 cell. A wrong ingredient changes nothing. A matching merge needs no free space.
 The merge, blocker removal, and discovery form one change. Each blocker clears
 once. Clearing is optional for the campaign.
@@ -22,7 +22,7 @@ source takes its cell first. Blockers use empty cells in board order.
 Placement keeps three usable empty cells. At most three preparation blockers can remain unresolved.
 Ordinary actions can use the empty cells that placement preserves.
 Blockers can share sides. Remaining blockers wait in preparation order. A
-successful move, take, sale, quest delivery, or payment tries placement again.
+successful move, take, quest delivery, or payment tries placement again.
 Failed actions, load, and import place nothing. Placement never replaces an item.
 
 ## Board layout

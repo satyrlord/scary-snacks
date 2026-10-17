@@ -17,6 +17,7 @@ export const sourceFiles=[...runtimeFiles,'public/data/game.json',...fontFiles.m
   'tests/preparation-blockers.test.ts','tests/browser/preparation-blockers.spec.ts',
   'tests/browser/blocker-help.spec.ts',
   'tests/story.test.ts','tests/browser/story.spec.ts',
+  'tests/guide.test.ts','tests/browser/guide.spec.ts',
   'tests/checkpoint-saves.test.ts','tests/browser/support.ts','tests/browser/portrait-framing.spec.ts',
   'docs/asset-prompts.json','docs/asset-provenance.json','docs/asset-variants.json','docs/font-provenance.json','docs/release-notes.md','docs/verification.md','docs/economy.md',
   '.github/workflows/pages.yml',

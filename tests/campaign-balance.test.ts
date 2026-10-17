@@ -24,14 +24,13 @@ test('the legal quest campaign reaches the finale and accounts for every action 
   assert.equal(finalState.layoutId, data.board.defaultLayout);
   assert.deepEqual(finalState.resolvedObstacles, [], 'The campaign needs no blocker release.');
   assert.ok(finalState.preparationObstacles!.placed.length >= 3);
-  assert.equal(finalState.coins, totals.questCoins + totals.saleCoins - totals.preparationCoins);
+  assert.equal(finalState.coins, totals.questCoins - totals.preparationCoins);
   assert.equal(totals.preparationCoins, data.tasks.reduce((sum, task) => sum + task.cost, 0));
   assert.equal(totals.questCoins, data.quests.reduce((sum, quest) => sum + quest.reward, 0));
-  assert.ok(totals.saleCoins < data.tasks[0].cost, 'Sales are change, not income.');
   assert.deepEqual(report.chapters.map(chapter => chapter.chapter), [1, 2, 3, 4, 5, 6]);
   let balance = 0;
   for (const chapter of report.chapters) {
-    balance += chapter.questCoins + chapter.saleCoins - chapter.preparationCoins;
+    balance += chapter.questCoins - chapter.preparationCoins;
     assert.equal(chapter.balance, balance, `Chapter ${chapter.chapter} records its actual balance.`);
     assert.equal(chapter.preparationCoins, report.preparations.filter(task => task.chapter === chapter.chapter).reduce((sum, task) => sum + task.cost, 0));
   }
@@ -47,7 +46,7 @@ test('the legal quest campaign reaches the finale and accounts for every action 
     assert.ok(preparation.balance >= 0);
   }
   for (const chain of data.chains) assert.ok(generatorOutputs(finalState, `generator_${chain.id}`, data).includes(`${chain.id}_3`));
-  t.diagnostic(`${totals.actions} actions, ${totals.spawns} spawns, ${totals.merges} merges, ${totals.sales} sales; ${totals.questCoins} quest + ${totals.saleCoins} sale coins; ${totals.preparationCoins} spent; ${finalState.coins} remain.`);
+  t.diagnostic(`${totals.actions} actions, ${totals.spawns} spawns, ${totals.merges} merges; ${totals.questCoins} quest coins; ${totals.preparationCoins} spent; ${finalState.coins} remain.`);
 });
 
 test('the legal action policy reproduces the same campaign evidence', () => {

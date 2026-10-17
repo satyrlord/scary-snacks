@@ -52,17 +52,14 @@ The application has no runtime package and no backend. Playwright, TypeScript, S
 
 ## Play
 
-The board has six columns and seven rows. The requests are authored. The game has five ingredient sources (generators), 30 dishes and drinks, 22 characters, 63 quests, and 24 preparations over six chapters. Each dish or drink has an English name. If English has no name for the dish, the dish has the Romanian regional name with its diacritics. The initial layout, the prices, the progression, the characters, and the dialogue are new works.
+The board has six columns and seven rows. The requests are authored. The game has five ingredient sources (generators), 30 dishes and drinks, 22 characters, 81 quests, and 24 preparations over six chapters. Each dish or drink has an English name. If English has no name for the dish, the dish has the Romanian regional name with its diacritics. The initial layout, the prices, the progression, the characters, and the dialogue are new works.
 
 Quests earn coins. The game has no ordinary orders. Preparations unlock generators and story. Each preparation visibly changes the bistro.
 
 Each food has an explicit menu price for its portion. Flour and cornmeal have a price of 2 coins each. Elderflowers have a price of 1 coin. Prepared dishes have higher prices according to their ingredients, work, and portion.
 
-The menu value of a quest is the sum of the prices of its portions. A personal request pays its menu value times the rate of its opening chapter. The rates are 3, 2.5, 2, 1.5, 1, and 1 for chapters 1 to 6. The result is rounded to an even number of coins.
+The menu value of a quest is the sum of the prices of its portions. Every quest pays its menu value. No chapter, character, or visit multiplies a reward. Quests are the only income. The game has no sales.
 
-The early chapters pay more, so that the first room changes come quickly. The supply packs of the travellers and the meal for Mina and Avram pay their menu value. Ionatan pays 1,100 coins. Clearance sales give one quarter of the menu price, rounded down, with a minimum of one coin.
-
-Sources cannot be sold.
 
 Each preparation has a defined work scope, material and labour costs, and estimated active person-hours. Its coin cost is materials plus labour. It does not increase with its position in the story. The cost model uses roughly one coin per Romanian leu as a reference scale.
 
@@ -70,7 +67,7 @@ It models reuse of existing furniture and supplies. It abstracts running costs a
 
 Each quest opens after a preparation, or in a new game. A quest that opens after preparation N is necessary for preparation N + 1. Thus each preparation needs every quest that opens before it, and the player delivers every quest before the finale. Each preparation is paid by the quests that open before it.
 
-The data check compares cumulative quest rewards with cumulative preparation costs. The rewards must cover the costs at each preparation. Thus a player who delivers every open quest always has the coins for the next preparation. Sales still clear space and earn coins.
+The data check compares cumulative quest rewards with cumulative preparation costs. The rewards must cover the costs at each preparation. Thus a player who delivers every open quest always has the coins for the next preparation.
 
 Story shows the coins and the quests delivered for the next preparation. Cost details shows the work and budget.
 
@@ -84,17 +81,17 @@ The request shows who asks and why, each dish with its board count, the reward, 
 
 The dishes fly to the ticket. A temporary notice reports the delivery and reward. The next quest takes the ticket. The completion scene stays waiting in Story. There is no deadline. The four core characters have quest arcs across the six chapters.
 
-Each regular has three quests, or four for the florist and the seamstress. Vlad and Elisabeta have two quests each.
+Mara, Ilie, and Sorin have six quests each, and Eszter has eight. Dochia and Costel have five quests each. Victor, Ana, Sânziana, Dorian, Ileana, and Cezar have four. Cătălina and Bran have three. Vlad and Elisabeta have two quests each.
 
 Adrian, Monica, and Janos are occasional travelling visitors. Each has three supply quests. Their nine visits alternate in that order. They open after preparations 6, 8, 9, 13, 14, 17, 19, 21, and 22.
 
 Each visit also needs the previous visitor delivery, so only one cathedral supply request is open at a time. There is no timer or expiry. The visitors do not join the community supper scene.
 
-Cathedral supply requests concern several days of supplies for a quiet investigation near the cathedral. A request needs 12 to 16 portions at merge stages 3 or 4, or 4 to 6 portions at stages 5 or 6. Its coin reward is the total menu price. Delivery, replay, failed saves, and Retry save follow the quest rules. The journal has each visitor introduction and each completed request.
+Cathedral supply requests concern several days of supplies for a quiet investigation near the cathedral. A request needs 12 to 16 portions at merge stages 3 or 4, or 4 to 6 portions at stages 5 or 6. Delivery, replay, failed saves, and Retry save follow the quest rules. The journal has each visitor introduction and each completed request.
 
 Ionatan is a foreign real estate agent who visits once per save. His request opens after preparation 16 and Vlad's quest "A guest at the castle". It needs one goulash pot, one sharing board, one chimney cake, and one plum brandy. He stops for dinner on his way to a nearby castle.
 
-There, he plans to close a property deal with a local noble. The dinner has a menu value of 220 coins and pays 1,100 coins. His request is independent of the cathedral supply sequence and can be open beside it. It has no deadline.
+There, he plans to close a property deal with a local noble. The dinner pays its menu value of 220 coins. His request is independent of the cathedral supply sequence and can be open beside it. It has no deadline.
 
 He never joins the finale.
 
@@ -116,7 +113,7 @@ Mina and Doctor Avram share one visit per save. Mina is a young British middle-c
 
 Their visit opens after Ionatan's dinner is delivered and after preparation 17. Mina and Avram arrive and leave together. They never join the finale, and they cannot meet Ionatan at the bistro.
 
-Their shared request is a vegetarian meal for two: two zacuscă toasts, two roasted vegetable plates, one smoked cheese plate, and two fruit teas. It permits eggs and dairy, and contains no meat or fish. The meal has a menu value of 168 coins and pays 168 coins. Delivery ends the visit and sends them to find Ionatan.
+Their shared request is a vegetarian meal for two: two zacuscă toasts, two roasted vegetable plates, one smoked cheese plate, and two fruit teas. It permits eggs and dairy, and contains no meat or fish. The meal pays its menu value of 168 coins. Delivery ends the visit and sends them to find Ionatan.
 
 The third delivery after it earns local gossip: they found him gravely ill, and all three left for Britain. They do not visit the bistro on the return journey. The gossip uses only local speakers and gives no reward. It can be read later in the journal.
 
@@ -171,11 +168,25 @@ To merge, the player taps an item and then a matching item, or drags an item ont
 
 One tap on an ingredient source takes one ingredient and selects the source. Each further tap takes another ingredient. A drag moves the source and takes nothing. If the board is full, the source takes nothing and Mara says why.
 
+A dish leaves the board only when the player merges it or delivers it. The game has no sale and no other way to remove a dish. A board full of dishes that cannot merge and that no request needs stays full; only a new game clears it.
+
+A new game starts the guide. The guide has five steps: Merge, Take, Deliver, Prepare, and Read and return. While the guide runs, Mara's line shows the current step and Skip guide. They replace the last message and Find a match. The status line still announces each message.
+
+Each step ends with one kind of successful action: a merge, a take from a source, a delivery, a preparation payment, and a scene that the player finishes or skips. The guide records these actions in any order and then shows the first step that is not done. A failed action, a move, a swap, a hover, or an animation records no step. When the current step is done, the selection clears, so that Mara's line shows the next step.
+
+The guide finds its targets on the current board, not in fixed cells. Merge marks the pair of the lowest stage, or else a match for a blocked ingredient, or else a source. Take marks a source. Deliver marks one ticket: a request that the board can fill, or else the request with the most of its dishes on the board. Prepare names the coins, quests, and space that the next preparation still needs, and marks Pay when the preparation is ready. Read and return marks Read now.
+
+On a full board, the guide tells the player to merge or deliver. The guide never adds, removes, moves, or reorders items or quests. It gives no coins and unlocks nothing. Story scenes open as usual and take precedence, because the guide is not a dialog.
+
+Skip guide closes the guide and changes nothing else. After the last step, the guide is complete, and Mara's line names the further help in Options.
+
+Options has a Guide section that opens the kitchen guide. The kitchen guide explains the five steps and marks the steps that the current run has done. It also explains room on the board, the recipe book, Find a match, and blocked spaces. Reading the page changes nothing. Its button skips an active guide, resumes a closed guide at its step, or starts a new run on the current board. A new run starts after a complete run or in a save without a run.
+
 A new game starts with eight blocked edge cells on the six-by-seven board. Each cell shows its ingredient through the open center of its blocker. Four blockers use crate, sack, crock, or linen art, and four use twine. Webs cover the first four until "Fix the broken window" is complete.
 
 Every blocker has the same rule: merge a matching movable ingredient into the blocked ingredient. The blocker clears and the normal successor stays in that cell. The source cell becomes empty. A merge beside a blocker clears nothing.
 
-A blocked ingredient cannot move, be sold, or fill a quest. Clearing needs no free space and is optional for campaign progress and quests. A blocked cell is not a free space for any placement or space count. The board hint can point to any matching blocked ingredient.
+A blocked ingredient cannot move or fill a quest. Clearing needs no free space and is optional for campaign progress and quests. A blocked cell is not a free space for any placement or space count. The board hint can point to any matching blocked ingredient.
 
 Each blocker has a small help mark. A tap selects the blocker. Its name and clearing rule replace the item actions or preparation offer under the board. The help names the exact matching ingredient and marks movable matches.
 
@@ -187,7 +198,7 @@ The existing clearing rules apply. Payments, not quest deliveries, earn batches.
 
 Blockers use empty cells only. A new source from the payment takes its space first. Placement follows board order and keeps at least three usable cells empty. Blockers can share sides.
 
-At most three preparation blockers can be unresolved at once, in addition to the initial obstacles. The remaining blockers wait in preparation order. A successful move, take, sale, quest delivery, or payment tries placement again. A failed action places nothing.
+At most three preparation blockers can be unresolved at once, in addition to the initial obstacles. The remaining blockers wait in preparation order. A successful move, take, quest delivery, or payment tries placement again. A failed action places nothing.
 
 No placement replaces or moves an item. A blocked cell can receive another blocker only after its earlier obstacle is resolved and the cell is empty. Each blocker appears once. Its name and explanation give its context.
 
@@ -197,7 +208,7 @@ Each chain keeps one source. All sources gain stage-two output when preparation 
 
 A successful Take sets the output for later taps on that source. A new source starts with stage one. An upgrade or a move keeps the chosen output. Production is free and immediate.
 
-Sources cannot merge or be sold.
+Sources cannot merge.
 
 An upgrade uses no board space. Open quests keep their requirements and rewards. Before payment, the interface names no future tier, output, or upgrade preparation. After payment, the story completion message names each new output. A failed take changes no state or chosen output and does not reveal an unearned output.
 
@@ -243,6 +254,7 @@ The game implements these specifications:
 - 007: board clearing.
 - 008: chapter story and finale.
 - 009: dialogue continuation.
+- 010: the guided introduction and the kitchen guide.
 
 Spec 006 also supplies a campaign balance fixture that uses permitted game actions.
 This document owns the implemented behavior.
@@ -289,7 +301,7 @@ If the game data cannot load or does not pass its checks, the kitchen says so an
 
 An import validates the envelope and the state of the save. An import rejects malformed saved data and keeps the current save. An import enforces a size limit. Load, save, import, and reset use only the save keys of this game. They do not change other browser data.
 
-Current saves use game state version 10 in envelope version 9 at `scary-snacks-save-v9`. Only this format is supported. Load reads only this key. With no current save, the game starts a new campaign.
+Current saves use game state version 11 in envelope version 10 at `scary-snacks-save-v10`. Only this format is supported. Load reads only this key. With no current save, the game starts a new campaign.
 
 Earlier local saves stay unchanged and are not read or converted. Import rejects earlier formats. New games use the authored blocked layout. Saves record its layout ID and resolved obstacle IDs.
 
@@ -308,6 +320,10 @@ Completed preparations determine chapter completion. Completed quests and their 
 The optional line record maps a waiting scene ID to the zero-based line that the player sees. It holds only lines after the first line, and only for waiting scenes. Reading a scene removes its line. A save without this record starts each waiting scene at its first line.
 
 A line past the end of its scene stays valid, because a line gives no reward. Reset clears the waiting scenes and their lines with the rest of the state. Import replaces them only after full validation and confirmation.
+
+The optional guide record stores the guide status (active, dismissed, or complete), the current step, and one boolean for each step. The current step is the first step that is not done. A complete run has every step done. A save without this record has no guide run.
+
+Load and import reject a record with an unknown status or step, a missing or extra field, or a step that does not agree with the booleans. The record stores no board cell or interface target, and it gives no resource. A failed write keeps the unsaved warning, and a reload repeats the last saved step.
 
 The state records the unique completed quest IDs in delivery order. Each completed quest has its prerequisites earlier in the list, and every completed preparation has its necessary quests in the list. Saved finish choices name only unlocked finishes. Export and import include quest progress and the board layout.
 

@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { canDeliverQuest, createGame, currentTask, firstFreeBoardCell, generatorOutputs, getItem, reduceGame, resolveQuests, saleValue, taskEligibility,
+import { canDeliverQuest, createGame, currentTask, firstFreeBoardCell, generatorOutputs, getItem, reduceGame, resolveQuests, taskEligibility,
   unresolvedObstacle, validateGame } from '../src/engine.ts';
 import type { Action, GameData, GameState, Quest, Task } from '../src/engine.ts';
 
 export type CampaignTotals = {
-  actions: number; spawns: number; merges: number; sales: number; quests: number;
-  questCoins: number; saleCoins: number; preparationCoins: number;
+  actions: number; spawns: number; merges: number; quests: number;
+  questCoins: number; preparationCoins: number;
 };
 export type CampaignChapter = CampaignTotals & { chapter: number; balance: number; cumulative: { actions: number; merges: number; quests: number } };
 export type CampaignPreparation = CampaignTotals & {
@@ -16,12 +16,13 @@ export type CampaignPreparation = CampaignTotals & {
 };
 export type CampaignBalance = { chapters: CampaignChapter[]; preparations: CampaignPreparation[]; totals: CampaignTotals; finalState: GameState };
 
-const emptyTotals = (): CampaignTotals => ({ actions: 0, spawns: 0, merges: 0, sales: 0, quests: 0, questCoins: 0, saleCoins: 0, preparationCoins: 0 });
+const emptyTotals = (): CampaignTotals => ({ actions: 0, spawns: 0, merges: 0, quests: 0, questCoins: 0, preparationCoins: 0 });
 
 /**
- * Deterministic reducer play. Sell the starting food, then pay each preparation as soon as it is ready, and otherwise deliver
- * the first active ticket. Make each requested item from the highest output that its source has earned, and merge up from there.
- * When the board is full, sell the lowest-value food that the current delivery does not hold.
+ * Deterministic reducer play. Pay each preparation as soon as it is ready, and otherwise deliver the first active ticket.
+ * Make each requested item from the highest output that its source has earned, and merge up from there.
+ * The game has no sales, so a full board makes room only by a merge of spare food: a pair, or a match for a blocked ingredient.
+ * A full board without such a merge is a deadlock, and the fixture fails.
  * Every quest that opens before a preparation is required for it, and the source tiers change only with a payment, so the order
  * of the tickets in one window does not change the totals. Actions are game actions, not pointer presses.
  * This fixture does not measure human play time or difficulty.
@@ -44,20 +45,22 @@ export function runCampaignBalance(data: GameData): CampaignBalance {
     totals.actions++;
     if (result.event === 'merge') totals.merges++;
     if (action.type === 'spawn') totals.spawns++;
-    if (action.type === 'sell') { totals.sales++; totals.saleCoins += state.coins - before.coins; }
     if (action.type === 'deliverQuest') { totals.quests++; totals.questCoins += state.coins - before.coins; }
     if (action.type === 'task') totals.preparationCoins += before.coins - state.coins;
-    assert.equal(state.coins, totals.questCoins + totals.saleCoins - totals.preparationCoins, 'Every coin comes from a recorded legal action.');
+    assert.equal(state.coins, totals.questCoins - totals.preparationCoins, 'Every coin comes from a recorded legal action.');
     assert.ok(totals.actions < 100_000, 'The campaign must converge within the fixture action limit.');
   }
 
-  /** Sell the lowest-value food that no current delivery or merge holds. */
+  /** Merge spare food that no current delivery or merge holds: a pair, or a match for a blocked ingredient. Each merge frees one cell. */
   function makeRoom() {
-    const spare = state.board.flatMap((cell, index) => cell && !getItem(cell.code, data)!.generator && !kept.has(index)
-      && !unresolvedObstacle(state, index, data) ? [index] : []);
-    assert.ok(spare.length, 'The board has food to sell for room.');
-    const lowest = spare.reduce((best, index) => saleValue(state.board[index]!.code, data) < saleValue(state.board[best]!.code, data) ? index : best);
-    act({ type: 'sell', index: lowest });
+    const spare = state.board.flatMap((cell, index) => cell && getItem(cell.code, data)!.next && !kept.has(index) ? [index] : []);
+    for (const from of spare) {
+      const code = state.board[from]!.code;
+      const to = spare.find(other => other !== from && state.board[other]!.code === code)
+        ?? state.board.findIndex((cell, index) => !cell && unresolvedObstacle(state, index, data)?.ingredient === code);
+      if (to !== undefined && to >= 0) { act({ type: 'move', from, to }); return; }
+    }
+    assert.fail(`Preparation ${state.taskIndex + 1}: the board is full and no spare merge frees space.`);
   }
 
   function produce(code: string): number {
@@ -107,10 +110,6 @@ export function runCampaignBalance(data: GameData): CampaignBalance {
       chapters.push({ chapter: task.chapter, ...since(previousChapter), balance: state.coins, cumulative: cumulative() });
       previousChapter = { ...totals };
     }
-  }
-
-  for (const [index, cell] of state.board.entries()) {
-    if (cell && !getItem(cell.code, data)!.generator) act({ type: 'sell', index });
   }
 
   for (;;) {

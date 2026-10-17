@@ -2,7 +2,7 @@
 
 These specifications define features for Scary Snacks. A specification does not implement its feature. [PRODUCT.md](../../PRODUCT.md), [DESIGN.md](../../DESIGN.md), and [DELIVERY.md](../../DELIVERY.md) control the current behavior. After you implement a feature, update the related owner documents.
 
-The current game has six chapters, 24 preparations, and 63 authored quests. It also has dialogue replay and item discovery. The specs extend those systems. They do not replace those systems.
+The current game has six chapters, 24 preparations, and 81 authored quests. It also has dialogue replay and item discovery. The specs extend those systems. They do not replace those systems.
 
 ## Product direction
 
@@ -24,7 +24,7 @@ Specs 001 and 002 are implemented. The [verification record](../verification.md)
 
 Spec 003 implements generator tiers, output choices, and persistence. Its acceptance section records the automated evidence.
 
-Spec 005 implements 63 authored quests and three quest tickets.
+Spec 005 implements 81 authored quests and three quest tickets.
 The quests include the four core character arcs, regulars, three recurring travellers, and three guests who visit once.
 The shared guest visit also earns later local news.
 The feature includes optional introductions, atomic delivery, journal replay, and persistence.
@@ -46,6 +46,9 @@ Preparation scenes and quest completion scenes wait with chapter scenes, arrival
 Each waiting scene resumes at its saved line after a reload.
 Its acceptance section describes the automated checks.
 
+Spec 010 implements the guided start in Mara's line and the kitchen guide in Options.
+The guide records successful actions, marks its targets by rule, and gives no resources.
+
 Spec 013 implements the regulars, their arrivals, arrival scenes, portraits, and quests.
 The journal lists the neighbours.
 The game has no ordinary orders.
@@ -62,7 +65,7 @@ Each entry is proposed, unless its specification records an implemented slice. S
 | 007 | [Board clearing](007-board-clearing.md) | Optional | None |
 | 008 | [Chapter story and finale](008-chapter-story-and-finale.md) | High | 001, 005, 009 |
 | 009 | [Dialogue continuation](009-dialogue-continuation.md) | Medium | None |
-| 010 | [Guided introduction](010-guided-introduction.md) | Medium | 006, 007, 009, 015 |
+| 010 | [Guided introduction](010-guided-introduction.md) | Medium | 006, 007, 009 |
 | 011 | [Discovery and recipe book](011-discovery-and-recipe-book.md) | Optional | None |
 | 012 | [Post-campaign goals](012-post-campaign-goals.md) | Optional | 005, 008, 011 |
 | 013 | [Neighbourhood regulars](013-neighbourhood-regulars.md) | High | 009 for arrival scenes |
@@ -78,10 +81,9 @@ The table maps each gap in the current game to the specifications that close it.
 | Gap | Owning specifications |
 | --- | --- |
 | The finale names no regulars yet | 008, 013 |
-| Hints exist but no staged introduction | 010 |
 | The recipe book has no chain-completion marks | 011 |
 | No requests remain after the supper, so the game has no goals after the campaign | 012 |
-| Proposed features need browser coverage when implemented | Acceptance checks in 010, 011, 012, 014, 015 |
+| Proposed features need browser coverage when implemented | Acceptance checks in 011, 012, 014, 015 |
 | The resident cat has no part in play | 014 |
 | No start screen. Reduced motion can be on without a notice, and the player cannot change it | 015 |
 
@@ -104,7 +106,7 @@ Neighbour introductions (005) are optional journal reading. Miez's visits (014) 
 
 ## Shared save compatibility
 
-Current saves use game state version 10 in envelope version 9 at `scary-snacks-save-v9`.
+Current saves use game state version 11 in envelope version 10 at `scary-snacks-save-v10`.
 The game supports only this format.
 Load reads only this key.
 If no current save exists, the game starts a new campaign.
@@ -112,6 +114,7 @@ The game leaves earlier local bytes unchanged and does not read or convert them.
 Import rejects earlier formats.
 
 The optional preparation obstacle baseline and placement history use this format. A missing record receives no past preparation batches. It starts at the next paid preparation. `PRODUCT.md` owns the queue and placement rules.
+The optional guide record of 010 also uses this format. A missing record has no guide run.
 
 Validate the full envelope and state before import. Adopt the candidate only after its write succeeds. A failed write or invalid input keeps the previous save and offers recovery. Test fresh, partial, and completed current saves, malformed records, unsupported versions, oversized imports, and failed writes.
 
@@ -122,15 +125,14 @@ Give a defined reward that needs no board cell, if the feature permits that rewa
 Otherwise, reject the action.
 Explain the space that the action needs.
 Never lose an item or pay a reward twice.
-Mandatory progression must not depend on an exhausted, sold, or inaccessible generator.
+Mandatory progression must not depend on an exhausted or inaccessible generator.
 
 ## Suggested delivery order
 
 1. Build Miez's visits in 014 on the quest campaign of 005. Exit: every open request stays possible, and the 006 fixture measures income with the blessing.
-2. Build the guided start in 010 on the chapter story of 008. Exit: a fresh campaign and a reloaded campaign reach the supper without added resources.
-3. Add the remaining work of 011 and 012 as separate slices. These slices must not delay the core progression.
+2. Add the remaining work of 011 and 012 as separate slices. These slices must not delay the core progression.
 
-Spec 015 adds no game state and is not part of this order. Build it before 010, so that the guided start begins behind the front door.
+Spec 015 adds no game state and is not part of this order. When it adds the front door, the guide of 010 starts after the front door.
 
 ## Verification and release
 

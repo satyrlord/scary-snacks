@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, dataProblems, economyProblems, saleValue } from '../src/engine.ts';
+import { createGame, dataProblems, economyProblems, reduceGame } from '../src/engine.ts';
+import type { Action } from '../src/engine.ts';
 import type { GameData } from '../src/engine.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
@@ -14,32 +15,21 @@ test('renovation cost follows its materials and labour, with less work and money
     assert.ok(small.cost < repair.cost, `${small.title} costs less than ${repair.title}.`);
     assert.ok(small.work.hours < repair.work.hours, `${small.title} needs less work than ${repair.title}.`);
   }
-  const food = createGame(data).board.reduce((sum, cell) => sum + (cell ? saleValue(cell.code, data) : 0), 0);
-  assert.ok(window.cost > food, 'The starting food cannot buy a window repair.');
 });
 
-test('clearance sells food below its menu value and a source has no sale value', () => {
-  for (const item of Object.values(data.items)) {
-    if (item.generator) assert.equal(saleValue(item.id, data), 0);
-    else {
-      assert.equal(saleValue(item.id, data), Math.max(1, Math.floor(item.price / 4)));
-      assert.ok(saleValue(item.id, data) <= item.price);
-      if (item.price > 1) assert.ok(saleValue(item.id, data) < item.price);
-    }
+test('the game has no sales: a sell request changes nothing, so quests are the only income', () => {
+  const state = createGame(data), before = JSON.stringify(state);
+  for (const index of [13, 1]) {
+    const result = reduceGame(state, { type: 'sell', index } as unknown as Action, data);
+    assert.equal(result.ok, false);
+    assert.equal(result.state, state);
   }
-  assert.equal(saleValue('unknown', data), 0);
+  assert.equal(JSON.stringify(state), before);
 });
 
-test('a personal quest pays its menu value at the rate of its chapter, and travellers pay their menu value', () => {
-  const rates = [3, 2.5, 2, 1.5, 1, 1];
+test('every quest pays exactly the menu value of its dishes, with no multiplier', () => {
   const menuValue = (quest: GameData['quests'][number]) => quest.requirements.reduce((sum, { item, quantity }) => sum + data.items[item].price * quantity, 0);
-  for (const quest of data.quests) {
-    const window = quest.afterTask === null ? 0 : data.tasks.findIndex(task => task.id === quest.afterTask) + 1;
-    const visitor = data.characters.find(person => person.id === quest.character)!.visitor;
-    const expected = quest.id === 'ionatan-castle-dinner' ? 1100 : visitor ? menuValue(quest) : Math.round(menuValue(quest) * rates[Math.floor(window / 4)] / 2) * 2;
-    assert.equal(quest.reward, expected, quest.id);
-    if (!visitor) assert.equal(quest.reward % 2, 0, `${quest.id} pays an even reward.`);
-  }
+  for (const quest of data.quests) assert.equal(quest.reward, menuValue(quest), quest.id);
 });
 
 test('authored economy rejects missing, malformed, unsupported, or inconsistent values', () => {

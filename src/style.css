@@ -53,7 +53,7 @@ img { max-width: 100%; object-fit: contain; }
 svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .skip-link { position: absolute; left: 16px; top: -100px; z-index: 100; background: var(--surface); padding: 12px; }
 .skip-link:focus { top: 10px; }
-.visually-hidden,.room-caption,.game-layout:is([data-offer],[data-selected]) .guide { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.visually-hidden,.room-caption,.game-layout:is([data-offer],[data-selected]) .guide,.game-layout[data-guiding] #status { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 /* The coin figures share the wordmark baseline. */
 .masthead { display: flex; gap: 20px; align-items: baseline; }
 .brand { display: flex; align-items: baseline; gap: 24px; min-width: 0; }
@@ -219,6 +219,13 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 .offer .pay-button { flex-shrink: 0; padding: 10px 14px; font-size: 13px; }
 /* Keep status announcements available, but remove the hidden action from keyboard navigation. */
 .game-layout[data-offer] #hint-button,.game-layout[data-selected] #hint-button { display: none; }
+/* While the guide runs, its step and Skip guide take the place of the last message and Find a match; the status line still announces each message. */
+.game-layout:not([data-guiding]) :is(#guide-step,#skip-guide),.game-layout:is([data-offer],[data-selected]) #skip-guide,.game-layout[data-guiding] #hint-button { display: none; }
+.guide-count { color: var(--muted); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* The guide marks its targets with the steady teal ring of a tap target. The step's words name each target, so the ring is never the only cue. */
+.cell.guide-target { box-shadow: inset 0 0 0 3px var(--focus), var(--tile-lift); }
+.ticket.guide-target,.guide-target:is(.pay-button,.text-button) { box-shadow: 0 0 0 3px var(--focus); }
+#story-button.guide-target { box-shadow: inset 0 0 0 3px var(--focus); }
 .game-layout:not([data-selected]) #item-detail { display: none; }
 #item-detail { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; width: 100%; }
 #item-detail.blocker-help { flex-wrap: nowrap; }
@@ -248,8 +255,8 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 .multiple-outputs>.take-actions { flex-basis: 100%; }
 .multiple-outputs .take-button { flex: 1; min-width: 0; min-height: 64px; }
 .completion-message { margin-top: 16px; font-size: 13px; line-height: 1.5; }
-.pay-button,.sell-button,.quest-deliver { display: flex; align-items: center; justify-content: center; gap: 6px; }
-.pay-button .coin,.sell-button .coin,.quest-deliver .coin { width: 16px; height: 16px; }
+.pay-button,.quest-deliver { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.pay-button .coin,.quest-deliver .coin { width: 16px; height: 16px; }
 .chapter-name { font-size: 13px; color: var(--accent); margin-top: 5px; }
 .chapter-title { font-size: 19px; line-height: 1.25; color: var(--accent); text-wrap: balance; }
 .chapter-objective { font-size: 12px; color: var(--muted); line-height: 1.45; margin-top: 1px; }
@@ -343,6 +350,17 @@ dialog::backdrop { background: #17101ac4; }
 .story-controls>span { font-size: 12px; color: var(--muted); }
 .story-controls .secondary-button:disabled { visibility: hidden; }
 .journal-list { display: flex; flex-direction: column; gap: 8px; }
+/* The kitchen guide: the five steps, each with its mark for the current run, then more help. The marks are words, so colour only repeats them. */
+.guide-steps { margin: 16px 0 0; padding-left: 22px; }
+.guide-steps li+li { margin-top: 10px; }
+.guide-step-title { display: flex; align-items: baseline; gap: 8px; font-size: 14px; }
+.guide-steps .small-copy,.guide-more .small-copy { margin: 2px 0 0; }
+.guide-mark { color: var(--ready); font-size: 12px; font-weight: 600; }
+.guide-mark.now { color: var(--focus); }
+.guide-page h3 { margin-top: 22px; font-size: 16px; }
+.guide-more { margin: 8px 0 20px; }
+.guide-more dt { margin-top: 10px; font-size: 14px; font-weight: 600; }
+.guide-more dd { margin: 0; }
 .journal-entry { display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left; border: 1px solid var(--control-line); background: var(--surface); padding: 13px; border-radius: var(--control-radius); min-height: 44px; }
 .journal-entry>span { font-size: 12px; color: var(--muted); }
 .neighbour-introduction { display: grid; grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr); }
@@ -551,6 +569,7 @@ dialog::backdrop { background: #17101ac4; }
   .cell,.primary-button,.secondary-button,.ticket-item,.ticket,.area-choice,.room-pin { border: 1px solid ButtonBorder; }
   .cell.obstacle { border: 2px dashed ButtonText; }
   .cell.selected,.cell:hover { outline: 3px solid Highlight; outline-offset: -3px; }
+  .guide-target { outline: 3px dashed Highlight; outline-offset: -3px; }
   .ticket-item.ready::after,#recipes-button[data-fresh]::after,#story-button[data-ready]::after,.pin-dot { forced-color-adjust: none; background: Highlight; }
   .choice:has(input:checked),.area-choice[aria-pressed='true'],.take-button[aria-pressed='true']:not(:focus-visible) { outline: 2px solid Highlight; outline-offset: -2px; }
 }
