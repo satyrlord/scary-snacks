@@ -1,4 +1,4 @@
-import { createGame, reduceGame, validateGame, getLevel, availableLevelRewards, generatorOutputs, nextOutput, dataProblems, canServe, servedCells, taskEligibility, saleValue, normalizeOrderCustomers, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, previewQuestCleanup, unresolvedObstacle, freeBoardCells, resolveChapters, journalCharacters } from './engine.ts';
+import { createGame, reduceGame, validateGame, getLevel, availableLevelRewards, generatorOutputs, nextOutput, dataProblems, canServe, servedCells, taskEligibility, saleValue, normalizeOrderCustomers, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, previewQuestCleanup, unresolvedObstacle, boardObstacles, pendingPreparationObstacles, freeBoardCells, resolveChapters, journalCharacters } from './engine.ts';
 import type { Action, ChapterView, DecorationSlot, DecorationVariant, GameData, GameState, Order, Quest, RoomView, SceneLine, Task } from './engine.ts';
 import { loadSave, saveGame, exportSave, importSave, resetSave, SAVE_KEY, MAX_SAVE_BYTES } from './storage.ts';
 import type { WriteResult } from './storage.ts';
@@ -83,8 +83,8 @@ const character = (id: string) => data.characters.find(value => value.id === id)
 const sourceOf = (chain: string) => [...Object.values(data.items),...Object.values(data.questItems)].find(item => item.generator && item.chain === chain)!;
 const chosenOutput = (code: string) => nextOutput(state,code,data)!;
 const sourceOutput = (code: string) => generatorOutputs(state,code,data).map(itemName).join(' or ');
-const matchingAnchor = (code: string) => data.board.layouts.find(layout => layout.id === state.layoutId)?.obstacles.find(obstacle =>
-  obstacle.type === 'anchored' && obstacle.ingredient === code && unresolvedObstacle(state,obstacle.position,data));
+const matchingAnchor = (code: string) => boardObstacles(state,data).find(obstacle =>
+  obstacle.type === 'anchored' && obstacle.ingredient === code && !state.resolvedObstacles.includes(obstacle.id));
 function status(text: string) { $('#status').textContent = text; }
 /** Mara's note for a selected item, which the status region announces. On phones the note leaves out the name, which the selection strip shows. */
 function selectionLine(code: string) {
@@ -137,6 +137,33 @@ function clutterArt(index: number, className: string) {
   const value = element('span', `clutter-art clutter-art-${index} ${className}`);
   value.setAttribute('aria-hidden', 'true');
   return value;
+}
+function blockerMark() {
+  const value = svg('svg'); value.classList.add('blocker-mark'); value.setAttribute('viewBox','0 0 24 24'); value.setAttribute('aria-hidden','true');
+  const circle = svg('circle'); circle.setAttribute('cx','12'); circle.setAttribute('cy','12'); circle.setAttribute('r','10');
+  const question = svg('path'); question.setAttribute('d','M9.2 8.5a2.8 2.8 0 0 1 5.6 0c0 2-2.8 2-2.8 4M12 16v.5');
+  value.append(circle,question); return value;
+}
+/** Mark merge destinations beside clutter, or movable matches for tied food. These are hints, not a clearing action. */
+function blockerTargets(index: number): number[] {
+  const obstacle = unresolvedObstacle(state,index,data);
+  if (!obstacle) return [];
+  return state.board.flatMap((cell, at) => {
+    const other = unresolvedObstacle(state,at,data);
+    if (obstacle.type === 'anchored') return !other && cell?.code === obstacle.ingredient ? [at] : [];
+    const beside = Math.abs(Math.floor(index / data.board.columns) - Math.floor(at / data.board.columns))
+      + Math.abs(index % data.board.columns - at % data.board.columns) === 1;
+    if (!beside || other?.type === 'clutter') return [];
+    const code = other?.ingredient ?? cell?.code;
+    return !code || definition(code).next && !definition(code).generator ? [at] : [];
+  });
+}
+function clearSelectionButton() {
+  const clear = button('', 'icon-button clear-selection', () => { selected = null; render(); status(MOVE_HINT); });
+  clear.setAttribute('aria-label', 'Clear selection');
+  const cross = svg('svg'); cross.setAttribute('viewBox','0 0 24 24'); cross.setAttribute('aria-hidden','true');
+  const mark = svg('path'); mark.setAttribute('d','m6 6 12 12M18 6 6 18'); cross.append(mark); clear.append(cross);
+  return clear;
 }
 /** Both theme-color metas take the resolved page colour, so the browser chrome follows a forced theme too. */
 function syncThemeColor() {
@@ -352,10 +379,15 @@ function chooseCell(index: number) {
     const held = selected !== null ? state.board[selected] : null;
     if (obstacle.type === 'anchored' && held?.code === obstacle.ingredient) {
       act({ type:'move', from:selected!, to:index }, index);
+    } else if (selected === index) {
+      selected = null; render(); status(MOVE_HINT);
     } else {
-      status(obstacle.type === 'clutter'
+      selected = index;
+      render();
+      const rule = obstacle.type === 'clutter'
         ? `${obstacle.name}: merge into a space beside it to clear the clutter and reveal an ingredient.`
-        : `${obstacle.name}: merge a movable ${itemName(obstacle.ingredient)} into this space to release it.`);
+        : `${obstacle.name}: merge a movable ${itemName(obstacle.ingredient)} into this space to release it.`;
+      status(obstacle.context ? `${rule} ${obstacle.context}` : rule);
     }
     return;
   }
@@ -379,24 +411,29 @@ function render() {
   const position = region ? [...region.querySelectorAll('button')].indexOf(active as HTMLButtonElement) : -1;
   const previousCell = $('#board').querySelector<HTMLElement>('.selected')?.dataset.cell;
   // An order can use up the selected item.
-  if (selected !== null && !state.board[selected]) selected = null;
+  if (selected !== null && !state.board[selected] && !unresolvedObstacle(state,selected,data)) selected = null;
   // While an item is selected, its actions take the place of Mara's line.
   $('.game-layout').toggleAttribute('data-selected', selected !== null);
   renderRoom();
   renderCoins();
   const free = freeBoardCells(state,data);
+  const pending = pendingPreparationObstacles(state,data).length;
+  const targets = selected === null ? [] : blockerTargets(selected);
+  const selectedObstacle = selected === null ? null : unresolvedObstacle(state,selected,data);
   const board = $('#board'); board.replaceChildren();
-  board.setAttribute('aria-label', `Merge board, ${data.board.columns} columns and ${data.board.rows} rows, ${free} free ${free === 1 ? 'space' : 'spaces'}`);
+  board.setAttribute('aria-label', `Merge board, ${data.board.columns} columns and ${data.board.rows} rows, ${free} free ${free === 1 ? 'space' : 'spaces'}${pending ? `, ${pending} preparation blockers waiting` : ''}`);
   state.board.forEach((cell, index) => {
     const obstacle = unresolvedObstacle(state,index,data);
-    const value = button('', `cell ${obstacle ? `obstacle ${obstacle.type}` : cell ? '' : 'empty'} ${selected === index ? 'selected' : ''}`, () => chooseCell(index));
+    const value = button('', `cell ${obstacle ? `obstacle ${obstacle.type}` : cell ? '' : 'empty'} ${selected === index ? 'selected' : ''} ${targets.includes(index) ? 'blocker-target' : ''}`, () => chooseCell(index));
     value.dataset.cell = String(index);
     const what = obstacle
       ? obstacle.type === 'clutter'
         ? `${obstacle.name}, clutter. Merge into a space beside it to reveal an ingredient${state.taskIndex === 0 ? '. Covered in webs' : ''}`
         : `${obstacle.name}, anchored ${itemName(obstacle.ingredient)}. Merge a matching movable ingredient into this space to release it`
       : !cell ? 'empty' : definition(cell.code).generator ? `${itemName(cell.code)}, source of ${sourceOutput(cell.code)}: tap to take an ingredient` : itemName(cell.code);
-    value.setAttribute('aria-label', `Row ${Math.floor(index / data.board.columns) + 1}, column ${index % data.board.columns + 1}: ${what}`);
+    value.setAttribute('aria-label', `Row ${Math.floor(index / data.board.columns) + 1}, column ${index % data.board.columns + 1}: ${what}${obstacle?.context ? `. ${obstacle.context}` : ''}`);
+    if (targets.includes(index)) value.setAttribute('aria-label', `${value.getAttribute('aria-label')}. ${selectedObstacle?.type === 'clutter' ? 'Merge here to clear the selected clutter' : 'Matching item for the selected tied ingredient'}`);
+    if (selected === index && obstacle) value.setAttribute('aria-describedby','blocker-rule');
     // One tab stop for the whole board; the arrow keys move between spaces.
     value.tabIndex = index === (selected ?? boardFocus) ? 0 : -1;
     value.setAttribute('aria-pressed', String(selected === index));
@@ -405,13 +442,19 @@ function render() {
       if (definition(cell.code).generator) value.append(sourceMark());
     }
     if (obstacle?.type === 'clutter') {
-      const artIndex = ['old-crate','tied-sack','covered-crock','linen-bundle'].indexOf(obstacle.id);
-      value.append(clutterArt(Math.max(0,artIndex), 'clutter-object'));
+      const artIndex = obstacle.sprite ?? Math.max(0,['old-crate','tied-sack','covered-crock','linen-bundle'].indexOf(obstacle.id));
+      if (obstacle.atlas === 'preparation') value.append(element('span', `preparation-art preparation-art-${artIndex} clutter-object`));
+      else value.append(clutterArt(artIndex, 'clutter-object'));
       if (state.taskIndex === 0) value.append(clutterArt(4, 'clutter-overlay'));
     }
     if (obstacle?.type === 'anchored') {
       value.append(food(obstacle.ingredient));
       value.append(clutterArt(5, 'clutter-overlay'));
+    }
+    if (obstacle) {
+      value.append(blockerMark());
+      value.title = obstacle.type === 'clutter' ? 'Merge two matching items beside this clutter to clear it. Tap for help.'
+        : `Merge another ${itemName(obstacle.ingredient)} into this tied space. Tap for help.`;
     }
     board.append(value);
   });
@@ -627,9 +670,26 @@ function showWay(code: string) {
 /** The selected item and its actions take the place of Mara's line under the board, so the player acts without leaving the board. */
 function renderDetail() {
   const container = $('#item-detail'); container.replaceChildren();
+  const obstacle = selected === null ? null : unresolvedObstacle(state,selected,data);
+  container.classList.toggle('blocker-help', !!obstacle);
+  container.setAttribute('aria-label', obstacle ? 'Selected blocker' : 'Selected item');
   const cell = selected !== null ? state.board[selected] : null;
   const outputs = cell && definition(cell.code).generator ? generatorOutputs(state,cell.code,data) : [];
   container.classList.toggle('multiple-outputs', outputs.length > 1);
+  if (obstacle) {
+    // When every marked space is tied food, name what to merge there instead of a pair.
+    const targets = obstacle.type === 'clutter' ? blockerTargets(selected!) : [];
+    const tied = targets.map(at => unresolvedObstacle(state,at,data)).filter(value => value?.type === 'anchored');
+    const names = [...new Set(tied.map(value => itemName(value!.ingredient)))].join(' or ');
+    const copy = element('div','blocker-copy'), rule = element('p','blocker-rule', obstacle.type === 'anchored'
+      ? `Merge another ${itemName(obstacle.ingredient)} into this tied space.`
+      : tied.length && tied.length === targets.length ? `Merge another ${names} into ${tied.length === 1 ? 'the' : 'a'} marked tied space beside it.`
+      : targets.length ? 'Merge two matching items in a marked space beside it.'
+      : 'Move a source or final dish away from beside it, then merge there.');
+    rule.id = 'blocker-rule';
+    copy.append(element('strong','blocker-title',obstacle.name),rule);
+    container.append(copy,clearSelectionButton()); fitPin(); return;
+  }
   if (!cell) { fitPin(); return; }
   const def = definition(cell.code); const at = selected!;
   const head = element('div','detail-head'); const words = element('div','detail-words');
@@ -650,10 +710,7 @@ function renderDetail() {
     const value = saleValue(cell.code,data), sell = button(`Sell · ${count.format(value)}`,'secondary-button sell-button',() => act({type:'sell',index:at},null));
     sell.append(coinMark()); sell.setAttribute('aria-label', `Sell for ${coinText(value)}`); actions.append(sell);
   }
-  const clear = button('', 'icon-button clear-selection', () => { selected = null; render(); status(MOVE_HINT); });
-  clear.setAttribute('aria-label', 'Clear selection');
-  const cross = svg('svg'); cross.setAttribute('viewBox','0 0 24 24'); cross.setAttribute('aria-hidden','true'); const mark = svg('path'); mark.setAttribute('d','m6 6 12 12M18 6 6 18'); cross.append(mark); clear.append(cross);
-  actions.append(clear);
+  actions.append(clearSelectionButton());
   container.append(head, actions);
   if (outputs.length > 1) container.append(takes);
   const title = words.firstElementChild as HTMLElement;

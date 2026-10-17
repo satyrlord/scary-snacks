@@ -16,6 +16,7 @@ export const imageVariants = {
   'embroidered-runner': { widths: [384], formats: ['webp'] },
   'menu-atlas': { widths: [1536], formats: ['webp'] },
   'board-clutter': { widths: [1536], formats: ['webp'] },
+  'preparation-clutter': { widths: [1448], formats: ['webp'] },
   portraits: { widths: [640], formats: ['webp'] },
   'visitor-portraits': { widths: [640], formats: ['webp'] },
   guests: { widths: [640], formats: ['webp'] },

@@ -1154,6 +1154,16 @@
       "format": "webp",
       "bytes": 22026,
       "sha256": "82330261171917e9f46aa5e484cc36b52d7db755f782c55ddb354e6ce27143d9"
+    },
+    {
+      "file": "public/assets/variants/preparation-clutter-1448x1086.webp",
+      "master": "preparation-clutter",
+      "masterSha256": "c700c27a108078bdcbe70d915b29fa39738b8e0f6e0ed9285e3e0111bbeffb91",
+      "width": 1448,
+      "height": 1086,
+      "format": "webp",
+      "bytes": 357248,
+      "sha256": "44bc9a13e4ba85e76f7cc1f1d5328c46c2bb0d73003ef397438186cba650e568"
     }
   ]
 }

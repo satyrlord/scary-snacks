@@ -7,7 +7,7 @@ import { runtimeFiles } from '../tools/build.ts';
 
 test('the PNG masters match their provenance records',async()=>{
   const record=JSON.parse(await readFile('docs/asset-provenance.json','utf8'));
-  assert.equal(record.assets.length,36);
+  assert.equal(record.assets.length,37);
   const names=await readdir('public/assets/original');
   assert.deepEqual(names.sort(),record.assets.map((a: { file: string })=>a.file.split('/').at(-1)).sort());
   for(const asset of record.assets){assert.equal(asset.sourceGameImageInput,false);const bytes=await readFile(asset.file);assert.equal(createHash('sha256').update(bytes).digest('hex'),asset.sha256,asset.id);assert.ok(asset.width>1000);}
@@ -43,6 +43,25 @@ test('the board clutter sprites stay inside their cells and leave overlay center
   for(const x of [511,512,1023,1024])for(let y=0;y<info.height;y++)assert.ok(alpha(x,y)<16,`painted pixel crosses column seam at ${x},${y}`);
   for(const y of [511,512])for(let x=0;x<info.width;x++)assert.ok(alpha(x,y)<16,`painted pixel crosses row seam at ${x},${y}`);
   for(const x of [768,1280])assert.ok(alpha(x,768)<16,`overlay at ${x} covers its center`);
+});
+
+test('the preparation clutter atlas has twelve opaque objects inside clear square cells',async()=>{
+  const {data,info}=await sharp('public/assets/original/preparation-clutter.png').ensureAlpha().raw().toBuffer({resolveWithObject:true});
+  assert.deepEqual([info.width,info.height,info.channels],[1448,1086,4]);
+  const side=info.width/4;
+  assert.equal(info.height/3,side);
+  const alpha=(x: number,y: number)=>data[(y*info.width+x)*4+3];
+  for(let row=0;row<3;row++)for(let column=0;column<4;column++){
+    let painted=0;
+    for(let y=0;y<side;y++)for(let x=0;x<side;x++){
+      const value=alpha(column*side+x,row*side+y);
+      if(value>=128)painted++;
+      if(x<16||y<16||x>=side-16||y>=side-16)assert.ok(value<16,`Object ${row*4+column} crosses its clear margin.`);
+    }
+    assert.ok(painted>side*side*0.15,`Object ${row*4+column} is present and opaque.`);
+  }
+  for(const x of [361,362,723,724,1085,1086])for(let y=0;y<info.height;y++)assert.ok(alpha(x,y)<2,`Visible paint crosses column seam at ${x},${y}.`);
+  for(const y of [361,362,723,724])for(let x=0;x<info.width;x++)assert.ok(alpha(x,y)<2,`Visible paint crosses row seam at ${x},${y}.`);
 });
 
 test('each room-state reference has a generated record, and nothing ships or loads a reference image',async()=>{

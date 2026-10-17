@@ -22,7 +22,7 @@ The site is public. The release limits apply. See [release notes](docs/release-n
 
 ## Assets
 
-36 Portable Network Graphics (PNG) masters in `public/assets/original/` are the source of the game art. The game ships AV1 Image File Format (AVIF) and WebP variants of the masters, at the sizes that the screens need. The transparent board-clutter atlas has four clutter pictures and two overlays in six square cells. Red wine uses its own transparent picture instead of the atlas cell for `drinks_5`. After a master changes, run `npm run assets:build`. [Asset variants](docs/asset-variants.json) records the files, the sizes, and the hashes.
+37 Portable Network Graphics (PNG) masters in `public/assets/original/` are the source of the game art. The game ships AV1 Image File Format (AVIF) and WebP variants of the masters, at the sizes that the screens need. The transparent board-clutter atlas has four clutter pictures and two overlays in six square cells. The preparation-clutter atlas has 12 contextual objects in a four-by-three grid, at 1448 by 1086 pixels. In-chat imagegen made this atlas. It ships one WebP variant at its original size. Red wine uses its own transparent picture instead of the atlas cell for `drinks_5`. After a master changes, run `npm run assets:build`. [Asset variants](docs/asset-variants.json) records the files, the sizes, and the hashes.
 
 [Asset provenance](docs/asset-provenance.json) records the masters and their hashes. [Prompts](docs/asset-prompts.json) records the generation instructions. The repository skill `generate-game-art` gives the procedure to add or replace a master, including a room painting.
 
@@ -35,11 +35,13 @@ The game makes its sounds as procedural browser tones. The interface text uses t
 The generator refuses to write the game data in these conditions:
 
 - An ID in `roomPaintings` in `src/engine.ts` has no approved master.
-- `dataProblems` in `src/engine.ts` reports a problem. It checks the board, the room states, the decoration slots, the production tiers, the level rewards, the quests, the campaign goals, and the menu prices. The starting board must make a new game that passes the save validation.
+- `dataProblems` in `src/engine.ts` reports a problem. It checks the board, the preparation blocker batches, the room states, the decoration slots, the production tiers, the level rewards, the quests, the campaign goals, and the menu prices. Every preparation needs two or three blockers with stable IDs, valid art cells, context, and ingredients from an available chain. The starting board must make a new game that passes the save validation.
 
 The cast has four ordinary neighbours, two occasional noble customers, and six visitors: Adrian, Monica, Janos, Ionatan, Mina, and Avram. Nine optional cathedral supply quests use authored preparation, ordinary-service, and previous-delivery gates. Ionatan has one independent dinner quest, after preparation 16 and 120 ordinary services. It pays 1,100 coins, five times the dinner menu value. Mina and Avram share one vegetarian meal request, gated by Ionatan's completed dinner, three later ordinary services, and the absence of pending noble orders. Their request pays 336 coins, twice its menu value. The nobles cannot enter new orders during that visit. Three services after the shared delivery open local gossip about the search and departure for Britain. Completed quest IDs record the visits. The journal omits the single-visit guests before arrival and after departure, but retains the local gossip after its gate. Data generation validates prerequisites, shared companions, dietary order lists, customer exclusions, and follow-up scenes. The visitor and guest portrait atlases use built-in in-chat image generation and each ships one 640-by-640 WebP variant. Current saves keep their format and accept optional quest completion service totals. Missing totals start their delay baseline at the first successful ordinary service.
 
 The game runs `dataProblems` when it starts, before it reads the save. The game does not have the asset records, so it does not check the decoration image names.
+
+Preparation blocker placement and its deferred queue use the engine's shared blocked-cell rules. Current saves accept an optional baseline and placement history. The validator checks earned IDs, placement order, active-cell separation, discovery, and the three-active limit. It permits historical cell reuse after resolution. It does not require three empty cells in a save: ordinary production can use the space that placement leaves. Existing current saves receive only future preparation batches. Reload and import do not drain the queue.
 
 ## Manual checks
 

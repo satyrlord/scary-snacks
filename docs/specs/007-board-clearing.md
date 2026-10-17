@@ -9,6 +9,7 @@ Owner: `PRODUCT.md` for board rules; `DESIGN.md` for blocked-space presentation.
 - `src/engine.ts` owns the shared available-cell rule, adjacent reveals, anchored merges, and layout validation.
 - `src/storage.ts` writes the current save format defined in the shared save contract.
 - `src/app.ts` shows blocked cells, gives their merge rules in accessible labels, and counts only usable empty cells.
+- Each preparation earns two or three contextual blockers. A saved queue keeps their placement separate from payment when the board lacks safe space.
 - The Node and browser tests cover blocked cells, persistence, keyboard, pointer, touch, drag, and reload.
 
 ## Outcome and scope
@@ -47,8 +48,10 @@ currencies, reward chests, timers, energy costs, or a paid Clear action.
    no state and no seed. A resolved obstacle never gives its ingredient a second time.
 10. Obstacle cells stay keyboard-focusable for explanation. Labels give the location, the type,
    the visible ingredient where applicable, and the merge rule. Do not use colour alone.
-11. Clearing stays optional. The campaign and the current orders must stay achievable with
-    all obstacles intact. Keep the recovery routes for merge, service, and sale.
+   A visible help mark and hover rule identify the clearing help. Selecting a blocker shows its name and rule in the existing strip under the board. Clutter marks eligible side destinations; tied food marks movable matches. The instruction stays visible in place of selected-item actions or a preparation offer. Escape and Clear selection dismiss it without a save change.
+11. Clearing stays optional. The campaign and the current orders must stay achievable without a separate clearing action. New clutter can clear beside ordinary production merges. Keep the recovery routes for merge, service, and sale.
+12. Each successful preparation payment earns its authored batch of two or three blockers, including the final payment. Use only ingredients from chains available after that payment. Each batch has a work context and at least one new contextual picture. Combine it with familiar clutter or an anchored ingredient.
+13. A new source takes its cell before blockers. Place blockers in empty cells in board order. Preserve three usable empty cells and a non-clutter side beside each clutter cell. Permit at most three unresolved preparation blockers. Keep the rest in preparation order. Successful board changes try placement again. Failed actions, load, and import place nothing. Neither payment nor placement overwrites items or changes the order seed.
 
 ### Board layout
 
@@ -71,12 +74,13 @@ Cell numbers start at 0. The board counts left to right, then top to bottom.
 - The state stores a layout ID and resolved obstacle IDs. The layout supplies unresolved contents. Movable items cannot occupy unresolved cells.
 - `validateGame` checks layout IDs, resolved IDs, blocked cells, and discoveries.
 - A fresh game discovers visible anchored ingredients. A hidden ingredient enters discovery when its wrapper clears.
+- The optional preparation record holds a baseline and a permanent list of placed IDs and cells. Derive waiting blockers from paid batches after the baseline. Missing records start before the next successful payment, with no past batches. Resolved history can share a cell with a later placement. Only unresolved positions must be unique. State and envelope versions stay unchanged.
 - `engine.ts` owns availability and clear transitions. `app.ts` owns visuals and input.
 - Invalid imports and failed writes keep the previously saved bytes and report the failure.
 
 ## Art
 
-The transparent `board-clutter` atlas is 1536 by 1024 pixels. It has three columns and two rows of square cells. Four cells show dusty clutter. One cell supplies the web overlay, and one supplies the twine and nail overlay. The game ships its WebP variant. The master, prompt, provenance, and variant records identify the generated art.
+The transparent `board-clutter` atlas is 1536 by 1024 pixels. It has three columns and two rows of square cells. Four cells show dusty clutter. One cell supplies the web overlay, and one supplies the twine and nail overlay. The transparent `preparation-clutter` atlas has four columns and three rows of square cells with 12 contextual objects. Both use built-in in-chat image generation. The game ships their WebP variants. The master, prompt, provenance, and variant records identify the generated art.
 
 ## Implemented slices
 
@@ -90,4 +94,4 @@ The transparent `board-clutter` atlas is 1536 by 1024 pixels. It has three colum
 - Data tests reject duplicate positions, unknown ingredients, and trapped clutter. The asset test checks the atlas hash, variant hash, cell seams, and open overlay centers.
 - Save tests cover open, partly cleared, and fully cleared layouts through export, import, and reload. They cover full boards, invalid IDs, save retries, and failed writes.
 - Browser tests cover keyboard, pointer, drag, and emulated touch actions; labels; order hints; reload; the preparation 1 web removal; and reduced motion.
-- The deterministic legal campaign fixture reaches all 24 preparations with every obstacle intact.
+- The deterministic legal campaign fixture reaches all 24 preparations without an anchor release. Clutter can clear beside its ordinary merges. Tests also cover queued batches, safe placement, preparation boundaries, and current saves without a preparation record.

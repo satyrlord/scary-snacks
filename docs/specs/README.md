@@ -29,7 +29,7 @@ Spec 005 implements four core character arcs, three recurring cathedral travelle
 
 Spec 006 implements explicit food prices, work-based preparation budgets and effort, requirement feedback, saved quotes, and legal campaign comparisons. The fixture includes generator upgrades, all level rewards, and optional quests. The economy record gives the real-world source anchors and the authored assumptions.
 
-Spec 007 implements blocked board cells, adjacent merge reveals, anchored ingredients, and original clutter art. Automated checks cover the rules and the production browser build.
+Spec 007 implements blocked board cells, adjacent merge reveals, anchored ingredients, and original clutter art. Each preparation earns two or three contextual blockers with a deferred placement queue. Automated checks cover the rules and the production browser build.
 
 Spec 008 implements chapter objectives and steps, chapter closing scenes, neighbour contributions, the finale, journal replay, and persistence. Automated engine, save, and browser checks cover the rules. A scripted browser playthrough from a fresh save reaches the finale.
 
@@ -86,6 +86,8 @@ Customer introductions (005) are optional journal reading. The regulars in 013 r
 ## Shared save compatibility
 
 Current saves use game state version 9 in envelope version 8 at `scary-snacks-save-v8`. Only this format is supported. Load reads only this key. If no current save exists, start a new campaign. Earlier local bytes stay unchanged and are not read or converted. Import rejects earlier formats.
+
+The optional preparation obstacle baseline and placement history use this format. A missing record receives no past preparation batches. It starts at the next paid preparation. `PRODUCT.md` owns the queue and placement rules.
 
 Validate the full envelope and state before import. Adopt the candidate only after its write succeeds. A failed write or invalid input keeps the previous save and offers recovery. Test fresh, partial, and completed current saves, malformed records, unsupported versions, oversized imports, and failed writes.
 

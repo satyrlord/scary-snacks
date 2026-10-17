@@ -29,7 +29,7 @@ function fail(state: GameState, action: unknown) {
 }
 function fillBoard(state: GameState) {
   const index = state.board.findIndex(cell => cell?.code === 'generator_bakery');
-  while (state.board.includes(null)) state = apply(state, { type: 'spawn', index });
+  while (firstFreeBoardCell(state, data) !== -1) state = apply(state, { type: 'spawn', index });
   return state;
 }
 
@@ -120,12 +120,12 @@ test('paid production tiers change no items or orders', () => {
   const index = state.board.findIndex(cell => cell?.code === 'generator_bakery');
   for (const output of ['bakery_3', 'bakery_2', 'bakery_1']) {
     const seed = state.seed;
-    const empty = state.board.indexOf(null);
+    const empty = firstFreeBoardCell(state, data);
     state = apply(state, { type: 'spawn', index, output });
     assert.equal(state.board[empty]?.code, output);
     assert.equal(state.seed, seed);
     assert.equal(state.outputChoices.bakery, output === 'bakery_1' ? undefined : output);
-    const repeated = state.board.indexOf(null);
+    const repeated = firstFreeBoardCell(state, data);
     state = apply(state, { type: 'spawn', index });
     assert.equal(state.board[repeated]?.code, output);
     assert.equal(state.seed, seed);
@@ -137,11 +137,11 @@ test('output choices survive moves and later upgrades while failed takes change 
   state.coins = 100000;
   for (let index = 0; index < 12; index++) state = apply(state, { type: 'task' });
   state = apply(state, { type: 'spawn', index: 1, output: 'bakery_2' });
-  state = apply(state, { type: 'move', from: 1, to: 2 });
+  state = apply(state, { type: 'move', from: 1, to: firstFreeBoardCell(state, data) });
   for (let index = 12; index < 20; index++) state = apply(state, { type: 'task' });
   assert.deepEqual(state.outputChoices, { bakery: 'bakery_2' });
   const index = state.board.findIndex(cell => cell?.code === 'generator_bakery');
-  const empty = state.board.indexOf(null);
+  const empty = firstFreeBoardCell(state, data);
   state = apply(state, { type: 'spawn', index });
   assert.equal(state.board[empty]?.code, 'bakery_2');
   fail(state, { type: 'sell', index });
@@ -216,6 +216,9 @@ test('a newly unlocked source uses the earned tier and starts with stage one sel
   // That request now opens as chapter 3 ends, so other requests contribute to chapters 3 and 5.
   later.chapters[2].contribution = 'mara-table';
   later.chapters[4].contribution = 'eszter-tasting';
+  for (const batch of later.board.preparations.slice(0, 11)) for (const obstacle of batch.obstacles) {
+    if (later.items[obstacle.ingredient].chain === 'sweet') obstacle.ingredient = 'bakery_1';
+  }
   assert.deepEqual(dataProblems(later), []);
   let state = withGoals(createGame(later));
   state.coins = 100000;
@@ -343,9 +346,10 @@ test('task unlocks require a free board space and fail atomically on a full boar
   state = fillBoard(state);
   const failure = fail(state, { type: 'task' });
   assert.match(failure.message, /space/);
-  state = apply(state, { type: 'sell', index: 0 });
+  const space = state.board.findIndex(cell => cell?.code === 'bakery_1');
+  state = apply(state, { type: 'sell', index: space });
   state = apply(state, { type: 'task' });
-  assert.equal(state.board[0]?.code, 'generator_sweet');
+  assert.equal(state.board[space]?.code, 'generator_sweet');
   assert.equal(state.taskIndex, 3);
 });
 
@@ -400,7 +404,7 @@ test('a short purse names the missing coins, and a preparation that brings a new
   state.coins = data.tasks.slice(0, 3).reduce((sum, task) => sum + task.cost, 0);
   state = apply(state, { type: 'task' });
   state = apply(state, { type: 'task' });
-  assert.equal(reduceGame(state, { type: 'task' }, data).message, `${data.tasks[2].title}: done. The ${source} is on the board.`);
+  assert.ok(reduceGame(state, { type: 'task' }, data).message.startsWith(`${data.tasks[2].title}: done. The ${source} is on the board.`));
   assert.match(fail(fillBoard(state), { type: 'task' }).message, /space/);
 });
 

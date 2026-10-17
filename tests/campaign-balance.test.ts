@@ -17,7 +17,9 @@ test('legal campaign scenarios reach the finale and account for every action and
     assert.equal(validateGame(finalState, data), true);
     assert.deepEqual(finalState.pendingScenes, [...data.chapters.map(chapter => chapter.id), data.finale.id]);
     assert.equal(finalState.layoutId, data.board.defaultLayout);
-    assert.deepEqual(finalState.resolvedObstacles, [], 'The full campaign needs no board clearing.');
+    assert.ok(finalState.resolvedObstacles.every(id => !data.board.layouts[0].obstacles.some(obstacle => obstacle.id === id && obstacle.type === 'anchored')),
+      'The campaign needs no anchor release. Clutter can clear beside ordinary production merges.');
+    assert.ok(finalState.preparationObstacles!.placed.length >= 3);
     assert.equal(finalState.coins, totals.orderCoins + totals.saleCoins + totals.levelCoins + totals.questCoins - totals.preparationCoins);
     assert.equal(totals.preparationCoins, report.preparations.reduce((sum, task) => sum + task.cost, 0));
     assert.equal(totals.merges, finalState.merges);

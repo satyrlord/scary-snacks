@@ -35,8 +35,9 @@ export type DecorationSlot = {
 };
 export type DecorationView = DecorationSlot & { unlocked: boolean; selected: DecorationVariant };
 export type LevelReward = { id: string; level: number; coins: number };
-export type BoardObstacle = { id: string; position: number; name: string; type: 'clutter' | 'anchored'; ingredient: string };
+export type BoardObstacle = { id: string; position: number; name: string; type: 'clutter' | 'anchored'; ingredient: string; sprite?: number; atlas?: 'preparation'; context?: string };
 export type BoardLayout = { id: string; obstacles: BoardObstacle[] };
+export type PreparationObstacleBatch = { after: string; context: string; obstacles: Omit<BoardObstacle, 'position' | 'context'>[] };
 /**
  * One painted state of an area. It shows from the preparation named by after (null: from the start of the game) until the next
  * state of its area. Its id is also the id of its painting. Focus is the centre of the change, in percentages of the painting
@@ -55,7 +56,7 @@ export const roomPaintings: readonly string[] = [
   'courtyard-23',
 ];
 export type GameData = {
-  title: string; board: { columns: number; rows: number; initial: (string | null)[]; defaultLayout: string; layouts: BoardLayout[] };
+  title: string; board: { columns: number; rows: number; initial: (string | null)[]; defaultLayout: string; layouts: BoardLayout[]; preparations: PreparationObstacleBatch[] };
   chains: { id: string; name: string }[]; items: Record<string, Item>; characters: Character[]; chapters: Chapter[]; finale: Finale; tasks: Task[];
   areas: Area[]; rooms: RoomState[]; decorationSlots: DecorationSlot[];
   generatorTiers: { chain: string; stage: number; after: string }[];
@@ -79,6 +80,8 @@ export type GameState = {
   /** Successful ordinary services at quest delivery. Missing records in existing saves start at the next service. */
   questCompletedAt?: Record<string, number>;
   layoutId: string; resolvedObstacles: string[];
+  /** Completed preparations at adoption, and permanent placement history. Missing records do not add past batches. */
+  preparationObstacles?: { start: number; placed: { id: string; position: number }[] };
   /** Chapter closing scenes, the finale, and local news that the player earned and has not finished or skipped. Chapter scenes keep story order. */
   pendingScenes: string[];
 };
@@ -100,9 +103,28 @@ const integer = (value: unknown, min = 0, max = 1_000_000_000): value is number 
 const present = <T>(value: T): value is NonNullable<T> => Boolean(value);
 const copy = (state: GameState): GameState => structuredClone(state);
 const itemAt = (state: GameState, index: unknown) => integer(index, 0, state.board.length - 1) ? state.board[index] : null;
-export function unresolvedObstacle(state: Pick<GameState, 'layoutId' | 'resolvedObstacles'>, index: number, data: GameData): BoardObstacle | null {
-  return data.board.layouts.find(layout => layout.id === state.layoutId)?.obstacles.find(obstacle =>
-    obstacle.position === index && !state.resolvedObstacles.includes(obstacle.id)) ?? null;
+export function boardObstacles(state: Pick<GameState, 'layoutId' | 'preparationObstacles'>, data: GameData): BoardObstacle[] {
+  return [...(data.board.layouts.find(layout => layout.id === state.layoutId)?.obstacles ?? []),
+    ...(state.preparationObstacles?.placed.flatMap(placement => {
+      const batch = data.board.preparations.find(batch => batch.obstacles.some(obstacle => obstacle.id === placement.id));
+      const obstacle = batch?.obstacles.find(obstacle => obstacle.id === placement.id);
+      return obstacle ? [{ ...obstacle, position: placement.position, context: batch!.context }] : [];
+    }) ?? [])];
+}
+export function unresolvedObstacle(state: Pick<GameState, 'layoutId' | 'resolvedObstacles' | 'preparationObstacles'>, index: number, data: GameData): BoardObstacle | null {
+  const initial = data.board.layouts.find(layout => layout.id === state.layoutId)?.obstacles.find(obstacle =>
+    obstacle.position === index && !state.resolvedObstacles.includes(obstacle.id));
+  if (initial) return initial;
+  const placement = state.preparationObstacles?.placed.find(value => value.position === index && !state.resolvedObstacles.includes(value.id));
+  if (!placement) return null;
+  const batch = data.board.preparations.find(batch => batch.obstacles.some(obstacle => obstacle.id === placement.id))!;
+  return { ...batch.obstacles.find(obstacle => obstacle.id === placement.id)!, position: index, context: batch.context };
+}
+export function pendingPreparationObstacles(state: GameState, data: GameData) {
+  const progress = state.preparationObstacles;
+  if (!progress) return [];
+  return data.board.preparations.slice(progress.start, state.taskIndex).flatMap(batch => batch.obstacles)
+    .filter(obstacle => !progress.placed.some(placement => placement.id === obstacle.id));
 }
 export function firstFreeBoardCell(state: GameState, data: GameData): number {
   return state.board.findIndex((cell, index) => cell === null && !unresolvedObstacle(state, index, data));
@@ -140,6 +162,26 @@ function revealAdjacentClutter(state: GameState, destination: number, data: Game
     state.board[position] = { code: obstacle.ingredient };
     discover(state, obstacle.ingredient);
   }
+}
+/** Keep production space and the original optional-clearing route. Place in stable cell order without using the order seed. */
+function placePreparationObstacles(state: GameState, data: GameData): number {
+  const progress = state.preparationObstacles;
+  if (!progress) return 0;
+  let placed = 0;
+  for (const obstacle of pendingPreparationObstacles(state, data)) {
+    if (progress.placed.filter(placement => !state.resolvedObstacles.includes(placement.id)).length >= 3 || freeBoardCells(state, data) <= 3) break;
+    const clutter = boardObstacles(state, data).filter(value => value.type === 'clutter' && !state.resolvedObstacles.includes(value.id));
+    const position = state.board.findIndex((cell, index) => {
+      if (cell !== null || unresolvedObstacle(state, index, data)) return false;
+      const covered = new Set([...clutter.map(value => value.position), ...(obstacle.type === 'clutter' ? [index] : [])]);
+      return [...covered].every(at => adjacentPositions(at, data).some(side => !covered.has(side)));
+    });
+    if (position === -1) break;
+    progress.placed.push({ id: obstacle.id, position });
+    if (obstacle.type === 'anchored') discover(state, obstacle.ingredient);
+    placed++;
+  }
+  return placed;
 }
 function questServiceGate(state: GameState, quest: Quest): boolean {
   return quest.afterQuestServices === undefined || !!quest.afterQuest
@@ -187,7 +229,7 @@ function makeOrder(state: GameState, data: GameData, waiting: string[]): Order {
 export function createGame(data: GameData, seed = 271828): GameState {
   const layoutId = data.board.defaultLayout;
   const state: GameState = {
-    version: 9, layoutId, resolvedObstacles: [], pendingScenes: [],
+    version: 9, layoutId, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] }, pendingScenes: [],
     board: data.board.initial.map(code => code ? { code } : null),
     coins: 0, xp: 0, taskIndex: 0, orders: [],
     discovered: [...new Set([...data.board.initial.filter(present),
@@ -755,6 +797,28 @@ export function boardLayoutProblems(data: GameData): string[] {
       }
     }
   }
+  const batches = data.board.preparations;
+  if (!Array.isArray(batches) || batches.length !== data.tasks.length) return [...problems, 'Every preparation needs a blocker batch.'];
+  const obstacleIds = new Set(layouts.flatMap(layout => layout.obstacles.map(obstacle => obstacle.id)));
+  for (const [index, batch] of batches.entries()) {
+    if (!batch || batch.after !== data.tasks[index].id || typeof batch.context !== 'string' || !batch.context.trim()
+      || !Array.isArray(batch.obstacles) || batch.obstacles.length < 2 || batch.obstacles.length > 3) {
+      problems.push('Each preparation needs two or three contextual blockers in story order.');
+      continue;
+    }
+    const chains = availableChains({ taskIndex: index + 1 }, data);
+    for (const obstacle of batch.obstacles) {
+      if (!obstacle || typeof obstacle.id !== 'string' || !/^[a-z][a-z0-9-]*$/.test(obstacle.id) || obstacleIds.has(obstacle.id)
+        || typeof obstacle.name !== 'string' || !obstacle.name.trim() || !['clutter', 'anchored'].includes(obstacle.type)
+        || !own(data.items, obstacle.ingredient) || data.items[obstacle.ingredient].generator || !data.items[obstacle.ingredient].next
+        || !chains.includes(data.items[obstacle.ingredient].chain)
+        || (obstacle.atlas !== undefined && obstacle.atlas !== 'preparation')
+        || (obstacle.type === 'clutter' && !integer(obstacle.sprite, 0, obstacle.atlas === 'preparation' ? 11 : 3))) {
+        problems.push(`Preparation ${batch.after} has an invalid blocker.`);
+      }
+      if (obstacle) obstacleIds.add(obstacle.id);
+    }
+  }
   return problems;
 }
 
@@ -835,10 +899,25 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
     if (!state.board.every(cell => cell === null || validItem(cell))) return false;
     {
       const layout = data.board.layouts.find(layout => layout.id === state.layoutId);
+      const progress = state.preparationObstacles;
+      if (progress !== undefined) {
+        if (!progress || typeof progress !== 'object' || Array.isArray(progress)
+          || !integer(progress.start, 0, state.taskIndex) || !Array.isArray(progress.placed)) return false;
+        const earned = data.board.preparations.slice(progress.start, state.taskIndex).flatMap(batch => batch.obstacles);
+        if (progress.placed.length > earned.length || !progress.placed.every((placement, index) => placement
+          && typeof placement === 'object' && !Array.isArray(placement) && placement.id === earned[index].id
+          && integer(placement.position, 0, state.board.length - 1))) return false;
+      }
+      const obstacles = boardObstacles(state, data);
       if (!layout || !Array.isArray(state.resolvedObstacles)
         || new Set(state.resolvedObstacles).size !== state.resolvedObstacles.length
-        || !state.resolvedObstacles.every(id => typeof id === 'string' && layout.obstacles.some(obstacle => obstacle.id === id))
-        || layout.obstacles.some(obstacle => !state.resolvedObstacles.includes(obstacle.id) && state.board[obstacle.position] !== null)) return false;
+        || !state.resolvedObstacles.every(id => typeof id === 'string' && obstacles.some(obstacle => obstacle.id === id))) return false;
+      const blocked = obstacles.filter(obstacle => !state.resolvedObstacles.includes(obstacle.id));
+      if (new Set(blocked.map(obstacle => obstacle.position)).size !== blocked.length
+        || blocked.some(obstacle => state.board[obstacle.position] !== null)
+        || (progress?.placed.filter(placement => !state.resolvedObstacles.includes(placement.id)).length ?? 0) > 3) return false;
+      const clutter = new Set(blocked.filter(obstacle => obstacle.type === 'clutter').map(obstacle => obstacle.position));
+      if ([...clutter].some(at => !adjacentPositions(at, data).some(side => !clutter.has(side)))) return false;
     }
     const cells = state.board.filter(present);
     for (const chain of chains) {
@@ -852,8 +931,7 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
           && (own(state.activeQuestProducers, quest.id) || state.completedQuests.includes(quest.id))))
       || !cells.every(cell => state.discovered.includes(cell.code))) return false;
     {
-      const layout = data.board.layouts.find(layout => layout.id === state.layoutId)!;
-      if (layout.obstacles.some(obstacle => (obstacle.type === 'anchored' || state.resolvedObstacles.includes(obstacle.id))
+      if (boardObstacles(state, data).some(obstacle => (obstacle.type === 'anchored' || state.resolvedObstacles.includes(obstacle.id))
         && !state.discovered.includes(obstacle.ingredient))) return false;
     }
     if (!Array.isArray(state.orders) || state.orders.length !== 3) return false;
@@ -1039,6 +1117,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const eligibility = taskEligibility(next, data);
       const task = eligibility.task;
       if (!eligibility.ready || !task) return fail(eligibility.blockers.join(' '));
+      next.preparationObstacles ??= { start: next.taskIndex, placed: [] };
       message = `${task.title}: done.`;
       if (task.unlock) {
         const code = `generator_${task.unlock}`;
@@ -1077,6 +1156,13 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       break;
     }
     default: return fail('This action is not available.');
+  }
+  if (['task', 'move', 'spawn', 'serve', 'sell', 'deliverQuest', 'acceptQuest'].includes(action.type)) {
+    const placed = placePreparationObstacles(next, data);
+    if (action.type === 'task') message += ` ${data.board.preparations[next.taskIndex - 1].context}`;
+    if (placed) message += ` ${placed} preparation ${placed === 1 ? 'blocker' : 'blockers'} placed.`;
+    const pending = pendingPreparationObstacles(next, data).length;
+    if (action.type === 'task' && pending) message += ` ${pending} ${pending === 1 ? 'blocker waits' : 'blockers wait'} for safe space.`;
   }
   return { state: next, ok: true, message, event };
 }

@@ -683,6 +683,20 @@
       "referenceAsset": "menu-atlas",
       "referenceSha256": "4eb85ae860456d1174331d0d50dd43a0ff7a71405fe6a09756ed505f13f97df7",
       "review": "The agent examined the ruby wine, decanter, stemmed glass and transparent margins. User visual acceptance is not recorded."
+    },
+    {
+      "id": "preparation-clutter",
+      "file": "public/assets/original/preparation-clutter.png",
+      "sha256": "c700c27a108078bdcbe70d915b29fa39738b8e0f6e0ed9285e3e0111bbeffb91",
+      "bytes": 1424296,
+      "width": 1448,
+      "height": 1086,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "preparation-clutter",
+      "generation": "Built-in in-chat image generation. New image from a text prompt.",
+      "sourceGameImageInput": false,
+      "review": "The agent checked the twelve subjects in a four-column, three-row grid, their order, and their readability on light and dark tiles. The square cells are 362 pixels wide. The internal seam alpha is at most 1. No text or grid lines appear. User visual acceptance is not recorded."
     }
   ],
   "note": "Only generated project images are active. The menu atlas and the mascots repaint the generated chat atlases in the references list. The final portraits revised their own first API candidate. This record is provenance, not legal clearance. front-room-00 and courtyard-13 use the generated reference paintings in the references list. The two decoration paintings use the generated design references in that list. Each later room state is an edit of the previous state, composited so that only its region changes. The board-clutter atlas was generated in chat and corrected for sprite-cell fit.",

@@ -2,7 +2,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { roomPaintings, dataProblems } from '../src/engine.ts';
-import type { Area, BoardLayout, Chapter, Character, DecorationSlot, Finale, GameData, Item, Quest, RoomState, Task } from '../src/engine.ts';
+import type { Area, BoardLayout, Chapter, Character, DecorationSlot, Finale, GameData, Item, PreparationObstacleBatch, Quest, RoomState, Task } from '../src/engine.ts';
 
 const chains: [id: string, name: string, stages: string[], generator: string][] = [
   ['bakery', 'Bread counter', ['Flour', 'Dough', 'Pogăcele', 'Langoș', 'Zacuscă toast', 'Bread basket'], 'Flour bin'],
@@ -392,8 +392,120 @@ const layouts: BoardLayout[] = [
     { id: 'tied-mamaliga', position: 40, name: 'Tied mămăligă', type: 'anchored', ingredient: 'warm_2' },
   ] },
 ];
+// Each finished preparation leaves its own materials and supplies to sort on the board.
+// Preparation clutter mixes its matching new pictures with existing packing; tied food uses its food picture.
+const preparations: PreparationObstacleBatch[] = [
+  { after: 'task_1', context: 'The window repair leaves packing and cleaning cloths to put away.', obstacles: [
+    { id: 'prep-1-frame-offcuts', name: 'Window-frame offcuts', type: 'clutter', ingredient: 'bakery_1', atlas: 'preparation', sprite: 0 },
+    { id: 'prep-1-frame-cloths', name: 'Frame-cleaning linen bundle', type: 'clutter', ingredient: 'drinks_1', sprite: 3 },
+  ] },
+  { after: 'task_2', context: 'The welcome board is painted; its supplies still cover the workbench.', obstacles: [
+    { id: 'prep-2-paint-pot', name: 'Welcome-board paint pot', type: 'clutter', ingredient: 'warm_1', atlas: 'preparation', sprite: 1 },
+    { id: 'prep-2-board-cloths', name: 'Board-cleaning linen bundle', type: 'clutter', ingredient: 'bakery_1', sprite: 3 },
+    { id: 'prep-2-sanding-sack', name: 'Sanding-supply sack', type: 'clutter', ingredient: 'drinks_1', sprite: 1 },
+  ] },
+  { after: 'task_3', context: 'The pastry shelf is ready, but its delivery still needs sorting.', obstacles: [
+    { id: 'prep-3-pastry-plates', name: 'Wrapped pastry plates', type: 'clutter', ingredient: 'bakery_2', atlas: 'preparation', sprite: 8 },
+    { id: 'prep-3-walnuts', name: 'Tied pastry walnuts', type: 'anchored', ingredient: 'sweet_1' },
+  ] },
+  { after: 'task_4', context: 'The lamps are lit; their packing and polishing supplies need clearing.', obstacles: [
+    { id: 'prep-4-lamp-packing', name: 'Spare lamp and packing', type: 'clutter', ingredient: 'drinks_2', atlas: 'preparation', sprite: 2 },
+    { id: 'prep-4-lamp-cloths', name: 'Lamp-polishing linen bundle', type: 'clutter', ingredient: 'warm_1', sprite: 3 },
+    { id: 'prep-4-fittings', name: 'Lamp-fitting sack', type: 'clutter', ingredient: 'bakery_1', sprite: 1 },
+  ] },
+  { after: 'task_5', context: 'The worktop is steady, and its repair supplies must go back into storage.', obstacles: [
+    { id: 'prep-5-worktop-offcuts', name: 'Worktop-repair offcuts', type: 'clutter', ingredient: 'warm_2', atlas: 'preparation', sprite: 0 },
+    { id: 'prep-5-copper-cloths', name: 'Copper-polishing linen bundle', type: 'clutter', ingredient: 'bakery_1', sprite: 3 },
+  ] },
+  { after: 'task_6', context: 'The market delivery leaves produce, packing, and a broken pot to clear.', obstacles: [
+    { id: 'prep-6-market-pot', name: 'Broken market pot', type: 'clutter', ingredient: 'produce_2', atlas: 'preparation', sprite: 3 },
+    { id: 'prep-6-market-sack', name: 'Market-delivery sack', type: 'clutter', ingredient: 'warm_1', sprite: 1 },
+    { id: 'prep-6-aubergine', name: 'Tied market aubergine', type: 'anchored', ingredient: 'produce_1' },
+  ] },
+  { after: 'task_7', context: 'The shelf is secure; clear the broken crock and sort the remaining stock.', obstacles: [
+    { id: 'prep-7-broken-crock', name: 'Broken shelf crock', type: 'clutter', ingredient: 'produce_1', atlas: 'preparation', sprite: 3 },
+    { id: 'prep-7-shelf-crock', name: 'Covered shelf-stock crock', type: 'clutter', ingredient: 'sweet_1', sprite: 2 },
+  ] },
+  { after: 'task_8', context: 'The first menu is written, leaving drawing and cleaning supplies to clear.', obstacles: [
+    { id: 'prep-8-menu-drafts', name: 'Rolled menu drafts', type: 'clutter', ingredient: 'bakery_1', atlas: 'preparation', sprite: 9 },
+    { id: 'prep-8-chalk-cloths', name: 'Chalk-cleaning linen bundle', type: 'clutter', ingredient: 'drinks_1', sprite: 3 },
+    { id: 'prep-8-drawing-sack', name: 'Drawing-supply sack', type: 'clutter', ingredient: 'sweet_1', sprite: 1 },
+  ] },
+  { after: 'task_9', context: 'The new bowls are arranged; unpack the remaining plates and bread supplies.', obstacles: [
+    { id: 'prep-9-wrapped-plates', name: 'Wrapped table plates', type: 'clutter', ingredient: 'warm_1', atlas: 'preparation', sprite: 8 },
+    { id: 'prep-9-table-dough', name: 'Tied table dough', type: 'anchored', ingredient: 'bakery_2' },
+  ] },
+  { after: 'task_10', context: 'The table and chairs are restored; clear their cloths and repair supplies.', obstacles: [
+    { id: 'prep-10-dust-sheet', name: 'Table-cover linen bundle', type: 'clutter', ingredient: 'bakery_2', sprite: 3 },
+    { id: 'prep-10-chair-offcuts', name: 'Chair-repair offcuts', type: 'clutter', ingredient: 'warm_1', atlas: 'preparation', sprite: 0 },
+    { id: 'prep-10-table-supplies', name: 'Table-sanding sack', type: 'clutter', ingredient: 'produce_1', sprite: 1 },
+  ] },
+  { after: 'task_11', context: 'The recipe corner is ready; sort the loose pages and cabinet-cleaning cloths.', obstacles: [
+    { id: 'prep-11-recipe-pages', name: 'Tied recipe pages', type: 'clutter', ingredient: 'sweet_1', atlas: 'preparation', sprite: 7 },
+    { id: 'prep-11-cabinet-cloths', name: 'Cabinet-cleaning linen bundle', type: 'clutter', ingredient: 'drinks_1', sprite: 3 },
+  ] },
+  { after: 'task_12', context: 'The shared table is open, leaving its covers and welcome supplies to sort.', obstacles: [
+    { id: 'prep-12-table-plates', name: 'Wrapped shared-table plates', type: 'clutter', ingredient: 'bakery_2', atlas: 'preparation', sprite: 8 },
+    { id: 'prep-12-table-stock', name: 'Covered table-stock crock', type: 'clutter', ingredient: 'warm_2', sprite: 2 },
+    { id: 'prep-12-welcome-flowers', name: 'Tied welcome elderflowers', type: 'anchored', ingredient: 'drinks_1' },
+  ] },
+  { after: 'task_13', context: 'The courtyard path is clear; move the gathered leaves and cleaning cloths.', obstacles: [
+    { id: 'prep-13-leaf-pile', name: 'Gathered courtyard leaves', type: 'clutter', ingredient: 'produce_1', atlas: 'preparation', sprite: 4 },
+    { id: 'prep-13-yard-cloths', name: 'Courtyard-cleaning linen bundle', type: 'clutter', ingredient: 'warm_1', sprite: 3 },
+  ] },
+  { after: 'task_14', context: 'The herbs are planted, leaving pot packing and planting supplies to store.', obstacles: [
+    { id: 'prep-14-seedling-tray', name: 'Spare herb seedling tray', type: 'clutter', ingredient: 'produce_2', atlas: 'preparation', sprite: 5 },
+    { id: 'prep-14-planting-sack', name: 'Planting-supply sack', type: 'clutter', ingredient: 'warm_1', sprite: 1 },
+    { id: 'prep-14-pot-cloths', name: 'Pot-cleaning linen bundle', type: 'clutter', ingredient: 'drinks_1', sprite: 3 },
+  ] },
+  { after: 'task_15', context: 'The door hood is repaired; clear the spare shingles and drying cloths.', obstacles: [
+    { id: 'prep-15-spare-shingles', name: 'Spare door-hood shingles', type: 'clutter', ingredient: 'bakery_1', atlas: 'preparation', sprite: 6 },
+    { id: 'prep-15-door-cloths', name: 'Door-drying linen bundle', type: 'clutter', ingredient: 'warm_2', sprite: 3 },
+  ] },
+  { after: 'task_16', context: 'The outdoor tables are set; clear the leaves and sort the lunch supplies.', obstacles: [
+    { id: 'prep-16-table-leaves', name: 'Leaves from under the tables', type: 'clutter', ingredient: 'bakery_2', atlas: 'preparation', sprite: 4 },
+    { id: 'prep-16-outdoor-stock', name: 'Covered outdoor-stock crock', type: 'clutter', ingredient: 'drinks_2', sprite: 2 },
+    { id: 'prep-16-lunch-peppers', name: 'Tied lunch peppers', type: 'anchored', ingredient: 'produce_2' },
+  ] },
+  { after: 'task_17', context: 'The family recipes are pinned up; unpack the supplies for their first trials.', obstacles: [
+    { id: 'prep-17-recipe-supplies', name: 'Recipe-trial supply sack', type: 'clutter', ingredient: 'sweet_1', sprite: 1 },
+    { id: 'prep-17-recipe-pages', name: 'Tied family recipe pages', type: 'clutter', ingredient: 'bakery_2', atlas: 'preparation', sprite: 7 },
+  ] },
+  { after: 'task_18', context: 'The tasting plates are ready; sort their packing and the tasting supplies.', obstacles: [
+    { id: 'prep-18-wrapped-plates', name: 'Wrapped tasting plates', type: 'clutter', ingredient: 'produce_2', atlas: 'preparation', sprite: 8 },
+    { id: 'prep-18-tasting-crock', name: 'Covered tasting crock', type: 'clutter', ingredient: 'warm_2', sprite: 2 },
+    { id: 'prep-18-tasting-doughnut', name: 'Tied tasting doughnut', type: 'anchored', ingredient: 'sweet_2' },
+  ] },
+  { after: 'task_19', context: 'The drinks cabinet is stocked; clear the broken crock and tied supplies.', obstacles: [
+    { id: 'prep-19-drinks-crock', name: 'Broken drinks crock', type: 'clutter', ingredient: 'drinks_1', atlas: 'preparation', sprite: 3 },
+    { id: 'prep-19-socata', name: 'Tied cabinet socată', type: 'anchored', ingredient: 'drinks_2' },
+  ] },
+  { after: 'task_20', context: 'The supper menus are printed; clear their packing and table-setting supplies.', obstacles: [
+    { id: 'prep-20-rolled-menus', name: 'Rolled supper menus', type: 'clutter', ingredient: 'bakery_2', atlas: 'preparation', sprite: 9 },
+    { id: 'prep-20-table-linen', name: 'Supper-table linen bundle', type: 'clutter', ingredient: 'produce_2', sprite: 3 },
+    { id: 'prep-20-menu-stands', name: 'Menu-stand supply sack', type: 'clutter', ingredient: 'sweet_2', sprite: 1 },
+  ] },
+  { after: 'task_21', context: 'The invitations are delivered; sort the spare envelopes and gate towels.', obstacles: [
+    { id: 'prep-21-gate-towels', name: 'Gate-towel linen bundle', type: 'clutter', ingredient: 'drinks_2', sprite: 3 },
+    { id: 'prep-21-spare-invitations', name: 'Spare invitation envelopes', type: 'clutter', ingredient: 'produce_1', atlas: 'preparation', sprite: 10 },
+  ] },
+  { after: 'task_22', context: 'The serving station is ready, but its covers and food supplies still need sorting.', obstacles: [
+    { id: 'prep-22-serving-plates', name: 'Wrapped serving plates', type: 'clutter', ingredient: 'bakery_2', atlas: 'preparation', sprite: 8 },
+    { id: 'prep-22-serving-crock', name: 'Covered serving crock', type: 'clutter', ingredient: 'produce_2', sprite: 2 },
+    { id: 'prep-22-mamaliga', name: 'Tied serving mămăligă', type: 'anchored', ingredient: 'warm_2' },
+  ] },
+  { after: 'task_23', context: 'The lights and flowers are in place; clear the stem trimmings and spare cloths.', obstacles: [
+    { id: 'prep-23-stem-trimmings', name: 'Flower stem trimmings', type: 'clutter', ingredient: 'drinks_1', atlas: 'preparation', sprite: 11 },
+    { id: 'prep-23-flower-cloths', name: 'Flower-arranging linen bundle', type: 'clutter', ingredient: 'sweet_1', sprite: 3 },
+  ] },
+  { after: 'task_24', context: 'The supper has begun; clear the final flower trimmings and serving supplies.', obstacles: [
+    { id: 'prep-24-flower-trimmings', name: 'Final flower stem trimmings', type: 'clutter', ingredient: 'produce_2', atlas: 'preparation', sprite: 11 },
+    { id: 'prep-24-supper-crock', name: 'Covered supper crock', type: 'clutter', ingredient: 'warm_2', sprite: 2 },
+    { id: 'prep-24-bread-dough', name: 'Tied next-day dough', type: 'anchored', ingredient: 'bakery_2' },
+  ] },
+];
 const data: GameData = {
-  title: 'Scary Snacks', board: { columns: 6, rows: 7, initial, defaultLayout: 'workbench-clutter-1', layouts },
+  title: 'Scary Snacks', board: { columns: 6, rows: 7, initial, defaultLayout: 'workbench-clutter-1', layouts, preparations },
   chains: chains.map(([id, name]) => ({ id, name })), items, characters, chapters, finale, tasks, areas, rooms, decorationSlots, quests, questItems,
   generatorTiers: chains.flatMap(([chain]) => [{ chain, stage: 2, after: 'task_12' }, { chain, stage: 3, after: 'task_20' }]),
   levelRewards: Array.from({ length: 9 }, (_, index) => ({ id: `level-${index + 2}`, level: index + 2, coins: 20 })),

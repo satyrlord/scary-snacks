@@ -75,6 +75,12 @@ One tap on an ingredient source takes one ingredient and selects the source. Eac
 
 A new game starts with eight blocked edge cells on the six-by-seven board: four dusty clutter wrappers and four anchored ingredients. Webs cover the wrappers until "Fix the broken window" is complete. A pair merge clears each wrapper that shares a side with its destination. The wrapper reveals its own ingredient. An anchored ingredient stays in place until a matching movable ingredient merges into it. That merge releases the anchor and leaves the normal successor. An anchor cannot move, be sold, fill an order, or fill a quest. Reveals give no extra XP or merge credit. They need no free space. Clearing is optional for campaign progress and orders. A blocked cell is not a free space for any placement or space count. The board hint can point to a matching anchor.
 
+Each blocker has a small help mark. A tap selects the blocker and shows its name and clearing rule under the board, in place of item actions or a preparation offer. Clutter help marks the side spaces where a merge can clear it. It excludes other clutter, sources, and final dishes. If each marked space is tied food, the help names the ingredient to merge into it. If none of those spaces is available, the help explains that a source or final dish must move. Tied-food help names the exact matching ingredient and marks movable matches. The tile label gives the meaning of each marked space. Tap the blocker again, select another item, use Clear selection, or press Escape to leave the help. Help changes no game state. A matching selected ingredient still merges directly into a tied space.
+
+Each of the 24 preparation payments earns one authored batch of two or three new blockers. The batch describes the work just completed: repair supplies, courtyard leaves, planting supplies, recipe papers, menu packing, or supper supplies. Its ingredients come only from chains that the payment has opened. Each batch mixes a contextual picture with familiar clutter or an anchored ingredient. The existing clearing rules apply. Payments, not XP levels or quest deliveries, earn batches. The final preparation also earns its batch. No further batches arrive after the campaign.
+
+Blockers use empty cells only. A new source from the payment takes its space first. Placement follows board order, keeps at least three usable cells empty, and keeps a non-clutter side beside every clutter cell. At most three preparation blockers can be unresolved at once, in addition to the initial obstacles. The remaining blockers wait in preparation order. A successful move, take, sale, ordinary service, quest acceptance, quest delivery, or payment tries placement again. A failed action places nothing. The queue does not change the order seed. No placement replaces or moves an item. A blocked cell can receive another blocker only after its earlier obstacle is resolved and the cell is empty. Each blocker appears once. Its name and explanation give its context. The board label gives the waiting count.
+
 Each chain keeps one source. All sources gain stage-two output when preparation 12 completes and stage-three output when preparation 20 completes. Lower outputs stay available. The selected source has one Take button for each earned output, with its picture and name. A successful Take sets the output for later taps on that source. A new source starts with stage one. An upgrade or a move keeps the chosen output. Production is free and immediate, and does not change the random seed. Sources cannot merge or be sold.
 
 An upgrade uses no board space. Outstanding orders keep their requirements and rewards. Before payment, the interface names no future tier, output, or upgrade preparation. After payment, the story completion message names each new output. A failed take changes no state or chosen output and does not reveal an unearned output.
@@ -99,7 +105,7 @@ The game implements spec 001 (visible renovation and areas), spec 002 (decoratio
 
 ## Identity
 
-The game has 36 generated Portable Network Graphics (PNG) masters. They provide these items:
+The game has 37 generated Portable Network Graphics (PNG) masters. They provide these items:
 
 - food
 - a separate red wine picture for its menu item
@@ -110,6 +116,7 @@ The game has 36 generated Portable Network Graphics (PNG) masters. They provide 
 - the embroidered runner
 - cat sprites and bat sprites
 - board clutter, with a web overlay and a twine overlay
+- 12 contextual preparation clutter pictures
 
 The room states are front-room-00 to front-room-12, front-room-17, front-room-24, courtyard-13 to courtyard-16, and courtyard-18 to courtyard-23. Each state has a painting.
 
@@ -134,6 +141,8 @@ If the game data cannot load or does not pass its checks, the kitchen says so an
 An import validates the envelope and the state of the save. An import rejects malformed saved data and keeps the current save. An import enforces a size limit. Load, save, import, and reset use only the save keys of this game. They do not change other browser data.
 
 Current saves use game state version 9 in envelope version 8 at `scary-snacks-save-v8`. Only this format is supported. Load reads only this key. With no current save, the game starts a new campaign. Earlier local saves stay unchanged and are not read or converted. Import rejects earlier formats. New games use the authored blocked layout. Saves record its layout ID and resolved obstacle IDs. A layout ID must remain stable after release.
+
+The optional preparation obstacle record stores the completed-preparation baseline and each placed blocker ID and cell. Waiting blockers come from the paid batches after that baseline. A current save without this record starts the baseline before its next successful preparation payment. It receives no batch for an earlier payment. Reload, import, and changes from another tab preserve the record and do not place or repeat blockers. The state version, envelope, and key stay unchanged. If a preparation save fails, its payment, batch, and placements do not enter the session. A failed save after an ordinary board action keeps the placement and queue in the current session; Retry save and export include that session.
 
 The state records waiting scenes. The list holds closing scenes of complete chapters, the earned finale, and local gossip. Each scene ID occurs once. Chapter scenes keep their chapter order. Gossip can arrive between chapter scenes. Completed preparations determine chapter completion. Completed quests and ordinary service determine local gossip. Scene IDs must remain stable after release.
 

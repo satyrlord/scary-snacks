@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, currentTask, dataProblems, questProblems, reduceGame, taskEligibility, taskGoalProblems, validateGame } from '../src/engine.ts';
+import { createGame, currentTask, dataProblems, questProblems, reduceGame, taskEligibility, taskGoalProblems, unresolvedObstacle, validateGame } from '../src/engine.ts';
 import type { Action, GameData, GameState } from '../src/engine.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
@@ -158,7 +158,7 @@ test('service and sale income cannot complete a preparation without the merge go
 
 test('generator placement is part of eligibility and failed completion leaves every field unchanged', () => {
   const state = checkpoint(2);
-  state.board = state.board.map(cell => cell ?? { code: 'bakery_1' });
+  state.board = state.board.map((cell, index) => cell || unresolvedObstacle(state, index, data) ? cell : { code: 'bakery_1' });
   Object.assign(state, { coins: 0, served: 0, merges: 0, xp: 900 });
   assert.ok(validateGame(state, data));
   const eligibility = taskEligibility(state, data);
@@ -168,10 +168,11 @@ test('generator placement is part of eligibility and failed completion leaves ev
   Object.assign(state, { coins: data.tasks[2].cost, ...data.tasks[2].goals });
   assert.equal(taskEligibility(state, data).blockers.length, 1);
   rejected(state);
-  state.board[0] = null;
+  const space = state.board.findIndex(cell => cell?.code === 'bakery_1');
+  state.board[space] = null;
   assert.ok(taskEligibility(state, data).ready);
   const completed = act(state, { type: 'task' });
-  assert.equal(completed.board[0]?.code, 'generator_sweet');
+  assert.equal(completed.board[space]?.code, 'generator_sweet');
   assert.equal(completed.coins, 0);
   assert.deepEqual([completed.served, completed.merges], [data.tasks[2].goals.served, data.tasks[2].goals.merges]);
 });

@@ -116,5 +116,5 @@ test('the first preparation removes wrapper webs without clearing the clutter', 
   await expect(tile(page, 0)).toHaveAttribute('aria-label', /Old crate, clutter/);
   await expect(tile(page, 0)).not.toHaveAttribute('aria-label', /Covered in webs/);
   await expect(tile(page, 0).locator('.clutter-art')).toHaveCount(1);
-  await expect(page.locator('.cell.clutter')).toHaveCount(4);
+  await expect(page.locator('.cell.clutter')).toHaveCount(4 + data.board.preparations[0].obstacles.filter(obstacle => obstacle.type === 'clutter').length);
 });
