@@ -15,7 +15,12 @@ test('legal campaign scenarios reach the finale and account for every action and
     assert.equal(report.seed, 84017);
     assert.equal(finalState.taskIndex, 24);
     assert.equal(validateGame(finalState, data), true);
-    assert.deepEqual(finalState.pendingScenes, [...data.chapters.map(chapter => chapter.id), data.finale.id]);
+    // The legal policy reads no scene, so each preparation scene and each delivered quest scene waits, with the chapter scenes in story order.
+    const story = data.chapters.flatMap((chapter, index) => [...data.tasks.filter(task => task.chapter === index + 1).map(task => task.id), chapter.id]);
+    assert.deepEqual(finalState.pendingScenes.filter(id => story.includes(id) || id === data.finale.id), [...story, data.finale.id]);
+    assert.deepEqual(new Set(finalState.pendingScenes.filter(id => !story.includes(id) && id !== data.finale.id)),
+      new Set([...finalState.completedQuests, ...data.quests.flatMap(quest => quest.followUp && finalState.pendingScenes.includes(quest.followUp.id) ? [quest.followUp.id] : [])]));
+    assert.ok(finalState.completedQuests.every(id => finalState.pendingScenes.includes(id)));
     assert.equal(finalState.layoutId, data.board.defaultLayout);
     assert.ok(finalState.resolvedObstacles.every(id => !data.board.layouts[0].obstacles.some(obstacle => obstacle.id === id && obstacle.type === 'anchored')),
       'The campaign needs no anchor release. Clutter can clear beside ordinary production merges.');
@@ -51,9 +56,8 @@ test('legal campaign scenarios reach the finale and account for every action and
     for (const chain of data.chains) assert.ok(generatorOutputs(finalState, `generator_${chain.id}`, data).includes(`${chain.id}_3`));
     assert.equal(totals.levelCoins, scenario === 'fresh' ? 0 : 180);
     assert.equal(totals.questCoins, finalState.completedQuests.reduce((sum, id) => sum + data.quests.find(quest => quest.id === id)!.reward, 0));
-    assert.equal(finalState.completedQuests.filter(id => !data.characters.find(person => person.id === data.quests.find(quest => quest.id === id)!.character)!.visitor).length, scenario === 'fresh-rewards' ? 13 : 0);
+    assert.equal(finalState.completedQuests.filter(id => !data.characters.find(person => person.id === data.quests.find(quest => quest.id === id)!.character)!.visitor).length, scenario === 'fresh-rewards' ? 12 : 0);
     if (scenario === 'fresh-rewards') assert.ok(finalState.completedQuests.some(id => data.quests.find(quest => quest.id === id)!.afterServed));
-    assert.deepEqual(finalState.activeQuestProducers, {});
     t.diagnostic(`${scenario}, seed ${report.seed}: ${totals.actions} actions, ${totals.served} service, ${totals.merges} merges, ${totals.sales} sales; ${totals.orderCoins} order + ${totals.saleCoins} sale + ${totals.levelCoins} level + ${totals.questCoins} quest coins; ${finalState.coins} remain.`);
   }
 });

@@ -98,13 +98,14 @@ test('the exact last merge enables payment, keeps board focus, and preserves lif
   const after = await saved(page);
   expect(after.taskIndex).toBe(1); expect(after.coins).toBe(0);
   expect(after.served).toBe(first.goals.served); expect(after.merges).toBe(first.goals.merges);
-  expect(after.orders).toEqual(before.orders); expect(after.seed).toBe(before.seed);
+  expect(after.orders).toEqual(before.orders); expect(after.seed).toBe(before.seed); expect(after.pendingScenes).toEqual(['task_1']);
   for (let line = 0; line < 3; line++) await page.locator('.story-controls .primary-button').click();
   await expect(page.locator('#room-pin')).toBeFocused();
   await expect(goal(page, 'served')).toHaveText(`Total orders served: ${first.goals.served} / ${data.tasks[1].goals.served}Need ${data.tasks[1].goals.served - first.goals.served}`);
   await expect(goal(page, 'merges')).toHaveText(`Total merges: ${first.goals.merges} / ${data.tasks[1].goals.merges}Need ${data.tasks[1].goals.merges - first.goals.merges}`);
   await expect(pay(page)).toBeDisabled();
-  await page.reload(); expect(await saved(page)).toEqual(after);
+  // The last line of the scene reads it, and nothing else changes.
+  await page.reload(); expect(await saved(page)).toEqual({ ...after, pendingScenes: [] });
 });
 
 test('serving the last required order makes the phone offer ready', async ({ page }) => {

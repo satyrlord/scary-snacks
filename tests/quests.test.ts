@@ -1,12 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { canDeliverQuest, createGame, currentTask, dataProblems, firstFreeBoardCell, generatorOutputs, getItem, getLevel, journalCharacters, nextOutput, previewQuestCleanup, questProblems, reduceGame, resolveQuests, taskEligibility, validateGame } from '../src/engine.ts';
+import { canDeliverQuest, createGame, currentTask, dataProblems, firstFreeBoardCell, generatorOutputs, getItem, getLevel, journalCharacters, nextOutput, questProblems, reduceGame, resolveQuests, taskEligibility, validateGame } from '../src/engine.ts';
 import type { Action, GameData, GameState } from '../src/engine.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
-const dedicatedId = 'ilie-bread-tasting';
-const dedicated = data.quests.find(quest => quest.id === dedicatedId)!;
 
 function player(initial = createGame(data), content = data) {
   let state = initial;
@@ -25,8 +23,7 @@ function player(initial = createGame(data), content = data) {
   }
   function produce(code: string): number {
     const item = getItem(code, content)!;
-    const quest = content.quests.find(quest => quest.producer?.exclusiveItems.includes(code));
-    const source = quest?.producer?.item ?? `generator_${item.chain}`;
+    const source = `generator_${item.chain}`;
     if (generatorOutputs(state, source, content).includes(code)) {
       const empty = firstFreeBoardCell(state, content);
       assert.ok(empty >= 0, 'Normal production fits the board.');
@@ -34,7 +31,7 @@ function player(initial = createGame(data), content = data) {
       assert.equal(state.board[empty]?.code, code);
       return empty;
     }
-    const previous = Object.values({ ...content.items, ...content.questItems }).find(previous => previous.next === code)!;
+    const previous = Object.values(content.items).find(previous => previous.next === code)!;
     const first = produce(previous.id);
     const second = produce(previous.id);
     act({ type: 'move', from: first, to: second });
@@ -64,25 +61,19 @@ function checkpoint(count: number) {
   return play.state;
 }
 
-function offered() {
-  const state = checkpoint(18);
-  state.completedQuests = data.quests.filter(quest => quest.character === 'ilie' && !quest.producer).map(quest => quest.id);
-  return state;
-}
-
 test('four original arcs span all six chapters and keep the permanent content and ordinary orders', () => {
   assert.deepEqual(questProblems(data), []);
-  assert.equal(data.quests.length, 24);
+  assert.equal(data.quests.length, 23);
   assert.equal(Object.keys(data.items).length, 35);
   assert.equal(data.chains.length, 5);
   assert.equal(data.tasks.length, 24);
   assert.ok(data.tasks.every(task => !task.requiresQuest));
-  assert.equal(data.quests.filter(quest => !data.characters.find(person => person.id === quest.character)!.visitor).reduce((sum, quest) => sum + quest.reward, 0), 312);
+  assert.equal(data.quests.filter(quest => !data.characters.find(person => person.id === quest.character)!.visitor).reduce((sum, quest) => sum + quest.reward, 0), 288);
   for (const character of data.characters) {
     assert.ok(character.introduction.length > 40);
-    assert.equal(data.quests.filter(quest => (quest.character === character.id || quest.companions?.includes(character.id)) && !quest.producer).length, character.occasional ? 0 : character.singleVisit ? 1 : 3);
+    assert.equal(data.quests.filter(quest => quest.character === character.id || quest.companions?.includes(character.id)).length, character.occasional ? 0 : character.singleVisit ? 1 : 3);
   }
-  const chapters = new Set(data.quests.filter(quest => !quest.producer).map(quest => quest.afterTask === null ? 1
+  const chapters = new Set(data.quests.map(quest => quest.afterTask === null ? 1
     : Math.min(6, 1 + Math.floor((data.tasks.findIndex(task => task.id === quest.afterTask) + 1) / 4))));
   assert.deepEqual([...chapters].sort(), [1, 2, 3, 4, 5, 6]);
   assert.equal(resolveQuests(createGame(data), data).filter(view => view.status === 'active').length, 1);
@@ -113,14 +104,6 @@ test('quest data rejects unknown IDs, quantities, cycles, unavailable chains, an
     ['invalid single visit flag', content => { (content.characters.find(person => person.id === 'ionatan') as unknown as Record<string, unknown>).singleVisit = 'yes'; }],
     ['same character cycle', content => { content.quests[0].afterQuest = 'mara-table'; }],
     ['combined cycle', content => { content.tasks[0].requiresQuest = 'mara-table'; }],
-    ['producer gate', content => { content.tasks[23].requiresQuest = dedicatedId; }],
-    ['producer blocks quest', content => { content.quests[0].afterQuest = dedicatedId; }],
-    ['shared cleanup', content => { content.quests.at(-1)!.producer!.exclusiveItems.push('bakery_1'); }],
-    ['foreign quest food', content => { content.quests[0].requirements[0].item = 'quest_bread_3'; }],
-    ['unowned food', content => { content.questItems.stray = { ...content.questItems.quest_bread_1, id: 'stray' }; }],
-    ['wrong output', content => { content.quests.at(-1)!.producer!.outputs = ['bakery_1']; }],
-    ['merge cycle', content => { content.questItems.quest_bread_3.next = 'quest_bread_1'; }],
-    ['unreachable food', content => { content.questItems.quest_bread_2.next = null; }],
   ];
   for (const [label, mutate] of cases) {
     const content = structuredClone(data);
@@ -292,6 +275,33 @@ test('atomic delivery accounts for repeated quantities, then pays only once', ()
   assert.deepEqual(reloaded, snapshot, 'Reading scenes and quest status has no effect.');
 });
 
+test('delivery queues the quest completion scene in the same change, and a failed delivery queues nothing', () => {
+  const play = player();
+  rejected(play.state, { type: 'deliverQuest', id: 'mara-welcome' });
+  play.produce('drinks_2');
+  const full = { ...structuredClone(play.state), coins: 1_000_000_000 };
+  rejected(full, { type: 'deliverQuest', id: 'mara-welcome' });
+  const before = structuredClone(play.state);
+  play.act({ type: 'deliverQuest', id: 'mara-welcome' });
+  assert.deepEqual(play.state.pendingScenes, [...before.pendingScenes, 'mara-welcome']);
+  // The scene waits at any position: a later payment queues its own scene after it.
+  Object.assign(play.state, data.tasks[0].goals, { coins: play.state.coins + data.tasks[0].cost });
+  play.act({ type: 'task' });
+  assert.deepEqual(play.state.pendingScenes, ['mara-welcome', data.tasks[0].id]);
+  const lines = data.quests.find(quest => quest.id === 'mara-welcome')!.completion.length;
+  rejected(play.state, { type: 'sceneLine', id: 'mara-welcome', line: lines });
+  const coins = play.state.coins;
+  assert.equal(reduceGame(play.state, { type: 'readScene', id: 'mara-welcome' }, data).message, 'The scene is in the story journal.');
+  // A guest who visits once has no journal replay, so reading the scene does not point to the journal.
+  const single = data.quests.find(quest => data.characters.find(person => person.id === quest.character)?.singleVisit)!;
+  const visited = { ...structuredClone(play.state), pendingScenes: [...play.state.pendingScenes, single.id] };
+  assert.equal(reduceGame(visited, { type: 'readScene', id: single.id }, data).message, 'The scene is finished.');
+  play.act({ type: 'readScene', id: 'mara-welcome' });
+  assert.deepEqual(play.state.pendingScenes, [data.tasks[0].id]);
+  assert.equal(play.state.coins, coins, 'Reading the scene gives no second reward.');
+  rejected(play.state, { type: 'readScene', id: 'mara-welcome' });
+});
+
 test('a reachable quest gate blocks its preparation without changes and opens after delivery', () => {
   const content = structuredClone(data);
   content.tasks[0].requiresQuest = 'mara-welcome';
@@ -316,71 +326,19 @@ test('quest rewards cannot overflow the coin limit or change a failed delivery',
   rejected(play.state, { type: 'deliverQuest', id: 'mara-welcome' });
 });
 
-test('quest saves reject duplicates, missing prerequisites, unknown records, and invalid producer ownership', () => {
-  const good = offered();
+test('quest saves reject unknown, duplicate, and early completions and unknown board items', () => {
+  const good = checkpoint(18);
   const cases: ((state: GameState) => void)[] = [
     state => { state.completedQuests = ['absent']; },
     state => { state.completedQuests = ['mara-table']; },
-    state => { state.activeQuestProducers = { absent: 0 }; },
-    state => { state.activeQuestProducers = { 'mara-welcome': 0 }; },
-    state => { state.activeQuestProducers = { [dedicatedId]: 0 }; },
-    state => { state.board[0] = { code: 'quest_bread_1' }; state.discovered.push('quest_bread_1'); },
+    state => { state.completedQuests = ['mara-welcome', 'mara-welcome']; },
+    state => { state.board[state.board.indexOf(null)] = { code: 'absent' }; state.discovered.push('absent'); },
   ];
+  assert.equal(validateGame(good, data), true);
   for (const mutate of cases) { const broken = structuredClone(good); mutate(broken); assert.equal(validateGame(broken, data), false); }
-  const accepted = player(good);
-  accepted.act({ type: 'acceptQuest', id: dedicatedId });
-  for (const mutate of [
-    (state: GameState) => { state.activeQuestProducers[dedicatedId] = 1; },
-    (state: GameState) => { state.board[state.board.indexOf(null)] = { code: 'quest_bread_source' }; },
-    (state: GameState) => { state.completedQuests.push(dedicatedId); },
-    (state: GameState) => { state.outputChoices.quest_bread = 'quest_bread_1'; },
-    (state: GameState) => { state.orders[0].requirements = ['quest_bread_3']; },
-  ]) { const broken = structuredClone(accepted.state); mutate(broken); assert.equal(validateGame(broken, data), false); }
-  const gated = structuredClone(data);
-  gated.quests.find(quest => quest.id === dedicatedId)!.afterServed = accepted.state.served + 1;
-  assert.equal(validateGame(accepted.state, gated), false, 'A borrowed source also needs its request service goal.');
 });
 
-test('producer acceptance requires board space and cannot be repeated', () => {
-  const board = player(offered());
-  board.act({ type: 'acceptQuest', id: dedicatedId });
-  assert.equal(board.state.board.filter(cell => cell?.code === 'quest_bread_source').length, 1);
-  rejected(board.state, { type: 'acceptQuest', id: dedicatedId });
-  const source = board.state.board.findIndex(cell => cell?.code === 'quest_bread_source');
-  rejected(board.state, { type: 'sell', index: source });
-  board.act({ type: 'move', from: source, to: firstFreeBoardCell(board.state, data) });
-  assert.deepEqual(board.state.activeQuestProducers, { [dedicatedId]: 0 });
-
-  const full = player(offered());
-  while (firstFreeBoardCell(full.state, data) !== -1) full.produce('bakery_1');
-  rejected(full.state, { type: 'acceptQuest', id: dedicatedId });
-  assert.equal(resolveQuests(full.state, data).find(view => view.quest.id === dedicatedId)?.status, 'offer');
-  const sell = full.state.board.findIndex(cell => cell?.code === 'bakery_1');
-  full.act({ type: 'sell', index: sell });
-  full.act({ type: 'acceptQuest', id: dedicatedId });
-  assert.equal(full.state.board[sell]?.code, 'quest_bread_source');
-  rejected(full.state, { type: 'spawn', index: sell });
-});
-
-test('dedicated production is immediate, deterministic, free, reloadable, and separate from ordinary sources', () => {
-  const play = player(offered());
-  play.act({ type: 'acceptQuest', id: dedicatedId });
-  const before = structuredClone(play.state);
-  const source = play.state.board.findIndex(cell => cell?.code === 'quest_bread_source');
-  rejected(play.state, { type: 'spawn', index: source, output: 'bakery_1' });
-  for (let index = 0; index < 20; index++) {
-    const produced = play.produce('quest_bread_1');
-    assert.equal(play.state.coins, before.coins + index);
-    assert.equal(play.state.seed, before.seed);
-    assert.deepEqual(play.state.outputChoices, before.outputChoices);
-    assert.deepEqual(play.state.orders, before.orders);
-    assert.equal(validateGame(JSON.parse(JSON.stringify(play.state)), data), true);
-    play.act({ type: 'sell', index: produced });
-  }
-  assert.equal(play.state.activeQuestProducers[dedicatedId], 0, 'The sequence wraps without an exhausted charge pool.');
-});
-
-test('the next output that the interface names is the output that one tap takes, for ordinary and quest sources', () => {
+test('the next output that the interface names is the output that one tap takes', () => {
   const taps = (play: ReturnType<typeof player>, source: string, count: number) => {
     for (let tap = 0; tap < count; tap++) {
       const named = nextOutput(play.state, source, play.content);
@@ -390,52 +348,13 @@ test('the next output that the interface names is the output that one tap takes,
       play.act({ type: 'sell', index: empty });
     }
   };
-  // A two-output sequence shows that the named output follows the quest source's position, not the ordinary choice.
-  const content = structuredClone(data);
-  const producer = content.quests.find(quest => quest.id === dedicatedId)!.producer!;
-  producer.outputs = ['quest_bread_1', 'quest_bread_2'];
-  content.questItems[producer.item].generator!.outputs = [...producer.outputs];
-  assert.deepEqual(dataProblems(content), []);
-  const play = player(offered(), content);
-  assert.equal(nextOutput(play.state, producer.item, content), 'quest_bread_1', 'An offered source starts with its first output.');
-  play.act({ type: 'acceptQuest', id: dedicatedId });
-  taps(play, producer.item, 3);
-  assert.equal(nextOutput(play.state, producer.item, content), 'quest_bread_2');
+  const content = data, play = player(checkpoint(18));
+  taps(play, 'generator_bakery', 2);
+  assert.equal(nextOutput(play.state, 'generator_bakery', content), 'bakery_1');
   play.act({ type: 'spawn', index: play.state.board.findIndex(cell => cell?.code === 'generator_bakery'), output: 'bakery_2' });
   taps(play, 'generator_bakery', 2);
   assert.equal(nextOutput(play.state, 'generator_bakery', content), 'bakery_2');
   assert.equal(nextOutput(play.state, 'bakery_1', content), null);
-});
-
-test('cleanup previews only exclusive leftovers and stale previews preserve every item and reward', () => {
-  const play = player(offered());
-  play.act({ type: 'acceptQuest', id: dedicatedId });
-  play.produce('quest_bread_3');
-  play.produce('quest_bread_3');
-  const leftover = play.produce('quest_bread_2');
-  play.produce('bakery_3');
-  const source = play.state.board.findIndex(cell => cell?.code === 'quest_bread_source');
-  const preview = previewQuestCleanup(play.state, dedicatedId, data)!;
-  assert.deepEqual(preview.board, [source, leftover].sort((a, b) => a - b).map(index => ({ index, item: play.state.board[index]!.code })));
-  rejected(play.state, { type: 'deliverQuest', id: dedicatedId });
-  play.produce('drinks_1');
-  rejected(play.state, { type: 'deliverQuest', id: dedicatedId, cleanupToken: preview.token });
-  const fresh = previewQuestCleanup(play.state, dedicatedId, data)!;
-  const before = structuredClone(play.state);
-  const regularBoard = before.board.map(cell => cell && dedicated.producer!.exclusiveItems.includes(cell.code) ? null : cell);
-  play.act({ type: 'deliverQuest', id: dedicatedId, cleanupToken: fresh.token });
-  assert.deepEqual(play.state.board, regularBoard);
-  assert.equal(play.state.coins, before.coins + dedicated.reward);
-  assert.deepEqual(play.state.orders, before.orders);
-  assert.equal(play.state.seed, before.seed);
-  assert.deepEqual(play.state.activeQuestProducers, {});
-  assert.ok(play.state.completedQuests.includes(dedicatedId));
-  rejected(play.state, { type: 'acceptQuest', id: dedicatedId });
-  rejected(play.state, { type: 'deliverQuest', id: dedicatedId, cleanupToken: fresh.token });
-  assert.equal(previewQuestCleanup(play.state, dedicatedId, data), null);
-  const corrupted = structuredClone(play.state);
-  corrupted.board[corrupted.board.indexOf(null)] = { code: 'quest_bread_1' };
-  assert.equal(validateGame(corrupted, data), false, 'Completed quests cannot retain exclusive leftovers.');
 });
 
 test('all quests and the campaign finish through legal actions without injected resources', t => {
@@ -445,13 +364,12 @@ test('all quests and the campaign finish through legal actions without injected 
   let levelCoins = 0;
   const chapterTotals: { chapter: number; actions: number; orders: number; merges: number; coins: number; quests: number }[] = [];
   for (;;) {
-    const available = resolveQuests(play.state, data).find(view => view.status === 'active' || view.status === 'offer');
+    const available = resolveQuests(play.state, data).find(view => view.status === 'active');
     if (available) {
       const quest = available.quest;
-      if (available.status === 'offer') play.act({ type: 'acceptQuest', id: quest.id });
       for (const requirement of quest.requirements) for (let count = 0; count < requirement.quantity; count++) play.produce(requirement.item);
       const before = structuredClone(play.state.orders);
-      play.act({ type: 'deliverQuest', id: quest.id, ...(quest.producer ? { cleanupToken: previewQuestCleanup(play.state, quest.id, data)!.token } : {}) });
+      play.act({ type: 'deliverQuest', id: quest.id });
       assert.deepEqual(play.state.orders, before);
       questCoins += quest.reward;
       continue;
@@ -479,7 +397,6 @@ test('all quests and the campaign finish through legal actions without injected 
   }
   assert.equal(play.state.taskIndex, 24);
   assert.equal(play.state.completedQuests.length, data.quests.length);
-  assert.deepEqual(play.state.activeQuestProducers, {});
   assert.equal(questCoins, data.quests.reduce((sum, quest) => sum + quest.reward, 0));
   assert.equal(levelCoins, 180);
   const preparationCoins = data.tasks.reduce((sum, task) => sum + task.cost, 0);

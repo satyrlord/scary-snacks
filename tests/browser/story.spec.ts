@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { createGame, currentTask, firstFreeBoardCell, generatorOutputs, getItem, getLevel, previewQuestCleanup, reduceGame, resolveQuests, taskEligibility, validateGame } from '../../src/engine.ts';
-import type { Action, GameData, GameState, Order } from '../../src/engine.ts';
+import { createGame, currentTask, firstFreeBoardCell, generatorOutputs, getItem, getLevel, reduceGame, resolveQuests, taskEligibility, validateGame } from '../../src/engine.ts';
+import type { Action, GameData, GameState, Order, SceneLine } from '../../src/engine.ts';
 import { SAVE_KEY, exportSave } from '../../src/storage.ts';
 
 const data: GameData=JSON.parse(readFileSync('public/data/game.json','utf8'));
@@ -110,7 +110,9 @@ test('a reload during the last preparation story resumes the waiting scenes, the
   const state=result.state,order=state.orders[0];
   for(const code of order.requirements){state.board[firstFreeBoardCell(state,data)]={code};if(!state.discovered.includes(code))state.discovered.push(code);}
   await start(page,state);await expect(page.locator('#modal')).toBeHidden();await expect(page.locator('#status')).toContainText('A story scene is waiting in Story.');
-  await story(page);await page.locator('.story-waiting').getByRole('button',{name:/^Read now/}).click();await expect(scene(page,closing(5))).toBeVisible();
+  // The preparation scene resumes first. The room change is already done, so it leads on to the next scene.
+  await story(page);await page.locator('.story-waiting').getByRole('button',{name:`Read now: ${data.tasks[23].title}`,exact:true}).click();await expect(scene(page,data.tasks[23].title)).toBeVisible();
+  await readTo(page,'Next scene');await expect(scene(page,closing(5))).toBeVisible();
   await readTo(page,'Next scene');await expect(scene(page,data.finale.title)).toBeVisible();await readTo(page,'Back to the kitchen');expect((await saved(page)).pendingScenes).toEqual([]);
   await page.locator('#orders .order').first().getByRole('button',{name:/^Serve /}).click();
   const served=await saved(page);expect(served.served).toBe(state.served+1);expect(served.coins).toBe(state.coins+order.reward);expect(served.pendingScenes).toEqual([]);
@@ -122,18 +124,17 @@ function playUntilReady(start: GameState){
   let state=start;
   const act=(action: Action)=>{const result=reduceGame(state,action,data);expect(result.ok,result.message).toBe(true);state=result.state;};
   const produce=(code: string): number=>{
-    const source=data.quests.find(quest=>quest.producer?.exclusiveItems.includes(code))?.producer?.item??`generator_${getItem(code,data)!.chain}`;
+    const source=`generator_${getItem(code,data)!.chain}`;
     if(generatorOutputs(state,source,data).includes(code)){const empty=firstFreeBoardCell(state,data);expect(empty).toBeGreaterThanOrEqual(0);act({type:'spawn',index:state.board.findIndex(cell=>cell?.code===source),output:code});return empty;}
-    const lower=Object.values({...data.items,...data.questItems}).find(item=>item.next===code)!;const first=produce(lower.id),second=produce(lower.id);act({type:'move',from:first,to:second});return second;
+    const lower=Object.values(data.items).find(item=>item.next===code)!;const first=produce(lower.id),second=produce(lower.id);act({type:'move',from:first,to:second});return second;
   };
   for(;;){
-    for(const quest of data.quests)if(quest.followUp&&state.pendingScenes.includes(quest.followUp.id))act({type:'readScene',id:quest.followUp.id});
+    for(const id of [...state.pendingScenes])if(data.quests.some(quest=>quest.id===id||quest.followUp?.id===id))act({type:'readScene',id});
     for(const reward of data.levelRewards)if(reward.level<=getLevel(state)&&!state.claimedLevelRewards.includes(reward.id))act({type:'claimLevelReward',id:reward.id});
-    const open=resolveQuests(state,data).find(view=>view.status==='active'||view.status==='offer');
+    const open=resolveQuests(state,data).find(view=>view.status==='active');
     if(open){
-      if(open.status==='offer')act({type:'acceptQuest',id:open.quest.id});
       for(const requirement of open.quest.requirements)for(let count=0;count<requirement.quantity;count++)produce(requirement.item);
-      const cleanup=open.quest.producer?previewQuestCleanup(state,open.quest.id,data):null;act({type:'deliverQuest',id:open.quest.id,...(cleanup?{cleanupToken:cleanup.token}:{})});continue;
+      act({type:'deliverQuest',id:open.quest.id});continue;
     }
     const visit=data.quests.find(quest=>quest.afterQuestServices!==undefined&&state.completedQuests.includes(quest.afterQuest!)&&!state.completedQuests.includes(quest.id));
     if(visit){
@@ -229,4 +230,80 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:390
   await page.getByRole('button',{name:`Read ${closing(0)}`,exact:true}).click();await expect(page.getByRole('button',{name:'Skip scene',exact:true})).toBeInViewport();
   const skip=(await page.getByRole('button',{name:'Skip scene',exact:true}).boundingBox())!;expect(skip.height).toBeGreaterThanOrEqual(44);
   await page.screenshot({path:testInfo.outputPath('story-scene.png')});
+});
+
+const counter=(page: Page)=>page.locator('.story-controls > span');
+const forward=(page: Page)=>page.locator('.story-controls .primary-button');
+async function readNow(page: Page,title: string){await story(page);await page.locator('.story-waiting').getByRole('button',{name:`Read now: ${title}`,exact:true}).click();await expect(scene(page,title)).toBeVisible();}
+async function line(page: Page,dialogue: SceneLine[],at: number){await expect(counter(page)).toHaveText(`${at+1} / ${dialogue.length}`);await expect(page.locator('#story-line')).toContainText(dialogue[at].text);}
+
+test('a paid preparation scene resumes at its saved line after Escape, Close, and reload, without another payment',async({page})=>{
+  await page.emulateMedia({reducedMotion:'reduce'});const task=data.tasks[1];await start(page,checkpoint(1));
+  await story(page);await page.getByRole('button',{name:/^Pay /}).first().click();await line(page,task.dialogue,0);
+  await forward(page).click();await line(page,task.dialogue,1);
+  await expect.poll(async()=>(await saved(page)).sceneLines).toEqual({[task.id]:1});const paid=await saved(page);expect(paid.pendingScenes).toEqual([task.id]);
+  // Escape starts the room change and leaves the scene waiting at its line.
+  await page.keyboard.press('Escape');await expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done');await expect(page.locator('#modal')).toBeHidden();
+  expect(await saved(page)).toEqual(paid);
+  await readNow(page,task.title);await line(page,task.dialogue,1);
+  await page.getByRole('button',{name:'Back',exact:true}).click();await line(page,task.dialogue,0);
+  await expect.poll(async()=>Object.hasOwn(await saved(page),'sceneLines')).toBe(false);
+  await forward(page).click();await forward(page).click();await line(page,task.dialogue,2);
+  await expect.poll(async()=>(await saved(page)).sceneLines).toEqual({[task.id]:2});
+  await page.locator('#close-modal').click();await expect(page.locator('#modal')).toBeHidden();
+  await page.reload();await expect(page.locator('#board button')).toHaveCount(42);await expect(page.locator('#status')).toContainText('A story scene is waiting in Story.');
+  await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-02');
+  // After the reload, the room change is done, so the scene ends with the usual label.
+  await readNow(page,task.title);await line(page,task.dialogue,2);await expect(forward(page)).toHaveText('Back to the kitchen');
+  await forward(page).click();await expect(page.locator('#modal')).toBeHidden();
+  const read=await saved(page);expect(read.pendingScenes).toEqual([]);expect(Object.hasOwn(read,'sceneLines')).toBe(false);
+  const {sceneLines:_line,...rest}=paid;expect({...read,pendingScenes:paid.pendingScenes}).toEqual(rest);await expect(page.locator('#story .story-waiting')).toHaveCount(0);
+});
+
+test('Skip on a paid scene reads it and starts the room change, and then the chapter scene opens',async({page})=>{
+  await page.emulateMedia({reducedMotion:'reduce'});await start(page,checkpoint(3));
+  await story(page);await page.getByRole('button',{name:/^Pay /}).first().click();await expect(scene(page,data.tasks[3].title)).toBeVisible();
+  await page.getByRole('button',{name:'Skip scene',exact:true}).click();
+  await expect(scene(page,closing(0))).toBeVisible();await expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done');
+  await line(page,data.chapters[0].closing,0);expect((await saved(page)).pendingScenes).toEqual(['chapter-1']);
+});
+
+test('a chapter scene resumes at its saved line after export and import, and a replay keeps that line',async({page})=>{
+  const closingLines=data.chapters[0].closing,state=checkpoint(4);state.pendingScenes=['chapter-1'];await start(page,state);
+  await readNow(page,closing(0));await forward(page).click();await forward(page).click();await line(page,closingLines,2);
+  await expect.poll(async()=>(await saved(page)).sceneLines).toEqual({'chapter-1':2});await page.keyboard.press('Escape');await expect(page.locator('#modal')).toBeHidden();
+  // A replay of a read scene starts at its first line and changes no saved line.
+  await journal(page);const replay=page.locator('[data-journal="task_2"]');await expect(replay).toContainText(`New: ${data.rooms.find(room=>room.after==='task_2')!.label}`);
+  await replay.click();await line(page,data.tasks[1].dialogue,0);await forward(page).click();await line(page,data.tasks[1].dialogue,1);
+  await page.keyboard.press('Escape');await expect(page.getByRole('dialog',{name:'Story journal',exact:true})).toBeVisible();
+  const waiting=page.getByRole('button',{name:`Read ${closing(0)}`,exact:true});await expect(waiting).toContainText('New scene');
+  await waiting.click();await line(page,closingLines,2);await page.keyboard.press('Escape');await page.keyboard.press('Escape');await expect(page.locator('#modal')).toBeHidden();
+  const lined=await saved(page);expect(lined.sceneLines).toEqual({'chapter-1':2});
+  await page.locator('[data-house-book]:visible').first().click();const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Export saved game'}).click();
+  const download=await downloadPromise,text=readFileSync((await download.path())!,'utf8');expect(JSON.parse(text).state).toEqual(lined);
+  await page.getByRole('button',{name:'Start a new game',exact:true}).click();await page.getByRole('button',{name:'Erase and start again'}).click();
+  expect((await saved(page)).pendingScenes).toEqual([]);expect(Object.hasOwn(await saved(page),'sceneLines')).toBe(false);
+  await page.locator('[data-house-book]:visible').first().click();await page.locator('input[type="file"]').setInputFiles({name:'story.json',mimeType:'application/json',buffer:Buffer.from(text)});
+  await page.getByRole('button',{name:'Import this saved game'}).click();expect(await saved(page)).toEqual(lined);
+  await readNow(page,closing(0));await line(page,closingLines,2);
+  await page.getByRole('button',{name:'Back',exact:true}).click();await line(page,closingLines,1);
+  await page.reload();await expect(page.locator('#board button')).toHaveCount(42);await readNow(page,closing(0));await line(page,closingLines,1);
+});
+
+test('a saved line past the end of its scene starts the scene again with a notice',async({page})=>{
+  const state=checkpoint(4);state.pendingScenes=['chapter-1'];state.sceneLines={'chapter-1':99};await start(page,state);
+  await readNow(page,closing(0));await expect(scene(page,closing(0))).toContainText('Someone lost the thread. The conversation starts again from the beginning.');
+  await line(page,data.chapters[0].closing,0);await forward(page).click();await expect.poll(async()=>(await saved(page)).sceneLines).toEqual({'chapter-1':1});
+});
+
+test('a failed line write warns once in the scene, the player reads on, and reload resumes at the last saved line',async({page})=>{
+  const closingLines=data.chapters[0].closing,state=checkpoint(4);state.pendingScenes=['chapter-1'];await start(page,state);
+  await readNow(page,closing(0));await forward(page).click();await expect.poll(async()=>(await saved(page)).sceneLines).toEqual({'chapter-1':1});
+  await page.evaluate(()=>{Storage.prototype.setItem=()=>{throw new Error('Quota exceeded');};});
+  const warning=page.locator('.scene-unsaved');await expect(warning).toHaveCount(0);
+  await forward(page).click();await line(page,closingLines,2);
+  await expect(warning).toHaveText('This session is not saved. You can keep reading. Use Retry save in the House book before you leave.');
+  await forward(page).click();await line(page,closingLines,3);await expect(warning).toHaveCount(1);await expect(page.locator('#modal .save-error')).toHaveCount(1);
+  expect((await saved(page)).sceneLines).toEqual({'chapter-1':1});
+  await page.reload();await expect(page.locator('#board button')).toHaveCount(42);await readNow(page,closing(0));await line(page,closingLines,1);
 });

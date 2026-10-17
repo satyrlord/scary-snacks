@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { SAVE_KEY, MAX_SAVE_BYTES, loadSave, saveGame, exportSave, importSave, resetSave } from '../src/storage.ts';
-import { createGame, validateGame, reduceGame, taskEligibility, firstFreeBoardCell } from '../src/engine.ts';
+import { createGame, validateGame, reduceGame, taskEligibility, firstFreeBoardCell, removeBreadTasting } from '../src/engine.ts';
 import type { GameData, GameState } from '../src/engine.ts';
 
 type State = { coins: number; board: ({ code: string } | null)[]; story: string; self?: State };
@@ -154,7 +154,7 @@ function checkpoint(count: number): GameState {
     assert.equal(result.ok, true, result.message);
     current = result.state;
   }
-  if (count >= 18) current.completedQuests = gameData.quests.filter(quest => quest.character === 'ilie' && !quest.producer).map(quest => quest.id);
+  if (count >= 18) current.completedQuests = gameData.quests.filter(quest => quest.character === 'ilie').map(quest => quest.id);
   return current;
 }
 
@@ -177,6 +177,45 @@ test('pending story scenes survive export, import, and reload, and invalid queue
     assert.equal(saveGame(storage, { ...middle, pendingScenes }, validGame).ok, false);
     assert.equal(storage.values.get(SAVE_KEY), current);
   }
+});
+
+test('each saved scene line survives a round trip, a save without lines starts at the first line, and malformed lines cannot replace a save', () => {
+  const paid = checkpoint(4), scene = gameData.tasks[3].id;
+  assert.equal(Object.hasOwn(paid, 'sceneLines'), false, 'A save without lines starts each waiting scene at the first line.');
+  assert.deepEqual(importSave(exportSave(paid, validGame), validGame), paid);
+  for (let line = 1; line < gameData.tasks[3].dialogue.length; line++) {
+    const result = reduceGame(paid, { type: 'sceneLine', id: scene, line }, gameData);
+    assert.equal(result.ok, true, result.message);
+    const storage = memoryStorage();
+    assert.equal(saveGame(storage, result.state, validGame).ok, true);
+    const loaded = loadSave<GameState>(storage, validGame).state!;
+    assert.deepEqual(loaded.sceneLines, { [scene]: line });
+    assert.deepEqual(importSave(exportSave(loaded, validGame), validGame), result.state);
+  }
+  const current = exportSave(paid, validGame);
+  for (const sceneLines of [null, [], 'task_4', { [scene]: 0 }, { [scene]: -1 }, { [scene]: 1.5 }, { [scene]: '1' }, { 'chapter-2': 1 }, { unknown: 1 }]) {
+    const text = envelope({ ...paid, sceneLines });
+    assert.throws(() => importSave(text, validGame), /damaged or unknown/, JSON.stringify(sceneLines));
+    const storage = memoryStorage([[SAVE_KEY, current]]);
+    assert.equal(saveGame(storage, { ...paid, sceneLines }, validGame).ok, false);
+    assert.equal(storage.values.get(SAVE_KEY), current);
+  }
+});
+
+test('a failed scene line write keeps the previous save, and a later write records the line', () => {
+  const paid = checkpoint(4), scene = gameData.tasks[3].id;
+  const storage = memoryStorage([[SAVE_KEY, exportSave(paid, validGame)]]);
+  const previous = storage.values.get(SAVE_KEY);
+  const line = reduceGame(paid, { type: 'sceneLine', id: scene, line: 1 }, gameData).state;
+  const write = storage.setItem;
+  storage.setItem = () => { throw new Error('Quota exceeded'); };
+  assert.equal(saveGame(storage, line, validGame).ok, false);
+  assert.equal(storage.values.get(SAVE_KEY), previous);
+  assert.equal(Object.hasOwn(loadSave<GameState>(storage, validGame).state!, 'sceneLines'), false);
+  storage.setItem = write;
+  const later = reduceGame(line, { type: 'sceneLine', id: scene, line: 2 }, gameData).state;
+  assert.equal(saveGame(storage, later, validGame).ok, true);
+  assert.deepEqual(loadSave<GameState>(storage, validGame).state!.sceneLines, { [scene]: 2 });
 });
 
 test('current saves retain completed preparations with zero counters without a rewrite or inferred credit', () => {
@@ -254,15 +293,12 @@ test('unsupported and malformed campaign saves remain recoverable without replac
 
 test('unknown, duplicate, and contradictory quest records cannot replace current saved progress', () => {
   const current = createGame(gameData);
-  const first = gameData.quests.find(quest => !quest.producer && quest.afterTask === null && !quest.afterQuest)!;
+  const first = gameData.quests.find(quest => quest.afterTask === null && !quest.afterQuest)!;
   const later = gameData.quests.find(quest => quest.afterQuest)!;
-  const producer = gameData.quests.find(quest => quest.producer)!;
   const text = exportSave(current, validGame);
   const invalidStates = [
     ...[undefined, null, {}, 'quest', ['unknown'], [first.id, first.id], [12]].map(completedQuests => ({ ...current, completedQuests })),
-    ...[undefined, null, [], { unknown: 0 }, { [producer.id]: -1 }, { [producer.id]: 0 }].map(activeQuestProducers => ({ ...current, activeQuestProducers })),
     { ...current, completedQuests: [later.id] },
-    { ...current, completedQuests: [producer.id], activeQuestProducers: { [producer.id]: 0 } },
   ];
   for (const invalid of invalidStates) {
     const raw = envelope(invalid);
@@ -282,7 +318,7 @@ test('unknown, duplicate, and contradictory quest records cannot replace current
 
 test('a failed quest delivery write keeps the session reward and reload restores only durable progress', () => {
   const current = createGame(gameData);
-  const quest = gameData.quests.find(candidate => !candidate.producer && candidate.afterTask === null && !candidate.afterQuest)!;
+  const quest = gameData.quests.find(candidate => candidate.afterTask === null && !candidate.afterQuest)!;
   for (const requirement of quest.requirements) {
     for (let count = 0; count < requirement.quantity; count++) {
       const index = firstFreeBoardCell(current, gameData);
@@ -314,53 +350,43 @@ test('a failed quest delivery write keeps the session reward and reload restores
   assert.equal(storage.writes.length, 1);
 });
 
-test('an active quest producer and its output position survive board moves, import, and reload', () => {
-  const current = checkpoint(24);
-  const quest = gameData.quests.find(candidate => candidate.producer)!;
-  const accepted = reduceGame(current, { type: 'acceptQuest', id: quest.id }, gameData);
-  assert.equal(accepted.ok, true, accepted.message);
-  const index = accepted.state.board.findIndex(cell => cell?.code === quest.producer!.item);
-  assert.notEqual(index, -1);
-  const produced = reduceGame(accepted.state, { type: 'spawn', index }, gameData);
-  assert.equal(produced.ok, true, produced.message);
-  assert.equal(produced.state.activeQuestProducers[quest.id], 1 % quest.producer!.outputs.length);
-  const stored = reduceGame(produced.state, { type: 'move', from: index, to: firstFreeBoardCell(produced.state, gameData) }, gameData);
-  assert.equal(stored.ok, true, stored.message);
-  const text = exportSave(stored.state, validGame);
-  const storage = memoryStorage([[SAVE_KEY, text]]);
-  const loaded = loadSave<GameState>(storage, validGame).state!;
-  assert.deepEqual(loaded, stored.state);
-  assert.deepEqual(importSave(text, validGame), stored.state);
-  assert.equal(reduceGame(loaded, { type: 'acceptQuest', id: quest.id }, gameData).ok, false);
-  assert.equal(storage.writes.length, 0);
-  const sourceIndex = loaded.board.findIndex(cell => cell?.code === quest.producer!.item);
-  const next = reduceGame(loaded, { type: 'spawn', index: sourceIndex }, gameData);
-  assert.equal(next.ok, true, next.message);
-  assert.equal(next.state.activeQuestProducers[quest.id], 2 % quest.producer!.outputs.length);
-  assert.equal(saveGame(storage, next.state, validGame).ok, true);
-  assert.deepEqual(loadSave(storage, validGame).state, next.state);
-});
-
-test('a saved producer entitlement rejects missing or duplicate producers on the board', () => {
-  const current = checkpoint(24);
-  const quest = gameData.quests.find(candidate => candidate.producer)!;
-  const accepted = reduceGame(current, { type: 'acceptQuest', id: quest.id }, gameData);
-  assert.equal(accepted.ok, true, accepted.message);
-  const sourceIndex = accepted.state.board.findIndex(cell => cell?.code === quest.producer!.item);
-  const withoutSource = structuredClone(accepted.state);
-  withoutSource.board[sourceIndex] = null;
-  const doubleSource = structuredClone(accepted.state);
-  doubleSource.board[firstFreeBoardCell(doubleSource, gameData)] = { code: quest.producer!.item };
-  const noEntitlement = { ...accepted.state, activeQuestProducers: {} };
-  for (const invalid of [withoutSource, doubleSource, noEntitlement]) {
-    const raw = envelope(invalid);
-    const storage = memoryStorage([[SAVE_KEY, raw]]);
-    assert.throws(() => importSave(raw, validGame));
-    assert.throws(() => exportSave(invalid, validGame));
-    assert.equal(loadSave(storage, validGame).status, 'invalid');
-    assert.equal(storage.values.get(SAVE_KEY), raw);
-    assert.equal(storage.writes.length, 0);
+/** A current-format save with the borrowed bread tasting: either open, with its source and a tasting item on the board, or delivered. */
+function withTasting(state: GameState, delivered: boolean) {
+  const legacy: GameState & Record<string, unknown> = structuredClone(state);
+  if (delivered) {
+    legacy.completedQuests = [...state.completedQuests, 'ilie-bread-tasting'];
+    legacy.questCompletedAt = { ...state.questCompletedAt, 'ilie-bread-tasting': state.served };
+    legacy.pendingScenes = [...state.pendingScenes, 'ilie-bread-tasting'];
+    legacy.sceneLines = { 'ilie-bread-tasting': 1 };
+    legacy.activeQuestProducers = {};
+  } else {
+    for (const code of ['quest_bread_source', 'quest_bread_3']) legacy.board[firstFreeBoardCell(legacy, gameData)] = { code };
+    legacy.discovered = [...state.discovered, 'quest_bread_source', 'quest_bread_1', 'quest_bread_2', 'quest_bread_3'];
+    legacy.activeQuestProducers = { 'ilie-bread-tasting': 0 };
   }
+  return legacy;
+}
+
+test('a current save with the bread tasting loads, imports, and saves without it, and keeps all other progress', () => {
+  const current = checkpoint(18);
+  for (const delivered of [false, true]) {
+    const text = envelope(withTasting(current, delivered));
+    const expected: GameState = delivered ? { ...current, questCompletedAt: {}, sceneLines: {} } : current;
+    assert.throws(() => importSave(text, validGame), /damaged or unknown/, 'Without the cleanup, the tasting data does not validate.');
+    const storage = memoryStorage([[SAVE_KEY, text]]);
+    const loaded = loadSave<GameState>(storage, validGame, removeBreadTasting);
+    assert.equal(loaded.status, 'loaded', loaded.error ?? '');
+    assert.deepEqual(loaded.state, expected);
+    assert.equal(loaded.state!.coins, current.coins, 'The coins of a delivered tasting stay.');
+    assert.equal(storage.writes.length, 0, 'A load alone does not rewrite the save.');
+    assert.deepEqual(importSave(text, validGame, removeBreadTasting), expected);
+    assert.equal(saveGame(storage, loaded.state, validGame).ok, false, 'Without the cleanup, the existing save blocks the write.');
+    assert.equal(storage.values.get(SAVE_KEY), text);
+    assert.equal(saveGame(storage, loaded.state, validGame, removeBreadTasting).ok, true);
+    assert.deepEqual(loadSave(storage, validGame).state, expected);
+  }
+  assert.deepEqual(removeBreadTasting(current), current, 'A save without tasting data does not change.');
+  for (const value of [null, 'save', [1], 3]) assert.deepEqual(removeBreadTasting(value), value);
 });
 
 test('no claims, partial claims, and all claims survive export, import, and repeated load', () => {

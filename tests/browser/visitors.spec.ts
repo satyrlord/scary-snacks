@@ -105,7 +105,9 @@ for(const quest of firstRequests)test(`${quest.character} shows exact expedition
   expect(quest.reward).toBeGreaterThanOrEqual(supplies(quest).reduce((sum,code)=>sum+data.items[code].price,0)*2);
   await request.getByRole('button',{name:`Read request: ${quest.title}`,exact:true}).click();
   await expect(page.locator('#story-line')).toContainText(quest.opening[0].text);await finishScene(page);expect(await saved(page)).toEqual(before);
-  await deliver(page,quest).click();await expect(page.locator('#story-line')).toContainText(quest.completion[0].text);const after=await saved(page);
+  await deliver(page,quest).click();await expect(page.locator('#story-line')).toContainText(quest.completion[0].text);const delivered=await saved(page);
+  // The completion scene waits until the player finishes it. Then nothing else changes.
+  expect(delivered.pendingScenes).toEqual([...before.pendingScenes,quest.id]);const after={...delivered,pendingScenes:before.pendingScenes};
   expect(after.completedQuests).toEqual([...before.completedQuests,quest.id]);expect(after.coins).toBe(before.coins+quest.reward);
   expect(after.orders).toEqual(before.orders);expect(after.seed).toBe(before.seed);expect(after.served).toBe(before.served);expect(after.xp).toBe(before.xp);
   expect(after.board.filter(Boolean).length).toBe(before.board.filter(Boolean).length-supplies(quest).length);
@@ -174,7 +176,8 @@ test('the castle guest appears at the service gate, pays once, and leaves the jo
   expect(dinner.reward).toBe(1100);expect(dinner.reward).toBe(supplies(dinner).reduce((sum,code)=>sum+data.items[code].price,0)*5);
   await expect(request.locator('.quest-reward')).toContainText(dinner.reward.toLocaleString('en'));
   await expect(deliver(page,dinner)).toHaveText(`Deliver · ${dinner.reward.toLocaleString('en')}`);await deliver(page,dinner).click();
-  await expect(page.locator('#story-line')).toContainText(dinner.completion[0].text);const after=await saved(page);
+  await expect(page.locator('#story-line')).toContainText(dinner.completion[0].text);const delivered=await saved(page);
+  expect(delivered.pendingScenes).toEqual([...before.pendingScenes,dinner.id]);const after={...delivered,pendingScenes:before.pendingScenes};
   expect(after.completedQuests).toEqual([...before.completedQuests,dinner.id]);expect(after.coins).toBe(before.coins+dinner.reward);
   expect(after.orders).toEqual(before.orders);expect(after.seed).toBe(before.seed);expect(after.served).toBe(before.served);expect(after.xp).toBe(before.xp);
   expect(after.board.filter(Boolean).length).toBe(before.board.filter(Boolean).length-supplies(dinner).length);

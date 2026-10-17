@@ -299,18 +299,6 @@ quests.push({ id: 'mina-avram-search', character: 'mina', companions: ['avram'],
   followUp: { id: 'mina-avram-news', title: 'News from the road', afterServices: 3,
     dialogue: [{ speaker: 'sorin', text: 'There is news going round the village. Mina and Doctor Avram found Ionatan gravely ill. All three have left for Britain. They did not stop at our bistro on the way back.' },
       { speaker: 'mara', text: 'Then he is no longer alone. I hope he recovers at home. Thank you for bringing the news, Sorin.' }] } });
-// The borrowed flour bin and its tasting portions use their matching existing atlas art.
-const questItems: Record<string, Item> = {
-  quest_bread_source: { id: 'quest_bread_source', name: 'Tasting flour bin', chain: 'quest_bread', stage: 0, next: null, sprite: 30, price: 0, generator: { outputs: ['quest_bread_1'] } },
-  quest_bread_1: { id: 'quest_bread_1', name: 'Tasting flour', chain: 'quest_bread', stage: 1, next: 'quest_bread_2', sprite: 0, price: 2 },
-  quest_bread_2: { id: 'quest_bread_2', name: 'Tasting dough', chain: 'quest_bread', stage: 2, next: 'quest_bread_3', sprite: 1, price: 4 },
-  quest_bread_3: { id: 'quest_bread_3', name: 'Tasting pogăcele', chain: 'quest_bread', stage: 3, next: null, sprite: 2, price: 12 },
-};
-quests.push({ id: 'ilie-bread-tasting', character: 'ilie', title: 'The borrowed flour bin', afterTask: 'task_17', afterQuest: 'ilie-family',
-  requirements: [{ item: 'quest_bread_3', quantity: 2 }], reward: 24,
-  opening: [{ speaker: 'ilie', text: 'I can lend a flour bin for two tasting servings of pogăcele. It needs one free board space. When the servings are ready, I will collect the bin and all unused tasting portions.' }],
-  completion: [{ speaker: 'ilie', text: 'Two servings are ready to share. I have collected the borrowed bin and the remaining tasting portions. Thank you for trying this small batch with me.' }],
-  producer: { item: 'quest_bread_source', outputs: ['quest_bread_1'], exclusiveItems: Object.keys(questItems) } });
 // The renovation: every preparation repaints one room, so the bistro visibly improves as coins are spent.
 // Each area is a series of 3:4 portrait paintings (docs/specs/001-room-states-art-plan.md). A state shows every change paid for in its area.
 const areas: Area[] = [
@@ -506,7 +494,7 @@ const preparations: PreparationObstacleBatch[] = [
 ];
 const data: GameData = {
   title: 'Scary Snacks', board: { columns: 6, rows: 7, initial, defaultLayout: 'workbench-clutter-1', layouts, preparations },
-  chains: chains.map(([id, name]) => ({ id, name })), items, characters, chapters, finale, tasks, areas, rooms, decorationSlots, quests, questItems,
+  chains: chains.map(([id, name]) => ({ id, name })), items, characters, chapters, finale, tasks, areas, rooms, decorationSlots, quests,
   generatorTiers: chains.flatMap(([chain]) => [{ chain, stage: 2, after: 'task_12' }, { chain, stage: 3, after: 'task_20' }]),
   levelRewards: Array.from({ length: 9 }, (_, index) => ({ id: `level-${index + 2}`, level: index + 2, coins: 20 })),
 };

@@ -11,7 +11,6 @@ export type TaskEligibility = { task: Task | null; ready: boolean; requirements:
 export type Quest = {
   id: string; character: string; title: string; afterTask: string | null; afterQuest?: string; afterServed?: number;
   requirements: { item: string; quantity: number }[]; reward: number; opening: SceneLine[]; completion: SceneLine[];
-  producer?: { item: string; outputs: string[]; exclusiveItems: string[] };
   companions?: string[]; afterQuestServices?: number; waitsForCustomers?: string[];
   followUp?: { id: string; title: string; afterServices: number; dialogue: SceneLine[] };
 };
@@ -24,8 +23,7 @@ export type Chapter = { id: string; title: string; objective: string; opening: s
 /** The scene that plays after the last preparation. Ending is the line that returns the player to the kitchen. */
 export type Finale = { id: string; title: string; dialogue: SceneLine[]; ending: string };
 export type ChapterView = { chapter: Chapter; number: number; tasks: Task[]; done: number; status: 'complete' | 'current' | 'locked' };
-export type QuestView = { quest: Quest; status: 'active' | 'offer' | 'locked' | 'complete' };
-export type QuestCleanup = { questId: string; token: string; board: { index: number; item: string }[] };
+export type QuestView = { quest: Quest; status: 'active' | 'locked' | 'complete' };
 /** A room of the bistro. The first area is open from the start; another opens with the preparation named by unlock. */
 export type Area = { id: string; name: string; unlock: string | null };
 export type DecorationVariant = { id: string; name: string; image: string };
@@ -61,7 +59,7 @@ export type GameData = {
   areas: Area[]; rooms: RoomState[]; decorationSlots: DecorationSlot[];
   generatorTiers: { chain: string; stage: number; after: string }[];
   levelRewards: LevelReward[];
-  quests: Quest[]; questItems: Record<string, Item>;
+  quests: Quest[];
 };
 /**
  * An area as the completed preparations leave it. States are the earned states in order; current is the latest of them.
@@ -76,14 +74,19 @@ export type GameState = {
   decorationChoices: Record<string, string>;
   outputChoices: Record<string, string>;
   claimedLevelRewards: string[];
-  completedQuests: string[]; activeQuestProducers: Record<string, number>;
+  completedQuests: string[];
   /** Successful ordinary services at quest delivery. Missing records in existing saves start at the next service. */
   questCompletedAt?: Record<string, number>;
   layoutId: string; resolvedObstacles: string[];
   /** Completed preparations at adoption, and permanent placement history. Missing records do not add past batches. */
   preparationObstacles?: { start: number; placed: { id: string; position: number }[] };
-  /** Chapter closing scenes, the finale, and local news that the player earned and has not finished or skipped. Chapter scenes keep story order. */
+  /**
+   * The earned scenes that the player has not finished or skipped: preparation scenes, quest completion scenes, local news, chapter
+   * closing scenes, and the finale. Preparation scenes, chapter scenes, and the finale keep story order.
+   */
   pendingScenes: string[];
+  /** The line that the player sees in a waiting scene, after its first line. A missing record starts the scene at its first line. */
+  sceneLines?: Record<string, number>;
 };
 export type Action =
   | { type: 'move'; from: number; to: number }
@@ -91,10 +94,10 @@ export type Action =
   | { type: 'sell'; index: number }
   | { type: 'serve'; id: string }
   | { type: 'claimLevelReward'; id: string }
-  | { type: 'acceptQuest'; id: string }
-  | { type: 'deliverQuest'; id: string; cleanupToken?: string }
+  | { type: 'deliverQuest'; id: string }
   | { type: 'decorate'; slot: string; variant: string }
   | { type: 'readScene'; id: string }
+  | { type: 'sceneLine'; id: string; line: number }
   | { type: 'task' };
 export type Result = { state: GameState; ok: boolean; message: string; event: string | null };
 
@@ -236,7 +239,7 @@ export function createGame(data: GameData, seed = 271828): GameState {
       ...(data.board.layouts.find(layout => layout.id === layoutId)?.obstacles.filter(obstacle => obstacle.type === 'anchored').map(obstacle => obstacle.ingredient) ?? [])])],
     seed: Number.isSafeInteger(seed) ? seed >>> 0 : 271828,
     served: 0, merges: 0, nextOrderId: 1, decorations: [], decorationChoices: {}, outputChoices: {}, claimedLevelRewards: [],
-    completedQuests: [], activeQuestProducers: {},
+    completedQuests: [],
   };
   for (let slot = 0; slot < 3; slot++) state.orders.push(makeOrder(state, data, state.orders.map(order => order.customer)));
   return state;
@@ -288,9 +291,9 @@ export function levelRewardProblems(data: GameData): string[] {
   return problems;
 }
 
-/** Quest items have separate ownership and never enter the permanent collection or ordinary orders. */
+/** An item by its code, or undefined for a code that the data does not know. */
 export function getItem(code: string, data: GameData): Item | undefined {
-  return own(data.items, code) ? data.items[code] : own(data.questItems, code) ? data.questItems[code] : undefined;
+  return own(data.items, code) ? data.items[code] : undefined;
 }
 
 const questDone = (state: GameState, id: string) => state.completedQuests.includes(id);
@@ -299,18 +302,17 @@ function questPredecessors(quest: Quest, data: GameData): string[] {
   return [...new Set([...(quest.afterQuest ? [quest.afterQuest] : []), ...earlier.map(previous => previous.id)])];
 }
 
-/** At most one unfinished request per neighbour can be active or offered. */
+/** At most one unfinished request per neighbour can be active. */
 export function resolveQuests(state: GameState, data: GameData): QuestView[] {
   return data.quests.map(quest => ({ quest, status: state.completedQuests.includes(quest.id) ? 'complete'
-    : questReady(state, quest, data) && !state.orders.some(order => quest.waitsForCustomers?.includes(order.customer))
-      ? quest.producer && !own(state.activeQuestProducers, quest.id) ? 'offer' : 'active' : 'locked' }));
+    : questReady(state, quest, data) && !state.orders.some(order => quest.waitsForCustomers?.includes(order.customer)) ? 'active' : 'locked' }));
 }
 
 /** A guest who visits once has a journal introduction only while their request is open. */
 export function journalCharacters(state: GameState, data: GameData): Character[] {
   const quests = resolveQuests(state, data);
   return data.characters.filter(character => !character.singleVisit
-    || quests.some(view => (view.quest.character === character.id || view.quest.companions?.includes(character.id)) && (view.status === 'active' || view.status === 'offer')));
+    || quests.some(view => (view.quest.character === character.id || view.quest.companions?.includes(character.id)) && view.status === 'active'));
 }
 
 export function questDeliveryCells(state: GameState, quest: Quest, data: GameData): number[] {
@@ -322,23 +324,12 @@ export function canDeliverQuest(state: GameState, quest: Quest | string, data: G
   return view?.status === 'active' && questDeliveryCells(state, view.quest, data).every(index => index >= 0);
 }
 
-/** The preview lists only the exclusive leftovers after delivery, including the loaned source. */
-export function previewQuestCleanup(state: GameState, id: string, data: GameData): QuestCleanup | null {
-  const quest = data.quests.find(quest => quest.id === id);
-  if (!quest?.producer || !canDeliverQuest(state, quest, data)) return null;
-  const taken = questDeliveryCells(state, quest, data);
-  const exclusive = quest.producer.exclusiveItems;
-  return { questId: id, token: JSON.stringify(state),
-    board: state.board.flatMap((cell, index) => cell && exclusive.includes(cell.code) && !taken.includes(index) ? [{ index, item: cell.code }] : []) };
-}
-
-/** Check the combined preparation and quest graph, item ownership, and chain availability. */
+/** Check the combined preparation and quest graph, the requested items, and chain availability. */
 export function questProblems(data: GameData): string[] {
   const problems: string[] = [];
   try {
-    if (!Array.isArray(data.quests) || !data.questItems || typeof data.questItems !== 'object' || Array.isArray(data.questItems)) return ['Quest records and quest items are required.'];
+    if (!Array.isArray(data.quests)) return ['Quest records are required.'];
     const ids = new Set<string>();
-    const exclusive = new Set<string>();
     const graph = new Map<string, string[]>();
     for (const character of data.characters) {
       if (character.singleVisit !== undefined && typeof character.singleVisit !== 'boolean') problems.push(`${character.id}: invalid single visit flag.`);
@@ -383,38 +374,7 @@ export function questProblems(data: GameData): string[] {
         const item = getItem(requirement.item, data);
         if (!item || item.generator || !integer(requirement.quantity, 1, data.board.initial.length)) problems.push(`${quest.id}: invalid requirement.`);
       }
-      const deps = questPredecessors(quest, data);
-      for (const id of deps) {
-        const previous = data.quests.find(candidate => candidate.id === id);
-        if (previous?.producer) problems.push(`${quest.id}: an optional producer quest cannot block another quest.`);
-      }
-      graph.set(`quest:${quest.id}`, [...(quest.afterTask ? [`task:${quest.afterTask}`] : []), ...deps.map(id => `quest:${id}`)]);
-      if (quest.producer) {
-        const producer = quest.producer;
-        const source = data.questItems[producer.item];
-        if (!source?.generator || !producer.exclusiveItems.includes(producer.item) || !producer.outputs.length
-          || JSON.stringify(source.generator.outputs) !== JSON.stringify(producer.outputs)) problems.push(`${quest.id}: invalid dedicated producer.`);
-        if (new Set(producer.exclusiveItems).size !== producer.exclusiveItems.length) problems.push(`${quest.id}: duplicate exclusive item.`);
-        for (const code of producer.exclusiveItems) {
-          const item = data.questItems[code];
-          if (!item || own(data.items, code) || exclusive.has(code) || item.chain !== source?.chain) problems.push(`${quest.id}: exclusive items must have one owner and one dedicated chain.`);
-          exclusive.add(code);
-          if (item?.generator && code !== producer.item) problems.push(`${quest.id}: only one producer is allowed.`);
-          if (item?.next && !producer.exclusiveItems.includes(item.next)) problems.push(`${quest.id}: merge leaves its exclusive chain.`);
-          if (item?.next && data.questItems[item.next]?.stage !== item.stage + 1) problems.push(`${quest.id}: merge stages must increase by one.`);
-        }
-        for (const code of producer.outputs) if (!producer.exclusiveItems.includes(code) || data.questItems[code]?.generator) problems.push(`${quest.id}: invalid producer output.`);
-        const reachable = new Set(producer.outputs);
-        for (let pass = 0; pass < producer.exclusiveItems.length; pass++) for (const code of [...reachable]) {
-          const next = data.questItems[code]?.next;
-          if (next) reachable.add(next);
-        }
-        for (const code of producer.exclusiveItems) if (code !== producer.item && !reachable.has(code)) problems.push(`${quest.id}: unreachable exclusive output.`);
-      }
-    }
-    for (const task of data.tasks) if (task.requiresQuest) {
-      const required = data.quests.find(quest => quest.id === task.requiresQuest);
-      if (required?.producer) problems.push(`${task.id}: an optional producer quest cannot block a preparation.`);
+      graph.set(`quest:${quest.id}`, [...(quest.afterTask ? [`task:${quest.afterTask}`] : []), ...questPredecessors(quest, data).map(id => `quest:${id}`)]);
     }
     const visiting = new Set<string>();
     const visited = new Set<string>();
@@ -438,15 +398,9 @@ export function questProblems(data: GameData): string[] {
       const before = ancestors(`quest:${quest.id}`);
       for (const requirement of quest.requirements) {
         const item = getItem(requirement.item, data);
-        if (!item) continue;
-        if (own(data.questItems, item.id)) {
-          if (!quest.producer?.exclusiveItems.includes(item.id)) problems.push(`${quest.id}: requirement belongs to another quest.`);
-        } else if (!starting.includes(item.chain) && !data.tasks.some(task => task.unlock === item.chain && before.has(`task:${task.id}`))) problems.push(`${quest.id}: required chain is not available before activation.`);
+        if (item && !starting.includes(item.chain) && !data.tasks.some(task => task.unlock === item.chain && before.has(`task:${task.id}`))) problems.push(`${quest.id}: required chain is not available before activation.`);
       }
     }
-    for (const [id, item] of Object.entries(data.questItems)) if (!exclusive.has(id) || id !== item.id || own(data.items, id)
-      || data.chains.some(chain => chain.id === item.chain) || !item.name || !integer(item.sprite, 0, 35) || !integer(item.stage, 0, 6)
-      || (item.generator ? item.stage !== 0 || item.next !== null : item.stage === 0)) problems.push(`${id}: invalid quest item ownership or art.`);
   } catch { problems.push('The quest records are malformed.'); }
   return problems;
 }
@@ -463,8 +417,19 @@ function questOpening(quest: Quest, data: GameData, path = new Set<string>()): n
   return opening;
 }
 
-/** Chapter scenes keep their story order. Quest news can arrive between them. */
-export const storyScenes = (data: GameData) => [...data.chapters.map(chapter => chapter.id), data.finale.id, ...data.quests.flatMap(quest => quest.followUp ? [quest.followUp.id] : [])];
+/** Every scene ID: a preparation scene uses the ID of its preparation, and a quest completion scene uses the ID of its quest. */
+export const storyScenes = (data: GameData) => [...data.tasks.map(task => task.id), ...data.quests.map(quest => quest.id),
+  ...data.chapters.map(chapter => chapter.id), data.finale.id, ...data.quests.flatMap(quest => quest.followUp ? [quest.followUp.id] : [])];
+
+/** The story order of preparation scenes, chapter scenes, and the finale: each chapter scene follows the preparations of its chapter. */
+const storyOrder = (data: GameData) => [...data.chapters.flatMap((chapter, index) => [...data.tasks.filter(task => task.chapter === index + 1).map(task => task.id), chapter.id]), data.finale.id];
+
+/** The lines of a scene by its ID, or null for an unknown ID. */
+function sceneDialogue(id: string, data: GameData): SceneLine[] | null {
+  return data.tasks.find(task => task.id === id)?.dialogue ?? data.quests.find(quest => quest.id === id)?.completion
+    ?? data.chapters.find(chapter => chapter.id === id)?.closing ?? (id === data.finale.id ? data.finale.dialogue : null)
+    ?? data.quests.find(quest => quest.followUp?.id === id)?.followUp!.dialogue ?? null;
+}
 
 /** Completed preparations are the only input. A chapter is complete when its last preparation is complete. */
 export function resolveChapters(state: Pick<GameState, 'taskIndex'>, data: GameData): ChapterView[] {
@@ -476,9 +441,10 @@ export function resolveChapters(state: Pick<GameState, 'taskIndex'>, data: GameD
   });
 }
 
-/** The scenes that the completed preparations have earned. A save can hold only these as pending scenes. */
+/** The scenes that the completed preparations and quests have earned. A save can hold only these as pending scenes. */
 function earnedScenes(state: Pick<GameState, 'taskIndex' | 'completedQuests' | 'questCompletedAt' | 'served'>, data: GameData): string[] {
-  return [...resolveChapters(state, data).filter(view => view.status === 'complete').map(view => view.chapter.id),
+  return [...data.tasks.slice(0, state.taskIndex).map(task => task.id), ...state.completedQuests,
+    ...resolveChapters(state, data).filter(view => view.status === 'complete').map(view => view.chapter.id),
     ...(state.taskIndex === data.tasks.length ? [data.finale.id] : []),
     ...data.quests.flatMap(quest => quest.followUp && state.completedQuests.includes(quest.id)
       && own(state.questCompletedAt ?? {}, quest.id) && state.served - state.questCompletedAt![quest.id] >= quest.followUp.afterServices ? [quest.followUp.id] : [])];
@@ -504,7 +470,7 @@ export function storyProblems(data: GameData): string[] {
       const tasks = data.tasks.flatMap((task, at) => task.chapter === index + 1 ? [at] : []);
       if (!tasks.length) { problems.push(`${label} has no preparation.`); continue; }
       const quest = data.quests.find(quest => quest.id === chapter.contribution);
-      if (!quest || quest.producer) { problems.push(`${label}: unknown neighbour contribution.`); continue; }
+      if (!quest) { problems.push(`${label}: unknown neighbour contribution.`); continue; }
       // The contribution opens after the previous chapter closes and before this chapter's last preparation.
       const opening = questOpening(quest, data);
       if (opening < tasks[0] - 1 || opening >= tasks.at(-1)!) problems.push(`${label}: its neighbour contribution must open during the chapter.`);
@@ -533,7 +499,7 @@ export function saleValue(code: string, data: GameData) {
 export function economyProblems(data: GameData): string[] {
   const problems: string[] = [];
   try {
-    for (const item of Object.values({ ...data.items, ...data.questItems })) {
+    for (const item of Object.values(data.items)) {
       if (!integer(item.price, item.generator ? 0 : 1, item.generator ? 0 : 500_000_000)) problems.push(`${item.id}: invalid menu price.`);
     }
     for (const task of data.tasks) {
@@ -601,8 +567,6 @@ export function taskEligibility(state: GameState, data: GameData): TaskEligibili
 
 /** Every output earned by this source. Completed preparations are the only tier input. */
 export function generatorOutputs(state: Pick<GameState, 'taskIndex'>, generatorCode: string, data: GameData): string[] {
-  const quest = data.quests.find(quest => quest.producer?.item === generatorCode);
-  if (quest) return [...quest.producer!.outputs];
   const item = own(data.items, generatorCode) ? data.items[generatorCode] : null;
   if (!item?.generator || !availableChains(state, data).includes(item.chain)) return [];
   const completed = data.tasks.slice(0, state.taskIndex).map(task => task.id);
@@ -610,17 +574,11 @@ export function generatorOutputs(state: Pick<GameState, 'taskIndex'>, generatorC
     .sort((a, b) => a.stage - b.stage).map(tier => `${tier.chain}_${tier.stage}`)];
 }
 
-/**
- * The output that one tap on this source takes: the next in a quest source's sequence, which starts again at its first output
- * when the quest is accepted, or the output that the player last took. Null for an item that is not a source.
- */
-export function nextOutput(state: Pick<GameState, 'outputChoices' | 'activeQuestProducers'>, generatorCode: string, data: GameData): string | null {
+/** The output that one tap on this source takes: the output that the player last took. Null for an item that is not a source. */
+export function nextOutput(state: Pick<GameState, 'outputChoices'>, generatorCode: string, data: GameData): string | null {
   const item = getItem(generatorCode, data);
   if (!item?.generator) return null;
-  const quest = data.quests.find(quest => quest.producer?.item === item.id);
-  if (!quest) return state.outputChoices[item.chain] ?? item.generator.outputs[0];
-  const outputs = quest.producer!.outputs;
-  return outputs[(own(state.activeQuestProducers, quest.id) ? state.activeQuestProducers[quest.id] : 0) % outputs.length];
+  return state.outputChoices[item.chain] ?? item.generator.outputs[0];
 }
 
 /** Check each production tier before the content generator writes its data. */
@@ -861,17 +819,32 @@ function validateQuestProgress(state: GameState, data: GameData): boolean {
       && completedAt![previous] > completedAt![id])) return false;
     done.add(id);
   }
-  const active = state.activeQuestProducers;
-  if (!active || typeof active !== 'object' || Array.isArray(active) || ![Object.prototype, null].includes(Object.getPrototypeOf(active))) return false;
-  for (const [id, count] of Object.entries(active)) {
-    const quest = data.quests.find(quest => quest.id === id);
-    if (!quest?.producer || !integer(count, 0, quest.producer.outputs.length - 1) || done.has(id)
-      || (quest.afterTask !== null && !state.decorations.includes(quest.afterTask))
-      || state.served < (quest.afterServed ?? 0)
-      || !questPredecessors(quest, data).every(previous => done.has(previous))) return false;
-  }
   for (const task of data.tasks.slice(0, state.taskIndex)) if (task.requiresQuest && !done.has(task.requiresQuest)) return false;
   return true;
+}
+
+const BREAD_TASTING = 'ilie-bread-tasting', TASTING_ITEMS = ['quest_bread_source', 'quest_bread_1', 'quest_bread_2', 'quest_bread_3'];
+/**
+ * A save in the current format can hold the borrowed bread tasting, which the game does not have: its record of borrowed sources,
+ * its tasting source and items on the board, and its quest and scene records. This removes them before validation and keeps all other
+ * progress, including the coins of a delivered tasting. Another value is returned unchanged.
+ */
+export function removeBreadTasting(candidate: unknown): unknown {
+  if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) return candidate;
+  const state: Record<string, unknown> = { ...candidate };
+  delete state.activeQuestProducers;
+  const tasting = (value: unknown) => typeof value === 'string' && (TASTING_ITEMS.includes(value) || value === BREAD_TASTING);
+  if (Array.isArray(state.board)) state.board = state.board.map(cell => cell && typeof cell === 'object' && tasting((cell as Cell).code) ? null : cell);
+  for (const key of ['discovered', 'completedQuests', 'pendingScenes']) if (Array.isArray(state[key])) state[key] = (state[key] as unknown[]).filter(value => !tasting(value));
+  for (const key of ['questCompletedAt', 'sceneLines']) {
+    const record = state[key];
+    if (record && typeof record === 'object' && !Array.isArray(record) && Object.hasOwn(record, BREAD_TASTING)) {
+      const rest: Record<string, unknown> = { ...record };
+      delete rest[BREAD_TASTING];
+      state[key] = rest;
+    }
+  }
+  return state;
 }
 
 /** Accepts an untrusted save: a parsed save is checked field by field before it is treated as a game state. The data must pass dataProblems. */
@@ -885,17 +858,19 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
     if (!integer(state.taskIndex, 0, data.tasks.length)) return false;
     const chains = availableChains(state, data);
     {
-      // Pending scenes are unique and earned, and chapter scenes keep story order, so an imported save cannot open a later scene.
-      const pending = state.pendingScenes, scenes = [...data.chapters.map(chapter => chapter.id), data.finale.id], earned = earnedScenes(state, data);
+      // Pending scenes are unique and earned, and story scenes keep story order, so an imported save cannot open a later scene.
+      const pending = state.pendingScenes, scenes = storyOrder(data), earned = earnedScenes(state, data);
       if (!Array.isArray(pending) || new Set(pending).size !== pending.length || !pending.every(id => earned.includes(id))) return false;
-      const chapterScenes = pending.filter(id => scenes.includes(id));
-      if (!chapterScenes.every((id, at) => at === 0 || scenes.indexOf(chapterScenes[at - 1]) < scenes.indexOf(id))) return false;
+      const ordered = pending.filter(id => scenes.includes(id));
+      if (!ordered.every((id, at) => at === 0 || scenes.indexOf(ordered[at - 1]) < scenes.indexOf(id))) return false;
+      // A line gives no reward, so a line past the end of its scene stays valid: the scene then starts again.
+      const lines = state.sceneLines;
+      if (lines !== undefined && (!lines || typeof lines !== 'object' || Array.isArray(lines) || ![Object.prototype, null].includes(Object.getPrototypeOf(lines))
+        || !Object.entries(lines).every(([id, line]) => pending.includes(id) && integer(line, 1, Number.MAX_SAFE_INTEGER)))) return false;
     }
     if (!validateQuestProgress(state, data)) return false;
-    const active = data.quests.filter(quest => own(state.activeQuestProducers, quest.id));
     const validItem = (cell: Cell | null) => cell && typeof cell === 'object' && !Array.isArray(cell)
-      && Object.keys(cell).length === 1 && (own(data.items, cell.code) && chains.includes(data.items[cell.code].chain)
-        || active.some(quest => quest.producer!.exclusiveItems.includes(cell.code)));
+      && Object.keys(cell).length === 1 && own(data.items, cell.code) && chains.includes(data.items[cell.code].chain);
     if (!state.board.every(cell => cell === null || validItem(cell))) return false;
     {
       const layout = data.board.layouts.find(layout => layout.id === state.layoutId);
@@ -923,12 +898,9 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
     for (const chain of chains) {
       if (cells.filter(cell => getItem(cell.code, data)?.generator && getItem(cell.code, data)?.chain === chain).length !== 1) return false;
     }
-    for (const quest of active) if (cells.filter(cell => cell.code === quest.producer!.item).length !== 1) return false;
-    if (!Array.isArray(state.discovered) || state.discovered.length > Object.keys(data.items).length + Object.keys(data.questItems).length
+    if (!Array.isArray(state.discovered) || state.discovered.length > Object.keys(data.items).length
       || new Set(state.discovered).size !== state.discovered.length
-      || !state.discovered.every(code => own(data.items, code) && chains.includes(data.items[code].chain)
-        || data.quests.some(quest => quest.producer?.exclusiveItems.includes(code)
-          && (own(state.activeQuestProducers, quest.id) || state.completedQuests.includes(quest.id))))
+      || !state.discovered.every(code => own(data.items, code) && chains.includes(data.items[code].chain))
       || !cells.every(cell => state.discovered.includes(cell.code))) return false;
     {
       if (boardObstacles(state, data).some(obstacle => (obstacle.type === 'anchored' || state.resolvedObstacles.includes(obstacle.id))
@@ -976,6 +948,12 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
   }
 }
 
+function forgetLine(state: GameState, id: string) {
+  if (!state.sceneLines) return;
+  delete state.sceneLines[id];
+  if (!Object.keys(state.sceneLines).length) delete state.sceneLines;
+}
+
 export function reduceGame(state: GameState, action: Action, data: GameData): Result {
   const fail = (message: string): Result => ({ state, ok: false, message, event: null });
   if (!action || typeof action !== 'object') return fail('Choose an action.');
@@ -983,30 +961,13 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
   let event: string = action.type;
   let message = '';
   switch (action.type) {
-    case 'acceptQuest': {
-      const view = resolveQuests(next, data).find(view => view.quest.id === action.id);
-      if (view?.status !== 'offer' || !view.quest.producer) return fail('This quest offer is no longer available.');
-      const code = view.quest.producer.item;
-      const empty = firstFreeBoardCell(next, data);
-      if (empty !== -1) next.board[empty] = { code };
-      else return fail('Free one space on the board before you accept this quest.');
-      next.activeQuestProducers[view.quest.id] = 0;
-      discover(next, code);
-      message = `${view.quest.title}: accepted. ${getItem(code, data)!.name} is on the board.`;
-      break;
-    }
     case 'deliverQuest': {
       const quest = data.quests.find(quest => quest.id === action.id);
       if (!quest || !canDeliverQuest(next, quest, data)) return fail('This quest needs every required item on the board. Check that the quest is still active.');
       if (!integer(next.coins + quest.reward)) return fail('Spend some coins before you deliver this quest.');
-      const cleanup = quest.producer ? previewQuestCleanup(next, quest.id, data) : null;
-      if (quest.producer && (!cleanup || action.cleanupToken !== cleanup.token)) return fail('The cleanup preview changed. Review it again before you deliver.');
       for (const index of questDeliveryCells(next, quest, data)) next.board[index] = null;
-      if (quest.producer) {
-        next.board = next.board.map(cell => cell && quest.producer!.exclusiveItems.includes(cell.code) ? null : cell);
-        delete next.activeQuestProducers[quest.id];
-      }
       next.completedQuests.push(quest.id);
+      next.pendingScenes.push(quest.id);
       (next.questCompletedAt ??= {})[quest.id] = next.served;
       next.coins += quest.reward;
       message = `${quest.title}: delivered. Earned ${quest.reward} coins.`;
@@ -1036,11 +997,22 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       break;
     }
     case 'readScene': {
-      // Finish and Skip both end a waiting scene. A stale or repeated event changes nothing.
+      // Finish and Skip both end a waiting scene and its saved line. A stale or repeated event changes nothing.
       const at = next.pendingScenes.indexOf(action.id);
       if (at === -1) return fail('This story scene is already in the journal.');
       next.pendingScenes.splice(at, 1);
-      message = 'The scene is in the story journal.';
+      forgetLine(next, action.id);
+      // A guest who visits once has no journal replay after the visit.
+      const guest = data.characters.find(person => person.id === data.quests.find(quest => quest.id === action.id)?.character);
+      message = guest?.singleVisit ? 'The scene is finished.' : 'The scene is in the story journal.';
+      break;
+    }
+    case 'sceneLine': {
+      // Only a waiting scene keeps its line, and the first line needs no record.
+      const dialogue = next.pendingScenes.includes(action.id) ? sceneDialogue(action.id, data) : null;
+      if (!dialogue || !integer(action.line, 0, dialogue.length - 1)) return fail('This scene line is not available.');
+      if (action.line) (next.sceneLines ??= {})[action.id] = action.line;
+      else forgetLine(next, action.id);
       break;
     }
     case 'move': {
@@ -1076,17 +1048,12 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const cell = itemAt(next, action.index);
       const item = cell && getItem(cell.code, data);
       if (!item?.generator) return fail('Choose an ingredient source, such as the Flour bin.');
-      const quest = data.quests.find(quest => quest.producer?.item === item.id);
-      if (quest && !own(next.activeQuestProducers, quest.id)) return fail('This quest source is not active.');
-      const expected = nextOutput(next, item.id, data)!;
-      const code = action.output === undefined ? expected : action.output;
+      const code = action.output === undefined ? nextOutput(next, item.id, data)! : action.output;
       if (!generatorOutputs(next, item.id, data).includes(code)) return fail('Choose an available output from this source.');
-      if (quest && code !== expected) return fail('Take the next output from this quest source.');
       const empty = firstFreeBoardCell(next, data);
       if (empty === -1) return fail('The board is full. Merge, serve, or sell an item.');
       next.board[empty] = { code };
-      if (quest) next.activeQuestProducers[quest.id] = (next.activeQuestProducers[quest.id] + 1) % quest.producer!.outputs.length;
-      else if (data.items[code].stage === 1) delete next.outputChoices[item.chain];
+      if (data.items[code].stage === 1) delete next.outputChoices[item.chain];
       else next.outputChoices[item.chain] = code;
       discover(next, code);
       message = `Took ${getItem(code, data)!.name}.`;
@@ -1130,7 +1097,8 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       next.taskIndex++;
       next.xp += 20;
       next.decorations.push(task.id);
-      // The last preparation of a chapter queues its closing scene, and the last of all queues the finale after it, in the same change.
+      // The payment queues the preparation scene, then the closing scene of a completed chapter, then the finale, in the same change.
+      next.pendingScenes.push(task.id);
       if (resolveChapters(next, data)[task.chapter - 1].status === 'complete') next.pendingScenes.push(data.chapters[task.chapter - 1].id);
       if (next.taskIndex === data.tasks.length) next.pendingScenes.push(data.finale.id);
       for (const chain of availableChains(next, data)) {
@@ -1157,7 +1125,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
     }
     default: return fail('This action is not available.');
   }
-  if (['task', 'move', 'spawn', 'serve', 'sell', 'deliverQuest', 'acceptQuest'].includes(action.type)) {
+  if (['task', 'move', 'spawn', 'serve', 'sell', 'deliverQuest'].includes(action.type)) {
     const placed = placePreparationObstacles(next, data);
     if (action.type === 'task') message += ` ${data.board.preparations[next.taskIndex - 1].context}`;
     if (placed) message += ` ${placed} preparation ${placed === 1 ? 'blocker' : 'blockers'} placed.`;

@@ -202,7 +202,9 @@ test('waiting gossip keeps its place before a later chapter closing through save
   for (let index = 0; index < 3; index++) state = serve(state, index);
   const earlier = data.chapters.slice(0, 4).map(chapter => chapter.id);
   const news = search.followUp!.id, later = data.chapters[4].id;
-  assert.deepEqual(state.pendingScenes, [...earlier, news]);
+  // Preparation and quest scenes also wait. This test follows the chapter scenes and the news.
+  const story = (value: GameState) => value.pendingScenes.filter(id => !data.tasks.some(task => task.id === id) && !data.quests.some(quest => quest.id === id));
+  assert.deepEqual(story(state), [...earlier, news]);
   for (let index = 16; index < 20; index++) {
     const task = data.tasks[index];
     state.coins = task.cost;
@@ -210,20 +212,20 @@ test('waiting gossip keeps its place before a later chapter closing through save
     state.merges = Math.max(state.merges, task.goals.merges);
     state = act(state, { type: 'task' });
   }
-  assert.deepEqual(state.pendingScenes, [...earlier, news, later]);
+  assert.deepEqual(story(state), [...earlier, news, later]);
   const validator = (candidate: unknown) => validateGame(candidate, data);
   state = importSave<GameState>(exportSave(state, validator), validator);
-  assert.deepEqual(state.pendingScenes, [...earlier, news, later]);
+  assert.deepEqual(story(state), [...earlier, news, later]);
   const reloaded: GameState = JSON.parse(JSON.stringify(state));
   assert.equal(validateGame(reloaded, data), true);
   state = reloaded;
   for (const id of earlier) state = act(state, { type: 'readScene', id });
-  assert.deepEqual(state.pendingScenes, [news, later]);
+  assert.deepEqual(story(state), [news, later]);
   state = act(state, { type: 'readScene', id: news });
   state = importSave<GameState>(exportSave(state, validator), validator);
-  assert.deepEqual(state.pendingScenes, [later], 'Reading the news preserves the later chapter scene.');
+  assert.deepEqual(story(state), [later], 'Reading the news preserves the later chapter scene.');
   state = act(state, { type: 'readScene', id: later });
-  assert.deepEqual(state.pendingScenes, []);
+  assert.deepEqual(story(state), []);
 });
 
 test('existing completed Ionatan saves use three new services and reject malformed completion counters', () => {

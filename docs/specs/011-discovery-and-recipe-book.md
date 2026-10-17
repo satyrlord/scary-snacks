@@ -26,7 +26,7 @@ Reuse the existing permanent `discovered` set. Derive chain completion and book 
 
 The engine owns the discovery transitions. The UI resolves three cases of presentation: collected, undiscovered but required by an active order, and otherwise undiscovered. Save-provided text never becomes HyperText Markup Language (HTML).
 
-Generator tiers from [003](003-generator-progression.md) must not erase old discoveries. Special quest items from [005](005-character-quests.md) are outside the count of 30 dishes. Content may assign an item to the permanent catalog explicitly.
+Generator tiers from [003](003-generator-progression.md) must not erase old discoveries. Content may assign an item to the permanent catalog explicitly.
 
 ## Save compatibility
 
@@ -43,7 +43,7 @@ A repeated load must not replay every discovery notice. Notice acknowledgements 
 ## Acceptance checks
 
 - Engine: the create, merge, and grant paths discover an item once. Failed actions and previews do not discover. A sold dish stays discovered.
-- Data: every ordinary order target has a readable production path. The book totals exclude generators and temporary quest items.
+- Data: every ordinary order target has a readable production path. The book totals exclude generators.
 - Saves: discoveries survive a save and a load. The game rejects unknown item IDs without a change to the original save.
 - Browser: examine an undiscovered order target. Make the dish with legal actions. Examine the revealed entry. Sell the dish and reload. The entry must stay revealed.
 - Accessibility: unknown entries have useful names. The known or unknown status does not use color alone. Focus stays stable after a discovery refresh.

@@ -35,7 +35,7 @@ Sales remain a way to clear space. Serving and merging remain necessary for camp
    including seed, rewards, orders, counters, and source entitlements.
 9. One successful ordinary service adds one service. One valid merge adds one merge.
    Generation, clearance, moves, swaps, failures, and story replay give no goal credit.
-   Quest delivery gives no ordinary service credit; valid quest-item merges count as merges.
+   Quest delivery gives no ordinary service credit.
 10. Existing completed preparations stay complete, even with zero counters.
     Only remaining preparations must meet their requirements.
 11. All three ordinary orders keep their quotes and remain achievable. Quest references reject unknown

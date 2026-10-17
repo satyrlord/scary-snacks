@@ -25,13 +25,15 @@ Spec 003 implements generator tiers, output choices, and persistence. Its accept
 
 Spec 004 implements the finite coin rewards, the House book level panel, and claim persistence. Its acceptance section records the automated checks.
 
-Spec 005 implements four core character arcs, three recurring cathedral travellers, a single-visit dinner guest, a shared single visit with later local news, optional introductions, a temporary bread-tasting source, atomic delivery, journal replay, and persistence. Automatic scene continuation waits for 009. Spec 006 includes all quests in its economy fixture. Spec 008 names one regular quest of each arc as a chapter contribution.
+Spec 005 implements four core character arcs, three recurring cathedral travellers, a single-visit dinner guest, a shared single visit with later local news, optional introductions, atomic delivery, journal replay, and persistence. Spec 006 includes all quests in its economy fixture. Spec 008 names one regular quest of each arc as a chapter contribution.
 
 Spec 006 implements explicit food prices, work-based preparation budgets and effort, requirement feedback, saved quotes, and legal campaign comparisons. The fixture includes generator upgrades, all level rewards, and optional quests. The economy record gives the real-world source anchors and the authored assumptions.
 
 Spec 007 implements blocked board cells, adjacent merge reveals, anchored ingredients, and original clutter art. Each preparation earns two or three contextual blockers with a deferred placement queue. Automated checks cover the rules and the production browser build.
 
 Spec 008 implements chapter objectives and steps, chapter closing scenes, neighbour contributions, the finale, journal replay, and persistence. Automated engine, save, and browser checks cover the rules. A scripted browser playthrough from a fresh save reaches the finale.
+
+Spec 009 implements durable dialogue continuation. Preparation scenes and quest completion scenes wait with the chapter scenes, and each waiting scene resumes at its saved line after a reload. Its acceptance section records the automated checks.
 
 Each entry is proposed, unless its specification records an implemented slice. Spec 011 has discovery cloches, notices, and order help. Its chain-completion marks are proposed. Priority is a suggested order of work. It does not change the approved product.
 
@@ -62,11 +64,10 @@ The table maps each gap in the current game to the specifications that close it.
 | Gap | Owning specifications |
 | --- | --- |
 | The finale names no regulars yet | 008, 013 |
-| Dialogue has no automatic continuation after reload | 009 |
 | Hints exist but no staged introduction | 010 |
 | The recipe book has no chain-completion marks | 011 |
 | Endless orders exist but have few long-term goals after the supper | 012 |
-| The browser tests for story and chapters are incomplete | Acceptance checks in 001, 005, 009, 010, 012 |
+| The browser tests for story and chapters are incomplete | Acceptance checks in 001, 005, 010, 012 |
 | Four customers are too few for a business | 013 |
 | The resident cat has no part in play | 014 |
 | No start screen. Reduced motion can be on without a notice, and the player cannot change it | 015 |
@@ -87,6 +88,8 @@ Customer introductions (005) are optional journal reading. The regulars in 013 r
 
 Current saves use game state version 9 in envelope version 8 at `scary-snacks-save-v8`. Only this format is supported. Load reads only this key. If no current save exists, start a new campaign. Earlier local bytes stay unchanged and are not read or converted. Import rejects earlier formats.
 
+A current save can hold Ilie's borrowed bread tasting, which the game does not have. Load, import, and a write over such a save remove it before validation and keep all other progress. `PRODUCT.md` owns this cleanup. This is the only approved conversion.
+
 The optional preparation obstacle baseline and placement history use this format. A missing record receives no past preparation batches. It starts at the next paid preparation. `PRODUCT.md` owns the queue and placement rules.
 
 Validate the full envelope and state before import. Adopt the candidate only after its write succeeds. A failed write or invalid input keeps the previous save and offers recovery. Test fresh, partial, and completed current saves, malformed records, unsupported versions, oversized imports, and failed writes.
@@ -97,11 +100,10 @@ A reward on a full board must have an atomic outcome: where possible, give a def
 
 ## Suggested delivery order
 
-1. Implement durable story continuation in 009. Exit: after a reload, a task scene resumes its conversation without another payment.
-2. Add the four starting regulars in 013. Check them with the campaign goals in 006 and character quests in 005. Exit: a fresh game serves eight distinct neighbours. A legal path in a fresh game needs real kitchen service and cannot be circular.
-3. Build on the generator improvement in 003 with level rewards in 004 and Miez's visits in 014. Exit: chapter rewards improve play while every outstanding order stays possible. The 006 fixture measures income with the blessing.
-4. Build the guided start in 010 on the chapter story of 008. Exit: a fresh campaign and a reloaded campaign reach the supper without added resources.
-5. Add optional 007, the remaining work of 011, and 012 as separate slices. These slices must not delay the core progression fixes.
+1. Add the four starting regulars in 013. Check them with the campaign goals in 006 and character quests in 005. Exit: a fresh game serves eight distinct neighbours. A legal path in a fresh game needs real kitchen service and cannot be circular.
+2. Build on the generator improvement in 003 with level rewards in 004 and Miez's visits in 014. Exit: chapter rewards improve play while every outstanding order stays possible. The 006 fixture measures income with the blessing.
+3. Build the guided start in 010 on the chapter story of 008. Exit: a fresh campaign and a reloaded campaign reach the supper without added resources.
+4. Add optional 007, the remaining work of 011, and 012 as separate slices. These slices must not delay the core progression fixes.
 
 Spec 015 adds no game state and is not part of this order. Build it before 010, so that the guided start begins behind the front door.
 

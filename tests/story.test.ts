@@ -29,6 +29,9 @@ function checkpoint(count: number, content = data) {
   }
   return state;
 }
+/** The scenes that count payments queue, in story order: each preparation scene, then the closing scene of a complete chapter, then the finale. */
+const queued = (count: number) => [...data.tasks.slice(0, count).flatMap((task, index) => [task.id, ...((index + 1) % 4 ? [] : [data.chapters[index / 4 | 0].id])]),
+  ...(count === data.tasks.length ? [data.finale.id] : [])];
 const ready = (state: GameState) => Object.assign(structuredClone(state), data.tasks[state.taskIndex].goals, { coins: data.tasks[state.taskIndex].cost });
 
 test('six chapters keep their titles and cover all 24 preparations, each with a painted result', () => {
@@ -69,7 +72,6 @@ test('story content checks reject missing scenes, invalid speakers, duplicate ID
     ['missing objective', content => { content.chapters[3].objective = ''; }, /needs its objective/],
     ['missing ending', content => { content.finale.ending = ''; }, /title and an ending/],
     ['unknown contribution', content => { content.chapters[0].contribution = 'absent'; }, /unknown neighbour contribution/],
-    ['optional producer contribution', content => { content.chapters[4].contribution = 'ilie-bread-tasting'; }, /unknown neighbour contribution/],
     ['contribution after the chapter', content => { content.chapters[0].contribution = 'eszter-bowls'; }, /must open during the chapter/],
     ['contribution before the chapter', content => { content.chapters[5].contribution = 'ilie-counter'; }, /must open during the chapter/],
     ['finale without a character', content => { content.finale.dialogue = content.finale.dialogue.filter(line => line.speaker !== 'sorin'); }, /finale must include Sorin/],
@@ -95,16 +97,16 @@ test('a chapter opens at its first preparation and completes only with its last 
     assert.equal(chapters[index].status, 'current');
     assert.equal(chapters[index].done, 3);
     assert.ok(chapters.slice(index + 1).every(view => view.status === 'locked'));
-    assert.deepEqual(before.pendingScenes, data.chapters.slice(0, index).map(chapter => chapter.id));
+    assert.deepEqual(before.pendingScenes, queued(boundary - 1));
     const after = apply(ready(before), { type: 'task' });
     assert.equal(resolveChapters(after, data)[index].status, 'complete');
-    assert.deepEqual(after.pendingScenes, [...before.pendingScenes, data.chapters[index].id, ...(boundary === 24 ? [data.finale.id] : [])]);
+    assert.deepEqual(after.pendingScenes, [...before.pendingScenes, data.tasks[boundary - 1].id, data.chapters[index].id, ...(boundary === 24 ? [data.finale.id] : [])]);
     if (boundary < 24) {
       assert.equal(resolveChapters(after, data)[index + 1].status, 'current');
       assert.equal(resolveChapters(after, data)[index + 1].done, 0);
-      // The next preparation never waits for the closing scene.
+      // The next preparation never waits for the closing scene. It queues only its own scene.
       const next = apply(ready(after), { type: 'task' });
-      assert.deepEqual(next.pendingScenes, after.pendingScenes);
+      assert.deepEqual(next.pendingScenes, [...after.pendingScenes, data.tasks[boundary].id]);
     }
   }
 });
@@ -130,15 +132,15 @@ test('a failed payment, missing goals, a missing required quest, or a full desti
   assert.equal(resolveChapters(full, placed)[0].status, 'current');
 });
 
-test('the last preparation queues the finale once after the chapter scene, with no second charge or reward', () => {
+test('the last preparation queues its scene, the chapter scene, and the finale once, with no second charge or reward', () => {
   const before = ready(checkpoint(23));
   const after = apply(before, { type: 'task' });
-  assert.deepEqual(after.pendingScenes.slice(-2), ['chapter-6', 'finale']);
+  assert.deepEqual(after.pendingScenes.slice(-3), [data.tasks[23].id, 'chapter-6', 'finale']);
   assert.equal(after.coins, before.coins - data.tasks[23].cost);
   assert.equal(after.xp, before.xp + 20);
   assert.match(rejected(after, { type: 'task' }).message, /community supper is ready/);
   const read = apply(apply(after, { type: 'readScene', id: 'chapter-6' }), { type: 'readScene', id: 'finale' });
-  assert.deepEqual(read.pendingScenes, data.chapters.slice(0, 5).map(chapter => chapter.id));
+  assert.deepEqual(read.pendingScenes, queued(24).filter(id => !['chapter-6', 'finale'].includes(id)));
   for (const key of ['coins', 'xp', 'served', 'merges', 'taskIndex', 'seed', 'board', 'orders', 'completedQuests', 'claimedLevelRewards'] as const) {
     assert.deepEqual(read[key], after[key], `Reading a scene must not change ${key}.`);
   }
@@ -162,14 +164,21 @@ test('ordinary orders stay playable after the finale', () => {
     assert.equal(served.orders.length, 3);
     state = served;
   }
-  assert.deepEqual(state.pendingScenes, data.chapters.map(chapter => chapter.id));
+  assert.deepEqual(state.pendingScenes, queued(24).filter(id => id !== 'finale'));
 });
 
 test('saved scene queues hold only earned scenes, once each, in story order', () => {
   const middle = checkpoint(12);
-  assert.deepEqual(storyScenes(data), [...data.chapters.map(chapter => chapter.id), 'finale', 'mina-avram-news']);
-  for (const pendingScenes of [[], ['chapter-1'], ['chapter-3'], ['chapter-1', 'chapter-2', 'chapter-3']]) assert.equal(validateGame({ ...middle, pendingScenes }, data), true);
-  for (const pendingScenes of [['chapter-4'], ['finale'], ['chapter-2', 'chapter-1'], ['chapter-1', 'chapter-1'], ['unknown'], [null], 'chapter-1', null]) {
+  assert.deepEqual(storyScenes(data), [...data.tasks.map(task => task.id), ...data.quests.map(quest => quest.id), ...data.chapters.map(chapter => chapter.id), 'finale', 'mina-avram-news']);
+  const quest = data.quests.find(value => value.afterTask === null && !value.afterQuest)!;
+  const delivered = { ...middle, completedQuests: [quest.id] };
+  for (const pendingScenes of [[], ['chapter-1'], ['chapter-3'], ['chapter-1', 'chapter-2', 'chapter-3'], ['task_1', 'chapter-1', 'task_12'], ['task_4', 'task_9', 'chapter-3'], queued(12)]) {
+    assert.equal(validateGame({ ...middle, pendingScenes }, data), true, JSON.stringify(pendingScenes));
+  }
+  // A quest scene may wait at any position.
+  for (const pendingScenes of [[quest.id], [quest.id, 'task_1'], ['task_1', quest.id, 'chapter-1'], [...queued(12), quest.id]]) assert.equal(validateGame({ ...delivered, pendingScenes }, data), true);
+  for (const pendingScenes of [['chapter-4'], ['finale'], ['chapter-2', 'chapter-1'], ['chapter-1', 'chapter-1'], ['unknown'], [null], 'chapter-1', null,
+    ['task_13'], ['chapter-1', 'task_4'], ['task_2', 'task_1'], ['task_1', 'task_1'], [quest.id]]) {
     assert.equal(validateGame({ ...middle, pendingScenes }, data), false, JSON.stringify(pendingScenes));
   }
   const { pendingScenes: _scenes, ...missing } = middle;
@@ -177,4 +186,73 @@ test('saved scene queues hold only earned scenes, once each, in story order', ()
   const finished = checkpoint(24);
   assert.equal(validateGame({ ...finished, pendingScenes: ['finale'] }, data), true);
   assert.equal(validateGame({ ...finished, pendingScenes: ['finale', 'chapter-6'] }, data), false);
+  assert.equal(validateGame({ ...finished, pendingScenes: ['finale', 'task_24'] }, data), false);
+});
+
+test('scene IDs must be unique across preparations, quests, local news, chapters, and the finale', () => {
+  const news = data.quests.find(quest => quest.followUp)!;
+  const cases: [string, (content: GameData) => void][] = [
+    ['chapter reuses a preparation ID', content => { content.chapters[0].id = content.tasks[0].id; }],
+    ['finale reuses a quest ID', content => { content.finale.id = content.quests[0].id; }],
+    ['news reuses a preparation ID', content => { content.quests.find(quest => quest.id === news.id)!.followUp!.id = content.tasks[3].id; }],
+    ['news reuses a quest ID', content => { content.quests.find(quest => quest.id === news.id)!.followUp!.id = content.quests[1].id; }],
+  ];
+  for (const [name, change] of cases) {
+    const content = structuredClone(data);
+    change(content);
+    assert.ok(storyProblems(content).some(problem => /Story scene IDs must be unique/.test(problem)), `${name}: ${storyProblems(content).join(' ')}`);
+  }
+});
+
+test('a payment queues its preparation scene in the same change, and a failed payment queues nothing', () => {
+  const before = ready(checkpoint(1));
+  const after = apply(before, { type: 'task' });
+  assert.deepEqual(after.pendingScenes, [...before.pendingScenes, data.tasks[1].id]);
+  rejected({ ...before, coins: before.coins - 1 }, { type: 'task' });
+  // Reading the preparation scene changes nothing else, and a second read changes nothing.
+  const read = apply(after, { type: 'readScene', id: data.tasks[1].id });
+  assert.deepEqual({ ...read, pendingScenes: after.pendingScenes }, after);
+  rejected(read, { type: 'readScene', id: data.tasks[1].id });
+});
+
+test('sceneLine records the line of a waiting scene from the first to the last line, and readScene removes it', () => {
+  const state = checkpoint(4), id = data.tasks[3].id, last = data.tasks[3].dialogue.length - 1;
+  assert.equal(Object.hasOwn(state, 'sceneLines'), false);
+  const second = apply(state, { type: 'sceneLine', id, line: 1 });
+  assert.deepEqual(second.sceneLines, { [id]: 1 });
+  const end = apply(second, { type: 'sceneLine', id, line: last });
+  assert.deepEqual(end.sceneLines, { [id]: last });
+  // The first line needs no record.
+  const first = apply(end, { type: 'sceneLine', id, line: 0 });
+  assert.equal(Object.hasOwn(first, 'sceneLines'), false);
+  assert.deepEqual(first, state);
+  // A different waiting scene keeps its own line.
+  const both = apply(end, { type: 'sceneLine', id: 'chapter-1', line: 2 });
+  assert.deepEqual(both.sceneLines, { [id]: last, 'chapter-1': 2 });
+  for (const key of ['coins', 'xp', 'served', 'merges', 'taskIndex', 'seed', 'board', 'orders', 'pendingScenes', 'completedQuests'] as const) {
+    assert.deepEqual(both[key], state[key], `A line must not change ${key}.`);
+  }
+  const read = apply(both, { type: 'readScene', id });
+  assert.deepEqual(read.sceneLines, { 'chapter-1': 2 });
+  assert.equal(Object.hasOwn(apply(read, { type: 'readScene', id: 'chapter-1' }), 'sceneLines'), false);
+  // Stale, unknown, and out-of-range lines change nothing.
+  rejected(read, { type: 'sceneLine', id, line: 1 });
+  rejected(both, { type: 'sceneLine', id, line: last + 1 });
+  rejected(both, { type: 'sceneLine', id, line: -1 });
+  rejected(both, { type: 'sceneLine', id, line: 1.5 });
+  rejected(both, { type: 'sceneLine', id, line: '1' as unknown as number });
+  rejected(both, { type: 'sceneLine', id: 'chapter-2', line: 1 });
+  rejected(both, { type: 'sceneLine', id: 'unknown', line: 1 });
+  rejected(both, { type: 'sceneLine', id: undefined as unknown as string, line: 1 });
+});
+
+test('saved lines must be a plain record of waiting scenes with lines after the first line', () => {
+  const state = checkpoint(4), id = data.tasks[3].id;
+  for (const sceneLines of [{}, { [id]: 1 }, { [id]: 2, 'chapter-1': 1 }, { [id]: 99 }]) assert.equal(validateGame({ ...state, sceneLines }, data), true, JSON.stringify(sceneLines));
+  for (const sceneLines of [null, [], 'task_4', 3, { [id]: 0 }, { [id]: -1 }, { [id]: 1.5 }, { [id]: '1' }, { [id]: null }, { 'chapter-2': 1 }, { unknown: 1 },
+    { [id]: Number.MAX_SAFE_INTEGER + 1 }]) {
+    assert.equal(validateGame({ ...state, sceneLines }, data), false, JSON.stringify(sceneLines));
+  }
+  // A line of a read scene is not kept.
+  assert.equal(validateGame({ ...state, pendingScenes: state.pendingScenes.filter(value => value !== id), sceneLines: { [id]: 1 } }, data), false);
 });

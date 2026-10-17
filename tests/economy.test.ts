@@ -19,7 +19,7 @@ test('renovation cost follows its materials and labour, with less work and money
 });
 
 test('new orders quote explicit menu prices without a flat service bonus and clearance stays below menu value', () => {
-  for (const item of Object.values({ ...data.items, ...data.questItems })) {
+  for (const item of Object.values(data.items)) {
     if (item.generator) assert.equal(saleValue(item.id, data), 0);
     else {
       assert.equal(saleValue(item.id, data), Math.max(1, Math.floor(item.price / 4)));
@@ -45,7 +45,7 @@ test('authored economy rejects missing, malformed, unsupported, or inconsistent 
   const mutations: ((content: GameData) => void)[] = [
     ...[-1, 0, 0.5, NaN, Infinity, 500_000_001, '2', null, undefined].map(value => (content: GameData) => { Object.assign(content.items.bakery_1, { price: value }); }),
     ...[-1, 1, null, undefined].map(value => (content: GameData) => { Object.assign(content.items.generator_bakery, { price: value }); }),
-    content => { Reflect.deleteProperty(content.questItems.quest_bread_1, 'price'); },
+    content => { Reflect.deleteProperty(content.items.bakery_2, 'price'); },
     content => { Reflect.deleteProperty(content.tasks[0], 'work'); },
     ...[null, [], 'repair'].map(value => (content: GameData) => { Object.assign(content.tasks[0], { work: value }); }),
     ...['', '   ', null, 4].map(value => (content: GameData) => { Object.assign(content.tasks[0].work, { summary: value }); }),

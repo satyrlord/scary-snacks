@@ -1,12 +1,11 @@
 # 005 - Character quests and introductions
 
-Status: Implemented independent slices, including the optional temporary producer.
-Automatic scene continuation waits for 009. Spec 006 includes all quests in its economy fixture. Spec 008 names one regular quest of each arc as a chapter contribution.
+Status: Implemented independent slices.
+Spec 009 queues each quest completion scene and resumes it after reload. Spec 006 includes all quests in its economy fixture. Spec 008 names one regular quest of each arc as a chapter contribution.
 
 ## Result and ownership
 
 Each of Mara, Ilie, Eszter, and Sorin has three authored quests across the six chapters.
-A thirteenth quest lends a temporary flour bin for Ilie's bread tasting.
 The journal has an optional introduction for each neighbour and replay of completed quest scenes.
 All four core characters remain eligible for ordinary orders. Introductions never block service.
 
@@ -16,7 +15,7 @@ The app owns the quest sheet, the dialogue, and focus return.
 PRODUCT, DESIGN, and README own the current product, interface, and delivery contracts.
 
 The five permanent chains, 30 permanent dishes, four core characters, 24 preparation IDs, and three ordinary orders stay.
-The temporary source and its three outputs have separate IDs and use the matching existing bread pictures.
+Quests use only ordinary dishes and drinks. No quest lends a source or adds quest-only items.
 There is no new currency, timer, energy limit, runtime dependency, backend, or network service.
 
 ## Visiting travellers
@@ -78,9 +77,8 @@ Quantities are explicit. Rewards are coins only and give no XP.
 | eszter-tasting | 17 | 1 Plum dumplings | 32 |
 | mara-supper | 20 | 1 Zacuscă toast, 1 Smoked cheese plate | 32 |
 | sorin-welcome | 20 | 2 Fruit tea, 1 Roasted vegetables | 32 |
-| ilie-bread-tasting | 17 and Ilie's arc | 2 Tasting pogăcele | 24 |
 
-The regular arcs give at most 288 coins. The optional tasting adds 24 coins.
+The regular arcs give at most 288 coins.
 Mara tests a welcome and a supper service. Ilie prepares the bread counter and a family tasting dish.
 Eszter checks bowl and plate sizes. Sorin prepares food around errands and the courtyard welcome.
 These purposes do not depend on random customer arrival or an inferred identity.
@@ -89,38 +87,19 @@ These purposes do not depend on random customer arrival or an inferred identity.
 
 1. A quest has a stable ID, character ID, opening prerequisites, item quantities, coin reward, opening scene, and completion scene.
    A quest can also have companions, a number of services after its previous quest, customers that it waits for, and a later news scene.
-2. At most one quest per character is active or offered. A companion counts as a character of the quest. Authored order resolves eligibility.
+2. At most one quest per character is active. A companion counts as a character of the quest. Authored order resolves eligibility.
 3. Delivery consumes the full requirement from the board in one action.
 4. Repeated requirement entries count separately. Missing items, a stale ID, a completed ID, or a reward overflow change nothing.
 5. Success records completion and the service total at delivery, and pays once. It does not replace ordinary orders, advance their seed, or change the served-order count.
 6. Every required permanent chain is available before activation. The combined quest and preparation graph must have no cycle.
 7. The engine supports a preparation's `requiresQuest` prerequisite. The authored campaign has no quest gate. Ordinary orders and preparations remain playable independently.
 8. Reading, skipping, replaying, reloading, and repeated clicks give no second reward.
-9. Quest scenes use the existing dialogue controls. They do not automatically resume after reload. Recorded completion and journal replay remain available.
+9. Quest scenes use the existing dialogue controls. The completion scene waits until the player finishes or skips it, as spec 009 gives. Recorded completion and journal replay remain available.
 
-`questProblems` checks IDs, scenes, quantities, rewards, source ownership, chain availability, authored order, and combined prerequisite reachability.
+`questProblems` checks IDs, scenes, quantities, rewards, ordinary requested items, chain availability, authored order, and combined prerequisite reachability.
 It also checks companions, service delays, the order lists of occasional customers, the customers that a quest waits for, and news scenes.
 Each customer that stays away during a quest must be a customer that the quest waits for.
 The content generator refuses invalid quest data.
-
-## Temporary bread-tasting source
-
-`ilie-bread-tasting` is an offer until Accept succeeds.
-Acceptance places exactly one `quest_bread_source` on the board.
-If the board is full, the offer remains and nothing changes.
-The interface explains the required space before acceptance.
-
-The source gives `quest_bread_1` immediately. Two matching items merge through `quest_bread_2` to `quest_bread_3`.
-The source and outputs belong only to this quest. They are excluded from ordinary orders, permanent source counts, generator upgrades, and the permanent recipe collection.
-The source can move. It cannot merge or be sold.
-Its deterministic sequence has no cooldown, charge limit, or exhaustion.
-
-Before delivery, a preview lists the exclusive leftovers after the required portions are consumed.
-It includes the source and every remaining exclusive item on the board, with space numbers.
-Keep items is the safe initial choice.
-Confirmation consumes the requirements, removes only the explicitly exclusive IDs, records completion, and pays once.
-The preview token covers the full state. Any intervening state change requires a new preview.
-Ordinary items and items owned by another quest remain.
 
 ## Interface
 
@@ -137,16 +116,13 @@ Delivery from the dialog plays the completion scene, then returns to the kitchen
 The journal starts with optional introductions. Completed quests keep both their opening and completion scenes, except the quests of single-visit guests.
 Local news shows an earned news scene. It reads as a new scene while it waits, and as a replay after that.
 Close, Escape, and Return from a quest scene restore the quest list or journal focus.
-Cleanup cancellation returns focus to the quest heading.
 The ordinary orders keep their requirements and rewards during all these flows.
 
 ## Save compatibility
 
-The state stores unique, known `completedQuests` and `activeQuestProducers`, consistent with prerequisites.
-Each active temporary source stores its next output position.
-Exactly one live source must exist on the board while its quest is active.
-Exclusive leftovers cannot remain after completion or without ownership.
+The state stores unique, known `completedQuests`, consistent with prerequisites.
 Unknown IDs and contradictory state are rejected.
+A current save can hold Ilie's borrowed bread tasting, which the game does not have. `removeBreadTasting` in `src/engine.ts` removes it before validation, at load, at import, and before a write over such a save. It removes the record of borrowed sources, the tasting source and tasting items on the board and in the discovered list, and the quest from the completed list, the service totals, the waiting scenes, and the saved lines. The coins of a delivered tasting stay. A load alone does not rewrite the save.
 See [Shared save compatibility](README.md#shared-save-compatibility).
 
 The optional `questCompletedAt` records the service total at each delivery. Each entry names a completed quest.
@@ -163,15 +139,14 @@ Import adopts a valid quest state only after its write succeeds.
 ## Acceptance and evidence
 
 The Node.js tests cover repeated quantities, atomic failure, reward-once behavior, coin overflow, prerequisite cycles, unavailable chains, and malformed quest records.
-They cover deterministic acceptance, full-board failure, source protection, reload, stale previews, and exact cleanup.
-The storage tests cover fresh, middle, and completed saves, malformed and oversized input, invalid completion lists, source ownership, failed writes, and rejection of unsupported versions.
+The storage tests cover fresh, middle, and completed saves, malformed and oversized input, invalid completion lists, the removal of the bread tasting from a save, failed writes, and rejection of unsupported versions.
 They cover the shared visit: its three-service delay, the wait for noble orders, the noble exclusion, the vegetarian request, the news scene, and service totals in current saves.
-A legal engine campaign completes all 24 preparations and all 24 quests without injected resources. Its diagnostic output reports actions, merges, served orders, and chapter checkpoints. The fixture fails on a deadlock.
+A legal engine campaign completes all 24 preparations and all 23 quests without injected resources. Its diagnostic output reports actions, merges, served orders, and chapter checkpoints. The fixture fails on a deadlock.
 
 The built browser tests cover all four neighbours, board-only delivery, unchanged orders, keyboard focus, touch emulation, reload, export, import, scene replay, and unavailable storage.
-They cover temporary-source placement, cleanup cancellation, and confirmation.
+They cover a save with the bread tasting, which opens without it.
 They cover the shared request with both portraits, its departure through reload and import, a failed delivery save, and the news scene in the journal.
-They cover the request dialog: one offer after a merge, Close, Deliver, the order after a level-up, the cleanup review, a failed save, and the offer at each load.
+They cover the request dialog: one offer after a merge, Close, Deliver, the order after a level-up, a failed save, and the offer at each load.
 The changed sheets have geometry, contrast, and screenshot checks at desktop and phone sizes in both themes.
 Use `npm run quality:full` for the integrated acceptance check.
 
@@ -179,5 +154,5 @@ Use `npm run quality:full` for the integrated acceptance check.
 
 - 006 owns campaign gates and economy tuning. The legal simulation measures the current request schedule.
 - 008 owns the chapter scenes and the finale. Each chapter names one regular quest that opens during it as its neighbour contribution. The journal shows the state of that quest beside the chapter. The contributions stay optional.
-- 009 owns durable dialogue continuation. Quest completion scenes must enter that system when it is implemented. Scene acknowledgement must remain independent of rewards.
+- 009 owns durable dialogue continuation. Quest completion scenes wait in that queue. Scene acknowledgement stays independent of rewards.
 - 013 owns the neighbours page. The current optional introductions live in the story journal and do not gate ordinary orders.

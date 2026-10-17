@@ -21,7 +21,7 @@ Owner: `PRODUCT.md` for play; `DESIGN.md` for generator controls.
 Give later chapters permanent production improvements. Keep every dish reachable.
 Keep the five chains, unlimited output, no timers, and no consumable generator parts.
 Do not add purchases, a backend, runtime packages, or imported game content.
-Generator assembly and temporary producers are outside this feature.
+Generator assembly is outside this feature.
 
 ## Implemented behavior
 

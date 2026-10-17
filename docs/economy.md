@@ -46,9 +46,6 @@ A later merge stage is not necessarily a more expensive food. Portions and the a
 | Produce | Wild mushroom sauce, two small portions | 28 |
 | Produce | Sharing board, a board for two | 65 |
 
-The temporary tasting ingredients use the prices of their matching bread ingredients.
-They do not enter ordinary orders.
-
 Vlad and Elisabeta order only meat cabbage rolls, goulash, and red wine. Mina and Avram's shared
 vegetarian meal costs 168 coins at these menu prices and pays 336 coins. The request includes two
 zacuscă toasts, two roasted vegetable plates, one smoked cheese plate, and two fruit teas. Eggs and

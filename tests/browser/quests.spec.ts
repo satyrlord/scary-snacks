@@ -1,17 +1,15 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { createGame, firstFreeBoardCell, reduceGame, validateGame, resolveQuests, getItem, previewQuestCleanup, unresolvedObstacle, canDeliverQuest } from '../../src/engine.ts';
+import { createGame, firstFreeBoardCell, reduceGame, validateGame, resolveQuests, getItem, unresolvedObstacle, canDeliverQuest } from '../../src/engine.ts';
 import type { Action, GameData, GameState, Quest } from '../../src/engine.ts';
 import { SAVE_KEY, exportSave } from '../../src/storage.ts';
 
 const data: GameData=JSON.parse(readFileSync('public/data/game.json','utf8'));
 const validate=(candidate: unknown)=>validateGame(candidate,data);
 const firstQuests=data.characters.filter(character=>!character.visitor&&data.quests.some(quest=>quest.character===character.id)).map(character=>data.quests.find(quest=>quest.character===character.id)!);
-const optional=data.quests.find(quest=>quest.producer)!;
 const card=(page: Page,quest: Quest)=>page.locator(`.quest-card[data-quest="${quest.id}"]`);
 const deliver=(page: Page,quest: Quest)=>page.getByRole('button',{name:`Deliver ${quest.title} for ${quest.reward} coins`,exact:true});
-const accept=(page: Page)=>page.getByRole('button',{name:`Accept ${optional.title}`,exact:true});
 function act(state: GameState,action: Action){const result=reduceGame(state,action,data);expect(result.ok,result.message).toBe(true);return result.state;}
 function checkpoint(count: number){
   let state=createGame(data);state.coins=100000;
@@ -33,29 +31,6 @@ function supplied(state: GameState,quest: Quest){
 function ready(quest: Quest){
   const count=quest.afterTask===null?0:data.tasks.findIndex(task=>task.id===quest.afterTask)+1;
   return supplied(checkpoint(count),quest);
-}
-function offer(){
-  const count=data.tasks.findIndex(task=>task.id===optional.afterTask)+1;let state=checkpoint(count);
-  for(let guard=0;resolveQuests(state,data).find(view=>view.quest.id===optional.id)!.status!=='offer';guard++){
-    expect(guard).toBeLessThan(data.quests.length);
-    const next=resolveQuests(state,data).find(view=>view.status==='active'&&!view.quest.producer)!.quest;
-    state=act(supplied(state,next),{type:'deliverQuest',id:next.id});
-  }
-  expect(validate(state)).toBe(true);return state;
-}
-function cleanupReady(){
-  let state=act(offer(),{type:'acceptQuest',id:optional.id});const producer=optional.producer!;
-  const make=(code: string): void=>{
-    const item=getItem(code,data)!;
-    if(item.stage===1){state=act(state,{type:'spawn',index:state.board.findIndex(cell=>cell?.code===producer.item)});return;}
-    const lower=Object.values(data.questItems).find(item=>item.next===code)!.id;
-    make(lower);const first=state.board.findIndex(cell=>cell?.code===lower);make(lower);
-    const second=state.board.findIndex((cell,index)=>cell?.code===lower&&index!==first);state=act(state,{type:'move',from:first,to:second});
-  };
-  for(const requirement of optional.requirements)for(let count=0;count<requirement.quantity;count++)make(requirement.item);
-  make(producer.outputs[0]);
-  make(producer.outputs[0]);
-  expect(validate(state)).toBe(true);return state;
 }
 async function start(page: Page,state: GameState){
   await page.addInitScript(([key,value])=>{if(localStorage.getItem(key)===null)localStorage.setItem(key,value);},[SAVE_KEY,exportSave(state,validate)]);
@@ -91,12 +66,28 @@ for(const quest of firstQuests)test(`${quest.character} can read and deliver a n
   await request.getByRole('button',{name:`Read request: ${quest.title}`,exact:true}).click();
   await expect(page.locator('#story-line')).toContainText(quest.opening[0].text);await finishScene(page);expect(await saved(page)).toEqual(before);
   await expect(request.locator('h3')).toBeFocused();await deliver(page,quest).click();
-  await expect(page.locator('#story-line')).toContainText(quest.completion[0].text);const after=await saved(page);
+  await expect(page.locator('#story-line')).toContainText(quest.completion[0].text);const delivered=await saved(page);
+  // The completion scene waits until the player finishes it. Then nothing else changes.
+  expect(delivered.pendingScenes).toEqual([...before.pendingScenes,quest.id]);const after={...delivered,pendingScenes:before.pendingScenes};
   expect(after.completedQuests).toEqual([...before.completedQuests,quest.id]);expect(after.coins).toBe(before.coins+quest.reward);
   expect(after.orders).toEqual(before.orders);expect(after.seed).toBe(before.seed);expect(after.served).toBe(before.served);
   await finishScene(page);await expect(deliver(page,quest)).toHaveCount(0);
   await page.keyboard.press('Escape');await expect(page.locator('#orders .order')).toHaveCount(3);
   await page.reload();expect(await saved(page)).toEqual(after);await closeOffers(page,after);await quests(page);await expect(deliver(page,quest)).toHaveCount(0);
+});
+
+test('a reload during a quest completion scene keeps it waiting in Story and the journal, and Read now finishes it once',async({page})=>{
+  const quest=firstQuests[0];await start(page,ready(quest));const before=await saved(page);await quests(page);await deliver(page,quest).click();
+  await expect(page.locator('#story-line')).toContainText(quest.completion[0].text);await expect(page.getByRole('button',{name:'Skip scene',exact:true})).toBeVisible();
+  const delivered=await saved(page);expect(delivered.pendingScenes).toEqual([...before.pendingScenes,quest.id]);
+  await page.reload();await expect(page.locator('#board button')).toHaveCount(42);await expect(page.locator('#status')).toContainText('A story scene is waiting in Story.');
+  expect(await saved(page)).toEqual(delivered);
+  await journal(page);await expect(page.getByRole('button',{name:`Read ${quest.title}`,exact:true})).toContainText('New scene');await page.keyboard.press('Escape');
+  if(!await page.locator('#story').isVisible())await page.locator('#story-button').click();
+  await page.getByRole('button',{name:`Read now: ${quest.title}`,exact:true}).click();await expect(page.locator('#story-line')).toContainText(quest.completion[0].text);
+  await page.getByRole('button',{name:'Back to the kitchen',exact:true}).click();await expect(page.locator('#modal')).toBeHidden();
+  const read=await saved(page);expect(read).toEqual({...delivered,pendingScenes:before.pendingScenes});expect(read.coins).toBe(before.coins+quest.reward);
+  await journal(page);await expect(page.getByRole('button',{name:`Replay ${quest.title}`,exact:true})).toBeVisible();
 });
 
 test('quest rewards survive export and import, while introductions and journal replay give no reward',async({page})=>{
@@ -161,58 +152,9 @@ test('keyboard and emulated touch can inspect and finish quests with focus retur
   }finally{await context.close();}
 });
 
-test('an optional offer needs a free board space for its sole producer',async({page})=>{
-  const initial=offer();initial.board=initial.board.map((cell,index)=>cell||unresolvedObstacle(initial,index,data)?cell:{code:'bakery_1'});
-  const sellFlour=async()=>{const state=await saved(page);await page.locator(`[data-cell="${state.board.findIndex(cell=>cell?.code==='bakery_1')}"]`).click();await page.getByRole('button',{name:'Sell for 1 coin',exact:true}).click();};
-  await start(page,initial);await quests(page);await expect(card(page,optional)).toContainText(/board/);await accept(page).click();await expect(page.locator('.quest-notice')).toContainText(/space/);expect(await saved(page)).toEqual(initial);
-  await page.keyboard.press('Escape');await sellFlour();
-  const before=await saved(page);
-  await quests(page);await accept(page).click();await expect(card(page,optional).locator('h3')).toBeFocused();const accepted=await saved(page);
-  expect(accepted.board.filter(cell=>cell?.code===optional.producer!.item)).toHaveLength(1);expect(accepted.activeQuestProducers).toEqual({[optional.id]:0});
-  await expect(accept(page)).toHaveCount(0);await page.keyboard.press('Escape');await page.reload();expect(await saved(page)).toEqual(accepted);
-  const retrieved=await saved(page);
-  const source=page.locator(`[data-cell="${retrieved.board.findIndex(cell=>cell?.code===optional.producer!.item)}"]`);await source.click();
-  await expect(page.locator('#item-detail').getByRole('button',{name:/^Sell/})).toHaveCount(0);
-  // Make room, then take twice to verify the authored immediate output through the interface.
-  await sellFlour();await source.click();
-  let production=await saved(page);expect(production.activeQuestProducers[optional.id]).toBe(0);
-  expect(production.board.filter(cell=>cell?.code===optional.producer!.outputs[0])).toHaveLength(1);
-  await sellFlour();await source.click();
-  production=await saved(page);expect(production.activeQuestProducers[optional.id]).toBe(0);expect(production.board.filter(cell=>cell?.code===optional.producer!.outputs[0])).toHaveLength(2);expect(production.seed).toBe(before.seed);
-  await page.reload();expect((await saved(page)).board).toContainEqual({code:optional.producer!.item});
-});
-
-test('cleanup previews exact exclusive leftovers, cancels safely, and preserves every ordinary item',async({page})=>{
-  const initial=cleanupReady(),preview=previewQuestCleanup(initial,optional.id,data)!;await start(page,initial);await quests(page);await deliver(page,optional).click();
-  await expect(page.getByRole('dialog',{name:'Return the tasting supplies',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Keep items',exact:true})).toBeFocused();
-  const list=page.locator('.quest-cleanup-list li');await expect(list).toHaveCount(preview.board.length);
-  await expect(list).toHaveText(preview.board.map(item=>`${getItem(item.item,data)!.name} · Board space ${item.index+1}`));
-  expect(await saved(page)).toEqual(initial);await page.getByRole('button',{name:'Keep items',exact:true}).click();await expect(card(page,optional).locator('h3')).toBeFocused();expect(await saved(page)).toEqual(initial);
-  await deliver(page,optional).click();await page.getByRole('button',{name:'Deliver and return supplies',exact:true}).click();const after=await saved(page);
-  const exclusive=new Set(optional.producer!.exclusiveItems),ordinary=(cells: GameState['board'])=>cells.filter(cell=>cell&&!exclusive.has(cell.code));
-  expect(ordinary(after.board)).toEqual(ordinary(initial.board));
-  expect(after.board.some(cell=>cell&&exclusive.has(cell.code))).toBe(false);expect(after.orders).toEqual(initial.orders);
-  expect(after.coins).toBe(initial.coins+optional.reward);expect(after.completedQuests).toContain(optional.id);expect(after.activeQuestProducers).toEqual({});
-  await finishScene(page);await page.keyboard.press('Escape');await page.reload();expect(await saved(page)).toEqual(after);
-});
-
-test('the cleanup note names the lending neighbour from the game data',async({page})=>{
-  const renamed: GameData=structuredClone(data);renamed.characters.find(person=>person.id===optional.character)!.name='Vasile';
-  await page.route('**/data/game.json',route=>route.fulfill({json:renamed}));
-  await start(page,cleanupReady());await quests(page);await expect(card(page,optional)).toContainText('will return to Vasile.');
-});
-
-test('another tab cancels a stale cleanup preview without reclaiming its newer items',async({page,context})=>{
-  await start(page,cleanupReady());await quests(page);await deliver(page,optional).click();await expect(page.getByRole('button',{name:'Deliver and return supplies',exact:true})).toBeVisible();
-  const other=await context.newPage();await other.goto('./');await expect(other.locator('#board button')).toHaveCount(42);
-  const before=await saved(other);await closeOffers(other,before);await other.locator(`[data-cell="${before.board.findIndex(cell=>cell?.code==='generator_bakery')}"]`).click();
-  const newer=await saved(other);await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(newer);
-  expect(newer.completedQuests).not.toContain(optional.id);expect(newer.activeQuestProducers).toEqual(before.activeQuestProducers);await other.close();
-});
-
 /** The first ingredient waits as two lower items, so one merge makes the request ready. */
 function almost(state: GameState,quest: Quest){
-  const next=structuredClone(state),item=quest.requirements[0].item,lower=Object.values({...data.items,...data.questItems}).find(value=>value.next===item)!.id;
+  const next=structuredClone(state),item=quest.requirements[0].item,lower=Object.values(data.items).find(value=>value.next===item)!.id;
   const first=next.board.findIndex(cell=>cell?.code===item);next.board[first]={code:lower};
   const second=firstFreeBoardCell(next,data);next.board[second]={code:lower};
   expect(validate(next)).toBe(true);return {state:next,first,second};
@@ -257,7 +199,9 @@ test('another tab preserves a dismissed request while its ingredients are missin
 test('Deliver in the offer plays the completion and returns to the kitchen',async({page})=>{
   const quest=firstQuests[0],fixture=almost(ready(quest),quest);await start(page,fixture.state);await merge(page,fixture);const before=await saved(page);
   await offered(page,quest).getByRole('button',{name:`Deliver ${quest.title} for ${quest.reward} coins`,exact:true}).click();
-  await expect(page.locator('#story-line')).toContainText(quest.completion[0].text);const after=await saved(page);
+  await expect(page.locator('#story-line')).toContainText(quest.completion[0].text);const delivered=await saved(page);
+  // The completion scene waits until the player finishes it. Then nothing else changes.
+  expect(delivered.pendingScenes).toEqual([...before.pendingScenes,quest.id]);const after={...delivered,pendingScenes:before.pendingScenes};
   expect(after.completedQuests).toEqual([quest.id]);expect(after.coins).toBe(before.coins+quest.reward);expect(after.orders).toEqual(before.orders);
   while(await page.locator('.story-controls .primary-button').textContent()==='Continue')await page.locator('.story-controls .primary-button').click();
   await page.getByRole('button',{name:'Back to the kitchen',exact:true}).click();await expect(page.locator('#modal')).toBeHidden();
@@ -268,13 +212,6 @@ test('a level-up comes before the request that the same merge made ready',async(
   const quest=firstQuests[0],fixture=almost(ready(quest),quest);fixture.state.xp=99;await start(page,fixture.state);await merge(page,fixture);
   await expect(page.getByRole('dialog',{name:'Level 2 reached',exact:true})).toBeVisible();await page.keyboard.press('Escape');
   await expect(offered(page,quest)).toBeVisible();
-});
-
-test('the tasting request reviews its supplies from the offer, and Keep items changes nothing',async({page})=>{
-  const fixture=almost(cleanupReady(),optional);await start(page,fixture.state);await merge(page,fixture);const merged=await saved(page);
-  await offered(page,optional).getByRole('button',{name:`Deliver ${optional.title} for ${optional.reward} coins`,exact:true}).click();
-  await expect(page.getByRole('dialog',{name:'Return the tasting supplies',exact:true})).toBeVisible();
-  await page.getByRole('button',{name:'Keep items',exact:true}).click();await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(merged);
 });
 
 test('a failed save after a delivery from the offer leads to Neighbour quests with Retry save',async({page})=>{
@@ -301,9 +238,9 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   await page.screenshot({path:testInfo.outputPath('request-offer.png')});
 });
 
-for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:390,height:800}])for(const theme of ['light','dark'] as const)test(`neighbour quests and cleanup fit ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
-  await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});await start(page,cleanupReady());await quests(page);
-  const book=page.locator('.quest-book');await expect(card(page,optional)).toBeVisible();
+for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:390,height:800}])for(const theme of ['light','dark'] as const)test(`neighbour quests fit ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
+  await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});await start(page,checkpoint(18));await quests(page);
+  const book=page.locator('.quest-book');await expect(book.locator('.quest-card')).not.toHaveCount(0);
   for(const control of await book.locator('button').all()){const box=(await control.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);}
   expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
   const contrasts=await book.evaluate(element=>{
@@ -311,8 +248,49 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:390
     const background=luminance(getComputedStyle(element.closest('dialog')!).backgroundColor);
     return [...element.querySelectorAll('p,h3,li')].map(node=>{const ink=luminance(getComputedStyle(node).color);return(Math.max(ink,background)+.05)/(Math.min(ink,background)+.05);});
   });expect(Math.min(...contrasts)).toBeGreaterThanOrEqual(4.5);
-  await page.screenshot({path:testInfo.outputPath('neighbour-quests.png')});await deliver(page,optional).click();
-  await expect(page.getByRole('button',{name:'Keep items',exact:true})).toBeFocused();await expect(page.getByRole('button',{name:'Deliver and return supplies',exact:true})).toBeInViewport();
-  expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);await page.screenshot({path:testInfo.outputPath('quest-cleanup.png')});
+  await page.screenshot({path:testInfo.outputPath('neighbour-quests.png')});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&document.documentElement.scrollHeight<=innerHeight)).toBe(true);
+});
+
+test('the quest card glows for a new request until Neighbour quests opens, glows again when a request is ready, and a new game forgets what was seen',async({page})=>{
+  const quest=firstQuests[0],fixture=almost(ready(quest),quest),open=resolveQuests(fixture.state,data).filter(view=>view.status==='active').length;
+  const requests=`${open} ${open===1?'request':'requests'}`;
+  await start(page,fixture.state);const link=page.locator('#story [data-quests]');
+  await expect(link).toHaveAttribute('data-calling','');await expect(link).toHaveAccessibleName(`Neighbour quests, ${requests}, new request`);
+  await expect(link.locator('.quest-faces .portrait')).toHaveCount(Math.min(3,new Set(resolveQuests(fixture.state,data).filter(view=>view.status==='active').map(view=>view.quest.character)).size));
+  await quests(page);await page.keyboard.press('Escape');await expect(page.locator('#modal')).toBeHidden();
+  await expect(link).not.toHaveAttribute('data-calling');await expect(link).toHaveAccessibleName(`Neighbour quests, ${requests}`);await expect(link).toBeFocused();
+  // The seen requests are a viewing preference, so a reload keeps them seen.
+  await page.reload();await expect(page.locator('#board button')).toHaveCount(42);await expect(link).not.toHaveAttribute('data-calling');
+  await merge(page,fixture);await expect(offered(page,quest)).toBeVisible();await page.keyboard.press('Escape');
+  await expect(link).toHaveAttribute('data-calling','');await expect(link).toHaveAccessibleName(`Neighbour quests, ${requests}, 1 ready to deliver`);
+  // Opening the quests does not quiet a request that is ready to deliver.
+  await quests(page);await page.keyboard.press('Escape');await expect(link).toHaveAttribute('data-calling','');
+  await house(page);await page.getByRole('button',{name:'Start a new game',exact:true}).click();await page.getByRole('button',{name:'Erase and start again'}).click();
+  await expect(link).toHaveAttribute('data-calling','');await expect(link).toHaveAccessibleName(/, new request$/);
+});
+
+test('on a phone, the Story item carries the face of the waiting neighbour with a breathing glow that reduced motion holds still',async({page})=>{
+  await page.setViewportSize({width:390,height:844});await start(page,createGame(data));
+  const story=page.locator('#story-button'),face=story.locator('.story-face'),name=data.characters.find(person=>person.id===firstQuests[0].character)!.name;
+  await expect(face).toBeVisible();await expect(story).toHaveAccessibleName(`Story, ${name} is waiting`);
+  const glow=()=>face.evaluate(value=>{const style=getComputedStyle(value,'::after');return {animation:style.animationName,opacity:style.opacity};});
+  expect((await glow()).animation).toBe('candle-breath');
+  await page.emulateMedia({reducedMotion:'reduce'});expect(await glow()).toEqual({animation:'none',opacity:'0.85'});
+  const box=(await face.boundingBox())!,icon=(await story.locator('svg').boundingBox())!;expect(box.x+box.width).toBeLessThanOrEqual(icon.x+2);
+  await story.click();const card=page.getByRole('dialog').locator('[data-quests]');await expect(card).toHaveAttribute('data-calling','');
+  await card.click();await expect(page.getByRole('dialog',{name:'Neighbour quests',exact:true})).toBeVisible();await page.keyboard.press('Escape');
+  await expect(page.locator('#modal')).toBeHidden();await expect(face).toHaveCount(0);await expect(story).toHaveAccessibleName('Story');
+});
+
+test('a save with the borrowed bread tasting opens without it, and the next write saves the clean game',async({page})=>{
+  const state=checkpoint(18),legacy: GameState&Record<string,unknown>=structuredClone(state);
+  const source=firstFreeBoardCell(legacy,data);legacy.board[source]={code:'quest_bread_source'};
+  legacy.discovered=[...legacy.discovered,'quest_bread_source','quest_bread_1'];legacy.activeQuestProducers={'ilie-bread-tasting':0};
+  await page.addInitScript(([key,value])=>{if(localStorage.getItem(key)===null)localStorage.setItem(key,value);},[SAVE_KEY,JSON.stringify({format:'scary-snacks',version:8,state:legacy})]);
+  await page.goto('./');await expect(page.locator('#board button')).toHaveCount(42);await closeOffers(page,state);
+  await expect(page.locator('#status')).toContainText('Welcome back');await expect(page.locator(`[data-cell="${source}"]`)).toHaveAttribute('aria-label',/: empty$/);
+  await page.locator(`[data-cell="${state.board.findIndex(cell=>cell?.code==='generator_bakery')}"]`).click();
+  const written=await saved(page);expect(Object.hasOwn(written,'activeQuestProducers')).toBe(false);expect(written.discovered).not.toContain('quest_bread_source');
+  expect(written.coins).toBe(state.coins);expect(written.completedQuests).toEqual(state.completedQuests);
 });

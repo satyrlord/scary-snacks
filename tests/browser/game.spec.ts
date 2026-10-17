@@ -128,7 +128,9 @@ test('a preparation paid with earned coins is revealed in the room once its stor
   const before=await saved(page);
   await page.locator('#story').getByRole('button',{name:/^Pay /}).click();
   // The game was saved before the story opens, while the room still shows the room before the change.
-  const after=await saved(page);expect(after.decorations).toEqual(['task_1']);expect(after.coins).toBe(before.coins-data.tasks[0].cost);
+  const paid=await saved(page);expect(paid.decorations).toEqual(['task_1']);expect(paid.coins).toBe(before.coins-data.tasks[0].cost);expect(paid.pendingScenes).toEqual(['task_1']);
+  // The last line of the story reads its scene. Nothing else changes.
+  const after={...paid,pendingScenes:[]};
   await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-00');
   for(const label of ['Continue','Continue','See what changed'])await page.locator('.story-controls .primary-button',{hasText:label}).click();
   await revealed(page);await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-01');
@@ -355,11 +357,11 @@ for(const viewport of [{name:'phone',width:390,height:844}])test(`Mara offers an
   await page.setViewportSize(viewport);await startWith(page,saveAfter(0,10));
   const offer=page.locator('#offer'),story=page.locator('#story-button'),phone=viewport.width<1024;
   // Not affordable: Mara keeps her line, with no greyed button.
-  await expect(offer).toBeHidden();await expect(page.locator('.guide')).toBeVisible();if(phone){await expect(story).not.toHaveAttribute('data-ready');await expect(story).toHaveAccessibleName('Story');}
+  await expect(offer).toBeHidden();await expect(page.locator('.guide')).toBeVisible();if(phone){await expect(story).not.toHaveAttribute('data-ready');await expect(story).toHaveAccessibleName('Story, Mara is waiting');}
   await page.evaluate(([key,value])=>localStorage.setItem(key,value),[KEY,saveAfter(0,data.tasks[0].cost)]);await page.reload();await expect(page.locator('#board button')).toHaveCount(42);
   const pay=offer.getByRole('button',{name:`Pay ${data.tasks[0].cost} coins: ${data.tasks[0].title}`});
   await expect(offer).toBeVisible();await expect(offer).toContainText(data.tasks[0].title);await expect(pay).toBeVisible();expect((await pay.boundingBox())!.height).toBeGreaterThanOrEqual(44);
-  if(phone){await expect(story).toHaveAttribute('data-ready','');await expect(story).toHaveAccessibleName('Story, a preparation is ready');}
+  if(phone){await expect(story).toHaveAttribute('data-ready','');await expect(story).toHaveAccessibleName('Story, a preparation is ready, Mara is waiting');}
   for(const mode of ['light','dark']){
     await appearance(page,mode);
     const colors=await page.evaluate(()=>{const s=(e: Element)=>getComputedStyle(e);const offer=document.querySelector('#offer')!,pay=offer.querySelector('.pay-button')!;
@@ -373,10 +375,11 @@ for(const viewport of [{name:'phone',width:390,height:844}])test(`Mara offers an
   await page.getByRole('button',{name:'Close dialog'}).click();await expect(pay).toBeVisible();
   // A selected tile still wins the place under the board.
   await tile(page,13);await expect(offer).toBeHidden();await expect(page.locator('#item-detail')).toBeVisible();await unselect(page);await expect(offer).toBeVisible();
-  await pay.click();const after=await saved(page);expect(after.decorations).toEqual(['task_1']);expect(after.coins).toBe(0);
+  await pay.click();const paid=await saved(page);expect(paid.decorations).toEqual(['task_1']);expect(paid.coins).toBe(0);expect(paid.pendingScenes).toEqual(['task_1']);
+  const after={...paid,pendingScenes:[]};
   for(const label of ['Continue','Continue','See what changed'])await page.locator('.story-controls .primary-button',{hasText:label}).click();
   await revealed(page);await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-01');
-  expect(await saved(page)).toEqual(after);await expect(offer).toBeHidden();if(phone){await expect(story).not.toHaveAttribute('data-ready');await expect(story).toHaveAccessibleName('Story');}
+  expect(await saved(page)).toEqual(after);await expect(offer).toBeHidden();if(phone){await expect(story).not.toHaveAttribute('data-ready');await expect(story).toHaveAccessibleName('Story, Mara is waiting');}
 });
 
 test('a second pointer during a drag leaves no ghost behind',async({page})=>{
@@ -490,7 +493,7 @@ test('phone shows the room, the tickets, the board and Mara in one screen, with 
   await tile(page,14);await expect(page.locator('#item-detail')).toBeVisible();expect((await box('.guide')).width).toBeLessThanOrEqual(1);
   await unselect(page);await expect(page.locator('.guide')).toBeVisible();
   const sheet=page.getByRole('dialog');
-  await page.getByRole('button',{name:'Story',exact:true}).click();await expect(sheet).toBeVisible();
+  await page.locator('#story-button').click();await expect(sheet).toBeVisible();
   await sheet.locator('.cat-visit').click();await expect(sheet.locator('.cat-sleeping')).toBeVisible();
 });
 

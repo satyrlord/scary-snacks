@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { currentTask, createGame, firstFreeBoardCell, generatorOutputs, getItem, getLevel, previewQuestCleanup, reduceGame, resolveQuests, taskEligibility, validateGame } from '../src/engine.ts';
+import { currentTask, createGame, firstFreeBoardCell, generatorOutputs, getItem, getLevel, reduceGame, resolveQuests, taskEligibility, validateGame } from '../src/engine.ts';
 import type { Action, GameData, GameState, Order, Task } from '../src/engine.ts';
 
 export type CampaignScenario = 'fresh' | 'fresh-rewards';
@@ -76,8 +76,7 @@ export function runCampaignBalance(data: GameData, scenario: CampaignScenario = 
   function produce(code: string): number {
     const item = getItem(code, data);
     assert.ok(item && !item.generator, `Known dish: ${code}.`);
-    const quest = data.quests.find(quest => quest.producer?.exclusiveItems.includes(code));
-    const source = quest?.producer?.item ?? `generator_${item.chain}`;
+    const source = `generator_${item.chain}`;
     if (generatorOutputs(state, source, data).includes(code)) {
       const empty = firstFreeBoardCell(state, data);
       assert.ok(empty >= 0, 'The board has room for request production.');
@@ -85,7 +84,7 @@ export function runCampaignBalance(data: GameData, scenario: CampaignScenario = 
       assert.equal(state.board[empty]?.code, code);
       return empty;
     }
-    const lower = Object.values({ ...data.items, ...data.questItems }).find(candidate => candidate.next === code);
+    const lower = Object.values(data.items).find(candidate => candidate.next === code);
     assert.ok(lower, `A merge path exists for ${code}.`);
     const first = produce(lower.id);
     const second = produce(lower.id);
@@ -132,15 +131,13 @@ export function runCampaignBalance(data: GameData, scenario: CampaignScenario = 
   for (;;) {
     if (scenario === 'fresh-rewards') claimRewards();
     if (scenario === 'fresh-rewards') {
-      const available = resolveQuests(state, data).find(view => view.status === 'active' || view.status === 'offer');
+      const available = resolveQuests(state, data).find(view => view.status === 'active');
       if (available) {
         const quest = available.quest;
-        if (available.status === 'offer') act({ type: 'acceptQuest', id: quest.id });
         for (const requirement of quest.requirements) {
           for (let count = 0; count < requirement.quantity; count++) produce(requirement.item);
         }
-        const cleanup = quest.producer ? previewQuestCleanup(state, quest.id, data) : null;
-        act({ type: 'deliverQuest', id: quest.id, ...(cleanup ? { cleanupToken: cleanup.token } : {}) });
+        act({ type: 'deliverQuest', id: quest.id });
         continue;
       }
     }

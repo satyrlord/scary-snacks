@@ -1,4 +1,4 @@
-import { createGame, reduceGame, validateGame, getLevel, availableLevelRewards, generatorOutputs, nextOutput, dataProblems, canServe, servedCells, taskEligibility, saleValue, normalizeOrderCustomers, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, previewQuestCleanup, unresolvedObstacle, boardObstacles, pendingPreparationObstacles, freeBoardCells, resolveChapters, journalCharacters } from './engine.ts';
+import { createGame, reduceGame, validateGame, getLevel, availableLevelRewards, generatorOutputs, nextOutput, dataProblems, canServe, servedCells, taskEligibility, saleValue, normalizeOrderCustomers, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, removeBreadTasting, unresolvedObstacle, boardObstacles, pendingPreparationObstacles, freeBoardCells, resolveChapters, journalCharacters } from './engine.ts';
 import type { Action, ChapterView, DecorationSlot, DecorationVariant, GameData, GameState, Order, Quest, RoomView, SceneLine, Task } from './engine.ts';
 import { loadSave, saveGame, exportSave, importSave, resetSave, SAVE_KEY, MAX_SAVE_BYTES } from './storage.ts';
 import type { WriteResult } from './storage.ts';
@@ -66,6 +66,13 @@ let modalReturn: (() => void) | null = null, questFlow = false, sceneFlow = fals
 let offeredLevel = 1;
 // Each request that the player has seen ready to deliver, in its dialog or in Neighbour quests. Saves do not keep it, so each load offers the ready requests again.
 const offeredQuests = new Set<string>();
+// The open requests that the player saw in Neighbour quests: a viewing preference, kept apart from the save. A request that is not in it is new.
+const SEEN_KEY = 'scary-snacks-seen-quests';
+let seenQuests = new Set<string>();
+// The candle glows breathe on one clock, so a render that rebuilds a glowing control does not restart its breath.
+const BREATH_MS = 3200;
+// Each waiting scene whose line could not be saved has warned the player once.
+const unsavedScenes = new Set<string>();
 const arriving: number[] = [], farewells = new Map<string, number>(), spoken = new Map<string, number>();
 let dragging: { index: number; id: number; x: number; y: number; ghost: SVGSVGElement | null } | null = null;
 let spriteSequence = 0, boardFocus = 0;
@@ -75,12 +82,13 @@ let earnedScene: string | null = null;
 let viewArea = '', held: Task | null = null, revealToken = 0, paintingToken = 0, preloaded: HTMLPictureElement | null = null, lowered = false, swipe = 0;
 let storage: Storage | null = null;
 try { storage = window.localStorage; } catch { /* Session play remains available. */ }
+try { const list: unknown = JSON.parse(storage?.getItem(SEEN_KEY) ?? '[]'); if (Array.isArray(list)) seenQuests = new Set(list.filter(id => typeof id === 'string')); } catch { /* Every open request is new. */ }
 const validate = (candidate: unknown) => validateGame(candidate, data);
 const definition = (code: string) => getItem(code,data)!;
 const itemName = (code: string) => definition(code)?.name || 'Item';
 const character = (id: string) => data.characters.find(value => value.id === id) || data.characters[0];
 // Players meet generators as ingredient sources: the Flour bin, the Copper pot, and so on. They take ingredients from them.
-const sourceOf = (chain: string) => [...Object.values(data.items),...Object.values(data.questItems)].find(item => item.generator && item.chain === chain)!;
+const sourceOf = (chain: string) => Object.values(data.items).find(item => item.generator && item.chain === chain)!;
 const chosenOutput = (code: string) => nextOutput(state,code,data)!;
 const sourceOutput = (code: string) => generatorOutputs(state,code,data).map(itemName).join(' or ');
 const matchingAnchor = (code: string) => boardObstacles(state,data).find(obstacle =>
@@ -210,13 +218,13 @@ function reportSave(result: WriteResult) {
   for (const line of document.querySelectorAll('.save-status')) line.textContent = saveMessage;
 }
 function persist() {
-  const result = saveGame(storage, state, validate);
+  const result = saveGame(storage, state, validate, removeBreadTasting);
   if (result.ok) observedSave = JSON.stringify(state);
   reportSave(result);
 }
 /** Reads the stored save, not the event value, so a delayed storage event cannot let an old board replace newer progress. */
 function syncSavedGame() {
-  const saved = loadSave<GameState>(storage, validate);
+  const saved = loadSave<GameState>(storage, validate, removeBreadTasting);
   if (saved.status !== 'loaded' || !saved.state || JSON.stringify(saved.state) === observedSave) return false;
   observedSave = JSON.stringify(saved.state);
   recoveryRequired = false;
@@ -242,7 +250,7 @@ function applyAction(action: Action, select?: number | null) {
   if (result.ok) {
     // A preparation must be durable before its story or visual reward appears.
     if(action.type==='task'||action.type==='decorate') {
-      const saved=saveGame(storage,result.state,validate);reportSave(saved);
+      const saved=saveGame(storage,result.state,validate,removeBreadTasting);reportSave(saved);
       if(!saved.ok) {
         const message=action.type==='decorate'?`The choice was not saved. Your previous choice stays. ${saved.error}`:`The preparation was not saved. No coins were spent. ${saved.error}`;
         render();status(message);return {state,ok:false,message,event:null};
@@ -336,8 +344,11 @@ function replaceGame(next: GameState, keepQuestOffers = false) {
   for (const flight of document.querySelectorAll('.serve-flight')) flight.remove();
   state = normalizeOrderCustomers(next, data); selected = null; freshDishes = 0; spoken.clear();
   held = null; earnedScene = null; revealToken++; preloaded = null; viewArea = latestArea(state.decorations, data); offeredLevel = getLevel(state);
-  // Another tab must not repeat a dismissed request when its ingredients become ready again.
-  if (!keepQuestOffers) offeredQuests.clear();
+  // Another tab must not repeat a dismissed request when its ingredients become ready again. A new or imported game has no seen request.
+  if (!keepQuestOffers) {
+    offeredQuests.clear(); seenQuests.clear();
+    try { storage?.removeItem(SEEN_KEY); } catch { /* Nothing was kept. */ }
+  }
   seeQuests();
   $('.game-layout').classList.remove('revealing'); $('#room-stage').removeAttribute('data-reveal'); setLowered(false);
 }
@@ -551,9 +562,7 @@ function storyContent(inSheet: boolean) {
     actions.append(pay, details); body.append(requirements, actions);
   }
   const links = element('div', 'story-links');
-  const requests = resolveQuests(state,data).filter(view => view.status === 'active' || view.status === 'offer').length;
-  const quests = button(`Neighbour quests${requests ? ` · ${requests}` : ''}`, 'text-button', () => questBook()); quests.dataset.quests = '';
-  links.append(quests);
+  links.append(questLink());
   const journalLink=button('Journal','text-button',journal);journalLink.setAttribute('aria-label','Open the story journal');links.append(journalLink);
   // The drawer can cover the windowsill on phones, so the cat also waits in the Story sheet there.
   const cat = button('', 'cat-visit', toggleCat); const words = element('span');
@@ -588,9 +597,9 @@ function payButton(task: Task) {
     held = task;
     const waiting = state.pendingScenes, result = applyAction({ type:'task' });
     if (!result.ok) { held = null; return; }
-    // A chapter's closing scene, and then the finale, follow the reveal of the payment that earned them.
-    earnedScene = state.pendingScenes.find(id => !waiting.includes(id)) ?? null;
-    preloadRoom(task); showStory(task, true, result.message);
+    // The preparation's scene opens at once. A chapter's closing scene, and then the finale, follow the reveal of the payment that earned them.
+    earnedScene = state.pendingScenes.find(id => !waiting.includes(id) && id !== task.id) ?? null;
+    preloadRoom(task); showScene(task.id, undefined, { paid:true, completion:result.message });
   }));
   pay.append(coinMark()); pay.setAttribute('aria-label', `Pay ${coinText(task.cost)}: ${task.title}`);
   pay.disabled = !taskEligibility(state, data).ready;
@@ -604,7 +613,14 @@ function renderOffer() {
   const eligibility = taskEligibility(state, data), task = eligibility.task, offer = $('#offer'), story = $('#story-button');
   const ready = eligibility.ready && !$('#story').checkVisibility();
   $('.game-layout').toggleAttribute('data-offer', ready);
-  story.toggleAttribute('data-ready', ready); story.setAttribute('aria-label', ready ? 'Story, a preparation is ready' : 'Story');
+  // A request that calls the player puts its neighbour's face on the Story item. The same face keeps its breath through renders.
+  const calling = callingQuests()[0], person = calling && character(calling.character), shown = story.querySelector<HTMLElement>('.story-face');
+  if (shown?.dataset.person !== person?.id) {
+    shown?.remove();
+    if (person) { const face = portrait(person.id); face.classList.add('story-face'); face.removeAttribute('role'); face.removeAttribute('aria-label'); face.dataset.person = person.id; breathe(face); story.append(face); }
+  }
+  const call = calling ? canDeliverQuest(state, calling, data) ? `${person!.name}’s request is ready` : `${person!.name} is waiting` : '';
+  story.toggleAttribute('data-ready', ready); story.setAttribute('aria-label', ['Story', ready ? 'a preparation is ready' : '', call].filter(Boolean).join(', '));
   if (!ready) { offer.replaceChildren(); return; }
   const face = element('span', 'portrait portrait-0'), words = element('p');
   face.setAttribute('aria-hidden', 'true'); words.append(element('strong', '', task!.title), element('span', '', 'Ready when you are.'));
@@ -639,8 +655,7 @@ function detailContent(code: string) {
   content.append(food(code), element('p','item-how', direct ? `Select the ${source.name}, then choose Take ${name}.` : def.stage > 1 ? `Merge two ${itemName(`${def.chain}_${def.stage - 1}`)} to make ${name}.` : `Tap the ${source.name} to take ${name}.`));
   if (!unlocked) {
     const task = data.tasks.find(value => value.unlock === def.chain);
-    const quest=data.quests.find(value=>value.producer?.item===source.id);
-    content.append(element('p','',quest?`Accept “${quest.title}” in Neighbour quests to borrow the ${source.name}.`:`The ${source.name} arrives with ${task ? `the preparation “${task.title}”` : 'a later preparation'}.`), chainOf(code));
+    content.append(element('p','',`The ${source.name} arrives with ${task ? `the preparation “${task.title}”` : 'a later preparation'}.`), chainOf(code));
     return content;
   }
   const have = onBoard ? `You have ${onBoard} on the board.` : 'You have none yet.';
@@ -742,8 +757,13 @@ function chapterSteps(view: ChapterView, numbered: boolean) {
   const done=element('span','',numbered?`Chapter ${view.number}`:`${view.done} of ${view.tasks.length} done`);done.setAttribute('aria-hidden','true');
   row.append(list,done);return row;
 }
-/** A chapter's closing scene, the finale, or local news, by its saved ID. An unknown ID has no scene, so the game never invents one. */
+/** A preparation scene, a quest completion scene, a chapter's closing scene, the finale, or local news, by its saved ID. An unknown ID has no scene, so the game never invents one. */
 function storyScene(id: string) {
+  const more=(dialogue: SceneLine[])=>`${character(dialogue[0].speaker).name} has more to say.`;
+  const task=data.tasks.find(value=>value.id===id);
+  if(task)return {title:task.title,dialogue:task.dialogue,completion:data.rooms.find(room=>room.after===id)!.text,prompt:more(task.dialogue)};
+  const quest=data.quests.find(value=>value.id===id);
+  if(quest)return {title:quest.title,dialogue:quest.completion,completion:'The request is delivered.',prompt:more(quest.completion)};
   const index=data.chapters.findIndex(chapter=>chapter.id===id);
   if(index>=0){const chapter=data.chapters[index];return {title:`Chapter ${index+1} complete: ${chapter.title}`,dialogue:chapter.closing,completion:chapter.payoff,prompt:`Chapter ${index+1} is complete.`};}
   if(id===data.finale.id)return {title:data.finale.title,dialogue:data.finale.dialogue,completion:data.finale.ending,prompt:'The supper can begin.'};
@@ -752,37 +772,58 @@ function storyScene(id: string) {
   return null;
 }
 /**
- * A waiting scene plays until Finish or Skip, which move it to the journal and lead on to the next waiting scene.
- * Close and Escape leave it waiting. A scene that is already read replays from the journal and changes nothing.
+ * A waiting scene plays from its saved line until Finish or Skip, which move it to the journal and lead on to the next waiting scene.
+ * Close and Escape leave it waiting at its line. A scene that is already read replays from the journal and changes nothing.
+ * A paid preparation's scene ends instead with the change that it made, which the room then reveals in place.
  */
-function showScene(id: string, backTo?: () => void) {
+function showScene(id: string, backTo?: () => void, options: { paid?: boolean; completion?: string } = {}) {
   const scene=storyScene(id);
   if(!scene){
     const content=element('div');content.append(element('p','save-error','This story scene could not open. Your progress is safe.'),button('Try again','secondary-button',()=>location.reload()));
     showModal('Story unavailable',content);return;
   }
-  if(!state.pendingScenes.includes(id)){showStory(scene,false,scene.completion,backTo);return;}
-  sceneFlow=true;
+  const completion=options.completion??scene.completion;
+  if(!state.pendingScenes.includes(id)){showStory(scene,false,completion,backTo);return;}
+  if(!options.paid)sceneFlow=true;
   const read=()=>changeGame(()=>{
     const result=applyAction({type:'readScene',id});if(!result.ok)return;
+    // The close of a paid scene starts the reveal, which then opens the next scene that the payment earned.
+    if(options.paid){modal.close();return;}
     const next=state.pendingScenes[0];
     if(backTo)backTo();else if(next)showScene(next);else modal.close();
   });
-  showStory(scene,false,scene.completion,backTo,{label:backTo?'Return':state.pendingScenes.length>1?'Next scene':'Back to the kitchen',finish:read,skip:read});
+  showStory(scene,options.paid,completion,backTo,{id,label:backTo?'Return':state.pendingScenes.length>1?'Next scene':'Back to the kitchen',finish:read,skip:read});
 }
-/** A preparation's conversation. Right after paying, its last line leads on to the change it made, which the room then reveals in place. */
-function showStory(task: { title: string; dialogue: SceneLine[] }, paid = false, completion = '', backTo?: () => void, end?: { label: string; finish: () => void; skip: () => void }) {
-  let cursor=0;const last=task.dialogue.length-1;
+/**
+ * The line that the player sees in a waiting scene. The write needs no render, because the dialog already shows the line.
+ * A failed write keeps the session: the dialog warns once for each scene, and the player can continue to read.
+ */
+function recordLine(id: string, line: number, warn: () => void) {
+  return changeGame(()=>{
+    const result=reduceGame(state,{type:'sceneLine',id,line},data);if(!result.ok)return;
+    state=result.state;persist();
+    if(saveFailed&&!unsavedScenes.has(id)){unsavedScenes.add(id);warn();}
+  });
+}
+/** A conversation. A waiting scene starts at its saved line and records each change of line. */
+function showStory(task: { title: string; dialogue: SceneLine[] }, paid = false, completion = '', backTo?: () => void, end?: { id: string; label: string; finish: () => void; skip: () => void }) {
+  const last=task.dialogue.length-1,saved=end?state.sceneLines?.[end.id]??0:0;
+  // A release can remove lines, so a saved line past the end starts the scene again.
+  let cursor=saved>last?0:saved;
   // The stage is built once and only its words change: the live region stays in place, so each new line is announced, and focus stays on the button pressed.
   const content=element('div'),stage=element('div','story-stage'),words=element('div','story-dialogue'),speaker=element('h3'),said=element('p');
   words.id='story-line';words.setAttribute('aria-live','polite');words.setAttribute('aria-atomic','true');words.append(speaker,said);
-  const counter=element('span'),controls=element('div','story-controls');
-  const back=button('Back','secondary-button',()=>{cursor--;draw();if(back.disabled)forward.focus();});
-  const forward=button('Continue','primary-button',()=>{if(cursor<last){cursor++;draw();}else if(end)end.finish();else if(backTo)backTo();else modal.close();});
+  const counter=element('span'),controls=element('div','story-controls'),unsaved=element('p');unsaved.setAttribute('role','status');
+  const warn=()=>{unsaved.className='save-error scene-unsaved';unsaved.textContent='This session is not saved. You can keep reading. Use Retry save in the House book before you leave.';};
+  const move=(step: number)=>{cursor+=step;draw();if(end)void recordLine(end.id,cursor,warn);};
+  const back=button('Back','secondary-button',()=>{move(-1);if(back.disabled)forward.focus();});
+  const forward=button('Continue','primary-button',()=>{if(cursor<last)move(1);else if(end)end.finish();else if(backTo)backTo();else modal.close();});
   forward.setAttribute('aria-describedby','story-line');
-  stage.append(portrait(task.dialogue[0].speaker),words);controls.append(back,counter,forward);content.append(stage,controls);
+  if(saved>last)content.append(element('p','modal-copy','Someone lost the thread. The conversation starts again from the beginning.'));
+  stage.append(portrait(task.dialogue[cursor].speaker),words);controls.append(back,counter,forward);content.append(stage,controls);
   if (end) content.append(button('Skip scene','text-button skip-scene',end.skip));
   if (completion) content.append(element('p','completion-message',completion));
+  if (end) content.append(unsaved);
   function draw() {
     const line=task.dialogue[cursor];stage.firstElementChild!.replaceWith(portrait(line.speaker));
     speaker.textContent=character(line.speaker).name;said.textContent=line.text;counter.textContent=`${cursor+1} / ${task.dialogue.length}`;
@@ -793,12 +834,14 @@ function showStory(task: { title: string; dialogue: SceneLine[] }, paid = false,
 /** Quests share the Story sheet. They leave every ordinary ticket and board space in place. */
 function questBook(focusQuest?: string, message = '') {
   questFlow=true;seeQuests();
+  // The open requests are now seen, so the glow stops unless a request is ready.
+  if(callingQuests().some(quest=>!canDeliverQuest(state,quest,data))){markQuestsSeen();render();}
   const content=element('div','quest-book');
   content.append(element('p','modal-copy','Prepare something for a neighbour or a visiting traveller. These requests have no deadline. Your three ordinary orders stay at the counter.'));
   const notice=element('p','quest-notice');notice.setAttribute('role','status');notice.textContent=message;
   content.append(notice);
-  const views=resolveQuests(state,data),available=views.filter(view=>view.status==='active'||view.status==='offer');
-  for(const {quest,status:questStatus} of available){
+  const views=resolveQuests(state,data),available=views.filter(view=>view.status==='active');
+  for(const {quest} of available){
     const card=element('article','quest-card');card.dataset.quest=quest.id;
     const heading=element('h3','',quest.title);heading.tabIndex=-1;heading.id=`heading-${quest.id}`;card.setAttribute('aria-labelledby',heading.id);
     const head=element('div','quest-heading'),words=element('div'),people=[quest.character,...quest.companions??[]];
@@ -822,19 +865,8 @@ function questBook(focusQuest?: string, message = '') {
     const actions=element('div','quest-actions');
     const read=button('Read request','secondary-button',()=>showStory({title:quest.title,dialogue:quest.opening},false,'',()=>questBook(quest.id)));
     read.setAttribute('aria-label',`Read request: ${quest.title}`);actions.append(read);
-    if(questStatus==='offer'){
-      card.append(element('p','quest-note',`Accept to borrow the ${itemName(quest.producer!.item)}. It needs one free space on the board. Delivery returns this source and all of its tasting items.`));
-      const accept=button('Accept request','primary-button',()=>changeGame(()=>{
-        if(!card.isConnected)return;
-        const result=applyAction({type:'acceptQuest',id:quest.id});
-        questBook(quest.id,`${result.message}${saveFailed?' This session is not saved.':''}`);
-      }));
-      accept.setAttribute('aria-label',`Accept ${quest.title}`);actions.append(accept);
-    }else{
-      const deliver=button(`Deliver · ${count.format(quest.reward)}`,'primary-button',()=>quest.producer?confirmQuestDelivery(quest,()=>questBook(quest.id)):deliverQuest(quest,card,()=>questBook(quest.id)));
-      deliver.setAttribute('aria-label',`Deliver ${quest.title} for ${quest.reward} coins`);deliver.disabled=!canDeliverQuest(state,quest.id,data);actions.append(deliver);
-      if(quest.producer)card.append(element('p','quest-note',`Before delivery, review the tasting source and leftover tasting items that will return to ${character(quest.character).name}.`));
-    }
+    const deliver=button(`Deliver · ${count.format(quest.reward)}`,'primary-button',()=>deliverQuest(quest,card,()=>questBook(quest.id)));
+    deliver.setAttribute('aria-label',`Deliver ${quest.title} for ${quest.reward} coins`);deliver.disabled=!canDeliverQuest(state,quest.id,data);actions.append(deliver);
     card.append(actions);content.append(card);
   }
   const done=views.filter(view=>view.status==='complete').length;
@@ -848,26 +880,13 @@ function questBook(focusQuest?: string, message = '') {
   showModal('Neighbour quests',content,focus);
 }
 /** The completion leads back to where delivery started. After a failed save it leads to Neighbour quests, which offers Retry save. */
-function deliverQuest(quest: Quest, source: HTMLElement, back?: () => void, cleanupToken?: string) { return changeGame(()=>{
+function deliverQuest(quest: Quest, source: HTMLElement, back?: () => void) { return changeGame(()=>{
   if(!source.isConnected)return;
-  const result=applyAction({type:'deliverQuest',id:quest.id,cleanupToken});
+  const result=applyAction({type:'deliverQuest',id:quest.id});
   if(!result.ok){questBook(quest.id,result.message);return;}
   const message=`${result.message}${saveFailed?' This session is not saved. Return to quests and use Retry save, or export before leaving.':''}`;
-  showStory({title:quest.title,dialogue:quest.completion},false,message,saveFailed?()=>questBook(quest.id):back);
+  showScene(quest.id,saveFailed?()=>questBook(quest.id):back,{completion:message});
 }); }
-function confirmQuestDelivery(quest: Quest, back?: () => void) {
-  const preview=previewQuestCleanup(state,quest.id,data);
-  if(!preview){questBook(quest.id,'This request is no longer ready. Check its requirements.');return;}
-  const content=element('div','quest-cleanup');
-  content.append(element('p','modal-copy','Delivery also returns these tasting supplies. Ordinary items stay where they are.'));
-  const list=element('ul','quest-cleanup-list');
-  for(const entry of preview.board)list.append(element('li','',`${itemName(entry.item)} · Board space ${entry.index+1}`));
-  content.append(list);
-  content.append(element('p','quest-reward',`Reward: ${coinText(quest.reward)}`));
-  const actions=element('div','quest-actions'),keep=button('Keep items','secondary-button',back??(()=>modal.close()));
-  actions.append(button('Deliver and return supplies','primary-button',()=>deliverQuest(quest,content,back,preview.token)),keep);content.append(actions);
-  showModal('Return the tasting supplies',content,keep,back);
-}
 function journal(focusEntry?: string) {
   const content=element('div','journal-list');
   content.append(element('p','modal-copy','Meet your neighbours and read your saved conversations. Reading never gives another reward.'));
@@ -884,8 +903,8 @@ function journal(focusEntry?: string) {
     const section=element('section','quest-journal');section.append(element('h4','',quest.title));
     const opening=button('Read request','text-button',()=>showStory({title:quest.title,dialogue:quest.opening},false,'',()=>journal(quest.id)));
     opening.setAttribute('aria-label',`Read request: ${quest.title}`);
-    const replay=button('Read completion','journal-entry',()=>showStory({title:quest.title,dialogue:quest.completion},false,'',()=>journal(quest.id)));
-    replay.dataset.journal=quest.id;replay.setAttribute('aria-label',`Replay ${quest.title}`);replay.append(element('span','',character(quest.character).name));section.append(opening,replay);content.append(section);
+    const waiting=state.pendingScenes.includes(quest.id),replay=button('Read completion','journal-entry',()=>showScene(quest.id,()=>journal(quest.id)));
+    replay.dataset.journal=quest.id;replay.setAttribute('aria-label',`${waiting?'Read':'Replay'} ${quest.title}`);replay.append(element('span','',waiting?'New scene':character(quest.character).name));section.append(opening,replay);content.append(section);
   }
   const quests=resolveQuests(state,data);
   const sceneEntry=(id: string)=>{
@@ -912,8 +931,10 @@ function journal(focusEntry?: string) {
     const steps=element('ul','journal-steps');
     view.tasks.forEach((task,index)=>{
       if(index<view.done){
-        const entry=button('','journal-entry',()=>showStory(task,false,'',()=>journal(task.id)));entry.dataset.journal=task.id;
-        entry.append(element('strong','',task.title),element('span','',`New: ${data.rooms.find(room=>room.after===task.id)!.label}`));section.append(entry);
+        // A waiting preparation scene says so. A read one names its room change.
+        const waiting=state.pendingScenes.includes(task.id),entry=button('','journal-entry',()=>showScene(task.id,()=>journal(task.id)));entry.dataset.journal=task.id;
+        if(waiting)entry.setAttribute('aria-label',`Read ${task.title}`);
+        entry.append(element('strong','',task.title),element('span','',waiting?'New scene':`New: ${data.rooms.find(room=>room.after===task.id)!.label}`));section.append(entry);
       }else steps.append(element('li','',`${task.title} · ${index===view.done?'Next':'Not yet'}`));
     });
     if(steps.childElementCount)section.append(steps);
@@ -1222,6 +1243,37 @@ function offerLevelRewards() {
   content.append(element('p','modal-copy','Word of your cooking is spreading.'),list,notice,element('p','modal-copy','A reward that you leave waits in the House book.'));
   offerFlow=true;showModal(`Level ${count.format(level)} reached`,content,$('#close-modal'));
 }
+const openQuests = () => resolveQuests(state, data).filter(view => view.status === 'active').map(view => view.quest);
+/** The requests that call the player: each one that is ready to deliver, then each one that is new since Neighbour quests last opened. */
+function callingQuests() {
+  const open = openQuests(), ready = open.filter(quest => canDeliverQuest(state, quest, data));
+  return [...ready, ...open.filter(quest => !ready.includes(quest) && !seenQuests.has(quest.id))];
+}
+/** Neighbour quests shows every open request, so none of them is new after it opens. */
+function markQuestsSeen() {
+  seenQuests = new Set(openQuests().map(quest => quest.id));
+  try { storage?.setItem(SEEN_KEY, JSON.stringify([...seenQuests])); } catch { /* The requests stay seen for this visit. */ }
+}
+/** A candle glow joins the shared breath at its current phase. */
+function breathe(value: HTMLElement) { value.style.setProperty('--breath-delay', `${-Math.round(performance.now() % BREATH_MS)}ms`); }
+/**
+ * The way into Neighbour quests. While requests are open, it is a linen card with the faces of the waiting neighbours,
+ * and its copper edge breathes while a request calls the player.
+ */
+function questLink() {
+  const open = openQuests(), calling = callingQuests(), ready = open.filter(quest => canDeliverQuest(state, quest, data)).length;
+  const link = button('', open.length ? 'quest-link' : 'text-button', () => questBook()); link.dataset.quests = '';
+  if (open.length) {
+    const faces = element('span', 'quest-faces'); faces.setAttribute('aria-hidden', 'true');
+    for (const id of [...new Set([...calling, ...open].map(quest => quest.character))].slice(0, 3)) faces.append(portrait(id));
+    link.append(faces);
+  }
+  link.append(`Neighbour quests${open.length ? ` · ${open.length}` : ''}`);
+  link.setAttribute('aria-label', `Neighbour quests${open.length ? `, ${open.length} ${open.length === 1 ? 'request' : 'requests'}` : ''}${
+    ready ? `, ${ready} ready to deliver` : calling.length ? ', new request' : ''}`);
+  if (calling.length) { link.toggleAttribute('data-calling', true); breathe(link); }
+  return link;
+}
 const readyQuests = () => data.quests.filter(quest => canDeliverQuest(state, quest, data));
 function seeQuests() { for (const quest of readyQuests()) offeredQuests.add(quest.id); }
 /**
@@ -1241,7 +1293,7 @@ function offerQuest() {
   for(const {item,quantity} of quest.requirements){
     const row=element('li','quest-item');row.append(food(item),element('span','',`${quantity} ${itemName(item)}`),element('span','quest-count',`${quantity} / ${quantity} on board`));requirements.append(row);
   }
-  const actions=element('div','quest-actions'),deliver=button(`Deliver · ${count.format(quest.reward)}`,'primary-button',()=>quest.producer?confirmQuestDelivery(quest):deliverQuest(quest,content));
+  const actions=element('div','quest-actions'),deliver=button(`Deliver · ${count.format(quest.reward)}`,'primary-button',()=>deliverQuest(quest,content));
   deliver.setAttribute('aria-label',`Deliver ${quest.title} for ${quest.reward} coins`);actions.append(deliver);
   content.append(element('p','modal-copy',`Everything that ${person} asked for is on the board.`),head,requirements,element('p','quest-reward',`Reward: ${coinText(quest.reward)}`),actions,
     element('p','modal-copy','A request that you leave waits in Neighbour quests.'));
@@ -1286,7 +1338,7 @@ function settings(focusSlot?: string) {
   editingDecoration=null;offeredLevel=Math.max(offeredLevel,getLevel(state));
   const content=element('div');content.append(element('p','modal-copy save-status',saveMessage));
   // Writes never replace an unreadable save, so only a new game (an explicit reset) lets this browser save again.
-  if(saveFailed&&recoveryRequired)content.append(element('p','save-error',['invalid','unsupported'].includes(loadSave(storage,validate).status)?`${saveMessage} To save in this browser again, start a new game below. That replaces the unreadable save.`:saveMessage));
+  if(saveFailed&&recoveryRequired)content.append(element('p','save-error',['invalid','unsupported'].includes(loadSave(storage,validate,removeBreadTasting).status)?`${saveMessage} To save in this browser again, start a new game below. That replaces the unreadable save.`:saveMessage));
   if(recoveryRequired)content.append(button('Retry saved game','primary-button',()=>location.reload()));
   content.append(levelPanel());
   const decorationSection=element('section','settings-section');decorationSection.append(element('h3','','Decorations'),element('p','','Choose the details of your bistro. Each choice is free.'));
@@ -1314,11 +1366,11 @@ function settings(focusSlot?: string) {
     const selectedFile=file.files?.[0];if(!selectedFile)return;
     try {
       if(selectedFile.size>MAX_SAVE_BYTES)throw new Error('Select a saved game smaller than 2 MiB.');
-      const candidate=normalizeOrderCustomers(importSave<GameState>(await selectedFile.text(),validate),data);
+      const candidate=normalizeOrderCustomers(importSave<GameState>(await selectedFile.text(),validate,removeBreadTasting),data);
       const review=element('div');review.append(element('p','modal-copy',`Replace the current game with this saved game: ${coinText(candidate.coins)} and ${count.format(candidate.taskIndex)} of ${data.tasks.length} preparations done? Export the current game first if you want to keep it.`));
       const keep=button('Keep the current game','secondary-button',settings),choice=element('div','settings-actions');
       choice.append(button('Import this saved game','primary-button',()=>changeGame(()=>{
-        const result=saveGame(storage,candidate,validate);if(!result.ok){showModal('Import failed',element('p','save-error',result.error ?? ''));return;}
+        const result=saveGame(storage,candidate,validate,removeBreadTasting);if(!result.ok){showModal('Import failed',element('p','save-error',result.error ?? ''));return;}
         recoveryRequired=false;observedSave=JSON.stringify(candidate);replaceGame(candidate);reportSave(result);render();modal.close();status('Saved game imported.');
       },true)),keep);review.append(choice);showModal('Import saved game',review,keep);
     }catch(error){showModal('Cannot import this file',element('p','save-error',reason(error)));}
@@ -1436,7 +1488,7 @@ try {
   // Data that fails its checks never reaches the save, so it cannot be mistaken for a damaged save.
   const problems=dataProblems(data);if(problems.length)throw new Error('The game data is not valid.',{cause:problems});
   // Loading shares the game lock with writes from other tabs.
-  const load=()=>loadSave<GameState>(storage,validate);
+  const load=()=>loadSave<GameState>(storage,validate,removeBreadTasting);
   const saved=storage&&navigator.locks?await navigator.locks.request(SAVE_KEY,load):load();
   state=saved.state?normalizeOrderCustomers(saved.state,data):createGame(data);offeredLevel=getLevel(state);
   // A reload cannot open blocked storage, so that game plays for this visit without the recovery block.

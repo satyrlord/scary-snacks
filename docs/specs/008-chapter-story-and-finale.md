@@ -43,7 +43,7 @@ The spiders and their webs leave with preparation 1, as 001 describes. The closi
 6. The finale names the outcome of each chapter, and all four core characters speak. It ends with "Back to the kitchen" and its ending line. Ordinary orders continue.
 7. The journal replays each complete chapter scene and, after the supper, the finale. Replay, Skip, Back, and closing a dialog have no economic effect.
 8. A failed payment, missing goals, a missing required quest, and a full board for a new source change nothing. They complete no chapter, queue no scene, and open no finale.
-9. `storyProblems` rejects missing or blank scenes, unknown speakers, duplicate or unstable IDs, unknown or optional-producer contributions, contributions that open outside their chapter, empty chapters, and preparations with an unknown or out-of-order chapter. The generator and the game refuse such data. If a saved scene ID has no scene, the game shows a recoverable error and keeps the progress. It does not invent story text.
+9. `storyProblems` rejects missing or blank scenes, unknown speakers, duplicate or unstable IDs, unknown contributions, contributions that open outside their chapter, empty chapters, and preparations with an unknown or out-of-order chapter. The generator and the game refuse such data. If a saved scene ID has no scene, the game shows a recoverable error and keeps the progress. It does not invent story text.
 
 ## Scene order and reading
 
@@ -52,19 +52,19 @@ After the reveal of a payment, the first scene that the payment queued opens, un
 Finish and Skip send `readScene`, which removes only that scene. Then the next waiting scene opens.
 A repeated, stale, or unknown `readScene` changes nothing.
 Close and Escape leave the scene waiting. Story shows the first waiting scene with Read now. After a reload, Mara's line says that a scene is waiting.
-A scene restarts at its first line. Spec 009 owns the saved line position and the reading state of preparation and quest scenes.
+Spec 009 owns the saved line position and the reading state of preparation and quest scenes.
 
 ## State and save compatibility
 
 The state records `pendingScenes`.
-Validation accepts only the closing scenes of complete chapters and, after preparation 24, the finale. Each ID occurs once, in story order. Unknown IDs and scenes that the preparations did not earn fail validation.
+Validation accepts the closing scenes of complete chapters and, after preparation 24, the finale. Each ID occurs once, in story order. Unknown IDs and scenes that the preparations did not earn fail validation. Spec 009 adds the preparation and quest scenes to the same queue.
 Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
 
 ## Acceptance and evidence
 
 - `tests/story.test.ts` covers the outline, the content checks, every chapter boundary, failed payments, the finale once, reading events, continued orders, and the validation of saved scene queues.
 - `tests/storage.test.ts` covers failed writes, malformed saves, and round trips of valid scene queues.
-- `tests/campaign-balance.test.ts` shows that a legal fresh campaign ends with each chapter scene and one finale waiting.
+- `tests/campaign-balance.test.ts` shows that a legal fresh campaign ends with each chapter scene, in story order, and one finale waiting.
 - `tests/browser/story.spec.ts` covers the objective and step display, the chapter change, Escape and reload with a waiting scene, the finale with Skip and replay, continued service after the finale, and the layout at 1440×900, 390×844, and 390×800 in both themes.
 
 The playthrough in `tests/browser/story.spec.ts` starts from a fresh save in the built game. Between payments, the engine makes legal moves: it claims each level reward, delivers each open request, and serves or merges. The interface makes every payment, tells every preparation story, runs every reveal, plays every closing scene and the finale, and checks the journal.
