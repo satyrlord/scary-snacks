@@ -1,6 +1,7 @@
 import { defineConfig } from '@playwright/test';
 export default defineConfig({
-  testDir:'./tests/browser', fullyParallel:false, workers:1, timeout:30000,
+  // Each test has its own browser context and save, so tests run in parallel. More workers slow the game start past the expect timeout.
+  testDir:'./tests/browser', fullyParallel:true, workers:'40%', timeout:30000,
   use:{viewport:{width:1440,height:1000},trace:'retain-on-failure'},
   webServer:[
     {command:'node tools/server.ts --dist',url:'http://127.0.0.1:4181',env:{PORT:'4181',BASE_PATH:'/'},reuseExistingServer:false},

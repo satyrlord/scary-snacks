@@ -509,20 +509,25 @@ test('desktop first screen shows the uncovered room beside the tickets, the whol
   await expect(page.locator('#runner-repeat image')).toHaveAttribute('x','-161');await expect(page.locator('#runner-repeat')).toHaveAttribute('width','503');
 });
 
-test('coins keep clear of the wordmark on narrow phones in any browser locale',async({browser,baseURL})=>{
-  for(const locale of ['en-US','ro-RO']){
-    const context=await browser.newContext({locale,baseURL});const page=await context.newPage();await start(page);
-    for(const [coins,shown] of [[999,'999'],[123456,'123.4K'],[1234567,'1.2M']] as const){
-      await page.evaluate(([key,coins])=>{const save=JSON.parse(localStorage.getItem(key)!);save.state.coins=coins;localStorage.setItem(key,JSON.stringify(save));},[KEY,coins] as const);
-      for(const width of [320,360]){
-        await page.setViewportSize({width,height:740});await start(page);
-        await expect(page.locator('#coins')).toHaveText(shown);await expect(page.locator('#coin-total')).toHaveText(`${coins.toLocaleString('en')} coins`);
-        const word=(await page.locator('.wordmark span:last-child').boundingBox())!;const coin=(await page.locator('.coin-count .coin').boundingBox())!;
-        expect(coin.x-(word.x+word.width)).toBeGreaterThanOrEqual(12);
-      }
+test('coins keep clear of the wordmark on narrow phones',async({page})=>{
+  await page.setViewportSize({width:320,height:740});await start(page);
+  for(const [coins,shown] of [[999,'999'],[123456,'123.4K'],[1234567,'1.2M']] as const){
+    await page.evaluate(([key,coins])=>{const save=JSON.parse(localStorage.getItem(key)!);save.state.coins=coins;localStorage.setItem(key,JSON.stringify(save));},[KEY,coins] as const);
+    await page.setViewportSize({width:320,height:740});await start(page);
+    for(const width of [320,360]){
+      await page.setViewportSize({width,height:740});
+      await expect(page.locator('#coins')).toHaveText(shown);await expect(page.locator('#coin-total')).toHaveText(`${coins.toLocaleString('en')} coins`);
+      const word=(await page.locator('.wordmark span:last-child').boundingBox())!;const coin=(await page.locator('.coin-count .coin').boundingBox())!;
+      expect(coin.x-(word.x+word.width)).toBeGreaterThanOrEqual(12);
     }
-    await context.close();
   }
+});
+
+// The game formats numbers in the page language, so another browser locale cannot widen the coin total.
+test('a Romanian browser locale keeps the short English coin total',async({browser,baseURL})=>{
+  const context=await browser.newContext({locale:'ro-RO',baseURL,viewport:{width:320,height:740}});const page=await context.newPage();await start(page);
+  await page.evaluate(key=>{const save=JSON.parse(localStorage.getItem(key)!);save.state.coins=123456;localStorage.setItem(key,JSON.stringify(save));},KEY);
+  await start(page);await expect(page.locator('#coins')).toHaveText('123.4K');await context.close();
 });
 
 test('the board is one tab stop that the arrow keys, Home, and End move through',async({page})=>{

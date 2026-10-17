@@ -18,7 +18,7 @@ async function saved(page: Page): Promise<GameState>{return page.evaluate(key=>n
 
 test('rewards stay available after closing and reload; claims are independent and durable',async({page})=>{
   await start(page);const before=await saved(page);
-  await expect(house(page)).toHaveAttribute('data-rewards','');
+  await expect(house(page)).toHaveAttribute('data-rewards','');await expect(page.locator('#modal')).toBeHidden();
   await house(page).focus();await page.keyboard.press('Enter');
   await expect(page.locator('#close-modal')).toBeFocused();
   await expect(page.locator('.level-progress')).toHaveText('Level 3 · 200 XP');
@@ -39,12 +39,61 @@ test('rewards stay available after closing and reload; claims are independent an
   await claim(page,2).click();expect((await saved(page)).coins).toBe(40);await expect(house(page)).not.toHaveAttribute('data-rewards','');
 });
 
-test('the first XP boundary makes a reward visible without claiming it',async({page})=>{
-  await start(page,99);await house(page).click();await expect(page.locator('.level-progress')).toHaveText('Level 1 · 99 XP');
-  await expect(page.locator('.level-panel')).toContainText('99 of 100 XP to level 2.');await expect(claim(page,2)).toHaveCount(0);
-  await page.keyboard.press('Escape');await page.locator('[data-cell="13"]').click();await page.locator('[data-cell="14"]').click();
+const levelUp=(page: Page,level: number)=>page.getByRole('dialog',{name:`Level ${level} reached`,exact:true});
+async function merge(page: Page){await page.locator('[data-cell="13"]').click();await page.locator('[data-cell="14"]').click();}
+
+test('a new level offers its reward in a dialog that claims nothing by itself',async({page})=>{
+  await start(page,99);await expect(page.locator('#modal')).toBeHidden();await merge(page);
+  await expect(levelUp(page,2)).toBeVisible();await expect(page.locator('#close-modal')).toBeFocused();await expect(claim(page,2)).toBeVisible();
+  await expect(levelUp(page,2)).toContainText('A reward that you leave waits in the House book.');
   await expect(house(page)).toHaveAttribute('data-rewards','');expect((await saved(page)).coins).toBe(0);
-  await house(page).click();await expect(claim(page,2)).toBeVisible();
+  await page.keyboard.press('Escape');await expect(page.locator('#modal')).toBeHidden();await expect(page.locator('[data-cell="14"]')).toBeFocused();
+  expect((await saved(page)).claimedLevelRewards).toEqual([]);await page.reload();await expect(page.locator('#board button')).toHaveCount(42);
+  await expect(page.locator('#modal')).toBeHidden();await house(page).click();await expect(claim(page,2)).toBeVisible();
+});
+
+test('Claim in the level-up dialog saves the reward and returns to the board',async({page})=>{
+  await start(page,99);const before=await saved(page);await merge(page);await claim(page,2).click();
+  await expect(page.locator('#modal')).toBeHidden();await expect(page.locator('#status')).toHaveText('Claimed level 2: 20 coins.');
+  await expect(page.locator('#board [tabindex="0"]')).toBeFocused();await expect(house(page)).not.toHaveAttribute('data-rewards','');
+  const after=await saved(page);expect(after.coins).toBe(20);expect(after.claimedLevelRewards).toEqual(['level-2']);expect(after.xp).toBe(before.xp+1);
+});
+
+test('the level-up dialog lists each waiting reward, and each Claim is independent',async({page})=>{
+  await start(page,199);await expect(page.locator('#modal')).toBeHidden();await merge(page);
+  await expect(levelUp(page,3)).toBeVisible();await claim(page,2).click();
+  await expect(levelUp(page,3)).toContainText('Claimed');await expect(page.locator('#modal .level-notice')).toHaveText('Claimed level 2: 20 coins.');
+  await expect(claim(page,3)).toBeFocused();expect((await saved(page)).claimedLevelRewards).toEqual(['level-2']);
+  await page.keyboard.press('Enter');await expect(page.locator('#modal')).toBeHidden();expect((await saved(page)).claimedLevelRewards).toEqual(['level-2','level-3']);
+});
+
+test('the level-up dialog waits for the story and the reveal of a paid preparation',async({page})=>{
+  await page.emulateMedia({reducedMotion:'reduce'});
+  const state=createGame(data),task=data.tasks[0];Object.assign(state,task.goals,{coins:task.cost,xp:90});
+  await page.addInitScript(([key,value])=>{if(localStorage.getItem(key)===null)localStorage.setItem(key,value);},[SAVE_KEY,exportSave(state,validate)]);
+  await page.goto('./');await expect(page.locator('#board button')).toHaveCount(42);
+  if(!await page.locator('#story').isVisible())await page.locator('#story-button').click();
+  await page.getByRole('button',{name:/^Pay /}).first().click();
+  const forward=page.locator('.story-controls .primary-button');
+  while(await forward.textContent()==='Continue'){await expect(levelUp(page,2)).toHaveCount(0);await forward.click();}
+  await expect(forward).toHaveText('See what changed');await forward.click();
+  await expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done');await expect(levelUp(page,2)).toBeVisible();
+  expect((await saved(page)).claimedLevelRewards).toEqual([]);
+  await claim(page,2).click();await expect(page.locator('#modal')).toBeHidden();
+  await expect(page.locator('#board [tabindex="0"]')).toBeFocused();
+});
+
+test('a failed claim save in the level-up dialog opens the House book with Retry save',async({page})=>{
+  await start(page,99);
+  await page.evaluate(key=>{
+    const original=Storage.prototype.setItem;
+    Storage.prototype.setItem=function(name,value){if(name===key&&document.documentElement.hasAttribute('data-block-save'))throw new Error('No space');original.call(this,name,value);};
+  },SAVE_KEY);
+  await merge(page);await page.evaluate(()=>document.documentElement.setAttribute('data-block-save',''));await claim(page,2).click();
+  await expect(page.getByRole('dialog',{name:'House book',exact:true})).toBeVisible();await expect(page.locator('#coins')).toHaveText('20');
+  await expect(page.locator('#status')).toHaveText('Claimed level 2: 20 coins. This session is not saved.');
+  await page.evaluate(()=>document.documentElement.removeAttribute('data-block-save'));await page.getByRole('button',{name:'Retry save',exact:true}).click();
+  expect((await saved(page)).claimedLevelRewards).toEqual(['level-2']);
 });
 
 test('the final reward has no next promise and can be claimed only once',async({page})=>{
@@ -107,4 +156,12 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:390
     return [...e.querySelectorAll('p,li>span')].map(node=>{const ink=luminance(getComputedStyle(node).color);return(Math.max(ink,background)+.05)/(Math.min(ink,background)+.05);});
   });expect(Math.min(...contrast)).toBeGreaterThanOrEqual(4.5);
   await page.screenshot({path:testInfo.outputPath('level-rewards.png')});
+});
+
+for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'])test(`the level-up dialog fits ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
+  await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme as 'light'|'dark',reducedMotion:'reduce'});await start(page,199);await merge(page);
+  await expect(levelUp(page,3)).toBeVisible();
+  for(const control of await page.locator('#modal button').all()){const box=(await control.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);}
+  expect(await page.locator('#modal').evaluate(e=>e.scrollWidth<=e.clientWidth)).toBe(true);
+  await page.screenshot({path:testInfo.outputPath('level-up.png')});
 });

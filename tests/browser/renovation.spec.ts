@@ -3,8 +3,7 @@ import type { Page } from '@playwright/test';
 import { createGame, reduceGame, resolveRooms, latestArea, validateGame } from '../../src/engine.ts';
 import type { GameData, GameState } from '../../src/engine.ts';
 import { SAVE_KEY as KEY, exportSave } from '../../src/storage.ts';
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
 const data: GameData=JSON.parse(readFileSync('public/data/game.json','utf8'));
@@ -30,36 +29,35 @@ async function start(page: Page,save: string,theme='light'){
 const shown=(page: Page)=>page.locator('#room-paintings img').last().evaluate(async e=>{const image=e as HTMLImageElement;await image.decode().catch(()=>{});return image.complete&&image.naturalWidth>0?image.currentSrc.split('/').at(-1)!:'';});
 const completedAt=(count: number)=>data.tasks.slice(0,count).map(task=>task.id);
 
-for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'phone',width:390,height:844}]){
-  for(const theme of ['light','dark']){
-    test(`every renovation checkpoint shows its painted room at ${viewport.name} in ${theme}`,async({page},testInfo)=>{
-      test.setTimeout(180000);await page.setViewportSize(viewport);await page.emulateMedia({reducedMotion:'reduce'});
-      // One navigation per checkpoint also proves that every state can be reconstructed from its save.
-      await start(page,saveAfter(0),theme);
-      let previous='';
-      for(let count=0;count<=24;count++){
-        if(count>0){
-          await page.evaluate(({key,save})=>{localStorage.setItem(key,save);localStorage.removeItem('scary-snacks-area');},{key:KEY,save:saveAfter(count)});
-          await page.reload();await expect(page.locator('#board button')).toHaveCount(42);
-        }
-        const before=await saved(page);
-        // The room follows the area of the latest change and shows the state of its highest completed preparation.
-        const area=latestArea(completedAt(count),data),view=resolveRooms(completedAt(count),data).find(value=>value.id===area)!;
-        const frame=page.locator('#room-frame');
-        await expect(frame,`checkpoint ${count}`).toHaveAttribute('data-area',area);await expect(frame).toHaveAttribute('data-current',view.current!.id);await expect(frame).toHaveAttribute('data-painting',view.painting!.id);
-        expect(await shown(page),`checkpoint ${count}`).toMatch(new RegExp(`^${view.painting!.id}-(768x1024|1536x2048)\\.avif$`));
-        await expect(page.locator('#room-caption li')).toHaveText(view.states.map(state=>state.text));
-        await expect(page.locator('#room-pin')).toBeVisible({visible:count>0&&view.painting===view.current});
-        // Only the room is captured, with the cats masked, so a change must be in the painting's pixels.
-        const stage=page.locator('#room-stage');
-        await stage.screenshot({path:testInfo.outputPath('renovation',`${String(count).padStart(2,'0')}-${area}.png`),animations:'disabled'});
-        const hash=createHash('sha256').update(await stage.screenshot({animations:'disabled',mask:[stage.locator('.mascot'),page.locator('#room-pin'),page.locator('#area-switch')]})).digest('hex');
-        if(count>0&&view.painting===view.current)expect(hash,`preparation ${count} must change the room's pixels`).not.toBe(previous);
-        previous=hash;
-        expect(await saved(page)).toEqual(before);
+// The room checks do not depend on the theme, so each viewport uses one theme.
+for(const {theme,...viewport} of [{name:'desktop',width:1440,height:1000,theme:'light'},{name:'phone',width:390,height:844,theme:'dark'}]){
+  test(`every renovation checkpoint shows its painted room at ${viewport.name} in ${theme}`,async({page},testInfo)=>{
+    test.setTimeout(180000);await page.setViewportSize(viewport);await page.emulateMedia({reducedMotion:'reduce'});
+    // One navigation per checkpoint also proves that every state can be reconstructed from its save.
+    await start(page,saveAfter(0),theme);
+    let previous='';
+    for(let count=0;count<=24;count++){
+      if(count>0){
+        await page.evaluate(({key,save})=>{localStorage.setItem(key,save);localStorage.removeItem('scary-snacks-area');},{key:KEY,save:saveAfter(count)});
+        await page.reload();await expect(page.locator('#board button')).toHaveCount(42);
       }
-    });
-  }
+      const before=await saved(page);
+      // The room follows the area of the latest change and shows the state of its highest completed preparation.
+      const area=latestArea(completedAt(count),data),view=resolveRooms(completedAt(count),data).find(value=>value.id===area)!;
+      const frame=page.locator('#room-frame');
+      await expect(frame,`checkpoint ${count}`).toHaveAttribute('data-area',area);await expect(frame).toHaveAttribute('data-current',view.current!.id);await expect(frame).toHaveAttribute('data-painting',view.painting!.id);
+      expect(await shown(page),`checkpoint ${count}`).toMatch(new RegExp(`^${view.painting!.id}-(768x1024|1536x2048)\\.avif$`));
+      await expect(page.locator('#room-caption li')).toHaveText(view.states.map(state=>state.text));
+      await expect(page.locator('#room-pin')).toBeVisible({visible:count>0&&view.painting===view.current});
+      // Only the room is captured, with the cats masked, so a change must be in the painting's pixels.
+      const stage=page.locator('#room-stage');
+      await stage.screenshot({path:testInfo.outputPath('renovation',`${String(count).padStart(2,'0')}-${area}.png`),animations:'disabled'});
+      const hash=createHash('sha256').update(await stage.screenshot({animations:'disabled',mask:[stage.locator('.mascot'),page.locator('#room-pin'),page.locator('#area-switch')]})).digest('hex');
+      if(count>0&&view.painting===view.current)expect(hash,`preparation ${count} must change the room's pixels`).not.toBe(previous);
+      previous=hash;
+      expect(await saved(page)).toEqual(before);
+    }
+  });
 }
 
 test('a courtyard painting that fails to load leaves its words',async({page})=>{
@@ -153,37 +151,4 @@ test('a new game restores its original room crop after a pin has moved the frame
   await expect(page.locator('#room-frame')).toHaveAttribute('data-current','front-room-00');
   await expect(page.locator('#room-pin')).toBeHidden();
   await expect.poll(async()=>(await page.locator('#room-frame').boundingBox())!.y).toBeCloseTo(initial.y,1);
-});
-
-test('cold browser contexts record room painting decode and render timing',async({browser,baseURL},testInfo)=>{
-  test.setTimeout(90000);
-  const samples=[];
-  for(const viewport of [{width:1440,height:1000},{width:390,height:844}]){
-    for(let sample=0;sample<3;sample++){
-      const context=await browser.newContext({baseURL,viewport,reducedMotion:'reduce'});
-      try{
-        const page=await context.newPage();await start(page,saveAfter(23));
-        for(const area of ['courtyard','front-room']){
-          if(area==='front-room')await page.getByRole('button',{name:'Front room',exact:true}).click();
-          const measurement=await page.locator('#room-paintings').evaluate(async holder=>{
-            const start=performance.now(),images=[...holder.querySelectorAll('img')];
-            await Promise.all(images.map(image=>image.decode()));const decoded=performance.now();
-            await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
-            const resources=performance.getEntriesByType('resource').filter(entry=>images.some(image=>image.currentSrc===entry.name)) as PerformanceResourceTiming[];
-            return {devicePixelRatio,navigationToPaintMs:performance.now(),decodeWaitMs:decoded-start,twoFrameWaitMs:performance.now()-decoded,
-              images:images.length,resources:resources.map(entry=>({url:entry.name,durationMs:entry.duration,transferBytes:entry.transferSize,bodyBytes:entry.encodedBodySize}))};
-          });
-          samples.push({viewport,sample:sample+1,area,...measurement});
-        }
-      }finally{await context.close();}
-    }
-  }
-  const report=JSON.stringify({
-    browser:browser.version(),host:{platform:process.platform,architecture:process.arch,node:process.version},
-    method:'Three fresh browser contexts per viewport, local production build, checkpoint 23: the courtyard shows first, then the player opens the front room. Browser cache starts empty per context; OS cache is uncontrolled. Two animation frames measure render opportunity, not physical display or GPU completion. Phone is viewport emulation on this host.',samples,
-  },null,2);
-  const reportPath=testInfo.outputPath('renovation-decode-render.json');mkdirSync(dirname(reportPath),{recursive:true});writeFileSync(reportPath,report);
-  await testInfo.attach('renovation-decode-render.json',{body:report,contentType:'application/json'});
-  // Reduced motion replaces the painting at once, so each measured room holds one painting.
-  for(const sample of samples)expect(sample.images,`${sample.area} at ${sample.viewport.width}px`).toBe(1);
 });

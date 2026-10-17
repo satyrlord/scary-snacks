@@ -53,11 +53,10 @@ The current checks cover these areas:
 - Engine and persistence: failed or repeated preparation actions leave the room and the purse unchanged. A failed payment write leaves the coins, the progress, the story, and the reveal unchanged.
 - Saves: fresh, mid-campaign, and completed states keep their rooms after reload and after export and import. Malformed, unsupported, and oversized imports are rejected.
 - Browser: payment with earned coins, the end of the story, one reveal, reload, the unlock and selection of the courtyard, and an area preference outside the save. The tests also cover hosting at the root and at `/scary-snacks/`, accessible area controls, and reduced motion. They also cover failed paintings, failed preloads, and late decode results from an earlier area.
-- Layout: the room crop, the New pin, the area switch, and the drawer at desktop, phone, and short viewport sizes. The tests capture all 25 checkpoints in both themes. A pass of the Document Object Model (DOM) checks or of the pixel-change checks does not show visual quality.
-- Performance: the browser workload records painting resource bytes, decode waits, and two-frame waits. It uses three fresh browser contexts for each viewport at checkpoint 23. These are local measurements of the production build, not physical-device measurements. The two-frame wait does not measure display latency.
+- Layout: the room crop, the New pin, the area switch, and the drawer at desktop, phone, and short viewport sizes. The tests capture all 25 checkpoints at the desktop size in Light and at the phone size in Dark. A pass of the Document Object Model (DOM) checks or of the pixel-change checks does not show visual quality.
 
 ## Verification and limits
 
-The [verification record](../verification.md) gives the procedure and the limits of the full gate. `tests/browser/renovation.spec.ts` writes the timing samples to its test output.
+The [verification record](../verification.md) gives the procedure and the limits of the full gate. The gate does not measure painting decode time or display latency. Performance timing evidence needs a separate measurement of the production build with the host, viewport, workload, and method recorded.
 
 The checks do not cover physical touch devices or screen readers. The next device check is a physical Chromium phone playthrough. The player pays for a preparation, examines both areas, reloads, and imports a save.

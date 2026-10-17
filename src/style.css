@@ -333,6 +333,7 @@ dialog::backdrop { background: #17101ac4; }
 .level-reward { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .level-reward .primary-button { flex-shrink: 0; }
 .level-claimed { color: var(--muted); }
+.level-rewards ~ .modal-copy { margin: 14px 0 0; }
 .level-notice:empty { display: none; }
 [data-house-book] { position: relative; }
 [data-house-book][data-rewards]::after { content: ''; position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--coin-face); box-shadow: 0 0 0 2px var(--panel); }
@@ -373,6 +374,7 @@ dialog::backdrop { background: #17101ac4; }
 .quest-reward { margin: 12px 0 8px; color: var(--gold); font-weight: 600; font-size: 14px; }
 .quest-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .quest-actions>button { flex: 1 1 auto; }
+.quest-offer>.quest-actions ~ .modal-copy { margin: 14px 0 0; }
 .quest-notice { color: var(--ink); font-size: 14px; line-height: 1.7; margin-bottom: 14px; }
 .quest-notice:empty { display: none; }
 .quest-book>.save-status { margin-top: 14px; font-size: 13px; line-height: 1.6; color: var(--muted); }

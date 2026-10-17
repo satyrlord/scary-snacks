@@ -9,9 +9,11 @@ Levels use `1 + Math.floor(xp / 100)`. Merges, service, and preparations keep th
 
 The House book shows the current level, total XP, progress to the next level, the next reward, and every earned reward. Each earned row shows Claim or Claimed. The House book keeps a copper mark while claims wait. Closing the panel, continuing play, and reloading do not claim rewards.
 
+A new level with a reward opens a level-up dialog once. The dialog shows each available reward with Claim. It waits for other dialogs, stories, and reveals. Close leaves the rewards in the House book. A load, an import, and a change from another tab do not open it. A failed save opens the House book with Retry save.
+
 Each claim adds coins and records its ID in one engine transition. Claims are independent. Unknown, unreached, and repeated claims change no state. A claim that would exceed the supported coin total also changes nothing. That reward stays available after the player spends coins. Rewards give no XP. Levels continue after the finite reward schedule. The panel then states whether rewards remain to claim.
 
-A failed save keeps the claim and coins in memory. The panel states that the session is not saved and offers Retry save. Export includes the session state. Reload can lose unsaved progress. A persistent status region announces a claim once. Claims move keyboard focus to the level heading.
+A failed save keeps the claim and coins in memory. The panel states that the session is not saved and offers Retry save. Export includes the session state. Reload can lose unsaved progress. A persistent status region announces a claim once. Claims in the House book move keyboard focus to the level heading. In the level-up dialog, a claim moves focus to the next Claim. The last claim closes the dialog and returns focus to the board, or to the drawer handle when the drawer is lowered.
 
 ## Data and saves
 
@@ -27,7 +29,7 @@ The automated checks are in `tests/level-rewards.test.ts`, `tests/engine.test.ts
 
 - Engine: level 1, 99/100 XP, every authored boundary, independent and repeated claims, overflow and later retry, full board, unsupported IDs, and unchanged XP sources.
 - Saves: no claims, partial claims, all claims, fresh through completed campaigns, corrupt claim lists, repeated loads, failed writes, and export/import identity.
-- Browser: keyboard claim and focus, exact reward text, persistent availability, non-repeating status, final schedule state, failed save and Retry, export/import/reload, and another tab.
+- Browser: the level-up dialog after a merge and after a paid preparation, Claim and Close in the dialog, keyboard claim and focus, exact reward text, persistent availability, non-repeating status, final schedule state, failed save and Retry, export/import/reload, and another tab.
 - Layout: fresh production build, Chromium under `/scary-snacks/`, both themes at 1440 by 900, 390 by 844, and 390 by 800; control size, contrast, horizontal overflow, and screenshots.
 
 Run `npm run quality:full` for the integrated result. It runs the type check, Node tests, build, and browser tests. Test results are evidence for the current checkout only.

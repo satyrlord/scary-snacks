@@ -9,6 +9,7 @@
 3. The build.
 4. The Playwright browser tests on Chromium, against the built artifact.
 
+The browser tests run in parallel on 40% of the logical processors. Each test has its own browser context and save.
 The full browser suite runs under `/scary-snacks/`, the GitHub Pages path. The asset and path test also runs at the root path.
 The Pages workflow runs the type check, the Node.js tests, and the build. It does not run the browser tests.
 
@@ -43,8 +44,8 @@ The browser tests cover these areas:
 - Themes: Light, Dark, and System, with contrast of 4.5:1 for the main text and the muted text.
 - Decoration choices: the preview, Apply, Retry after a failed write, and locked choices.
 - Generator progression: payment reveals, named Take buttons, chosen output persistence, keyboard focus, touch emulation, full-board failure, and a still board when a phone selects an upgraded source. Geometry checks cover every source with three outputs at 360×740, 390×800, 390×844, and 1440×900 in both themes. Tier-one names and controls also fit at 320px.
-- Level rewards: independent claims, reload, the final reward, overflow, Retry save after a failed write, export and import, and two open tabs. Geometry checks cover the panel at 1440×900, 390×844, and 390×800 in both themes.
-- Character quests: delivery for each neighbour, board-only delivery, unchanged orders, journal replay, export and import, failed writes, keyboard focus, touch emulation, the temporary source, the cleanup preview, and two open tabs. Geometry and contrast checks cover the quest sheet and the cleanup review at 1440×900, 390×844, and 390×800 in both themes.
+- Level rewards: the level-up dialog after a merge and after the reveal and scene of a paid preparation, Claim and Close in the dialog, independent claims, reload, the final reward, overflow, Retry save after a failed write, export and import, and two open tabs. Geometry checks cover the panel at 1440×900, 390×844, and 390×800, and the dialog at 1440×900 and 390×844, in both themes.
+- Character quests: delivery for each neighbour, board-only delivery, unchanged orders, journal replay, export and import, failed writes, keyboard focus, touch emulation, the temporary source, the cleanup preview, and two open tabs. The request dialog after a merge and at load, with Close, Deliver, the cleanup review, a failed save, and its place after a level-up dialog. Geometry and contrast checks cover the quest sheet and the cleanup review at 1440×900, 390×844, and 390×800, and the request dialog at 1440×900 and 390×844, in both themes.
 - Board clearing: keyboard, pointer, drag, and touch emulation on blocked cells, their labels, order hints, reload, and the web removal at preparation 1.
 - Chapter story: a playthrough from a fresh save through every payment, chapter scene, and the finale, with checks that the goals, the neighbour help, and the payoffs agree. The objective and the chapter steps, the closing scene after a reveal, Escape and reload with a waiting scene, the finale with Skip and replay, and service after the finale. Geometry and contrast checks cover the story card, the journal, and a scene at 1440×900, 390×844, and 390×800 in both themes.
 - Saves: reload, export, import, reset, corrupt saves, and two open tabs.

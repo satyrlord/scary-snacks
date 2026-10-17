@@ -61,7 +61,11 @@ let data: GameData, state: GameState, selected: number | null = null, sound = fa
 let saveMessage = '', saveFailed = false, ignoreClick = false, catAsleep = false, freshDishes = 0;
 let observedSave: string | null = null, gameVersion = 0;
 let recoveryRequired = false, editingDecoration: string | null = null;
-let modalReturn: (() => void) | null = null, questFlow = false, sceneFlow = false;
+let modalReturn: (() => void) | null = null, questFlow = false, sceneFlow = false, offerFlow = false;
+// The highest level whose rewards the player has seen, in the level-up dialog or the House book. Saves do not keep it.
+let offeredLevel = 1;
+// Each request that the player has seen ready to deliver, in its dialog or in Neighbour quests. Saves do not keep it, so each load offers the ready requests again.
+const offeredQuests = new Set<string>();
 const arriving: number[] = [], farewells = new Map<string, number>(), spoken = new Map<string, number>();
 let dragging: { index: number; id: number; x: number; y: number; ghost: SVGSVGElement | null } | null = null;
 let spriteSequence = 0, boardFocus = 0;
@@ -188,7 +192,7 @@ function syncSavedGame() {
   if (saved.status !== 'loaded' || !saved.state || JSON.stringify(saved.state) === observedSave) return false;
   observedSave = JSON.stringify(saved.state);
   recoveryRequired = false;
-  replaceGame(saved.state);
+  replaceGame(saved.state, true);
   if (modal.open) modal.close();
   reportSave({ok:true,error:null}); render();
   status('This game moved on in another tab. The board now shows that progress.');
@@ -229,6 +233,7 @@ function applyAction(action: Action, select?: number | null) {
     const first = state.discovered.filter(code => !known.has(code) && data.items[code] && !definition(code).generator);
     if (first.length) { freshDishes += first.length; markRecipeBook(); status(`${itemName(first[0])} is a new dish! It is in the recipe book now.`); }
   }
+  if (result.ok) offerRewards();
   return result;
 }
 /** The recipe book shows how many dishes are new since it was last opened. */
@@ -297,12 +302,15 @@ function endFarewells() {
   for (const card of $('#orders').children) card.classList.remove('arriving');
 }
 /** Replacing the game also ends presentation state from the previous board, including a reveal that has not run. */
-function replaceGame(next: GameState) {
+function replaceGame(next: GameState, keepQuestOffers = false) {
   gameVersion++;
   cancelDrag(); endFarewells();
   for (const flight of document.querySelectorAll('.serve-flight')) flight.remove();
   state = normalizeOrderCustomers(next, data); selected = null; freshDishes = 0; spoken.clear();
-  held = null; earnedScene = null; revealToken++; preloaded = null; viewArea = latestArea(state.decorations, data);
+  held = null; earnedScene = null; revealToken++; preloaded = null; viewArea = latestArea(state.decorations, data); offeredLevel = getLevel(state);
+  // Another tab must not repeat a dismissed request when its ingredients become ready again.
+  if (!keepQuestOffers) offeredQuests.clear();
+  seeQuests();
   $('.game-layout').classList.remove('revealing'); $('#room-stage').removeAttribute('data-reveal'); setLowered(false);
 }
 /** Now and then a bat crosses the dusk beyond the front room's mended window: after each preparation, and after every seventh serve. Never while the page is hidden, under reduced motion, or before the window is mended. */
@@ -724,7 +732,7 @@ function showStory(task: { title: string; dialogue: SceneLine[] }, paid = false,
 }
 /** Quests share the Story sheet. They leave every ordinary ticket and board space in place. */
 function questBook(focusQuest?: string, message = '') {
-  questFlow=true;
+  questFlow=true;seeQuests();
   const content=element('div','quest-book');
   content.append(element('p','modal-copy','Prepare something for a neighbour. These requests have no deadline. Your three ordinary orders stay at the counter.'));
   const notice=element('p','quest-notice');notice.setAttribute('role','status');notice.textContent=message;
@@ -760,7 +768,7 @@ function questBook(focusQuest?: string, message = '') {
       }));
       accept.setAttribute('aria-label',`Accept ${quest.title}`);actions.append(accept);
     }else{
-      const deliver=button(`Deliver · ${quest.reward}`,'primary-button',()=>quest.producer?confirmQuestDelivery(quest):deliverQuest(quest,card));
+      const deliver=button(`Deliver · ${quest.reward}`,'primary-button',()=>quest.producer?confirmQuestDelivery(quest,()=>questBook(quest.id)):deliverQuest(quest,card,()=>questBook(quest.id)));
       deliver.setAttribute('aria-label',`Deliver ${quest.title} for ${quest.reward} coins`);deliver.disabled=!canDeliverQuest(state,quest.id,data);actions.append(deliver);
       if(quest.producer)card.append(element('p','quest-note',`Before delivery, review the tasting source and leftover tasting items that will return to ${character(quest.character).name}.`));
     }
@@ -776,14 +784,15 @@ function questBook(focusQuest?: string, message = '') {
   const focus=focusQuest?content.querySelector<HTMLElement>(`[data-quest="${focusQuest}"] h3`)??$('#modal-title'):undefined;
   showModal('Neighbour quests',content,focus);
 }
-function deliverQuest(quest: Quest, source: HTMLElement, cleanupToken?: string) { return changeGame(()=>{
+/** The completion leads back to where delivery started. After a failed save it leads to Neighbour quests, which offers Retry save. */
+function deliverQuest(quest: Quest, source: HTMLElement, back?: () => void, cleanupToken?: string) { return changeGame(()=>{
   if(!source.isConnected)return;
   const result=applyAction({type:'deliverQuest',id:quest.id,cleanupToken});
   if(!result.ok){questBook(quest.id,result.message);return;}
   const message=`${result.message}${saveFailed?' This session is not saved. Return to quests and use Retry save, or export before leaving.':''}`;
-  showStory({title:quest.title,dialogue:quest.completion},false,message,()=>questBook(quest.id));
+  showStory({title:quest.title,dialogue:quest.completion},false,message,saveFailed?()=>questBook(quest.id):back);
 }); }
-function confirmQuestDelivery(quest: Quest) {
+function confirmQuestDelivery(quest: Quest, back?: () => void) {
   const preview=previewQuestCleanup(state,quest.id,data);
   if(!preview){questBook(quest.id,'This request is no longer ready. Check its requirements.');return;}
   const content=element('div','quest-cleanup');
@@ -792,9 +801,9 @@ function confirmQuestDelivery(quest: Quest) {
   for(const entry of preview.board)list.append(element('li','',`${itemName(entry.item)} · Board space ${entry.index+1}`));
   content.append(list);
   content.append(element('p','quest-reward',`Reward: ${coinText(quest.reward)}`));
-  const actions=element('div','quest-actions'),keep=button('Keep items','secondary-button',()=>questBook(quest.id));
-  actions.append(button('Deliver and return supplies','primary-button',()=>deliverQuest(quest,content,preview.token)),keep);content.append(actions);
-  showModal('Return the tasting supplies',content,keep,()=>questBook(quest.id));
+  const actions=element('div','quest-actions'),keep=button('Keep items','secondary-button',back??(()=>modal.close()));
+  actions.append(button('Deliver and return supplies','primary-button',()=>deliverQuest(quest,content,back,preview.token)),keep);content.append(actions);
+  showModal('Return the tasting supplies',content,keep,back);
 }
 function journal(focusEntry?: string) {
   const content=element('div','journal-list');
@@ -1001,6 +1010,7 @@ async function reveal(task: Task) {
   // The earned scene continues the story, unless the player has opened another dialog meanwhile. It stays waiting in Story either way.
   const scene=earnedScene;earnedScene=null;
   if(scene&&state.pendingScenes.includes(scene)&&!modal.open)showScene(scene);
+  offerRewards();
 }
 /** Where the kitchen is a drawer, its handle lowers it to show the whole room and raises it again. */
 function setLowered(value: boolean) {
@@ -1112,6 +1122,60 @@ function markLevelRewards() {
     opener.setAttribute('aria-label',`House book: settings and saved game${ready?`, ${ready} level ${ready===1?'reward':'rewards'} available`:''}`);
   }
 }
+/** Offers wait until no dialog, story, or reveal is open. A level-up comes before a ready request. */
+function offerRewards() {
+  if(modal.open||held||['waiting','run'].includes($('#room-stage').dataset.reveal ?? ''))return;
+  offerLevelRewards();
+  if(!modal.open)offerQuest();
+}
+/**
+ * A new level with a reward offers its claim once. The offer claims nothing.
+ * Close leaves each reward in the House book. A failed save opens the House book, which offers Retry save.
+ */
+function offerLevelRewards() {
+  const level=getLevel(state);
+  if(level<=offeredLevel)return;
+  const ready=availableLevelRewards(state,data),fresh=ready.some(reward=>reward.level>offeredLevel);
+  offeredLevel=level;if(!fresh)return;
+  const content=element('div','level-panel'),list=element('ul','level-rewards'),notice=element('p','modal-copy level-notice');notice.setAttribute('role','status');
+  for(const reward of ready){
+    const row=element('li','level-reward');row.append(element('span','',`Level ${reward.level} · ${coinText(reward.coins)}`));
+    const claim=button(`Claim ${coinText(reward.coins)}`,'primary-button',()=>changeGame(()=>{
+      const result=applyAction({type:'claimLevelReward',id:reward.id});
+      if(!result.ok){notice.textContent=result.message;return;}
+      if(saveFailed){settings();status(`${result.message} This session is not saved.`);return;}
+      if(!availableLevelRewards(state,data).length){modal.close();status(result.message);return;}
+      row.replaceChildren(row.firstChild!,element('span','level-claimed','Claimed'));notice.textContent=result.message;
+      list.querySelector<HTMLElement>('.primary-button')!.focus();
+    }));
+    claim.setAttribute('aria-label',`Claim ${coinText(reward.coins)} for level ${reward.level}`);row.append(claim);list.append(row);
+  }
+  content.append(element('p','modal-copy','Word of your cooking is spreading.'),list,notice,element('p','modal-copy','A reward that you leave waits in the House book.'));
+  offerFlow=true;showModal(`Level ${count.format(level)} reached`,content,$('#close-modal'));
+}
+const readyQuests = () => data.quests.filter(quest => canDeliverQuest(state, quest, data));
+function seeQuests() { for (const quest of readyQuests()) offeredQuests.add(quest.id); }
+/**
+ * A request that becomes ready to deliver offers its delivery once. The offer delivers nothing.
+ * Close leaves the request in Neighbour quests. Delivery plays the completion, then returns to the kitchen.
+ */
+function offerQuest() {
+  const quest=readyQuests().find(value=>!offeredQuests.has(value.id));
+  if(!quest)return;
+  offeredQuests.add(quest.id);
+  const person=character(quest.character).name,content=element('div','quest-offer');
+  const head=element('div','quest-heading'),words=element('div');
+  words.append(element('h3','',quest.title));head.append(portrait(quest.character),words);
+  const requirements=element('ul','quest-requirements');
+  for(const {item,quantity} of quest.requirements){
+    const row=element('li','quest-item');row.append(food(item),element('span','',`${quantity} ${itemName(item)}`),element('span','quest-count',`${quantity} / ${quantity} on board`));requirements.append(row);
+  }
+  const actions=element('div','quest-actions'),deliver=button(`Deliver · ${quest.reward}`,'primary-button',()=>quest.producer?confirmQuestDelivery(quest):deliverQuest(quest,content));
+  deliver.setAttribute('aria-label',`Deliver ${quest.title} for ${quest.reward} coins`);actions.append(deliver);
+  content.append(element('p','modal-copy',`Everything that ${person} asked for is on the board.`),head,requirements,element('p','quest-reward',`Reward: ${coinText(quest.reward)}`),actions,
+    element('p','modal-copy','A request that you leave waits in Neighbour quests.'));
+  offerFlow=true;showModal(`${person}’s request is ready`,content,$('#close-modal'));
+}
 /** The notice stays mounted while claims refresh, so each result is announced once. */
 function levelPanel() {
   const panel=element('section','settings-section level-panel');panel.setAttribute('aria-labelledby','level-heading');
@@ -1148,7 +1212,7 @@ function levelPanel() {
   refresh();panel.append(heading,details,notice);return panel;
 }
 function settings(focusSlot?: string) {
-  editingDecoration=null;
+  editingDecoration=null;offeredLevel=Math.max(offeredLevel,getLevel(state));
   const content=element('div');content.append(element('p','modal-copy save-status',saveMessage));
   // Writes never replace an unreadable save, so only a new game (an explicit reset) lets this browser save again.
   if(saveFailed&&recoveryRequired)content.append(element('p','save-error',['invalid','unsupported'].includes(loadSave(storage,validate).status)?`${saveMessage} To save in this browser again, start a new game below. That replaces the unreadable save.`:saveMessage));
@@ -1257,6 +1321,11 @@ modal.addEventListener('close',()=>{
   if(modal.open)return;
   editingDecoration=null;
   modalReturn=null;
+  // Offers return to the kitchen even when a reveal's pin is still the native return target.
+  if(offerFlow){
+    offerFlow=false;
+    (lowered?$('#drawer-handle'):$('#board').querySelector<HTMLElement>('[tabindex="0"]'))?.focus({preventScroll:true});
+  }
   if(questFlow){questFlow=false;const opener=[...document.querySelectorAll<HTMLElement>('[data-quests]')].find(value=>value.checkVisibility());(opener??$('#story-button')).focus({preventScroll:true});}
   if(sceneFlow){
     sceneFlow=false;
@@ -1267,6 +1336,8 @@ modal.addEventListener('close',()=>{
     }
   }
   if(held){const task=held;held=null;void reveal(task);}
+  // A level or a request reached during a story or another dialog offers itself now, or after the reveal that starts here.
+  offerRewards();
 });
 $('#drawer-handle').addEventListener('pointerdown',event=>{swipe=event.clientY;});
 $('#drawer-handle').addEventListener('pointerup',event=>{swipe=event.clientY-swipe;});
@@ -1296,7 +1367,7 @@ try {
   // Loading shares the game lock with writes from other tabs.
   const load=()=>loadSave<GameState>(storage,validate);
   const saved=storage&&navigator.locks?await navigator.locks.request(SAVE_KEY,load):load();
-  state=saved.state?normalizeOrderCustomers(saved.state,data):createGame(data);
+  state=saved.state?normalizeOrderCustomers(saved.state,data):createGame(data);offeredLevel=getLevel(state);
   // A reload cannot open blocked storage, so that game plays for this visit without the recovery block.
   recoveryRequired=Boolean(storage)&&!['loaded','empty'].includes(saved.status);
   observedSave=saved.state?JSON.stringify(saved.state):null;
@@ -1311,6 +1382,8 @@ try {
   // Phones get a shorter opening line, so that it fits the line under the board.
   status(saved.status==='loaded'?`Welcome back. The stove is still warm.${state.pendingScenes.length?' A story scene is waiting in Story.':''}`:phone.matches?'Merge the two Flours. Merge beside clutter to clear it.':'Tap one Flour, then the other, to merge. Merge beside clutter to clear it.');
   if(saveFailed)settings();
+  // A request that is ready at load offers its delivery now, or after the House book closes.
+  offerRewards();
 }catch(error){
   status(`The kitchen could not open. ${reason(error)}`);console.error(error);
   const hint=$('#hint-button');hint.textContent='Try again';hint.addEventListener('click',()=>location.reload());

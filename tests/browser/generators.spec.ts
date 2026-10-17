@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { createGame, reduceGame, unresolvedObstacle, validateGame } from '../../src/engine.ts';
+import { createGame, getLevel, reduceGame, unresolvedObstacle, validateGame } from '../../src/engine.ts';
 import type { GameData, GameState } from '../../src/engine.ts';
 import { SAVE_KEY, exportSave } from '../../src/storage.ts';
 
@@ -12,7 +12,10 @@ function afterPreparations(count: number){
   for(let index=0;index<count;index++){
     const result=reduceGame(state,{type:'task'},data);expect(result.ok,result.message).toBe(true);state=result.state;
   }
-  state.coins=count<data.tasks.length?data.tasks[count].cost:0;return state;
+  state.coins=count<data.tasks.length?data.tasks[count].cost:0;
+  // Every open request is already delivered, so a new output cannot open a request dialog over the board.
+  state.completedQuests=data.quests.filter(quest=>quest.afterTask===null||state.decorations.includes(quest.afterTask)).map(quest=>quest.id);
+  return state;
 }
 async function start(page: Page,state: GameState){
   const save=exportSave(state,candidate=>validateGame(candidate,data));
@@ -48,6 +51,8 @@ for(const [preparations,stage] of [[12,2],[20,3]])test(`preparation ${preparatio
   await page.keyboard.press('Escape');await expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done');
   // Both preparations end a chapter, so its closing scene follows the reveal.
   await expect(page.getByRole('dialog',{name:/^Chapter \d complete: /})).toBeVisible();await page.keyboard.press('Escape');
+  // Preparation 20 also reaches a level with a reward, which the game offers after the scene.
+  if(getLevel(paid)>getLevel(initial)){await expect(page.getByRole('dialog',{name:`Level ${getLevel(paid)} reached`,exact:true})).toBeVisible();await page.keyboard.press('Escape');}
   await source(page,paid).click();await expect(page.locator('#item-detail .take-button')).toHaveCount(stage);
   await expect(take(page,`bakery_${stage}`)).toBeVisible();
   for(let lower=1;lower<=stage;lower++)await expect(take(page,`bakery_${lower}`).locator('.food')).toBeVisible();

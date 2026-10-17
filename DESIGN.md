@@ -511,7 +511,7 @@ Cost details opens the existing dialog or phone sheet. It names the current prep
 - **Order:** the reveal starts after the story of a paid preparation. Where the kitchen is a drawer (1023px and below), the drawer lowers by itself over 0.6s. The board then does not accept input.
 - **Repaint:** the room switches to the changed area. The new painting replaces the old painting in the same place. The change uses opacity and an 8px blur over 1.2s, with an expo ease-out.
 - **Pin:** the pin lands on the change over 450ms, and focus moves to the pin. Mara's line shows the text of the change.
-- **Return:** after 1.4s, the drawer rises again, and a bat crosses the window. Then a closing scene or the finale that the payment earned opens, unless another dialog is open.
+- **Return:** after 1.4s, the drawer rises again, and a bat crosses the window. Then a closing scene or the finale that the payment earned opens, unless another dialog is open. A level-up dialog that the payment earned opens after the last dialog closes. A request dialog opens after that.
 - **Safety:** the game saves the preparation before the story opens. The reveal cannot charge or reward the player again. Reduced motion shows the new state at once.
 
 ### Navigation
@@ -542,11 +542,15 @@ Each quest is a section between hairlines. A 44px portrait sits beside the reque
 
 A temporary-source offer names its space requirement before Accept. Its delivery opens a cleanup review that lists the board supplies with their space numbers. Keep items has initial focus. Deliver and return supplies confirms the action. Cancel, Close, and Escape return to the quest heading. The completion scene returns to the quest list heading. An unsaved session has a visible warning and Retry save.
 
+A request that becomes ready, or that is ready at load, opens the request dialog, "[Name]’s request is ready". The dialog has one muted line, the portrait and request title, the food rows with their board counts, the coin reward, Deliver, and one muted line that says that the request waits in Neighbour quests. The food rows do not open ingredient help. The dialog opens on its close button. It has no Later button, because the close button closes it. Deliver opens the completion scene, or the cleanup review for a temporary-source request. In this flow, the last scene button is "Back to the kitchen", and Keep items closes the dialog. Focus then goes to the board, or to the drawer handle when the drawer is lowered. A failed save makes the last scene button Return, which opens Neighbour quests with Retry save. The dialog adds no motion.
+
 The journal starts with Neighbours. Each portrait row opens an optional introduction. These rows have a 44px portrait and two equal text columns, with 12px gaps. Names align left beside the portraits. Roles align right. Long names and roles wrap within their columns. Finished quests have opening and completion replay controls before the chapters. Quest scenes and introductions use the existing portrait, dialogue, Back, and Continue controls. Return, Close, and Escape restore focus to their quest heading or journal entry. Closing the quest sheet returns focus to its visible Story link or to the phone Story button. These additions have no animation.
 
 ### Level rewards
 
 The House book starts with Level rewards, before Decorations. It shows the current level, total XP, progress to the next level, and the next supported coin reward. Earned rewards are simple rows between hairlines. Each row shows its level and exact coin amount, with a primary Claim button or the word Claimed. Claims move focus to the section heading. One persistent status region announces each result. A failed save shows the unsaved session and Retry save. After the last reward, the panel says whether rewards remain to claim. It does not promise another reward.
+
+A level with a reward opens the level-up dialog, "Level N reached". The dialog has one muted line, the rows of all available rewards, the status region, and one muted line that says that a reward waits in the House book. The rows are the same as in the House book. The dialog opens on its close button. It has no Later button, because the close button closes it. A Claim with more rewards left changes its row to Claimed and moves focus to the next Claim. The last Claim closes the dialog, and Mara's line gives the result. Focus then goes to the board, or to the drawer handle when the drawer is lowered. A failed save replaces the dialog with the House book, which shows the unsaved session and Retry save. The dialog adds no motion.
 
 The desktop and phone House book controls carry a copper dot while a reward is available. Their accessible names give the count. Closing the book and reloading keep the dot while rewards remain. The dot uses the existing coin face and parchment ring. The panel uses the existing dialog, section, button, ink, muted, and focus styles. It adds no motion.
 

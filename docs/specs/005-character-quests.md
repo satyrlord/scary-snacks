@@ -86,6 +86,11 @@ Story opens Neighbour quests without adding another ticket above the board.
 Each section shows the neighbour, request title, quantities, board counts, and reward.
 Read request opens the purpose. Ingredient help shows the source and merge chain.
 Deliver is unavailable until the board holds every required item.
+When a load or an action makes a request ready, a request dialog offers Deliver once. The dialog delivers nothing by itself.
+It waits for other dialogs, stories, reveals, and the level-up dialog. Close leaves the request in Neighbour quests.
+Saves do not record the offer, so each load offers the ready requests again.
+An import, a change from another tab, and Neighbour quests mark the ready requests as shown.
+Delivery from the dialog plays the completion scene, then returns to the kitchen. A failed save returns to Neighbour quests with Retry save.
 
 The journal starts with optional introductions. Completed quests keep both their opening and completion scenes.
 Close, Escape, and Return from a quest scene restore the quest list or journal focus.
@@ -114,6 +119,7 @@ A legal engine campaign completes all 24 preparations and all 13 quests without 
 
 The built browser tests cover all four neighbours, board-only delivery, unchanged orders, keyboard focus, touch emulation, reload, export, import, scene replay, and unavailable storage.
 They cover temporary-source placement, cleanup cancellation, and confirmation.
+They cover the request dialog: one offer after a merge, Close, Deliver, the order after a level-up, the cleanup review, a failed save, and the offer at each load.
 The changed sheets have geometry, contrast, and screenshot checks at desktop and phone sizes in both themes.
 Use `npm run quality:full` for the integrated acceptance check.
 
