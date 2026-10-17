@@ -257,8 +257,6 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 .completion-message { margin-top: 16px; font-size: 13px; line-height: 1.5; }
 .pay-button,.sell-button { display: flex; align-items: center; justify-content: center; gap: 6px; }
 .pay-button .coin,.sell-button .coin { width: 16px; height: 16px; }
-.section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.section-heading>span { flex-shrink: 0; font-size: 12px; color: var(--muted); }
 .chapter-name { font-size: 13px; color: var(--accent); margin-top: 5px; }
 .chapter-title { font-size: 19px; line-height: 1.25; color: var(--accent); text-wrap: balance; }
 .chapter-objective { font-size: 12px; color: var(--muted); line-height: 1.45; margin-top: 1px; }
@@ -295,12 +293,7 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 .cat-visit .mascot { width: 64px; height: 64px; flex-shrink: 0; }
 .cat-visit strong,.recipe-book strong { font: 600 15px/1.4 Inter,sans-serif; display: block; }
 .cat-visit small,.recipe-book small { display: block; font-size: 12px; line-height: 1.5; color: var(--muted); margin-top: 4px; }
-.storage-panel .section-heading { margin-bottom: 10px; }
 .small-copy { font-size: 13px; color: var(--muted); line-height: 1.65; margin: 8px 0 13px; }
-.inventory { display: grid; gap: 6px; }
-.inventory-slot { display: grid; place-items: center; position: relative; aspect-ratio: 1; min-width: 0; min-height: 44px; padding: 5px; border: 1px solid var(--line); border-radius: var(--control-radius); background: var(--panel); }
-.inventory-slot .food { width: 100%; height: 100%; }
-.inventory-slot:disabled { background: transparent; border-style: dashed; }
 /* If the kitchen cannot open, the buttons that open its sheets and books are dimmed. */
 .book-button:disabled,.recipe-book:disabled,.phone-bar button:disabled { opacity: .5; }
 .recipe-book { display: flex; gap: 4px; align-items: center; padding: 0; border: 0; background: none; text-align: left; }
@@ -319,10 +312,6 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 #modal-body .item-detail p { margin: 0 0 4px; color: var(--muted); font-size: 13px; line-height: 1.6; }
 #modal-body .item-detail .item-how { color: var(--ink); font-size: 14px; }
 #modal-body .item-detail .secondary-button { margin-top: 18px; }
-/* Lent to the Pantry sheet, the pantry drops its heading, which the sheet's title replaces. */
-#modal-body .storage-panel h2 { display: none; }
-#modal-body .storage-panel .section-heading { justify-content: flex-start; }
-#modal-body .inventory { grid-template-columns: repeat(6,minmax(0,1fr)); }
 .food { display: block; stroke: none; fill: none; }
 .portrait { display: block; background-image: url('../assets/variants/portraits-640x640.webp'); background-size: 200% 200%; background-repeat: no-repeat; border-radius: 50%; background-color: var(--inset); }
 .portrait-0 { background-position: 0 0; }.portrait-1 { background-position: 100% 0; }.portrait-2 { background-position: 0 100%; }.portrait-3 { background-position: 100% 100%; }
@@ -401,7 +390,7 @@ dialog::backdrop { background: #17101ac4; }
 .recipe-item { padding: 8px; background: var(--surface); border: 1px solid var(--control-line); border-radius: var(--control-radius); min-width: 0; }
 .recipe-item .food { width: 68px; height: 68px; margin: auto; }
 .recipe-item span:last-child { display: block; font-size: 12px; text-align: center; line-height: 1.4; margin-top: 7px; }
-/* A dish nobody has made yet waits under a dashed cloche, in the same dashed "not yet" language as the empty pantry slots. */
+/* A dish nobody has made yet waits under a dashed cloche, using the dashed "not yet" style. */
 .recipe-item.not-yet { background: transparent; border-style: dashed; border-color: var(--control-line); color: var(--muted); }
 .cloche { display: block; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; color: var(--muted); }
 .cloche-dome { stroke-dasharray: 3 3.4; }
@@ -415,7 +404,7 @@ dialog::backdrop { background: #17101ac4; }
 .hidden { display: none!important; }
 
 /* Wider screens: the room fills the left half at full height and nothing covers it. The drawer is one parchment panel docked on the right:
-   the masthead, the paper tickets, then the board with Mara's line beside the story, the recipe book and the pantry as sections of the same surface.
+   the masthead, the paper tickets, then the board with Mara's line beside the story and the recipe book as sections of the same surface.
    The cell follows the panel's width and the screen's full height, so the panel fills the first screen from 1280 to 1920 wide. */
 @media (min-width: 1024px) {
   :root { --panel-w: max(50vw, 620px); }
@@ -442,30 +431,22 @@ dialog::backdrop { background: #17101ac4; }
   .table { border-radius: var(--radius); box-shadow: 0 2px 4px #2a1a1029, var(--shadow); }
   .board { padding: 14px; }
   .line-slot>* { min-height: 62px; padding: 6px 2px; }
-  /* The story, the recipe book and the pantry are sections of the panel, between hairlines, not cards; the pantry ends level with the board column. */
+  /* The story and the recipe book are sections of the panel, between hairlines, not cards. */
   .side { align-self: stretch; display: flex; flex-direction: column; min-width: 0; padding-left: 20px; border-left: 1px solid var(--line); }
   .drawer .side>*+* { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
   .side>.recipe-book { padding-top: 10px; }
   .recipe-book strong { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
-  /* The pantry takes the rest of the side column, so the column ends level with the board. Its square slots grow toward the board's
-     cell size, in six, four or three columns by the shape of the room it has (a size container). */
-  .side>.storage-panel { flex: 1; min-height: 190px; display: flex; flex-direction: column; container: pantry / size; }
-  .inventory { --cols: 4; --rows: 3; --slot: max(44px, min(var(--cell), calc((100cqw - 6px * (var(--cols) - 1)) / var(--cols)), calc((100cqh - 40px - 6px * (var(--rows) - 1)) / var(--rows))));
-    grid-template-columns: repeat(var(--cols), var(--slot)); grid-auto-rows: var(--slot); align-content: start; }
-  @container pantry (aspect-ratio > 2) { .inventory { --cols: 6; --rows: 2; } }
-  @container pantry (aspect-ratio < .9) { .inventory { --cols: 3; --rows: 4; } }
 }
 @media (min-width: 1024px) and (max-width: 1599px) { .tagline { display: none; } }
 @media (min-width: 1024px) and (max-width: 1365px) {
   .book-button { padding: 0 12px; }.header-controls { gap: 12px; }.coin-count { padding-right: 12px; }
   .detail-description { display: none; }
-  /* Narrower panels keep the pantry on the first screen with tighter sections. */
+  /* Narrower panels use tighter sections. */
   .drawer .side>*+* { margin-top: 10px; padding-top: 10px; }.side>.recipe-book { padding-top: 6px; }
-  .storage-panel .section-heading { margin-bottom: 6px; }.inventory { gap: 4px; }.task-content p { margin-bottom: 8px; }
+  .task-content p { margin-bottom: 8px; }
   .task-content { margin-top: 8px; padding-top: 8px; }.game-layout { padding-bottom: 4px; }
-  /* The longest chapter title keeps to one line. Three rows of 44px slots and the pantry heading fit the pantry. */
+  /* The longest chapter title keeps to one line. */
   .chapter-title { font-size: 16px; }
-  .side>.storage-panel { min-height: 172px; }
 }
 
 /* Phones and tablets: the room fills the screen behind a parchment drawer that sits half open. Its handle row carries the tickets
@@ -527,7 +508,7 @@ dialog::backdrop { background: #17101ac4; }
   .long-name .detail-next,.detail-description { display: none; }
   #item-detail { flex-wrap: nowrap; }
   .item-actions { flex-shrink: 0; gap: 6px; }.item-actions button { padding: 9px 11px; }
-  /* An upgraded source keeps the strip's height, so the board stays under the finger: its outputs, Store, and Clear share one row. */
+  /* An upgraded source keeps the strip's height, so the board stays under the finger: its outputs and Clear share one row. */
   #item-detail.multiple-outputs { flex-wrap: nowrap; gap: 4px; }
   .multiple-outputs .detail-head,.multiple-outputs .take-word { display: none; }
   .multiple-outputs>.take-actions { order: -1; flex: 1 1 0; gap: 4px; }

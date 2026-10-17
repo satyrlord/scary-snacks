@@ -1,25 +1,14 @@
 /** Local-only persistence. */
 const FORMAT = 'scary-snacks';
-/** The envelope version that this game writes. Envelopes 1 through VERSION - 1 load through migrations. */
-const VERSION = 7;
-/** Each envelope version has its own key, so a conversion never changes the bytes of an older save. */
-const saveKey = (version: number) => `scary-snacks-save-v${version}`;
-export const SAVE_KEY = saveKey(VERSION);
-export const BOARD_SAVE_KEY = saveKey(6);
-export const QUEST_SAVE_KEY = saveKey(5);
-export const LEVEL_REWARD_SAVE_KEY = saveKey(4);
-export const GENERATOR_SAVE_KEY = saveKey(3);
-export const PREVIOUS_SAVE_KEY = saveKey(2);
-export const LEGACY_SAVE_KEY = saveKey(1);
+/** Only the current save format is supported. */
+const VERSION = 8;
+export const SAVE_KEY = `scary-snacks-save-v${VERSION}`;
 export const MAX_SAVE_BYTES = 2 * 1024 * 1024;
 
 export type SaveStatus = 'loaded' | 'empty' | 'invalid' | 'unsupported' | 'unavailable';
 export type SaveStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 /** Only a result of exactly true admits a state. */
 export type Validator = (state: unknown) => unknown;
-export type Migration = { validate: Validator; migrate: (state: unknown) => unknown };
-/** Migration n converts the state of envelope version n into the state of envelope version n + 1. */
-export type Migrations = Partial<Record<number, Migration>>;
 export type LoadResult<State> = { state: State | null; status: SaveStatus; error: string | null };
 export type WriteResult = { ok: boolean; error: string | null };
 
@@ -54,7 +43,7 @@ function validateState(state: unknown, validate: Validator | undefined) {
   if (valid !== true) throw new SaveError('The saved game has damaged or unknown game data.');
 }
 
-function parseSave<State>(text: unknown, validate: Validator | undefined, migrations?: Migrations, expectedVersion?: number): State {
+function parseSave<State>(text: unknown, validate: Validator | undefined): State {
   if (typeof text !== 'string') throw new SaveError('The save must be JSON text.');
   // Check string length first to avoid allocating a large UTF-8 buffer.
   if (text.length > MAX_SAVE_BYTES || new TextEncoder().encode(text).byteLength > MAX_SAVE_BYTES) {
@@ -69,51 +58,28 @@ function parseSave<State>(text: unknown, validate: Validator | undefined, migrat
   if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)) {
     throw new SaveError('This is not a Scary Snacks saved game.');
   }
-  if (envelope.format !== FORMAT || !Number.isInteger(envelope.version) || envelope.version < 1 || envelope.version > VERSION
-    || (expectedVersion !== undefined && envelope.version !== expectedVersion)) {
+  if (envelope.format !== FORMAT || envelope.version !== VERSION) {
     throw new SaveError('The saved game comes from another game or a version this one cannot open.', 'unsupported');
   }
   if (!Object.hasOwn(envelope, 'state')) {
     throw new SaveError('The saved game has no game data in it.');
   }
-  let state: unknown = envelope.state;
-  for (let version: number = envelope.version; version < VERSION; version++) {
-    const migration = migrations?.[version];
-    if (!migration) throw new SaveError('The saved game comes from a version this one cannot open.', 'unsupported');
-    validateState(state, migration.validate);
-    try { state = migration.migrate(state); }
-    catch { throw new SaveError('The older saved game could not be converted.'); }
-    validateState(state, version + 1 === VERSION ? validate : migrations?.[version + 1]?.validate);
-  }
+  const state: unknown = envelope.state;
   validateState(state, validate);
   return state as State;
 }
 
 /** Returns state only after the complete envelope and game state pass validation. */
-export function loadSave<State>(storage: SaveStorage | null, validate: Validator | undefined, migrations?: Migrations): LoadResult<State> {
+export function loadSave<State>(storage: SaveStorage | null, validate: Validator | undefined): LoadResult<State> {
   let text = null;
-  let version = VERSION;
   try {
     text = available(storage).getItem(SAVE_KEY);
-    // Without the current save, the newest older save that exists loads.
-    if (migrations) for (let older = VERSION - 1; text === null && older >= 1; older--) {
-      text = available(storage).getItem(saveKey(older));
-      version = older;
-    }
   } catch (error) {
     return { state: null, status: 'unavailable', error: `Cannot read browser storage: ${message(error, 'Storage is unavailable.')}` };
   }
   if (text === null) return { state: null, status: 'empty', error: null };
   try {
-    // Each storage key admits only its own envelope version.
-    const state = parseSave<State>(text, validate, migrations, version);
-    if (version < VERSION) {
-      const converted = exportSave(state, validate);
-      try { available(storage).setItem(SAVE_KEY, converted); }
-      catch (error) {
-        return { state: null, status: 'unavailable', error: `The older save was preserved. Cannot save its conversion: ${message(error, 'Storage is unavailable.')}` };
-      }
-    }
+    const state = parseSave<State>(text, validate);
     return { state, status: 'loaded', error: null };
   } catch (error) {
     return { state: null, status: error instanceof SaveError ? error.status : 'invalid', error: message(error, 'Cannot read the saved game.') };
@@ -135,8 +101,8 @@ export function exportSave(state: unknown, validate: Validator | undefined) {
 }
 
 /** Parse before replacing live state. The caller decides when to adopt this state. */
-export function importSave<State>(text: unknown, validate: Validator | undefined, migrations?: Migrations): State {
-  return parseSave<State>(text, validate, migrations);
+export function importSave<State>(text: unknown, validate: Validator | undefined): State {
+  return parseSave<State>(text, validate);
 }
 
 /** One atomic setItem. Never remove an existing save to make room for a write. */

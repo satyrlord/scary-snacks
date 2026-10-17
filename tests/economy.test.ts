@@ -1,18 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, dataProblems, economyProblems, legacyOrderReward, menuReward, reduceGame, saleValue, validateGame, validateLegacyGame, validatePreviousGame, validateGeneratorGame, validateLevelRewardGame, migrateGame, migratePreviousGame, migrateGeneratorGame, migrateLevelRewardGame, migrateQuestGame, migrateBoardGame } from '../src/engine.ts';
-import { exportSave, importSave, loadSave, saveGame, SAVE_KEY } from '../src/storage.ts';
-import type { GameData, GameState } from '../src/engine.ts';
+import { createGame, dataProblems, economyProblems, menuReward, saleValue, validateGame } from '../src/engine.ts';
+import type { GameData } from '../src/engine.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
 const validate = (state: unknown) => validateGame(state, data);
-function quotedBeforeMenu(state = createGame(data)): GameState {
-  const old = structuredClone(state);
-  old.orders = old.orders.map(({ pricing: _, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, data) }));
-  return old;
-}
-
 test('renovation cost follows its materials and labour, with less work and money for signs and menus', () => {
   assert.deepEqual(economyProblems(data), []);
   for (const task of data.tasks) assert.equal(task.cost, task.work.materials + task.work.labour);
@@ -69,96 +62,16 @@ test('authored economy rejects missing, malformed, unsupported, or inconsistent 
   }
 });
 
-test('old quotes pay their exact reward and replacements use menu prices with the same seeded draws', () => {
-  const current = createGame(data);
-  const old = quotedBeforeMenu(current);
-  assert.ok(validate(old));
-  const before = structuredClone(old);
-  const order = old.orders[0];
-  const served = reduceGame(old, { type: 'serve', id: order.id }, data);
-  const servedCurrent = reduceGame(current, { type: 'serve', id: order.id }, data);
-  assert.ok(served.ok, served.message);
-  assert.ok(servedCurrent.ok, servedCurrent.message);
-  assert.deepEqual(old, before);
-  assert.equal(served.state.coins, old.coins + order.reward);
-  assert.equal(servedCurrent.state.coins, current.coins + current.orders[0].reward);
-  assert.deepEqual(served.state.orders[0], servedCurrent.state.orders[0]);
-  assert.equal(served.state.orders[0].pricing, 'menu-1');
-  assert.equal(served.state.seed, servedCurrent.state.seed);
-  assert.deepEqual(served.state.orders.slice(1), old.orders.slice(1));
-  assert.ok(validate(served.state));
-  assert.deepEqual(importSave(exportSave(served.state, validate), validate), served.state);
-});
-
-test('a quote marker selects one reward contract and never accepts a reward from the other contract', () => {
+test('orders require the current price marker and exact menu reward', () => {
   const state = createGame(data);
-  const old = quotedBeforeMenu(state);
-  assert.notEqual(old.orders[0].reward, state.orders[0].reward);
   for (const pricing of [null, undefined, '', 'menu-2', 1, {}]) {
     const invalid = structuredClone(state);
     Object.assign(invalid.orders[0], { pricing });
     assert.equal(validate(invalid), false);
   }
-  for (const [base, reward] of [[state, old.orders[0].reward], [old, state.orders[0].reward]] as const) {
-    const invalid = structuredClone(base);
+  for (const reward of [-1, 0, 0.5, NaN, Infinity, state.orders[0].reward + 1]) {
+    const invalid = structuredClone(state);
     invalid.orders[0].reward = reward;
     assert.equal(validate(invalid), false);
   }
-  for (const base of [state, old]) for (const reward of [-1, 0, 0.5, NaN, Infinity, 1_000_000_001]) {
-    const invalid = structuredClone(base);
-    invalid.orders[0].reward = reward;
-    assert.equal(validate(invalid), false);
-  }
-});
-
-test('all supported old state versions keep exact outstanding quotes and reject new markers before conversion', () => {
-  const state = quotedBeforeMenu({ ...createGame(data), layoutId: 'legacy-open' });
-  const { completedQuests: _completed, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
-    layoutId: _layout, resolvedObstacles: _resolved, pendingScenes: _scenes, ...level } = state;
-  const state5 = { ...level, version: 5 };
-  const { claimedLevelRewards: _claims, ...generator } = state5;
-  const state4 = { ...generator, version: 4 };
-  const { outputChoices: _outputs, ...previous } = state4;
-  const state3 = { ...previous, version: 3 };
-  const { decorationChoices: _decorations, ...legacy } = state3;
-  const state2 = { ...legacy, version: 2 };
-  const cases = [
-    { old: state2, check: validateLegacyGame, convert: (candidate: unknown) => migrateLevelRewardGame(migrateGeneratorGame(migratePreviousGame(migrateGame(candidate, data), data), data), data) },
-    { old: state3, check: validatePreviousGame, convert: (candidate: unknown) => migrateLevelRewardGame(migrateGeneratorGame(migratePreviousGame(candidate, data), data), data) },
-    { old: state4, check: validateGeneratorGame, convert: (candidate: unknown) => migrateLevelRewardGame(migrateGeneratorGame(candidate, data), data) },
-    { old: state5, check: validateLevelRewardGame, convert: (candidate: unknown) => migrateLevelRewardGame(candidate, data) },
-  ];
-  for (const { old, check, convert } of cases) {
-    assert.ok(check(old, data));
-    const bytes = JSON.stringify(old);
-    const converted = migrateBoardGame(migrateQuestGame(convert(old), data), data);
-    assert.equal(JSON.stringify(old), bytes);
-    assert.deepEqual(migrateBoardGame(migrateQuestGame(convert(old), data), data), converted);
-    assert.deepEqual(converted, state);
-    assert.ok(validate(converted));
-    const tagged = structuredClone(old);
-    tagged.orders[0].pricing = 'menu-1';
-    tagged.orders[0].reward = menuReward(tagged.orders[0].requirements, data);
-    assert.equal(check(tagged, data), false);
-  }
-});
-
-test('loading a current save with old quotes does not rewrite it and a failed mixed-quote save preserves its bytes', () => {
-  const old = quotedBeforeMenu();
-  const text = exportSave(old, validate);
-  const values = new Map([[SAVE_KEY, text]]);
-  let writes = 0;
-  const storage = {
-    getItem: (key: string) => values.get(key) ?? null,
-    setItem: () => { writes++; throw new Error('Storage is full.'); },
-    removeItem: () => assert.fail('Saved bytes must remain.'),
-  };
-  assert.deepEqual(loadSave(storage, validate), { state: old, status: 'loaded', error: null });
-  assert.equal(writes, 0);
-  const served = reduceGame(old, { type: 'serve', id: old.orders[0].id }, data);
-  assert.ok(served.ok);
-  assert.equal(saveGame(storage, served.state, validate).ok, false);
-  assert.equal(writes, 1);
-  assert.equal(values.get(SAVE_KEY), text);
-  assert.deepEqual(loadSave(storage, validate).state, old);
 });

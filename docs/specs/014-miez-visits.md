@@ -39,7 +39,7 @@ The mascot of the bistro gives the game a feature of its own.
    takes at least one merge. That service draws the request. Only the actions in rules 1, 2,
    7, and 8 draw a Miez value from the seed.
 3. Feeding Miez is one atomic hand-in. It consumes the dish from the board, following the rules
-   for ordinary orders. Stored dishes must return to the board first. A failed feed changes nothing.
+   for ordinary orders. A failed feed changes nothing.
 4. Feeding pays no coins and no experience points (XP). Feeding does not count as service.
    Feeding adds nothing to `served` or to the 006 goals. Feeding adds nothing to the dish service
    of 012 or to the count of a neighbour from 013.
@@ -73,7 +73,7 @@ Draft presentation. `DESIGN.md` decides the final placement at implementation.
   approval of the user for the asset and for each paid request. The pose is optional for the first slice.
 - Keep motion short and respect reduced motion. Keep the cat glow in dark mode.
 
-## Data, state, and migration
+## Data and state
 
 - Add `miez: { due: number; request: string | null; blessing: number }` to `GameState`.
   Put the rules in `src/engine.ts` and the presentation in `src/app.ts`. Put the visit scene and the
@@ -85,16 +85,15 @@ Draft presentation. `DESIGN.md` decides the final placement at implementation.
   - `due` is an integer.
 
   Reject contradictory records on import. Do not replace the save.
-- Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index. Migration keeps
-  every existing field. The new fields start with no request and no blessing. When preparation 2
-  is complete, `due` equals the current `served` plus 12. Migration draws no random number and
-  does not change the seed.
+- Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
+  Start with no request and no blessing. Set the first due count when preparation 2 completes.
+  Save and reload preserve the request, blessing, due count, and seed.
 
 ## Thin implementation slices
 
 1. Engine visits, feeding, and the blessing. Exit: on the fixture seed, a visit begins at its
    due count. Feeding doubles exactly the next five orders. Failed feeds, Not now, and
-   repeated input behave as specified. Migration is deterministic.
+   repeated input behave as specified. Reload is deterministic.
 2. The request bubble, the phone card, and the doubled-pay marker. Exit: the player can see the
    request, feed Miez with keyboard and touch, and see how many lucky orders remain.
 3. Balance with 006. Exit: the full-campaign fixture reports income with visits and without
@@ -107,16 +106,13 @@ Draft presentation. `DESIGN.md` decides the final placement at implementation.
   Test exactly five doubled orders and no double blessing. Test that no visit begins while one
   waits or a blessing runs. Test Not now. Test that the seed changes only in successful actions.
 - Save: fresh, mid-blessing, waiting-visit, and completed saves survive a save and a load.
-  Migration from saves of the current game state version works. Import rejects malformed `miez`
-  records. The old bytes stay unchanged.
+  Import rejects malformed `miez` records and keeps the current save.
 - Browser: follow [Verification and release](README.md#verification-and-release). Trigger a visit, feed Miez, serve a doubled order, and reload in
   the middle of the blessing. Check that the request bubble does not crowd the third order ticket.
-- Manual: check whether the visit feels like a treat and not a chore. Check whether five orders
-  is long enough to notice.
 
 ## Dependencies and remaining decisions
 
 Slice 1 has no hard dependency. Balance integrates with 006. The first-visit scene uses 009.
 
 Open decisions: the interval, the dish stages, the blessing length, and whether the Miez card shows a
-count of feedings. Tune with the 006 fixture and a human session.
+count of feedings. Tune with the 006 fixture.

@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { availableLevelRewards, createGame, dataProblems, getLevel, levelRewardProblems, migrateGame, migratePreviousGame, migrateGeneratorGame, migrateLevelRewardGame, migrateQuestGame, migrateBoardGame, reduceGame, validateGame, validateGeneratorGame, validateLevelRewardGame, validateLegacyGame, validatePreviousGame, legacyOrderReward } from '../src/engine.ts';
-import type { GameData, GameState, GeneratorGameState } from '../src/engine.ts';
+import { availableLevelRewards, createGame, dataProblems, getLevel, levelRewardProblems, reduceGame, validateGame } from '../src/engine.ts';
+import type { GameData, GameState } from '../src/engine.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
+data.board.layouts.push({ id: 'test-open', obstacles: [] });
 const claim = (state: GameState, id: string) => reduceGame(state, { type: 'claimLevelReward', id }, data);
 function rejected(state: GameState, id: string, message: RegExp) {
   const before = structuredClone(state);
@@ -80,10 +81,9 @@ test('the rewards that the House book offers are the rewards that a claim accept
   assert.deepEqual(availableLevelRewards(full, data).map(reward => reward.id), ['level-2'], 'A reward that the coin limit blocks stays available.');
 });
 
-test('a full board and pantry permit a coin claim; overflow preserves the claim for later', () => {
-  const state = { ...createGame(data), layoutId: 'legacy-open', xp: 100, coins: 999_999_981, ...data.tasks[0].goals };
+test('a full board permits a coin claim; overflow preserves the claim for later', () => {
+  const state = { ...createGame(data), layoutId: 'test-open', xp: 100, coins: 999_999_981, ...data.tasks[0].goals };
   state.board = state.board.map(cell => cell ?? { code: 'bakery_1' });
-  state.inventory = Array.from({ length: data.inventoryCapacity }, () => ({ code: 'bakery_1' }));
   assert.equal(validateGame(state, data), true);
   rejected(state, 'level-2', /Spend some coins/);
   const spent = reduceGame(state, { type: 'task' }, data);
@@ -120,54 +120,4 @@ test('the reward data check rejects invalid and unsupported schedules', () => {
     assert.ok(levelRewardProblems(broken).length, JSON.stringify(schedule));
     assert.ok(dataProblems(broken).length, JSON.stringify(schedule));
   }
-});
-
-test('version four conversion preserves each campaign checkpoint and offers existing XP rewards without paying them', () => {
-  for (const count of [0, 12, 24]) {
-    let state = createGame(data);
-    state.coins = data.tasks.reduce((sum, task) => sum + task.cost, 0);
-    state.served = data.tasks[count - 1]?.goals.served ?? 0;
-    state.merges = data.tasks[count - 1]?.goals.merges ?? 0;
-    for (let index = 0; index < count; index++) state = reduceGame(state, { type: 'task' }, data).state;
-    state.xp = count * 100;
-    if (count >= 12) {
-      state.outputChoices = { bakery: 'bakery_2' };
-      state.decorationChoices = { tableware: 'green' };
-    }
-    const { claimedLevelRewards: _, completedQuests: _complete, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
-      layoutId: _layout, resolvedObstacles: _resolved, pendingScenes: _scenes, ...previous } = structuredClone(state);
-    const old: GeneratorGameState = { ...previous, version: 4, orders: previous.orders.map(({ pricing: _, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, data) })) };
-    const before = structuredClone(old);
-    assert.equal(validateGeneratorGame(old, data), true);
-    assert.equal(validateGame(old, data), false);
-    const converted = migrateGeneratorGame(old, data);
-    assert.deepEqual(converted, { ...old, version: 5, claimedLevelRewards: [] });
-    assert.deepEqual(old, before);
-    assert.deepEqual(migrateGeneratorGame(old, data), converted);
-    assert.equal(validateLevelRewardGame(converted, data), true);
-    if (count) {
-      const result = claim(migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(converted, data), data), data), 'level-10');
-      assert.equal(result.ok, true);
-      assert.equal(result.state.coins, old.coins + 20);
-      assert.throws(() => migrateGeneratorGame(result.state, data), /damaged or unknown/);
-    }
-  }
-});
-
-test('every older schema rejects injected claims and conversion validates both ends', () => {
-  const { claimedLevelRewards: _, outputChoices: __, decorationChoices: ___, completedQuests: _complete, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
-    layoutId: _layout, resolvedObstacles: _resolved, pendingScenes: _scenes, ...base } = createGame(data);
-  const old = { ...base, version: 2, xp: 900, orders: base.orders.map(({ pricing: _, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, data) })) };
-  assert.equal(validateLegacyGame(old, data), true);
-  const previous = migrateGame(old, data);
-  const generator = migratePreviousGame(previous, data);
-  const current = migrateGeneratorGame(generator, data);
-  assert.deepEqual(current.claimedLevelRewards, []);
-  assert.equal(current.coins, old.coins);
-  assert.equal(current.xp, old.xp);
-  assert.equal(validateLegacyGame({ ...old, claimedLevelRewards: [] }, data), false);
-  assert.equal(validatePreviousGame({ ...previous, claimedLevelRewards: [] }, data), false);
-  assert.equal(validateGeneratorGame({ ...generator, claimedLevelRewards: [] }, data), false);
-  assert.throws(() => migrateGeneratorGame({ ...generator, coins: -1 }, data), /damaged or unknown/);
-  assert.throws(() => migrateGeneratorGame({ ...generator, version: 99 }, data), /damaged or unknown/);
 });

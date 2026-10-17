@@ -132,9 +132,6 @@ Draft presentation. `DESIGN.md` decides the final layout at implementation.
   finished-campaign, broken-save, and failed-data. Also check keyboard-only entry. Check the notice
   and both of its buttons under emulated reduced motion. Check the House book Motion choice.
   Check the behaviour when storage is denied.
-- Manual: the time from load to the first tap on the board feels no slower than in the current game. The notice
-  reads as helpful and not as a warning. In a screen-reader pass, the reader announces the state
-  line and the notice.
 
 ## Dependencies and remaining decisions
 

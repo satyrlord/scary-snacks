@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { boardLayoutProblems, canServe, createGame, firstFreeBoardCell, freeBoardCells, migrateBoardGame, migrateQuestGame, reduceGame,
-  servedCells, unresolvedObstacle, validateBoardGame, validateGame, validateQuestGame } from '../src/engine.ts';
+import { boardLayoutProblems, canServe, createGame, firstFreeBoardCell, freeBoardCells, reduceGame,
+  servedCells, unresolvedObstacle, validateGame, } from '../src/engine.ts';
 import type { Action, GameData, GameState } from '../src/engine.ts';
 import { exportSave, importSave, loadSave, saveGame, SAVE_KEY } from '../src/storage.ts';
 
@@ -25,7 +25,7 @@ function rejected(state: GameState, action: Action) {
 test('new games reserve eight obstacle cells and discover visible anchors only', () => {
   const state = start();
   assert.equal(state.layoutId, 'workbench-clutter-1');
-  assert.equal(state.version, 8);
+  assert.equal(state.version, 9);
   assert.equal(freeBoardCells(state, data), 27);
   assert.equal(firstFreeBoardCell(state, data), 2);
   assert.deepEqual([0, 5, 6, 11, 36, 37, 40, 41].map(index => unresolvedObstacle(state, index, data)?.type),
@@ -77,14 +77,13 @@ test('destination side contact clears clutter; source side and diagonal contact 
   assert.deepEqual(merged.resolvedObstacles, []);
 });
 
-test('one merge reveals several wrappers without a cascade on a full pantry', () => {
+test('one merge reveals several wrappers without a cascade on a full board', () => {
   const content = structuredClone(data);
-  content.board.layouts[1].obstacles.push(...[19, 21, 25, 26].map((position, index) =>
+  content.board.layouts[0].obstacles.push(...[19, 21, 25, 26].map((position, index) =>
     ({ id: `extra-${index}`, position, name: 'Old bundle', type: 'clutter' as const, ingredient: 'bakery_2' })));
   assert.deepEqual(boardLayoutProblems(content), []);
   const state = createGame(content);
   state.board[20] = { code: 'bakery_1' };
-  state.inventory = Array.from({ length: content.inventoryCapacity }, () => ({ code: 'bakery_1' }));
   state.board = state.board.map((cell, index) => cell || unresolvedObstacle(state, index, content) ? cell : { code: 'bakery_1' });
   assert.equal(firstFreeBoardCell(state, content), -1);
   const result = reduceGame(state, { type: 'move', from: 14, to: 20 }, content);
@@ -93,7 +92,6 @@ test('one merge reveals several wrappers without a cascade on a full pantry', ()
   assert.equal(result.state.xp, 1);
   assert.deepEqual([19, 21, 26].map(index => result.state.board[index]?.code), ['bakery_2', 'bakery_2', 'bakery_2']);
   assert.equal(result.state.board[25], null, 'A reveal cannot clear its own neighbour.');
-  assert.equal(result.state.inventory.length, content.inventoryCapacity);
   assert.equal(validateGame(result.state, content), true);
 });
 
@@ -102,7 +100,7 @@ test('anchors and wrappers reject ordinary item actions without changing the see
   state.board[7] = { code: 'bakery_1' };
   for (const action of [
     { type: 'move', from: 7, to: 6 }, { type: 'move', from: 7, to: 0 },
-    { type: 'move', from: 6, to: 7 }, { type: 'store', index: 6 }, { type: 'sell', index: 6 },
+    { type: 'move', from: 6, to: 7 }, { type: 'sell', index: 6 },
   ] as Action[]) rejected(state, action);
   assert.equal(state.seed, start().seed);
   assert.deepEqual(state.resolvedObstacles, []);
@@ -118,10 +116,10 @@ test('blocked null cells do not provide placement or preparation space', () => {
   assert.equal(freeBoardCells(state, data), 0);
   assert.equal(firstFreeBoardCell(state, data), -1);
   rejected(state, { type: 'spawn', index: 1 });
-  const stored = apply(state, { type: 'store', index: 2 });
-  assert.equal(firstFreeBoardCell(stored, data), 2);
-  const returned = apply(stored, { type: 'retrieve', index: 0 });
-  assert.equal(returned.board[2]?.code, 'bakery_1');
+  const sold = apply(state, { type: 'sell', index: 2 });
+  assert.equal(firstFreeBoardCell(sold, data), 2);
+  const produced = apply(sold, { type: 'spawn', index: 1 });
+  assert.equal(produced.board[2]?.code, 'bakery_1');
 });
 
 test('resolved IDs and blocked cell contents are validated', () => {
@@ -132,20 +130,6 @@ test('resolved IDs and blocked cell contents are validated', () => {
     { board: Object.assign([...state.board], { 0: { code: 'bakery_1' } }) },
     { resolvedObstacles: ['old-crate'], discovered: state.discovered.filter(code => code !== 'bakery_3') },
   ]) assert.equal(validateGame({ ...state, ...change }, data), false);
-});
-
-test('state six conversion keeps every occupied cell on an open layout', () => {
-  const current = start();
-  const { layoutId: _layout, resolvedObstacles: _resolved, pendingScenes: _scenes, ...older } = current;
-  const state = { ...older, version: 6 as const };
-  assert.equal(validateQuestGame(state, data), true);
-  const migrated = migrateQuestGame(state, data);
-  assert.equal(migrated.layoutId, 'legacy-open');
-  assert.deepEqual(migrated.resolvedObstacles, []);
-  assert.deepEqual(migrated.board, state.board);
-  assert.equal(validateBoardGame(migrated, data), true);
-  assert.equal(freeBoardCells(migrateBoardGame(migrated, data), data), 35);
-  assert.deepEqual(migrateQuestGame(state, data), migrated);
 });
 
 test('open, partly cleared, and fully cleared boards survive export, import, and reload', () => {
@@ -176,14 +160,14 @@ test('open, partly cleared, and fully cleared boards survive export, import, and
 
 test('layout data rejects duplicate positions, unknown ingredients, and trapped clutter', () => {
   const duplicate = structuredClone(data);
-  duplicate.board.layouts[1].obstacles[1].position = 0;
+  duplicate.board.layouts[0].obstacles[1].position = 0;
   assert.ok(boardLayoutProblems(duplicate).length);
   const unknown = structuredClone(data);
-  unknown.board.layouts[1].obstacles[1].ingredient = null as unknown as string;
+  unknown.board.layouts[0].obstacles[1].ingredient = null as unknown as string;
   assert.ok(boardLayoutProblems(unknown).length);
   const trapped = structuredClone(data);
   trapped.board.initial[13] = null;
-  trapped.board.layouts[1].obstacles.push(
+  trapped.board.layouts[0].obstacles.push(
     { id: 'center', position: 19, name: 'Center', type: 'clutter', ingredient: 'bakery_1' },
     ...[13, 18, 20, 25].map((position, index) => ({ id: `wall-${index}`, position, name: 'Clutter', type: 'clutter' as const, ingredient: 'bakery_1' })),
   );

@@ -1,6 +1,6 @@
 # 008 - Chapter objectives, story payoffs, and finale
 
-Status: Implemented. Automated engine, save, and browser checks cover the rules. A scripted browser playthrough from a fresh save through the finale shows that the goals, the contributions, and the payoffs agree. The manual playthrough by a person remains open.
+Status: Implemented. Automated engine, save, and browser checks cover the rules. A scripted browser playthrough from a fresh save through the finale shows that the goals, the contributions, and the payoffs agree.
 
 ## Result
 
@@ -42,7 +42,7 @@ The spiders and their webs leave with preparation 1, as 001 describes. The closi
 5. After preparation 24, the finale waits after the closing scene of chapter 6. The game records it once. A preparation is not charged again, and its reward is not given again.
 6. The finale names the outcome of each chapter, and all four core characters speak. It ends with "Back to the kitchen" and its ending line. Ordinary orders continue.
 7. The journal replays each complete chapter scene and, after the supper, the finale. Replay, Skip, Back, and closing a dialog have no economic effect.
-8. A failed payment, missing goals, a missing required quest, and a full board and pantry for a new source change nothing. They complete no chapter, queue no scene, and open no finale.
+8. A failed payment, missing goals, a missing required quest, and a full board for a new source change nothing. They complete no chapter, queue no scene, and open no finale.
 9. `storyProblems` rejects missing or blank scenes, unknown speakers, duplicate or unstable IDs, unknown or optional-producer contributions, contributions that open outside their chapter, empty chapters, and preparations with an unknown or out-of-order chapter. The generator and the game refuse such data. If a saved scene ID has no scene, the game shows a recoverable error and keeps the progress. It does not invent story text.
 
 ## Scene order and reading
@@ -56,21 +56,17 @@ A scene restarts at its first line. Spec 009 owns the saved line position and th
 
 ## State and save compatibility
 
-Game state 8 in envelope 7 at `scary-snacks-save-v7` adds `pendingScenes`.
+The state records `pendingScenes`.
 Validation accepts only the closing scenes of complete chapters and, after preparation 24, the finale. Each ID occurs once, in story order. Unknown IDs and scenes that the preparations did not earn fail validation.
-State 7 in envelope 6 converts by the addition of an empty list. Earlier chapters stay complete, and the journal replays their scenes. A finished game gets the finale in the journal.
-Conversion queues no old scene, gives no reward, and claims no reading. A repeated conversion gives the same result. The older bytes stay unchanged.
 Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
 
 ## Acceptance and evidence
 
 - `tests/story.test.ts` covers the outline, the content checks, every chapter boundary, failed payments, the finale once, reading events, continued orders, and the validation of saved scene queues.
-- `tests/storage.test.ts` covers the conversion of state-7 saves at every chapter boundary, a failed conversion write, malformed state-7 saves, and the round trip of each valid scene queue.
-- `tests/campaign-balance.test.ts` shows that a legal fresh campaign ends with each chapter scene and one finale waiting. A campaign that converts at preparation 12 queues only the chapters that close after the conversion.
-- `tests/browser/story.spec.ts` covers the objective and step display, the chapter change, Escape and reload with a waiting scene, the finale with Skip and replay, continued service after the finale, a finished older save, and the layout at 1440×900, 390×844, and 390×800 in both themes.
+- `tests/storage.test.ts` covers failed writes, malformed saves, and round trips of valid scene queues.
+- `tests/campaign-balance.test.ts` shows that a legal fresh campaign ends with each chapter scene and one finale waiting.
+- `tests/browser/story.spec.ts` covers the objective and step display, the chapter change, Escape and reload with a waiting scene, the finale with Skip and replay, continued service after the finale, and the layout at 1440×900, 390×844, and 390×800 in both themes.
 
 The playthrough in `tests/browser/story.spec.ts` starts from a fresh save in the built game. Between payments, the engine makes legal moves: it claims each level reward, delivers each open request, and serves or merges. The interface makes every payment, tells every preparation story, runs every reveal, plays every closing scene and the finale, and checks the journal.
 The playthrough shows that the story agrees. Each closing scene names the room changes of its four preparations. Each contribution is delivered during its chapter, and the journal shows it beside the payoff. The finale names each chapter result. Ordinary service continues after the finale.
-The engine makes the moves between payments, so the playthrough does not measure human pacing. Spec 006 owns human pacing.
-The manual check remains open: a person plays from a fresh save through the finale. The person judges whether the goals, the contributions, and the payoffs agree, and whether the scene after each reveal feels natural.
 Spec 012 owns goals after the story. Spec 013 can add the names of the regulars who have arrived to the finale. Scene art is a content decision.

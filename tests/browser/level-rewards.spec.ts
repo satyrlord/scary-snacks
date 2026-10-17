@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { createGame, legacyOrderReward, validateGame } from '../../src/engine.ts';
+import { createGame, validateGame } from '../../src/engine.ts';
 import type { GameData, GameState } from '../../src/engine.ts';
-import { SAVE_KEY, GENERATOR_SAVE_KEY, exportSave } from '../../src/storage.ts';
+import { SAVE_KEY, exportSave } from '../../src/storage.ts';
 
 const data: GameData=JSON.parse(readFileSync('public/data/game.json','utf8'));
 const validate=(candidate: unknown)=>validateGame(candidate,data);
@@ -77,19 +77,17 @@ test('a failed write keeps the claim in memory and Retry saves it once',async({p
   await page.reload();await house(page).click();await expect(claim(page,2)).toHaveCount(0);
 });
 
-test('generator saves convert retroactively and claims survive export and import',async({page})=>{
-  const {claimedLevelRewards:_claims,completedQuests:_quests,legacySatisfiedQuests:_legacy,activeQuestProducers:_producers,layoutId:_layout,resolvedObstacles:_resolved,pendingScenes:_scenes,...old}=createGame(data);
-  old.orders=old.orders.map(({pricing:_pricing,...order})=>({...order,reward:legacyOrderReward(order.requirements,data)}));
-  const legacy=JSON.stringify({format:'scary-snacks',version:3,state:{...old,version:4,xp:900}});
-  await page.addInitScript(([key,value])=>{if(!localStorage.getItem(key))localStorage.setItem(key,value);},[GENERATOR_SAVE_KEY,legacy]);
-  await page.goto('./');await expect(page.locator('#board button')).toHaveCount(42);await house(page).click();
-  expect(await page.evaluate(key=>localStorage.getItem(key),GENERATOR_SAVE_KEY)).toBe(legacy);
-  expect((await saved(page)).coins).toBe(0);await expect(page.locator('.level-panel .primary-button')).toHaveCount(9);await claim(page,10).click();
-  const committed=await saved(page),downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Export saved game'}).click();
-  const download=await downloadPromise,text=readFileSync((await download.path())!,'utf8');expect(JSON.parse(text).state).toEqual(committed);
-  await claim(page,2).click();await page.locator('input[type="file"]').setInputFiles({name:'rewards.json',mimeType:'application/json',buffer:Buffer.from(text)});
-  await page.getByRole('button',{name:'Import this saved game'}).click();await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(committed);
-  await page.reload();await house(page).click();await expect(claim(page,10)).toHaveCount(0);await expect(claim(page,2)).toBeVisible();
+
+test('claimed level rewards survive current save export and import',async({page})=>{
+  await start(page);await house(page).click();await claim(page,3).click();
+  const committed=await saved(page),pending=page.waitForEvent('download');
+  await page.getByRole('button',{name:'Export saved game'}).click();const download=await pending,path=(await download.path())!;
+  expect(JSON.parse(readFileSync(path,'utf8')).state).toEqual(committed);
+  await page.getByRole('button',{name:'Start a new game',exact:true}).click();await page.getByRole('button',{name:'Erase and start again'}).click();
+  expect(await saved(page)).not.toEqual(committed);
+  await house(page).click();await page.locator('input[type=file]').setInputFiles(path);await page.getByRole('button',{name:'Import this saved game'}).click();
+  expect(await saved(page)).toEqual(committed);await page.reload();await expect(page.locator('#board button')).toHaveCount(42);
+  expect(await saved(page)).toEqual(committed);await house(page).click();await expect(claim(page,3)).toHaveCount(0);await expect(claim(page,2)).toBeVisible();
 });
 
 test('another tab cannot claim the same reward twice',async({page,context})=>{

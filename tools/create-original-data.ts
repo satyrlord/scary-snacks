@@ -9,7 +9,7 @@ const chains: [id: string, name: string, stages: string[], generator: string][] 
   ['warm', 'Warm kitchen', ['Cornmeal', 'Mămăligă', 'Bulz', 'Smoked cheese plate', 'Cabbage rolls', 'Goulash pot'], 'Copper pot'],
   ['sweet', 'Dessert table', ['Walnuts', 'Doughnut', 'Papanași', 'Plum dumplings', 'Cozonac', 'Chimney cake'], 'Pastry box'],
   ['drinks', 'Drinks counter', ['Elderflowers', 'Socată', 'Fruit tea', 'Cherry compote', 'Blueberry liqueur', 'Plum brandy'], 'Drinks pitcher'],
-  ['pantry', 'Market pantry', ['Aubergine', 'Peppers', 'Roasted vegetables', 'Zacuscă', 'Wild mushroom sauce', 'Sharing board'], 'Produce basket'],
+  ['produce', 'Market produce', ['Aubergine', 'Peppers', 'Roasted vegetables', 'Zacuscă', 'Wild mushroom sauce', 'Sharing board'], 'Produce basket'],
 ];
 // Prices are for the portions in docs/economy.md. A merge stage is not a price multiplier.
 const menuPrices: Record<string, number[]> = {
@@ -17,7 +17,7 @@ const menuPrices: Record<string, number[]> = {
   warm: [2, 8, 32, 40, 50, 80],
   sweet: [3, 8, 32, 28, 40, 35],
   drinks: [1, 12, 18, 20, 35, 40],
-  pantry: [3, 3, 18, 24, 28, 65],
+  produce: [3, 3, 18, 24, 28, 65],
 };
 const items: Record<string, Item> = {};
 for (const [row, [chain, , names, generator]] of chains.entries()) {
@@ -54,9 +54,9 @@ const chapterRows: [title: string, objective: string, opening: string, payoff: s
       ['sorin', 'The spiders left with the webs. Well, all but the small one under the shelf.'],
       ['eszter', 'Let it stay. Every good room has one quiet guest.']]],
   ['A kitchen for everyone', 'Arrange a shared kitchen where anyone can help.',
-    'The front room is ready, but the kitchen is not. A shared menu needs a steady worktop, a stocked pantry, and shelves within reach.',
+    'The front room is ready, but the kitchen is not. A shared menu needs a steady worktop, fresh produce, and shelves within reach.',
     'The team can cook together, and the first menu explains each dish.', 'sorin-lunch',
-    [['mara', 'A steady worktop, a pantry shelf, jars above, and a menu by the door. We can cook here together now.'],
+    [['mara', 'A steady worktop, a produce shelf, jars above, and a menu by the door. We can cook here together now.'],
       ['sorin', 'And explain it. On every street, people ask me what zacuscă is. Now they can point at the picture.'],
       ['ilie', 'A menu is a promise. Tomorrow we find out if we can keep it.']]],
   ['Around one table', 'Make shared seating that is useful and welcoming.',
@@ -103,9 +103,9 @@ const taskRows = [
   ['Set up the pastry shelf', 'ilie', 'This shelf is low enough for everyone to see the pastries.', 'mara', 'And high enough to keep your elbow out of the walnuts.', 'ilie', 'A thoughtful design. I will bring the pastry box.'],
   ['Light the front room', 'sorin', 'The lamps are ready. Shall we put one above each small table?', 'eszter', 'Yes, and keep the corner warm and quiet.', 'mara', 'A seat for a quick lunch, and a seat for a long conversation.'],
   ['Repair the kitchen worktop', 'ilie', 'A steady worktop makes a calm kitchen.', 'eszter', 'I have sealed the edge. Give it room beside the copper pot.', 'mara', 'Now there is space to prepare tomorrow together.'],
-  ['Bring in market produce', 'sorin', 'The market had aubergines and more peppers than my basket could hold.', 'mara', 'We can roast a batch and make a pantry shelf.', 'ilie', 'Good. A jar of zacuscă makes a fine welcome on fresh bread.'],
+  ['Bring in market produce', 'sorin', 'The market had aubergines and more peppers than my basket could hold.', 'mara', 'We can roast a batch and make a produce shelf.', 'ilie', 'Good. A jar of zacuscă makes a fine welcome on fresh bread.'],
   ['Hang the kitchen shelves', 'eszter', 'The pastries keep the lower shelf. The jars go up top, on the left.', 'mara', 'Leave the right end free. We will learn what belongs there.', 'ilie', 'An empty space on a shelf is an invitation to cook.'],
-  ['Write the first menu', 'mara', 'Bread, warm dishes, sweets, drinks, and something from the pantry.', 'ilie', 'Draw it, then. Nobody needs glasses to read a picture of soup.', 'sorin', 'I will put a copy by the door before the lunch ride.'],
+  ['Write the first menu', 'mara', 'Bread, warm dishes, sweets, drinks, and vegetable dishes.', 'ilie', 'Draw it, then. Nobody needs glasses to read a picture of soup.', 'sorin', 'I will put a copy by the door before the lunch ride.'],
   ['Choose the tableware', 'eszter', 'These bowls came from three firings. None is exactly the same blue.', 'mara', 'That is why I like them. Each place will feel considered.', 'ilie', 'And each bowl is deep enough for a generous serving.'],
   ['Sand the long table', 'sorin', 'Four people can move this table. Three people can offer advice.', 'mara', 'Today all four of us are moving it. Then the old red chairs.', 'eszter', 'Under that sheet they were painted with birds. A little gold, and they will sing again.'],
   ['Make a recipe corner', 'ilie', 'I brought a notebook for recipes and the changes we make.', 'eszter', 'Let people add a memory beside a dish, if they want.', 'mara', 'We will leave pencils here. The menu can grow with the neighbourhood.'],
@@ -160,53 +160,53 @@ const tasks: Task[] = taskRows.map(([title, a, at, b, bt, c, ct], index) => {
     cost: materials + labour, work: { summary, materials, labour, hours },
     goals: { served: workBlocks, merges: workBlocks * 2 },
     dialogue: [{ speaker: a, text: at }, { speaker: b, text: bt }, { speaker: c, text: ct }],
-    ...(index === 2 ? { unlock: 'sweet' } : index === 5 ? { unlock: 'pantry' } : {}),
+    ...(index === 2 ? { unlock: 'sweet' } : index === 5 ? { unlock: 'produce' } : {}),
   };
 });
 // Each neighbour has three requests. They stay optional and use food available before they open.
-const questRows: [id: string, character: string, title: string, after: number, legacy: number, requirements: [string, number][], reward: number, opening: string, completion: string][] = [
-  ['mara-welcome', 'mara', 'A welcome drink', 0, 1, [['drinks_2', 1]], 16,
+const questRows: [id: string, character: string, title: string, after: number, requirements: [string, number][], reward: number, opening: string, completion: string][] = [
+  ['mara-welcome', 'mara', 'A welcome drink', 0, [['drinks_2', 1]], 16,
     'Let us try a glass of socată for the first welcome. I want something simple to offer when a neighbour comes through the door.',
     'That will do well. A glass and a seat can make the first visit easier. I will keep space on the counter.'],
-  ['ilie-counter', 'ilie', 'Bread for the counter', 1, 4, [['bakery_3', 1]], 16,
+  ['ilie-counter', 'ilie', 'Bread for the counter', 1, [['bakery_3', 1]], 16,
     'A few pogăcele would give the new counter a proper start. Bring me a serving and we can choose where the bread belongs.',
     'Here, within reach of the plates. Nobody should have to ask twice for bread.'],
-  ['eszter-bowls', 'eszter', 'Try the bowls', 4, 8, [['warm_2', 2]], 16,
+  ['eszter-bowls', 'eszter', 'Try the bowls', 4, [['warm_2', 2]], 16,
     'Can you bring two servings of mămăligă? I want to check that the bowls leave enough room for a spoon.',
     'Both servings fit comfortably. I will keep this shape for the bowls we use every day.'],
-  ['sorin-lunch', 'sorin', 'Lunch between errands', 6, 8, [['bakery_3', 1], ['drinks_2', 1]], 16,
+  ['sorin-lunch', 'sorin', 'Lunch between errands', 6, [['bakery_3', 1], ['drinks_2', 1]], 16,
     'I have a short stop between deliveries. Could you set aside pogăcele and socată so I can eat before the next hill?',
     'There is time to sit down after all. I will take the empty glass back before I leave.'],
-  ['mara-table', 'mara', 'A place at the table', 8, 12, [['warm_3', 1]], 24,
+  ['mara-table', 'mara', 'A place at the table', 8, [['warm_3', 1]], 24,
     'The shared table needs a warm dish that is easy to serve. Bring a bulz and we can test the space for plates.',
     'There is room for the dish and for people to pass it. The table feels ready for company.'],
-  ['eszter-table', 'eszter', 'A small sweet plate', 9, 12, [['sweet_3', 1]], 24,
+  ['eszter-table', 'eszter', 'A small sweet plate', 9, [['sweet_3', 1]], 24,
     'The new tableware needs a small sweet plate. Let me try papanași beside the bowl and cup.',
     'The plate fits without crowding the cup. I will use this arrangement at the shared table.'],
-  ['ilie-courtyard', 'ilie', 'Bread for outside', 12, 16, [['bakery_4', 1]], 24,
+  ['ilie-courtyard', 'ilie', 'Bread for outside', 12, [['bakery_4', 1]], 24,
     'Bring a langoș for a trial serving outside. I want to find a good place for the bread when the courtyard tables are ready.',
     'Near the kitchen door will work. We can bring another serving without crossing between the chairs.'],
-  ['sorin-path', 'sorin', 'A courtyard break', 13, 16, [['pantry_3', 1], ['drinks_2', 1]], 24,
+  ['sorin-path', 'sorin', 'A courtyard break', 13, [['produce_3', 1], ['drinks_2', 1]], 24,
     'The path is clear. Could you bring roasted vegetables and socată for a break while we check the route from gate to kitchen?',
     'The tray passed every chair. Now I can sit down and enjoy what I carried.'],
-  ['ilie-family', 'ilie', 'A dish from the notebook', 16, 18, [['warm_4', 1]], 32,
+  ['ilie-family', 'ilie', 'A dish from the notebook', 16, [['warm_4', 1]], 32,
     'I marked a smoked cheese plate in the family notebook. Bring one so we can choose a serving for the tasting.',
     'This serving belongs at the tasting. I will write the portion beside the family notes, where the next cook can find it.'],
-  ['eszter-tasting', 'eszter', 'Match the tasting plates', 17, 20, [['sweet_4', 1]], 32,
+  ['eszter-tasting', 'eszter', 'Match the tasting plates', 17, [['sweet_4', 1]], 32,
     'The tasting plates need their final check. Bring plum dumplings so I can see how much room the serving needs.',
     'There is space for the serving and its label. The plates can go to the shared table.'],
-  ['mara-supper', 'mara', 'The supper service', 20, 24, [['bakery_5', 1], ['warm_4', 1]], 32,
+  ['mara-supper', 'mara', 'The supper service', 20, [['bakery_5', 1], ['warm_4', 1]], 32,
     'Let us practise one supper service with zacuscă toast and a smoked cheese plate. I want both dishes to reach the table together.',
     'Everything arrived together. We have a useful plan for the supper, and time to welcome each guest.'],
-  ['sorin-welcome', 'sorin', 'Welcome from the gate', 20, 24, [['drinks_3', 2], ['pantry_3', 1]], 32,
+  ['sorin-welcome', 'sorin', 'Welcome from the gate', 20, [['drinks_3', 2], ['produce_3', 1]], 32,
     'I will meet people at the gate. Could you prepare two fruit teas and roasted vegetables for the first guests who want a seat?',
     'The welcome is ready. I can show people the table and stay long enough to share it with them.'],
 ];
 const previousQuest = new Map<string, string>();
-const quests: Quest[] = questRows.map(([id, character, title, after, legacy, requirements, reward, opening, completion]) => {
+const quests: Quest[] = questRows.map(([id, character, title, after, requirements, reward, opening, completion]) => {
   const afterQuest = previousQuest.get(character);
   previousQuest.set(character, id);
-  return { id, character, title, afterTask: after ? `task_${after}` : null, legacyAfter: `task_${legacy}`,
+  return { id, character, title, afterTask: after ? `task_${after}` : null,
     ...(afterQuest ? { afterQuest } : {}), requirements: requirements.map(([item, quantity]) => ({ item, quantity })), reward,
     opening: [{ speaker: character, text: opening }], completion: [{ speaker: character, text: completion }] };
 });
@@ -217,9 +217,9 @@ const questItems: Record<string, Item> = {
   quest_bread_2: { id: 'quest_bread_2', name: 'Tasting dough', chain: 'quest_bread', stage: 2, next: 'quest_bread_3', sprite: 1, price: 4 },
   quest_bread_3: { id: 'quest_bread_3', name: 'Tasting pogăcele', chain: 'quest_bread', stage: 3, next: null, sprite: 2, price: 12 },
 };
-quests.push({ id: 'ilie-bread-tasting', character: 'ilie', title: 'The borrowed flour bin', afterTask: 'task_17', afterQuest: 'ilie-family', legacyAfter: null,
+quests.push({ id: 'ilie-bread-tasting', character: 'ilie', title: 'The borrowed flour bin', afterTask: 'task_17', afterQuest: 'ilie-family',
   requirements: [{ item: 'quest_bread_3', quantity: 2 }], reward: 24,
-  opening: [{ speaker: 'ilie', text: 'I can lend a flour bin for two tasting servings of pogăcele. It needs one free board or pantry space. When the servings are ready, I will collect the bin and all unused tasting portions.' }],
+  opening: [{ speaker: 'ilie', text: 'I can lend a flour bin for two tasting servings of pogăcele. It needs one free board space. When the servings are ready, I will collect the bin and all unused tasting portions.' }],
   completion: [{ speaker: 'ilie', text: 'Two servings are ready to share. I have collected the borrowed bin and the remaining tasting portions. Thank you for trying this small batch with me.' }],
   producer: { item: 'quest_bread_source', outputs: ['quest_bread_1'], exclusiveItems: Object.keys(questItems) } });
 // The renovation: every preparation repaints one room, so the bistro visibly improves as coins are spent.
@@ -292,7 +292,6 @@ initial[14] = 'bakery_1';
 initial[22] = 'warm_1';
 initial[27] = 'drinks_1';
 const layouts: BoardLayout[] = [
-  { id: 'legacy-open', obstacles: [] },
   { id: 'workbench-clutter-1', obstacles: [
     { id: 'old-crate', position: 0, name: 'Old crate', type: 'clutter', ingredient: 'bakery_3' },
     { id: 'tied-sack', position: 5, name: 'Tied sack', type: 'clutter', ingredient: 'warm_2' },
@@ -305,7 +304,7 @@ const layouts: BoardLayout[] = [
   ] },
 ];
 const data: GameData = {
-  title: 'Scary Snacks', inventoryCapacity: 12, board: { columns: 6, rows: 7, initial, defaultLayout: 'workbench-clutter-1', layouts },
+  title: 'Scary Snacks', board: { columns: 6, rows: 7, initial, defaultLayout: 'workbench-clutter-1', layouts },
   chains: chains.map(([id, name]) => ({ id, name })), items, characters, chapters, finale, tasks, areas, rooms, decorationSlots, quests, questItems,
   generatorTiers: chains.flatMap(([chain]) => [{ chain, stage: 2, after: 'task_12' }, { chain, stage: 3, after: 'task_20' }]),
   levelRewards: Array.from({ length: 9 }, (_, index) => ({ id: `level-${index + 2}`, level: index + 2, coins: 20 })),

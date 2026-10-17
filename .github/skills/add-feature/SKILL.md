@@ -47,7 +47,7 @@ Give each changed behavior one owner and one verification step that gives a meas
 ## Define and implement the change
 
 Record the result for the user, the accurate behavior, and the items that the change does not include.
-Record the failure behavior, the acceptance criteria, and the manual evidence.
+Record the failure behavior and the automated acceptance checks. Do not add a manual acceptance gate.
 If the behavior changes, update the smallest owner document section that controls it.
 
 Make the full approved change in the layer that controls the behavior.
@@ -56,10 +56,10 @@ For game data, use [update-game-content](../update-game-content/SKILL.md).
 
 If the save shape changes, obey "Access and persistence" in `PRODUCT.md`.
 Also obey "Shared save compatibility" in `docs/specs/README.md`.
-These sections give the save versions, the storage keys, the migration, and the Retry path.
+These sections give the supported save format, the storage key, and the Retry path.
 The engine validates saves in `validateGame` in `src/engine.ts`.
-`saveMigrations` in `src/engine.ts` gives the validation and the conversion of each older save envelope.
-Add a new save version to `saveMigrations` and to `VERSION` in `src/storage.ts` together.
+Coordinate the state version and `VERSION` in `src/storage.ts` when the save shape changes.
+Do not add support for an earlier save format without user approval.
 
 If you add a runtime file, add the file to `runtimeFiles` in `tools/build.ts`.
 The build publishes each runtime `.ts` module as a `.js` script in `dist/`. `index.html` names the `.ts` source.

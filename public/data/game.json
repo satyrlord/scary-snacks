@@ -1,6 +1,5 @@
 {
   "title": "Scary Snacks",
-  "inventoryCapacity": 12,
   "board": {
     "columns": 6,
     "rows": 7,
@@ -50,10 +49,6 @@
     ],
     "defaultLayout": "workbench-clutter-1",
     "layouts": [
-      {
-        "id": "legacy-open",
-        "obstacles": []
-      },
       {
         "id": "workbench-clutter-1",
         "obstacles": [
@@ -135,8 +130,8 @@
       "name": "Drinks counter"
     },
     {
-      "id": "pantry",
-      "name": "Market pantry"
+      "id": "produce",
+      "name": "Market produce"
     }
   ],
   "items": {
@@ -412,71 +407,71 @@
         ]
       }
     },
-    "pantry_1": {
-      "id": "pantry_1",
+    "produce_1": {
+      "id": "produce_1",
       "name": "Aubergine",
-      "chain": "pantry",
+      "chain": "produce",
       "stage": 1,
-      "next": "pantry_2",
+      "next": "produce_2",
       "sprite": 24,
       "price": 3
     },
-    "pantry_2": {
-      "id": "pantry_2",
+    "produce_2": {
+      "id": "produce_2",
       "name": "Peppers",
-      "chain": "pantry",
+      "chain": "produce",
       "stage": 2,
-      "next": "pantry_3",
+      "next": "produce_3",
       "sprite": 25,
       "price": 3
     },
-    "pantry_3": {
-      "id": "pantry_3",
+    "produce_3": {
+      "id": "produce_3",
       "name": "Roasted vegetables",
-      "chain": "pantry",
+      "chain": "produce",
       "stage": 3,
-      "next": "pantry_4",
+      "next": "produce_4",
       "sprite": 26,
       "price": 18
     },
-    "pantry_4": {
-      "id": "pantry_4",
+    "produce_4": {
+      "id": "produce_4",
       "name": "Zacuscă",
-      "chain": "pantry",
+      "chain": "produce",
       "stage": 4,
-      "next": "pantry_5",
+      "next": "produce_5",
       "sprite": 27,
       "price": 24
     },
-    "pantry_5": {
-      "id": "pantry_5",
+    "produce_5": {
+      "id": "produce_5",
       "name": "Wild mushroom sauce",
-      "chain": "pantry",
+      "chain": "produce",
       "stage": 5,
-      "next": "pantry_6",
+      "next": "produce_6",
       "sprite": 28,
       "price": 28
     },
-    "pantry_6": {
-      "id": "pantry_6",
+    "produce_6": {
+      "id": "produce_6",
       "name": "Sharing board",
-      "chain": "pantry",
+      "chain": "produce",
       "stage": 6,
       "next": null,
       "sprite": 29,
       "price": 65
     },
-    "generator_pantry": {
-      "id": "generator_pantry",
+    "generator_produce": {
+      "id": "generator_produce",
       "name": "Produce basket",
-      "chain": "pantry",
+      "chain": "produce",
       "stage": 0,
       "next": null,
       "sprite": 34,
       "price": 0,
       "generator": {
         "outputs": [
-          "pantry_1"
+          "produce_1"
         ]
       }
     }
@@ -566,13 +561,13 @@
       "id": "chapter-2",
       "title": "A kitchen for everyone",
       "objective": "Arrange a shared kitchen where anyone can help.",
-      "opening": "The front room is ready, but the kitchen is not. A shared menu needs a steady worktop, a stocked pantry, and shelves within reach.",
+      "opening": "The front room is ready, but the kitchen is not. A shared menu needs a steady worktop, fresh produce, and shelves within reach.",
       "payoff": "The team can cook together, and the first menu explains each dish.",
       "contribution": "sorin-lunch",
       "closing": [
         {
           "speaker": "mara",
-          "text": "A steady worktop, a pantry shelf, jars above, and a menu by the door. We can cook here together now."
+          "text": "A steady worktop, a produce shelf, jars above, and a menu by the door. We can cook here together now."
         },
         {
           "speaker": "sorin",
@@ -882,14 +877,14 @@
         },
         {
           "speaker": "mara",
-          "text": "We can roast a batch and make a pantry shelf."
+          "text": "We can roast a batch and make a produce shelf."
         },
         {
           "speaker": "ilie",
           "text": "Good. A jar of zacuscă makes a fine welcome on fresh bread."
         }
       ],
-      "unlock": "pantry"
+      "unlock": "produce"
     },
     {
       "id": "task_7",
@@ -939,7 +934,7 @@
       "dialogue": [
         {
           "speaker": "mara",
-          "text": "Bread, warm dishes, sweets, drinks, and something from the pantry."
+          "text": "Bread, warm dishes, sweets, drinks, and vegetable dishes."
         },
         {
           "speaker": "ilie",
@@ -1905,7 +1900,6 @@
       "character": "mara",
       "title": "A welcome drink",
       "afterTask": null,
-      "legacyAfter": "task_1",
       "requirements": [
         {
           "item": "drinks_2",
@@ -1931,7 +1925,6 @@
       "character": "ilie",
       "title": "Bread for the counter",
       "afterTask": "task_1",
-      "legacyAfter": "task_4",
       "requirements": [
         {
           "item": "bakery_3",
@@ -1957,7 +1950,6 @@
       "character": "eszter",
       "title": "Try the bowls",
       "afterTask": "task_4",
-      "legacyAfter": "task_8",
       "requirements": [
         {
           "item": "warm_2",
@@ -1983,7 +1975,6 @@
       "character": "sorin",
       "title": "Lunch between errands",
       "afterTask": "task_6",
-      "legacyAfter": "task_8",
       "requirements": [
         {
           "item": "bakery_3",
@@ -2013,7 +2004,6 @@
       "character": "mara",
       "title": "A place at the table",
       "afterTask": "task_8",
-      "legacyAfter": "task_12",
       "afterQuest": "mara-welcome",
       "requirements": [
         {
@@ -2040,7 +2030,6 @@
       "character": "eszter",
       "title": "A small sweet plate",
       "afterTask": "task_9",
-      "legacyAfter": "task_12",
       "afterQuest": "eszter-bowls",
       "requirements": [
         {
@@ -2067,7 +2056,6 @@
       "character": "ilie",
       "title": "Bread for outside",
       "afterTask": "task_12",
-      "legacyAfter": "task_16",
       "afterQuest": "ilie-counter",
       "requirements": [
         {
@@ -2094,11 +2082,10 @@
       "character": "sorin",
       "title": "A courtyard break",
       "afterTask": "task_13",
-      "legacyAfter": "task_16",
       "afterQuest": "sorin-lunch",
       "requirements": [
         {
-          "item": "pantry_3",
+          "item": "produce_3",
           "quantity": 1
         },
         {
@@ -2125,7 +2112,6 @@
       "character": "ilie",
       "title": "A dish from the notebook",
       "afterTask": "task_16",
-      "legacyAfter": "task_18",
       "afterQuest": "ilie-courtyard",
       "requirements": [
         {
@@ -2152,7 +2138,6 @@
       "character": "eszter",
       "title": "Match the tasting plates",
       "afterTask": "task_17",
-      "legacyAfter": "task_20",
       "afterQuest": "eszter-table",
       "requirements": [
         {
@@ -2179,7 +2164,6 @@
       "character": "mara",
       "title": "The supper service",
       "afterTask": "task_20",
-      "legacyAfter": "task_24",
       "afterQuest": "mara-table",
       "requirements": [
         {
@@ -2210,7 +2194,6 @@
       "character": "sorin",
       "title": "Welcome from the gate",
       "afterTask": "task_20",
-      "legacyAfter": "task_24",
       "afterQuest": "sorin-path",
       "requirements": [
         {
@@ -2218,7 +2201,7 @@
           "quantity": 2
         },
         {
-          "item": "pantry_3",
+          "item": "produce_3",
           "quantity": 1
         }
       ],
@@ -2242,7 +2225,6 @@
       "title": "The borrowed flour bin",
       "afterTask": "task_17",
       "afterQuest": "ilie-family",
-      "legacyAfter": null,
       "requirements": [
         {
           "item": "quest_bread_3",
@@ -2253,7 +2235,7 @@
       "opening": [
         {
           "speaker": "ilie",
-          "text": "I can lend a flour bin for two tasting servings of pogăcele. It needs one free board or pantry space. When the servings are ready, I will collect the bin and all unused tasting portions."
+          "text": "I can lend a flour bin for two tasting servings of pogăcele. It needs one free board space. When the servings are ready, I will collect the bin and all unused tasting portions."
         }
       ],
       "completion": [
@@ -2361,12 +2343,12 @@
       "after": "task_20"
     },
     {
-      "chain": "pantry",
+      "chain": "produce",
       "stage": 2,
       "after": "task_12"
     },
     {
-      "chain": "pantry",
+      "chain": "produce",
       "stage": 3,
       "after": "task_20"
     }

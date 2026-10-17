@@ -322,7 +322,7 @@ test('a source on a full board takes nothing and says why',async({page})=>{
   await page.addInitScript(([key,value])=>{if(localStorage.getItem(key)===null)localStorage.setItem(key,value);},[KEY,exportSave(state,candidate=>validateGame(candidate,data))]);await start(page);
   const before=await saved(page);await tile(page,1);
   await expect(page.locator('[data-cell="1"]')).toHaveAttribute('aria-pressed','true');expect(await saved(page)).toEqual(before);
-  await expect(page.locator('#status')).toHaveText('The board is full. Merge, store, serve, or sell an item.');
+  await expect(page.locator('#status')).toHaveText('The board is full. Merge, serve, or sell an item.');
 });
 
 test('with the story card on screen, the card alone carries Pay and Mara keeps her line',async({page})=>{
@@ -341,7 +341,7 @@ for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'phone',wid
     await appearance(page,mode);await unselect(page);await page.keyboard.press('Tab');
     await expect(viewport.name==='phone'?page.locator('#offer .pay-button'):page.locator('#hint-button')).toBeFocused();
     await tile(page,13);await page.keyboard.press('Tab');
-    await expect(page.locator('#item-detail').getByRole('button',{name:'Store',exact:true})).toBeFocused();
+    await expect(page.locator('#item-detail').getByRole('button',{name:/^Sell for /})).toBeFocused();
     await expect(page.getByRole('status')).toContainText(/tap another to merge/i);
     await unselect(page);await page.keyboard.press('Tab');
     await expect(viewport.name==='phone'?page.locator('#offer .pay-button'):page.locator('#hint-button')).toBeFocused();
@@ -484,21 +484,18 @@ test('phone shows the room, the tickets, the board and Mara in one screen, with 
   expect((await box('[data-cell="0"]')).width).toBeGreaterThanOrEqual(44);
   await unselect(page);await expect(page.locator('.guide')).toBeVisible();await expect(page.locator('#item-detail')).toBeHidden();
   await tile(page,14);await expect(page.locator('#item-detail')).toBeVisible();expect((await box('.guide')).width).toBeLessThanOrEqual(1);
-  await page.getByRole('button',{name:'Store',exact:true}).click();expect((await saved(page)).inventory).toHaveLength(1);await expect(page.locator('.guide')).toBeVisible();
-  await page.getByRole('button',{name:/^Pantry/}).click();const sheet=page.getByRole('dialog');await expect(sheet.locator('#modal-title')).toHaveText('The pantry');
-  expect(Math.round((await sheet.boundingBox())!.y+(await sheet.boundingBox())!.height)).toBe(844);
-  await sheet.getByRole('button',{name:'Return Dough to the board'}).click();expect((await saved(page)).inventory).toHaveLength(0);
-  await page.getByRole('button',{name:'Close dialog'}).click();await expect(page.locator('#side #pantry')).toHaveCount(1);
+  await unselect(page);await expect(page.locator('.guide')).toBeVisible();
+  const sheet=page.getByRole('dialog');
   await page.getByRole('button',{name:'Story',exact:true}).click();await expect(sheet).toBeVisible();
   await sheet.locator('.cat-visit').click();await expect(sheet.locator('.cat-sleeping')).toBeVisible();
 });
 
-test('desktop first screen shows the uncovered room beside the tickets, the whole board, Mara, the story and the pantry',async({page},testInfo)=>{
+test('desktop first screen shows the uncovered room beside the tickets, the whole board, Mara, the story and the recipe book',async({page},testInfo)=>{
   for(const viewport of [{width:1440,height:900},{width:1280,height:800},{width:1920,height:1080}]){
     await page.setViewportSize(viewport);await start(page);await expect(page.locator('#orders .order')).toHaveCount(3);
     const room=(await page.locator('#room-stage').boundingBox())!;expect([room.x,room.y,room.height]).toEqual([0,0,viewport.height]);expect(room.width).toBeGreaterThanOrEqual(viewport.width*.5-1);
     for(const selector of ['.masthead','#drawer']){const box=(await page.locator(selector).boundingBox())!;expect(box.x,`${selector} beside the room`).toBeGreaterThanOrEqual(room.x+room.width);}
-    const first=['.tickets','#board','.guide','#story','#pantry'];
+    const first=['.tickets','#board','.guide','#story','#collection-button'];
     for(const selector of first){const box=(await page.locator(selector).boundingBox())!;expect(box.y+box.height,`${selector} at ${viewport.width}`).toBeLessThanOrEqual(viewport.height);}
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     expect((await page.locator('[data-cell="0"]').boundingBox())!.width).toBeGreaterThanOrEqual(44);
@@ -583,7 +580,7 @@ test('a second tab takes up the progress saved in the first instead of overwriti
 test('a kitchen that cannot load offers to try again',async({page})=>{
   let fail=true;await page.route('**/data/game.json',route=>fail?route.fulfill({status:503,body:''}):route.continue());
   await page.goto('./');await expect(page.locator('#status')).toContainText('The kitchen could not open.');
-  for(const opener of await page.locator('#story-button,#recipes-button,#pantry-button,#collection-button,[data-house-book]').all())await expect(opener).toBeDisabled();
+  for(const opener of await page.locator('#story-button,#recipes-button,#collection-button,[data-house-book]').all())await expect(opener).toBeDisabled();
   fail=false;await page.getByRole('button',{name:'Try again'}).click();await expect(page.locator('#board button')).toHaveCount(42);
 });
 
@@ -603,7 +600,7 @@ for(const fault of ['cost','board dimensions','board length'] as const)test(`gam
   });
   let fail=true;await page.route('**/data/game.json',route=>fail?route.fulfill({json:broken}):route.continue());await page.reload();
   await expect(page.locator('#status')).toContainText('The kitchen could not open. The game data is not valid.');
-  for(const opener of await page.locator('#story-button,#recipes-button,#pantry-button,#collection-button,[data-house-book]').all())await expect(opener).toBeDisabled();
+  for(const opener of await page.locator('#story-button,#recipes-button,#collection-button,[data-house-book]').all())await expect(opener).toBeDisabled();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   expect(await page.evaluate(()=>(window as Window & {saveAccess?: string[]}).saveAccess)).toEqual([]);
   expect(await page.evaluate(key=>localStorage.getItem(key),KEY)).toBe(before);
@@ -632,7 +629,10 @@ test('narrow phones keep the whole dish name in the strip, and short screens kee
     const name=page.locator('#item-detail h3');await expect(name).toHaveText(data.items[longest].name);
     expect(await name.evaluate(e=>e.scrollWidth<=e.clientWidth+1&&e.scrollHeight<=e.clientHeight+1)).toBe(true);
     // A two-line name leaves no room for the rule line, and Mara's note leaves the name to the strip.
-    await expect(page.locator('#item-detail .detail-next')).toBeHidden();await expect(page.locator('#status')).toHaveText('Tap another to merge, or an empty space to move it.');
+    const wraps=await name.evaluate(e=>e.clientHeight>parseFloat(getComputedStyle(e).lineHeight)*1.5);
+    if(width<=360||wraps)await expect(page.locator('#item-detail .detail-next')).toBeHidden();
+    else await expect(page.locator('#item-detail .detail-next')).toBeVisible();
+    await expect(page.locator('#status')).toHaveText('Tap another to merge, or an empty space to move it.');
     expect((await page.locator('#item-detail').boundingBox())!.y+(await page.locator('#item-detail').boundingBox())!.height).toBeLessThanOrEqual((await page.locator('.phone-bar').boundingBox())!.y+1);
     // Cells never drop below 44px, within half a pixel of rounding.
     expect((await page.locator('[data-cell="0"]').boundingBox())!.width).toBeGreaterThanOrEqual(43.5);
@@ -684,13 +684,13 @@ test('arrival completion preserves keyboard focus on another order',async({page}
   await expect(page.locator('#orders .arriving')).toHaveCount(0,{timeout:4000});await expect(item).toBeFocused();
 });
 
-test('phone recipe guidance opens the pantry sheet for a stored dish while another item is selected',async({page})=>{
+test('phone recipe guidance selects a dish on the board while another item is selected',async({page})=>{
   await page.setViewportSize({width:390,height:844});await start(page);await mergeStart(page);
-  await page.getByRole('button',{name:'Store',exact:true}).click();await tile(page,22);await expect(page.locator('#item-detail')).toBeVisible();
+  await tile(page,22);await expect(page.locator('#item-detail')).toBeVisible();
   await page.getByRole('button',{name:/^Recipes/}).click();await page.getByRole('button',{name:'Dough',exact:true}).click();
   await page.getByRole('button',{name:'Show me on the board'}).click();
-  await expect(page.locator('#status')).toContainText('Dough is in the pantry');await expect(page.locator('#modal-title')).toHaveText('The pantry');
-  await page.getByRole('button',{name:'Return Dough to the board'}).click();expect((await saved(page)).inventory).toHaveLength(0);
+  await expect(page.locator('#status')).toContainText('Dough is ready on the board');await expect(page.locator('#modal')).toBeHidden();
+  await expect(page.locator('#board .selected')).toHaveAttribute('aria-label',/Dough/);
 });
 
 test('starting a new game clears the previous game discovery notification',async({page})=>{
@@ -717,7 +717,7 @@ for(const route of ['load','import','another tab'])test(`saves with duplicate cu
   await expect(page.locator('#collection-button')).not.toHaveAttribute('data-fresh','');
   // Loading repairs the presentation without rewriting the stored snapshot. The next action persists it.
   if(route!=='import')expect(await saved(page)).toEqual(duplicated);
-  await tile(page,13);await page.getByRole('button',{name:'Store',exact:true}).click();const after=await saved(page);
+  await tile(page,13);await tile(page,firstFreeBoardCell(duplicated,data));const after=await saved(page);
   expect(new Set(after.orders.map(order=>order.customer)).size).toBe(3);
   expect(after.orders.map(({customer,...order})=>order)).toEqual(duplicated.orders.map(({customer,...order})=>order));
   expect(after.seed).toBe(duplicated.seed);expect(after.coins).toBe(duplicated.coins);

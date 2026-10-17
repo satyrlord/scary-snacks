@@ -1,16 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, reduceGame, validateGame, validateLegacyGame, migrateGame, validatePreviousGame, migratePreviousGame, validateGeneratorGame, migrateGeneratorGame, validateLevelRewardGame, migrateLevelRewardGame, migrateQuestGame, migrateBoardGame, resolveDecorations, decorationProblems, legacyOrderReward, saveMigrations } from '../src/engine.ts';
-import { exportSave, importSave, loadSave, saveGame, SAVE_KEY, PREVIOUS_SAVE_KEY, LEGACY_SAVE_KEY } from '../src/storage.ts';
+import { createGame, reduceGame, validateGame, resolveDecorations, decorationProblems } from '../src/engine.ts';
+import { exportSave, importSave, loadSave, saveGame, SAVE_KEY } from '../src/storage.ts';
 import type { Action, GameData, GameState } from '../src/engine.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
+data.board.layouts.push({ id: 'test-open', obstacles: [] });
 const provenance: { assets: { id: string }[] } = JSON.parse(await readFile(new URL('../docs/asset-provenance.json', import.meta.url), 'utf8'));
 const validate = (state: unknown) => validateGame(state, data);
-const migration = saveMigrations(data);
 function checkpoint(count: number) {
-  let state = { ...createGame(data), layoutId: 'legacy-open' };
+  let state = { ...createGame(data), layoutId: 'test-open' };
   state.coins = data.tasks.reduce((sum, task) => sum + task.cost, 0);
   state.served = data.tasks[count - 1]?.goals.served ?? 0;
   state.merges = data.tasks[count - 1]?.goals.merges ?? 0;
@@ -21,17 +21,6 @@ function checkpoint(count: number) {
   }
   return state;
 }
-function legacy(state: GameState) {
-  const { decorationChoices: _, outputChoices: __, claimedLevelRewards: ___, completedQuests: _completed, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
-    layoutId: _layout, resolvedObstacles: _resolved, pendingScenes: _scenes, ...old } = structuredClone(state);
-  return { ...old, version: 2, orders: old.orders.map(({ pricing: _, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, data) })) };
-}
-function previous(state: GameState) {
-  const { outputChoices: _, claimedLevelRewards: __, completedQuests: _completed, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
-    layoutId: _layout, resolvedObstacles: _resolved, pendingScenes: _scenes, ...old } = structuredClone(state);
-  return { ...old, version: 3, orders: old.orders.map(({ pricing: _, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, data) })) };
-}
-
 test('every decoration has a distinct default, a preparation, a valid crop, and known images', () => {
   const images = provenance.assets.map(asset => asset.id);
   assert.deepEqual(decorationProblems(data, images), []);
@@ -100,60 +89,15 @@ test('save validation rejects malformed choice maps and choices before unlock', 
   }
   assert.equal(validate({ ...checkpoint(8), decorationChoices: { tableware: 'blue' } }), false);
   assert.equal(validate({ ...checkpoint(24), decorationChoices: { tableware: 'blue' } }), true);
-  assert.equal(validateLegacyGame({ ...legacy(checkpoint(0)), decorationChoices: {} }, data), false);
 });
 
-test('every older save preserves fresh, partial, and complete campaigns with generators on the board or in the pantry', () => {
-  for (const count of [0, 12, 24]) for (const envelopeVersion of [1, 2]) for (const pantry of [false, true]) {
-    let expected = checkpoint(count);
-    if (pantry) {
-      // Preserve the order of two stored items, including a generator.
-      for (let index = 0; index < 2; index++) {
-        const source = expected.board.findIndex(cell => cell && Boolean(data.items[cell.code].generator) === (index === 1));
-        const stored = reduceGame(expected, { type: 'store', index: source }, data);
-        assert.equal(stored.ok, true);
-        expected = stored.state;
-      }
-    }
-    if (envelopeVersion === 2 && count >= 12) expected = reduceGame(expected, { type: 'decorate', slot: 'tableware', variant: 'green' }, data).state;
-    const old = envelopeVersion === 1 ? legacy(expected) : previous(expected);
-    expected.orders = structuredClone(old.orders);
-    const original = structuredClone(old);
-    const key = envelopeVersion === 1 ? LEGACY_SAVE_KEY : PREVIOUS_SAVE_KEY;
-    const text = JSON.stringify({ format: 'scary-snacks', version: envelopeVersion, state: old });
-    const values = new Map([[key, text]]);
-    let writes = 0;
-    const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { writes++; values.set(key, value); }, removeItem: () => assert.fail('Must not remove legacy bytes.') };
-    assert.equal(envelopeVersion === 1 ? validateLegacyGame(old, data) : validatePreviousGame(old, data), true);
-    assert.equal(validate(old), false);
-    const intermediate = envelopeVersion === 1 ? migrateGame(old, data) : old;
-    assert.equal(validatePreviousGame(intermediate, data), true);
-    const generatorState = migratePreviousGame(intermediate, data);
-    assert.equal(validateGeneratorGame(generatorState, data), true);
-    expected.legacySatisfiedQuests = data.quests.filter(quest => quest.legacyAfter !== null && expected.decorations.includes(quest.legacyAfter)).map(quest => quest.id);
-    // Conversion queues no earlier chapter scene. The journal derives those scenes from the preparations.
-    expected.pendingScenes = [];
-    assert.deepEqual(migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(migrateGeneratorGame(generatorState, data), data), data), data), expected);
-    assert.deepEqual(migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(migrateGeneratorGame(generatorState, data), data), data), data), expected);
-    assert.deepEqual(old, original);
-    assert.deepEqual(importSave(text, validate, migration), expected);
-    assert.deepEqual(loadSave(storage, validate, migration), { state: expected, status: 'loaded', error: null });
-    assert.equal(values.get(key), text);
-    assert.equal(JSON.parse(values.get(SAVE_KEY)!).version, 7);
-    assert.deepEqual(loadSave(storage, validate, migration).state, expected);
-    assert.equal(writes, 1, 'Reload must not migrate or reward a second time.');
-    assert.deepEqual(importSave(exportSave(expected, validate), validate), expected);
-    assert.deepEqual(expected.outputChoices, {});
-  }
-});
-
-test('saved output choices round trip with pantry generators and corrupt choices never replace progress', () => {
+test('saved output choices round trip with moved generators and corrupt choices never replace progress', () => {
   let current = checkpoint(24);
   const sourceIndex = current.board.findIndex(cell => cell && data.items[cell.code].generator);
   const source = data.items[current.board[sourceIndex]!.code];
   const output = Object.values(data.items).find(item => item.chain === source.chain && item.stage === 2 && !item.generator)!;
   current = reduceGame(current, { type: 'spawn', index: sourceIndex, output: output.id }, data).state;
-  current = reduceGame(current, { type: 'store', index: sourceIndex }, data).state;
+  current = reduceGame(current, { type: 'move', from: sourceIndex, to: current.board.indexOf(null) }, data).state;
   assert.equal(current.outputChoices[source.chain], output.id);
   const text = exportSave(current, validate);
   assert.deepEqual(importSave(text, validate), current);
@@ -166,7 +110,7 @@ test('saved output choices round trip with pantry generators and corrupt choices
     { [source.chain]: source.id }, { [source.chain]: other.id }, { [source.chain]: stageOne.id },
     { [source.chain]: tooHigh.id }, JSON.parse('{"__proto__":"unknown"}')]) {
     const invalid = { ...current, outputChoices: choices };
-    assert.throws(() => importSave(JSON.stringify({ format: 'scary-snacks', version: 7, state: invalid }), validate));
+    assert.throws(() => importSave(JSON.stringify({ format: 'scary-snacks', version: 8, state: invalid }), validate));
     assert.throws(() => exportSave(invalid, validate));
     assert.equal(saveGame(storage, invalid, validate).ok, false);
     assert.equal(values.get(SAVE_KEY), text);

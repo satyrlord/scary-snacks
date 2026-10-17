@@ -60,22 +60,17 @@ Do not clamp an invalid index silently. Do not interpret another scene as the mi
 Store the read scene IDs, the pending sequence, and the active continuation only where they cannot
 be derived. When the player replays a scene that is already read, keep the replay position transient.
 Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
-Validate the older input. Derive eligible scenes from completed preparations. Then validate the result.
-Keep the old stored bytes, the completed preparations, and all gameplay resources.
-For older saves, mark past eligible scenes as legacy-available for journal replay. Do not mark them read or pending.
-Their acknowledgement is unknown. Do not infer the interrupted line. Do not queue a backlog of old scenes.
-Read means an actual Finish or Skip in the new system. A repeated migration gives the same result.
-An already-completed legacy campaign may use a legacy exemption to open the goals of spec 012. The exemption does not
-claim that the player read the finale. The finale stays available in the journal.
+Validate saved scene references and positions. Read means an actual Finish or Skip.
+Do not infer a reading acknowledgement from completed preparations.
 Quest, chapter, and finale scene IDs use this same state contract when 005 and 008 integrate.
 Reset clears the current continuation of this game with its game state. Import replaces the continuation only
-after full validation and the existing confirmation flow. Older saved bytes stay protected.
+after full validation and the existing confirmation flow.
 
 ## Thin implementation slices and exit checks
 
 1. Add stable scene references, validation, and reading transitions. Exit: the engine tests pass for the atomicity
    of task rewards, illegal navigation, queue order, and replay isolation.
-2. Add coordinated migration and serialization. Exit: every valid line resumes after a
+2. Add validation and serialization. Exit: every valid line resumes after a
    round trip. Malformed records and write failures keep the previous durable save.
 3. Add Resume, Skip, and journal states. Exit: if the player closes or reloads at each scene position,
    the scene resumes predictably. All controls work with keyboard and touch.
@@ -85,10 +80,8 @@ after full validation and the existing confirmation flow. Older saved bytes stay
 ## Acceptance and dependencies
 
 Engine tests must cover the boundaries of the first line and last line, stale actions, skip, replay, and queue limits.
-Save tests must cover interrupted lines, empty queues, imports, repeated migration, and denied storage.
-Assert that legacy scenes are replayable without a pending backlog and without a fabricated read acknowledgement.
+Save tests must cover interrupted lines, empty queues, imports, repeated reloads, and denied storage.
 Built browser tests must interrupt a scene by Close, Escape, reload, and export and import, then resume it.
 Follow [Verification and release](README.md#verification-and-release) for the browser evidence.
-Check these items manually: the reading comfort, the focus return, the order of the screen reader output, and the message about an unsaved position.
 There is no hard dependency. Specs 005, 008, 010, 012, 013, 014, and 015 use this continuation behavior.
 The final labels remain design decisions. Whether an unobtrusive Resume prompt appears on startup also remains a design decision.

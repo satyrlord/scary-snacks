@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { createGame, firstFreeBoardCell, legacyOrderReward, menuReward, reduceGame, validateGame } from '../../src/engine.ts';
+import { createGame, firstFreeBoardCell, menuReward, reduceGame, validateGame } from '../../src/engine.ts';
 import type { GameData, GameState } from '../../src/engine.ts';
 import { SAVE_KEY, exportSave } from '../../src/storage.ts';
 
@@ -40,20 +40,6 @@ test('ingredient tickets show the small menu prices and service pays exactly the
   await page.reload(); expect(await saved(page)).toEqual(after);
 });
 
-test('saved historical tickets keep their exact quotes and only a served replacement uses menu prices', async ({ page }) => {
-  const state = createGame(data);
-  state.orders = state.orders.map(({ pricing: _pricing, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, data) }));
-  for (const code of state.orders[0].requirements) state.board[firstFreeBoardCell(state, data)] = { code };
-  for (const code of state.orders[0].requirements) if (!state.discovered.includes(code)) state.discovered.push(code);
-  await page.emulateMedia({ reducedMotion: 'reduce' }); await start(page, state);
-  expect(await saved(page)).toEqual(state);
-  await expect(page.locator('#orders .serve-button').first()).toHaveAccessibleName(new RegExp(` for ${state.orders[0].reward} coins$`));
-  await page.locator('#orders .serve-button').first().click();
-  const after = await saved(page);
-  expect(after.coins).toBe(state.orders[0].reward); expect(after.orders.slice(1)).toEqual(state.orders.slice(1));
-  expect(after.orders[0].pricing).toBe('menu-1'); expect(after.orders[0].reward).toBe(menuReward(after.orders[0].requirements, data));
-  await page.reload(); expect(await saved(page)).toEqual(after);
-});
 
 for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 800 }]) {
   test(`work details explain the current budget and return focus at ${viewport.width}px`, async ({ page }, testInfo) => {
@@ -142,23 +128,6 @@ test('serving the last required order makes the phone offer ready', async ({ pag
   await expect(page.locator('#modal [data-requirement="served"]')).toHaveText(`Total orders served: ${first.goals.served} / ${first.goals.served}Complete`);
 });
 
-test('import keeps legacy completed preparations with zero recorded goals', async ({ page }) => {
-  let state = createGame(data); state.coins = data.tasks.slice(0, 12).reduce((sum, task) => sum + task.cost, 0); Object.assign(state, data.tasks[11].goals);
-  for (let index = 0; index < 12; index++) {
-    const result = reduceGame(state, { type: 'task' }, data); expect(result.ok).toBe(true); state = result.state;
-  }
-  state.served = 0; state.merges = 0;
-  await start(page, createGame(data));
-  await page.getByRole('button', { name: /House book/ }).first().click();
-  await page.locator('#modal input[type="file"]').setInputFiles({ name: 'legacy-goals.json', mimeType: 'application/json', buffer: Buffer.from(save(state)) });
-  await page.getByRole('button', { name: 'Import this saved game', exact: true }).click();
-  expect(await saved(page)).toEqual(state);
-  await expect(page.locator('#story h3')).toHaveText(data.tasks[12].title);
-  await expect(goal(page, 'served')).toHaveText(`Total orders served: 0 / ${data.tasks[12].goals.served}Need ${data.tasks[12].goals.served}`);
-  await expect(goal(page, 'merges')).toHaveText(`Total merges: 0 / ${data.tasks[12].goals.merges}Need ${data.tasks[12].goals.merges}`);
-  await expect(pay(page)).toBeDisabled();
-  await page.reload(); expect(await saved(page)).toEqual(state);
-});
 
 for (const viewport of [{ width: 1440, height: 900 }, { width: 1280, height: 800 }, { width: 390, height: 844 }, { width: 390, height: 800 }]) {
   for (const theme of ['light', 'dark']) {
@@ -186,8 +155,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 1280, height: 800
       expect(Math.min(...geometry.contrast)).toBeGreaterThanOrEqual(4.5);
       expect(Math.min(...geometry.size)).toBeGreaterThanOrEqual(12);
       if (viewport.width >= 1024) {
-        const pantry = (await page.locator('#pantry').boundingBox())!;
-        expect(pantry.y + pantry.height).toBeLessThanOrEqual(viewport.height);
+        const recipes = (await page.locator('#collection-button').boundingBox())!;
+        expect(recipes.y + recipes.height).toBeLessThanOrEqual(viewport.height);
       }
       await page.screenshot({ path: testInfo.outputPath('campaign-goals.png') });
     });

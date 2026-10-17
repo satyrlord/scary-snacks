@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { createGame, legacyOrderReward, reduceGame, unresolvedObstacle, validateGame } from '../../src/engine.ts';
+import { createGame, reduceGame, unresolvedObstacle, validateGame } from '../../src/engine.ts';
 import type { GameData, GameState } from '../../src/engine.ts';
-import { SAVE_KEY, PREVIOUS_SAVE_KEY, exportSave } from '../../src/storage.ts';
+import { SAVE_KEY, exportSave } from '../../src/storage.ts';
 
 const data: GameData=JSON.parse(readFileSync('public/data/game.json','utf8'));
 function afterPreparations(count: number){
@@ -73,23 +73,20 @@ test('keyboard takes keep focus, preserve the seed, and can return to a lower ou
 for(const viewport of [{width:360,height:740},{width:390,height:844},{width:412,height:915}])test(`a second tap on an upgraded source takes again at ${viewport.width} by ${viewport.height} because the board stays still`,async({page})=>{
   await page.setViewportSize(viewport);await page.emulateMedia({reducedMotion:'reduce'});
   const initial=afterPreparations(20);await start(page,initial);
-  const cell=source(page,initial,'pantry'),before=(await cell.boundingBox())!,x=before.x+before.width/2,y=before.y+before.height/2;
+  const cell=source(page,initial,'produce'),before=(await cell.boundingBox())!,x=before.x+before.width/2,y=before.y+before.height/2;
   await page.mouse.click(x,y);await expect(page.locator('#item-detail .take-button')).toHaveCount(3);
   expect(await cell.boundingBox()).toEqual(before);
   await page.mouse.click(x,y);const after=await saved(page);
-  expect(after.board.findIndex(value=>value?.code==='generator_pantry')).toBe(initial.board.findIndex(value=>value?.code==='generator_pantry'));
+  expect(after.board.findIndex(value=>value?.code==='generator_produce')).toBe(initial.board.findIndex(value=>value?.code==='generator_produce'));
   expect(after.board.filter(Boolean)).toHaveLength(initial.board.filter(Boolean).length+2);
 });
 
-test('a pointer choice survives pantry storage, retrieval, and reload',async({page})=>{
+test('a pointer choice survives reload',async({page})=>{
   const initial=afterPreparations(20);await start(page,initial);await source(page,initial).click();await take(page,'bakery_2').click();
-  await page.getByRole('button',{name:'Store',exact:true}).click();const stored=await saved(page);
-  expect(stored.inventory).toContainEqual({code:'generator_bakery'});expect(stored.outputChoices).toEqual({bakery:'bakery_2'});
-  await page.reload();await expect(page.getByRole('button',{name:'Return Flour bin to the board',exact:true})).toBeVisible();
-  await page.getByRole('button',{name:'Return Flour bin to the board',exact:true}).click();const retrieved=await saved(page);
-  const count=retrieved.board.filter(cell=>cell?.code==='bakery_2').length;await source(page,retrieved).click();
+  const chosen=await saved(page);expect(chosen.outputChoices).toEqual({bakery:'bakery_2'});
+  await page.reload();const count=chosen.board.filter(cell=>cell?.code==='bakery_2').length;await source(page,chosen).click();
   const taken=await saved(page);expect(taken.board.filter(cell=>cell?.code==='bakery_2')).toHaveLength(count+1);
-  await expect(take(page,'bakery_2')).toHaveAttribute('aria-pressed','true');expect(taken.outputChoices).toEqual(stored.outputChoices);
+  await expect(take(page,'bakery_2')).toHaveAttribute('aria-pressed','true');expect(taken.outputChoices).toEqual(chosen.outputChoices);
   await page.reload();expect(await saved(page)).toEqual(taken);
 });
 
@@ -101,20 +98,6 @@ test('a full board rejects another output without changing the saved choice',asy
   await expect(take(page,'bakery_3')).toHaveAttribute('aria-pressed','false');
 });
 
-test('an envelope two save keeps its pantry source and starts its choice at stage one',async({page})=>{
-  const initial=afterPreparations(20);const moved=reduceGame(initial,{type:'store',index:initial.board.findIndex(cell=>cell?.code==='generator_bakery')},data);
-  expect(moved.ok).toBe(true);const {outputChoices: _choices,claimedLevelRewards: _claims,completedQuests: _quests,legacySatisfiedQuests: _legacy,activeQuestProducers: _producers,layoutId: _layout,resolvedObstacles: _resolved,pendingScenes:_scenes,...previous}=moved.state;
-  previous.orders=previous.orders.map(({pricing:_pricing,...order})=>({...order,reward:legacyOrderReward(order.requirements,data)}));
-  const old=JSON.stringify({format:'scary-snacks',version:2,state:{...previous,version:3}});
-  await page.addInitScript(([key,value])=>{if(localStorage.getItem(key)===null)localStorage.setItem(key,value);},[PREVIOUS_SAVE_KEY,old]);
-  await page.goto('./');await expect(page.locator('#board button')).toHaveCount(42);
-  await page.getByRole('button',{name:'Return Flour bin to the board',exact:true}).click();const retrieved=await saved(page);
-  expect(retrieved.outputChoices).toEqual({});expect(retrieved.orders).toEqual(previous.orders);expect(retrieved.taskIndex).toBe(20);
-  await source(page,retrieved).click();await expect(page.locator('#item-detail .take-button')).toHaveCount(3);
-  await expect(take(page,'bakery_1')).toHaveAttribute('aria-pressed','true');
-  const current=await saved(page);await page.reload();expect(await saved(page)).toEqual(current);
-  expect(await page.evaluate(key=>localStorage.getItem(key),PREVIOUS_SAVE_KEY)).toBe(old);
-});
 
 test('touch takes the chosen output with reduced motion',async({browser,baseURL})=>{
   const context=await browser.newContext({baseURL,viewport:{width:390,height:844},hasTouch:true,isMobile:true,reducedMotion:'reduce'});
@@ -156,7 +139,7 @@ for(const mode of ['Light','Dark'])for(const viewport of [{width:360,height:740}
         const inner=(await label.boundingBox())!;expect(inner.y).toBeGreaterThanOrEqual(box.y+4);expect(inner.y+inner.height).toBeLessThanOrEqual(box.y+box.height-4);
       }
       for(let index=1;index<boxes.length;index++)expect(boxes[index].x).toBeGreaterThanOrEqual(boxes[index-1].x+boxes[index-1].width);
-      // Phones keep the outputs, Store, and Clear in one row; wider screens put the outputs in a second row.
+      // Phones keep the outputs and Clear in one row; wider screens put the outputs in a second row.
       for(const action of await page.locator('#item-detail .item-actions button').all()){
         const box=(await action.boundingBox())!;
         if(viewport.width<1024){expect(box.x).toBeGreaterThanOrEqual(boxes[2].x+boxes[2].width);expect(box.y).toBeLessThan(boxes[0].y+boxes[0].height);expect(box.y+box.height).toBeGreaterThan(boxes[0].y);}

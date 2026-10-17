@@ -28,26 +28,25 @@ The engine owns the discovery transitions. The UI resolves three cases of presen
 
 Generator tiers from [003](003-generator-progression.md) must not erase old discoveries. Special quest items from [005](005-character-quests.md) are outside the count of 30 dishes. Content may assign an item to the permanent catalog explicitly.
 
-## Save compatibility and migration
+## Save compatibility
 
-Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index. Keep all valid existing discoveries. Do not infer that viewing a legacy book created an item. Every migrated item on the board or in storage must still be discovered, as the current validation contract requires.
-
-Legacy players keep the planning help and do not need a reset. If the game loads the same discovery set twice, the game must not replay every discovery notice. If you add notice acknowledgements, they must stay presentation-only and must not grant rewards.
+Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
+Keep valid discoveries through save and reload. Every item on the board must be discovered, as validation requires.
+A repeated load must not replay every discovery notice. Notice acknowledgements are presentation-only and grant no reward.
 
 ## Thin implementation slices
 
 1. **Book states (implemented with cloches).** Keep the known and unknown entries on the existing discovery state. Exit: a new game and a partially played game show the correct dish count and placeholders.
 2. **Production and order help (implemented).** Keep the notices and the required-item hints. Exit: the player can still plan an unknown requested dish. The book reveals the dish permanently when the player creates the dish. Combined notices for future multi-item actions remain proposed.
-3. **Chain completion.** Add the marks and the checks of migrated state. Exit: after reload, all 30 discovered dishes show a complete book, with no other reward.
+3. **Chain completion.** Add the marks and the checks of saved state. Exit: after reload, all 30 discovered dishes show a complete book, with no other reward.
 
 ## Acceptance checks
 
 - Engine: the create, merge, and grant paths discover an item once. Failed actions and previews do not discover. A sold dish stays discovered.
 - Data: every ordinary order target has a readable production path. The book totals exclude generators and temporary quest items.
-- Saves: discoveries survive a save and a load. Valid legacy discoveries survive. The game rejects unknown item IDs without a change to the original save.
+- Saves: discoveries survive a save and a load. The game rejects unknown item IDs without a change to the original save.
 - Browser: examine an undiscovered order target. Make the dish with legal actions. Examine the revealed entry. Sell the dish and reload. The entry must stay revealed.
 - Accessibility: unknown entries have useful names. The known or unknown status does not use color alone. Focus stays stable after a discovery refresh.
-- Manual: verify that a first-time player can plan an unfamiliar order without a guess about which generator to use.
 
 ## Remaining design work
 

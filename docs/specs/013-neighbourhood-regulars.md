@@ -78,30 +78,29 @@ everyday Romanian-neighbour styling of the current four. Exact lines are content
 | Start | Vasile | Retired postman | warm, bakery |
 | Start | Ana | Night-shift nurse | warm, drinks |
 | Start | Tibor | Clockmaker | sweet, drinks |
-| After preparation 4 | Rodica | Florist | sweet, pantry |
+| After preparation 4 | Rodica | Florist | sweet, produce |
 | After preparation 4 | Matei | Music student | bakery, sweet |
-| After preparation 8 | Ileana | Seamstress | pantry, drinks |
-| After preparation 8 | Grigore | Night watchman | warm, pantry |
+| After preparation 8 | Ileana | Seamstress | produce, drinks |
+| After preparation 8 | Grigore | Night watchman | warm, produce |
 | After preparation 12 | Katalin | Church bell-ringer | sweet, warm |
 | After preparation 12 | Radu | Bus driver | bakery, warm |
-| After preparation 16 | Elena | Pharmacist | pantry, drinks |
-| After preparation 16 | Andrei | Carpenter | warm, pantry |
+| After preparation 16 | Elena | Pharmacist | produce, drinks |
+| After preparation 16 | Andrei | Carpenter | warm, produce |
 
 The night-shift nurse, the watchman, and the bell-ringer add a slightly eerie side to the
 village. They are awake when the bats are. Tibor is present from the start, but his sweet
-chain unlocks at preparation 3. Rodica arrives before the pantry chain unlocks at preparation 6.
+chain unlocks at preparation 3. Rodica arrives before the produce chain unlocks at preparation 6.
 Rule 5 therefore matters for their early orders.
 
-## Data, state, and migration
+## Data and state
 
 - Extend `Character` in `src/engine.ts` with `core: boolean`, `arrivesAfter?: string`,
   `prefers: string[]`, and `arrival` dialogue. Author the records in `tools/create-original-data.ts`.
   Validate unique IDs, known chain IDs, known preparation IDs, and two distinct preferences.
 - Add `recentCustomers` (at most two IDs) and `servedBy` (count for each neighbour) to `GameState`.
 - `validateGame` also requires that the customer of each waiting order has arrived.
-- Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index. Migration keeps
-  waiting orders, coins, `served`, and all other progress exactly. New fields start empty.
-  The old total does not say who the game served. Do not invent a history for each neighbour.
+- Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
+  Validate and persist the new fields. Do not infer a history for each neighbour from the service total.
 - A change to the draw order changes the order sequence for a given seed. The game keeps saved
   waiting orders. Only orders that the game creates after the update use the new rules.
 
@@ -116,15 +115,15 @@ Rule 5 therefore matters for their early orders.
   `integration.md` of the repository skill `generate-game-art`. Update the provenance records and the prompt
   records. Make the `assets:build` variants. Update the asset test count. Update the bitmap count
   in `PRODUCT.md`, `DESIGN.md`, `README.md`, and `AGENTS.md`.
-- Until the user accepts the art, a slice with the engine only may ship with only the four core
+- Until the art is in the asset records, a slice with the engine only may ship with only the four core
   portraits. Do not ship a regular with a placeholder portrait or a borrowed portrait.
 
 ## Thin implementation slices
 
 1. Roster data, arrival, preferences, and the rest rule in the engine, with four start
    regulars. Exit: on the fixture seed, a fresh game shows eight distinct customers within its
-   first 20 orders. Every created order is makeable. Migration keeps waiting orders.
-2. Portrait art and order tickets for the start regulars. Exit: the user accepts the art. The
+   first 20 orders. Every created order is makeable. Reload keeps waiting orders.
+2. Portrait art and order tickets for the start regulars. Exit: the
    player can read the name and the portrait of each regular at the counter. This applies in both
    themes and at both sizes.
 3. Chapter arrivals with their scenes. Exit: completing preparation 4 introduces Rodica and
@@ -140,12 +139,10 @@ Rule 5 therefore matters for their early orders.
   chains. Test that no order is unmakeable. Test that failed actions change no count, rest list,
   or seed. Test that replay is deterministic.
 - Save: test fresh, mid-campaign, and completed saves of the current game state version.
-  Import rejects an order whose customer has not arrived. Repeated migration gives an identical
-  result. The old bytes stay unchanged.
+  Import rejects an order whose customer has not arrived. Repeated reload gives an identical
+  result. Failed imports keep the current save.
 - Browser: follow [Verification and release](README.md#verification-and-release). Serve a regular, complete an arrival preparation, reload, and
   open the neighbours page. Check that the portraits and names fit the order tickets at every size.
-- Manual: play chapters 1 and 2 and note whether the counter feels like a neighbourhood.
-  Count the distinct customers for each 20 orders and report the seed.
 
 ## Dependencies and remaining decisions
 
@@ -153,4 +150,4 @@ Slice 1 has no hard dependency. Arrival scenes use 009 when integrated. Quests i
 with the four core characters. 008 may let the finale name the regulars who arrived. The challenges in 012 stay with the core four.
 
 Open decisions: the final roster size, the arrival spacing, the 2/3 preference weight, and the
-rest length. Measure each one in a simulation of legal actions and in a human session.
+rest length. Measure each one in a simulation of legal actions.

@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { createGame, currentTask, firstFreeBoardCell, generatorOutputs, getItem, getLevel, previewQuestCleanup, reduceGame, resolveQuests, taskEligibility, validateGame } from '../../src/engine.ts';
 import type { Action, GameData, GameState, Order } from '../../src/engine.ts';
-import { SAVE_KEY, BOARD_SAVE_KEY, exportSave } from '../../src/storage.ts';
+import { SAVE_KEY, exportSave } from '../../src/storage.ts';
 
 const data: GameData=JSON.parse(readFileSync('public/data/game.json','utf8'));
 const validate=(candidate: unknown)=>validateGame(candidate,data);
@@ -116,15 +116,6 @@ test('a reload during the last preparation story resumes the waiting scenes, the
   const served=await saved(page);expect(served.served).toBe(state.served+1);expect(served.coins).toBe(state.coins+order.reward);expect(served.pendingScenes).toEqual([]);
 });
 
-test('a finished older save keeps its chapters and gets the finale in the journal without a waiting scene',async({page})=>{
-  const {pendingScenes:_scenes,...board}=checkpoint(24),old={...board,version:7};
-  await start(page,checkpoint(24),BOARD_SAVE_KEY,JSON.stringify({format:'scary-snacks',version:6,state:old}));
-  const migrated=await saved(page);expect(migrated).toEqual({...old,version:8,pendingScenes:[]});
-  await expect(page.locator('#story .story-waiting')).toHaveCount(0);await journal(page);
-  for(const [index] of data.chapters.entries())await expect(page.getByRole('button',{name:`Replay ${closing(index)}`,exact:true})).toBeVisible();
-  await page.getByRole('button',{name:`Replay ${data.finale.title}`,exact:true}).click();await readTo(page,'Return');expect(await saved(page)).toEqual(migrated);
-  expect(await page.evaluate(key=>localStorage.getItem(key),BOARD_SAVE_KEY)).toBe(JSON.stringify({format:'scary-snacks',version:6,state:old}));
-});
 
 /** Legal play up to the next payment: claim each reward, deliver each open request, then serve the easiest order or merge. */
 function playUntilReady(start: GameState){

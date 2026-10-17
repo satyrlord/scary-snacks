@@ -118,14 +118,12 @@ test('a failed payment, missing goals, a missing required quest, or a full desti
   gated.tasks[3].requiresQuest = 'ilie-counter';
   assert.deepEqual(dataProblems(gated), []);
   rejected(before, { type: 'task' }, gated);
-  // The last preparation of the chapter brings a source here, so it needs a board or pantry space.
+  // The last preparation of the chapter brings a source here, so it needs a board space.
   const placed = structuredClone(data);
   delete placed.tasks[2].unlock;
   placed.tasks[3].unlock = 'sweet';
   let full = checkpoint(3, placed);
   const source = full.board.findIndex(cell => cell?.code === 'generator_bakery');
-  for (let item = 0; item < placed.inventoryCapacity; item++) full = apply(apply(full, { type: 'spawn', index: source }, placed),
-    { type: 'store', index: firstFreeBoardCell(full, placed) }, placed);
   while (firstFreeBoardCell(full, placed) !== -1) full = apply(full, { type: 'spawn', index: source }, placed);
   Object.assign(full, placed.tasks[3].goals, { coins: placed.tasks[3].cost });
   assert.match(rejected(full, { type: 'task' }, placed).message, /Free a space/);
@@ -141,7 +139,7 @@ test('the last preparation queues the finale once after the chapter scene, with 
   assert.match(rejected(after, { type: 'task' }).message, /community supper is ready/);
   const read = apply(apply(after, { type: 'readScene', id: 'chapter-6' }), { type: 'readScene', id: 'finale' });
   assert.deepEqual(read.pendingScenes, data.chapters.slice(0, 5).map(chapter => chapter.id));
-  for (const key of ['coins', 'xp', 'served', 'merges', 'taskIndex', 'seed', 'board', 'inventory', 'orders', 'completedQuests', 'claimedLevelRewards'] as const) {
+  for (const key of ['coins', 'xp', 'served', 'merges', 'taskIndex', 'seed', 'board', 'orders', 'completedQuests', 'claimedLevelRewards'] as const) {
     assert.deepEqual(read[key], after[key], `Reading a scene must not change ${key}.`);
   }
   // Repeated, stale, and unknown reading events change nothing.

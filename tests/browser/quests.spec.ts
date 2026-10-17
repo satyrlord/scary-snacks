@@ -53,9 +53,8 @@ function cleanupReady(){
     const second=state.board.findIndex((cell,index)=>cell?.code===lower&&index!==first);state=act(state,{type:'move',from:first,to:second});
   };
   for(const requirement of optional.requirements)for(let count=0;count<requirement.quantity;count++)make(requirement.item);
-  make(producer.outputs[0]);state=act(state,{type:'store',index:state.board.findIndex(cell=>cell?.code===producer.outputs[0])});
-  make(producer.outputs[0]);state=act(state,{type:'store',index:state.board.findIndex(cell=>cell?.code===producer.item)});
-  state=act(state,{type:'store',index:state.board.findIndex(cell=>cell?.code==='bakery_1')});
+  make(producer.outputs[0]);
+  make(producer.outputs[0]);
   expect(validate(state)).toBe(true);return state;
 }
 async function start(page: Page,state: GameState){
@@ -81,7 +80,7 @@ for(const quest of firstQuests)test(`${quest.character} can read and deliver a n
   await start(page,ready(quest));const before=await saved(page);await quests(page);
   const request=card(page,quest);await expect(request).toContainText(data.characters.find(character=>character.id===quest.character)!.name);
   for(const requirement of quest.requirements)await expect(request.locator('.quest-requirements')).toContainText(`${requirement.quantity} ${getItem(requirement.item,data)!.name}`);
-  await expect(request.locator('.quest-reward')).toContainText(String(quest.reward));await expect(request).toContainText(/board|pantry/);
+  await expect(request.locator('.quest-reward')).toContainText(String(quest.reward));await expect(request).toContainText(/board/);
   await request.getByRole('button',{name:`Read request: ${quest.title}`,exact:true}).click();
   await expect(page.locator('#story-line')).toContainText(quest.opening[0].text);await finishScene(page);expect(await saved(page)).toEqual(before);
   await expect(request.locator('h3')).toBeFocused();await deliver(page,quest).click();
@@ -112,13 +111,6 @@ test('quest rewards survive export and import, while introductions and journal r
   await page.reload();await quests(page);await expect(deliver(page,quest)).toHaveCount(0);expect(await saved(page)).toEqual(committed);
 });
 
-test('a pantry ingredient cannot satisfy a delivery until it returns to the board',async({page})=>{
-  const quest=firstQuests[0];let initial=ready(quest);const code=quest.requirements[0].item;
-  initial=act(initial,{type:'store',index:initial.board.findIndex(cell=>cell?.code===code)});
-  await start(page,initial);await quests(page);await expect(deliver(page,quest)).toBeDisabled();expect(await saved(page)).toEqual(initial);
-  await page.keyboard.press('Escape');await page.getByRole('button',{name:`Return ${getItem(code,data)!.name} to the board`,exact:true}).click();
-  await quests(page);await expect(deliver(page,quest)).toBeEnabled();await deliver(page,quest).click();expect((await saved(page)).completedQuests).toContain(quest.id);
-});
 
 test('a surplus on the board reads as the required count in the visible and accessible quest rows',async({page})=>{
   const quest=firstQuests[0],requirement=quest.requirements[0],name=getItem(requirement.item,data)!.name;
@@ -162,17 +154,16 @@ test('keyboard and emulated touch can inspect and finish quests with focus retur
   }finally{await context.close();}
 });
 
-test('an optional offer needs space and puts its sole producer in the pantry when the board is full',async({page})=>{
-  const initial=offer();initial.board=initial.board.map((cell,index)=>cell||unresolvedObstacle(initial,index,data)?cell:{code:'bakery_1'});initial.inventory=Array.from({length:data.inventoryCapacity},()=>({code:'bakery_1'}));
+test('an optional offer needs a free board space for its sole producer',async({page})=>{
+  const initial=offer();initial.board=initial.board.map((cell,index)=>cell||unresolvedObstacle(initial,index,data)?cell:{code:'bakery_1'});
   const sellFlour=async()=>{const state=await saved(page);await page.locator(`[data-cell="${state.board.findIndex(cell=>cell?.code==='bakery_1')}"]`).click();await page.getByRole('button',{name:'Sell for 1 coin',exact:true}).click();};
-  await start(page,initial);await quests(page);await expect(card(page,optional)).toContainText(/board|pantry/);await accept(page).click();await expect(page.locator('.quest-notice')).toContainText(/space/);expect(await saved(page)).toEqual(initial);
+  await start(page,initial);await quests(page);await expect(card(page,optional)).toContainText(/board/);await accept(page).click();await expect(page.locator('.quest-notice')).toContainText(/space/);expect(await saved(page)).toEqual(initial);
   await page.keyboard.press('Escape');await sellFlour();
-  await page.getByRole('button',{name:'Return Flour to the board',exact:true}).first().click();const before=await saved(page);
+  const before=await saved(page);
   await quests(page);await accept(page).click();await expect(card(page,optional).locator('h3')).toBeFocused();const accepted=await saved(page);
-  expect(accepted.inventory).toEqual([...before.inventory,{code:optional.producer!.item}]);expect(accepted.board).toEqual(before.board);expect(accepted.activeQuestProducers).toEqual({[optional.id]:0});
+  expect(accepted.board.filter(cell=>cell?.code===optional.producer!.item)).toHaveLength(1);expect(accepted.activeQuestProducers).toEqual({[optional.id]:0});
   await expect(accept(page)).toHaveCount(0);await page.keyboard.press('Escape');await page.reload();expect(await saved(page)).toEqual(accepted);
-  await sellFlour();
-  await page.getByRole('button',{name:`Return ${getItem(optional.producer!.item,data)!.name} to the board`,exact:true}).click();const retrieved=await saved(page);
+  const retrieved=await saved(page);
   const source=page.locator(`[data-cell="${retrieved.board.findIndex(cell=>cell?.code===optional.producer!.item)}"]`);await source.click();
   await expect(page.locator('#item-detail').getByRole('button',{name:/^Sell/})).toHaveCount(0);
   // Make room, then take twice to verify the authored immediate output through the interface.
@@ -181,19 +172,19 @@ test('an optional offer needs space and puts its sole producer in the pantry whe
   expect(production.board.filter(cell=>cell?.code===optional.producer!.outputs[0])).toHaveLength(1);
   await sellFlour();await source.click();
   production=await saved(page);expect(production.activeQuestProducers[optional.id]).toBe(0);expect(production.board.filter(cell=>cell?.code===optional.producer!.outputs[0])).toHaveLength(2);expect(production.seed).toBe(before.seed);
-  await page.getByRole('button',{name:'Store',exact:true}).click();await page.reload();expect((await saved(page)).inventory).toContainEqual({code:optional.producer!.item});
+  await page.reload();expect((await saved(page)).board).toContainEqual({code:optional.producer!.item});
 });
 
 test('cleanup previews exact exclusive leftovers, cancels safely, and preserves every ordinary item',async({page})=>{
   const initial=cleanupReady(),preview=previewQuestCleanup(initial,optional.id,data)!;await start(page,initial);await quests(page);await deliver(page,optional).click();
   await expect(page.getByRole('dialog',{name:'Return the tasting supplies',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Keep items',exact:true})).toBeFocused();
-  const list=page.locator('.quest-cleanup-list li');await expect(list).toHaveCount(preview.board.length+preview.inventory.length);
-  await expect(list).toHaveText([...preview.board.map(item=>`${getItem(item.item,data)!.name} · Board space ${item.index+1}`),...preview.inventory.map(item=>`${getItem(item.item,data)!.name} · Pantry space ${item.index+1}`)]);
+  const list=page.locator('.quest-cleanup-list li');await expect(list).toHaveCount(preview.board.length);
+  await expect(list).toHaveText(preview.board.map(item=>`${getItem(item.item,data)!.name} · Board space ${item.index+1}`));
   expect(await saved(page)).toEqual(initial);await page.getByRole('button',{name:'Keep items',exact:true}).click();await expect(card(page,optional).locator('h3')).toBeFocused();expect(await saved(page)).toEqual(initial);
   await deliver(page,optional).click();await page.getByRole('button',{name:'Deliver and return supplies',exact:true}).click();const after=await saved(page);
   const exclusive=new Set(optional.producer!.exclusiveItems),ordinary=(cells: GameState['board'])=>cells.filter(cell=>cell&&!exclusive.has(cell.code));
-  expect(ordinary(after.board)).toEqual(ordinary(initial.board));expect(ordinary(after.inventory)).toEqual(ordinary(initial.inventory));
-  expect([...after.board,...after.inventory].some(cell=>cell&&exclusive.has(cell.code))).toBe(false);expect(after.orders).toEqual(initial.orders);
+  expect(ordinary(after.board)).toEqual(ordinary(initial.board));
+  expect(after.board.some(cell=>cell&&exclusive.has(cell.code))).toBe(false);expect(after.orders).toEqual(initial.orders);
   expect(after.coins).toBe(initial.coins+optional.reward);expect(after.completedQuests).toContain(optional.id);expect(after.activeQuestProducers).toEqual({});
   await finishScene(page);await page.keyboard.press('Escape');await page.reload();expect(await saved(page)).toEqual(after);
 });
@@ -209,7 +200,7 @@ test('another tab cancels a stale cleanup preview without reclaiming its newer i
   const other=await context.newPage();await other.goto('./');await expect(other.locator('#board button')).toHaveCount(42);
   const before=await saved(other);await other.locator(`[data-cell="${before.board.findIndex(cell=>cell?.code==='generator_bakery')}"]`).click();
   const newer=await saved(other);await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(newer);
-  expect(newer.completedQuests).not.toContain(optional.id);expect(newer.activeQuestProducers).toEqual(before.activeQuestProducers);expect(newer.inventory).toEqual(before.inventory);await other.close();
+  expect(newer.completedQuests).not.toContain(optional.id);expect(newer.activeQuestProducers).toEqual(before.activeQuestProducers);await other.close();
 });
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:390,height:800}])for(const theme of ['light','dark'] as const)test(`neighbour quests and cleanup fit ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{

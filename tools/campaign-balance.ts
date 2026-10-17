@@ -2,26 +2,25 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { currentTask, createGame, firstFreeBoardCell, generatorOutputs, getItem, getLevel, legacyOrderReward, migrateLevelRewardGame, migrateQuestGame, migrateBoardGame, previewQuestCleanup, reduceGame, resolveQuests, taskEligibility, validateGame, validateLevelRewardGame } from '../src/engine.ts';
-import type { Action, GameData, GameState, LevelRewardGameState, Order, Task } from '../src/engine.ts';
+import { currentTask, createGame, firstFreeBoardCell, generatorOutputs, getItem, getLevel, previewQuestCleanup, reduceGame, resolveQuests, taskEligibility, validateGame } from '../src/engine.ts';
+import type { Action, GameData, GameState, Order, Task } from '../src/engine.ts';
 
-export type CampaignScenario = 'fresh' | 'fresh-rewards' | 'legacy-sales' | 'historical';
+export type CampaignScenario = 'fresh' | 'fresh-rewards';
 export type CampaignPolicy = 'fewest-ingredients' | 'best-income';
 export type CampaignTotals = {
   actions: number; spawns: number; merges: number; served: number; sales: number; quests: number; levelClaims: number;
   orderCoins: number; saleCoins: number; levelCoins: number; questCoins: number; preparationCoins: number; xp: number;
 };
 export type CampaignChapter = CampaignTotals & {
-  chapter: number; rules: 'current' | 'legacy-coin-only' | 'historical'; balance: number;
+  chapter: number; balance: number;
   cumulative: { actions: number; served: number; merges: number; xp: number };
 };
 export type CampaignPreparation = CampaignTotals & {
-  id: string; title: string; chapter: number; cost: number; work: Task['work'] | null; goals: Task['goals'];
-  rules: CampaignChapter['rules']; balance: number; cumulative: CampaignChapter['cumulative'];
+  id: string; title: string; chapter: number; cost: number; work: Task['work']; goals: Task['goals'];
+  balance: number; cumulative: CampaignChapter['cumulative'];
 };
 export type CampaignBalance = {
   scenario: CampaignScenario; policy: CampaignPolicy; seed: number; chapters: CampaignChapter[]; preparations: CampaignPreparation[]; totals: CampaignTotals; finalState: GameState;
-  conversion: null | { before: LevelRewardGameState; after: GameState };
   postCampaign: { orderIds: string[]; actions: number; served: number };
 };
 
@@ -34,40 +33,22 @@ const emptyTotals = (): CampaignTotals => ({ actions: 0, spawns: 0, merges: 0, s
  * The income policy uses each source's current output tier and breaks ties by the waiting order's position.
  * Sell a merged dish only when a merge
  * goal remains after the coin and service goals. Claim rewards and complete quests only in their named scenarios.
- * Historical quotes use the former fixed bonus and stage formula, and historical sales use the former stage value.
- * Historical preparation costs are 20 + 10 times their zero-based position, with the preceding N and 2N goals.
- * The legacy prefix uses those same prices and costs with zero goals. It changes no saved resources.
  * Actions are game actions, not pointer presses. This fixture does not measure human play time or difficulty.
  */
 export function runCampaignBalance(data: GameData, scenario: CampaignScenario = 'fresh', seed = 84017, policy: CampaignPolicy = 'fewest-ingredients'): CampaignBalance {
-  const historicalData: GameData = { ...data,
-    items: Object.fromEntries(Object.entries(data.items).map(([id, item]) => [id, { ...item, price: item.generator ? 0 : 4 * Math.max(1, Math.floor(item.stage / 2)) }])),
-    tasks: data.tasks.map((task, index) => ({ ...task, cost: 20 + 10 * index,
-      work: { summary: 'Historical budget fixture.', materials: 20 + 10 * index, labour: 0, hours: .5 },
-      goals: { served: index + 1, merges: 2 * (index + 1) } })),
-  };
-  const legacyData: GameData = { ...historicalData, tasks: historicalData.tasks.map(task => ({ ...task, goals: { served: 0, merges: 0 } })) };
-  let content = scenario === 'legacy-sales' ? legacyData : scenario === 'historical' ? historicalData : data;
-  let state = createGame(content, seed);
-  const historicalQuotes = () => {
-    if (content === data) return;
-    state.orders = state.orders.map(({ pricing: _pricing, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, content) }));
-  };
-  historicalQuotes();
+  let state = createGame(data, seed);
   const totals = emptyTotals();
   let previous = emptyTotals();
   let previousPreparation = emptyTotals();
   const chapters: CampaignChapter[] = [];
   const preparations: CampaignPreparation[] = [];
-  let conversion: CampaignBalance['conversion'] = null;
 
   function act(action: Action) {
     const before = state;
-    const result = reduceGame(before, action, content);
+    const result = reduceGame(before, action, data);
     assert.equal(result.ok, true, `${scenario}, preparation ${before.taskIndex + 1}, ${action.type}: ${result.message}`);
     state = result.state;
-    if (action.type === 'serve') historicalQuotes();
-    assert.equal(validateGame(state, content), true, `Valid state after ${action.type}.`);
+    assert.equal(validateGame(state, data), true, `Valid state after ${action.type}.`);
     assert.equal(state.orders.length, 3, 'Every action keeps three live orders.');
     if (action.type === 'serve') {
       before.orders.forEach((order, index) => {
@@ -93,18 +74,18 @@ export function runCampaignBalance(data: GameData, scenario: CampaignScenario = 
   }
 
   function produce(code: string): number {
-    const item = getItem(code, content);
+    const item = getItem(code, data);
     assert.ok(item && !item.generator, `Known dish: ${code}.`);
-    const quest = content.quests.find(quest => quest.producer?.exclusiveItems.includes(code));
+    const quest = data.quests.find(quest => quest.producer?.exclusiveItems.includes(code));
     const source = quest?.producer?.item ?? `generator_${item.chain}`;
-    if (generatorOutputs(state, source, content).includes(code)) {
-      const empty = firstFreeBoardCell(state, content);
+    if (generatorOutputs(state, source, data).includes(code)) {
+      const empty = firstFreeBoardCell(state, data);
       assert.ok(empty >= 0, 'The board has room for request production.');
       act({ type: 'spawn', index: state.board.findIndex(cell => cell?.code === source), output: code });
       assert.equal(state.board[empty]?.code, code);
       return empty;
     }
-    const lower = Object.values({ ...content.items, ...content.questItems }).find(candidate => candidate.next === code);
+    const lower = Object.values({ ...data.items, ...data.questItems }).find(candidate => candidate.next === code);
     assert.ok(lower, `A merge path exists for ${code}.`);
     const first = produce(lower.id);
     const second = produce(lower.id);
@@ -127,61 +108,29 @@ export function runCampaignBalance(data: GameData, scenario: CampaignScenario = 
   function recordChapter(chapter: number) {
     const delta = emptyTotals();
     for (const key of Object.keys(delta) as (keyof CampaignTotals)[]) delta[key] = totals[key] - previous[key];
-    chapters.push({ chapter, rules: rules(), ...delta, balance: state.coins,
+    chapters.push({ chapter, ...delta, balance: state.coins,
       cumulative: { actions: totals.actions, served: state.served, merges: state.merges, xp: state.xp } });
     previous = { ...totals };
   }
 
-  function rules(): CampaignChapter['rules'] {
-    return content === legacyData ? 'legacy-coin-only' : content === historicalData ? 'historical' : 'current';
-  }
-
   function complete(task: Task) {
     act({ type: 'task' });
-    if (scenario === 'fresh-rewards' || scenario === 'legacy-sales' && content === data) claimRewards();
+    if (scenario === 'fresh-rewards') claimRewards();
     const delta = emptyTotals();
     for (const key of Object.keys(delta) as (keyof CampaignTotals)[]) delta[key] = totals[key] - previousPreparation[key];
-    preparations.push({ id: task.id, title: task.title, chapter: task.chapter, cost: task.cost, work: content === data ? task.work : null,
-      goals: task.goals, rules: rules(), ...delta, balance: state.coins,
+    preparations.push({ id: task.id, title: task.title, chapter: task.chapter, cost: task.cost, work: task.work,
+      goals: task.goals, ...delta, balance: state.coins,
       cumulative: { actions: totals.actions, served: state.served, merges: state.merges, xp: state.xp } });
     previousPreparation = { ...totals };
-    if (currentTask(state, content)?.chapter !== task.chapter) recordChapter(task.chapter);
+    if (currentTask(state, data)?.chapter !== task.chapter) recordChapter(task.chapter);
   }
 
   for (const [index, cell] of state.board.entries()) {
-    if (cell && !getItem(cell.code, content)!.generator) act({ type: 'sell', index });
-  }
-
-  // Earn the first half under the old rule, without service, merges, reward claims, or quests.
-  if (scenario === 'legacy-sales') {
-    while (state.taskIndex < 12) {
-      const task = currentTask(state, content)!;
-      if (taskEligibility(state, content).ready) {
-        complete(task);
-      } else {
-        act({ type: 'sell', index: produce('bakery_1') });
-      }
-    }
-    assert.equal(state.served, 0);
-    assert.equal(state.merges, 0);
-    // State 5 predates quests. Remove only the new fields; keep every original field and resource.
-    const { completedQuests: _completed, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
-      layoutId: _layout, resolvedObstacles: _resolved, pendingScenes: _scenes, ...saved } = structuredClone(state);
-    const before: LevelRewardGameState = { ...saved, version: 5 };
-    const oldBytes = JSON.stringify(before);
-    assert.equal(validateLevelRewardGame(before, data), true);
-    state = migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(before, data), data), data);
-    assert.deepEqual(migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(before, data), data), data), state, 'Repeated conversion gives the same state.');
-    assert.equal(JSON.stringify(before), oldBytes, 'Conversion preserves the older saved bytes.');
-    for (const key of Object.keys(before) as (keyof LevelRewardGameState)[]) {
-      if (key !== 'version') assert.deepEqual(state[key], before[key], `Conversion preserves ${key}.`);
-    }
-    conversion = { before, after: structuredClone(state) };
-    content = data;
+    if (cell && !getItem(cell.code, data)!.generator) act({ type: 'sell', index });
   }
 
   for (;;) {
-    if (scenario === 'fresh-rewards' || scenario === 'legacy-sales') claimRewards();
+    if (scenario === 'fresh-rewards') claimRewards();
     if (scenario === 'fresh-rewards') {
       const available = resolveQuests(state, data).find(view => view.status === 'active' || view.status === 'offer');
       if (available) {
@@ -195,17 +144,17 @@ export function runCampaignBalance(data: GameData, scenario: CampaignScenario = 
         continue;
       }
     }
-    const task = currentTask(state, content);
+    const task = currentTask(state, data);
     if (!task) break;
-    if (taskEligibility(state, content).ready) {
+    if (taskEligibility(state, data).ready) {
       complete(task);
       continue;
     }
     if (state.coins < task.cost || state.served < task.goals.served) {
       const effort = (order: Order) => order.requirements.reduce((sum, code) => sum + 2 ** (data.items[code].stage - 1), 0);
       const actionCost = (order: Order) => 1 + order.requirements.reduce((sum, code) => {
-        const item = content.items[code];
-        const tier = Math.max(...generatorOutputs(state, `generator_${item.chain}`, content).map(output => content.items[output].stage));
+        const item = data.items[code];
+        const tier = Math.max(...generatorOutputs(state, `generator_${item.chain}`, data).map(output => data.items[output].stage));
         return sum + 2 * 2 ** Math.max(0, item.stage - tier) - 1;
       }, 0);
       const order = [...state.orders].sort((first, second) => policy === 'best-income'
@@ -231,20 +180,17 @@ export function runCampaignBalance(data: GameData, scenario: CampaignScenario = 
   const orderIds = state.orders.map(order => order.id);
   for (const id of orderIds) serve(state.orders.find(order => order.id === id)!);
   const postCampaign = { orderIds, actions: totals.actions - campaignTotals.actions, served: state.served - finalState.served };
-  return { scenario, policy, seed, chapters, preparations, totals: campaignTotals, finalState, conversion, postCampaign };
+  return { scenario, policy, seed, chapters, preparations, totals: campaignTotals, finalState, postCampaign };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
-  const reports = (['historical', 'fresh', 'fresh-rewards', 'legacy-sales'] as const).map(scenario => runCampaignBalance(data, scenario));
-  reports.push(runCampaignBalance(data, 'historical', 84017, 'best-income'), runCampaignBalance(data, 'fresh', 84017, 'best-income'));
+  const reports = (['fewest-ingredients', 'best-income'] as const).flatMap(policy =>
+    (['fresh', 'fresh-rewards'] as const).map(scenario => runCampaignBalance(data, scenario, 84017, policy)));
   const comparison = reports.map(report => ({ scenario: report.scenario, policy: report.policy, actions: report.totals.actions,
     served: report.totals.served, merges: report.totals.merges, cost: report.totals.preparationCoins,
-    actionsComparedWithHistorical: report.totals.actions / reports.find(baseline => baseline.scenario === 'historical' && baseline.policy === report.policy)!.totals.actions,
     firstPreparation: { actions: report.preparations[0].actions, served: report.preparations[0].served, merges: report.preparations[0].merges, cost: report.preparations[0].cost } }));
-  const runs = reports.map(({ finalState, conversion, ...report }) => ({ ...report, final: { preparations: finalState.taskIndex, balance: finalState.coins,
-      served: finalState.served, merges: finalState.merges, xp: finalState.xp, quests: finalState.completedQuests.length },
-      conversion: conversion ? { preparation: conversion.before.taskIndex, served: conversion.before.served,
-        merges: conversion.before.merges, balance: conversion.before.coins, xp: conversion.before.xp } : null }));
+  const runs = reports.map(({ finalState, ...report }) => ({ ...report, final: { preparations: finalState.taskIndex, balance: finalState.coins,
+    served: finalState.served, merges: finalState.merges, xp: finalState.xp, quests: finalState.completedQuests.length } }));
   console.log(JSON.stringify({ comparison, runs }, null, 2));
 }

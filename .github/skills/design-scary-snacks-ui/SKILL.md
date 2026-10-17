@@ -1,6 +1,6 @@
 ---
 name: design-scary-snacks-ui
-description: Design, audit, add, repair, or examine the Scary Snacks browser interface through the Impeccable workflow. Use for the room, the drawer, the board, orders, story, pantry, dialogs, the phone bar, themes, typography, interaction, or motion.
+description: Design, audit, add, repair, or examine the Scary Snacks browser interface through the Impeccable workflow. Use for the room, the drawer, the board, orders, story, dialogs, the phone bar, themes, typography, interaction, or motion.
 ---
 
 # Design the Scary Snacks interface

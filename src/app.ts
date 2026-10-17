@@ -1,4 +1,4 @@
-import { createGame, reduceGame, validateGame, saveMigrations, getLevel, availableLevelRewards, generatorOutputs, nextOutput, dataProblems, canServe, servedCells, taskEligibility, saleValue, normalizeOrderCustomers, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, previewQuestCleanup, unresolvedObstacle, freeBoardCells, resolveChapters } from './engine.ts';
+import { createGame, reduceGame, validateGame, getLevel, availableLevelRewards, generatorOutputs, nextOutput, dataProblems, canServe, servedCells, taskEligibility, saleValue, normalizeOrderCustomers, resolveRooms, latestArea, resolveDecorations, getItem, resolveQuests, canDeliverQuest, previewQuestCleanup, unresolvedObstacle, freeBoardCells, resolveChapters } from './engine.ts';
 import type { Action, ChapterView, DecorationSlot, DecorationVariant, GameData, GameState, Order, Quest, RoomView, SceneLine, Task } from './engine.ts';
 import { loadSave, saveGame, exportSave, importSave, resetSave, SAVE_KEY, MAX_SAVE_BYTES } from './storage.ts';
 import type { WriteResult } from './storage.ts';
@@ -23,7 +23,7 @@ const spriteBounds = [[25,53,237,208],[267,92,247,176],[519,50,241,209],[779,76,
 // Sprites share one scale unless a side is larger than SPRITE_VIEW atlas pixels.
 const SPRITE_VIEW = 246;
 // Rendering replaces the controls in these regions, so focus is restored by region and position.
-const FOCUS_REGIONS = '#board,#orders,#story,#item-detail,#offer,#inventory';
+const FOCUS_REGIONS = '#board,#orders,#story,#item-detail,#offer';
 const TONE_EVENTS = ['merge', 'serve', 'task'];
 const modal = $<HTMLDialogElement>('#modal');
 const svg = <K extends keyof SVGElementTagNameMap>(tag: K) => document.createElementNS('http://www.w3.org/2000/svg', tag);
@@ -69,7 +69,6 @@ let spriteSequence = 0, boardFocus = 0;
 // The story scene that the paid preparation earned, which opens after its reveal.
 let earnedScene: string | null = null;
 let viewArea = '', held: Task | null = null, revealToken = 0, paintingToken = 0, preloaded: HTMLPictureElement | null = null, lowered = false, swipe = 0;
-const pantryPanel = $('#pantry');
 let storage: Storage | null = null;
 try { storage = window.localStorage; } catch { /* Session play remains available. */ }
 const validate = (candidate: unknown) => validateGame(candidate, data);
@@ -407,7 +406,7 @@ function render() {
     }
     board.append(value);
   });
-  renderOrders(); $('#story').replaceChildren(storyContent(false)); renderDetail(); renderOffer(); renderStorage();
+  renderOrders(); $('#story').replaceChildren(storyContent(false)); renderDetail(); renderOffer();
   markRecipeBook();
   markLevelRewards();
   if (region && position >= 0) {
@@ -485,7 +484,7 @@ function storyContent(inSheet: boolean) {
         row.append(element('span', '', `Quest: ${requirement.title}`), element('span', 'requirement-status', requirement.met ? 'Complete' : 'Required'));
       } else if (requirement.kind === 'space') {
         if (requirement.met) continue;
-        row.append(element('span', '', `Free one board or pantry space for the ${requirement.source}.`));
+        row.append(element('span', '', `Free one board space for the ${requirement.source}.`));
       } else {
         const label = requirement.kind === 'coins' ? 'Coins' : requirement.kind === 'served' ? 'Total orders served' : 'Total merges';
         row.append(element('span', '', `${label}: ${count.format(requirement.current)} / ${count.format(requirement.required)}`),
@@ -581,8 +580,8 @@ function chainOf(code: string) {
 /** The item dialog answers the order's question: how to get this item, and how many are at hand. Its title names the item. */
 function detailContent(code: string) {
   const def = definition(code), name = itemName(code), source = sourceOf(def.chain);
-  const onBoard = state.board.filter(cell => cell?.code === code).length, inPantry = state.inventory.filter(cell => cell.code === code).length;
-  const unlocked = [...state.board, ...state.inventory].some(cell => cell?.code === source.id);
+  const onBoard = state.board.filter(cell => cell?.code === code).length;
+  const unlocked = state.board.some(cell => cell?.code === source.id);
   const content = document.createDocumentFragment();
   const direct = generatorOutputs(state,source.id,data).includes(code) && (def.stage > 1 || chosenOutput(source.id) !== code);
   content.append(food(code), element('p','item-how', direct ? `Select the ${source.name}, then choose Take ${name}.` : def.stage > 1 ? `Merge two ${itemName(`${def.chain}_${def.stage - 1}`)} to make ${name}.` : `Tap the ${source.name} to take ${name}.`));
@@ -592,7 +591,7 @@ function detailContent(code: string) {
     content.append(element('p','',quest?`Accept “${quest.title}” in Neighbour quests to borrow the ${source.name}.`:`The ${source.name} arrives with ${task ? `the preparation “${task.title}”` : 'a later preparation'}.`), chainOf(code));
     return content;
   }
-  const have = onBoard && inPantry ? `You have ${onBoard} on the board and ${inPantry} in the pantry.` : onBoard ? `You have ${onBoard} on the board.` : inPantry ? `You have ${inPantry} in the pantry.` : 'You have none yet.';
+  const have = onBoard ? `You have ${onBoard} on the board.` : 'You have none yet.';
   content.append(element('p','',have), chainOf(code), button('Show me on the board','secondary-button',() => showWay(code)));
   return content;
 }
@@ -605,10 +604,7 @@ function showWay(code: string) {
   const cells = (id: string) => state.board.flatMap((cell, index) => cell?.code === id ? [index] : []);
   // The first cell is selected and the rest pulse, so the selected outline stays visible.
   const point = (at: number[], line: string) => { selected = at[0]; render(); pulse(at.slice(1)); status(line); $(`[data-cell="${at[0]}"]`).focus({ preventScroll:true }); };
-  // Where the pantry is a sheet, a stored item opens it.
-  const inPantry = (line: string) => { selected = null; render(); if (drawerLayout.matches) pantrySheet(); status(line); };
   if (cells(code).length) return point(cells(code), `${name} is ready on the board.`);
-  if (state.inventory.some(cell => cell.code === code)) return inPantry(`${name} is in the pantry. Tap it to bring it back.`);
   for (let stage = def.stage - 1; stage >= 1; stage--) {
     const id = `${def.chain}_${stage}`, pair = cells(id).slice(0, 2);
     if (pair.length === 2) return point(pair, `Tap the other ${itemName(id)} to merge them.`);
@@ -618,7 +614,6 @@ function showWay(code: string) {
   const source = sourceOf(def.chain), at = cells(source.id);
   const output = generatorOutputs(state,source.id,data).filter(id => definition(id).stage <= def.stage).at(-1)!;
   if (at.length) point(at, `Use Take ${itemName(output)} on the ${source.name}.`);
-  else inPantry(`Tap the ${source.name} in the pantry to bring it back.`);
 }
 /** The selected item and its actions take the place of Mara's line under the board, so the player acts without leaving the board. */
 function renderDetail() {
@@ -642,7 +637,6 @@ function renderDetail() {
     takes.append(take);
   }
   if (outputs.length === 1) actions.append(takes);
-  actions.append(button('Store','secondary-button',() => act({type:'store',index:at},null)));
   if (!def.generator) {
     const value = saleValue(cell.code,data), sell = button(`Sell · ${count.format(value)}`,'secondary-button sell-button',() => act({type:'sell',index:at},null));
     sell.append(coinMark()); sell.setAttribute('aria-label', `Sell for ${coinText(value)}`); actions.append(sell);
@@ -657,24 +651,10 @@ function renderDetail() {
   words.classList.toggle('long-name', phone.matches && title.offsetHeight > parseFloat(getComputedStyle(title).lineHeight) * 1.5);
   fitPin();
 }
-function renderStorage() {
-  $('#inventory-count').textContent = `${state.inventory.length} / ${data.inventoryCapacity}`;
-  $('#pantry-button').setAttribute('aria-label', `Pantry, ${state.inventory.length} of ${data.inventoryCapacity}`);
-  const container = pantryPanel.querySelector<HTMLElement>('.inventory')!; container.replaceChildren();
-  for(let index=0;index<data.inventoryCapacity;index++) {
-    const cell=state.inventory[index]; const value=button('','inventory-slot',() => act({type:'retrieve',index}));
-    value.disabled=!cell; value.setAttribute('aria-label',cell?`Return ${itemName(cell.code)} to the board`:`Empty pantry space ${index+1}`);
-    if(cell)value.append(food(cell.code)); container.append(value);
-  }
-}
-/** The pantry lives beside the board on wider screens. Where the kitchen is a drawer, the Pantry button lends it to a sheet. */
-function restorePantry() { if (pantryPanel.parentElement !== $('#side')) $('#side').append(pantryPanel); }
-function pantrySheet() { showModal('The pantry', pantryPanel); }
 /** Opens the dialog, or replaces what an open dialog shows. Replacing removes the focused control, so focus moves to the given control or to the new title, which screen readers then read. */
 function showModal(title: string, content: Node, focus?: HTMLElement, back?: () => void) {
   const replacing=modal.open;
   modalReturn=back ?? null;
-  if(content!==pantryPanel)restorePantry();
   $('#modal-title').textContent=title; $('#modal-body').replaceChildren(content);
   if(!modal.open)modal.showModal();
   if(focus)focus.focus();else if(replacing&&!modal.contains(document.activeElement))$('#modal-title').focus();
@@ -767,12 +747,12 @@ function questBook(focusQuest?: string, message = '') {
       inspect.append(food(code),element('span','',`${quantity} ${itemName(code)}`),element('span','quest-count',`${onBoard} / ${quantity} on board`));row.append(inspect);requirements.append(row);
     }
     card.append(requirements,element('p','quest-reward',`Reward: ${coinText(quest.reward)}`));
-    card.append(element('p','quest-note','Delivery uses the board only. Return stored items from the pantry first.'));
+    card.append(element('p','quest-note','Delivery uses items on the board.'));
     const actions=element('div','quest-actions');
     const read=button('Read request','secondary-button',()=>showStory({title:quest.title,dialogue:quest.opening},false,'',()=>questBook(quest.id)));
     read.setAttribute('aria-label',`Read request: ${quest.title}`);actions.append(read);
     if(questStatus==='offer'){
-      card.append(element('p','quest-note',`Accept to borrow the ${itemName(quest.producer!.item)}. It needs one free space on the board or in the pantry. Delivery returns this source and all of its tasting items.`));
+      card.append(element('p','quest-note',`Accept to borrow the ${itemName(quest.producer!.item)}. It needs one free space on the board. Delivery returns this source and all of its tasting items.`));
       const accept=button('Accept request','primary-button',()=>changeGame(()=>{
         if(!card.isConnected)return;
         const result=applyAction({type:'acceptQuest',id:quest.id});
@@ -786,7 +766,7 @@ function questBook(focusQuest?: string, message = '') {
     }
     card.append(actions);content.append(card);
   }
-  const done=views.filter(view=>view.status==='complete'||view.status==='legacy').length;
+  const done=views.filter(view=>view.status==='complete').length;
   if(!available.length)content.append(element('p','',done===views.length?'Every neighbour request is complete. You can read their conversations in the story journal.':'No request is ready yet. Finish more preparations to open the next neighbour request.'));
   content.append(element('p','quest-progress',`${done} of ${data.quests.length} requests complete`),element('p','save-status',saveMessage));
   if(saveFailed&&!recoveryRequired&&storage)content.append(button('Retry save','secondary-button',()=>changeGame(()=>{
@@ -808,12 +788,9 @@ function confirmQuestDelivery(quest: Quest) {
   if(!preview){questBook(quest.id,'This request is no longer ready. Check its requirements.');return;}
   const content=element('div','quest-cleanup');
   content.append(element('p','modal-copy','Delivery also returns these tasting supplies. Ordinary items stay where they are.'));
-  for(const [label,items] of [['Board',preview.board],['Pantry',preview.inventory]] as const){
-    content.append(element('h3','',label));const list=element('ul','quest-cleanup-list');
-    for(const entry of items)list.append(element('li','',`${itemName(entry.item)} · ${label} space ${entry.index+1}`));
-    if(!items.length)list.append(element('li','','No tasting supplies here.'));
-    content.append(list);
-  }
+  const list=element('ul','quest-cleanup-list');
+  for(const entry of preview.board)list.append(element('li','',`${itemName(entry.item)} · Board space ${entry.index+1}`));
+  content.append(list);
   content.append(element('p','quest-reward',`Reward: ${coinText(quest.reward)}`));
   const actions=element('div','quest-actions'),keep=button('Keep items','secondary-button',()=>questBook(quest.id));
   actions.append(button('Deliver and return supplies','primary-button',()=>deliverQuest(quest,content,preview.token)),keep);content.append(actions);
@@ -828,11 +805,10 @@ function journal(focusEntry?: string) {
     entry.dataset.journal=person.id;entry.setAttribute('aria-label',`Meet ${person.name}`);
     entry.append(portrait(person.id),element('strong','',person.name),element('span','',person.role));content.append(entry);
   }
-  const completed=resolveQuests(state,data).filter(view=>view.status==='complete'||view.status==='legacy');
+  const completed=resolveQuests(state,data).filter(view=>view.status==='complete');
   if(completed.length)content.append(element('h3','','Neighbour quests'));
-  for(const {quest,status:questStatus} of completed){
+  for(const {quest} of completed){
     const section=element('section','quest-journal');section.append(element('h4','',quest.title));
-    if(questStatus==='legacy')section.append(element('p','small-copy','Satisfied by your earlier preparations. No quest reward was added.'));
     const opening=button('Read request','text-button',()=>showStory({title:quest.title,dialogue:quest.opening},false,'',()=>journal(quest.id)));
     opening.setAttribute('aria-label',`Read request: ${quest.title}`);
     const replay=button('Read completion','journal-entry',()=>showStory({title:quest.title,dialogue:quest.completion},false,'',()=>journal(quest.id)));
@@ -854,7 +830,7 @@ function journal(focusEntry?: string) {
     else section.append(element('p','',view.chapter.opening),element('p','small-copy',`Goal: ${view.chapter.objective}`));
     const help=quests.find(value=>value.quest.id===view.chapter.contribution)!;
     if(help.status!=='locked')section.append(element('p','small-copy',`${character(help.quest.character).name} helps: ${help.quest.title} · ${
-      help.status==='complete'?'Delivered':help.status==='legacy'?'Satisfied by earlier preparations':'Waiting in Neighbour quests'}`));
+      help.status==='complete'?'Delivered':'Waiting in Neighbour quests'}`));
     const steps=element('ul','journal-steps');
     view.tasks.forEach((task,index)=>{
       if(index<view.done){
@@ -1203,7 +1179,7 @@ function settings(focusSlot?: string) {
     const selectedFile=file.files?.[0];if(!selectedFile)return;
     try {
       if(selectedFile.size>MAX_SAVE_BYTES)throw new Error('Select a saved game smaller than 2 MiB.');
-      const candidate=normalizeOrderCustomers(importSave<GameState>(await selectedFile.text(),validate,saveMigrations(data)),data);
+      const candidate=normalizeOrderCustomers(importSave<GameState>(await selectedFile.text(),validate),data);
       const review=element('div');review.append(element('p','modal-copy',`Replace the current game with this saved game: ${coinText(candidate.coins)} and ${count.format(candidate.taskIndex)} of ${data.tasks.length} preparations done? Export the current game first if you want to keep it.`));
       const keep=button('Keep the current game','secondary-button',settings),choice=element('div','settings-actions');
       choice.append(button('Import this saved game','primary-button',()=>changeGame(()=>{
@@ -1235,8 +1211,7 @@ function findMatch() {
   }
   const index=state.board.findIndex(cell=>cell&&definition(cell.code).generator);
   if(index>=0){const code=state.board[index]!.code;selected=index;render();status(`No matches yet. Tap the ${itemName(code)} to take ${itemName(chosenOutput(code))}.`);return;}
-  const stored=state.inventory.find(cell=>definition(cell.code).generator);
-  status(stored?`No matches yet. Tap the ${itemName(stored.code)} in the pantry to bring it back.`:'No matches yet.');
+  status('No matches yet.');
 }
 function cancelDrag() { dragging?.ghost?.remove();dragging=null; }
 $('#board').addEventListener('pointerdown',event=>{
@@ -1277,12 +1252,11 @@ $('.skip-link').addEventListener('click',event=>{
 });
 $('#close-modal').addEventListener('click',()=>editingDecoration?settings(editingDecoration):modalReturn?modalReturn():modal.close());
 modal.addEventListener('cancel',event=>{if(editingDecoration){event.preventDefault();settings(editingDecoration);}else if(modalReturn){event.preventDefault();modalReturn();}});
-// A closed sheet gives the pantry back, and the end of a paid preparation's story reveals its change.
+// The end of a paid preparation's story reveals its change.
 modal.addEventListener('close',()=>{
   if(modal.open)return;
   editingDecoration=null;
   modalReturn=null;
-  restorePantry();
   if(questFlow){questFlow=false;const opener=[...document.querySelectorAll<HTMLElement>('[data-quests]')].find(value=>value.checkVisibility());(opener??$('#story-button')).focus({preventScroll:true});}
   if(sceneFlow){
     sceneFlow=false;
@@ -1302,12 +1276,11 @@ $('#room-pin').addEventListener('click',()=>{const {view}=currentView();status(v
 for(const opener of document.querySelectorAll('[data-house-book]'))opener.addEventListener('click',()=>data&&settings());
 $('#collection-button').addEventListener('click',()=>data&&recipeBook());
 $('#recipes-button').addEventListener('click',()=>data&&recipeBook());
-$('#pantry-button').addEventListener('click',()=>data&&pantrySheet());
 $('#story-button').addEventListener('click',()=>data&&showModal('Our little bistro',storyContent(true)));
 $('#hint-button').addEventListener('click',()=>state&&findMatch());
 $('#cat-button').addEventListener('click',toggleCat);
 phone.addEventListener('change',()=>{if(state){renderCoins();renderDetail();}});
-drawerLayout.addEventListener('change',()=>{setLowered(false);if(!drawerLayout.matches&&modal.open&&pantryPanel.closest('dialog'))modal.close();if(state){renderOffer();renderOrders();}});
+drawerLayout.addEventListener('change',()=>{setLowered(false);if(state){renderOffer();renderOrders();}});
 movableDrawer.addEventListener('change',()=>setLowered(false));
 window.addEventListener('resize',()=>{if(state&&farewells.size)endFarewells();syncMiez();});
 $('#room-frame').addEventListener('transitionend',syncMiez);$('.game-layout').addEventListener('transitionend',syncMiez);
@@ -1320,8 +1293,8 @@ try {
   data=await response.json();
   // Data that fails its checks never reaches the save, so it cannot be mistaken for a damaged save.
   const problems=dataProblems(data);if(problems.length)throw new Error('The game data is not valid.',{cause:problems});
-  // Migration writes share the game lock, so an old tab cannot replace a newer destination.
-  const load=()=>loadSave<GameState>(storage,validate,saveMigrations(data));
+  // Loading shares the game lock with writes from other tabs.
+  const load=()=>loadSave<GameState>(storage,validate);
   const saved=storage&&navigator.locks?await navigator.locks.request(SAVE_KEY,load):load();
   state=saved.state?normalizeOrderCustomers(saved.state,data):createGame(data);
   // A reload cannot open blocked storage, so that game plays for this visit without the recovery block.
@@ -1341,5 +1314,5 @@ try {
 }catch(error){
   status(`The kitchen could not open. ${reason(error)}`);console.error(error);
   const hint=$('#hint-button');hint.textContent='Try again';hint.addEventListener('click',()=>location.reload());
-  for(const opener of document.querySelectorAll<HTMLButtonElement>('#story-button,#recipes-button,#pantry-button,#collection-button,[data-house-book]'))opener.disabled=true;
+  for(const opener of document.querySelectorAll<HTMLButtonElement>('#story-button,#recipes-button,#collection-button,[data-house-book]'))opener.disabled=true;
 }

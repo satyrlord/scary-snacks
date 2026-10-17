@@ -6,7 +6,8 @@ import { exportSave, importSave } from '../src/storage.ts';
 import { imageVariants } from '../tools/build-image-variants.ts';
 import type { Action, GameData, GameState, Order } from '../src/engine.ts';
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
-const initial = (seed?: number) => ({ ...createGame(data, seed), layoutId: 'legacy-open' });
+data.board.layouts.push({ id: 'test-open', obstacles: [] });
+const initial = (seed?: number) => ({ ...createGame(data, seed), layoutId: 'test-open' });
 // Fixtures for tiers, placement, and room art isolate those rules from campaign effort.
 const withGoals = (state: GameState) => Object.assign(state, data.tasks.at(-1)!.goals);
 function apply(state: GameState, action: Action) {
@@ -97,10 +98,9 @@ test('production tiers validate their chain, stage, unlock, and preparation orde
   assert.ok(generatorTierProblems(broken).length > 0);
 });
 
-test('paid production tiers change no items or orders and also improve pantry sources', () => {
+test('paid production tiers change no items or orders', () => {
   let state = withGoals(initial());
   state.coins = 100000;
-  state = apply(state, { type: 'store', index: 1 });
   for (let count = 1; count <= 20; count++) {
     const before = state;
     const result = reduceGame(state, { type: 'task' }, data);
@@ -112,11 +112,9 @@ test('paid production tiers change no items or orders and also improve pantry so
     assert.deepEqual(state.outputChoices, {});
     if (count === 12 || count === 20) {
       assert.deepEqual(state.board, before.board);
-      assert.deepEqual(state.inventory, before.inventory);
       for (const chain of data.chains) assert.ok(result.message.includes(`The ${data.items[`generator_${chain.id}`].name} can now make ${data.items[`${chain.id}_${tier}`].name}.`));
     } else assert.ok(!result.message.includes('can now make'));
   }
-  state = apply(state, { type: 'retrieve', index: 0 });
   const index = state.board.findIndex(cell => cell?.code === 'generator_bakery');
   for (const output of ['bakery_3', 'bakery_2', 'bakery_1']) {
     const seed = state.seed;
@@ -132,15 +130,14 @@ test('paid production tiers change no items or orders and also improve pantry so
   }
 });
 
-test('output choices survive storage and later upgrades while failed takes change nothing', () => {
+test('output choices survive moves and later upgrades while failed takes change nothing', () => {
   let state = withGoals(initial());
   state.coins = 100000;
   for (let index = 0; index < 12; index++) state = apply(state, { type: 'task' });
   state = apply(state, { type: 'spawn', index: 1, output: 'bakery_2' });
-  state = apply(state, { type: 'store', index: 1 });
+  state = apply(state, { type: 'move', from: 1, to: 2 });
   for (let index = 12; index < 20; index++) state = apply(state, { type: 'task' });
   assert.deepEqual(state.outputChoices, { bakery: 'bakery_2' });
-  state = apply(state, { type: 'retrieve', index: 0 });
   const index = state.board.findIndex(cell => cell?.code === 'generator_bakery');
   const empty = state.board.indexOf(null);
   state = apply(state, { type: 'spawn', index });
@@ -194,20 +191,15 @@ test('all lower-stage orders remain payable after upgrades, including duplicate 
   }
 });
 
-test('production upgrades need no board or pantry space', () => {
+test('production upgrades need no board space', () => {
   for (const count of [11, 19]) {
     let state = withGoals(initial());
     state.coins = 100000;
     for (let index = 0; index < count; index++) state = apply(state, { type: 'task' });
-    for (let index = 0; index < data.inventoryCapacity; index++) {
-      state = apply(state, { type: 'spawn', index: 1 });
-      state = apply(state, { type: 'store', index: state.board.findIndex(cell => cell?.code === 'bakery_1') });
-    }
     state = fillBoard(state);
     const before = structuredClone(state);
     state = apply(state, { type: 'task' });
     assert.deepEqual(state.board, before.board);
-    assert.deepEqual(state.inventory, before.inventory);
     assert.equal(generatorOutputs(state, 'generator_bakery', data).length, count === 11 ? 2 : 3);
   }
 });
@@ -282,33 +274,15 @@ test('serve and sell stop at the coin limit, so the game stays savable', () => {
   assert.equal(apply({ ...state, coins: limit - saleValue(state.board[13]!.code, data) }, { type: 'sell', index: 13 }).coins, limit);
 });
 
-test('storage supports generators and retrieves into the first free cell, and sources cannot be sold', () => {
-  let state = initial();
-  state = apply(state, { type: 'store', index: 1 });
-  assert.equal(state.inventory[0]?.code, 'generator_bakery');
-  state = apply(state, { type: 'retrieve', index: 0 });
-  assert.equal(state.board[0]?.code, 'generator_bakery');
-  assert.equal(state.inventory.length, 0);
-  fail(state, { type: 'sell', index: 0 });
+test('sources cannot be sold', () => {
+  fail(initial(), { type: 'sell', index: 1 });
 });
 
-test('storage capacity and a full board prevent loss of items', () => {
-  let state = initial();
-  for (let index = 0; index < data.inventoryCapacity; index++) {
-    state = apply(state, { type: 'spawn', index: 1 });
-    const ingredient = state.board.findIndex(cell => cell?.code === 'bakery_1');
-    state = apply(state, { type: 'store', index: ingredient });
-  }
-  fail(state, { type: 'store', index: 1 });
-  state = fillBoard(state);
-  fail(state, { type: 'retrieve', index: 0 });
-});
-
-test('orders require each duplicate separately and never count stored items', () => {
+test('orders require each duplicate separately', () => {
   let state = initial();
   const order = { requirements: ['bakery_1', 'bakery_1'] };
   assert.equal(canServe(state, order, data), true);
-  state = apply(state, { type: 'store', index: 13 });
+  state = apply(state, { type: 'sell', index: 13 });
   assert.equal(canServe(state, order, data), false);
   assert.equal(canServe(state, { requirements: ['generator_bakery'] }, data), false);
   assert.equal(canServe(state, { requirements: [] }, data), false);
@@ -318,18 +292,18 @@ test('invalid or unavailable actions do not change state', () => {
   const state = initial();
   for (const action of [null, {}, { type: 'unknown' }, { type: 'task' }, { type: 'spawn', index: 13 },
     { type: 'move', from: 13, to: 13 }, { type: 'move', from: 13, to: 42 }, { type: 'move', from: -1, to: 0 },
-    { type: 'move', from: 13, to: '14' }, { type: 'serve', id: 'absent' }, { type: 'retrieve', index: 0 },
-    { type: 'store', index: NaN }, { type: 'sell', index: 100 }]) fail(state, action);
+    { type: 'move', from: 13, to: '14' }, { type: 'serve', id: 'absent' },
+    { type: 'sell', index: 100 }]) fail(state, action);
 });
 
-test('save validation rejects invalid numeric fields, codes, and legacy versions', () => {
+test('save validation rejects invalid numeric fields, codes, and unsupported versions', () => {
   // Some corruptions write a value that the GameState type does not admit.
   const corruptions: ((state: any) => void)[] = [
     state => { state.version = 1; }, state => { state.version = 2; }, state => { state.coins = -1; }, state => { state.xp = Infinity; },
     state => { state.seed = 4294967296; }, state => { state.taskIndex = 25; },
     state => { state.board.pop(); }, state => { state.board[0] = { code: '__proto__' }; },
     state => { state.board[0] = { code: 'bakery_1', hidden: true }; },
-    state => { state.inventory = [null]; }, state => { state.discovered.push(state.discovered[0]); },
+    state => { state.discovered.push(state.discovered[0]); },
     state => { state.orders[0].reward++; }, state => { state.orders[1].id = state.orders[0].id; },
     state => { state.orders[0].id = 'order_999999'; }, state => { state.orders[0].requirements = ['generator_bakery']; },
     state => { state.orders[0].customer = 'absent'; }, state => { state.decorations.push('task_1'); },
@@ -349,7 +323,7 @@ test('save validation rejects missing, duplicated, and premature generators', ()
   state.board[1] = null;
   assert.equal(validateGame(state, data), false);
   state = initial();
-  state.inventory.push({ code: 'generator_bakery' });
+  state.board[0] = { code: 'generator_bakery' };
   assert.equal(validateGame(state, data), false);
   state = initial();
   state.board[0] = { code: 'generator_sweet' };
@@ -357,21 +331,13 @@ test('save validation rejects missing, duplicated, and premature generators', ()
   assert.equal(validateGame(state, data), false);
 });
 
-test('task unlocks use storage on a full board and fail atomically when both are full', () => {
+test('task unlocks require a free board space and fail atomically on a full board', () => {
   let state = withGoals(initial());
   // Controlled funds isolate the placement branch; the full-story test earns every coin.
   state.coins = data.tasks.slice(0, 3).reduce((sum, task) => sum + task.cost, 0);
   state = apply(state, { type: 'task' });
   state = apply(state, { type: 'task' });
   state = fillBoard(state);
-  const completed = apply(state, { type: 'task' });
-  assert.equal(completed.taskIndex, 3);
-  assert.equal(completed.inventory[0]?.code, 'generator_sweet');
-  assert.equal(completed.coins, state.coins - data.tasks[2].cost);
-  for (let index = 0; index < data.inventoryCapacity; index++) {
-    state = apply(state, { type: 'store', index: 0 });
-    state = apply(state, { type: 'spawn', index: 1 });
-  }
   const failure = fail(state, { type: 'task' });
   assert.match(failure.message, /space/);
   state = apply(state, { type: 'sell', index: 0 });
@@ -403,7 +369,7 @@ test('valid saves with duplicate waiting neighbours get distinct neighbours with
   for (const customers of [['eszter', 'ilie', 'eszter'], ['mara', 'mara', 'mara'], ['eszter', 'eszter', 'mara']]) {
     const duplicated = initial();
     duplicated.orders.forEach((order, index) => { order.customer = customers[index]; });
-    const imported = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 7, state: duplicated }),
+    const imported = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 8, state: duplicated }),
       candidate => validateGame(candidate, data));
     const before = structuredClone(imported);
     const normalized = normalizeOrderCustomers(imported, data);
@@ -431,7 +397,7 @@ test('a short purse names the missing coins, and a preparation that brings a new
   state = apply(state, { type: 'task' });
   state = apply(state, { type: 'task' });
   assert.equal(reduceGame(state, { type: 'task' }, data).message, `${data.tasks[2].title}: done. The ${source} is on the board.`);
-  assert.equal(reduceGame(fillBoard(state), { type: 'task' }, data).message, `${data.tasks[2].title}: done. The ${source} is in the pantry.`);
+  assert.match(fail(fillBoard(state), { type: 'task' }).message, /space/);
 });
 
 test('all 24 tasks complete with production tiers and level rewards, with measured chapter costs and income', t => {
@@ -500,7 +466,7 @@ test('all 24 tasks complete with production tiers and level rewards, with measur
     assert.equal(rewardCoins, claimRewards ? 180 : 0);
     assert.ok(orderCoins > rewardCoins);
     t.diagnostic(`${label}, campaign income: ${orderCoins} order coins, ${rewardCoins} level reward coins; ${state.coins} coins remain after ${data.tasks.reduce((sum, task) => sum + task.cost, 0)} preparation costs.`);
-    assert.deepEqual([...unlocked], ['sweet', 'pantry']);
+    assert.deepEqual([...unlocked], ['sweet', 'produce']);
     assert.equal(state.decorations.length, 24);
     assert.equal(state.orders.length, 3);
     assert.ok(state.served > 24);
@@ -621,7 +587,7 @@ test('fresh, mid-campaign, and completed saves resolve the same rooms after relo
     state.coins = 100000;
     for (let index = 0; index < count; index++) state = apply(state, { type: 'task' });
     const validate = (candidate: unknown) => validateGame(candidate, data);
-    const reloaded = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 7, state: JSON.parse(JSON.stringify(state)) }), validate);
+    const reloaded = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 8, state: JSON.parse(JSON.stringify(state)) }), validate);
     const exported = importSave<GameState>(exportSave(reloaded, validate), validate);
     assert.deepEqual(resolveRooms(reloaded.decorations, data), roomsAt(count), `reload at ${count}`);
     assert.deepEqual(resolveRooms(exported.decorations, data), roomsAt(count), `export at ${count}`);

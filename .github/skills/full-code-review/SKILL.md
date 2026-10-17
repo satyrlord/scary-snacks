@@ -47,10 +47,10 @@ Examine each applicable area:
 - Keep the rules in `src/engine.ts` deterministic.
   Keep them free of Document Object Model (DOM) access, storage access, and clock values.
 - Confirm that an action that is not correct or not available does not change the state.
-- Compare the rules for merges, generators, orders, sale values, the pantry, and preparations with `PRODUCT.md`.
+- Compare the rules for merges, generators, orders, sale values, and preparations with `PRODUCT.md`.
   Confirm that a value that the interface shows agrees with the value that the engine applies.
 - Keep the safe failure behavior of persistence.
-  This includes the save validation, the size limit, the preservation of malformed saves, and the saves of an older version.
+  This includes the save validation, the size limit, the preservation of malformed saves, and the rejection of unsupported save versions.
 - Confirm that text from game data and from saves uses `textContent`.
 - In user interface (UI) changes, keep the pointer, keyboard, and touch controls, the viewports, the themes, and reduced motion.
 - Compare `public/data/game.json` with its generator. Examine identifiers, sprite indexes, and unlocks.

@@ -31,7 +31,7 @@ produce, merge, serve, prepare the bistro, and revisit the story.
 | Prepare | Connect serving to the current bistro objective | The first preparation succeeds under spec 006 |
 | Read and return | Show the task scene, the journal, and the Resume route | The player returns from the scene or skips the scene |
 
-After the core sequence, offer optional help for the pantry, selling, the recipe book, and Find a match.
+After the core sequence, offer optional help for selling, the recipe book, and Find a match.
 Explain the sale value and the campaign requirements with the active economy rules. Do not say that coins alone complete a preparation.
 If spec 007 ships, add obstacle help when the first reachable obstacle becomes relevant.
 
@@ -43,10 +43,10 @@ If spec 007 ships, add obstacle help when the first reachable obstacle becomes r
    a hover, or a failed attempt does not advance a stage. Keep guidance completion separate from campaign progression.
 3. A player may act out of order. Record the observed success for the current guidance run.
    Skip the stages that the run already satisfies. Do not repeat rewards and do not rearrange items.
-4. Highlight the current valid targets by rule, not by fixed cell indices. If the player moves, stores,
+4. Highlight the current valid targets by rule, not by fixed cell indices. If the player moves,
    merges, or sells a target, recompute the hint and keep the board usable.
 5. If no matching pair exists, explain how to produce ingredients. If the board is full,
-   use the ordinary remedies: merge, storage, serve, and sell. Never delete items for the guidance.
+   use the ordinary remedies: merge, serve, and sell. Never delete items for the guidance.
 6. For Serve, inspect an existing order that the player can fulfil or produce. Do not reroll orders.
    Do not advance the seeded generator. Do not require an inaccessible chain to produce a hint.
 7. For Prepare, show every actual prerequisite and a route toward it. Guidance must not
@@ -63,10 +63,7 @@ If spec 007 ships, add obstacle help when the first reachable obstacle becomes r
 Persist three items for the current run: the guidance status, the current stage, and bounded flags of observed success.
 Validate known stage identifiers (IDs), coherent status, and booleans. Do not store Document Object Model (DOM) selectors or cell targets.
 Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
-Validate the old input and the final migrated result. Keep the old bytes and every completed preparation.
-Set existing saves to guidance dismissed by default, with Help available. Do not infer missed actions
-from ambiguous counters. Do not force an experienced player through the initial sequence.
-Migration is idempotent. Guidance flags cannot create resources or unlock campaign content.
+Validate guidance during load and import. Keep Help available after dismissal. Guidance flags cannot create resources or unlock campaign content.
 A failed save keeps a warning that the state is unsaved. On reload, repeat only the last durable guidance
 step, without repeating its gameplay reward. Import adopts guidance only after full validation.
 
@@ -74,9 +71,9 @@ step, without repeating its gameplay reward. Import adopts guidance only after f
 
 1. Define the stages and the observations of successful actions. Exit: out-of-order play and failure
    cases advance only valid stages. No guidance transition changes economic resources.
-2. Add state validation and migration. Exit: reload, import, repeated migration, and
+2. Add state validation and persistence. Exit: reload, import, repeated loads, and
    malformed flags keep the intended guidance status and all prior game progress.
-3. Implement the first two stages and Skip. Exit: if the player moves the original flour or stores
+3. Implement the first two stages and Skip. Exit: if the player moves the original flour or
    a generator, no stale target remains. Keyboard play needs no drag gesture.
 4. Add serving, preparation, story, and optional help. Exit: a fresh legal play session
    gives guidance for the complete loop. An existing save can review help without a reset.
@@ -84,9 +81,8 @@ step, without repeating its gameplay reward. Import adopts guidance only after f
 ## Acceptance and dependencies
 
 Engine tests must cover the record of successful events, skipped stages, reordered play, and full-board recovery.
-Save tests must cover new, active, dismissed, completed, imported, and older games, and write failures.
+Save tests must cover new, active, dismissed, completed, and imported games, and write failures.
 Built browser tests must complete guidance and skip guidance. They must reload during a step. They must reopen help on a late-game save.
 Follow [Verification and release](README.md#verification-and-release) for the browser evidence.
-Observe an unfamiliar player manually. Record the unclear actions and the time spent. Do not claim that a target was met.
 Full integration depends on 006, 009, and 015. Obstacle guidance depends on 007 only if obstacles ship.
 The exact prompt wording, the order of optional help, and the acceptable length of the introduction remain design decisions.

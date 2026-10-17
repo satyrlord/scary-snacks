@@ -5,7 +5,8 @@ import { createGame, currentTask, dataProblems, questProblems, reduceGame, taskE
 import type { Action, GameData, GameState } from '../src/engine.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
-const openGame = (content = data) => ({ ...createGame(content), layoutId: 'legacy-open' });
+data.board.layouts.push({ id: 'test-open', obstacles: [] });
+const openGame = (content = data) => ({ ...createGame(content), layoutId: 'test-open' });
 function act(state: GameState, action: Action, content = data): GameState {
   const before = structuredClone(state);
   const result = reduceGame(state, action, content);
@@ -158,7 +159,6 @@ test('service and sale income cannot complete a preparation without the merge go
 test('generator placement is part of eligibility and failed completion leaves every field unchanged', () => {
   const state = checkpoint(2);
   state.board = state.board.map(cell => cell ?? { code: 'bakery_1' });
-  state.inventory = Array.from({ length: data.inventoryCapacity }, () => ({ code: 'bakery_1' }));
   Object.assign(state, { coins: 0, served: 0, merges: 0, xp: 900 });
   assert.ok(validateGame(state, data));
   const eligibility = taskEligibility(state, data);
@@ -168,10 +168,10 @@ test('generator placement is part of eligibility and failed completion leaves ev
   Object.assign(state, { coins: data.tasks[2].cost, ...data.tasks[2].goals });
   assert.equal(taskEligibility(state, data).blockers.length, 1);
   rejected(state);
-  state.inventory.pop();
+  state.board[0] = null;
   assert.ok(taskEligibility(state, data).ready);
   const completed = act(state, { type: 'task' });
-  assert.equal(completed.inventory.at(-1)?.code, 'generator_sweet');
+  assert.equal(completed.board[0]?.code, 'generator_sweet');
   assert.equal(completed.coins, 0);
   assert.deepEqual([completed.served, completed.merges], [data.tasks[2].goals.served, data.tasks[2].goals.merges]);
 });
@@ -222,8 +222,6 @@ test('only a successful merge or ordinary order service adds its own goal credit
   unchanged({ type: 'move', from: 0, to: 27 });
   const empty = state.board.indexOf(null);
   unchanged({ type: 'spawn', index: 1 });
-  unchanged({ type: 'store', index: empty });
-  unchanged({ type: 'retrieve', index: 0 });
   unchanged({ type: 'sell', index: empty });
   rejected(state, { type: 'move', from: 13, to: 13 });
   rejected(state, { type: 'serve', id: state.orders[1].id });

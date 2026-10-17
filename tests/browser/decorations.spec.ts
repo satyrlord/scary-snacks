@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { createGame, legacyOrderReward, reduceGame, validateGame } from '../../src/engine.ts';
+import { createGame, reduceGame, validateGame } from '../../src/engine.ts';
 import type { GameData, GameState } from '../../src/engine.ts';
-import { SAVE_KEY, LEGACY_SAVE_KEY, exportSave } from '../../src/storage.ts';
+import { SAVE_KEY, exportSave } from '../../src/storage.ts';
 
 const data: GameData=JSON.parse(readFileSync('public/data/game.json','utf8'));
 function checkpoint(count=24) {
@@ -88,34 +88,19 @@ test('failed Apply keeps the committed choice and Retry saves the selected finis
   expect((await saved(page)).decorationChoices).toEqual({tableware:'green'});
 });
 
-test('old save migration preserves its bytes and defaults, including after export and import',async({page})=>{
-  const state=checkpoint(24);state.orders=state.orders.map(({pricing:_pricing,...order})=>({...order,reward:legacyOrderReward(order.requirements,data)}));
-  const old={...state,version:2} as Record<string,unknown>;for(const key of ['decorationChoices','outputChoices','claimedLevelRewards','completedQuests','legacySatisfiedQuests','activeQuestProducers','layoutId','resolvedObstacles','pendingScenes']) delete old[key];
-  const legacy=JSON.stringify({format:'scary-snacks',version:1,state:old});
-  await page.addInitScript(({key,text})=>{if(!localStorage.getItem(key))localStorage.setItem(key,text);},{key:LEGACY_SAVE_KEY,text:legacy});
-  await page.goto('./');await expect(page.locator('#board button')).toHaveCount(42);
-  expect(await page.evaluate(key=>localStorage.getItem(key),LEGACY_SAVE_KEY)).toBe(legacy);
-  const migrated=await saved(page);expect(migrated).toEqual({...old,version:8,layoutId:'legacy-open',resolvedObstacles:[],pendingScenes:[],decorationChoices:{},outputChoices:{},claimedLevelRewards:[],completedQuests:[],legacySatisfiedQuests:data.quests.filter(quest=>!quest.producer&&quest.legacyAfter!==null).map(quest=>quest.id),activeQuestProducers:{}});
-  await house(page);await edit(page,'flowers');await choose(page,'lilacs');await page.getByRole('button',{name:'Apply',exact:true}).click();
-  const committed=await saved(page),downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'Export saved game'}).click();
-  const download=await downloadPromise;const text=readFileSync((await download.path())!,'utf8');expect(JSON.parse(text).state).toEqual(committed);
-  await edit(page,'flowers');await choose(page,'wildflowers');await page.getByRole('button',{name:'Apply',exact:true}).click();
-  await page.locator('input[type="file"]').setInputFiles({name:'choices.json',mimeType:'application/json',buffer:Buffer.from(text)});
-  await page.getByRole('button',{name:'Import this saved game'}).click();await expect(page.locator('#modal')).not.toBeVisible();expect(await saved(page)).toEqual(committed);
-});
 
-test('failed migration remains recoverable and cannot save a new board over the old game',async({page})=>{
-  const state=checkpoint(9);state.orders=state.orders.map(({pricing:_pricing,...order})=>({...order,reward:legacyOrderReward(order.requirements,data)}));
-  const old={...state,version:2} as Record<string,unknown>;for(const key of ['decorationChoices','outputChoices','claimedLevelRewards','completedQuests','legacySatisfiedQuests','activeQuestProducers','layoutId','resolvedObstacles','pendingScenes']) delete old[key];
-  const legacy=JSON.stringify({format:'scary-snacks',version:1,state:old});
-  await page.addInitScript(({current,key,text})=>{
-    localStorage.setItem(key,text);const original=Storage.prototype.setItem;
-    Storage.prototype.setItem=function(name,value){if(name===current)throw new Error('No space');original.call(this,name,value);};
-  },{current:SAVE_KEY,key:LEGACY_SAVE_KEY,text:legacy});
-  await page.goto('./');await expect(page.getByRole('button',{name:'Retry saved game'})).toBeVisible();
-  await page.getByRole('button',{name:'Close dialog'}).click();await page.locator('[data-cell="1"]').click();
-  expect(await page.evaluate(key=>localStorage.getItem(key),SAVE_KEY)).toBeNull();expect(await page.evaluate(key=>localStorage.getItem(key),LEGACY_SAVE_KEY)).toBe(legacy);
-  await expect(page.locator('#status')).toContainText('retry');
+
+test('decoration choices survive current save export and import',async({page})=>{
+  await start(page);await house(page);await edit(page,'tableware');await choose(page,'green');
+  await page.getByRole('button',{name:'Apply',exact:true}).click();
+  const committed=await saved(page),pending=page.waitForEvent('download');
+  await page.getByRole('button',{name:'Export saved game'}).click();const download=await pending,path=(await download.path())!;
+  expect(JSON.parse(readFileSync(path,'utf8')).state).toEqual(committed);
+  await page.getByRole('button',{name:'Start a new game',exact:true}).click();await page.getByRole('button',{name:'Erase and start again'}).click();
+  expect(await saved(page)).not.toEqual(committed);
+  await house(page);await page.locator('input[type=file]').setInputFiles(path);await page.getByRole('button',{name:'Import this saved game'}).click();
+  expect(await saved(page)).toEqual(committed);await page.reload();await expect(page.locator('#board button')).toHaveCount(42);
+  expect(await saved(page)).toEqual(committed);await expect(page.locator('#room-decorations svg[data-slot="tableware"][data-variant="green"]')).toHaveCount(1);
 });
 
 test('another tab cancels a stale decoration preview without losing its newer progress',async({page,context})=>{

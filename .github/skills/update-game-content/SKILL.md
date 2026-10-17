@@ -35,7 +35,7 @@ The generator and the game both call `dataProblems`. The game does not start on 
 Read the content test and the progression test in `tests/engine.test.ts`.
 Read the code in `src/app.ts` that shows items, portraits, and dialogue.
 
-`PRODUCT.md` gives the board size and the counts of the generators, the dishes and drinks, the pantry spaces, the preparations, and the chapters.
+`PRODUCT.md` gives the board size and the counts of the generators, the dishes and drinks, the preparations, and the chapters.
 `PRODUCT.md` gives the count of the characters.
 The content test in `tests/engine.test.ts` checks the board size and the counts of the items, the characters, and the preparations.
 A change to one of these counts is a product change.

@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { canDeliverQuest, createGame, currentTask, dataProblems, firstFreeBoardCell, generatorOutputs, getItem, getLevel, migrateLevelRewardGame, migrateQuestGame, migrateBoardGame, nextOutput, previewQuestCleanup, questProblems, reduceGame, resolveQuests, taskEligibility, validateGame, validateLevelRewardGame, legacyOrderReward } from '../src/engine.ts';
-import type { Action, GameData, GameState, LevelRewardGameState } from '../src/engine.ts';
+import { canDeliverQuest, createGame, currentTask, dataProblems, firstFreeBoardCell, generatorOutputs, getItem, getLevel, nextOutput, previewQuestCleanup, questProblems, reduceGame, resolveQuests, taskEligibility, validateGame } from '../src/engine.ts';
+import type { Action, GameData, GameState } from '../src/engine.ts';
 
 const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
 const dedicatedId = 'ilie-bread-tasting';
@@ -64,14 +64,10 @@ function checkpoint(count: number) {
   return play.state;
 }
 
-function oldState(state: GameState): LevelRewardGameState {
-  const { completedQuests: _complete, legacySatisfiedQuests: _legacy, activeQuestProducers: _active,
-    layoutId: _layout, resolvedObstacles: _resolved, pendingScenes: _scenes, ...old } = structuredClone(state);
-  return { ...old, version: 5, orders: old.orders.map(({ pricing: _, ...order }) => ({ ...order, reward: legacyOrderReward(order.requirements, data) })) };
-}
-
 function offered() {
-  return migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(oldState(checkpoint(18)), data), data), data);
+  const state = checkpoint(18);
+  state.completedQuests = data.quests.filter(quest => quest.character === 'ilie' && !quest.producer).map(quest => quest.id);
+  return state;
 }
 
 test('four original arcs span all six chapters and keep the permanent content and ordinary orders', () => {
@@ -110,7 +106,6 @@ test('quest data rejects unknown IDs, quantities, cycles, unavailable chains, an
     ['unknown prior quest', content => { content.quests[0].afterQuest = 'absent'; }],
     ['same character cycle', content => { content.quests[0].afterQuest = 'mara-table'; }],
     ['combined cycle', content => { content.tasks[0].requiresQuest = 'mara-table'; }],
-    ['later legacy prerequisite', content => { content.quests[0].legacyAfter = 'task_24'; }],
     ['producer gate', content => { content.tasks[23].requiresQuest = dedicatedId; }],
     ['producer blocks quest', content => { content.quests[0].afterQuest = dedicatedId; }],
     ['shared cleanup', content => { content.quests.at(-1)!.producer!.exclusiveItems.push('bakery_1'); }],
@@ -128,19 +123,15 @@ test('quest data rejects unknown IDs, quantities, cycles, unavailable chains, an
   }
 });
 
-test('atomic delivery accounts for repeated quantities and board-only items, then pays only once', () => {
+test('atomic delivery accounts for repeated quantities, then pays only once', () => {
   const content = structuredClone(data);
   const quest = content.quests[0];
   quest.requirements = [{ item: 'drinks_2', quantity: 1 }, { item: 'drinks_2', quantity: 2 }];
   const play = player(createGame(content), content);
-  const first = play.produce('drinks_2');
+  play.produce('drinks_2');
   play.produce('drinks_2');
   rejected(play.state, { type: 'deliverQuest', id: quest.id }, content);
-  play.act({ type: 'store', index: first });
   play.produce('drinks_2');
-  assert.equal(canDeliverQuest(play.state, quest, content), false);
-  rejected(play.state, { type: 'deliverQuest', id: quest.id }, content);
-  play.act({ type: 'retrieve', index: 0 });
   const before = structuredClone(play.state);
   assert.equal(canDeliverQuest(play.state, quest.id, content), true);
   play.act({ type: 'deliverQuest', id: quest.id });
@@ -174,9 +165,7 @@ test('a reachable quest gate blocks its preparation without changes and opens af
   play.act({ type: 'deliverQuest', id: 'mara-welcome' });
   play.act({ type: 'task' });
   assert.equal(play.state.taskIndex, 1);
-  const old = oldState(play.state);
-  const converted = migrateLevelRewardGame(old, content);
-  assert.deepEqual(converted.legacySatisfiedQuests, ['mara-welcome']);
+
 });
 
 test('quest rewards cannot overflow the coin limit or change a failed delivery', () => {
@@ -186,49 +175,11 @@ test('quest rewards cannot overflow the coin limit or change a failed delivery',
   rejected(play.state, { type: 'deliverQuest', id: 'mara-welcome' });
 });
 
-test('migration preserves early, middle, and final progress and never accepts the optional source', () => {
-  for (const count of [0, 1, 12, 24]) {
-    const old = oldState(checkpoint(count));
-    const before = structuredClone(old);
-    assert.equal(validateLevelRewardGame(old, data), true);
-    const converted = migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(old, data), data), data);
-    assert.equal(validateGame(converted, data), true);
-    assert.deepEqual(oldState(converted), before);
-    assert.deepEqual(converted.completedQuests, []);
-    assert.deepEqual(converted.activeQuestProducers, {});
-    assert.deepEqual(converted.legacySatisfiedQuests, data.quests.filter(quest => quest.legacyAfter && old.decorations.includes(quest.legacyAfter)).map(quest => quest.id));
-    assert.deepEqual(migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(old, data), data), data), converted);
-    assert.deepEqual(old, before);
-    assert.throws(() => migrateLevelRewardGame(converted, data), /damaged or unknown/);
-  }
-});
-
-test('migration orders a forward cross-character prerequisite before the quest without paying rewards', () => {
-  const content = structuredClone(data);
-  content.quests[0].afterQuest = 'ilie-counter';
-  content.quests[0].legacyAfter = 'task_4';
-  assert.deepEqual(dataProblems(content), []);
-  const old = oldState(checkpoint(4));
-  const before = structuredClone(old);
-  assert.equal(validateLevelRewardGame(old, content), true);
-  const converted = migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(old, content), content), content);
-  assert.equal(validateGame(converted, content), true);
-  assert.deepEqual(converted.legacySatisfiedQuests, ['ilie-counter', 'mara-welcome']);
-  assert.deepEqual(converted.completedQuests, []);
-  assert.deepEqual(converted.activeQuestProducers, {});
-  assert.deepEqual(oldState(converted), before, 'Conversion preserves every old progress field, including coins and items.');
-  assert.deepEqual(old, before);
-  assert.deepEqual(migrateBoardGame(migrateQuestGame(migrateLevelRewardGame(old, content), content), content), converted);
-});
-
 test('quest saves reject duplicates, missing prerequisites, unknown records, and invalid producer ownership', () => {
   const good = offered();
   const cases: ((state: GameState) => void)[] = [
     state => { state.completedQuests = ['absent']; },
-    state => { state.completedQuests = ['mara-welcome']; },
-    state => { state.legacySatisfiedQuests.push('mara-welcome'); },
-    state => { state.legacySatisfiedQuests = ['mara-table']; },
-    state => { state.legacySatisfiedQuests.push(dedicatedId); },
+    state => { state.completedQuests = ['mara-table']; },
     state => { state.activeQuestProducers = { absent: 0 }; },
     state => { state.activeQuestProducers = { 'mara-welcome': 0 }; },
     state => { state.activeQuestProducers = { [dedicatedId]: 0 }; },
@@ -246,33 +197,25 @@ test('quest saves reject duplicates, missing prerequisites, unknown records, and
   ]) { const broken = structuredClone(accepted.state); mutate(broken); assert.equal(validateGame(broken, data), false); }
 });
 
-test('producer acceptance uses board then pantry, fails when both are full, and cannot be repeated', () => {
+test('producer acceptance requires board space and cannot be repeated', () => {
   const board = player(offered());
   board.act({ type: 'acceptQuest', id: dedicatedId });
   assert.equal(board.state.board.filter(cell => cell?.code === 'quest_bread_source').length, 1);
   rejected(board.state, { type: 'acceptQuest', id: dedicatedId });
   const source = board.state.board.findIndex(cell => cell?.code === 'quest_bread_source');
   rejected(board.state, { type: 'sell', index: source });
-  board.act({ type: 'store', index: source });
-  board.act({ type: 'retrieve', index: 0 });
+  board.act({ type: 'move', from: source, to: firstFreeBoardCell(board.state, data) });
   assert.deepEqual(board.state.activeQuestProducers, { [dedicatedId]: 0 });
 
   const full = player(offered());
   while (firstFreeBoardCell(full.state, data) !== -1) full.produce('bakery_1');
-  const before = structuredClone(full.state);
-  full.act({ type: 'acceptQuest', id: dedicatedId });
-  assert.deepEqual(full.state.board, before.board);
-  assert.equal(full.state.inventory[0].code, 'quest_bread_source');
+  rejected(full.state, { type: 'acceptQuest', id: dedicatedId });
+  assert.equal(resolveQuests(full.state, data).find(view => view.quest.id === dedicatedId)?.status, 'offer');
   const sell = full.state.board.findIndex(cell => cell?.code === 'bakery_1');
   full.act({ type: 'sell', index: sell });
-  full.act({ type: 'retrieve', index: 0 });
-  rejected(full.state, { type: 'spawn', index: full.state.board.findIndex(cell => cell?.code === 'quest_bread_source') });
-
-  const blocked = structuredClone(before);
-  blocked.inventory = Array.from({ length: data.inventoryCapacity }, () => ({ code: 'bakery_1' }));
-  assert.equal(validateGame(blocked, data), true);
-  rejected(blocked, { type: 'acceptQuest', id: dedicatedId });
-  assert.equal(resolveQuests(blocked, data).find(view => view.quest.id === dedicatedId)?.status, 'offer');
+  full.act({ type: 'acceptQuest', id: dedicatedId });
+  assert.equal(full.state.board[sell]?.code, 'quest_bread_source');
+  rejected(full.state, { type: 'spawn', index: sell });
 });
 
 test('dedicated production is immediate, deterministic, free, reloadable, and separate from ordinary sources', () => {
@@ -326,24 +269,18 @@ test('cleanup previews only exclusive leftovers and stale previews preserve ever
   play.produce('quest_bread_3');
   play.produce('quest_bread_3');
   const leftover = play.produce('quest_bread_2');
-  play.act({ type: 'store', index: leftover });
-  const ordinary = play.produce('bakery_3');
-  play.act({ type: 'store', index: ordinary });
+  play.produce('bakery_3');
   const source = play.state.board.findIndex(cell => cell?.code === 'quest_bread_source');
-  play.act({ type: 'store', index: source });
   const preview = previewQuestCleanup(play.state, dedicatedId, data)!;
-  assert.deepEqual(preview.board, []);
-  assert.deepEqual(preview.inventory.map(cell => cell.item), ['quest_bread_2', 'quest_bread_source']);
+  assert.deepEqual(preview.board, [source, leftover].sort((a, b) => a - b).map(index => ({ index, item: play.state.board[index]!.code })));
   rejected(play.state, { type: 'deliverQuest', id: dedicatedId });
   play.produce('drinks_1');
   rejected(play.state, { type: 'deliverQuest', id: dedicatedId, cleanupToken: preview.token });
   const fresh = previewQuestCleanup(play.state, dedicatedId, data)!;
   const before = structuredClone(play.state);
   const regularBoard = before.board.map(cell => cell && dedicated.producer!.exclusiveItems.includes(cell.code) ? null : cell);
-  const regularInventory = before.inventory.filter(cell => !dedicated.producer!.exclusiveItems.includes(cell.code));
   play.act({ type: 'deliverQuest', id: dedicatedId, cleanupToken: fresh.token });
   assert.deepEqual(play.state.board, regularBoard);
-  assert.deepEqual(play.state.inventory, regularInventory);
   assert.equal(play.state.coins, before.coins + dedicated.reward);
   assert.deepEqual(play.state.orders, before.orders);
   assert.equal(play.state.seed, before.seed);
@@ -394,7 +331,6 @@ test('all quests and the campaign finish through legal actions without injected 
   }
   assert.equal(play.state.taskIndex, 24);
   assert.equal(play.state.completedQuests.length, 13);
-  assert.deepEqual(play.state.legacySatisfiedQuests, []);
   assert.deepEqual(play.state.activeQuestProducers, {});
   assert.equal(questCoins, 312);
   assert.equal(levelCoins, 180);

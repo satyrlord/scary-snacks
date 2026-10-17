@@ -19,19 +19,19 @@ The team authors the content, the art, and the rules.
 
 ## Feature register
 
-Specs 001 and 002 are implemented. The [verification record](../verification.md) gives the evidence for spec 001. Spec 002 adds three free choices in the House book. The user verified it and accepted it. Its [acceptance section](002-decoration-choices.md#acceptance-and-evidence) gives the checks and the remaining manual limits.
+Specs 001 and 002 are implemented. The [verification record](../verification.md) gives the evidence for spec 001. Spec 002 adds three free choices in the House book. The user verified it and accepted it. Its [acceptance section](002-decoration-choices.md#acceptance-and-evidence) gives the checks.
 
-Spec 003 implements generator tiers, output choices, and save conversion. Its acceptance section records the automated evidence and the remaining human pacing check.
+Spec 003 implements generator tiers, output choices, and persistence. Its acceptance section records the automated evidence.
 
-Spec 004 implements the finite coin rewards, the House book level panel, and claim persistence. Its acceptance section separates automated checks from human balance assessment.
+Spec 004 implements the finite coin rewards, the House book level panel, and claim persistence. Its acceptance section records the automated checks.
 
-Spec 005 implements four character arcs, optional introductions, a temporary bread-tasting source, atomic delivery, journal replay, and save conversion. Automatic scene continuation waits for 009. Spec 006 includes all quests in its economy fixture. Spec 008 names one regular quest of each arc as a chapter contribution. Human balance assessment remains open.
+Spec 005 implements four character arcs, optional introductions, a temporary bread-tasting source, atomic delivery, journal replay, and persistence. Automatic scene continuation waits for 009. Spec 006 includes all quests in its economy fixture. Spec 008 names one regular quest of each arc as a chapter contribution.
 
-Spec 006 implements explicit food prices, work-based preparation budgets and effort, requirement feedback, compatible saved quotes, and legal campaign comparisons. The fixture includes generator upgrades, all level rewards, and optional quests. Human pacing remains unverified. The economy record gives the real-world source anchors and the authored assumptions.
+Spec 006 implements explicit food prices, work-based preparation budgets and effort, requirement feedback, saved quotes, and legal campaign comparisons. The fixture includes generator upgrades, all level rewards, and optional quests. The economy record gives the real-world source anchors and the authored assumptions.
 
-Spec 007 implements blocked board cells, adjacent merge reveals, anchored ingredients, an open layout for converted saves, and original clutter art. Automated checks cover the rules and the production browser build. Human pacing and visual acceptance remain open.
+Spec 007 implements blocked board cells, adjacent merge reveals, anchored ingredients, and original clutter art. Automated checks cover the rules and the production browser build.
 
-Spec 008 implements chapter objectives and steps, chapter closing scenes, neighbour contributions, the finale, journal replay, and save conversion. Automated engine, save, and browser checks cover the rules. A scripted browser playthrough from a fresh save reaches the finale. The manual playthrough by a person remains open.
+Spec 008 implements chapter objectives and steps, chapter closing scenes, neighbour contributions, the finale, journal replay, and persistence. Automated engine, save, and browser checks cover the rules. A scripted browser playthrough from a fresh save reaches the finale.
 
 Each entry is proposed, unless its specification records an implemented slice. Spec 011 has discovery cloches, notices, and order help. Its chain-completion marks are proposed. Priority is a suggested order of work. It does not change the approved product.
 
@@ -61,11 +61,6 @@ The table maps each gap in the current game to the specifications that close it.
 
 | Gap | Owning specifications |
 | --- | --- |
-| Producers improve at preparations 12 and 20; human pacing needs acceptance | 003 |
-| Levels 2 through 10 offer coin rewards; human balance needs assessment | 004, 006 |
-| Character quests have authored purposes; continuation and human pacing remain | 005, 006, 009 |
-| Work-based prices and effort exist; human pacing needs assessment | 006 |
-| Board clearing has automated coverage; human pacing remains unverified | 007 |
 | The finale names no regulars yet | 008, 013 |
 | Dialogue has no automatic continuation after reload | 009 |
 | Hints exist but no staged introduction | 010 |
@@ -74,7 +69,6 @@ The table maps each gap in the current game to the specifications that close it.
 | The browser tests for story and chapters are incomplete | Acceptance checks in 001, 005, 009, 010, 012 |
 | Four customers are too few for a business | 013 |
 | The resident cat has no part in play | 014 |
-| The blocked board shows early clutter; human visual acceptance remains | 007 |
 | No start screen. Reduced motion can be on without a notice, and the player cannot change it | 015 |
 
 Customer introductions (005) are optional journal reading. Regulars (013), Miez's visits (014), and optional post-campaign goals (012) remain proposed. Decoration choices (002) are visual choices, not a branching story.
@@ -91,11 +85,11 @@ Customer introductions (005) are optional journal reading. Regulars (013), Miez'
 
 ## Shared save compatibility
 
-The current game uses game state version 8 inside save envelope version 7 at `scary-snacks-save-v7` (spec 008). Valid states 2 through 7 in envelopes 1 through 6 convert through each intervening version. Their keys are `scary-snacks-save-v1` through `scary-snacks-save-v6`. Each step validates its input and output. The quest step adds completion lists and an empty temporary-source map. The board step gives older saves a legacy open layout with no blocked cells and an empty resolved list. The story step adds an empty list of waiting scenes. Regular quests tied to completed preparations become legacy-satisfied without payment. Conversion never activates a temporary source, reopens a preparation, moves an item, or adds a blocked cell. Existing level claims remain. The newest existing key controls the load. All older bytes stay unchanged. Orders in states 6 through 8 can also carry the optional pricing marker menu-1. Unmarked quotes retain the original exact reward formula; menu-1 quotes use explicit food prices. States 2 through 5 accept only unmarked quotes. Existing orders are never repriced. Later menu changes need a new quote revision with exact support for earlier quotes. Later features must coordinate their versions. Individual specs do not reserve separate version numbers.
+Current saves use game state version 9 in envelope version 8 at `scary-snacks-save-v8`. Only this format is supported. Load reads only this key. If no current save exists, start a new campaign. Earlier local bytes stay unchanged and are not read or converted. Import rejects earlier formats.
 
-Keep older stored bytes unchanged. Validate the old envelope and state before migration. Produce and validate the new state in memory. Then write it to a separately versioned destination. Do not remove the older save. If conversion, validation, or writing fails, keep the original save and show a recoverable error. Import must not replace live progress until the complete candidate is valid and the game knows the result of the write.
+Validate the full envelope and state before import. Adopt the candidate only after its write succeeds. A failed write or invalid input keeps the previous save and offers recovery. Test fresh, partial, and completed current saves, malformed records, unsupported versions, oversized imports, and failed writes.
 
-Migration is deterministic. A repeated migration gives the same result. Keep completed preparations, coins, experience points (XP), ordinary orders, items, discoveries, and existing valid counters. Do not charge old tasks again. Do not grant their rewards again. Do not claim that unread dialogue was read. Do not put new obstacles under occupied cells. Each spec defines defaults for its new fields. Test migration from fresh, mid-campaign, and completed saves of the current version, and from malformed, unsupported, and oversized imports.
+Later features must coordinate their state and envelope versions. Individual specs do not reserve version numbers. Any future conversion needs explicit approval and a contract. Preserve current progress through reload and export/import. Never repeat a preparation payment or reward.
 
 A reward on a full board must have an atomic outcome: where possible, give a defined reward that needs no board cell. Otherwise, do not commit the action, and explain the space that the action needs. Never lose an item or pay a reward twice. Mandatory progression must not depend on an exhausted, sold, or inaccessible producer.
 
@@ -104,16 +98,16 @@ A reward on a full board must have an atomic outcome: where possible, give a def
 1. Implement durable story continuation in 009. Exit: after a reload, a task scene resumes its conversation without another payment.
 2. Add the four starting regulars in 013. Check them with the campaign goals in 006 and character quests in 005. Exit: a fresh game serves eight distinct neighbours. A legal path in a fresh game needs real kitchen service and cannot be circular.
 3. Build on the generator improvement in 003 with level rewards in 004 and Miez's visits in 014. Exit: chapter rewards improve play while every outstanding order stays possible. The 006 fixture measures income with the blessing.
-4. Build the guided start in 010 on the chapter story of 008. Exit: a fresh campaign and a migrated campaign reach the supper without added resources.
+4. Build the guided start in 010 on the chapter story of 008. Exit: a fresh campaign and a reloaded campaign reach the supper without added resources.
 5. Add optional 007, the remaining work of 011, and 012 as separate slices. These slices must not delay the core progression fixes.
 
 Spec 015 adds no game state and is not part of this order. Build it before 010, so that the guided start begins behind the front door.
 
 ## Verification and release
 
-Each spec lists behavior checks and manual acceptance. During implementation, add the smallest useful regression tests for the engine, the saves, and the browser. Use `npm run quality:full` for the integrated acceptance check. Browser evidence must use a fresh `dist/` build. The full browser suite runs in Chromium under the `/scary-snacks/` path. The asset and path test also runs at the root path. Examine desktop and phone layouts, both themes, keyboard input, reduced motion, and the changed art. If they apply, physical touch and audio listening are separate manual checks.
+Each spec lists automated acceptance checks. A spec has no manual acceptance gate: it is complete when its automated checks pass. During implementation, add the smallest useful regression tests for the engine, the saves, and the browser. Use `npm run quality:full` for the integrated acceptance check. Browser evidence must use a fresh `dist/` build. The full browser suite runs in Chromium under the `/scary-snacks/` path. The asset and path test also runs at the root path. Examine desktop and phone layouts, both themes, keyboard input, reduced motion, and the changed art in the browser screenshots.
 
-Record performance measurements only from a stated environment and workload. A fast engine simulation is not evidence of good human pacing. Test resources that the player earns in play. Report actions, merges, orders, chapter checkpoints, and each deadlock. Use observed play sessions to adjust the effort that the player needs.
+Record performance measurements only from a stated environment and workload. Test resources that the player earns in play. Report actions, merges, orders, chapter checkpoints, and each deadlock.
 
 These files are repository planning documents. They are not runtime inputs, and the allowlist of the source export does not include them. If a source release needs a document, add the document through the export owner in the same slice.
 

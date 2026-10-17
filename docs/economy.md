@@ -39,12 +39,12 @@ A later merge stage is not necessarily a more expensive food. Portions and the a
 | Drinks | Cherry compote, one small jar | 20 |
 | Drinks | Blueberry liqueur, one small carafe | 35 |
 | Drinks | Plum brandy, one small carafe | 40 |
-| Pantry | Aubergine, one small vegetable | 3 |
-| Pantry | Peppers, one small ingredient portion | 3 |
-| Pantry | Roasted vegetables, one side plate | 18 |
-| Pantry | Zacuscă, one small jar | 24 |
-| Pantry | Wild mushroom sauce, two small portions | 28 |
-| Pantry | Sharing board, a board for two | 65 |
+| Produce | Aubergine, one small vegetable | 3 |
+| Produce | Peppers, one small ingredient portion | 3 |
+| Produce | Roasted vegetables, one side plate | 18 |
+| Produce | Zacuscă, one small jar | 24 |
+| Produce | Wild mushroom sauce, two small portions | 28 |
+| Produce | Sharing board, a board for two | 65 |
 
 The temporary tasting ingredients use the prices of their matching bread ingredients.
 They do not enter ordinary orders.
@@ -167,9 +167,8 @@ Their amounts are reference inputs, not live promises in the game.
 
 Run `node tools/campaign-balance.ts`. The report includes costs, work, actions, service, merges,
 sales, and separate order, sale, level, and quest income for each preparation and chapter.
-The same tests compare the former rules with the current rules at the same seed and policy.
-They also check a policy that selects quoted income per production action, existing saves,
-and all rewards. Historical rules exist only in this comparison fixture and in save compatibility.
+The fixture runs fresh play with and without optional rewards under two policies.
+One selects the smallest ingredient requirement. The other selects quoted income per production action.
 
 This shows how the model changes effort. It does not establish a satisfying human session.
 The largest balance uncertainty is the first repair: it is substantial work before the first room
@@ -178,4 +177,4 @@ seed, start save, action counts, and elapsed human play time. Do not convert bot
 
 `menu-1` is the first explicit menu revision. Once shipped, its values must stay available for
 outstanding quotes. A later price change needs a new revision and exact validation for previous quotes.
-Unmarked saved orders keep the original formula and their original payouts until served.
+Every current order requires the `menu-1` marker.
