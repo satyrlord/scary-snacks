@@ -13,8 +13,9 @@ function afterPreparations(count: number){
     const result=reduceGame(state,{type:'task'},data);expect(result.ok,result.message).toBe(true);state=result.state;
   }
   state.coins=count<data.tasks.length?data.tasks[count].cost:0;
-  // Every open request is already delivered, so a new output cannot open a request dialog over the board.
-  state.completedQuests=data.quests.filter(quest=>(quest.afterTask===null||state.decorations.includes(quest.afterTask))&&state.served>=(quest.afterServed??0)).map(quest=>quest.id);
+  // Delivered requests cannot cover the output controls. The delayed shared visit stays locked without its service counter.
+  state.completedQuests=data.quests.filter(quest=>quest.afterQuestServices===undefined&&(quest.afterTask===null||state.decorations.includes(quest.afterTask))&&state.served>=(quest.afterServed??0)).map(quest=>quest.id);
+  expect(validateGame(state,data)).toBe(true);
   return state;
 }
 async function start(page: Page,state: GameState){

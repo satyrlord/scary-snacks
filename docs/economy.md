@@ -25,7 +25,7 @@ A later merge stage is not necessarily a more expensive food. Portions and the a
 | Warm | Mămăligă, one side portion | 8 |
 | Warm | Bulz, one main portion | 32 |
 | Warm | Smoked cheese plate, one plate | 40 |
-| Warm | Cabbage rolls, one main portion | 50 |
+| Warm | Meat cabbage rolls, one main portion | 50 |
 | Warm | Goulash pot, two main portions | 80 |
 | Sweets | Walnuts, one small ingredient portion | 3 |
 | Sweets | Doughnut, one piece | 8 |
@@ -37,7 +37,7 @@ A later merge stage is not necessarily a more expensive food. Portions and the a
 | Drinks | Socată, one glass | 12 |
 | Drinks | Fruit tea, one small pot | 18 |
 | Drinks | Cherry compote, one small jar | 20 |
-| Drinks | Blueberry liqueur, one small carafe | 35 |
+| Drinks | Red wine, one small carafe | 35 |
 | Drinks | Plum brandy, one small carafe | 40 |
 | Produce | Aubergine, one small vegetable | 3 |
 | Produce | Peppers, one small ingredient portion | 3 |
@@ -48,6 +48,11 @@ A later merge stage is not necessarily a more expensive food. Portions and the a
 
 The temporary tasting ingredients use the prices of their matching bread ingredients.
 They do not enter ordinary orders.
+
+Vlad and Elisabeta order only meat cabbage rolls, goulash, and red wine. Mina and Avram's shared
+vegetarian meal costs 168 coins at these menu prices and pays 336 coins. The request includes two
+zacuscă toasts, two roasted vegetable plates, one smoked cheese plate, and two fruit teas. Eggs and
+dairy are permitted. The later local gossip pays nothing.
 
 These are authored portion prices, informed by Romanian shop and restaurant offers. They are not
 copied menus or claims that every restaurant has these prices. The raw ingredient limit of 1 to 3

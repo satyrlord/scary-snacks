@@ -7,7 +7,7 @@ import { SAVE_KEY, exportSave } from '../../src/storage.ts';
 
 const data: GameData=JSON.parse(readFileSync('public/data/game.json','utf8'));
 const validate=(candidate: unknown)=>validateGame(candidate,data);
-const firstQuests=data.characters.filter(character=>!character.visitor).map(character=>data.quests.find(quest=>quest.character===character.id)!);
+const firstQuests=data.characters.filter(character=>!character.visitor&&data.quests.some(quest=>quest.character===character.id)).map(character=>data.quests.find(quest=>quest.character===character.id)!);
 const optional=data.quests.find(quest=>quest.producer)!;
 const card=(page: Page,quest: Quest)=>page.locator(`.quest-card[data-quest="${quest.id}"]`);
 const deliver=(page: Page,quest: Quest)=>page.getByRole('button',{name:`Deliver ${quest.title} for ${quest.reward} coins`,exact:true});

@@ -8,7 +8,7 @@ const chains: [id: string, name: string, stages: string[], generator: string][] 
   ['bakery', 'Bread counter', ['Flour', 'Dough', 'Pogăcele', 'Langoș', 'Zacuscă toast', 'Bread basket'], 'Flour bin'],
   ['warm', 'Warm kitchen', ['Cornmeal', 'Mămăligă', 'Bulz', 'Smoked cheese plate', 'Cabbage rolls', 'Goulash pot'], 'Copper pot'],
   ['sweet', 'Dessert table', ['Walnuts', 'Doughnut', 'Papanași', 'Plum dumplings', 'Cozonac', 'Chimney cake'], 'Pastry box'],
-  ['drinks', 'Drinks counter', ['Elderflowers', 'Socată', 'Fruit tea', 'Cherry compote', 'Blueberry liqueur', 'Plum brandy'], 'Drinks pitcher'],
+  ['drinks', 'Drinks counter', ['Elderflowers', 'Socată', 'Fruit tea', 'Cherry compote', 'Red wine', 'Plum brandy'], 'Drinks pitcher'],
   ['produce', 'Market produce', ['Aubergine', 'Peppers', 'Roasted vegetables', 'Zacuscă', 'Wild mushroom sauce', 'Sharing board'], 'Produce basket'],
 ];
 // Prices are for the portions in docs/economy.md. A merge stage is not a price multiplier.
@@ -58,6 +58,24 @@ const characters: Character[] = [
     description: 'A reserved young adult with fair skin, neat side-parted chestnut hair, a clean-shaven face, a charcoal travel suit, a cream shirt, a burgundy cravat, and a leather document folio.',
     introduction: 'I am Ionatan, a property agent from another country. I am travelling to the nearby castle to close a real-estate deal with a local noble. I have time for one proper dinner before I leave.',
     thanks: ['A fine dinner. Thank you.', 'You have taken great care.', 'My compliments to the kitchen.'] },
+  { id: 'vlad', name: 'Vlad', role: 'Local baron', portraitAtlas: 'guest', sprite: 0, occasional: true,
+    orderItems: ['warm_5', 'warm_6', 'drinks_5'], absentDuringQuest: 'mina-avram-search',
+    description: 'A reserved local baron with long dark hair, a narrow moustache, a red velvet cap with a gold jewel, a dark red court coat, and a fur collar. He styles himself as a count and lives in a castle in the countryside.',
+    introduction: 'Count Vlad, if you please. My castle is outside the village, so I seldom dine here. A meat dish and red wine will suit me. The country roads have given me quite an appetite.',
+    thanks: ['The meat is well prepared.', 'A suitable wine. Thank you.', 'My compliments to your kitchen.'] },
+  { id: 'elisabeta', name: 'Elisabeta', role: 'Visiting countess', portraitAtlas: 'guest', sprite: 1, occasional: true,
+    orderItems: ['warm_5', 'warm_6', 'drinks_5'], absentDuringQuest: 'mina-avram-search',
+    description: 'An Austro-Hungarian countess with fair skin, neatly dressed dark hair beneath a white lace headdress, a high white ruff, pearls, and a rich dark red gown. She sometimes visits her land near the village.',
+    introduction: 'I am Countess Elisabeta. I have land nearby, though my visits are infrequent. Please bring a meat dish and red wine. I shall review the estate papers after dinner.',
+    thanks: ['A pleasant meal between visits.', 'Thank you. The wine is welcome.', 'My thanks to your kitchen.'] },
+  { id: 'mina', name: 'Mina', role: 'Searching for her fiancé', visitor: true, singleVisit: true, portraitAtlas: 'guest', sprite: 2,
+    description: 'A young British middle-class woman in Victorian dress, with fair skin, dark brown hair pinned neatly back, a cream high-collared blouse, a modest charcoal travelling jacket, and a blue ribbon with a small brooch.',
+    introduction: 'My name is Mina. My fiancé Ionatan came here to sign a property contract, but his letters stopped. Doctor Avram has come with me to find him. I eat no meat or fish; eggs and dairy are welcome.',
+    thanks: ['Thank you for the care.', 'We can continue after this meal.', 'Your help means a great deal.'] },
+  { id: 'avram', name: 'Avram', role: 'Travelling doctor', visitor: true, singleVisit: true, portraitAtlas: 'guest', sprite: 3,
+    description: 'An older Hungarian Jewish doctor with fair skin, short silver hair, a clean-shaven face, a dark wool travelling coat, a waistcoat, a white shirt, a restrained necktie, and a leather medical bag.',
+    introduction: 'I am Doctor Avram, professional physician and amateur solomonar. I am travelling with Mina to find Ionatan. We will stay together while we ask about the road to the castle.',
+    thanks: ['A welcome meal before the road.', 'Thank you for helping us.', 'We will carry on together.'] },
 ];
 // Each chapter: its title, objective, opening context, payoff, the neighbour quest that contributes during it, and its closing scene.
 // The closing scenes name the changes that the chapter's preparations paint into the rooms.
@@ -267,6 +285,20 @@ quests.push({ id: 'ionatan-castle-dinner', character: 'ionatan', title: 'Dinner 
   requirements: [{ item: 'warm_6', quantity: 1 }, { item: 'produce_6', quantity: 1 }, { item: 'sweet_6', quantity: 1 }, { item: 'drinks_6', quantity: 1 }], reward: 1100,
   opening: [{ speaker: 'ionatan', text: 'I have come from abroad to close a real-estate deal with a local noble at the nearby castle. Before I continue, I would like a proper dinner: a goulash pot, a sharing board, a chimney cake, and plum brandy. I will pay well for the care this meal needs.' }],
   completion: [{ speaker: 'ionatan', text: 'An excellent dinner. Here is the payment, with my thanks. My papers are in order, and I must leave for the castle now. My journey takes me on from there, so I will not return. Farewell.' }] });
+const searchRequirements = [{ item: 'bakery_5', quantity: 2 }, { item: 'produce_3', quantity: 2 }, { item: 'warm_4', quantity: 1 }, { item: 'drinks_3', quantity: 2 }];
+quests.push({ id: 'mina-avram-search', character: 'mina', companions: ['avram'], title: 'A meal before the search', afterTask: 'task_16',
+  afterQuest: 'ionatan-castle-dinner', afterQuestServices: 3, waitsForCustomers: ['vlad', 'elisabeta'], requirements: searchRequirements,
+  reward: searchRequirements.reduce((sum, { item, quantity }) => sum + items[item].price * quantity, 0) * 2,
+  opening: [{ speaker: 'mina', text: 'Ionatan is my fiancé. He came from Britain to sign a property contract at the castle, but he has not written back. Have you seen him?' },
+    { speaker: 'mara', text: 'He had dinner here and left for the castle. He has not returned to the bistro.' },
+    { speaker: 'avram', text: 'Then Mina and I will follow that road together. Before we leave, could you prepare a meal for two? We will both eat vegetarian food.' },
+    { speaker: 'mina', text: 'Two plates of zacuscă toast, two plates of roasted vegetables, a smoked cheese plate to share, and two pots of fruit tea, please. Eggs and dairy are fine, but no meat or fish.' }],
+  completion: [{ speaker: 'mina', text: 'Thank you for the meal and for telling us which road he took. We must find out why his letters stopped.' },
+    { speaker: 'avram', text: 'We shall leave for the castle together now. I have my medical bag, should he need help.' },
+    { speaker: 'mara', text: 'I hope you find him safe. Take care on the road.' }],
+  followUp: { id: 'mina-avram-news', title: 'News from the road', afterServices: 3,
+    dialogue: [{ speaker: 'sorin', text: 'There is news going round the village. Mina and Doctor Avram found Ionatan gravely ill. All three have left for Britain. They did not stop at our bistro on the way back.' },
+      { speaker: 'mara', text: 'Then he is no longer alone. I hope he recovers at home. Thank you for bringing the news, Sorin.' }] } });
 // The borrowed flour bin and its tasting portions use their matching existing atlas art.
 const questItems: Record<string, Item> = {
   quest_bread_source: { id: 'quest_bread_source', name: 'Tasting flour bin', chain: 'quest_bread', stage: 0, next: null, sprite: 30, price: 0, generator: { outputs: ['quest_bread_1'] } },

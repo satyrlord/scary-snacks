@@ -1134,6 +1134,26 @@
       "format": "webp",
       "bytes": 99536,
       "sha256": "b1e40e76947d743908212699f031c8b321134bcfb4bbc6543b222cf2eff9ba63"
+    },
+    {
+      "file": "public/assets/variants/guests-640x640.webp",
+      "master": "guests",
+      "masterSha256": "6556ba6f6793ff63e2ea5c68ea1f5ef83174752f9ad34c95f1e45cab460fd140",
+      "width": 640,
+      "height": 640,
+      "format": "webp",
+      "bytes": 93508,
+      "sha256": "6910514b7b271f290046eacb6b75b3b40dc482ef9f07676eda9c4198754f49db"
+    },
+    {
+      "file": "public/assets/variants/red-wine-256x256.webp",
+      "master": "red-wine",
+      "masterSha256": "b936c905701f9fee4d5cbc04b0424511dd22d1131f9debfb652d8a1d72dc898d",
+      "width": 256,
+      "height": 256,
+      "format": "webp",
+      "bytes": 22026,
+      "sha256": "82330261171917e9f46aa5e484cc36b52d7db755f782c55ddb354e6ce27143d9"
     }
   ]
 }

@@ -18,6 +18,8 @@ export const imageVariants = {
   'board-clutter': { widths: [1536], formats: ['webp'] },
   portraits: { widths: [640], formats: ['webp'] },
   'visitor-portraits': { widths: [640], formats: ['webp'] },
+  guests: { widths: [640], formats: ['webp'] },
+  'red-wine': { widths: [256], formats: ['webp'] },
   mascots: { widths: [640], formats: ['webp'] },
   // The painted room states fill a 3:4 room view; phones take the half-size painting.
   'front-room-00': { widths: [768, 1536], formats: ['avif', 'webp'] },

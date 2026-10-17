@@ -25,7 +25,7 @@ Spec 003 implements generator tiers, output choices, and persistence. Its accept
 
 Spec 004 implements the finite coin rewards, the House book level panel, and claim persistence. Its acceptance section records the automated checks.
 
-Spec 005 implements four core character arcs, three recurring cathedral travellers, a single-visit dinner guest, optional introductions, a temporary bread-tasting source, atomic delivery, journal replay, and persistence. Automatic scene continuation waits for 009. Spec 006 includes all quests in its economy fixture. Spec 008 names one regular quest of each arc as a chapter contribution.
+Spec 005 implements four core character arcs, three recurring cathedral travellers, a single-visit dinner guest, a shared single visit with later local news, optional introductions, a temporary bread-tasting source, atomic delivery, journal replay, and persistence. Automatic scene continuation waits for 009. Spec 006 includes all quests in its economy fixture. Spec 008 names one regular quest of each arc as a chapter contribution.
 
 Spec 006 implements explicit food prices, work-based preparation budgets and effort, requirement feedback, saved quotes, and legal campaign comparisons. The fixture includes generator upgrades, all level rewards, and optional quests. The economy record gives the real-world source anchors and the authored assumptions.
 
@@ -71,7 +71,7 @@ The table maps each gap in the current game to the specifications that close it.
 | The resident cat has no part in play | 014 |
 | No start screen. Reduced motion can be on without a notice, and the player cannot change it | 015 |
 
-Customer introductions (005) are optional journal reading. Regulars (013), Miez's visits (014), and optional post-campaign goals (012) remain proposed. Decoration choices (002) are visual choices, not a branching story.
+Customer introductions (005) are optional journal reading. The regulars in 013 remain proposed, except Vlad and Elisabeta. Miez's visits (014) and optional post-campaign goals (012) remain proposed. Decoration choices (002) are visual choices, not a branching story.
 
 ## Shared product boundaries
 

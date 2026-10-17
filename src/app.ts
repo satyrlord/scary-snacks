@@ -96,7 +96,7 @@ function selectionLine(code: string) {
 function pulse(cells: number[]) { for (const at of cells) $(`[data-cell="${at}"]`).classList.add('hint'); }
 function portrait(id: string) {
   const person = character(id);
-  const value = element('span', `portrait portrait-${person.sprite}${person.visitor ? ' visitor-portrait' : ''}`);
+  const value = element('span', `portrait portrait-${person.sprite}${person.portraitAtlas === 'guest' ? ' guest-portrait' : person.visitor ? ' visitor-portrait' : ''}`);
   value.setAttribute('role', 'img'); value.setAttribute('aria-label', person.name); return value;
 }
 /** The ingredient-source badge on a board tile: a plus in a disc. */
@@ -115,7 +115,8 @@ function coinMark() {
 }
 function food(code: string, extra = '') {
   const index = definition(code).sprite;
-  const rect = spriteBounds[index];
+  const wine = code === 'drinks_5';
+  const rect = wine ? [0,0,256,256] : spriteBounds[index];
   const [x,y,width,height] = rect, side = Math.max(width,height,SPRITE_VIEW);
   const value = svg('svg');
   value.setAttribute('class', `food ${extra}`); value.setAttribute('viewBox',[x+width/2-side/2,y+height/2-side/2,side,side].join(' '));
@@ -126,8 +127,8 @@ function food(code: string, extra = '') {
   ['x','y','width','height'].forEach((key,index)=>bounds.setAttribute(key,String(rect[index])));
   clip.append(bounds);definitions.append(clip);value.append(definitions);
   const image = svg('image');
-  image.setAttribute('href',atlas);
-  image.setAttribute('width','1536');image.setAttribute('height','1536');
+  image.setAttribute('href',wine ? new URL('../assets/variants/red-wine-256x256.webp',import.meta.url).href : atlas);
+  image.setAttribute('width',wine?'256':'1536');image.setAttribute('height',wine?'256':'1536');
   image.setAttribute('clip-path',`url(#${clipId})`);
   value.append(image);
   value.setAttribute('aria-hidden', 'true'); return value;
@@ -271,7 +272,7 @@ function serve(order: Order) { return changeGame(() => {
   leaving.classList.remove('arriving'); leaving.classList.add('leaving'); leaving.removeAttribute('aria-label'); leaving.setAttribute('aria-hidden', 'true'); leaving.inert = true;
   leaving.style.left = `${box.left - stage.left}px`; leaving.style.top = `${box.top - stage.top}px`; leaving.style.width = `${box.width}px`; leaving.style.height = `${box.height}px`;
   // The ticket keeps its size and its dish slot until the dishes land; then the neighbour says thank you.
-  const thank = () => leaving.replaceChildren(element('span', `portrait portrait-${person.sprite}`), element('p', 'order-name', person.name), element('p', 'thanks', line));
+  const thank = () => leaving.replaceChildren(portrait(person.id), element('p', 'order-name', person.name), element('p', 'thanks', line));
   $('.tickets').append(leaving);
   if (still.matches) thank(); else fly(order.requirements, from, leaving.querySelector('.order-items') ?? leaving).then(thank);
   if (state.served % 7 === 0) batFlight();
@@ -434,7 +435,7 @@ function renderOrders() {
     // A ticket that has just taken a served neighbour's place arrives in the same slot; the delay survives renders.
     const since = arriving[slot] ? performance.now() - arriving[slot] : Infinity;
     if (since < ARRIVAL_MS) { card.classList.add('arriving'); card.style.setProperty('--rise-delay', `${RISE_AT - Math.round(since)}ms`); }
-    const face = element('span', `portrait portrait-${person.sprite}`); face.setAttribute('aria-hidden', 'true');
+    const face = portrait(person.id); face.setAttribute('aria-hidden', 'true');
     const onBoard = servedCells(state, order, data).map(index => index >= 0);
     const labels = order.requirements.map((code, index) => `${itemName(code)}, ${onBoard[index] ? 'ready on the board' : 'not on the board yet'}`);
     // A drawer ticket is too narrow for a 44px target per dish, so two dishes share one target that opens the order.
@@ -684,11 +685,13 @@ function chapterSteps(view: ChapterView, numbered: boolean) {
   const done=element('span','',numbered?`Chapter ${view.number}`:`${view.done} of ${view.tasks.length} done`);done.setAttribute('aria-hidden','true');
   row.append(list,done);return row;
 }
-/** A chapter's closing scene or the finale, by its saved ID. An unknown ID has no scene, so the game never invents one. */
+/** A chapter's closing scene, the finale, or local news, by its saved ID. An unknown ID has no scene, so the game never invents one. */
 function storyScene(id: string) {
   const index=data.chapters.findIndex(chapter=>chapter.id===id);
   if(index>=0){const chapter=data.chapters[index];return {title:`Chapter ${index+1} complete: ${chapter.title}`,dialogue:chapter.closing,completion:chapter.payoff,prompt:`Chapter ${index+1} is complete.`};}
   if(id===data.finale.id)return {title:data.finale.title,dialogue:data.finale.dialogue,completion:data.finale.ending,prompt:'The supper can begin.'};
+  const news=data.quests.find(quest=>quest.followUp?.id===id)?.followUp;
+  if(news)return {title:news.title,dialogue:news.dialogue,completion:'The news is recorded in the story journal.',prompt:'News has reached the bistro.'};
   return null;
 }
 /**
@@ -741,8 +744,10 @@ function questBook(focusQuest?: string, message = '') {
   for(const {quest,status:questStatus} of available){
     const card=element('article','quest-card');card.dataset.quest=quest.id;
     const heading=element('h3','',quest.title);heading.tabIndex=-1;heading.id=`heading-${quest.id}`;card.setAttribute('aria-labelledby',heading.id);
-    const head=element('div','quest-heading'),words=element('div');words.append(heading,element('p','quest-person',character(quest.character).name));
-    head.append(portrait(quest.character),words);card.append(head);
+    const head=element('div','quest-heading'),words=element('div'),people=[quest.character,...quest.companions??[]];
+    words.append(heading,element('p','quest-person',names.format(people.map(id=>character(id).name))));
+    for(const id of people)head.append(portrait(id));
+    head.append(words);card.append(head);
     if(character(quest.character).visitor)card.append(element('p','quest-note',quest.opening[0].text));
     const requirements=element('ul','quest-requirements'),totals=new Map<string,number>();
     for(const requirement of quest.requirements)totals.set(requirement.item,(totals.get(requirement.item)??0)+requirement.quantity);
@@ -825,8 +830,6 @@ function journal(focusEntry?: string) {
     const replay=button('Read completion','journal-entry',()=>showStory({title:quest.title,dialogue:quest.completion},false,'',()=>journal(quest.id)));
     replay.dataset.journal=quest.id;replay.setAttribute('aria-label',`Replay ${quest.title}`);replay.append(element('span','',character(quest.character).name));section.append(opening,replay);content.append(section);
   }
-  // Each open chapter: its goal while it runs, or its payoff once it is complete, with its preparations and the help of a neighbour.
-  content.append(element('h3','','Chapters'));
   const quests=resolveQuests(state,data);
   const sceneEntry=(id: string)=>{
     const scene=storyScene(id)!,waiting=state.pendingScenes.includes(id);
@@ -834,6 +837,13 @@ function journal(focusEntry?: string) {
     entry.setAttribute('aria-label',`${waiting?'Read':'Replay'} ${scene.title}`);entry.append(element('strong','',scene.title),element('span','',waiting?'New scene':'Replay'));
     return entry;
   };
+  for(const quest of data.quests){
+    const news=quest.followUp,completedAt=state.questCompletedAt?.[quest.id];
+    if(!news||completedAt===undefined||state.served-completedAt<news.afterServices)continue;
+    const section=element('section','quest-journal');section.append(element('h4','','Local news'),sceneEntry(news.id));content.append(section);
+  }
+  // Each open chapter: its goal while it runs, or its payoff once it is complete, with its preparations and the help of a neighbour.
+  content.append(element('h3','','Chapters'));
   for(const view of resolveChapters(state,data).filter(value=>value.status!=='locked')){
     const section=element('section','chapter-journal');section.dataset.chapter=view.chapter.id;
     section.append(element('h4','',`Chapter ${view.number} · ${view.chapter.title}`));
@@ -1165,9 +1175,11 @@ function offerQuest() {
   const quest=readyQuests().find(value=>!offeredQuests.has(value.id));
   if(!quest)return;
   offeredQuests.add(quest.id);
-  const person=character(quest.character).name,content=element('div','quest-offer');
+  const people=[quest.character,...quest.companions??[]],person=names.format(people.map(id=>character(id).name)),content=element('div','quest-offer');
   const head=element('div','quest-heading'),words=element('div');
-  words.append(element('h3','',quest.title));head.append(portrait(quest.character),words);
+  words.append(element('h3','',quest.title));
+  for(const id of people)head.append(portrait(id));
+  head.append(words);
   const requirements=element('ul','quest-requirements');
   for(const {item,quantity} of quest.requirements){
     const row=element('li','quest-item');row.append(food(item),element('span','',`${quantity} ${itemName(item)}`),element('span','quest-count',`${quantity} / ${quantity} on board`));requirements.append(row);

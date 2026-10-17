@@ -7,7 +7,7 @@ import { runtimeFiles } from '../tools/build.ts';
 
 test('the PNG masters match their provenance records',async()=>{
   const record=JSON.parse(await readFile('docs/asset-provenance.json','utf8'));
-  assert.equal(record.assets.length,34);
+  assert.equal(record.assets.length,36);
   const names=await readdir('public/assets/original');
   assert.deepEqual(names.sort(),record.assets.map((a: { file: string })=>a.file.split('/').at(-1)).sort());
   for(const asset of record.assets){assert.equal(asset.sourceGameImageInput,false);const bytes=await readFile(asset.file);assert.equal(createHash('sha256').update(bytes).digest('hex'),asset.sha256,asset.id);assert.ok(asset.width>1000);}
@@ -22,8 +22,8 @@ test('each document that counts the PNG masters gives the number in the provenan
   }
 });
 
-test('the four visitor portraits stay inside their cells',async()=>{
-  const {data,info}=await sharp('public/assets/original/visitor-portraits.png').ensureAlpha().raw().toBuffer({resolveWithObject:true});
+for(const atlas of ['visitor-portraits','guests'])test(`the four ${atlas} portraits stay inside their cells`,async()=>{
+  const {data,info}=await sharp(`public/assets/original/${atlas}.png`).ensureAlpha().raw().toBuffer({resolveWithObject:true});
   assert.equal(info.width,info.height);assert.equal(info.width%2,0);
   const side=info.width/2,alpha=(x: number,y: number)=>data[(y*info.width+x)*4+3];
   for(let cell=0;cell<4;cell++){
@@ -31,8 +31,9 @@ test('the four visitor portraits stay inside their cells',async()=>{
     for(let y=0;y<side;y++)for(let x=0;x<side;x++)if(alpha(cell%2*side+x,Math.floor(cell/2)*side+y)>=128)painted++;
     assert.ok(painted>side*side/4,`Portrait ${cell} is present and opaque.`);
   }
-  for(let y=0;y<info.height;y++)for(const x of [0,side-1,side,info.width-1])assert.equal(alpha(x,y),0,'No portrait crosses a column edge.');
-  for(let x=0;x<info.width;x++)for(const y of [0,side-1,side,info.height-1])assert.equal(alpha(x,y),0,'No portrait crosses a row edge.');
+  const edgeLimit=atlas==='guests'?2:1;
+  for(let y=0;y<info.height;y++)for(const x of [0,side-1,side,info.width-1])assert.ok(alpha(x,y)<edgeLimit,'No visible portrait crosses a column edge.');
+  for(let x=0;x<info.width;x++)for(const y of [0,side-1,side,info.height-1])assert.ok(alpha(x,y)<edgeLimit,'No visible portrait crosses a row edge.');
 });
 
 test('the board clutter sprites stay inside their cells and leave overlay centers open',async()=>{

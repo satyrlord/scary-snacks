@@ -1,0 +1,165 @@
+{
+  "format": "scary-snacks",
+  "version": 8,
+  "state": {
+    "version": 9,
+    "layoutId": "workbench-clutter-1",
+    "resolvedObstacles": [],
+    "pendingScenes": [],
+    "board": [
+      null,
+      {
+        "code": "generator_bakery"
+      },
+      {
+        "code": "generator_sweet"
+      },
+      {
+        "code": "generator_produce"
+      },
+      {
+        "code": "generator_warm"
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      {
+        "code": "drinks_5"
+      },
+      {
+        "code": "bakery_1"
+      },
+      {
+        "code": "bakery_1"
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      {
+        "code": "warm_1"
+      },
+      null,
+      null,
+      null,
+      null,
+      {
+        "code": "drinks_1"
+      },
+      null,
+      null,
+      null,
+      {
+        "code": "generator_drinks"
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "coins": 99445,
+    "xp": 3628,
+    "taskIndex": 15,
+    "orders": [
+      {
+        "id": "order_141",
+        "requirements": [
+          "bakery_5",
+          "drinks_5"
+        ],
+        "reward": 63,
+        "pricing": "menu-1",
+        "customer": "eszter"
+      },
+      {
+        "id": "order_2",
+        "requirements": [
+          "drinks_2"
+        ],
+        "reward": 12,
+        "pricing": "menu-1",
+        "customer": "ilie"
+      },
+      {
+        "id": "order_3",
+        "requirements": [
+          "bakery_2"
+        ],
+        "reward": 4,
+        "pricing": "menu-1",
+        "customer": "sorin"
+      }
+    ],
+    "discovered": [
+      "generator_bakery",
+      "generator_warm",
+      "bakery_1",
+      "warm_1",
+      "drinks_1",
+      "generator_drinks",
+      "bakery_2",
+      "warm_2",
+      "generator_sweet",
+      "generator_produce",
+      "bakery_3",
+      "bakery_4",
+      "bakery_5",
+      "produce_1",
+      "produce_2",
+      "produce_3",
+      "drinks_2",
+      "drinks_3",
+      "drinks_4",
+      "sweet_1",
+      "sweet_2",
+      "sweet_3",
+      "sweet_4",
+      "sweet_5",
+      "warm_3",
+      "warm_4",
+      "produce_4",
+      "warm_5",
+      "produce_5",
+      "drinks_5"
+    ],
+    "seed": 4021848077,
+    "served": 219,
+    "merges": 1110,
+    "nextOrderId": 142,
+    "decorations": [
+      "task_1",
+      "task_2",
+      "task_3",
+      "task_4",
+      "task_5",
+      "task_6",
+      "task_7",
+      "task_8",
+      "task_9",
+      "task_10",
+      "task_11",
+      "task_12",
+      "task_13",
+      "task_14",
+      "task_15"
+    ],
+    "decorationChoices": {},
+    "outputChoices": {},
+    "claimedLevelRewards": [],
+    "completedQuests": [],
+    "activeQuestProducers": {}
+  }
+}

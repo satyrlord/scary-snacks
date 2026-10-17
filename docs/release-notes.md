@@ -44,7 +44,9 @@ They are not runtime dependencies. Do not use `private/` as an input for source 
 
 ## Art provenance
 
-The game ships image variants from 34 masters. The build excludes the PNG masters.
+The game ships image variants from 36 masters. The build excludes the PNG masters.
+
+Built-in in-chat image generation made the guest portrait atlas and the red wine icon. The guest atlas uses the existing visitor portraits as a style reference. The wine uses the menu atlas as a style reference.
 
 - The OpenAI Images API (gpt-image-2.5-flare, high quality) made the food atlas and the mascots.
   Each repaints an earlier atlas that the built-in in-chat imagegen tool made for this project. The mascots then had one correction of the grid fit.

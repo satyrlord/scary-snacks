@@ -127,12 +127,21 @@ function playUntilReady(start: GameState){
     const lower=Object.values({...data.items,...data.questItems}).find(item=>item.next===code)!;const first=produce(lower.id),second=produce(lower.id);act({type:'move',from:first,to:second});return second;
   };
   for(;;){
+    for(const quest of data.quests)if(quest.followUp&&state.pendingScenes.includes(quest.followUp.id))act({type:'readScene',id:quest.followUp.id});
     for(const reward of data.levelRewards)if(reward.level<=getLevel(state)&&!state.claimedLevelRewards.includes(reward.id))act({type:'claimLevelReward',id:reward.id});
     const open=resolveQuests(state,data).find(view=>view.status==='active'||view.status==='offer');
     if(open){
       if(open.status==='offer')act({type:'acceptQuest',id:open.quest.id});
       for(const requirement of open.quest.requirements)for(let count=0;count<requirement.quantity;count++)produce(requirement.item);
       const cleanup=open.quest.producer?previewQuestCleanup(state,open.quest.id,data):null;act({type:'deliverQuest',id:open.quest.id,...(cleanup?{cleanupToken:cleanup.token}:{})});continue;
+    }
+    const visit=data.quests.find(quest=>quest.afterQuestServices!==undefined&&state.completedQuests.includes(quest.afterQuest!)&&!state.completedQuests.includes(quest.id));
+    if(visit){
+      const elapsed=state.served-state.questCompletedAt![visit.afterQuest!];
+      const waiting=state.orders.find(order=>visit.waitsForCustomers?.includes(order.customer));
+      if(elapsed<visit.afterQuestServices!||waiting){
+        const order=waiting??state.orders[0];for(const code of order.requirements)produce(code);act({type:'serve',id:order.id});continue;
+      }
     }
     const task=currentTask(state,data);if(!task||taskEligibility(state,data).ready)return state;
     if(state.coins<task.cost||state.served<task.goals.served){

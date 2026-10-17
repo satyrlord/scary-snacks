@@ -45,6 +45,8 @@ The next table lists the layouts of the Portable Network Graphics (PNG) masters 
 | `menu-atlas.png` | Food, drinks, and generators | 6 columns by 6 rows | Transparent |
 | `portraits.png` | The four ordinary characters | 2 columns by 2 rows | Transparent |
 | `visitor-portraits.png` | The four visitors | 2 columns by 2 rows | Transparent |
+| `guests.png` | Vlad, Elisabeta, Mina, and Avram | 2 columns by 2 rows | Transparent |
+| `red-wine.png` | The red wine menu picture | One square icon | Transparent |
 | `mascots.png` | Three poses of the black cat and one bat | 2 columns by 2 rows | Transparent |
 | `timber-tabletop.png` | The timber under the board | One tileable square | Opaque |
 | `embroidered-runner.png` | The runner strips beside the board | One image, 3:1; the game repeats only x 161, width 503 | Opaque |

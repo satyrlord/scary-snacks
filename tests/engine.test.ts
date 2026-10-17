@@ -33,12 +33,13 @@ function fillBoard(state: GameState) {
   return state;
 }
 
-test('original data has 30 named stages, five generators, eight characters, and 24 tasks', () => {
+test('original data has 30 named stages, five generators, twelve characters, and 24 tasks', () => {
   assert.equal(data.title, 'Scary Snacks');
   assert.equal(data.board.columns * data.board.rows, 42);
   assert.equal(Object.keys(data.items).length, 35);
-  assert.equal(data.characters.length, 8);
-  assert.equal(data.characters.filter(person => !person.visitor).length, 4);
+  assert.equal(data.characters.length, 12);
+  assert.equal(data.characters.filter(person => !person.visitor && !person.occasional).length, 4);
+  assert.equal(data.characters.filter(person => person.occasional).length, 2);
   assert.equal(data.tasks.length, 24);
   assert.equal(new Set(data.tasks.map(task => task.id)).size, 24);
   for (const task of data.tasks) {

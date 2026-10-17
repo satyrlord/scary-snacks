@@ -72,7 +72,7 @@ function offered() {
 
 test('four original arcs span all six chapters and keep the permanent content and ordinary orders', () => {
   assert.deepEqual(questProblems(data), []);
-  assert.equal(data.quests.length, 23);
+  assert.equal(data.quests.length, 24);
   assert.equal(Object.keys(data.items).length, 35);
   assert.equal(data.chains.length, 5);
   assert.equal(data.tasks.length, 24);
@@ -80,7 +80,7 @@ test('four original arcs span all six chapters and keep the permanent content an
   assert.equal(data.quests.filter(quest => !data.characters.find(person => person.id === quest.character)!.visitor).reduce((sum, quest) => sum + quest.reward, 0), 312);
   for (const character of data.characters) {
     assert.ok(character.introduction.length > 40);
-    assert.equal(data.quests.filter(quest => quest.character === character.id && !quest.producer).length, character.singleVisit ? 1 : 3);
+    assert.equal(data.quests.filter(quest => (quest.character === character.id || quest.companions?.includes(character.id)) && !quest.producer).length, character.occasional ? 0 : character.singleVisit ? 1 : 3);
   }
   const chapters = new Set(data.quests.filter(quest => !quest.producer).map(quest => quest.afterTask === null ? 1
     : Math.min(6, 1 + Math.floor((data.tasks.findIndex(task => task.id === quest.afterTask) + 1) / 4))));
@@ -174,8 +174,8 @@ test('traveller packs have high volume or advanced food, fit the board, and pay 
 
 test('current saves keep their exact ordinary quotes and progress when the travellers are added', () => {
   const previous = structuredClone(data);
+  previous.quests = previous.quests.filter(quest => !previous.characters.find(person => person.id === quest.character)!.visitor);
   previous.characters = previous.characters.filter(person => !person.visitor);
-  previous.quests = previous.quests.filter(quest => !quest.afterServed);
   const state = createGame(previous);
   const before = structuredClone(state);
   assert.equal(validateGame(state, data), true);
@@ -205,7 +205,7 @@ test('Ionatan has one independent costly dinner and appears in the journal only 
   assert.equal(quest.reward, 1100);
   assert.equal(quest.reward, price * 5);
   assert.ok(!data.tasks.some(task => task.requiresQuest === quest.id));
-  assert.ok(!data.quests.some(other => other.afterQuest === quest.id));
+  assert.deepEqual(data.quests.filter(other => other.afterQuest === quest.id).map(other => other.id), ['mina-avram-search']);
   const visible = (state: GameState) => journalCharacters(state, data).some(character => character.id === person.id);
   assert.equal(visible(createGame(data)), false);
   const beforePreparation = checkpoint(15);
@@ -252,8 +252,8 @@ test('Ionatan dinner delivery pays once, keeps failed visits active, and records
 
 test('current saves with finished recurring visits stay valid when Ionatan is added', () => {
   const previous = structuredClone(data);
+  previous.quests = previous.quests.filter(quest => !previous.characters.find(person => person.id === quest.character)!.singleVisit);
   previous.characters = previous.characters.filter(person => !person.singleVisit);
-  previous.quests = previous.quests.filter(quest => quest.character !== 'ionatan');
   const state = checkpoint(24);
   state.served = 216;
   state.completedQuests = previous.quests.map(quest => quest.id);
@@ -467,7 +467,11 @@ test('all quests and the campaign finish through legal actions without injected 
       if (play.state.taskIndex % 4 === 0) chapterTotals.push({ chapter: task.chapter, actions: play.actions, orders: play.state.served, merges: play.state.merges, coins: play.state.coins, quests: play.state.completedQuests.length });
       continue;
     }
-    const order = [...play.state.orders].sort((a, b) => a.requirements.reduce((sum, code) => sum + 2 ** (data.items[code].stage - 1), 0)
+    const search = data.quests.find(quest => quest.id === 'mina-avram-search')!;
+    const clearVisitor = play.state.completedQuests.includes(search.afterQuest!) && !play.state.completedQuests.includes(search.id)
+      && play.state.served - (play.state.questCompletedAt?.[search.afterQuest!] ?? play.state.served) >= search.afterQuestServices!
+      ? play.state.orders.find(order => search.waitsForCustomers!.includes(order.customer)) : null;
+    const order = clearVisitor ?? [...play.state.orders].sort((a, b) => a.requirements.reduce((sum, code) => sum + 2 ** (data.items[code].stage - 1), 0)
       - b.requirements.reduce((sum, code) => sum + 2 ** (data.items[code].stage - 1), 0))[0];
     for (const code of order.requirements) play.produce(code);
     play.act({ type: 'serve', id: order.id });

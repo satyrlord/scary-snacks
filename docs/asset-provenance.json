@@ -651,6 +651,38 @@
         "packing": "The first three cells have a one-pixel transparent packing border. The removed border pixels had alpha below 16; every interior pixel keeps its generated value. The complete original Ionatan cell keeps every RGBA value.",
         "ionatanRgbaSha256": "0ee43942527f2a444ea4bb87f00358651741882bc0af231993debdd219bd8ade"
       }
+    },
+    {
+      "id": "guests",
+      "file": "public/assets/original/guests.png",
+      "sha256": "6556ba6f6793ff63e2ea5c68ea1f5ef83174752f9ad34c95f1e45cab460fd140",
+      "bytes": 1635821,
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "guests-final",
+      "generation": "Built-in in-chat image generation.",
+      "sourceGameImageInput": false,
+      "referenceAsset": "guests-initial",
+      "referenceSha256": "81df60bf0ea19ee4cc30fea7db6b55b2a51ce6c784ae9f98939962466bb49bd3",
+      "review": "The agent examined all four identities, clothing, cell order and containment. The square sheet has outer borders and central seams with alpha at most 1, below visible opacity. User visual acceptance is not recorded."
+    },
+    {
+      "id": "red-wine",
+      "file": "public/assets/original/red-wine.png",
+      "sha256": "b936c905701f9fee4d5cbc04b0424511dd22d1131f9debfb652d8a1d72dc898d",
+      "bytes": 1420068,
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "red-wine-final",
+      "generation": "Built-in in-chat image generation.",
+      "sourceGameImageInput": false,
+      "referenceAsset": "menu-atlas",
+      "referenceSha256": "4eb85ae860456d1174331d0d50dd43a0ff7a71405fe6a09756ed505f13f97df7",
+      "review": "The agent examined the ruby wine, decanter, stemmed glass and transparent margins. User visual acceptance is not recorded."
     }
   ],
   "note": "Only generated project images are active. The menu atlas and the mascots repaint the generated chat atlases in the references list. The final portraits revised their own first API candidate. This record is provenance, not legal clearance. front-room-00 and courtyard-13 use the generated reference paintings in the references list. The two decoration paintings use the generated design references in that list. Each later room state is an edit of the previous state, composited so that only its region changes. The board-clutter atlas was generated in chat and corrected for sprite-cell fit.",
@@ -764,6 +796,22 @@
       "referenceSha256": "e6e6ec2e5528b6490371d14e53f39ae8613127f12ce0f0f4f03afe85722efbea",
       "review": "The agent examined all four cells on light and dark backgrounds. The decoded sheet is 1254 by 1254 pixels with RGBA transparency. Adrian is top left, Monica top right, Janos bottom left, and Ionatan bottom right. The three existing identities, clothes, poses, and cell mappings remain recognizable. The busts stay inside their cells. Every outer border and central seam has alpha zero. User visual acceptance is not recorded.",
       "use": "The generated armour and style reference. Its complete Ionatan cell is retained in visitor-portraits. The game does not ship this reference."
+    },
+    {
+      "id": "guests-initial",
+      "sha256": "81df60bf0ea19ee4cc30fea7db6b55b2a51ce6c784ae9f98939962466bb49bd3",
+      "bytes": 2149189,
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "guests-initial",
+      "generation": "Built-in in-chat image generation.",
+      "sourceGameImageInput": false,
+      "referenceAsset": "visitor-portraits",
+      "referenceSha256": "1effc3a91422805fb6b634ef5930d5b4151d488c494ba1f52f63fb62add5eeb4",
+      "review": "The four portraits have the required identities and order. The shoulders reach the central column edge. A spacing correction replaces this candidate.",
+      "use": "The generated reference for the guest portrait spacing correction. The game does not ship this reference."
     }
   ]
 }

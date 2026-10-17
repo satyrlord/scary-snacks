@@ -55,10 +55,12 @@ If a change breaks the saves that players have, tell the user before the edit.
 A new save version is a product decision. Use [add-feature](../add-feature/SKILL.md) for it.
 
 Each item has a `sprite` index in the six-by-six food atlas.
-Each ordinary character has a `sprite` index in the two-by-two portrait atlas.
-Each visitor (`visitor: true`) has a `sprite` index in the two-by-two visitor portrait atlas.
+The four core characters use the two-by-two portrait atlas.
+The first four visitors use the two-by-two visitor portrait atlas.
+Characters with `portraitAtlas: 'guest'` use the two-by-two guest portrait atlas.
 The index goes from left to right, and then from top to bottom.
-A new item or a changed dish must have art in its atlas cell.
+A new item or a changed dish must have its own matching art.
+Red wine uses a separate picture for `drinks_5`.
 Each preparation has one authored room state. A room state has an identifier that also names its painting, an area, and the preparation in `after`.
 It also has a focus, a pin mark, a label, and a description.
 The state of the new game has `null` in `after`.

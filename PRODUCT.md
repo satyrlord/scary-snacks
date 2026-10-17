@@ -20,7 +20,7 @@ The application has no runtime package and no backend. Playwright, TypeScript, S
 
 ## Play
 
-The board has six columns and seven rows. Customer requests are deterministic. The game has five ingredient sources (generators), 30 dishes and drinks, eight characters, and 24 preparations over six chapters. Each dish or drink has an English name. If English has no name for the dish, the dish has the Romanian regional name with its diacritics. The initial layout, the prices, the progression, the characters, and the dialogue are new works.
+The board has six columns and seven rows. Customer requests are deterministic. The game has five ingredient sources (generators), 30 dishes and drinks, 12 characters, and 24 preparations over six chapters. Each dish or drink has an English name. If English has no name for the dish, the dish has the Romanian regional name with its diacritics. The initial layout, the prices, the progression, the characters, and the dialogue are new works.
 
 Serving earns coins. Preparations unlock generators and story. Each preparation visibly changes the bistro.
 
@@ -42,9 +42,15 @@ Ionatan is a foreign real estate agent who visits once per save. After preparati
 
 Delivery records his quest ID once and gives no XP or service credit. After his immediate farewell scene, he leaves. His introduction, dinner request, completion scene, and portrait are absent from the journal. Reload and export/import preserve his departure. A new game permits a new visit. A failed save follows the existing quest warning and Retry save rules: his departure stays in the session, and reload restores only durable progress. The save format and storage key stay unchanged.
 
+Vlad and Elisabeta are occasional ordinary customers with no quests. Vlad is a local baron who styles himself as a count and lives in a countryside castle. Elisabeta is an Austro-Hungarian countess who sometimes visits her land nearby. Their orders contain only meat cabbage rolls, goulash, and red wine. Each new ticket with an eligible noble has a one-in-eight chance to choose an eligible noble. The ordinary item and chapter limits still apply. Red wine uses the stable item ID `drinks_5` and costs 35 coins per small carafe. They do not join the community supper scene.
+
+Mina and Doctor Avram share one optional visit per save. Mina is a young British middle-class woman in Victorian dress. She seeks her fiancé Ionatan, who came to sign a property contract and stopped writing. Avram is a Hungarian Jewish doctor who travels with her. Their visit opens only after Ionatan's dinner is complete and three more ordinary orders have been served. It also waits until any pending Vlad and Elisabeta orders are served. The two nobles cannot receive new orders during the shared visit. Mina and Avram arrive and leave together. They never enter ordinary orders or the finale, and they cannot meet Ionatan at the bistro.
+
+Their shared request is a vegetarian meal for two: two zacuscă toasts, two roasted vegetable plates, one smoked cheese plate, and two fruit teas. It permits eggs and dairy, and contains no meat or fish. The meal has a menu value of 168 coins and pays 336 coins. Delivery ends the visit and sends them to find Ionatan. Three further ordinary services open local gossip: they found him gravely ill, and all three left for Britain. They do not visit the bistro on the return journey. The gossip uses only local speakers and gives no reward. It can be read later in the journal. Their introduction and request scenes are available only during their visit and have no journal replay after departure.
+
 Ilie also offers an optional bread tasting after his arc. Accept places one Tasting flour bin on the board. If the board is full, nothing changes. This borrowed source takes no permanent source entitlement. It gives Tasting flour immediately and without a limit. Tasting flour, Tasting dough, and Tasting pogăcele have separate IDs and use the matching food pictures. They never enter ordinary orders or the permanent recipe collection. The source can move, but cannot be sold. Before delivery, a review lists the source and leftover tasting items on the board. Confirmation consumes the requirements, returns only those exclusive supplies, and gives the reward in one change. A stale review changes nothing.
 
-The story journal holds optional introductions for the four ordinary neighbours and three recurring travellers, plus the opening and completion scenes of their finished quests. Ionatan has an introduction only during his active visit. His completed request has no journal replay. Reading, skipping, and replaying a scene give no reward. Quest scenes do not resume automatically after reload. Their completion remains recorded, and the journal can replay them. A failed quest save keeps the current session and shows an unsaved warning with Retry save. Export includes that session. Reload restores only durable progress.
+The story journal holds optional introductions for the four ordinary neighbours, two occasional noble customers, and three recurring travellers, plus the opening and completion scenes of their finished quests. Ionatan, Mina, and Avram have introductions only during their active visits. Their completed requests have no journal replay. Local gossip about the search becomes available after its service gate. Reading, skipping, and replaying a scene give no reward. Quest scenes do not resume automatically after reload. Their completion remains recorded, and the journal can replay scenes for recurring characters. A failed quest save keeps the current session and shows an unsaved warning with Retry save. Export includes that session. Reload restores only durable progress.
 
 The campaign has six chapters with four preparations each. Story shows the title and the objective of the current chapter. It also shows one step for each preparation of the chapter: done, now, or not yet. A chapter opens at its first preparation and needs no separate payment. Its closing scene stays hidden until the chapter is complete. Each chapter names one regular neighbour quest that opens during the chapter. That quest stays optional.
 
@@ -93,9 +99,10 @@ The game implements spec 001 (visible renovation and areas), spec 002 (decoratio
 
 ## Identity
 
-The game has 34 generated Portable Network Graphics (PNG) masters. They provide these items:
+The game has 36 generated Portable Network Graphics (PNG) masters. They provide these items:
 
 - food
+- a separate red wine picture for its menu item
 - portraits
 - 25 painted room states
 - two decoration edit paintings, sampled only within their authored regions
@@ -128,11 +135,11 @@ An import validates the envelope and the state of the save. An import rejects ma
 
 Current saves use game state version 9 in envelope version 8 at `scary-snacks-save-v8`. Only this format is supported. Load reads only this key. With no current save, the game starts a new campaign. Earlier local saves stay unchanged and are not read or converted. Import rejects earlier formats. New games use the authored blocked layout. Saves record its layout ID and resolved obstacle IDs. A layout ID must remain stable after release.
 
-The state records waiting scenes. The list holds only closing scenes of complete chapters and, after the supper, the finale. Each scene ID occurs once, in story order. Completed preparations determine chapter completion. Scene IDs must remain stable after release.
+The state records waiting scenes. The list holds closing scenes of complete chapters, the earned finale, and local gossip. Each scene ID occurs once. Chapter scenes keep their chapter order. Gossip can arrive between chapter scenes. Completed preparations determine chapter completion. Completed quests and ordinary service determine local gossip. Scene IDs must remain stable after release.
 
 Each order has the pricing marker `menu-1` and the exact authored menu-price sum. Missing or unknown markers are invalid. Saved orders retain their requirements, reward, customer, and ID. Service pays that quote and creates a replacement with the same seeded selection rules.
 
-The state records unique completed quest IDs and active temporary sources with their next output positions. An active temporary quest has exactly one live source. It has no exclusive items after completion. Export and import include quest progress and the board layout. An explicit new game replaces only the current save, in one write. Invalid current saves remain unchanged. The House book offers Retry saved game and blocks game changes until recovery.
+The state records unique completed quest IDs and active temporary sources with their next output positions. Optional quest completion service totals anchor later visits and gossip. An existing current-format save without these totals stays valid. On its first successful ordinary service, the game records the service total before that service as the baseline for an already completed quest. That service counts as the first of the three required services. An active temporary quest has exactly one live source. It has no exclusive items after completion. Export and import include quest progress, completion service totals, and the board layout. An explicit new game replaces only the current save, in one write. Invalid current saves remain unchanged. The House book offers Retry saved game and blocks game changes until recovery.
 
 A load, an import, or a change from another tab can find duplicate customer names in a valid save. In that case, the game replaces each duplicate with an unused neighbour. The order requirements, the rewards, the progress, and the random seed stay unchanged. A load alone does not rewrite the save.
 

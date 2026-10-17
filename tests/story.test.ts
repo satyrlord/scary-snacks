@@ -45,7 +45,7 @@ test('six chapters keep their titles and cover all 24 preparations, each with a 
 });
 
 test('each chapter has a neighbour contribution that opens during it, and the four core characters all contribute and speak in the finale', () => {
-  const characters = data.characters.filter(character => !character.visitor).map(character => character.id);
+  const characters = data.characters.filter(character => !character.visitor && !character.occasional).map(character => character.id);
   assert.deepEqual(new Set(data.chapters.map(chapter => data.quests.find(quest => quest.id === chapter.contribution)!.character)), new Set(characters));
   assert.deepEqual(new Set(data.finale.dialogue.map(line => line.speaker)), new Set(characters));
   for (const [index, chapter] of data.chapters.entries()) {
@@ -167,7 +167,7 @@ test('ordinary orders stay playable after the finale', () => {
 
 test('saved scene queues hold only earned scenes, once each, in story order', () => {
   const middle = checkpoint(12);
-  assert.deepEqual(storyScenes(data), [...data.chapters.map(chapter => chapter.id), 'finale']);
+  assert.deepEqual(storyScenes(data), [...data.chapters.map(chapter => chapter.id), 'finale', 'mina-avram-news']);
   for (const pendingScenes of [[], ['chapter-1'], ['chapter-3'], ['chapter-1', 'chapter-2', 'chapter-3']]) assert.equal(validateGame({ ...middle, pendingScenes }, data), true);
   for (const pendingScenes of [['chapter-4'], ['finale'], ['chapter-2', 'chapter-1'], ['chapter-1', 'chapter-1'], ['unknown'], [null], 'chapter-1', null]) {
     assert.equal(validateGame({ ...middle, pendingScenes }, data), false, JSON.stringify(pendingScenes));

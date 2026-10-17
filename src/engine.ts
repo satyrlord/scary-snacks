@@ -1,7 +1,7 @@
 // Original deterministic merge-game rules for the bistro browser game.
 export type Item = { id: string; name: string; chain: string; stage: number; next: string | null; sprite: number; price: number; generator?: { outputs: string[] } };
 export type SceneLine = { speaker: string; text: string };
-export type Character = { id: string; name: string; role: string; description: string; introduction: string; sprite: number; thanks: string[]; visitor?: boolean; singleVisit?: boolean };
+export type Character = { id: string; name: string; role: string; description: string; introduction: string; sprite: number; thanks: string[]; visitor?: boolean; singleVisit?: boolean; portraitAtlas?: 'guest'; orderItems?: string[]; occasional?: boolean; absentDuringQuest?: string };
 export type Task = { id: string; chapter: number; title: string; cost: number; work: { summary: string; materials: number; labour: number; hours: number }; goals: { served: number; merges: number }; dialogue: SceneLine[]; unlock?: string; requiresQuest?: string };
 export type TaskRequirement =
   | { kind: 'coins' | 'served' | 'merges'; current: number; required: number; met: boolean }
@@ -12,6 +12,8 @@ export type Quest = {
   id: string; character: string; title: string; afterTask: string | null; afterQuest?: string; afterServed?: number;
   requirements: { item: string; quantity: number }[]; reward: number; opening: SceneLine[]; completion: SceneLine[];
   producer?: { item: string; outputs: string[]; exclusiveItems: string[] };
+  companions?: string[]; afterQuestServices?: number; waitsForCustomers?: string[];
+  followUp?: { id: string; title: string; afterServices: number; dialogue: SceneLine[] };
 };
 /**
  * A chapter of the story. Its preparations are the tasks that name its number. Opening sets the scene when the chapter starts,
@@ -74,8 +76,10 @@ export type GameState = {
   outputChoices: Record<string, string>;
   claimedLevelRewards: string[];
   completedQuests: string[]; activeQuestProducers: Record<string, number>;
+  /** Successful ordinary services at quest delivery. Missing records in existing saves start at the next service. */
+  questCompletedAt?: Record<string, number>;
   layoutId: string; resolvedObstacles: string[];
-  /** Chapter closing scenes and the finale that the player earned and has not finished or skipped, in story order. */
+  /** Chapter closing scenes, the finale, and local news that the player earned and has not finished or skipped. Chapter scenes keep story order. */
   pendingScenes: string[];
 };
 export type Action =
@@ -137,21 +141,46 @@ function revealAdjacentClutter(state: GameState, destination: number, data: Game
     discover(state, obstacle.ingredient);
   }
 }
+function questServiceGate(state: GameState, quest: Quest): boolean {
+  return quest.afterQuestServices === undefined || !!quest.afterQuest
+    && own(state.questCompletedAt ?? {}, quest.afterQuest)
+    && state.served - state.questCompletedAt![quest.afterQuest] >= quest.afterQuestServices;
+}
+
+function questReady(state: GameState, quest: Quest, data: GameData): boolean {
+  return (quest.afterTask === null || state.decorations.includes(quest.afterTask))
+    && state.served >= (quest.afterServed ?? 0)
+    && questPredecessors(quest, data).every(id => questDone(state, id)) && questServiceGate(state, quest);
+}
+
+function customerBlocked(state: GameState, person: Character, data: GameData): boolean {
+  const quest = data.quests.find(quest => quest.id === person.absentDuringQuest);
+  // Stop new noble tickets when the visit is ready, so existing tickets can drain without delaying it forever.
+  return !!quest && !questDone(state, quest.id) && questReady(state, quest, data);
+}
+
 /** Neighbours waiting at the counter at the same time are always different people, and a served neighbour makes way for someone else. */
 function makeOrder(state: GameState, data: GameData, waiting: string[]): Order {
   const chains = availableChains(state, data);
   const maxStage = Math.min(6, 2 + Math.floor(state.taskIndex / 5));
   const count = state.taskIndex >= 8 ? 1 + random(state, 2) : 1;
-  const requirements = Array.from({ length: count }, () => {
+  let requirements = Array.from({ length: count }, () => {
     const chain = chains[random(state, chains.length)];
     return `${chain}_${1 + random(state, maxStage)}`;
   });
-  const free = data.characters.filter(person => !person.visitor && !waiting.includes(person.id));
+  const free = data.characters.filter(person => !person.visitor && !person.occasional && !waiting.includes(person.id));
+  const occasional = data.characters.filter(person => !person.visitor && person.occasional && !waiting.includes(person.id)
+    && !customerBlocked(state, person, data) && person.orderItems?.some(code => chains.includes(data.items[code].chain) && data.items[code].stage <= maxStage));
+  const guest = occasional.length && random(state, 8) === 0 ? occasional[random(state, occasional.length)] : null;
+  if (guest) {
+    const menu = guest.orderItems!.filter(code => chains.includes(data.items[code].chain) && data.items[code].stage <= maxStage);
+    requirements = Array.from({ length: count }, () => menu[random(state, menu.length)]);
+  }
   return {
     id: `order_${state.nextOrderId++}`,
     requirements,
     reward: menuReward(requirements, data), pricing: 'menu-1',
-    customer: free[random(state, free.length)].id,
+    customer: guest?.id ?? free[random(state, free.length)].id,
   };
 }
 
@@ -175,7 +204,7 @@ export function createGame(data: GameData, seed = 271828): GameState {
 export function normalizeOrderCustomers(state: GameState, data: GameData): GameState {
   const waiting = new Set(state.orders.map(order => order.customer));
   if (waiting.size === state.orders.length) return state;
-  const free = data.characters.filter(person => !person.visitor && !waiting.has(person.id));
+  const free = data.characters.filter(person => !person.visitor && !person.occasional && !waiting.has(person.id));
   const seen = new Set<string>();
   const next = copy(state);
   let replacement = 0;
@@ -231,7 +260,7 @@ function questPredecessors(quest: Quest, data: GameData): string[] {
 /** At most one unfinished request per neighbour can be active or offered. */
 export function resolveQuests(state: GameState, data: GameData): QuestView[] {
   return data.quests.map(quest => ({ quest, status: state.completedQuests.includes(quest.id) ? 'complete'
-    : (quest.afterTask === null || state.decorations.includes(quest.afterTask)) && state.served >= (quest.afterServed ?? 0) && questPredecessors(quest, data).every(id => questDone(state, id))
+    : questReady(state, quest, data) && !state.orders.some(order => quest.waitsForCustomers?.includes(order.customer))
       ? quest.producer && !own(state.activeQuestProducers, quest.id) ? 'offer' : 'active' : 'locked' }));
 }
 
@@ -239,7 +268,7 @@ export function resolveQuests(state: GameState, data: GameData): QuestView[] {
 export function journalCharacters(state: GameState, data: GameData): Character[] {
   const quests = resolveQuests(state, data);
   return data.characters.filter(character => !character.singleVisit
-    || quests.some(view => view.quest.character === character.id && (view.status === 'active' || view.status === 'offer')));
+    || quests.some(view => (view.quest.character === character.id || view.quest.companions?.includes(character.id)) && (view.status === 'active' || view.status === 'offer')));
 }
 
 export function questDeliveryCells(state: GameState, quest: Quest, data: GameData): number[] {
@@ -271,9 +300,18 @@ export function questProblems(data: GameData): string[] {
     const graph = new Map<string, string[]>();
     for (const character of data.characters) {
       if (character.singleVisit !== undefined && typeof character.singleVisit !== 'boolean') problems.push(`${character.id}: invalid single visit flag.`);
-      if (character.singleVisit && (character.visitor !== true || data.quests.filter(quest => quest?.character === character.id).length !== 1)) {
+      if (character.singleVisit && (character.visitor !== true || data.quests.filter(quest => quest?.character === character.id || quest?.companions?.includes(character.id)).length !== 1)) {
         problems.push(`${character.id}: a single visit needs a visitor with exactly one request.`);
       }
+      if (character.occasional !== undefined && (typeof character.occasional !== 'boolean' || character.visitor)) problems.push(`${character.id}: invalid occasional customer flag.`);
+      if (character.portraitAtlas !== undefined && character.portraitAtlas !== 'guest') problems.push(`${character.id}: unknown portrait atlas.`);
+      if (character.orderItems !== undefined && (!Array.isArray(character.orderItems) || !character.orderItems.length
+        || new Set(character.orderItems).size !== character.orderItems.length
+        || !character.orderItems.every(code => own(data.items, code) && !data.items[code].generator))) problems.push(`${character.id}: invalid order menu.`);
+      if (character.occasional && !character.orderItems?.length) problems.push(`${character.id}: occasional customers need an order menu.`);
+      // The visit waits for each absent customer's tickets, so a ticket made before the visit opened never meets it.
+      if (character.absentDuringQuest !== undefined && !data.quests.some(quest => quest.id === character.absentDuringQuest
+        && Array.isArray(quest.waitsForCustomers) && quest.waitsForCustomers.includes(character.id))) problems.push(`${character.id}: the excluded quest must wait for this customer.`);
     }
     for (const [index, task] of data.tasks.entries()) graph.set(`task:${task.id}`, [
       ...(index ? [`task:${data.tasks[index - 1].id}`] : []), ...(task.requiresQuest ? [`quest:${task.requiresQuest}`] : []),
@@ -285,9 +323,19 @@ export function questProblems(data: GameData): string[] {
       if (!data.characters.some(character => character.id === quest.character) || !quest.title) problems.push(`${quest.id}: unknown character or missing title.`);
       if (quest.afterTask !== null && !data.tasks.some(task => task.id === quest.afterTask)) problems.push(`${quest.id}: unknown opening preparation.`);
       if (quest.afterServed !== undefined && !integer(quest.afterServed, 1)) problems.push(`${quest.id}: invalid service goal.`);
+      if (quest.afterQuestServices !== undefined && (!integer(quest.afterQuestServices, 1) || !quest.afterQuest)) problems.push(`${quest.id}: invalid service delay.`);
+      if (quest.companions !== undefined && (!Array.isArray(quest.companions) || !quest.companions.length
+        || new Set(quest.companions).size !== quest.companions.length
+        || !quest.companions.every(id => id !== quest.character && data.characters.some(character => character.id === id && character.visitor)))) problems.push(`${quest.id}: invalid companions.`);
+      if (quest.waitsForCustomers !== undefined && (!Array.isArray(quest.waitsForCustomers)
+        || new Set(quest.waitsForCustomers).size !== quest.waitsForCustomers.length
+        || !quest.waitsForCustomers.every(id => data.characters.some(character => character.id === id && !character.visitor && character.absentDuringQuest === quest.id)))) problems.push(`${quest.id}: invalid waiting customers.`);
       if (!integer(quest.reward, 1)) problems.push(`${quest.id}: invalid coin reward.`);
       for (const scene of [quest.opening, quest.completion]) if (!Array.isArray(scene) || !scene.length
         || !scene.every(line => data.characters.some(character => character.id === line.speaker) && typeof line.text === 'string' && line.text.trim())) problems.push(`${quest.id}: invalid scene.`);
+      if (quest.followUp && (!/^[a-z][a-z0-9-]*$/.test(quest.followUp.id) || !quest.followUp.title
+        || !integer(quest.followUp.afterServices, 1) || !Array.isArray(quest.followUp.dialogue) || !quest.followUp.dialogue.length
+        || !quest.followUp.dialogue.every(line => data.characters.some(character => character.id === line.speaker) && typeof line.text === 'string' && line.text.trim()))) problems.push(`${quest.id}: invalid follow-up scene.`);
       if (!Array.isArray(quest.requirements) || !quest.requirements.length || quest.requirements.reduce((count, requirement) => count + requirement.quantity, 0) > data.board.initial.length) problems.push(`${quest.id}: invalid delivery size.`);
       for (const requirement of quest.requirements) {
         const item = getItem(requirement.item, data);
@@ -373,8 +421,8 @@ function questOpening(quest: Quest, data: GameData, path = new Set<string>()): n
   return opening;
 }
 
-/** Every story scene that can wait for the player, in story order: each chapter's closing scene, then the finale. */
-export const storyScenes = (data: GameData) => [...data.chapters.map(chapter => chapter.id), data.finale.id];
+/** Chapter scenes keep their story order. Quest news can arrive between them. */
+export const storyScenes = (data: GameData) => [...data.chapters.map(chapter => chapter.id), data.finale.id, ...data.quests.flatMap(quest => quest.followUp ? [quest.followUp.id] : [])];
 
 /** Completed preparations are the only input. A chapter is complete when its last preparation is complete. */
 export function resolveChapters(state: Pick<GameState, 'taskIndex'>, data: GameData): ChapterView[] {
@@ -387,9 +435,11 @@ export function resolveChapters(state: Pick<GameState, 'taskIndex'>, data: GameD
 }
 
 /** The scenes that the completed preparations have earned. A save can hold only these as pending scenes. */
-function earnedScenes(state: Pick<GameState, 'taskIndex'>, data: GameData): string[] {
+function earnedScenes(state: Pick<GameState, 'taskIndex' | 'completedQuests' | 'questCompletedAt' | 'served'>, data: GameData): string[] {
   return [...resolveChapters(state, data).filter(view => view.status === 'complete').map(view => view.chapter.id),
-    ...(state.taskIndex === data.tasks.length ? [data.finale.id] : [])];
+    ...(state.taskIndex === data.tasks.length ? [data.finale.id] : []),
+    ...data.quests.flatMap(quest => quest.followUp && state.completedQuests.includes(quest.id)
+      && own(state.questCompletedAt ?? {}, quest.id) && state.served - state.questCompletedAt![quest.id] >= quest.followUp.afterServices ? [quest.followUp.id] : [])];
 }
 
 /** Check the chapters, their scenes, their neighbour contributions, and the finale before the content can ship. */
@@ -423,10 +473,11 @@ export function storyProblems(data: GameData): string[] {
     if (!stable(finale.id) || ids.has(finale.id)) problems.push('Chapter and finale IDs must be stable and unique.');
     if (typeof finale.title !== 'string' || !finale.title.trim() || typeof finale.ending !== 'string' || !finale.ending.trim()) problems.push('The finale needs a title and an ending.');
     if (!scene(finale.dialogue)) problems.push('The finale has an invalid scene.');
-    for (const character of data.characters.filter(character => !character.visitor)) {
+    for (const character of data.characters.filter(character => !character.visitor && !character.occasional)) {
       if (!scene(finale.dialogue) || !finale.dialogue.some(line => line.speaker === character.id)) problems.push(`The finale must include ${character.name}.`);
       if (!chapters.some(chapter => data.quests.find(quest => quest.id === chapter?.contribution)?.character === character.id)) problems.push(`${character.name} needs a chapter contribution.`);
     }
+    if (new Set(storyScenes(data)).size !== storyScenes(data).length) problems.push('Story scene IDs must be unique.');
   } catch { problems.push('The story records are malformed.'); }
   return problems;
 }
@@ -730,11 +781,20 @@ function validateQuestProgress(state: GameState, data: GameData): boolean {
   const complete = state.completedQuests;
   if (!Array.isArray(complete) || complete.length > data.quests.length
     || new Set(complete).size !== complete.length) return false;
+  const completedAt = state.questCompletedAt;
+  if (completedAt !== undefined && (!completedAt || typeof completedAt !== 'object' || Array.isArray(completedAt)
+    || ![Object.prototype, null].includes(Object.getPrototypeOf(completedAt))
+    || !Object.entries(completedAt).every(([id, service]) => complete.includes(id) && integer(service, 0, state.served)))) return false;
   const done = new Set<string>();
   for (const id of complete) {
     const quest = data.quests.find(quest => quest.id === id);
     if (!quest || (quest.afterTask !== null && !state.decorations.includes(quest.afterTask)) || state.served < (quest.afterServed ?? 0)
       || !questPredecessors(quest, data).every(previous => done.has(previous))) return false;
+    if (own(completedAt ?? {}, id) && completedAt![id] < (quest.afterServed ?? 0)) return false;
+    if (quest.afterQuestServices !== undefined && (!questServiceGate(state, quest)
+      || !own(completedAt ?? {}, id) || completedAt![id] - completedAt![quest.afterQuest!] < quest.afterQuestServices)) return false;
+    if (questPredecessors(quest, data).some(previous => own(completedAt ?? {}, previous) && own(completedAt ?? {}, id)
+      && completedAt![previous] > completedAt![id])) return false;
     done.add(id);
   }
   const active = state.activeQuestProducers;
@@ -761,10 +821,11 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
     if (!integer(state.taskIndex, 0, data.tasks.length)) return false;
     const chains = availableChains(state, data);
     {
-      // Pending scenes are unique, earned, and in story order, so an imported save cannot open a later scene.
-      const pending = state.pendingScenes, scenes = storyScenes(data), earned = earnedScenes(state, data);
-      if (!Array.isArray(pending) || !pending.every((id, at) => earned.includes(id)
-        && (at === 0 || scenes.indexOf(pending[at - 1]) < scenes.indexOf(id)))) return false;
+      // Pending scenes are unique and earned, and chapter scenes keep story order, so an imported save cannot open a later scene.
+      const pending = state.pendingScenes, scenes = [...data.chapters.map(chapter => chapter.id), data.finale.id], earned = earnedScenes(state, data);
+      if (!Array.isArray(pending) || new Set(pending).size !== pending.length || !pending.every(id => earned.includes(id))) return false;
+      const chapterScenes = pending.filter(id => scenes.includes(id));
+      if (!chapterScenes.every((id, at) => at === 0 || scenes.indexOf(chapterScenes[at - 1]) < scenes.indexOf(id))) return false;
     }
     if (!validateQuestProgress(state, data)) return false;
     const active = data.quests.filter(quest => own(state.activeQuestProducers, quest.id));
@@ -805,6 +866,8 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
       if (!Array.isArray(order.requirements) || order.requirements.length < 1 || order.requirements.length > 2) return false;
       if (!order.requirements.every(code => own(data.items, code) && !data.items[code].generator
         && chains.includes(data.items[code].chain))) return false;
+      const customer = data.characters.find(character => character.id === order.customer)!;
+      if (customer.orderItems && !order.requirements.every(code => customer.orderItems!.includes(code))) return false;
       if (order.pricing !== 'menu-1' || order.reward !== menuReward(order.requirements, data)) return false;
     }
     if (!Array.isArray(state.decorations) || state.decorations.length !== state.taskIndex
@@ -866,6 +929,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
         delete next.activeQuestProducers[quest.id];
       }
       next.completedQuests.push(quest.id);
+      (next.questCompletedAt ??= {})[quest.id] = next.served;
       next.coins += quest.reward;
       message = `${quest.title}: delivered. Earned ${quest.reward} coins.`;
       break;
@@ -956,11 +1020,18 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const order = next.orders[orderIndex];
       if (!canServe(next, order, data)) return fail('Put every item in this order on the board first.');
       if (!integer(next.coins + order.reward)) return fail('Spend some coins before you serve this order.');
+      // An older current-format save has no delivery counters. Start its delay with this service, without inventing past progress.
+      for (const quest of data.quests) if ((quest.afterQuestServices !== undefined || quest.followUp) && (quest.afterQuest || quest.followUp)) {
+        const id = quest.afterQuestServices !== undefined ? quest.afterQuest! : quest.id;
+        if (next.completedQuests.includes(id) && !own(next.questCompletedAt ?? {}, id)) (next.questCompletedAt ??= {})[id] = next.served;
+      }
       for (const index of servedCells(next, order, data)) next.board[index] = null;
       next.coins += order.reward;
       next.xp += order.requirements.reduce((sum, code) => sum + data.items[code].stage * 4, 0);
       next.served++;
       next.orders[orderIndex] = makeOrder(next, data, next.orders.map(waiting => waiting.customer));
+      for (const quest of data.quests) if (quest.followUp && next.completedQuests.includes(quest.id)
+        && own(next.questCompletedAt ?? {}, quest.id) && next.served - next.questCompletedAt![quest.id] === quest.followUp.afterServices) next.pendingScenes.push(quest.followUp.id);
       message = `Served ${data.characters.find(person => person.id === order.customer)?.name ?? 'the order'}. Earned ${order.reward} coins.`;
       break;
     }
