@@ -1,8 +1,8 @@
 # 015: The front door
 
 Status: Proposed. Not implemented. Wording, layout, and the motion notice below are draft defaults.
-Owner: `PRODUCT.md` for the start flow, the motion choice, and the controls; `DESIGN.md` for the front door,
-the Options Motion section, and every reduced-motion rule.
+Owner: `PRODUCT.md` controls the start procedure, motion choice, and controls.
+`DESIGN.md` controls the front door, the Options Motion section, and reduced-motion rules.
 
 ## Current evidence
 
@@ -16,10 +16,8 @@ the Options Motion section, and every reduced-motion rule.
   It does not listen for changes to the query. `src/style.css` switches
   every animation and transition off under the same media query. The game never tells the player
   about this, and nothing in the game can change it.
-- Windows sets this preference when "Animation effects" is off or the system is set for best
-  performance. Remote desktop sessions and some phone power-saving modes do the same. Many players
-  with the preference on do not know that it is on. These players miss the delivery flight, the
-  rising neighbours, the first-taste flourish, and the bats, without an explanation.
+- The game receives the reduced-motion preference through the browser media query.
+  The game does not identify which device setting caused the preference.
 - Options holds appearance, sound, the saved game, About, and a fresh start.
   It is the only menu of the game and stays so.
 
@@ -41,8 +39,9 @@ learns that their device asks for less motion. The player can choose the full mo
 
 ## Proposed rules
 
-1. The front door shows on every page load, before the board accepts input. The game behind the
-   front door is rendered but inert, so opening the kitchen shows the board at once.
+1. The front door shows on every page load, before the board accepts input.
+   The game renders behind the front door but accepts no input.
+   Opening the kitchen shows the board at once.
 2. The front door shows the room as it stands. It shows the painting that the room shows for the
    completed preparations. A fresh game shows `front-room-00`. It never previews an unearned room
    (the Covered Dish Rule).
@@ -68,8 +67,8 @@ learns that their device asks for less motion. The player can choose the full mo
    A new game keeps the choice, like the appearance choice. The game save does not hold the
    choice. The game does not export or import the choice.
 9. Motion notice. The front door shows a notice under the state line. This happens only if the
-   choice is System and the device asks for reduced motion. The notice reads, for example:
-   "Your device asks for less motion, so dishes won't fly to the counter and the bats stay home."
+   choice is System and the device asks for reduced motion. The draft notice reads:
+   "Your device asks for less motion. Dishes and bats do not move."
    The notice has two buttons: "Show the motion" (sets Full) and "Keep it still" (sets Reduced).
    The notice also has the line "You can change this any time in Options." Each button
    stores an explicit choice. After an explicit choice, the notice does not return. If the player
@@ -98,7 +97,8 @@ Draft presentation. `DESIGN.md` decides the final layout at implementation.
   masthead. Decide at implementation.
 - The front door fits 1440×900 and 390×844 without scrolling, with the notice shown. On phones
   the buttons sit in the lower part of the screen, and the primary button is full width.
-- Both themes are authored: cream and parchment by day, lamplight by night. Never tint the painting.
+- Use the two authored themes: cream and parchment by day, lamplight by night.
+  Never tint the painting.
 - Opening the kitchen may fade the layer out over at most 200ms. The fade never delays input.
   Reduced motion (System with the device setting, or Reduced) removes the fade.
 
@@ -118,7 +118,7 @@ Draft presentation. `DESIGN.md` decides the final layout at implementation.
 1. The Motion choice in Options and the `data-motion` switch. Exit: Full plays the delivery
    flight under emulated reduced motion. Reduced removes the flight without the emulation. System
    follows the emulation. The choice survives reload and a new game.
-2. The front door with the state line, the loading and failure states, and the focus hand-off.
+2. The front door with the state line, the loading and failure states, and the focus transfer.
    Exit: a fresh game and a saved game open with one tap or Enter. A broken save shows its error
    there. The board takes no input until the kitchen opens.
 3. The motion notice. Exit: under emulated reduced motion with System, the notice shows. Each
@@ -131,12 +131,13 @@ Draft presentation. `DESIGN.md` decides the final layout at implementation.
 - Browser: follow [Verification and release](README.md#verification-and-release), at 1440×900 and 390×844. Check the front doors for these cases: fresh, saved,
   finished-campaign, broken-save, and failed-data. Also check keyboard-only entry. Check the notice
   and both of its buttons under emulated reduced motion. Check the Options Motion choice.
-  Check the behaviour when storage is denied.
+  Check the behavior when the browser denies storage access.
 
 ## Dependencies and remaining decisions
 
-No hard dependency. 009 may add a "Resume the story" entry to the front door when a scene is
-pending. 010 starts its introductory prompt after the "Open the kitchen" button of a fresh game.
+The feature has no prerequisite specification.
+009 may add a "Resume the story" entry to the front door when a scene waits.
+010 starts its introductory prompt after the "Open the kitchen" button of a fresh game.
 
 Open decisions:
 

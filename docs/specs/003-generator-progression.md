@@ -40,19 +40,22 @@ Generator assembly is outside this feature.
 9. An upgrade creates no item, uses no board space, and does not change the identity of the generator.
 10. The selected source shows one Take button for each output that the source can make now.
     Each Take button shows the picture of its output and names the output, for example "Take Dough".
-    At tier one, the selected source shows one Take button, as before.
+    At tier one, the selected source shows one Take button.
 11. A Take button takes one item of its output and makes that output the chosen output.
     A tap on the source takes one item of the chosen output.
 12. A new generator has stage one as the chosen output. An upgrade does not change the chosen output.
 13. Open quests keep their requirements and rewards after an upgrade.
-14. A take of an unearned output, a take from a cell without a generator, or a take on a full board fails.
+14. A take of an unearned output fails.
+    A take from a cell without a generator fails.
+    A take on a full board fails.
     The failure changes no state, no chosen output, and no tier.
     The failure message does not name an unearned output or preparation.
 15. The game does not allow the sale or the merge of a generator.
 
 ## Data and state
 
-- Author the tiers in `tools/create-original-data.ts`. Each tier has a chain, a stage, and the ID of the preparation that grants it.
+- Author the tiers in `tools/create-original-data.ts`.
+  Each tier has a chain, a stage, and the identifier (ID) of the preparation that grants it.
 - Check the tiers before the generator writes the data. Each tier stage must belong to its chain.
   The tier stages of a chain must increase in preparation order. A tier must not come before the preparation that unlocks its chain.
 - Store the chosen outputs in `outputChoices`. Store one item ID for each chain whose chosen output is not stage one.

@@ -29,6 +29,7 @@ Cleanup mode:
 - Completion: each removal has evidence and all the related checks pass.
 
 If the user changes the scope, select the mode again before the next edit.
+If the user prohibits edits, use audit mode.
 If the user tells you not to run checks, give each check that you did not run in the report.
 
 ## Make the dependency graph

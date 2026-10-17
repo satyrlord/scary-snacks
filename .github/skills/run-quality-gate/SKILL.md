@@ -33,7 +33,8 @@ If the user tells you not to run tests, do not run a check. Give the missing evi
 If the user changes the scope, select the mode again before the next edit.
 
 The build writes `dist/` and `analysis/build-manifest.json`. Git ignores both paths. Do not track files under these paths.
-Get approval from the user before you add one of these items:
+Confirm that the approved scope includes each addition below.
+If the scope does not include an addition, get approval before that addition:
 
 - A test exclusion, a skipped test, or a retry setting.
 - A less strict compiler option, an `any` type, or a comment that hides a type error.

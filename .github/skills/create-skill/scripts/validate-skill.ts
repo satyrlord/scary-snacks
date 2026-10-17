@@ -63,9 +63,9 @@ function reportBlocked(reason: string): never {
 }
 
 const validator = findValidator();
-if (!validator) reportBlocked('the skill-creator package is not installed. Install it, or set CODEX_HOME to the Codex home folder that holds skills/.system/skill-creator.');
+if (!validator) reportBlocked('The skill-creator package is not installed. Install it, or set CODEX_HOME to its Codex home folder. The folder must contain skills/.system/skill-creator.');
 const interpreter = findInterpreter();
-if (!interpreter) reportBlocked('no Python environment with PyYAML is available. Install uv or add PyYAML to Python.');
+if (!interpreter) reportBlocked('No Python environment with PyYAML is available. Install uv or add PyYAML to Python.');
 
 const failures: string[] = [];
 const folders = skillFolders(process.argv.slice(2));

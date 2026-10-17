@@ -122,8 +122,8 @@ export function verifyReferenceHash(bytes: Buffer, expectedHash: unknown) {
     throw new Error('The reference does not match its recorded image hash.');
 }
 
-// A reference must be an image that this project generated: a shipping bitmap, a candidate of this helper,
-// or a room state that art-composite.ts made from such images.
+// Use only project-generated images as references.
+// Accept shipping bitmaps, helper candidates, and room composites that art-composite.ts makes from those images.
 export async function readReference(file: string): Promise<ReferenceImage & { sha256: string }> {
   const resolved = await realpath(path.resolve(file));
   const shipping = await resolveWithAncestors(SHIPPING_ROOT);
@@ -156,7 +156,8 @@ export async function readReference(file: string): Promise<ReferenceImage & { sh
 
 const pngSize = (bytes: Buffer) => ({ width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20), colorType: bytes[25] });
 
-// A mask is an RGBA PNG in the task folder, the size of the image that it edits; its transparent pixels mark the region to repaint.
+// Keep the RGBA PNG mask in the task folder.
+// Match the edited image dimensions. Transparent pixels mark the region to repaint.
 export function checkMask(mask: Buffer, edited: Buffer) {
   if (!hasPngSignature(mask) || mask.length < 33 || pngSize(mask).colorType !== 6)
     throw new Error('Use an RGBA PNG mask.');

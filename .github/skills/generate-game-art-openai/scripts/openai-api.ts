@@ -1,4 +1,4 @@
-// Repository-owned OpenAI Images API transport. Do not read credentials here.
+// OpenAI Images application programming interface (API) transport. Do not read credentials here.
 // Do not print provider response bodies.
 import { readFileSync } from 'node:fs';
 import type { GameData } from '../../../../src/engine.ts';
@@ -9,7 +9,7 @@ const API_ROOT = 'https://api.openai.com/v1/images/';
 const MAX_REFERENCES = 16;
 const MAX_REFERENCE_BYTES = 50_000_000;
 
-// The room states of public/data/game.json, including a state that waits for its painting.
+// Read the current room states from public/data/game.json.
 // State 00 of the front room shows the new game. Each other state shows its area after one preparation.
 const gameData: GameData = JSON.parse(readFileSync(new URL('../../../../public/data/game.json', import.meta.url), 'utf8'));
 type RoomStateId = `front-room-${string}` | `courtyard-${string}`;
@@ -46,9 +46,9 @@ interface ImageRequest {
   contentType?: string;
 }
 
-// Each row names an asset of docs/asset-provenance.json: the three atlases, the timber, the runner, the painted room states,
-// and the two decoration paintings. The board-clutter atlas of spec 007 joins that record when its feature ships.
-// The room states and the decoration paintings are opaque 3:4 portrait paintings of the "room and drawer" screen.
+// These contracts select the assets that the API helper supports.
+// The provenance record contains more assets than this table.
+// The room states and decoration paintings are opaque 3:4 portrait images.
 const roomState: AssetContract = { background: 'opaque', shape: 'portrait-3x4', columns: 1, rows: 1, defaultSize: '1536x2048' };
 const portraitAtlas: AssetContract = { background: 'transparent', shape: 'square', columns: 2, rows: 2, defaultSize: '1536x1536' };
 const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
@@ -76,7 +76,7 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
     rows: 2,
     defaultSize: '1536x1536',
   },
-  // The portraits of the spec 013 regulars, four to an atlas in the order that they arrive.
+  // Ten regulars use these atlases in arrival order. The last atlas has two empty lower cells.
   'regulars-1': portraitAtlas,
   'regulars-2': portraitAtlas,
   'regulars-3': { ...portraitAtlas, blankCells: [2, 3] },

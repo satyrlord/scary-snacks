@@ -1,6 +1,11 @@
 # Scary Snacks
 
-A cosy, slightly eerie merge game set in a run-down Transylvanian bistro. Merge ingredients into local dishes, deliver them to your neighbours, and fix up the bistro one repair at a time. Six chapters of story lead to a community supper. Miez the black cat watches from the windowsill. The game has no timers, no energy, and no purchases.
+Scary Snacks is a merge game in a Transylvanian bistro that needs repairs.
+Merge ingredients into local dishes.
+Deliver the dishes to your neighbours.
+Repair the bistro through six story chapters that end with a community supper.
+Miez the black cat watches from the windowsill.
+The game has no timers, energy limits, or purchases.
 
 Play it at https://satyrlord.github.io/scary-snacks/.
 
@@ -31,4 +36,4 @@ You need to install the browser only once.
 - [DESIGN.md](DESIGN.md): the visual design.
 - [DELIVERY.md](DELIVERY.md): hosting, assets, game data, and the source export.
 - [Verification](docs/verification.md), [economy](docs/economy.md), and [release notes](docs/release-notes.md).
-- `docs/specs/README.md`: the feature specs and planned work. The repository has them; the source export leaves them out.
+- `docs/specs/README.md`: implemented features and planned work. The source export excludes these specifications.

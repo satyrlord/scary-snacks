@@ -7,8 +7,8 @@ Status: Proposed. Not implemented. All rules below are draft defaults.
 `src/app.ts` already gives guidance for a selected item in Mara's line (`selectionLine`). It also gives
 item details and generator instructions, and it implements Find a match. PRODUCT defines the controls.
 `GameState` has no tutorial state. There is no staged introduction and no saved teaching position.
-Keep the useful existing hints. Add a short, optional sequence that explains the full loop:
-produce, merge, deliver a quest, prepare the bistro, and revisit the story.
+Keep the useful existing hints.
+Add a short, optional sequence for production, merges, quest delivery, preparation payments, and story replay.
 
 ## Scope and ownership
 
@@ -52,8 +52,8 @@ Add help for the blockers from spec 007 when the first reachable blocker becomes
 7. For Prepare, show every actual prerequisite and a route toward it. Guidance must not
    waive a coin requirement, quest requirement, or item requirement that the engine imposes.
 8. Replay help operates on the current save. It does not reset the board and does not give a
-   task reward again. Mark the stages whose purpose is already satisfied as explanations that the player can review.
-9. Story dialogs take precedence over guidance overlays. Use 009 for reading continuity.
+   task reward again. Mark completed stages as explanations that the player can review.
+9. Story dialogs take precedence over guidance overlays. Use 009 for saved scene positions.
    Never open competing modals. Never require the player to read every line to finish guidance.
 10. Keep Find a match available outside the guidance. Guide text and target names must
     stay accessible without colour, animation, or positional directions alone.
@@ -69,7 +69,7 @@ step, without repeating its gameplay reward. Import adopts guidance only after f
 
 ## Thin implementation slices and exit checks
 
-1. Define the stages and the observations of successful actions. Exit: out-of-order play and failure
+1. Define the stages and the records of successful actions. Exit: out-of-order play and failure
    cases advance only valid stages. No guidance transition changes economic resources.
 2. Add state validation and persistence. Exit: reload, import, repeated loads, and
    malformed flags keep the intended guidance status and all prior game progress.

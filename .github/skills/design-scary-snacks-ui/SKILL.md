@@ -1,6 +1,6 @@
 ---
 name: design-scary-snacks-ui
-description: Design, audit, add, repair, or examine the Scary Snacks browser interface through the Impeccable workflow. Use for the room, the drawer, the board, quest tickets, requests, story, dialogs, the phone bar, themes, typography, interaction, or motion.
+description: Design, audit, add, repair, or examine the Scary Snacks browser interface through the Impeccable workflow. Use for room, drawer, board, quest, request, story, dialog, or phone-bar changes. Also use for themes, typography, interaction, or motion.
 ---
 
 # Design the Scary Snacks interface
@@ -11,7 +11,9 @@ Use the installed `$impeccable` skill. Its other name is `/impeccable`.
 Use it as the workflow that controls the design.
 The `impeccable` skill is installed in the home folder of the user. It is not in this repository.
 The `.impeccable/` folder is local, and Git ignores it.
-If one of them is not available, stop the design work, and give that blocker in the report.
+If the installed skill is missing, report the blocker.
+If its launcher fails, use the fallback procedure in the installed skill.
+A missing local folder does not stop work when that procedure applies.
 Do not use rules from this skill as an alternative to the Impeccable workflow.
 
 1. Load the full `impeccable` skill before design work.
@@ -26,7 +28,8 @@ Do not use rules from this skill as an alternative to the Impeccable workflow.
 
 `PRODUCT.md` and `DESIGN.md` give the product context and the design context.
 `.impeccable/config.json` records the detector findings to ignore.
-The user confirmed some entries, and an agent verified the other entries as false findings.
+Check the evidence for each relevant entry before you rely on that entry.
+Do not infer user approval from an ignore entry.
 Do not invent tokens, a palette, typography, or a component language that `DESIGN.md` does not give.
 If the design and the code do not agree, give the difference in the report.
 Repair the difference only in the scope that the user approved, and only through the applicable Impeccable workflow.
@@ -64,13 +67,17 @@ Verification mode:
 Impeccable selects the design command and the playbook.
 Do not make a different design process in this skill.
 If the user changes the scope, select the mode again before the next edit.
+If the user prohibits edits, use audit mode.
+If the user prohibits tests, report the missing evidence.
 
 ## Keep the target contract
 
-`DESIGN.md` and `PRODUCT.md` control the interface. Read them in full before each design decision.
-`.impeccable/surfaces/index-html.md` gives the Impeccable direction for the main screen.
+`DESIGN.md` and `PRODUCT.md` control the interface.
+Read both documents before design work.
+Read the affected sections again if their content or the task scope changes.
+If present, `.impeccable/surfaces/index-html.md` gives the Impeccable direction for the main screen.
 `DESIGN.md` controls the design. If the two files do not agree, obey `DESIGN.md`.
-The named rules and the Do and Don't lists of `DESIGN.md` are limits for the Impeccable brief.
+The named rules and design instructions in `DESIGN.md` are limits for the Impeccable brief.
 Do not copy these rules into this skill or into a brief. Point to the owner document.
 
 For new or replacement bitmaps, use [generate-game-art](../generate-game-art/SKILL.md).

@@ -1,6 +1,7 @@
-// Masks and region composites for the painted room states. A masked edit is guidance only: the provider can
-// change pixels outside the mask. The composite keeps the previous state everywhere outside the feathered
-// region and takes only generated pixels inside it. It paints nothing by hand.
+// Make masks and region composites for the painted room states.
+// A provider can change pixels outside a mask.
+// The composite preserves the previous state outside the region and its soft edge.
+// It uses generated pixels inside that region.
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -14,7 +15,7 @@ type Box = { left: number; top: number; width: number; height: number };
 type Ellipse = { x: number; y: number; rx: number; ry: number };
 type Point = [number, number];
 
-/** An RGBA mask. The pixels inside the boxes, ellipses, and polygons are transparent: they are the region to repaint. All other pixels are opaque. */
+/** Make an RGBA mask. Transparent pixels mark each shape to repaint. All other pixels are opaque. */
 export async function makeMask(width: number, height: number, boxes: Box[], ellipses: Ellipse[] = [], polygons: Point[][] = []) {
   if (!boxes.length && !ellipses.length && !polygons.length) throw new Error('Give at least one --box, --ellipse or --polygon.');
   const pixels = Buffer.alloc(width * height * 4);
@@ -34,7 +35,7 @@ export async function makeMask(width: number, height: number, boxes: Box[], elli
       for (let x = cx - rx; x < cx + rx; x++)
         if (((x + 0.5 - cx) / rx) ** 2 + ((y + 0.5 - cy) / ry) ** 2 <= 1) pixels[(y * width + x) * 4 + 3] = 0;
   }
-  // A polygon gives a region an outline in the painting's perspective, such as an object's edge along a receding wall.
+  // A polygon follows a surface in perspective, such as a wall.
   for (const points of polygons) {
     if (points.length < 3 || !points.every(([x, y]) => Number.isSafeInteger(x) && Number.isSafeInteger(y) && x >= 0 && y >= 0 && x <= width && y <= height))
       throw new Error('Give each polygon at least three points inside the image.');
@@ -56,8 +57,8 @@ export async function makeMask(width: number, height: number, boxes: Box[], elli
 }
 
 /**
- * The previous state with the generated pixels pasted inside the mask's region, faded in over `feather` pixels.
- * A base with an alpha channel (a portrait atlas) keeps its alpha outside the region; an opaque painting stays opaque.
+ * Copy generated pixels into the mask region with a soft edge of `feather` pixels.
+ * Preserve the alpha outside the region. Keep an opaque base opaque.
  */
 export async function compositeRegion(base: Buffer, candidate: Buffer, mask: Buffer, feather = 24, ramp = false) {
   checkMask(mask, base);

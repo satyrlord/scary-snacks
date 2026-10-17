@@ -1,6 +1,6 @@
 ---
 name: generate-game-art
-description: Generate, review, repair, or replace Scary Snacks bitmap art with the built-in chat image generator. If the agent has no image generator, give the user a complete prompt. Start here for the OpenAI Images API route also. This skill hands that request to generate-game-art-openai. Use for the food atlas, the portrait atlas, the mascot atlas, the timber, and the runner. Also use for the painted room states, the two decoration paintings, cell defects, and the prompt and provenance records.
+description: Generate, review, repair, or replace Scary Snacks bitmap art with the built-in chat image generator. If the agent has no image generator, give the user a complete prompt. Start here for the OpenAI Images API route also. This skill hands that request to generate-game-art-openai. Use for food, portrait, mascot, and blocker atlases, the timber, and the runner. Also use for room states, decoration paintings, separate item pictures, cell defects, and prompt and provenance records.
 ---
 
 # Generate game art in chat
@@ -43,9 +43,13 @@ The next table lists the layouts of the Portable Network Graphics (PNG) masters 
 | File | Role | Layout | Alpha |
 | --- | --- | --- | --- |
 | `menu-atlas.png` | Food, drinks, and generators | 6 columns by 6 rows | Transparent |
-| `portraits.png` | The four ordinary characters | 2 columns by 2 rows | Transparent |
+| `portraits.png` | The four core characters | 2 columns by 2 rows | Transparent |
 | `visitor-portraits.png` | The four visitors | 2 columns by 2 rows | Transparent |
 | `guests.png` | Vlad, Elisabeta, Mina, and Avram | 2 columns by 2 rows | Transparent |
+| `regulars-1.png`, `regulars-2.png` | Eight regulars, in arrival order | 2 columns by 2 rows | Transparent |
+| `regulars-3.png` | Two regulars; lower cells stay empty | 2 columns by 2 rows | Transparent |
+| `board-clutter.png` | Six blockers with open centers | 3 columns by 2 rows | Transparent |
+| `preparation-clutter.png` | Twelve blockers with open centers | 4 columns by 3 rows, 1448 by 1086 pixels | Transparent |
 | `red-wine.png` | The red wine menu picture | One square icon | Transparent |
 | `mascots.png` | Three poses of the black cat and one bat | 2 columns by 2 rows | Transparent |
 | `timber-tabletop.png` | The timber under the board | One tileable square | Opaque |
@@ -66,6 +70,8 @@ Use the built-in chat image generator for all the art.
 Use the OpenAI Images application programming interface (API) only if the user tells you to.
 If the user chooses the API route, use [generate-game-art-openai](../generate-game-art-openai/SKILL.md) for the request and the measurement.
 That skill uses this skill for the direction, the layouts, the review, and the integration.
+Its asset table gives the supported subset.
+Do not assume that its helper accepts every current master.
 If the chat tool is not available and the user did not choose the API route, use the handoff route:
 
 1. Write the prompt from the brief in [atlas generation and review](references/atlas-review.md).

@@ -1,13 +1,18 @@
 # 008 - Chapter objectives, story payoffs, and finale
 
-Status: Implemented. Automated engine, save, and browser checks cover the rules. A scripted browser playthrough from a fresh save through the finale shows that the goals, the contributions, and the payoffs agree.
+Status: Implemented. Automated engine, save, and browser checks cover the rules.
+A browser test plays a fresh campaign through the finale.
+The test checks that the goals, contributions, and chapter results agree.
 
 ## Result
 
-`tools/create-original-data.ts` authors six chapters and one finale. Each chapter has a stable ID, its title, an objective, an opening context, a payoff, one neighbour contribution, and a closing scene.
+`tools/create-original-data.ts` authors six chapters and one finale.
+Each chapter has a stable identifier (ID), a title, an objective, and opening context.
+Each chapter also has a payoff, one neighbour contribution, and a closing scene.
 The 24 preparations keep their IDs, their three dialogue lines, and their chapter numbers. The chapter number of a preparation is the only link between a chapter and its preparations.
 Each preparation has one room state from 001. The journal names that change beside the preparation.
-The player can see the goal of the current chapter, the state of its four preparations, and the result of each complete chapter.
+The player can see the current chapter goal and the state of its four preparations.
+The journal shows the result of each complete chapter.
 The finale names the result of each chapter. All four core characters speak. It ends with a return to the kitchen. No requests remain after the supper. The board and the recipe book stay available.
 
 ## Scope and ownership
@@ -36,19 +41,27 @@ The spiders and their webs leave with preparation 1, as 001 describes. The closi
 ## Rules
 
 1. A chapter opens at its first preparation. Story shows its objective and the state of its preparations. Later scenes stay hidden. The chapter needs no separate payment.
-2. The payment for the last preparation of a chapter queues the closing scene of that chapter in the same state change. Chapter completion is derived from the completed preparations. The next preparation never waits for the scene.
+2. The last preparation payment in a chapter also queues that chapter's closing scene.
+   The game derives chapter completion from the completed preparations.
+   The next preparation never waits for the scene.
 3. Each preparation keeps its one room state from 001, with the same stable IDs. The game keeps no second count of completed preparations.
 4. Each contribution is a quest of a core character. It opens after the previous chapter closes and before the last preparation of its chapter. The contributions together cover all four core characters. Like every quest, a contribution is necessary for the preparation after its opening. `questProblems` validates the combined graph of preparations and quests for cycles and reachability.
 5. After preparation 24, the finale waits after the closing scene of chapter 6. The game records it once. A preparation is not charged again, and its reward is not given again.
 6. The finale names the outcome of each chapter, and all four core characters speak. It ends with "Back to the kitchen" and its ending line. No requests remain.
 7. The journal replays each complete chapter scene and, after the supper, the finale. Replay, Skip, Back, and closing a dialog have no economic effect.
 8. A failed payment, missing coins, a missing required quest, and a full board for a new source change nothing. They complete no chapter, queue no scene, and open no finale.
-9. `storyProblems` rejects missing or blank scenes, unknown speakers, duplicate or unstable IDs, unknown contributions, contributions that open outside their chapter, empty chapters, and preparations with an unknown or out-of-order chapter. The generator and the game refuse such data. If a saved scene ID has no scene, the game shows a recoverable error and keeps the progress. It does not invent story text.
+9. `storyProblems` rejects missing or blank scenes, unknown speakers, and duplicate or unstable IDs.
+   The check rejects unknown contributions and contributions that open outside their chapter.
+   It also rejects empty chapters and preparations with an unknown chapter or incorrect chapter order.
+   The generator and the game refuse such data.
+   If a saved scene ID has no scene, the game shows a recoverable error and keeps the progress.
+   The game does not invent story text.
 
 ## Scene order and reading
 
 The state holds `pendingScenes`: the earned scenes that the player did not finish or skip, in story order.
-After the reveal of a payment, the first scene that the payment queued opens, unless another dialog is open.
+The paid preparation scene opens before the room reveal.
+After the reveal, the next scene that the payment earned opens, unless another dialog is open.
 Finish and Skip send `readScene`, which removes only that scene. Then the next waiting scene opens.
 A repeated, stale, or unknown `readScene` changes nothing.
 Close and Escape leave the scene waiting. Story shows the first waiting scene with Read now. After a reload, Mara's line says that a scene is waiting.
@@ -62,11 +75,23 @@ Follow [Shared save compatibility](README.md#shared-save-compatibility) in the s
 
 ## Acceptance and evidence
 
-- `tests/story.test.ts` covers the outline, the content checks, every chapter boundary, failed payments, the finale once, reading events, the board after the finale, and the validation of saved scene queues.
-- `tests/storage.test.ts` covers failed writes, malformed saves, and round trips of valid scene queues.
+- `tests/story.test.ts` covers the outline, content checks, every chapter boundary, and failed payments.
+  It also covers the single finale, scene actions, the board after the finale, and saved scene validation.
+- `tests/storage.test.ts` covers failed writes, malformed saves, and save and load of valid scene queues.
 - `tests/campaign-balance.test.ts` shows that a legal fresh campaign ends with each chapter scene, in story order, and one finale waiting.
-- `tests/browser/story.spec.ts` covers the objective and step display, the chapter change, Escape and reload with a waiting scene, the finale with Skip and replay, the board after the finale, and the layout at 1440×900, 390×844, and 390×800 in both themes.
+- `tests/browser/story.spec.ts` covers the objective, preparation steps, chapter changes, and Escape and reload with a waiting scene.
+  It covers the finale with Skip and replay, and the board after the finale.
+  It checks the layout at 1440×900, 390×844, and 390×800 in both themes.
 
-The playthrough in `tests/browser/story.spec.ts` starts from a fresh save in the built game. Between payments, the engine makes legal moves: it takes and merges, and it delivers each open quest. The interface makes every payment, tells every preparation story, runs every reveal, plays every closing scene and the finale, and checks the journal.
-The playthrough shows that the story agrees. Each closing scene names the room changes of its four preparations. Each contribution is delivered during its chapter, and the journal shows it beside the payoff. The finale names each chapter result. The board stays available after the finale.
+The playthrough in `tests/browser/story.spec.ts` starts from a fresh save in the built game.
+Between payments, the engine makes legal moves: it takes and merges, and it delivers each open quest.
+The test makes every payment through the interface.
+It reads every preparation scene, runs every reveal, and reads every chapter scene and the finale.
+The test also checks the journal.
+The playthrough checks that the story agrees with the campaign.
+Each closing scene names the room changes of its four preparations.
+The test delivers each contribution during its chapter.
+The journal shows each contribution beside the payoff.
+The finale names each chapter result.
+The board stays available after the finale.
 Spec 012 owns goals after the story. Spec 013 can add the names of the regulars who have arrived to the finale. Scene art is a content decision.

@@ -15,7 +15,7 @@ description: Add or change Scary Snacks items, merge chains, generators, charact
   Complete when each finding has evidence and a verification step.
 - **Edit:** Use this mode if the user tells you to add, change, or remove content.
   Inputs: the approved content change.
-  Approval: the instruction of the user. A change to a count below needs separate approval.
+  Approval: the instruction of the user. Confirm that the approved scope includes any count change.
   Files to change: only the content generator, the generated data, the tests, and the owner documents in the approved scope.
   Output: the changed files and the checks.
   Complete when the items in "Complete the task" agree.
@@ -39,7 +39,8 @@ Read the code in `src/app.ts` that shows items, portraits, and dialogue.
 `PRODUCT.md` gives the count of the characters.
 The content test in `tests/engine.test.ts` checks the board size and the counts of the items, the characters, and the preparations.
 A change to one of these counts is a product change.
-Get approval from the user for it. Then update `PRODUCT.md`, `DELIVERY.md`, and the tests.
+Confirm that the approved scope includes that product change.
+Then update `PRODUCT.md`, `DELIVERY.md`, and the tests.
 
 ## Define the change
 
@@ -58,11 +59,16 @@ Each item has a `sprite` index in the six-by-six food atlas.
 The four core characters use the two-by-two portrait atlas.
 The first four visitors use the two-by-two visitor portrait atlas.
 Characters with `portraitAtlas: 'guest'` use the two-by-two guest portrait atlas.
-The regulars use the two-by-two atlases `regulars-1`, `regulars-2`, and `regulars-3`, in order of arrival.
+Ten regulars use the two-by-two atlases `regulars-1`, `regulars-2`, and `regulars-3`, in order of arrival.
+The lower cells of `regulars-3` stay transparent.
+Vlad and Elisabeta use the guest atlas.
+Verify each assignment against `portraitAtlas` and `sprite` in the generator.
 The index goes from left to right, and then from top to bottom.
 A new item or a changed dish must have its own matching art.
 Red wine uses a separate picture for `drinks_5`.
-Each preparation has one authored room state. A room state has an identifier that also names its painting, an area, and the preparation in `after`.
+Each preparation has one authored room state.
+A room state has an identifier that also names its painting.
+The state also gives its area and the preparation in `after`.
 It also has a focus, a pin mark, a label, and a description.
 The state of the new game has `null` in `after`.
 The generator stops if an entry of `roomPaintings` in `src/engine.ts` has no approved master in `docs/asset-provenance.json`.

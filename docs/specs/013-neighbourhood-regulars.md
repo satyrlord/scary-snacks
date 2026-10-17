@@ -1,6 +1,9 @@
 # 013: Neighbourhood regulars
 
-Status: Implemented. The game has the roster, the arrivals, the arrival scenes, the portraits, the neighbours list, and the quests of the regulars. Taste-driven orders are not part of the game, because the game has no orders.
+Status: Implemented.
+The game has the regulars, their arrivals, arrival scenes, portraits, and quests.
+The journal lists the neighbours.
+The game has no ordinary orders.
 Owner: `PRODUCT.md` for the cast, the arrivals, and the quests; `DESIGN.md` for portraits and the neighbours list.
 
 In this spec, a neighbour is a core character or a regular.
@@ -14,8 +17,9 @@ The player can find who lives nearby and what they like.
 - Keep Mara, Ilie, Eszter, and Sorin as the four core characters. They drive the story,
   the preparations, and their own quest arcs in 005. Regulars add neighbours. They do not replace the core
   characters.
-- Only the four core characters are generic neighbours. Each regular refers to a famous horror novel,
-  a horror film, or local folklore, in the name, the trade, or one habit.
+- Only the four core characters are generic neighbours.
+  Each regular refers to a horror novel, a horror film, or local folklore.
+  The reference uses the name, trade, or one habit.
 - Keep unlimited energy, no waiting, and no expiry. A regular never sulks, queues, or charges a penalty.
   Play earns the arrival. Time does not.
 - Do not add a currency, purchases, a backend, a dependency, or imported game content.
@@ -26,7 +30,7 @@ The player can find who lives nearby and what they like.
 2. Arrivals: Dochia, Victor, Ana, and Costel are present from the start, so a new game has eight neighbours.
    Sânziana and Dorian arrive with preparation 4, Ileana and Cezar with preparation 8, and Cătălina and Bran with preparation 12.
    Vlad and Elisabeta arrive with preparation 15.
-3. Each regular who arrives later records an `arrivesAfter` preparation ID. The game derives arrival from
+3. Each regular who arrives later records an `arrivesAfter` preparation identifier (ID). The game derives arrival from
    completed preparations and does not save it.
 4. Each regular has two authored favourite chains (`prefers`). Each quest of a regular asks for at least one dish
    from those chains. Vlad and Elisabeta like the warm kitchen and the drinks counter. Their quests ask for
@@ -36,8 +40,8 @@ The player can find who lives nearby and what they like.
 6. Each regular has three quests, or four for Sânziana and Ileana. Vlad and Elisabeta have two quests each.
    The quests follow the campaign rules of 005.
 7. The arrival of each later regular plays a short original scene. A core character introduces the
-   regular. The regular answers. The payment that brings a regular queues the arrival scene after the
-   preparation scene, the chapter scene, and the finale that it earns. The scene follows the continuation
+   regular. The regular answers. The payment queues the arrival scene after its preparation scene, chapter scene, and finale.
+   The scene follows the continuation
    rules of 009. Reading or skipping the scene does not change arrival.
 8. The neighbours list in the journal shows the core characters, then the regulars in order of arrival.
    Each arrived neighbour shows the portrait, the name, the trade, the favourite chains, and the count of
@@ -73,8 +77,9 @@ village. They are awake when the bats are.
 
 - `Character` in `src/engine.ts` has `regular`, `arrivesAfter`, `prefers`, `arrival`, and `portraitAtlas`.
   `tools/create-original-data.ts` authors the records.
-- `characterProblems` checks unique IDs and portrait cells, known arrival preparations, two different known
-  favourite chains for each regular, and an arrival scene in which the regular speaks.
+- `characterProblems` checks unique IDs, portrait cells, and known arrival preparations.
+  Each regular must have two different known favourite chains.
+  Each later regular must speak in their arrival scene.
 - `hasArrived` and `resolveNeighbours` derive arrivals and the delivered count from the completed preparations and `completedQuests`.
   The state has no field for arrivals or counts.
 - A waiting arrival scene uses the ID `arrival-` and the ID of its regular. A save cannot hold the arrival scene of a regular who has not arrived.
@@ -82,16 +87,18 @@ village. They are awake when the bats are.
 
 ## Art
 
-- The `regulars-1`, `regulars-2`, and `regulars-3` masters are transparent two-by-two atlases. They hold the ten
-  regulars in order of arrival: Dochia, Victor, Ana, and Costel; Sânziana, Dorian, Ileana, and Cezar; then Cătălina and Bran
-  at the top, with two empty cells below. They use the style, framing, and scale of the `portraits` master.
+- The `regulars-1`, `regulars-2`, and `regulars-3` masters are transparent two-by-two atlases.
+  The first atlas holds Dochia, Victor, Ana, and Costel.
+  The second atlas holds Sânziana, Dorian, Ileana, and Cezar.
+  The third atlas holds Cătălina and Bran at the top, with two empty cells below.
+  The atlases use the style, framing, and scale of the `portraits` master.
 - Vlad and Elisabeta keep their portraits in the `guests` master.
 - The asset records hold the prompts, the provenance, and the variants of the three atlases.
 
 ## Acceptance and evidence
 
-- Engine: `tests/regulars.test.ts` covers the arrival of each pair, the arrival scene once after the story scenes,
-  the rejection of an early arrival scene in a save, the neighbours list, and the cast check.
+- Engine: `tests/regulars.test.ts` covers each arrival pair and one arrival scene after the earned story scenes.
+  It covers rejection of an early arrival scene in a save, the neighbours list, and the cast check.
 - Quests: the quest tests of 005 cover the quests of the regulars.
 - Assets: `tests/assets.test.ts` compares the three atlases and their variants with their records.
 - Browser: follow [Verification and release](README.md#verification-and-release). Complete an arrival preparation, read the

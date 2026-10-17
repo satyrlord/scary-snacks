@@ -17,14 +17,19 @@ The cloth finish applies to the serving table. The flowers finish applies to the
 ## Rules and ownership
 
 1. A detail shows its default finish. Story and rewards never wait for a finish.
-2. The delivery of the unlocking quest adds the second finish. The switch shows when the detail is in the room and its quest is delivered.
+2. Delivery of the required quest adds the second finish.
+   After delivery, the switch shows when the detail is visible in the room.
 3. A tap on the switch applies the other finish only after a successful save. The status line names the new finish. Focus stays on the switch.
 4. A failed write keeps the prior finish and says that the finish is not saved.
 5. The switch shows only in the area that the room shows. The completion line of each finish quest says where the switch is.
 6. The engine rejects unknown slots, unknown or mismatched finishes, and locked finishes without a state change. A repeated switch grants nothing.
 7. A change from another tab adopts the latest saved game before another action can run.
 
-`tools/create-original-data.ts` authors slot IDs, names, finishes, asset IDs, defaults, prerequisites, areas, crop bounds, and the `unlocks` field of the three quests. `decorationProblems` checks defaults, IDs, bounds, prerequisites, areas, and recorded assets. `questProblems` checks that each second finish has exactly one quest. Saves never supply an asset path.
+`tools/create-original-data.ts` authors the decoration slots and the `unlocks` field of the three quests.
+Each slot has IDs, names, finishes, asset IDs, defaults, prerequisites, areas, and crop bounds.
+`decorationProblems` checks defaults, IDs, bounds, prerequisites, areas, and recorded assets.
+`questProblems` checks that each second finish has exactly one quest.
+Saves never supply an asset path.
 
 `src/engine.ts` owns `decorationChoices`, `resolveDecorations`, `decorationUnlocked`, validation, and the `decorate` action. The existing `decorations` list remains the prefix of completed preparations. `src/app.ts` owns the switch, the focus, and the save-before-apply boundary. `src/storage.ts` owns the current save format and key.
 
@@ -43,4 +48,9 @@ PRODUCT.md owns these behaviors. DESIGN.md owns the design of the finish switch 
 
 `tests/decorations.test.ts` covers the slot data, the quest that unlocks each finish, the locked finishes, invalid choices, defaults, and reducer isolation. `tests/storage.test.ts` covers the versioned key, failed writes, malformed input, and atomic reset. `tests/browser/decorations.spec.ts` covers the finish switches, keyboard focus, persistence, export and import, save failure, and tab changes. The asset check at the root and at the subdirectory loads both decoration paintings.
 
-The two decoration masters are each 1536 by 2048 pixels, RGB, and fully opaque, the size of the room states. The OpenAI Images API made both as edits of front-room-24 and courtyard-22. A composite keeps every pixel of the room state outside the changed regions, so each crop edge meets the room painting. `docs/asset-prompts.json` holds the prompts.
+The two decoration masters are each 1536 by 2048 pixels and fully opaque, like the room states.
+The masters use red, green, and blue (RGB) colour channels.
+The OpenAI Images application programming interface (API) made both as edits of front-room-24 and courtyard-22.
+A composite preserves every pixel outside the changed regions.
+Thus each crop edge meets the room painting.
+`docs/asset-prompts.json` holds the prompts.

@@ -1,6 +1,6 @@
 ---
 name: generate-game-art-openai
-description: Plan, send, and measure OpenAI Images API requests for Scary Snacks bitmap candidates. Use only when the user tells you to use the OpenAI Images API, the paid image route, or this skill. The assets are the food atlas, the portrait atlas, the mascot atlas, the timber, the runner, and the room states. For built-in chat generation or a prompt handoff to the user, use generate-game-art.
+description: Plan, send, and measure OpenAI Images API requests for Scary Snacks bitmap candidates. Use only when the user tells you to use the OpenAI Images API, the paid image route, or this skill. Use for the asset identifiers in this skill, including room states, decoration paintings, and the board-clutter atlas. For built-in chat generation or a prompt handoff to the user, use generate-game-art.
 ---
 
 # Generate game art through the OpenAI Images API
@@ -17,11 +17,12 @@ Use it if the chat tool is not available and the user did not choose the API rou
 ## Select the mode
 
 - **Plan:** Validate a request without a key and without a network request.
-  Inputs: the asset identifier, the size, and the prompt file.
+  Inputs: the asset identifier and an optional size. A request dry run also needs a prompt file.
   Approval: none. The mode sends no request.
   Files to change: none.
   Output: the route, the size, the background, the grid, and the missing inputs.
-  Complete when the dry run prints `"networkRequest":false`.
+  Complete when `plan` prints the asset contract.
+  For a request dry run, also confirm that the output contains `"networkRequest":false`.
 - **Generation:** Send one request for each candidate, and measure the candidate.
   Inputs: the plan, the final prompt, and the authorized scope.
   Approval: see "Obey the approval limits".
@@ -46,7 +47,8 @@ An instruction to use the API route for named assets approves one request for ea
 Obey a request limit, a size, or a reference limit that the user gives.
 After a visible defect, make at most one corrective request for each asset, unless the user gives a different limit.
 Get approval from the user before an additional request.
-A new asset identifier changes the request contract in `openai-api.ts` or the room states in `tools/create-original-data.ts`. Get approval from the user before you add one.
+A new asset identifier changes the request contract in `openai-api.ts` or the room states in `tools/create-original-data.ts`.
+Confirm that the approved scope includes the identifier before you add that identifier.
 A plan, a review, or a preview task does not approve a request or a shipping change.
 Repository skills do not increase the approval that the user gave.
 
@@ -76,7 +78,10 @@ It reads each other value from the asset:
 | `embroidered-runner` | `1536x512` | `opaque` | One image, 3:1, repeats horizontally |
 | Each room state in `public/data/game.json` | `1536x2048` | `opaque` | One image, 3:4 portrait, a painted room state |
 | `decoration-front`, `decoration-courtyard` | `1536x2048` | `opaque` | One image, 3:4 portrait, a decoration edit of a room state |
-| `board-clutter` | `1536x1024` | `transparent` | 3 columns by 2 rows, the board clutter of spec 007 |
+| `board-clutter` | `1536x1024` | `transparent` | 3 columns by 2 rows, six blockers with open centers |
+
+The helper does not accept `visitor-portraits`, `guests`, `red-wine`, or `preparation-clutter`.
+Use the chat route for these assets unless the approved scope includes an API contract change.
 
 To print the contract of one asset, run `plan --asset <identifier>`, as [API generation](references/api-generation.md) tells you.
 

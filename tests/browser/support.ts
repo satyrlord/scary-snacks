@@ -74,6 +74,8 @@ export const tile=(page: Page,index: number)=>page.locator(`[data-cell="${index}
 export async function unselect(page: Page){await tile(page,0).focus();await page.keyboard.press('Escape');}
 export const ticket=(page: Page,value: Quest)=>page.locator(`#tickets .ticket[data-quest="${value.id}"]`);
 export const deliverButton=(page: Page,value: Quest)=>ticket(page,value).locator('.deliver-button');
+/** The toast that reports a delivery. It clears itself, so a test that needs the next one waits for this one to go first. */
+export const toast=(page: Page)=>page.locator('.toast');
 export const rewardText=(value: Quest)=>`${value.reward.toLocaleString('en')} ${value.reward===1?'coin':'coins'}`;
 /** Opens the request dialog from the dishes on the ticket. */
 export async function request(page: Page,value: Quest){

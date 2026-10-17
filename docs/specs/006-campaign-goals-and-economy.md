@@ -1,7 +1,7 @@
 # 006: Campaign goals and economy
 
-Status: Implemented work-based budgets, explicit food prices, the quest reward rule, the funding check,
-requirement feedback, validated saves, and a legal campaign fixture.
+Status: Implemented.
+The scope includes preparation budgets, food prices, quest rewards, funding checks, requirement feedback, validated saves, and a legal campaign fixture.
 Owner: `PRODUCT.md` for rules; `DESIGN.md` for feedback; `DELIVERY.md` for delivery commands.
 The [economy record](../economy.md) gives portions, work scopes, source offers, and assumptions.
 
@@ -20,20 +20,22 @@ Quests earn the coins of the campaign. Sales remain a way to clear space.
    The menu value of a quest is the sum of the prices of its portions.
 2. Prices follow the item's portion and preparation. They do not have to increase at every merge stage.
    The food table and its reference portions are in the economy record.
-3. A personal request pays its menu value times the rate of the chapter in which it opens:
-   3 in chapter 1, 2.5 in chapter 2, 2 in chapter 3, 1.5 in chapter 4, and 1 in chapters 5 and 6.
-   The result is rounded to an even number of coins. The early chapters pay more, so that the first room changes come quickly.
+3. A personal request pays its menu value multiplied by the rate of its opening chapter.
+   The rates for chapters 1 to 6 are 3, 2.5, 2, 1.5, 1, and 1.
+   The game rounds the result to an even number of coins.
+   The early chapters pay more, so that the first room changes come quickly.
 4. The supply packs of the travellers and the meal for Mina and Avram pay their menu value. Ionatan pays 1,100 coins.
 5. A clearance sale gives one quarter of the menu price, rounded down, with a minimum of one coin.
    This is a game rule. It does not claim a real resale price. Sources cannot be sold.
 6. Each preparation defines its work scope, material or stock allowance, labour allowance,
    and estimated active person-hours. Its price is materials plus labour, independent of task order.
 7. One coin uses roughly one Romanian leu as a reference scale. The model uses supplier and service
-   price anchors. Work quantities, labour hours, and budget allocations remain authored estimates.
+   prices as references. Work quantities, labour hours, and budget allocations remain authored estimates.
 8. A quest that opens after preparation N is necessary for preparation N + 1.
    Each preparation needs its coins and every quest that opens before it.
-9. The funding check: for each preparation, the rewards of the quests that open before it, added together,
-   are never less than the costs of the preparations up to it, added together.
+9. The funding check compares cumulative quest rewards with cumulative preparation costs at each preparation.
+   The check includes every quest that opens before that preparation.
+   The rewards must cover the costs through that preparation.
    Thus a player who delivers every open quest always has the coins for the next preparation.
 10. The engine checks coins, the necessary quests, and source placement together.
     Successful payment spends coins once and advances one preparation. Failure changes nothing.
@@ -44,8 +46,10 @@ Story shows current and required coins, and the quests delivered out of the ques
 Each row says Complete or gives the missing amount. It names a placement blocker.
 Pay and Mara's offer use the same engine eligibility result.
 
-Cost details sits beside Pay. It opens a dialog or phone sheet with the current work scope,
-material and labour costs, total price, and estimated person-hours. The text states that there is no timer.
+Cost details sits beside Pay.
+The control opens a dialog or phone sheet with the work scope, material and labour costs, and total price.
+The dialog also shows estimated person-hours.
+The text states that there is no timer.
 Close and Escape return focus to the cost control; phones first restore the Story sheet.
 No future source output or unearned room painting appears in this explanation.
 
@@ -73,15 +77,16 @@ that the current delivery does not hold.
 
 Each preparation and chapter reports successful actions, takes, merges, sales, deliveries,
 quest and sale income, preparation expense, and balance. Preparation records also include work scope
-and material and labour budgets. State validity and every coin are checked after each action.
+and material and labour budgets. The fixture checks state validity and every coin after each action.
 
 The report measures gameplay effort under one stated policy. It does not measure human play time.
 
 ## Acceptance and evidence
 
 - Engine: exact and missing coins, missing quests, source placement, atomic failures, and repeated or final completion.
-- Economy: raw ingredients at 1 to 3 coins, explicit prepared-food values, the reward rule, clearance values,
-  complete work budgets, relative sign, menu, and repair costs, the funding check, and invalid authored data.
+- Economy: raw ingredients at 1 to 3 coins, explicit prepared-food values, the reward rule, and clearance values.
+  The checks cover complete work budgets and relative costs for signs, menus, and repairs.
+  They also cover the funding check and invalid authored data.
 - Saves: current saves, export and import, failed writes, and malformed data.
 - Browser: text requirements, readiness, payment, keyboard focus, cost details, return focus, reload, imports, themes,
   and desktop and phone geometry.

@@ -12,6 +12,9 @@ If the scope changes, select the modules again.
 
 Obey the limits of the user on edits and tests.
 A link to a different skill does not increase the approval that the user gave.
+Treat a proposed specification as planned work, not as implemented behavior.
+Verify each implementation claim against the source code and its tests.
+Preserve approval that the user already gave for the current scope.
 For the full gate, use [`run-quality-gate`](run-quality-gate/SKILL.md).
 
 - [`add-feature`](add-feature/SKILL.md): Add or change product behavior and its
@@ -32,9 +35,9 @@ For the full gate, use [`run-quality-gate`](run-quality-gate/SKILL.md).
   replace bitmap art with the built-in chat image generator.
   The art is the atlases, the timber, the runner, the painted room states, and the two decoration paintings.
   If the agent has no image generator, give the user a prompt to run.
-  Also start here for the OpenAI Images API route.
-- [`generate-game-art-openai`](generate-game-art-openai/SKILL.md): Plan, send, and
-  measure OpenAI Images API requests for the same bitmaps, except the two decoration paintings, when the user chooses that route.
+  Also start here for the OpenAI Images application programming interface (API) route.
+- [`generate-game-art-openai`](generate-game-art-openai/SKILL.md): Plan, send, and measure requests when the user chooses the API route.
+  Its asset table gives the supported bitmaps, including the two decoration paintings.
   Codex does not select it automatically. In Codex, use it by its name or through `generate-game-art`.
   Other agents select it from its description.
 - [`grill-me`](grill-me/SKILL.md): Challenge a plan one decision at a time,

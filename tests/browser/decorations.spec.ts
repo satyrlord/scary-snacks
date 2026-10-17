@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { checkpoint, data, deliverButton, deliverable, exportText, failWrites, opened, options, quest, readTo, restoreWrites, saved, serialize, start, startAgainAndImport, KEY } from './support.ts';
+import { checkpoint, data, deliverButton, deliverable, exportText, failWrites, opened, options, quest, restoreWrites, saved, serialize, start, startAgainAndImport, toast, KEY } from './support.ts';
 
 const finish=(page: Page,slot: string)=>page.locator(`#room-finishes .room-finish[data-slot="${slot}"]`);
 const layer=(page: Page,slot: string,variant: string)=>page.locator(`#room-decorations svg[data-slot="${slot}"][data-variant="${variant}"]`);
@@ -66,7 +66,7 @@ test('a finish switch appears only once its quest is delivered and its preparati
   // The preparation is done, but the quest that offers the green bowls is not delivered yet.
   await begin(page,deliverable(bowls));await expect(page.locator('#room-frame')).toHaveAttribute('data-area','front-room');
   expect((await saved(page)).decorations).toContain(slotOf('tableware').unlock);await expect(page.locator('#room-finishes .room-finish')).toHaveCount(0);
-  await deliverButton(page,bowls).click();await readTo(page,'Back to the kitchen');
+  await deliverButton(page,bowls).click();await expect(toast(page)).toHaveText(`${bowls.title}: delivered. Earned ${bowls.reward} coins.`);
   await expect(finish(page,'tableware')).toHaveAccessibleName(label('tableware','blue'));
   await page.reload();await opened(page);await expect(finish(page,'tableware')).toHaveCount(1);
 });

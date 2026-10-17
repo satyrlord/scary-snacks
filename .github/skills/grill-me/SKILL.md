@@ -28,6 +28,7 @@ Record mode:
 
 If the user changes the scope, select the mode again before the next edit.
 If the user tells you not to edit files, use interview mode.
+If the user prohibits tests, use existing evidence and report the checks that you did not run.
 
 ## Prepare the decision tree
 

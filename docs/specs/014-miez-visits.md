@@ -5,8 +5,8 @@ Owner: `PRODUCT.md` for the visit and reward rules; `DESIGN.md` for the request 
 
 ## Current evidence
 
-- Miez, the resident black cat, is a sprite button (`#cat-button` in `index.html`) over the left
-  end of the windowsill in the front-room painting.
+- Miez, the resident black cat, is a sprite button (`#cat-button` in `index.html`).
+  The button covers the left end of the windowsill in the front-room painting.
   Miez takes input only while the sill shows above the drawer. The Story sheet also holds a Miez card.
   The story card on wider screens does not show that card.
 - In `src/app.ts`, the player can pet Miez, which toggles between a sitting sprite and a sleeping
@@ -18,8 +18,7 @@ Owner: `PRODUCT.md` for the visit and reward rules; `DESIGN.md` for the request 
 ## Outcome and scope
 
 Sometimes Miez asks for a meal. She cannot pay, but a fed cat gives a blessing:
-the next five quest deliveries pay double. The cat becomes part of play and not only decoration.
-The mascot of the bistro gives the game a feature of its own.
+the next five quest deliveries pay double. The cat becomes part of play.
 
 - Count the reward in deliveries, not in seconds. Use no timer, countdown, deadline, or
   real-time check. Closing the tab, reloading, or waiting changes nothing.
@@ -31,23 +30,26 @@ The mascot of the bistro gives the game a feature of its own.
 
 ## Proposed rules
 
-1. Visits begin after preparation 2 is complete. When the player completes preparation 2, the
-   game sets `due` to the delivery count plus an interval of 10 to 16 deliveries (draft). An authored
-   sequence or a seed that this feature adds gives the interval. The completion of preparation 2 draws that interval.
+1. Visits begin after preparation 2 is complete.
+   That payment sets `due` to the delivery count plus an interval.
+   The draft interval is 10 to 16 deliveries.
+   An authored sequence or a seed that this feature adds gives the interval.
+   The completion of preparation 2 selects that interval.
 2. The visit of Miez begins in the same action as a successful delivery that reaches the `due`
    count. Her request is one dish of stage 2 or 3 from an unlocked chain. The player can use
-   earned source outputs and merges to make it. That delivery draws the request. Only the actions in rules 1, 2,
-   7, and 8 draw a Miez value.
-3. Feeding Miez is one atomic hand-in. It consumes the dish from the board, following the delivery
+   earned source outputs and merges to make it. That delivery selects the request.
+   Only the actions in rules 1, 2, 7, and 8 select a Miez value.
+3. Feeding Miez is one atomic action. It consumes the dish from the board, following the delivery
    rules of 005. A failed feed changes nothing.
-4. Feeding pays no coins. Feeding does not count as a delivery. Feeding adds nothing to
-   `completedQuests`, to the dish deliveries of 012, or to the delivered count of a neighbour from 013.
+4. Feeding pays no coins. Feeding does not count as a delivery.
+   Feeding does not change `completedQuests`, the dish deliveries of 012, or a neighbour's delivered count from 013.
 5. Feeding sets the blessing to five deliveries. While the blessing is above zero, each quest
    delivered pays twice its authored reward. The blessing drops by one.
 6. The blessing applies to quest rewards only. It does not change sales or preparation costs.
-7. While a visit waits or a blessing is active, no new visit becomes due. When the blessing
-   reaches zero, the game sets `due` to the delivery count plus a new interval, as in rule 1. The
-   delivery that ends the blessing draws that interval.
+7. While a visit waits or a blessing is active, no new visit becomes due.
+   When the blessing reaches zero, the game selects a new interval, as in rule 1.
+   The game sets `due` to the delivery count plus that interval.
+   The delivery that ends the blessing selects that interval.
 8. Miez waits as long as the player likes. Tickets, preparations, and every other action stay
    available. "Not now" ends the visit with no reward and no penalty. It schedules the next
    visit by rule 7, as if the blessing ended at that moment.
@@ -74,8 +76,8 @@ Draft presentation. `DESIGN.md` decides the final placement at implementation.
 
 ## Data and state
 
-- Add `miez: { due: number; request: string | null; blessing: number }` to `GameState`, and the seed or the
-  position in the authored sequence that rules 1, 2, and 7 use.
+- Add `miez: { due: number; request: string | null; blessing: number }` to `GameState`.
+  Add the seed or the position in the authored sequence that rules 1, 2, and 7 use.
   Put the rules in `src/engine.ts` and the presentation in `src/app.ts`. Put the visit scene and the
   draft constants in `tools/create-original-data.ts`.
 - Validate these conditions:
@@ -112,8 +114,13 @@ Draft presentation. `DESIGN.md` decides the final placement at implementation.
 
 ## Dependencies and remaining decisions
 
-Slice 1 has no hard dependency. Balance integrates with 006. The first-visit scene uses 009.
+Slice 1 has no prerequisite specification.
+The balance checks use 006. The first-visit scene uses 009.
 
-Open decisions: the interval, the dish stages, the blessing length, whether a seed or an authored sequence
-gives the draws, and whether the Miez card shows a count of feedings. The campaign has 63 deliveries, so measure the number of visits
-per campaign. A doubled large reward, such as Ionatan's dinner, needs a balance decision. Tune with the 006 fixture.
+The interval, dish stages, and blessing length remain open decisions.
+Decide whether a seed or an authored sequence selects values.
+Decide whether the Miez card shows a count of meals.
+The campaign has 63 deliveries.
+Measure the number of visits per campaign.
+A doubled large reward, such as Ionatan's dinner, needs a balance decision.
+Use the 006 fixture to adjust the balance.

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { createGame, getItem } from '../../src/engine.ts';
 import type { Quest } from '../../src/engine.ts';
-import { checkpoint, data, deliverButton, deliverable, exportText, failWrites, journal, opened, options, person, readTo, request, saved, start, startAgainAndImport, supplies, ticket } from './support.ts';
+import { checkpoint, data, deliverButton, deliverable, exportText, failWrites, journal, opened, options, person, readTo, request, saved, start, startAgainAndImport, story, supplies, ticket, toast } from './support.ts';
 
 const visitors=data.characters.filter(value=>value.visitor&&!value.singleVisit);
 const requests=data.quests.filter(value=>visitors.some(visitor=>visitor.id===value.character));
@@ -41,12 +41,16 @@ for(const value of firstRequests)test(`${value.character} shows the exact expedi
   }
   await expect(dialog.locator('.quest-reward')).toHaveText(`Reward: ${value.reward} coins`);
   await page.screenshot({path:testInfo.outputPath('supply-request.png')});
-  await dialogDeliver(page,value).click();await expect(page.locator('#story-line')).toContainText(value.completion[0].text);const delivered=await saved(page);
-  // The completion scene waits until the player finishes it. Then nothing else changes.
-  expect(delivered.pendingScenes).toEqual([...before.pendingScenes,value.id]);const after={...delivered,pendingScenes:before.pendingScenes};
-  expect(after.completedQuests).toEqual([...before.completedQuests,value.id]);expect(after.coins).toBe(before.coins+value.reward);
-  expect(after.board.filter(Boolean).length).toBe(before.board.filter(Boolean).length-supplies(value).length);
-  await readTo(page,'Back to the kitchen');await expect(ticket(page,value)).toHaveCount(0);
+  await dialogDeliver(page,value).click();await expect(page.locator('#modal')).toBeHidden();
+  await expect(toast(page)).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);const delivered=await saved(page);
+  // Delivery pays at once. The completion scene waits until the player reads it, and reading changes nothing else.
+  expect(delivered.pendingScenes).toEqual([...before.pendingScenes,value.id]);
+  expect(delivered.completedQuests).toEqual([...before.completedQuests,value.id]);expect(delivered.coins).toBe(before.coins+value.reward);
+  expect(delivered.board.filter(Boolean).length).toBe(before.board.filter(Boolean).length-supplies(value).length);
+  await expect(ticket(page,value)).toHaveCount(0);
+  await journal(page);await page.getByRole('button',{name:`Read ${value.title}`,exact:true}).click();
+  await expect(page.locator('#story-line')).toContainText(value.completion[0].text);await finishScene(page);
+  const after={...delivered,pendingScenes:before.pendingScenes};expect(await saved(page)).toEqual(after);
   await page.reload();await opened(page);expect(await saved(page)).toEqual(after);await expect(ticket(page,value)).toHaveCount(0);
   await journal(page);await page.getByRole('button',{name:`Replay ${value.title}`,exact:true}).click();await finishScene(page);expect(await saved(page)).toEqual(after);
   await page.keyboard.press('Escape');await options(page);const text=await exportText(page);expect(JSON.parse(text).state).toEqual(after);
@@ -101,12 +105,15 @@ test('the castle guest asks on a ticket, pays once, and leaves the journal after
   expect(dinner.reward).toBe(1100);expect(dinner.reward).toBe(supplies(dinner).reduce((sum,code)=>sum+data.items[code].price,0)*5);
   await expect(dialog.locator('.quest-reward')).toHaveText(`Reward: ${dinner.reward.toLocaleString('en')} coins`);
   await expect(dialogDeliver(page,dinner)).toHaveText(`Deliver · ${dinner.reward.toLocaleString('en')}`);await dialogDeliver(page,dinner).click();
-  await expect(page.locator('#story-line')).toContainText(dinner.completion[0].text);const delivered=await saved(page);
-  expect(delivered.pendingScenes).toEqual([...before.pendingScenes,dinner.id]);const after={...delivered,pendingScenes:before.pendingScenes};
-  expect(after.completedQuests).toEqual([...before.completedQuests,dinner.id]);expect(after.coins).toBe(before.coins+dinner.reward);
-  expect(after.board.filter(Boolean).length).toBe(before.board.filter(Boolean).length-supplies(dinner).length);
+  await expect(page.locator('#modal')).toBeHidden();await expect(toast(page)).toHaveText(`${dinner.title}: delivered. Earned ${dinner.reward} coins.`);
+  const delivered=await saved(page);expect(delivered.pendingScenes).toEqual([...before.pendingScenes,dinner.id]);
+  expect(delivered.completedQuests).toEqual([...before.completedQuests,dinner.id]);expect(delivered.coins).toBe(before.coins+dinner.reward);
+  expect(delivered.board.filter(Boolean).length).toBe(before.board.filter(Boolean).length-supplies(dinner).length);
   // A guest who visits once has no journal replay after the visit.
-  await readTo(page,'Back to the kitchen');await expect(page.locator('#status')).toHaveText('The scene is finished.');await guestAbsent(page);
+  await story(page);await page.getByRole('button',{name:`Read now: ${dinner.title}`,exact:true}).click();
+  await expect(page.locator('#story-line')).toContainText(dinner.completion[0].text);await readTo(page,'Back to the kitchen');
+  await expect(page.locator('#status')).toHaveText('The scene is finished.');await guestAbsent(page);
+  const after={...delivered,pendingScenes:before.pendingScenes};
   await page.reload();await opened(page);expect(await saved(page)).toEqual(after);await guestAbsent(page);
   await options(page);const text=await exportText(page);expect(JSON.parse(text).state).toEqual(after);
   await startAgainAndImport(page,text);expect(await saved(page)).toEqual(after);await guestAbsent(page);
@@ -114,8 +121,8 @@ test('the castle guest asks on a ticket, pays once, and leaves the journal after
 
 test('a failed castle dinner save keeps the guest gone for the session and restores only durable progress on reload',async({page})=>{
   await start(page,deliverable(dinner));const before=await saved(page);
-  await failWrites(page);await deliverButton(page,dinner).click();await expect(page.locator('#story-line')).toContainText(dinner.completion[0].text);
-  await expect(page.locator('.completion-message')).toContainText('This session is not saved.');await readTo(page,'Back to the kitchen');
+  await failWrites(page);await deliverButton(page,dinner).click();
+  await expect(toast(page)).toHaveText(`${dinner.title}: delivered. Earned ${dinner.reward} coins. This session is not saved. Use Retry save in Options, or export before leaving.`);
   await guestAbsent(page);await expect(page.locator('#coin-total')).toHaveText(`${(before.coins+dinner.reward).toLocaleString('en')} coins`);expect(await saved(page)).toEqual(before);
   await options(page);await expect(page.getByRole('button',{name:'Retry save',exact:true})).toBeVisible();await page.keyboard.press('Escape');
   await page.reload();await opened(page);await expect(deliverButton(page,dinner)).toBeEnabled();expect(await saved(page)).toEqual(before);

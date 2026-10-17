@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { firstFreeBoardCell, generatorOutputs, requiredQuests, resolveQuests } from '../../src/engine.ts';
 import type { GameState, SceneLine } from '../../src/engine.ts';
-import { act, data, deliverButton, deliverable, exportText, failWrites, journal, onTicket, opened, options, person, quest, readTo, replaceSave, request, saved, start, startAgainAndImport, supplies, supply, ticket } from './support.ts';
+import { act, data, deliverButton, deliverable, exportText, failWrites, journal, onTicket, opened, options, person, quest, readTo, replaceSave, request, saved, start, startAgainAndImport, story, supplies, supply, ticket, toast } from './support.ts';
 
 const dinner=quest('ionatan-castle-dinner');
 const search=quest('mina-avram-search');
@@ -57,7 +57,9 @@ test('the shared vegetarian meal has both voices, leaves once, keeps the departu
   for(const id of companions)await portrait(dialog.getByRole('img',{name:person(id).name,exact:true}),person(id).sprite);
   for(const line of search.opening)await expect(dialog).toContainText(`${person(line.speaker).name}: ${line.text}`);
   for(const {item,quantity} of search.requirements)await expect(dialog.getByRole('button',{name:`${quantity} ${data.items[item].name}: ${quantity} of ${quantity} on the board`,exact:true})).toBeVisible();
-  const before=await saved(page);await dialog.getByRole('button',{name:/^Deliver /}).click();await scene(page,search.completion);
+  const before=await saved(page);await dialog.getByRole('button',{name:/^Deliver /}).click();
+  await expect(toast(page)).toHaveText(`${search.title}: delivered. Earned ${search.reward} coins.`);
+  await story(page);await page.getByRole('button',{name:`Read now: ${search.title}`,exact:true}).click();await scene(page,search.completion);
   const after=await saved(page);expect(after.completedQuests).toEqual([...before.completedQuests,search.id]);expect(after.coins).toBe(before.coins+search.reward);expect(after.pendingScenes).toEqual([]);
   await guests(page,false);
   await page.reload();await opened(page);expect(await saved(page)).toEqual(after);await guests(page,false);
@@ -73,8 +75,10 @@ test('local news from the road arrives with the third delivery after the shared 
   const open=resolveQuests(state,data).filter(view=>view.status==='active').map(view=>view.quest);expect(open.length).toBeGreaterThanOrEqual(3);
   state=delivered(state,open[0].id);state=delivered(state,open[1].id);expect(state.pendingScenes).toEqual([]);
   await start(page,supply(state,supplies(open[2])));await deliverButton(page,open[2]).click();
-  await expect(page.getByRole('dialog',{name:open[2].title,exact:true})).toBeVisible();
+  await expect(toast(page)).toHaveText(`${open[2].title}: delivered. Earned ${open[2].reward} coins.`);
   expect((await saved(page)).pendingScenes).toEqual([open[2].id,search.followUp!.id]);
+  await story(page);await page.getByRole('button',{name:`Read now: ${open[2].title}`,exact:true}).click();
+  await expect(page.getByRole('dialog',{name:open[2].title,exact:true})).toBeVisible();
   await readTo(page,'Next scene');await expect(page.getByRole('dialog',{name:search.followUp!.title,exact:true})).toBeVisible();
   expect(search.followUp!.dialogue.every(line=>!companions.includes(line.speaker)&&line.speaker!=='ionatan')).toBe(true);
   expect(search.followUp!.dialogue.map(line=>line.text).join(' ')).toMatch(/Ionatan gravely ill.*All three have left for Britain.*did not stop at our bistro/);
@@ -84,7 +88,7 @@ test('local news from the road arrives with the third delivery after the shared 
 
 test('a failed shared delivery save removes both guests in the session, and reload restores the shared visit',async({page})=>{
   await start(page,deliverable(search));const before=await saved(page);
-  await failWrites(page);await deliverButton(page,search).click();await expect(page.locator('.completion-message')).toContainText('This session is not saved.');await scene(page,search.completion);
+  await failWrites(page);await deliverButton(page,search).click();await expect(toast(page)).toContainText('This session is not saved.');
   await guests(page,false);expect(await saved(page)).toEqual(before);
   await page.reload();await opened(page);await guests(page,true);await expect(deliverButton(page,search)).toBeEnabled();
 });
@@ -146,7 +150,7 @@ test('red wine made through the visible controls readies Vlad’s request, and D
   await expect(page.locator(`[data-cell="${wine}"]`)).toHaveAttribute('aria-label',/Red wine$/);await winePicture(page.locator(`[data-cell="${wine}"]`));
   await expect(deliverButton(page,value)).toBeEnabled();await expect(ticket(page,value).locator('.ticket-item.ready')).toHaveCount(value.requirements.length);
   const ready=await saved(page);expect(ready.discovered).toContain('drinks_5');
-  await deliverButton(page,value).click();await readTo(page,'Back to the kitchen');
+  await deliverButton(page,value).click();await expect(toast(page)).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);
   const after=await saved(page);expect(after.coins).toBe(ready.coins+value.reward);expect(after.completedQuests).toEqual([...ready.completedQuests,value.id]);
   await page.reload();await opened(page);expect(await saved(page)).toEqual(after);await expect(ticket(page,value)).toHaveCount(0);
 });

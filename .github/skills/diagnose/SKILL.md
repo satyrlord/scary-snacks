@@ -27,8 +27,10 @@ Repair mode:
 - Completion: the initial test sequence passes.
 
 If the user changes the scope, select the mode again before the next edit.
+If the user prohibits edits, use diagnosis mode.
 If the user tells you not to run tests, use only the evidence that you have.
-Then give the cause in the report as a cause that you did not examine with a test.
+Report any proposed cause as unverified.
+Name the test that can verify or reject that cause.
 
 ## Make the test sequence
 

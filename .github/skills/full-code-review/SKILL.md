@@ -27,6 +27,7 @@ Repair mode:
 - Completion: each repaired finding passes its verification step.
 
 If the user changes the scope, select the mode again before the next edit.
+If the user prohibits edits, use review mode.
 If the user tells you not to run checks, give each check that you did not run in the report.
 
 ## Find the scope

@@ -9,17 +9,21 @@
 The records in `docs/` give evidence and release limits. They do not change a contract.
 When you change a contract, change the owner document in the same task.
 Write only the current state in documents, specifications, skills, tests, and comments.
-Do not keep retired items, dated results, audit figures, or notes about an earlier state. Git history keeps the past.
+Do not keep retired items, dated results, audit figures, or notes about an earlier state.
+Git history keeps the past.
 
 ## Project structure
 
 - `src/` holds the three runtime modules and the stylesheet.
   `engine.ts` holds the rules, `storage.ts` holds the saves, and `app.ts` holds the interface.
   Keep the rules and the saves free of Document Object Model (DOM) access.
-- `public/` holds the files that the build ships: `assets/variants/` (AV1 Image File Format, or AVIF, and WebP image variants), `assets/fonts/`, and `data/game.json`.
+- `public/` holds the shipped image variants, fonts, and game data.
+  `assets/variants/` holds AV1 Image File Format (AVIF) and WebP images.
+  `assets/fonts/` holds the fonts, and `data/game.json` holds the game data.
   `public/assets/original/` holds the 40 Portable Network Graphics (PNG) masters of those variants. The build does not ship the masters.
 - `tools/create-original-data.ts` authors `public/data/game.json`.
-  Edit the generator, and run `npm run data:generate`.
+  Edit the generator.
+  Run `npm run data:generate`.
 - Git ignores the local folders `private/`, `analysis/`, `.release/`, and `.tools/`.
   `analysis/` holds the build manifest and the art-generation candidates.
   Do not read `private/` or `analysis/` as an input for source code, content, art, or tests.
@@ -45,9 +49,12 @@ Do not say that a check passed if you did not run it.
 
 ## Code style and names
 
-All source code, tools, tests, and scripts are TypeScript 7 in strict mode. Do not add a `.js` or `.mjs` file.
+Use TypeScript 7 in strict mode for runtime modules, Node.js tools, tests, and skill scripts.
+The skill installation script uses PowerShell.
+Do not add a `.js` or `.mjs` file.
 Node.js runs `.ts` files directly. Use only syntax that Node.js can remove: no enums, namespaces, or parameter properties.
-Give each relative import its `.ts` extension, and use `import type` for types.
+Give each relative import its `.ts` extension.
+Use `import type` for types.
 The repository has no formatter and no linter. Match the style of the file that you change.
 Do not add a runtime package, a backend, or a network call to another origin.
 Render text that the game or a save provides with `textContent`.
@@ -80,13 +87,14 @@ The asset test fails on a variant that an older master made.
 The build ships only the variants. The build stops on a file in that folder that is not an AVIF or WebP image.
 Keep candidates, rejected images, and previews out of that folder.
 Use [`generate-game-art`](.github/skills/generate-game-art/SKILL.md) for bitmap art.
-Use [`generate-game-art-openai`](.github/skills/generate-game-art-openai/SKILL.md) only when the user tells you to use the OpenAI Images API.
+Use [`generate-game-art-openai`](.github/skills/generate-game-art-openai/SKILL.md) only when the user requests the OpenAI Images application programming interface (API).
 Give the generator only text prompts and images that this project generated.
 Use only fonts that are self-hosted with their license texts. Do not copy assets from websites.
 
 Do not commit secrets.
 `.env.local` holds the local OpenAI key. Git must ignore it.
-Do not print the key or put it in a command argument.
+Do not print the key.
+Do not put the key in a command argument.
 
 The Pages workflow runs on every push to `main` and publishes only `dist/`.
 The repository's Pages source must stay set to GitHub Actions.

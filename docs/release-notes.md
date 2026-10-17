@@ -2,66 +2,97 @@
 
 ## Release contents
 
-Scary Snacks is an original fictional Transylvanian bistro game.
-Its title, cast, dialogue, initial board, item progression, economy, art, and sounds are original to this project.
+Scary Snacks is a fictional Transylvanian bistro game.
+The project authors its cast, dialogue, board, item progression, economy, art, and sounds.
 
-The source is TypeScript 7. The build publishes its three runtime modules as browser scripts. The build allowlist contains these items:
+The source is TypeScript 7.
+The build publishes three runtime modules as browser scripts.
+The build file list contains these items:
 
-- index.html
-- four runtime files
-- the authored game JavaScript Object Notation (JSON) data
-- AV1 Image File Format (AVIF) and WebP variants of the approved generated Portable Network Graphics (PNG) masters
-- two SIL Open Font License (OFL) fonts
-- the license texts of the fonts
-- an empty `.nojekyll` file
+- `index.html`.
+- Three runtime scripts and one stylesheet.
+- The authored game data in JavaScript Object Notation (JSON).
+- AV1 Image File Format (AVIF) and WebP variants of the approved masters.
+- Two fonts under the SIL Open Font License (OFL).
+- The complete font license texts.
+- An empty `.nojekyll` file.
 
-The fonts ship as Web Open Font Format 2 (WOFF2) files. These files are lossless repackagings of the upstream fonts. The build copies them unchanged.
+The fonts use Web Open Font Format 2 (WOFF2).
+The font records describe the conversion from the source fonts.
+The build copies the WOFF2 files without a change.
 
-The build excludes the PNG masters, the local folders `private/` and `analysis/`, and vendor code.
-Tests check the asset hashes. Tests also check that the runtime files and the game data load assets only from the variant and font folders.
-The Pages workflow uploads only `dist/`. The workflow runs on every push to `main` and when a person starts it manually.
+The build excludes the Portable Network Graphics (PNG) masters, local work folders, and vendor code.
+Tests compare asset hashes with their records.
+Tests also check that runtime files and game data load assets only from the variant and font folders.
+The Pages workflow uploads only `dist/`.
+The workflow runs on every push to `main` and when a person starts the workflow manually.
 
 ## Legal limits
 
-These limits reduce possible source confusion. They do not guarantee that no person can make a legal claim. They do not establish ownership of every generated output. They do not clear the title as a trademark. An intellectual-property lawyer should review the intended release and the applicable jurisdictions before publication.
+The project records do not guarantee that no person can make a legal claim.
+The records do not establish ownership of every generated output.
+The records do not give trademark clearance for the title.
+A lawyer should review the intended release and the applicable jurisdictions before publication.
 
-The [U.S. Copyright Office](https://www.copyright.gov/register/tx-games.html) distinguishes game ideas and methods from expressive text and artwork. The [United States Patent and Trademark Office (USPTO)](https://www.uspto.gov/trademarks/search/likelihood-confusion) explains the risk of confusion for similar marks on related goods. These are general U.S. references. They are not a determination of the law that governs this project.
+The [U.S. Copyright Office](https://www.copyright.gov/register/tx-games.html) distinguishes game ideas and methods from expressive text and artwork.
+The [United States Patent and Trademark Office](https://www.uspto.gov/trademarks/search/likelihood-confusion) explains confusion between similar marks for related goods.
+These sources describe United States law in general.
+These sources do not determine which law applies to this project.
 
-The only name check is a quick exact-name search. The search finds no exact game-title match for Scary Snacks.
-The project has no comprehensive search of trademark registers, common-law rights, company names, domains, or international clearance.
+The project has no comprehensive title clearance.
+Such clearance requires more than an exact-name search.
+Relevant searches include trademark registers, unregistered rights, company names, domains, and jurisdictions outside the United States.
 
-## Public repository
+## Publication
 
-The GitHub repository is public. The game is live at https://satyrlord.github.io/scary-snacks/.
-Each tracked file is public. Private documents stay in the ignored folder `private/`.
+The configured Pages address is https://satyrlord.github.io/scary-snacks/.
+The checkout does not establish the current availability or contents of that site.
+Treat every tracked file as public.
 `npm run release:source` makes a source export without Git history.
-Do not publish the whole workspace, `private/`, or `analysis/`.
+Publish only the intended export or build output.
+Do not publish the whole workspace or its ignored local work folders.
 
 ## Local folders
 
-The ignored folder `private/` holds private documents and archives. The ignored folder `analysis/` holds the build manifest and the art-generation candidates.
-They are not runtime dependencies. Do not use `private/` as an input for source code, content, art, or tests.
+`AGENTS.md` defines the ignored local work folders and their input limits.
+These folders are not runtime dependencies.
+The build writes its manifest to the local output folder.
+Art candidates also remain outside the published assets.
 
 ## Art provenance
 
-The game ships image variants from 40 masters. The build excludes the PNG masters.
+The game ships image variants from 40 masters.
+The build excludes the PNG masters.
+[Asset provenance](asset-provenance.json) records each master, its references, processing, review limits, and hash.
+[Asset prompts](asset-prompts.json) preserves the exact generation prompts.
+These records describe the source of the current assets. These records do not give legal clearance.
 
-Built-in in-chat image generation made the guest portrait atlas and the red wine icon. The guest atlas uses the existing visitor portraits as a style reference. The wine uses the menu atlas as a style reference.
+The built-in chat image generator supplies these assets:
 
-- The OpenAI Images API (gpt-image-2.5-flare, high quality) made the food atlas and the mascots.
-  Each repaints an earlier atlas that the built-in in-chat imagegen tool made for this project. The mascots then had one correction of the grid fit.
-- The same API made the timber tabletop and the embroidered runner from text-only prompts.
-  The portraits are a revision of a text-only first candidate. The revision used only that candidate as its reference.
-- The same API made the three regulars atlases. They use the core portraits, and later the first regulars atlas, as style references.
-  A masked edit repainted one cell of the first atlas. The third atlas had its two portraits scaled into their cells with Sharp, without repainting.
-- The same API made the 25 painted room states.
-  The two base states use generated room paintings of this project as references.
-  Each later state edits the previous state of its area. A composite applies only the changed region.
-- The same API made the two decoration edit paintings. Each edits a room state, with a design reference that the in-chat imagegen tool made.
-  A composite applies only the changed regions. The app samples only their authored regions.
-- The built-in chat image generator made the board-clutter atlas. It used the food atlas only as a style reference.
-  Later edits corrected the fit of the sprite cells and removed webs from the four clutter objects.
+- The guest portrait atlas, with the visitor portraits as its style reference.
+- The red wine icon, with the menu atlas as its style reference.
+- The board-clutter atlas, with the menu atlas as its style reference.
+- The preparation-clutter atlas, with a precise alpha correction that the user approved.
+- The visitor portraits, with the core portraits as their style reference.
 
-- The built-in chat image generator made the four visitor portraits in a separate atlas. The core portrait atlas supplied the style reference. The first three portraits use local Romanian and Hungarian Roma dress. Adrian keeps his steel plate armour, and Monica keeps her leather armour. Fixed-cell assembly preserves Ionatan without a pixel change.
+The visitor atlas retains the complete Ionatan cell through fixed-cell assembly.
+Adrian retains steel plate armour. Monica retains leather armour.
+Their dress and Janos's dress follow the recorded local references.
+The provenance record distinguishes recorded user acceptance from agent review.
 
-The files `docs/asset-prompts.json` and `docs/asset-provenance.json` record the prompts and the hashes. Provenance is not an intellectual-property warranty.
+The OpenAI Images application programming interface (API) supplies these assets through `gpt-image-2.5-flare` at high quality:
+
+- The menu atlas and mascots, from earlier project-generated atlases.
+- The timber tabletop and embroidered runner, from text prompts.
+- The core portraits, from their first text-generated candidate.
+- The three regulars atlases, with project-generated portraits as style references.
+- The 25 room states, with project-generated room paintings as the base references.
+- The two decoration paintings, with project-generated design references.
+
+The mascot correction keeps each pose inside its grid cell.
+A masked edit changes one cell of the first regulars atlas.
+Sharp scales the two portraits of the third regulars atlas inside their cells.
+Each later room state edits the previous state of its area.
+A composite applies only the changed region.
+The decoration composites also retain only their changed regions.
+The application displays the authored decoration regions.

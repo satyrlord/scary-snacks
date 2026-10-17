@@ -26,6 +26,7 @@ const SPRITE_VIEW = 246;
 const FOCUS_REGIONS = '#board,#tickets,#story,#item-detail,#offer';
 const TONE_EVENTS = ['merge', 'deliverQuest', 'task'];
 const modal = $<HTMLDialogElement>('#modal');
+const toastStack = $('#toast-stack');
 const svg = <K extends keyof SVGElementTagNameMap>(tag: K) => document.createElementNS('http://www.w3.org/2000/svg', tag);
 const reason = (error: unknown) => error instanceof Error ? error.message : String(error);
 const THEME_KEY = 'scary-snacks-theme';
@@ -39,11 +40,12 @@ const drawerLayout = matchMedia('(max-width: 1023px)');
 const movableDrawer = matchMedia('(max-width: 1023px) and (height > 600px)');
 // Reduced motion keeps every outcome and line of text, without the flights, the drawer's movement, the fades, or the bats.
 const still = matchMedia('(prefers-reduced-motion: reduce)');
-// The delivery timeline: the dishes land on the ticket, the completion scene opens, and the next request's ticket arrives in the same place.
+// The delivery timeline: the dishes land on the ticket, a notice reports the reward, and the next request arrives in the same place.
 // RISE_AT sets the arrival delay in style.css; ARRIVAL_MS covers the arrival.
 const FLIGHT_MS = 600, RISE_AT = 700, ARRIVAL_MS = 1300;
 // The reveal timeline: the drawer lowers, the new state comes into focus, the pin lands, and the drawer rises again.
 const LOWER_MS = 650, FOCUS_MS = 1200, SETTLE_MS = 1400;
+const TOAST_MS = 4200, TOAST_OUT_MS = 300;
 // A room painting is shown as wide as the room: the phone's full width, or the room half of a wider screen.
 const ROOM_SIZES = '(max-width: 1023px) 100vw, max(50vw, 75vh)';
 // Numbers follow the page language, like the words around them. Compact totals truncate so they never overstate the purse.
@@ -85,6 +87,12 @@ const sourceOutput = (code: string) => generatorOutputs(state,code,data).map(ite
 const matchingBlocker = (code: string) => boardObstacles(state,data).find(obstacle =>
   obstacle.ingredient === code && !state.resolvedObstacles.includes(obstacle.id));
 function status(text: string) { $('#status').textContent = text; }
+/** A short notice that reports itself and clears on its own: used where the game should not stop for a tap. */
+function toast(text: string) {
+  const note = element('p', 'toast', text); note.setAttribute('aria-atomic', 'true');
+  toastStack.append(note);
+  setTimeout(() => { note.classList.add('leaving'); setTimeout(() => note.remove(), still.matches ? 0 : TOAST_OUT_MS); }, TOAST_MS);
+}
 /** Mara's note for a selected item, which the status region announces. On phones the note leaves out the name, which the selection strip shows. */
 function selectionLine(code: string) {
   const def = definition(code), name = phone.matches ? '' : `${itemName(code)}: `;
@@ -288,8 +296,8 @@ function markRecipeBook() {
   $('#discovery-count').textContent = `${state.discovered.filter(code => data.items[code] && !definition(code).generator).length} of ${dishes} dishes discovered${label}`;
 }
 /**
- * Delivering from a ticket: the dishes lift from the board and land on the ticket, the completion scene opens, and the next request
- * takes the ticket's place. After a failed save, the completion says so, and Options offers Retry save.
+ * The dishes land on the ticket, a notice reports the reward, and the next request takes the ticket's place.
+ * The completion scene waits in Story. After a failed save, the notice says so, and Options offers Retry save.
  */
 function deliver(quest: Quest) { return changeGame(() => {
   const slot = activeQuests().indexOf(quest);
@@ -303,8 +311,8 @@ function deliver(quest: Quest) { return changeGame(() => {
   if (state.completedQuests.length % 3 === 0) batFlight();
   const message = `${result.message}${saveFailed ? ' This session is not saved. Use Retry save in Options, or export before leaving.' : ''}`;
   const token = deliveryToken;
-  const open = () => { if (token === deliveryToken && state.pendingScenes.includes(quest.id) && !modal.open) showScene(quest.id, undefined, { completion:message }); };
-  if (still.matches || !into) open(); else void fly(codes, from, into).then(open);
+  const notify = () => { if (token === deliveryToken) toast(message); };
+  if (still.matches || !into) notify(); else void fly(codes, from, into).then(notify);
 }); }
 /** Delivered dishes lift off their tiles, arc over the board and land on the neighbour's ticket, visible all the way. */
 function fly(codes: string[], from: DOMRect[], target: DOMRect) {
@@ -327,6 +335,7 @@ function replaceGame(next: GameState) {
   gameVersion++; deliveryToken++;
   cancelDrag(); arriving.fill(0); ticketQuests = [];
   for (const flight of document.querySelectorAll('.deliver-flight')) flight.remove();
+  toastStack.replaceChildren();
   state = next; selected = null; freshDishes = 0;
   held = null; earnedScene = null; revealToken++; preloaded = null; viewArea = latestArea(state.decorations, data);
   $('.game-layout').classList.remove('revealing'); $('#room-stage').removeAttribute('data-reveal'); setLowered(false);
@@ -446,7 +455,8 @@ function render() {
   if (region && position >= 0) {
     const controls = [...region.querySelectorAll('button')];
     const target = [controls[position], ...controls].find(control => control && !control.disabled && control.checkVisibility({ visibilityProperty:true }))
-      ?? (previousCell === undefined ? null : board.querySelector<HTMLElement>(`[data-cell="${previousCell}"]`));
+      ?? (previousCell === undefined || board.closest('[inert]') ? null : board.querySelector<HTMLElement>(`[data-cell="${previousCell}"]`))
+      ?? (region.id === 'tickets' ? [...document.querySelectorAll<HTMLElement>('#story .story-waiting button,#story-button')].find(control => control.checkVisibility({ visibilityProperty:true })) : null);
     target?.focus({ preventScroll:true });
   }
   syncRoomControls();

@@ -1,12 +1,12 @@
 # 001 Room states: art plan
 
-Status: approved. All 25 states are accepted and integrated.
+Status: Approved. The game includes all 25 accepted states.
 
 This plan defines the painted room states of [spec 001](001-visible-renovation.md) for the "room and drawer" screen. [DESIGN.md](../../DESIGN.md) controls the design of that screen. Each preparation repaints the room itself. Every change shares the perspective, the light, and the contact shadows of the painting.
 
 The focus coordinates in the table below follow the accepted paintings and the game data.
 
-## What is painted
+## Painted areas
 
 There are two areas, with one 3:4 portrait painting for each state. There are 25 masters in all:
 
@@ -19,14 +19,22 @@ The masters are opaque 1536x2048 Portable Network Graphics (PNG) images. The bui
 
 ## How each state is made
 
-1. **Base paintings.** front-room-00 and courtyard-13 are the base paintings of the two areas. Each base is an edit of a generated reference painting of this project: `counter-band` for front-room-00 and `courtyard` for courtyard-13. The base request adds the composition table of its area. To repaint a base, give the accepted base to the generator as the reference.
-2. **Edits.** Every later state is an edit of the previous state. An edit request can have a mask or no mask. The agent composites only the change region of the candidate over the previous state, with a soft edge. Everything outside the region stays identical to the previous state, so differences cannot accumulate. A state can need more than one request. For example, courtyard-19 has four prompts and courtyard-20 has three.
-3. **Review.** The agent examines each candidate at full size. The agent checks these items:
-   - the change sits on a surface and matches the perspective, light, scale, and shadows of the room;
-   - nothing outside the change region moved;
-   - there is no text.
-
-   The user then accepts or rejects the candidate. Each master needs the acceptance of the user before the agent requests the next state from it.
+1. **Base paintings.** Use front-room-00 and courtyard-13 as the base paintings of the two areas.
+   Include the composition table for the area in each base request.
+   To repaint a base, give the accepted base to the generator as the reference.
+2. **Edits.** Use the previous state as the reference for each later state.
+   Include a mask if the selected route needs one.
+   Composite only the changed region over the previous state, with a soft edge.
+   Keep every pixel outside that region unchanged.
+   Follow the selected art skill for the permitted edit and composite tools.
+3. **Review.** Examine each candidate at full size.
+   Check that the change sits on a surface.
+   Compare its perspective, light, scale, and shadows with the room.
+   Check that nothing outside the changed region moved.
+   Check that the painting has no text.
+   Follow the acceptance requirements of [generate-game-art](../../.github/skills/generate-game-art/SKILL.md).
+   Obtain the user's acceptance of each master before you request a later state that uses that master.
+   Use any acceptance or explicit waiver that the user already gave for that master.
 
 ### Fixed in every state
 
@@ -86,30 +94,36 @@ In the Request column, Base means a base painting, and Edit means an edit of the
 | courtyard-18 | 18 Prepare the tasting plates | Edit (tables) | Small painted plates on both tables | 58, 64 |
 | courtyard-19 | 19 Stock the drinks cabinet | Edit (beside the door) | A recessed wall niche (firidă) under the kitchen window, with jugs, cups, glasses, and bottles of socată | 22, 58 |
 | courtyard-20 | 20 Print the supper menu | Edit (tables and near floor) | A small illustrated card stands on each table. A long shared trestle table with two benches stands in the near courtyard. The long table has the same plates and its own card. The two small tables stay for shyer guests. The long table first appears in this state, not in states 16 to 19 | 58, 63 |
-| courtyard-21 | 21 Send the invitations | Edit (gate, wall top and kitchen door) | The courtyard is dressed for a village celebration. A lit lantern is on the right gate post. Embroidered towels (ștergare) are over both gate posts. Large pots of red geraniums are by the gate. A row of geranium pots is along the top of the back wall. A harvest wreath with ribbons is on the kitchen door | 84, 52 |
+| courtyard-21 | 21 Send the invitations | Edit (gate, wall top and kitchen door) | Decorations prepare the courtyard for a village celebration. A lit lantern is on the right gate post. Embroidered towels (ștergare) are over both gate posts. Large pots of red geraniums are by the gate. A row of geranium pots is along the top of the back wall. A harvest wreath with ribbons is on the kitchen door | 84, 52 |
 | courtyard-22 | 22 Prepare the serving station | Edit (by the door) | A serving table with bread, plates and covered dishes | 12, 76 |
 | courtyard-23 | 23 Add the final flowers | Edit (tables and overhead) | Vases of flowers on the tables; a string of warm lights across the courtyard | 55, 40 |
 
 ## Prompts
 
-A base request uses a full style block, like this one:
+Use the accepted paintings as the style reference for a base request.
+Specify gouache paint and coloured-pencil edges.
+Include cream limewashed plaster, dark timber, copper, painted pottery, and blue-hour light.
+Keep the perspective and architecture consistent with the accepted room.
+Exclude people, cats, text, letters, numbers, signs, logos, frames, and interface controls.
+Include the composition table for the area.
 
-> Hand-painted gouache with delicate coloured-pencil edges, an accomplished illustrated travel-journal feel, matching the accepted Scary Snacks bistro paintings: cream limewashed plaster, dark timber, copper, painted pottery, blue-hour light, cosy and slightly eerie. Believable perspective and architecture. No people, no cats, no text, letters, numbers or signs, no logos, no frame, no UI. Not glossy mobile-game art.
+For an edit, instruct the generator to preserve the existing painting and style.
+Specify the single change from the table above.
+Specify the change region if the request has a mask.
+Name the surface that supports the changed object.
+Describe its contact shadow.
 
-A base request adds the composition table for its area. An edit request does not repeat the style block. It tells the generator to keep the painting and its style exactly as they are. It also gives these items:
-- the single change from the table above;
-- the change region, if the request has a mask;
-- the surface that the object touches. An example is "standing on the lower shelf, casting a soft shadow on the wall behind".
-
-Put the exact text of each prompt in `docs/asset-prompts.json` before the agent sends its request.
+Record the exact prompt in `docs/asset-prompts.json` as the selected art skill requires.
 
 ## Route
 
-Use the repository skill `generate-game-art` for each request. Each paid request needs the approval of the user.
+Use [generate-game-art](../../.github/skills/generate-game-art/SKILL.md) for each request.
+Follow that skill's route and approval rules.
 
 ## Integration
 
-- The "room and drawer" screen shows the states. `tools/create-original-data.ts` gives one state for each row of the table, with its focus and its caption.
+- The "room and drawer" screen shows the states.
+  `tools/create-original-data.ts` gives each state its focus coordinates and caption.
 - The game finds the state from the completed preparations. The save does not store it.
 - The list `roomPaintings` in `src/engine.ts` names the states that have an accepted painting. Every state is in the list. [PRODUCT.md](../../PRODUCT.md) gives the fallback for a state with no painting.
 - To add a painting, follow the steps in [DELIVERY.md "Assets"](../../DELIVERY.md#assets). A new master changes the count in the asset test.

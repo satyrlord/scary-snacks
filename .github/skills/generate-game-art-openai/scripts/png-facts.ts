@@ -1,5 +1,6 @@
-// Measure a generated PNG with Node.js built-in modules only.
-// The helper reads 8-bit, non-interlaced RGB and RGBA files. It does not change pixels.
+// Measure Portable Network Graphics (PNG) images with Node.js built-in modules.
+// RGB means red, green, and blue. RGBA adds an alpha channel.
+// Read 8-bit, non-interlaced RGB and RGBA files. Do not change pixels.
 import { createHash } from 'node:crypto';
 import { crc32, inflateSync } from 'node:zlib';
 

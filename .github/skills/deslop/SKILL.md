@@ -37,6 +37,7 @@ A warning does not show that there is a defect.
 If you get a warning, examine the content.
 
 If the user changes the scope, select the mode again before the next edit.
+If the user prohibits edits, use audit mode.
 If the user tells you not to run checks, give each check that you did not run in the report.
 
 ## Get the evidence

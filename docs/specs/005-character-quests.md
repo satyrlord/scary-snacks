@@ -10,10 +10,10 @@ The journal has an optional introduction for each neighbour and replay of comple
 
 The engine owns eligibility, the tickets, delivery, and validation. Storage owns the envelopes and durable writes.
 The app owns the tickets, the request dialog, the dialogue, and focus return.
-`tools/create-original-data.ts` authors every record. `public/data/game.json` is generated.
+`tools/create-original-data.ts` authors every record and generates `public/data/game.json`.
 PRODUCT, DESIGN, and DELIVERY own the current product, interface, and delivery contracts.
 
-The five permanent chains, 30 permanent dishes, and 24 preparation IDs stay.
+The five permanent chains, 30 permanent dishes, and 24 preparation identifiers (IDs) stay.
 Quests use only ordinary dishes and drinks. No quest lends a source or adds quest-only items.
 There is no currency other than coins, and no timer, energy limit, runtime dependency, backend, or network service.
 
@@ -36,7 +36,12 @@ There is no currency other than coins, and no timer, energy limit, runtime depen
 
 ## Rewards
 
-Spec 006 owns the reward rule. A personal request pays its menu value times the rate of the chapter in which it opens: 3, 2.5, 2, 1.5, 1, and 1 for chapters 1 to 6. The result is rounded to an even number of coins. The supply packs of the travellers and the meal for Mina and Avram pay their menu value. Ionatan pays 1,100 coins. Rewards are coins only.
+Spec 006 owns the reward rule.
+A personal request pays its menu value multiplied by the rate of its opening chapter.
+The rates for chapters 1 to 6 are 3, 2.5, 2, 1.5, 1, and 1.
+The game rounds the result to an even number of coins.
+The supply packs of the travellers and the meal for Mina and Avram pay their menu value.
+Ionatan pays 1,100 coins. Rewards are coins only.
 
 ## Core character arcs
 
@@ -83,17 +88,17 @@ Adrian, Monica, and Janos each return for three supply requests. Their nine visi
 
 Ionatan is a foreign real estate agent. His only quest, `ionatan-castle-dinner`, opens after preparation 16 and after Vlad's quest "A guest at the castle" (`vlad-guest`). It needs one goulash pot, one sharing board, one chimney cake, and one plum brandy. The 220-coin dinner pays 1,100 coins. It is independent of the traveller sequence.
 
-His introduction appears only while his request is open. Delivery records the quest ID once and shows his farewell. After that scene, his introduction and quest replays are absent. Reload and export/import preserve his completed visit. A new game permits another visit. A failed write keeps the departure in the session; reload restores only durable progress.
+His introduction appears only while his request is open. Delivery records the quest ID once and queues his farewell in Story. His introduction and quest replays are then absent from the journal. Reload and export/import preserve his completed visit. A new game permits another visit. A failed write keeps the departure in the session; reload restores only durable progress.
 
 ## Shared search visit
 
 Mina and Doctor Avram share one visit per save. Their quest, `mina-avram-search`, has `mina` as its character and `avram` as its companion.
-It opens after preparation 17 and after Ionatan's dinner is delivered.
+It opens after preparation 17 and delivery of Ionatan's dinner.
 The request needs two zacuscă toasts, two roasted vegetable plates, one smoked cheese plate, and two fruit teas.
 The meal is vegetarian. It has a menu value of 168 coins and pays 168 coins.
 
 Their introductions appear only while their request is open. The ticket and the request dialog show both names and both portraits.
-Delivery records the quest ID once and shows their farewell. After that scene, their introductions and quest replays are absent.
+Delivery records the quest ID once and queues their farewell in Story. Their introductions and quest replays are then absent from the journal.
 They never meet Ionatan at the bistro. A new game permits another visit.
 
 The third delivery after their meal makes the local news scene `mina-avram-news` ("News from the road") a waiting scene.
@@ -103,7 +108,8 @@ The scene has only local speakers and gives no reward. After its delivery gate, 
 ## Quest rules
 
 1. A quest has a stable ID, character ID, opening preparation, item quantities, coin reward, opening scene, and completion scene.
-   A quest can also have an earlier quest that it waits for, companions, a finish that it unlocks, and a later news scene.
+   A quest can also wait for an earlier quest.
+   Optional fields define companions, a finish that the quest unlocks, and a later news scene.
 2. A companion counts as a character of the quest. Authored order resolves the tickets.
 3. Delivery consumes the full requirement from the board in one action.
 4. Repeated requirement entries count separately. A missing item, a quest without a ticket, a stale ID, a completed ID, or a reward overflow change nothing.
@@ -112,16 +118,26 @@ The scene has only local speakers and gives no reward. After its delivery gate, 
 7. Reading, skipping, replaying, reloading, and repeated clicks give no second reward.
 8. Quest scenes use the existing dialogue controls. The completion scene waits until the player finishes or skips it, as spec 009 gives. Recorded completion and journal replay remain available.
 
-`questProblems` checks IDs, scenes, quantities, rewards, ordinary requested items, chain availability, companions, finishes, news scenes, authored order, the combined prerequisite graph, and the campaign funds.
+`questProblems` checks IDs, scenes, quantities, rewards, requested items, and chain availability.
+It also checks companions, finishes, news scenes, authored order, the combined prerequisite graph, and the campaign funds.
 The content generator refuses invalid quest data.
 
 ## Interface
 
-A ticket shows the portrait and the name of the character, the dishes with the count on the board, and Deliver with the reward.
+A ticket shows the character portrait, name, dishes, and Deliver with the reward.
+If a dish needs multiple portions, the ticket also shows its count on the board.
 Deliver is unavailable until the board holds every required item.
-A tap on the dishes opens the request dialog: who asks and why, each dish with its count on the board, the reward, and Deliver. Each dish row opens ingredient help.
-Deliver takes the dishes from the board. The dishes fly to the ticket, and the completion scene opens. Then the next open quest takes the ticket.
-A failed save keeps the session and shows an unsaved warning with Retry save.
+A tap on the dishes opens the request dialog.
+The dialog explains who asks and why.
+It shows each dish with its count on the board, the reward, and Deliver.
+Each dish row opens ingredient help.
+
+Deliver takes the dishes from the board. The dishes fly to the ticket, and a temporary notice reports the delivery and reward. The completion scene waits in Story. The next open quest takes the ticket.
+
+The notice does not block play or take focus.
+After a failed save, the notice includes the unsaved warning.
+Options offers Retry save.
+A failed save keeps the current session.
 
 The journal starts with the neighbours list and the optional introductions. Completed quests keep both their opening and completion scenes, except the quests of single-visit guests.
 Local news shows an earned news scene. It reads as a new scene while it waits, and as a replay after that.
@@ -131,7 +147,7 @@ Close, Escape, and Return from a quest scene restore the journal focus.
 
 The state stores unique, known `completedQuests` in delivery order. Each completed quest has its prerequisites earlier in the list. Every completed preparation has its necessary quests in the list.
 The delivery order determines local news. A waiting news scene is valid only after its delivery gate.
-Unknown IDs and contradictory state are rejected.
+The game rejects unknown IDs and contradictory state.
 See [Shared save compatibility](README.md#shared-save-compatibility).
 
 A failed quest write keeps the session state and a visible unsaved warning.
@@ -140,12 +156,17 @@ Import adopts a valid quest state only after its write succeeds.
 
 ## Acceptance and evidence
 
-The Node.js tests cover the tickets, repeated quantities, atomic failure, reward-once behavior, coin overflow, prerequisite cycles, unavailable chains, the funding check, and malformed quest records.
-The storage tests cover fresh, middle, and completed saves, malformed and oversized input, invalid completion lists, failed writes, and rejection of unsupported versions.
+The Node.js tests cover tickets, repeated quantities, atomic failure, single rewards, and coin overflow.
+They also cover prerequisite cycles, unavailable chains, the funding check, and malformed quest records.
+The storage tests cover fresh, partial, and completed saves, malformed and oversized input, and invalid completion lists.
+They also cover failed writes and rejection of unsupported versions.
 They cover the traveller sequence, Ionatan's visit, the shared visit, the vegetarian request, and the news scene three deliveries later.
 `tests/campaign-balance.test.ts` completes all 24 preparations and all 63 quests through legal actions without injected resources. The fixture fails on a deadlock.
 
-The built browser tests cover delivery from a ticket and from the request dialog, board-only delivery, keyboard focus, touch emulation, reload, export, import, scene replay, and unavailable storage.
-They cover the shared request with both portraits, its departure through reload and import, a failed delivery save, and the news scene in the journal.
+The browser tests use the built game.
+They cover delivery from a ticket and from the request dialog, with items from the board only.
+They cover keyboard focus, touch emulation, reload, export, import, scene replay, and unavailable storage.
+They cover the shared request with both portraits and its departure through reload and import.
+They also cover a failed delivery save and the news scene in the journal.
 The tickets and the request dialog have geometry, contrast, and screenshot checks at desktop and phone sizes in both themes.
 Use `npm run quality:full` for the integrated acceptance check.

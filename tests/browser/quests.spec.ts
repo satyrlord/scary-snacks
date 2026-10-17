@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { createGame, firstFreeBoardCell, getItem } from '../../src/engine.ts';
 import type { GameState, Quest } from '../../src/engine.ts';
-import { data, deliverButton, deliverable, exportText, failWrites, journal, KEY, onTicket, opened, options, person, quest, ratio, readTo, request, restoreWrites, saved, serialize, start, startAgainAndImport, story, supplies, supply, tile, ticket, validate } from './support.ts';
+import { data, deliverButton, deliverable, exportText, failWrites, journal, KEY, onTicket, opened, options, person, quest, ratio, readTo, request, restoreWrites, saved, serialize, start, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate } from './support.ts';
 
 /** The first request of each neighbour who lives in the village. */
 const firstQuests=data.characters.filter(character=>!character.visitor&&data.quests.some(value=>value.character===character.id)).map(character=>data.quests.find(value=>value.character===character.id)!);
@@ -21,20 +21,42 @@ for(const value of firstQuests)test(`${value.character} asks on a ticket, the re
   await expect(dialog.locator('.quest-person')).toHaveText(name);for(const line of value.opening)await expect(dialog.locator('.quest-view')).toContainText(line.text);
   for(const {item,quantity} of value.requirements)await expect(dialog.getByRole('button',{name:`${quantity} ${itemName(item)}: ${quantity} of ${quantity} on the board`,exact:true})).toBeVisible();
   await expect(dialog.locator('.quest-reward')).toHaveText(`Reward: ${value.reward} coins`);expect(await saved(page)).toEqual(before);
-  await dialogDeliver(page,value).click();await expect(page.locator('#story-line')).toContainText(value.completion[0].text);
-  await expect(page.getByRole('dialog',{name:value.title,exact:true}).locator('.completion-message')).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);
-  // The completion scene waits until the player finishes it. Then nothing else changes.
-  const delivered=await saved(page);expect(delivered.pendingScenes).toEqual([...before.pendingScenes,value.id]);const after={...delivered,pendingScenes:before.pendingScenes};
+  await dialogDeliver(page,value).click();await expect(page.locator('#modal')).toBeHidden();
+  await expect(toast(page)).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);
+  // Delivery pays at once. The completion scene waits until the player reads it, and reading changes nothing else.
+  const after=await saved(page);expect(after.pendingScenes).toEqual([...before.pendingScenes,value.id]);
   expect(after.completedQuests).toEqual([...before.completedQuests,value.id]);expect(after.coins).toBe(before.coins+value.reward);
   expect(after.board.filter(Boolean).length).toBe(before.board.filter(Boolean).length-supplies(value).length);
-  await readTo(page,'Back to the kitchen');await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(after);
   await expect(ticket(page,value)).toHaveCount(0);
-  await page.reload();await opened(page);expect(await saved(page)).toEqual(after);await expect(ticket(page,value)).toHaveCount(0);
+  await story(page);await page.getByRole('button',{name:`Read now: ${value.title}`,exact:true}).click();
+  await expect(page.locator('#story-line')).toContainText(value.completion[0].text);await readTo(page,'Back to the kitchen');
+  await expect(page.locator('#modal')).toBeHidden();const read={...after,pendingScenes:before.pendingScenes};expect(await saved(page)).toEqual(read);
+  await page.reload();await opened(page);expect(await saved(page)).toEqual(read);await expect(ticket(page,value)).toHaveCount(0);
 });
 
-test('a reload during a request completion scene keeps it waiting in Story and the journal, and Read now finishes it once',async({page})=>{
+test('the delivery toast sits bottom-right on desktop, reports the reward without a dialog, and clears on its own',async({page})=>{
+  const value=firstQuests[0];await page.emulateMedia({reducedMotion:'reduce'});
+  await start(page,deliverable(value));await deliverButton(page,value).click();
+  const note=toast(page);await expect(note).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);
+  await expect(page.locator('#modal')).toBeHidden();await expect(page.getByRole('dialog')).toHaveCount(0);
+  // The toast never takes input, so the board stays usable while it shows.
+  await tile(page,0).click();await expect(tile(page,0)).toBeFocused();
+  const box=(await note.boundingBox())!,viewport=page.viewportSize()!;
+  expect(box.x+box.width).toBeLessThanOrEqual(viewport.width);expect(box.y+box.height).toBeLessThanOrEqual(viewport.height);
+  expect(box.x).toBeGreaterThan(viewport.width*.5);expect(box.y).toBeGreaterThan(viewport.height*.5);
+  await expect(note).toHaveCount(0,{timeout:6000});
+});
+
+test('the delivery toast sits top-center on a phone',async({page})=>{
+  const value=firstQuests[0];await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'reduce'});
+  await start(page,deliverable(value));await deliverButton(page,value).click();
+  const box=(await toast(page).boundingBox())!;
+  expect(box.x+box.width/2).toBeGreaterThan(390*.3);expect(box.x+box.width/2).toBeLessThan(390*.7);expect(box.y).toBeLessThan(844*.3);
+});
+
+test('after delivering, the completion scene waits in Story and the journal across a reload, and Read now finishes it once',async({page})=>{
   const value=firstQuests[0];await start(page,deliverable(value));const before=await saved(page);await deliverButton(page,value).click();
-  await expect(page.locator('#story-line')).toContainText(value.completion[0].text);await expect(page.getByRole('button',{name:'Skip scene',exact:true})).toBeVisible();
+  await expect(toast(page)).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);
   const delivered=await saved(page);expect(delivered.pendingScenes).toEqual([...before.pendingScenes,value.id]);
   await page.reload();await opened(page);await expect(page.locator('#status')).toContainText('A story scene is waiting in Story.');
   expect(await saved(page)).toEqual(delivered);
@@ -53,7 +75,9 @@ test('request rewards survive export and import, while introductions and journal
     await page.getByRole('button',{name:`Meet ${character.name}`,exact:true}).click();await expect(page.locator('#story-line')).toContainText(character.introduction);
     await finishScene(page);expect(await saved(page)).toEqual(initial);
   }
-  await page.keyboard.press('Escape');await deliverButton(page,value).click();await readTo(page,'Back to the kitchen');
+  await page.keyboard.press('Escape');await deliverButton(page,value).click();
+  await expect(toast(page)).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);
+  await story(page);await page.getByRole('button',{name:`Read now: ${value.title}`,exact:true}).click();await readTo(page,'Back to the kitchen');
   const committed=await saved(page);await journal(page);
   for(const name of [`Read request: ${value.title}`,`Replay ${value.title}`]){
     await page.getByRole('button',{name,exact:true}).click();await finishScene(page);await expect(page.getByRole('button',{name:`Replay ${value.title}`,exact:true})).toBeFocused();expect(await saved(page)).toEqual(committed);
@@ -90,19 +114,23 @@ test('request dish help keeps focus on the next blocked merge on desktop and pho
 
 test('a failed delivery write says so, and a reload restores only durable progress',async({page})=>{
   const value=firstQuests[0];await start(page,deliverable(value));const before=await saved(page);
+  const notices=page.getByRole('status').filter({has:page.locator('.toast')});
+  await expect(page.locator('#toast-stack')).toHaveAttribute('role','status');
+  await expect(page.locator('#toast-stack')).toHaveAttribute('aria-live','polite');
   await failWrites(page);await deliverButton(page,value).click();
-  await expect(page.locator('.completion-message')).toContainText('This session is not saved. Use Retry save in Options, or export before leaving.');await readTo(page,'Back to the kitchen');
+  await expect(toast(page)).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins. This session is not saved. Use Retry save in Options, or export before leaving.`);
+  await expect(notices).toContainText('This session is not saved.');
   await expect(page.locator('#coins')).toHaveText(String(before.coins+value.reward));await expect(ticket(page,value)).toHaveCount(0);expect(await saved(page)).toEqual(before);
   await page.reload();await opened(page);await expect(deliverButton(page,value)).toBeEnabled();expect(await saved(page)).toEqual(before);
 });
 
 test('after a failed delivery write, Retry save in Options saves the delivery once',async({page})=>{
   const value=firstQuests[0];await start(page,deliverable(value));const before=await saved(page);
-  await failWrites(page);await deliverButton(page,value).click();await readTo(page,'Back to the kitchen');
+  await failWrites(page);await deliverButton(page,value).click();await expect(toast(page)).toContainText('This session is not saved.');
   await options(page);await expect(page.locator('#modal .save-status').first()).toContainText('Not saved:');
   await restoreWrites(page);await page.getByRole('button',{name:'Retry save',exact:true}).click();
   await expect(page.locator('#status')).toHaveText('Your progress is saved in this browser.');await expect(page.getByRole('button',{name:'Retry save',exact:true})).toHaveCount(0);
-  const after=await saved(page);expect(after.completedQuests).toEqual([...before.completedQuests,value.id]);expect(after.coins).toBe(before.coins+value.reward);expect(after.pendingScenes).toEqual([]);
+  const after=await saved(page);expect(after.completedQuests).toEqual([...before.completedQuests,value.id]);expect(after.coins).toBe(before.coins+value.reward);expect(after.pendingScenes).toEqual([value.id]);
   await page.reload();await opened(page);await expect(ticket(page,value)).toHaveCount(0);expect(await saved(page)).toEqual(after);
 });
 
@@ -112,9 +140,9 @@ test('keyboard and emulated touch can open a request and deliver it with focus r
     const page=await context.newPage(),value=firstQuests[0];await start(page,deliverable(value));
     await ticket(page,value).locator('.ticket-items').tap();await expect(page.getByRole('dialog',{name:value.title,exact:true})).toBeVisible();
     await dialogDeliver(page,value).focus();await page.keyboard.press('Space');
-    await expect(page.getByRole('dialog',{name:value.title,exact:true}).locator('.completion-message')).toBeVisible();await expect(page.locator('.story-controls .primary-button')).toBeFocused();
-    await readTo(page,'Back to the kitchen');expect((await saved(page)).completedQuests).toContain(value.id);
-    await expect(page.locator('#modal')).toBeHidden();await expect(page.locator('#story-button')).toBeFocused();
+    await expect(page.locator('#modal')).toBeHidden();await expect(toast(page)).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);
+    expect((await saved(page)).completedQuests).toContain(value.id);
+    await expect(page.locator('#tickets .ticket').first().locator('.ticket-items')).toBeFocused();
     expect(await page.locator('#board').evaluate(board=>board.getAnimations({subtree:true}).length)).toBe(0);
   }finally{await context.close();}
 });
@@ -140,13 +168,13 @@ test('a merge that completes a request marks its dishes ready and enables Delive
 test('another tab that delivers a request takes it off this tab’s ticket, and the reward is paid once',async({page,context})=>{
   const value=firstQuests[0];await start(page,deliverable(value));const before=await saved(page);
   const other=await context.newPage();await other.goto('./');await opened(other);
-  await deliverButton(other,value).click();await expect(other.getByRole('dialog',{name:value.title,exact:true})).toBeVisible();
+  await deliverButton(other,value).click();await expect(toast(other)).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);
   await expect(page.locator('#status')).toHaveText('This game moved on in another tab. The board now shows that progress.');
   await expect(ticket(page,value)).toHaveCount(0);await expect(page.locator('#coins')).toHaveText(String(before.coins+value.reward));
   expect((await saved(page)).completedQuests).toEqual([value.id]);await other.close();
 });
 
-test('a delivery flight cannot open its old scene after another tab replaces the game',async({page,context})=>{
+test('a delivery flight cannot show its old toast after another tab replaces the game',async({page,context})=>{
   const value=firstQuests[0];await start(page,deliverable(value));
   const other=await context.newPage();await other.goto('./');await opened(other);
   await deliverButton(page,value).click();await expect(page.locator('.deliver-flight').first()).toBeAttached();
@@ -161,7 +189,31 @@ test('a delivery flight cannot open its old scene after another tab replaces the
     document.dispatchEvent(new Event('finish-test-delivery'));
     await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
   });
-  await expect(page.locator('#modal')).toBeHidden();expect((await saved(page)).completedQuests).toEqual([]);await other.close();
+  await expect(page.locator('.toast')).toHaveCount(0);expect((await saved(page)).completedQuests).toEqual([]);await other.close();
+});
+
+for(const replacement of ['import','reset','another tab'] as const)test(`a visible delivery notice clears when ${replacement} replaces the game`,async({page,context})=>{
+  await page.emulateMedia({reducedMotion:'reduce'});
+  const value=firstQuests[0];await start(page,deliverable(value));
+  // Keep the notice alive so its expiry cannot hide a failed replacement cleanup.
+  const now=Date.now();await page.clock.install({time:now});await page.clock.pauseAt(now+1000);
+  await deliverButton(page,value).click();await expect(toast(page)).toContainText('Earned');
+  if(replacement==='another tab'){
+    const other=await context.newPage();await other.goto('./');await opened(other);
+    await other.evaluate(({key,text})=>localStorage.setItem(key,text),{key:KEY,text:serialize(createGame(data))});
+    await expect(page.locator('#status')).toContainText('another tab');await other.close();
+  }else{
+    await options(page);
+    if(replacement==='import'){
+      await page.locator('input[type="file"]').setInputFiles({name:'save.json',mimeType:'application/json',buffer:Buffer.from(serialize(createGame(data)))});
+      await page.getByRole('button',{name:'Import this saved game',exact:true}).click();
+    }else{
+      await page.getByRole('button',{name:'Start a new game',exact:true}).click();
+      await page.getByRole('button',{name:'Erase and start again',exact:true}).click();
+    }
+    await expect(page.locator('#modal')).toBeHidden();
+  }
+  expect((await saved(page)).completedQuests).toEqual([]);await expect(toast(page)).toHaveCount(0);
 });
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`the request dialog fits ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{

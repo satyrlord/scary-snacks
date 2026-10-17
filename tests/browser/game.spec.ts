@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { createGame, firstFreeBoardCell, generatorOutputs, resolveQuests, saleValue, taskEligibility } from '../../src/engine.ts';
 import type { GameState } from '../../src/engine.ts';
-import { KEY, act, appearance, checkpoint, data, deliverButton, deliverable, journal, opened, options, painting, payAndRead, quest, readTo, ratio, replaceSave, request, revealed, saved, serialize, start, stateText, supply, tile, ticket, unselect } from './support.ts';
+import { KEY, act, appearance, checkpoint, data, deliverButton, deliverable, journal, opened, options, painting, payAndRead, quest, ratio, replaceSave, request, revealed, saved, serialize, start, stateText, supply, tile, ticket, toast, unselect } from './support.ts';
 
 async function mergeStart(page: Page){await tile(page,13).click();await tile(page,14).click();expect((await saved(page)).board[14]?.code).toBe('bakery_2');}
 const sellLabel=(code: string)=>`Sell for ${saleValue(code,data)} ${saleValue(code,data)===1?'coin':'coins'}`;
@@ -32,7 +32,7 @@ test('the bistro produces, merges, delivers a request, and survives reload',asyn
   await tile(page,before.board.findIndex(cell=>cell?.code==='generator_drinks')).click();await tile(page,elderflowers).click();await tile(page,empty).click();
   expect((await saved(page)).board[empty]?.code).toBe('drinks_2');
   const deliver=deliverButton(page,welcome);await expect(deliver).toBeEnabled();await expect(deliver).toHaveAccessibleName(`Deliver ${welcome.title} to Mara for ${welcome.reward} coins`);await deliver.click();
-  await expect(page.getByRole('dialog',{name:welcome.title,exact:true})).toBeVisible();
+  await expect(toast(page)).toHaveText(`${welcome.title}: delivered. Earned ${welcome.reward} coins.`);
   const after=await saved(page);expect(after.completedQuests).toEqual([welcome.id]);expect(after.coins).toBe(welcome.reward);expect(after.board[empty]).toBeNull();expect(after.pendingScenes).toEqual([welcome.id]);
   await page.reload();await opened(page);expect(await saved(page)).toEqual(after);expect(errors).toEqual([]);
 });
@@ -92,14 +92,14 @@ test('after the last preparation the room is ready for the supper, with the slee
 test('a preparation paid with earned coins is revealed in the room once its story ends, and survives reload',async({page})=>{
   const initial=beforeFirstPreparation(),last=resolveQuests(initial,data).find(view=>view.status==='active')!.quest;
   await start(page,initial);expect(taskEligibility(await saved(page),data).ready).toBe(false);
-  await deliverButton(page,last).click();await expect(page.getByRole('dialog',{name:last.title,exact:true})).toBeVisible();await readTo(page,'Back to the kitchen');
+  await deliverButton(page,last).click();await expect(toast(page)).toHaveText(`${last.title}: delivered. Earned ${last.reward} coins.`);
   expect(taskEligibility(await saved(page),data).ready).toBe(true);
   const before=await saved(page);
   await page.locator('#story').getByRole('button',{name:/^Pay /}).click();
   // The game was saved before the story opens, while the room still shows the room before the change.
-  const paid=await saved(page);expect(paid.decorations).toEqual(['task_1']);expect(paid.coins).toBe(before.coins-data.tasks[0].cost);expect(paid.pendingScenes).toEqual(['task_1']);
-  // The last line of the story reads its scene. Nothing else changes.
-  const after={...paid,pendingScenes:[]};
+  const paid=await saved(page);expect(paid.decorations).toEqual(['task_1']);expect(paid.coins).toBe(before.coins-data.tasks[0].cost);expect(paid.pendingScenes).toEqual([last.id,'task_1']);
+  // The last line of the story reads its scene. The quest's own completion still waits in Story.
+  const after={...paid,pendingScenes:[last.id]};
   await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-00');
   for(const label of ['Continue','Continue','See what changed'])await page.locator('.story-controls .primary-button',{hasText:label}).click();
   await revealed(page);await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-01');
@@ -256,20 +256,18 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   await page.screenshot({path:testInfo.outputPath(`tickets-${viewport.width}-${theme}.png`)});
 });
 
-test('delivering a ready request pays its reward, opens its completion scene, and a waiting request takes its ticket',async({page})=>{
+test('delivering a ready request pays its reward with a toast, and a waiting request takes its ticket',async({page})=>{
   const initial=supply(createGame(data),['drinks_2']),views=resolveQuests(initial,data),waiting=views.find(view=>view.status==='waiting')!.quest;
   const others=views.filter(view=>view.status==='active'&&view.quest!==welcome).map(view=>view.quest.id);
   await start(page,initial);await expect(page.locator('#tickets .ticket').first()).toHaveAttribute('data-quest',welcome.id);
   await expect(ticket(page,welcome).locator('.ticket-item.ready')).toHaveCount(1);await deliverButton(page,welcome).click();
-  // The dishes fly to the ticket; then the completion scene of the request opens with the reward in words.
-  const scene=page.getByRole('dialog',{name:welcome.title,exact:true});await expect(scene).toBeVisible();
-  await expect(page.locator('#story-line')).toContainText(welcome.completion[0].text);await expect(scene.locator('.completion-message')).toHaveText(`${welcome.title}: delivered. Earned ${welcome.reward} coins.`);
+  // The dishes fly to the ticket; then a toast reports the reward in words, without a dialog to dismiss.
+  await expect(page.locator('#modal')).toBeHidden();await expect(toast(page)).toHaveText(`${welcome.title}: delivered. Earned ${welcome.reward} coins.`);
   await expect(page.locator('#coins')).toHaveText(String(welcome.reward));
-  const after=await saved(page);expect(after.coins).toBe(welcome.reward);expect(after.completedQuests).toEqual([welcome.id]);
+  const after=await saved(page);expect(after.coins).toBe(welcome.reward);expect(after.completedQuests).toEqual([welcome.id]);expect(after.pendingScenes).toEqual([welcome.id]);
   // The waiting request takes the delivered ticket; the other tickets keep their places.
   expect(await page.locator('#tickets .ticket').evaluateAll(cards=>cards.map(card=>(card as HTMLElement).dataset.quest))).toEqual([waiting.id,...others]);
   await expect(page.locator('#tickets .ticket').first()).toHaveClass(/arriving/);await expect(page.locator('.deliver-flight')).toHaveCount(0);
-  await readTo(page,'Back to the kitchen');await expect(scene).toBeHidden();expect((await saved(page)).pendingScenes).toEqual([]);
   await expect(ticket(page,welcome)).toHaveCount(0);await expect(page.locator('#tickets .ticket')).toHaveCount(3);
 });
 
@@ -296,8 +294,7 @@ test('the recipe book keeps undiscovered dishes under cloches and marks new ones
 test('reduced motion keeps the delivery outcome and words without the flight',async({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'});await start(page,supply(createGame(data),['drinks_2']));
   await deliverButton(page,welcome).click();await expect(page.locator('.deliver-flight')).toHaveCount(0);
-  await expect(page.getByRole('dialog',{name:welcome.title,exact:true})).toBeVisible();await expect(page.locator('.completion-message')).toContainText(`Earned ${welcome.reward} coins.`);
-  await page.keyboard.press('Escape');
+  await expect(page.locator('#modal')).toBeHidden();await expect(toast(page)).toContainText(`Earned ${welcome.reward} coins.`);
   await expect(page.locator('#tickets .ticket')).toHaveCount(3);await expect(page.locator('#tickets .ticket').first()).toBeVisible();
 });
 
@@ -354,7 +351,7 @@ for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'phone',wid
     await expect(viewport.name==='phone'?page.locator('#offer .pay-button'):page.locator('#hint-button')).toBeFocused();
     await tile(page,13).click();await page.keyboard.press('Tab');
     await expect(page.locator('#item-detail').getByRole('button',{name:/^Sell for /})).toBeFocused();
-    await expect(page.getByRole('status')).toContainText(/tap another to merge/i);
+    await expect(page.locator('.guide').getByRole('status')).toContainText(/tap another to merge/i);
     await unselect(page);await page.keyboard.press('Tab');
     await expect(viewport.name==='phone'?page.locator('#offer .pay-button'):page.locator('#hint-button')).toBeFocused();
   }
@@ -723,11 +720,10 @@ test('the skip link lands on the board without scrolling the header away',async(
   await expect(tile(page,0)).toBeFocused();expect(await page.evaluate(()=>scrollY)).toBe(0);
 });
 
-test('keyboard Deliver opens the completion scene, and closing it returns focus to the request that takes the ticket',async({page})=>{
+test('keyboard Deliver pays with a toast, and focus moves to the request that takes the ticket',async({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'});await start(page,supply(createGame(data),['drinks_2']));
   const deliver=deliverButton(page,welcome);await deliver.focus();await page.keyboard.press('Enter');
-  await expect(page.getByRole('dialog',{name:welcome.title,exact:true})).toBeVisible();await expect(page.locator('.story-controls .primary-button')).toBeFocused();
-  await page.keyboard.press('Escape');await expect(page.locator('#modal')).toBeHidden();
+  await expect(page.locator('#modal')).toBeHidden();await expect(toast(page)).toHaveText(`${welcome.title}: delivered. Earned ${welcome.reward} coins.`);
   await expect(page.locator('#tickets .ticket').first().locator('.ticket-items')).toBeFocused();await expect(page.locator('#tickets .ticket').first()).toBeVisible();
   await expect(page.locator('#story .story-waiting')).toContainText(`${data.characters.find(person=>person.id===welcome.completion[0].speaker)!.name} has more to say.`);
 });

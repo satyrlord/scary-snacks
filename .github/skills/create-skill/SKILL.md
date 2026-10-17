@@ -88,7 +88,10 @@ Choose the words with these rules:
 - Do not use phrasal verbs. Use one word. For example, use "install" and not "set up".
 - Use at most three nouns in a noun cluster. Use "of" or a short sentence for a longer cluster.
 - Do not use an -ing word as a noun or an adjective if a plain word exists.
-- Use "must" for a mandatory action, "should" for a recommended action, "may" for permission, and "can" for possibility or ability.
+- Use "must" for a mandatory action.
+- Use "should" for a recommended action.
+- Use "may" for permission.
+- Use "can" for possibility or ability.
 - Use "if" for a condition and "before" or "after" for order.
 - Do not use "it" or "this" if the reference is not clear. Repeat the noun.
 
@@ -97,6 +100,9 @@ Write the lists and the terms with these rules:
 - List every item. Do not use "and/or", "etc.", or "and so on".
 - Give the full term when an abbreviation first occurs.
 - Do not change identifiers, commands, paths, or quoted interface text.
+- Preserve exact source quotations, license text, and recorded generation prompts.
+- Define necessary technical terms before use.
+- Treat automated word counts as review aids, not proof of full ASD-STE100 compliance.
 
 For each branch, give these items:
 
@@ -106,6 +112,8 @@ For each branch, give these items:
 - The output.
 - The condition that completes the branch.
 
+Preserve approval that the user already gave for the current scope.
+Do not request the same approval again.
 Give the procedure for a change of scope.
 Give the procedure for a user instruction that prevents edits or tests.
 Keep automatic selection of the skill active.
@@ -122,6 +130,8 @@ Also examine the procedure, the output, and the condition that completes the bra
 Compare each command and path with the checkout.
 Identify contract text that the code does not obey at this time.
 Keep that contract text apart from the behavior that the code has at this time.
+Keep proposed specifications separate from implemented contracts.
+Compare external workflow requirements with the installed skill before you describe that workflow.
 Remove workflow rules that do not agree with the owner document that controls the workflow.
 
 Validate each changed skill package with the repository runner:

@@ -13,13 +13,15 @@ For an atlas, give these items in the prompt:
 
 - One bitmap with the documented aspect ratio of the asset and a regular grid of equal cells.
 - The number of columns and rows.
-- The subject or group, its count, its placement, and its transparent margin in each cell, as the accepted prompt specifies.
+- The subject or group, count, placement, and transparent margin for each cell.
+  Use the values from the accepted prompt.
 - No object across a cell edge, no grid lines, and no shadow that goes into an adjacent cell.
 - A transparent background with no checkerboard and no colored matte.
 - The full sequence of the objects, from left to right and then from top to bottom.
 
 For food and portraits, match the `sprite` indexes in `tools/create-original-data.ts`.
-For mascots, match the cell positions in `src/style.css`.
+For mascots and blockers, match the cell positions in `src/style.css`.
+For blockers, preserve each transparent center and the clear cell margins that `tests/assets.test.ts` checks.
 In the food atlas, row `r` holds the six stages of chain `r`.
 The first five cells of the last row hold the five generators.
 Get the dish names from that tool. Describe each dish as the picture must show it.
@@ -42,9 +44,13 @@ Measure the decoded width, the height, the color mode, and the alpha.
 The test requires a width of more than 1000 pixels.
 Check the image against the layout table in [`SKILL.md`](../SKILL.md).
 Use square sheets for food, portraits, and mascots.
+Use a three-by-two grid for `board-clutter` and a four-by-three grid for `preparation-clutter`.
+Keep each blocker cell square.
+Use a separate square image for `red-wine`.
 Use a 3:4 portrait image for a room state and for a decoration painting.
 Check that each atlas has transparent pixels.
 The room states, the decoration paintings, the timber, and the runner are opaque.
+The red wine picture and both blocker atlases have transparent backgrounds.
 
 ## Examine each cell
 

@@ -13,7 +13,7 @@ The game keeps Back, Continue, "Skip scene", "Read now", the journal, and journa
 - `src/engine.ts` owns the validated transitions: the scene queue, the `readScene` and `sceneLine` actions, `sceneDialogue`, `storyScenes`, `storyProblems`, and save validation.
 - `src/storage.ts` owns persistence. The save envelope does not change.
 - `src/app.ts` owns the dialogs, focus, the reading controls, and the save messages.
-- `tools/create-original-data.ts` authors the scene IDs. The IDs do not change.
+- `tools/create-original-data.ts` authors the scene identifiers (IDs). The IDs do not change.
 - The feature adds no network call, timer, energy limit, or runtime dependency.
 
 ## Rules
@@ -33,7 +33,9 @@ The game keeps Back, Continue, "Skip scene", "Read now", the journal, and journa
    After the room change, the next scene that the payment earned opens, unless another dialog is open.
 5. If the room change is already done, a resumed preparation scene ends with the usual end label.
    The scene does not offer "See what changed". This occurs after a reload.
-6. A quest completion scene opens at once after delivery. Finish and Skip mark the scene as read. Close and Escape leave the scene waiting.
+6. Delivery shows a temporary notice and leaves the quest completion scene waiting.
+   Read now opens the scene from Story. Recurring characters also have a Read completion entry in the journal.
+   Finish and Skip mark the scene as read. Close and Escape leave the scene waiting.
 7. The `sceneLine` action records the line that the player sees in a waiting scene.
    Continue and Back send `sceneLine`. Each change writes the save.
    The action must name a waiting scene and a line in the range of that scene. Otherwise, the action changes nothing.
@@ -48,7 +50,9 @@ The game keeps Back, Continue, "Skip scene", "Read now", the journal, and journa
     The save stays valid, because a line position gives no reward.
 11. If the save write fails, the scene shows the warning that the session is not saved. The warning occurs once for each scene.
     The player can continue to read. The game does not report the new line as saved.
-12. The dialog does not trap focus. Focus returns to the control that opened the scene.
+12. The modal dialog keeps keyboard focus inside while open.
+    Close and Escape close the dialog.
+    Focus returns to the control that opened the scene.
     If that control no longer exists, focus returns to a stable story control.
     The line counter and the controls keep their accessible names.
 13. The game shows speakers and text with `textContent`. Keyboard, pointer, and touch use the same transitions.
@@ -85,17 +89,21 @@ Follow [Shared save compatibility](README.md#shared-save-compatibility) in the s
 
 ## Acceptance
 
-- `tests/story.test.ts` covers the queue order of one payment, the story order in validation, the unique scene IDs, `sceneLine` at the first and last line, stale actions, the line after `readScene`, and malformed line records.
+- `tests/story.test.ts` covers payment queue order, story order in validation, and unique scene IDs.
+  It covers `sceneLine` at the first and last line, stale actions, and the line after `readScene`.
+  It also covers malformed line records.
 - `tests/quests.test.ts` covers the quest completion scene in the queue and failed deliveries that queue nothing.
-- `tests/storage.test.ts` covers saves with and without `sceneLines`, malformed records, round trips, imports, and failed writes.
+- `tests/storage.test.ts` covers saves with and without `sceneLines`, malformed records, save and load, imports, and failed writes.
 - `tests/campaign-balance.test.ts` expects each preparation scene and each delivered quest scene to wait at the end of a legal campaign.
 - `tests/browser/story.spec.ts` covers Escape, Close, reload, and export and import in a preparation scene and a chapter scene. Each case resumes at the saved line.
-  The tests also cover Skip on a paid scene, a resumed preparation scene after reload, a replay that keeps the line of a waiting scene, a line past the end, and a failed line write.
-- `tests/browser/quests.spec.ts` covers a reload during a quest completion scene.
+  The tests also cover Skip on a paid scene and a resumed preparation scene after reload.
+  They cover replay without changes to a waiting scene, a line past the end, and a failed line write.
+- `tests/browser/quests.spec.ts` covers delivery notices and a waiting quest completion scene across reload.
 
 Follow [Verification and release](README.md#verification-and-release) for the browser evidence.
 
 ## Dependencies
 
-There is no hard dependency. Specs 005, 010, 012, 013, and 014 use this continuation behavior.
+The feature has no prerequisite specification.
+Specs 005, 010, 012, 013, and 014 use this continuation behavior.
 Spec 015 can add a "Resume the story" entry to the front door if a scene is waiting.

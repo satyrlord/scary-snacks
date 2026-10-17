@@ -9,7 +9,8 @@ Keep the file name and the asset identifier for a replacement.
 Copy the accepted candidate to `public/assets/original/` with no change to its pixels.
 Do not run background removal, color changes, or compression on the candidate.
 Do not put a second file in that folder. The test fails for a file with no record.
-The game never loads a master. Make the variants with `npm run assets:build` after the records are updated.
+The game never loads a master.
+Update the records before you make variants with `npm run assets:build`.
 
 ## Update the two records
 
@@ -27,7 +28,8 @@ In `docs/asset-provenance.json`, update the entry of the asset with measured val
 - `promptId`, which must be the new prompt `id`.
 - `generation`, which gives the route. For the handoff route, give the tool that the user named.
 - `sourceGameImageInput`.
-- For an edit of an earlier painting: `referenceAsset`, which is the `id` of that painting, and `referenceSha256`, which is its `sha256`.
+- For an edit of an earlier painting, set `referenceAsset` to the identifier of that painting.
+  Set `referenceSha256` to its recorded `sha256`.
   The asset test compares the two values with the record of that painting.
 - `review`, which states what the agent examined.
   Add `visualAcceptance` only after the user accepts the image.
@@ -42,13 +44,15 @@ Update the top-level `note` field of that file only when its statements change.
 
 ## Add a new bitmap
 
-A new bitmap file is a product change. Get approval from the user for it.
+A new bitmap file is a product change.
+Confirm that the approved scope includes that change.
 Then do these steps:
 
 1. Add the entry to `docs/asset-provenance.json` and the prompt to `docs/asset-prompts.json`.
 2. Update the asset count in `tests/assets.test.ts`.
 3. Add the asset to `imageVariants` in `tools/build-image-variants.ts`.
-   Give widths for the largest size at which the game shows the asset, at twice the device pixel ratio.
+   Use the display sizes in `DESIGN.md` and the variant choices in `tools/build-image-variants.ts`.
+   Compare the required widths with the source dimensions before you generate variants.
    The transparent atlases, the runner, and the decoration paintings get WebP variants only.
    The room states and the timber get AVIF and WebP variants.
    The comments in that file give the reasons.

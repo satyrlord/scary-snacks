@@ -4,7 +4,10 @@ Status: Proposed. Not implemented. Priority: Optional. Dependencies: [005](005-c
 
 ## Current behavior and outcome
 
-After preparation 24, the story shows that the supper is complete. Every quest opens before the last preparation, so no requests remain after the supper. The board and the recipe book stay available. This is an intentional valid ending. It is not a failed terminal state.
+After preparation 24, the story shows that the supper is complete.
+Every quest opens before the last preparation, so no requests remain after the supper.
+The board and the recipe book stay available.
+The completed campaign is a valid ending.
 
 Provide a few voluntary goals after the finale, so that players who continue have a clear purpose. The finite campaign must stay visibly complete. This is an original design extension.
 
@@ -21,7 +24,9 @@ Provide a few voluntary goals after the finale, so that players who continue hav
 4. A character challenge is a sequence of three authored post-campaign requests from that character. The requests use the quest tickets, the request dialog, and the delivery rules of 005. The player chooses one active challenge at a time. Its next request takes a ticket.
 5. Starting or abandoning a challenge costs nothing. If the player resumes, the game keeps the delivered requests of that challenge. The player cannot restart a completed challenge for another one-time reward.
 6. Count dish deliveries by distinct item identifier (ID). One delivery with two copies of a dish counts as one newly delivered dish. Campaign deliveries count. Selling, discovering, storing, or replaying dialogue does not count as a delivery.
-7. The initial rewards are permanent marks in the book or the goal panel, and an original short thank-you scene. The game grants no coins, energy, upgrade, or mandatory unlock. All rewards are idempotent: a repeated claim grants nothing more.
+7. The initial rewards are permanent marks in the book or the goal panel, and an original short thank-you scene.
+   The game grants no coins, energy, upgrade, or mandatory unlock.
+   Each reward occurs once. A repeated claim grants nothing more.
 8. Goals have no deadline, streak, login requirement, leaderboard, or reset. When the player completes all goals, the board stays available and the completed marks stay visible.
 
 ## State and ownership

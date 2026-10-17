@@ -18,8 +18,9 @@ once. Clearing is optional for the campaign.
 
 Each preparation earns two or three contextual blockers, including the final
 payment. Their ingredients belong to chains that the payment has opened. A new
-source takes its cell first. Blockers use empty cells in board order, keep three
-usable empty cells, and have a limit of three unresolved preparation blockers.
+source takes its cell first. Blockers use empty cells in board order.
+Placement keeps three usable empty cells. At most three preparation blockers can remain unresolved.
+Ordinary actions can use the empty cells that placement preserves.
 Blockers can share sides. Remaining blockers wait in preparation order. A
 successful move, take, sale, quest delivery, or payment tries placement again.
 Failed actions, load, and import place nothing. Placement never replaces an item.
@@ -55,7 +56,7 @@ Board hints can point to any matching blocked ingredient.
 
 ## Data and saves
 
-`tools/create-original-data.ts` owns layouts and batches. Obstacle IDs stay
+`tools/create-original-data.ts` owns layouts and batches. Obstacle identifiers (IDs) stay
 stable. The `clutter` and `anchored` values select art only; they do not select
 different clearing rules. Validation checks unique positions, known ingredients
 with successors, available chains, and separation from initial items.
@@ -85,8 +86,8 @@ Prompt, provenance, and variant records identify the generated art.
 
 - Engine checks cover every blocker type, matching and wrong ingredients,
   unchanged neighbours, full boards, discoveries, and atomic failure.
-- Data and save checks cover IDs, positions, blocked cells, placement history,
-  queue order, the three-active limit, and the working-space reserve.
+- Data and save checks cover IDs, positions, blocked cells, placement history, and queue order.
+  They cover the limit of three active preparation blockers and the space that placement preserves.
 - Browser checks cover visible ingredients, help targets, pointer, drag,
   keyboard, emulated touch, reload, and preparation batches.
 - Art checks cover hashes, cell margins, and transparent centers. Browser

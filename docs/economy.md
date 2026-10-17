@@ -1,17 +1,19 @@
 # Campaign economy
 
-`PRODUCT.md` owns the rules. `tools/create-original-data.ts` owns the numbers.
-This record explains the authored price and work model.
+`PRODUCT.md` controls the rules. `tools/create-original-data.ts` defines the numbers.
+This record explains the price model and the work estimates.
 
 ## Money and portions
 
-One coin uses roughly one Romanian leu as its reference scale. This keeps a small food purchase
-and a repair budget comparable. It is a game budget, not a precise profit account.
-Production stays free. The game abstracts ingredient replenishment and operating expenses.
+One coin uses approximately one Romanian leu as its reference scale.
+This scale relates small food purchases to repair budgets.
+The model is a game budget, not a precise profit account.
+Production is free. The model does not charge for replacement ingredients or operating expenses.
 
-Each food has an explicit menu price for the portion below. The menu value of a quest
-is the sum of these prices. There is no multiplier based on merge stage.
-A later merge stage is not necessarily a more expensive food. Portions and the actual dish matter.
+Each food has a menu price for the portion below.
+The menu value of a quest is the sum of its portion prices.
+Merge stage does not multiply the price.
+A later stage does not always cost more. The portion and dish determine the price.
 
 | Chain | Item and reference portion | Coins |
 | --- | --- | ---: |
@@ -25,7 +27,7 @@ A later merge stage is not necessarily a more expensive food. Portions and the a
 | Warm | Mămăligă, one side portion | 8 |
 | Warm | Bulz, one main portion | 32 |
 | Warm | Smoked cheese plate, one plate | 40 |
-| Warm | Meat cabbage rolls, one main portion | 50 |
+| Warm | Cabbage rolls, one meat main portion | 50 |
 | Warm | Goulash pot, two main portions | 80 |
 | Sweets | Walnuts, one small ingredient portion | 3 |
 | Sweets | Doughnut, one piece | 8 |
@@ -46,47 +48,52 @@ A later merge stage is not necessarily a more expensive food. Portions and the a
 | Produce | Wild mushroom sauce, two small portions | 28 |
 | Produce | Sharing board, a board for two | 65 |
 
-The quests of Vlad and Elisabeta ask only for meat cabbage rolls, goulash, and red wine. Mina and Avram's shared
-vegetarian meal costs 168 coins at these menu prices and pays 168 coins. The request includes two
-zacuscă toasts, two roasted vegetable plates, one smoked cheese plate, and two fruit teas. Eggs and
-dairy are permitted. The later local gossip pays nothing.
+Vlad and Elisabeta request only meat cabbage rolls, goulash, and red wine.
+Mina and Avram share a vegetarian meal with a menu value and reward of 168 coins.
+Their request has two zacuscă toasts, two roasted vegetable plates, one smoked cheese plate, and two fruit teas.
+The request permits eggs and dairy. The later local news pays nothing.
 
-These are authored portion prices, informed by Romanian shop and restaurant offers. They are not
-copied menus or claims that every restaurant has these prices. The raw ingredient limit of 1 to 3
-coins follows the user's requirement. The merge chains remain game rules, not cooking recipes.
+The project defines these portion prices with reference to Romanian shops and restaurants.
+The model does not copy a menu or claim that every restaurant has these prices.
+The raw ingredient prices stay between 1 and 3 coins.
+Merge chains are game rules, not recipes for food preparation.
 
-A sale without a request is a clearance action. It gives one quarter of the menu price, rounded
-down, with a minimum of one coin. The discount is a stated game rule, not a claim about a resale
-market. It preserves the space-clearing action while keeping quest deliveries more valuable.
+A sale without a request clears space on the board.
+The sale gives one quarter of the menu price, rounded down, with a minimum of one coin.
+This discount is a game rule. The discount does not represent a resale market.
+Quest deliveries give more value than clearance sales.
 
 ## Quest rewards
 
-Quests earn the coins of the campaign. A personal request pays its menu value times the rate of
-the chapter in which it opens, rounded to an even number of coins:
+Quests earn campaign coins.
+A personal request multiplies its menu value by the rate of the chapter in which the request opens.
+The reward rounds to an even number of coins.
 
 | Chapter | 1 | 2 | 3 | 4 | 5 | 6 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | Rate | 3 | 2.5 | 2 | 1.5 | 1 | 1 |
 
-The early chapters pay more, so that the first room changes come quickly. The supply packs of the
-travellers and the meal for Mina and Avram pay their menu value. Ionatan's dinner has a menu value
-of 220 coins and pays 1,100 coins.
+Early chapters pay more to make the first room changes available sooner.
+Traveller supply requests and Mina and Avram's meal pay their menu value.
+Ionatan's dinner has a menu value of 220 coins and pays 1,100 coins.
 
-A quest that opens after preparation N is necessary for preparation N + 1. The funding rule: for each
-preparation, the rewards of the quests that open before it, added together, are never less than the
-costs of the preparations up to it, added together. `questProblems` in `src/engine.ts` checks this rule
-before the data can ship. Thus a player who delivers every open quest always has the coins for the next
-preparation. Sales are not part of the funding rule.
+A quest that opens after preparation N is necessary for preparation N + 1.
+For each preparation, total available quest rewards must equal or exceed total preparation costs to that point.
+`questProblems` in `src/engine.ts` checks this rule before the data can ship.
+A player who delivers every open quest has sufficient coins for the next preparation.
+The rule does not count sale income.
 
-## Work before price
+## Work and price
 
-The bistro repairs and reuses existing furniture. It does not buy a new room at each chapter.
-Each preparation has a scope, a material or stock allowance, a labour allowance, and estimated
-active person-hours. Its price is materials plus labour. Its place in the story does not set its price.
+The bistro repairs and reuses its furniture.
+Each preparation defines work, materials or stock, labour, and estimated active person-hours.
+Materials plus labour determine the cost. The story position does not determine the cost.
 
-The figures below are scoped estimates. Retail offers and service starting rates inform them.
-No supplier has quoted this fictional bistro. Quantities, labour hours, and the allocation of a
-part-used tin or supply pack are assumptions. No drying, curing, or delivery wait enters play.
+These figures are estimates for the stated work.
+Retail examples and minimum service rates inform the estimates.
+No supplier gives a quote for this fictional bistro.
+Quantities, hours, and the share of a partly used supply pack are assumptions.
+The game has no wait for paint to dry, materials to cure, or supplies to arrive.
 
 | N | Preparation | Materials or stock | Labour | Person-hours | Total coins |
 | --- | --- | ---: | ---: | ---: | ---: |
@@ -115,83 +122,95 @@ part-used tin or supply pack are assumptions. No drying, curing, or delivery wai
 | 23 | Add the final flowers | 120 | 60 | 1.5 | 180 |
 | 24 | Welcome the community supper | 60 | 60 | 2 | 120 |
 
-The specific scopes prevent several false costs:
+The work estimates have these limits:
 
-- Window: replace one pane, seal it, and prepare and paint the existing frame and shutters.
-  The 200 material coins allow about 120 for glass and 80 for glazing supplies and finish.
-  The four hours allow removal, preparation, fitting, sealing, and painting. The frame is reused.
-- Sign: the wood is sound. Sanding and repainting need small amounts of finish and 1.5 hours.
-- Shelves: the paintings already show the timber. Clean, secure, touch up, and stock it.
-  Do not charge for a new shelving unit.
-- Lamps: two fittings are supplied. Pay for bulbs, small materials, mounting, and connection work.
-- Table and chairs: restore the existing long table and two chairs. The eight hours cover several
-  pieces and their decorative finish. This is more work than moving finished furniture.
-- Tableware: allow six handmade bowls and six cups with saucers. Later tasks reuse this purchase.
-  The allowance uses 300 for bowls, about 160 for cups and saucers, and 20 for small supplies.
-- Courtyard: sweep about 20 square metres and bag leaves. No paving or landscaping is included.
-- Herb pots: three clay pots, three small plants, soil, and drainage. The material allowance is 100.
-- Door hood: reuse the sound structure. Replace about two square metres of wood shingles.
-  Allow 800 for shingles and 100 for fixings and weather seals, plus eight active labour hours.
-- First menu: one small slate, chalk, and half an hour to write and draw it.
-- Supper menus: ten sturdy prints and simple stands cost about 40. The labour also moves the
-  existing long table into the courtyard. The table is not purchased again.
-- Invitations: twenty small prints plus the depicted wreath, lantern, and three geraniums.
-  Existing towels are reused. This scope includes the gate decoration in the painting.
-- Final flowers: one outdoor light string and hanging supplies, plus gathered flowers in reused
-  vases. The light string must be suitable for outdoors.
-- Supper: twelve guests. Tasting stock, drinks, and the first serving batches have their own tasks.
-  The final task pays only for top-ups and hosting. It does not charge for all the furniture and food again.
+- Window: one replacement pane, seals, and preparation and paint for the existing frame and shutters.
+  Materials allow approximately 120 coins for glass and 80 for supplies and finish.
+  The four hours include removal, preparation, installation, seals, and paint. The frame stays in use.
+- Sign: the wood is sound. Sand and repaint the sign with small amounts of finish and 1.5 hours.
+- Shelves: the paintings show existing timber. Clean, secure, repair the finish, and stock the shelves.
+  The estimate does not include a new shelf unit.
+- Lamps: two existing fittings. The estimate covers bulbs, small materials, installation, and connection work.
+- Table and chairs: the existing long table and two chairs.
+  Eight hours cover the three pieces and their decorative finish.
+- Tableware: six handmade bowls and six cups with saucers. Later preparations reuse this purchase.
+  The allowance has 300 coins for bowls, approximately 160 for cups and saucers, and 20 for small supplies.
+- Courtyard: sweep approximately 20 square metres and collect leaves in bags.
+  The estimate has no pavement or landscape work.
+- Herb pots: three clay pots, three small plants, soil, and drainage material.
+  The material allowance is 100 coins.
+- Door hood: the sound structure stays in use. Replace approximately two square metres of wood shingles.
+  The estimate allows 800 coins for shingles and 100 for fasteners and weather seals.
+  The estimate includes eight active labour hours.
+- First menu: one small slate, chalk, and half an hour for text and pictures.
+- Supper menus: ten strong prints and simple stands cost approximately 40 coins.
+  The labour includes movement of the existing long table into the courtyard.
+- Invitations: twenty small prints, the wreath, the lantern, and three geraniums in the painting.
+  Existing towels stay in use. The estimate includes the gate decoration.
+- Final flowers: one outdoor light string, supplies to attach the string, and flowers in existing vases.
+  The light string must be suitable for outdoor use.
+- Supper: twelve guests. Earlier preparations pay for food samples, drinks, and the first portions.
+  The final preparation pays only for additional supplies and service.
 
 ## Effort in play
 
-The estimated person-hours describe the scale of the work. They are not a timer and not a play goal.
-The 24 preparations total 57 modelled person-hours and 5585 coins.
+The estimated person-hours describe the work. The hours do not set a timer or a play goal.
+The 24 preparations total 57 estimated person-hours and 5585 coins.
 
-Prices may go down from one preparation to the next. Cheap writing or arranging tasks do not become
-expensive because they are late in the story. The play effort of a preparation comes from the quests
-that it needs. No goal currency, timer, or per-chapter reset is added.
+A preparation can cost less than the preparation before it.
+Late menu or display work does not cost more only because the work occurs late in the story.
+The necessary quests determine the play effort.
+The game has no separate goal currency, timer, or chapter reset.
 
-## Reference offers
+## Reference inputs
 
-These primary sources support the scale and the distinctions. Supplier prices can change.
-Their amounts are reference inputs, not live promises in the game.
+The links below explain the scale of the model.
+The amounts are reference inputs, not live offers or supplier quotes for the game.
+A supplier can change prices or remove a page.
+Verify the source and the portion before a price revision.
 
-- [Auchan flour](https://www.auchan.ro/faina-alba-superioara-000-auchan-1-kg/p): a 1 kg bag at 1.99 lei.
-- [Sergiana food menu](https://delivery.sergiana.ro/ro/meniu-restaurant/fel-principal): side mamaliga at 7 lei,
-  sliced bread at 2 lei, and mushroom stew with mamaliga at 35 lei. These distinguish ingredients,
-  sides, and prepared main dishes. The search index exposes the menu text; the page can show a cookie panel.
-- [Paradisul Transilvaniei menu](https://paradisultransilvaniei.ro/ro/restaurant): tea 10 lei,
-  socata 18, cooked vegetables 20 to 22, desserts 15 to 25, and a cheese board 65.
-  The bistro's authored portions need not equal these restaurant portions.
-- [Simple glass](https://www.sticla-termopan.ro/preturi.php): advertised from 120 lei.
-  The page does not give enough detail to treat this as a fitted-window quote.
-- [Wood shingles](https://mobicam-furniture.ro/produse/sindrile-acoperis/): advertised from 400 lei per square metre.
+- [Auchan flour](https://www.auchan.ro/faina-alba-superioara-000-auchan-1-kg/p): 1.99 lei for a 1 kg bag.
+- [Sergiana menu](https://delivery.sergiana.ro/ro/meniu-restaurant/fel-principal): 7 lei for a mămăligă side and 2 lei for sliced bread.
+  Mushroom stew with mămăligă uses 35 lei. These examples distinguish ingredients, side dishes, and main dishes.
+- [Paradisul Transilvaniei menu](https://paradisultransilvaniei.ro/ro/restaurant): tea at 10 lei and socată at 18 lei.
+  Other inputs are vegetables at 20 to 22 lei, desserts at 15 to 25 lei, and cheese at 65 lei.
+  The game portions can differ from the restaurant portions.
+- [Simple glass](https://www.sticla-termopan.ro/preturi.php): a minimum price of 120 lei.
+  This amount is not a quote for an installed window.
+- [Wood shingles](https://mobicam-furniture.ro/produse/sindrile-acoperis/): a minimum price of 400 lei per square metre.
 - [Exterior wood finish](https://www.dedeman.ro/ro/lac/-lazura-pentru-lemn-sadolin-extra-incolor-exterior-0-75-l/p/5000519): 79 lei per 0.75 litre.
-  This is a frame-finish price anchor, not a food-contact worktop product specification.
-- [HandySmart services](https://handysmart.ro/preturi.html): shelf mounting from 50 lei and edge or surface repairs from 75 lei.
-  The published list has starting rates, not an hourly quote for this bistro.
-- [HandySmart restoration guide](https://handysmart.ro/blog-posts/reconditionari-mobila-veche.html): a table repair and refinish estimate of 150 to 400 lei.
-- [The Print Store](https://www.theprintstore.ro/print-preturi/): colour A4 at 1 leu on light paper or 2 lei on heavier paper.
+  This example informs the frame budget. This example does not specify a finish for surfaces that touch food.
+- [HandySmart services](https://handysmart.ro/preturi.html): 50 lei for shelf installation and 75 lei for edge or surface repairs.
+  These minimum rates do not define an hourly rate for the bistro.
+- [HandySmart restoration guide](https://handysmart.ro/blog-posts/reconditionari-mobila-veche.html): 150 to 400 lei for table repairs and finish.
+- [The Print Store](https://www.theprintstore.ro/print-preturi/): 1 leu for colour A4 on light paper, or 2 lei on heavier paper.
 - [Terracotta pot](https://www.leroymerlin.ro/produse/ghiveci-flori-teracota-17-cm-maro-teracota-11389175.html): 9.90 lei for a 17 cm pot.
-- [Herb plants](https://www.hornbach.ro/c/gradina/plante/fructe-legume-plante-aromatice/plante-aromatice/S19821/): small herbs around 18 lei each.
-  The game's three herbs remain rosemary, parsley, and lovage.
-- [Corund plate](https://www.invietraditia.ro/farfurie-ceramica-corund-albastru-cobalt-16-cm/): one handmade small plate at 60 lei.
-  [Corund sets](https://www.invietraditia.ro/arta-populara-romaneasca-si-obiecte-de-artizanat/ceramica-de-corund-korond/)
-  include six cups and saucers at 159 lei. These anchor handmade tableware, not disposable plates.
-- [Outdoor light string](https://www.dedeman.ro/ro/ghirlanda-luminoasa-party-hoff-interior/-exterior-12-led-uri-multicolore-soclu-g45-10-5-m-controler/p/1051995): 104.89 lei for an outdoor-rated example.
-  This is a price anchor only; the game keeps its existing warm lights.
+- [Herb plants](https://www.hornbach.ro/c/gradina/plante/fructe-legume-plante-aromatice/plante-aromatice/S19821/): approximately 18 lei for each small plant.
+  The game uses rosemary, parsley, and lovage.
+- [Corund plate](https://www.invietraditia.ro/farfurie-ceramica-corund-albastru-cobalt-16-cm/): 60 lei for one small handmade plate.
+  [Corund sets](https://www.invietraditia.ro/arta-populara-romaneasca-si-obiecte-de-artizanat/ceramica-de-corund-korond/) inform the 159 lei allowance for six cups and saucers.
+  These examples inform the handmade tableware budget. The game does not use disposable plates.
+- [Outdoor light string](https://www.dedeman.ro/ro/ghirlanda-luminoasa-party-hoff-interior/-exterior-12-led-uri-multicolore-soclu-g45-10-5-m-controler/p/1051995): 104.89 lei for an outdoor example.
+  The example informs the budget only. The game retains its warm lights.
 
 ## Verification and limits
 
-Run `node tools/campaign-balance.ts`. The report includes costs, work, actions, takes, merges,
-sales, deliveries, and separate quest and sale income for each preparation and chapter.
-The fixture plays a fresh game under one deterministic policy: it pays each preparation when it is
-ready and otherwise delivers the first quest that has a ticket.
+Run `node tools/campaign-balance.ts`.
+The report gives costs, work, actions, takes, merges, sales, and deliveries for each preparation and chapter.
+The report separates quest income from sale income.
 
-This shows how the model changes effort. It does not establish a satisfying human session.
-The largest balance uncertainty is the first repair: it is substantial work before the first room
-reward. Play an early and late chapter before changing the next price revision. Record the device,
-start save, action counts, and elapsed human play time. Do not convert bot runtime to player time.
+The fixture plays a fresh game with one repeatable policy.
+The fixture sells the initial food and pays each preparation when payment becomes available.
+Otherwise, the fixture delivers the first quest that has a ticket.
+The fixture makes each requested dish from the highest available source output.
+If the board is full, the fixture sells the lowest-value food that the current delivery does not need.
 
-A price change changes the reward of each quest that uses the item. Run the funding check after every
-price or reward change.
+This check measures actions under that policy. This check does not establish a satisfactory human play experience.
+The first repair remains the largest balance uncertainty: the player does substantial work before the first room reward.
+Play an early chapter before a price revision.
+Play a late chapter before a price revision.
+Record the device, initial save, action counts, and elapsed human play time.
+Do not convert automated execution time to player time.
+
+A price change changes the reward of each quest that requests the item.
+Run the campaign reward check after each price or reward change.

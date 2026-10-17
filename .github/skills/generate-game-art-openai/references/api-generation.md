@@ -2,6 +2,8 @@
 
 Read this module before a plan, a request, a measurement, or a record of the route.
 API means application programming interface. PNG means Portable Network Graphics.
+RGB means red, green, and blue. RGBA adds an alpha channel.
+MB means megabytes.
 
 ## Keep the route fixed
 
@@ -10,6 +12,17 @@ The helper sends `gpt-image-2.5-flare`, high quality, PNG output, and one image 
 It does not accept a different model, quality, format, or endpoint.
 `art-image.ts` uses only Node.js built-in modules.
 `art-composite.ts` also uses Sharp, a development dependency in `package.json`.
+
+For a helper repair, inspect these modules before the edit:
+
+- [`art-image.ts`](../scripts/art-image.ts): command arguments, safe paths, references, keys, and run records.
+- [`openai-api.ts`](../scripts/openai-api.ts): asset contracts and the API transport.
+- [`png-facts.ts`](../scripts/png-facts.ts): PNG decoding and measurements.
+- [`art-composite.ts`](../scripts/art-composite.ts): masks and region composites.
+
+Run `node --test tests/art-image.test.ts` after a helper repair.
+Run `npm run typecheck` to check the helper types.
+Keep credentials and paid requests out of those checks.
 
 The helper reads `OPENAI_API_KEY` from `.env.local` when it sends a request.
 It stops if Git tracks the file or does not ignore the file.
@@ -31,7 +44,7 @@ It requires multiples of 16 and an aspect ratio of 1:3 to 3:1.
 It requires an edge of at most 3840 pixels and 655,360 to 8,294,400 pixels in total.
 It also requires the shape of the asset:
 
-- Square for the three atlases and the timber.
+- Square for the food, core portrait, regular portrait, and mascot atlases, and the timber.
 - 3:1 for the runner.
 - 3:2 for the board-clutter atlas.
 - 3:4 for a room state and a decoration painting.
@@ -85,7 +98,7 @@ A room state after the base is a masked edit of the previous accepted state.
    The mask must be inside `analysis/art-generation/`.
    The helper sends the mask with that image and records the hash of the mask in the run.
 3. **Composite the region.** The provider uses the mask only as guidance. The provider can change pixels outside the mask.
-   Paste only the region back:
+   Copy only the changed region into the previous state:
 
    ```powershell
    node .github/skills/generate-game-art-openai/scripts/art-composite.ts composite `

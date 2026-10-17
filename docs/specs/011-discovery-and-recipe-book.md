@@ -4,7 +4,15 @@ Status: Partly implemented; remaining work is proposed. Priority: Optional. Depe
 
 ## Current behavior and outcome
 
-[`src/engine.ts`](../../src/engine.ts) records the item codes that the player discovers. In `recipeBook` ([`src/app.ts`](../../src/app.ts)), the game shows each discovered dish. The game keeps every undiscovered dish under a "Not yet" cloche that the player cannot use. The user interface (UI) shows the dish-only count out of 30. The UI announces a first discovery. The UI marks the book while new dishes wait. The details of a requested dish give production help and do not add a discovery. Persistent chain-completion marks remain proposed.
+[`src/engine.ts`](../../src/engine.ts) records the item codes that the player discovers.
+In `recipeBook` ([`src/app.ts`](../../src/app.ts)), the game shows each discovered dish.
+The game keeps every undiscovered dish under a "Not yet" cloche that the player cannot use.
+The user interface (UI) shows the dish count from the authored data, which has 30 dishes.
+After a take or merge discovers dishes, the UI announces the first new dish and marks the book.
+The book marker counts all dishes discovered by that take or merge.
+Other successful actions can discover visible blocker ingredients without that notice or marker.
+The details of a requested dish give production help and do not add a discovery.
+Persistent chain-completion marks remain proposed.
 
 `DESIGN.md` controls the current cloche presentation. The proposal below for a silhouette and a stage number does not replace the cloche. Decide this design question before you do the remaining work.
 
@@ -24,14 +32,19 @@ Make discovery visible in the recipe book, so that a new dish shows progress. Ke
 
 Reuse the existing permanent `discovered` set. Derive chain completion and book completion from the authored dish identifiers (IDs). Do not save another count that can change by itself. Validate the discoveries against the available item definitions and the applicable progression rules.
 
-The engine owns the discovery transitions. The UI resolves three cases of presentation: collected, undiscovered but required by a quest that has a ticket, and otherwise undiscovered. Save-provided text never becomes HyperText Markup Language (HTML).
+The engine owns the discovery transitions.
+The proposed UI distinguishes discovered dishes, undiscovered dishes on quest tickets, and other undiscovered dishes.
+Text from a save never becomes HyperText Markup Language (HTML).
 
 Generator tiers from [003](003-generator-progression.md) must not erase old discoveries. Content may assign an item to the permanent catalog explicitly.
 
 ## Save compatibility
 
 Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
-Keep valid discoveries through save and reload. Every item on the board must be discovered, as validation requires.
+Keep valid discoveries through save and reload.
+The discoveries must include every movable item on the board, as validation requires.
+New games also discover all visible blocker ingredients.
+Current saves can omit discoveries for unresolved clutter, as [007](007-board-clearing.md) describes.
 A repeated load must not replay every discovery notice. Notice acknowledgements are presentation-only and grant no reward.
 
 ## Thin implementation slices
@@ -50,4 +63,8 @@ A repeated load must not replay every discovery notice. Notice acknowledgements 
 
 ## Remaining design work
 
-Choose the silhouette art and the position of the notice in a small UI mock. Draw original silhouettes. Planning help for a required dish that the player has not discovered stays in every design, even if the presentation of the reveal changes.
+Resolve the proposed silhouette design against the cloche contract in `DESIGN.md` before implementation.
+Keep cloches unless the user approves a design change.
+If silhouettes receive approval, draw original art.
+Choose the notice position in a small UI model.
+Keep production help for every requested dish, including undiscovered dishes.

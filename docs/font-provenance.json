@@ -2,7 +2,7 @@
   "retrievedOn": "2026-10-13",
   "convertedOn": "2026-10-14",
   "conversion": "fontTools 4.66.1 with brotli 1.2.0: fontTools.ttLib.woff2.compress(source.ttf, target.woff2)",
-  "note": "Font and licence files come from the Google Fonts distribution at the pinned commit. The fonts ship as WOFF2. Each WOFF2 file is a lossless repackaging of the unmodified source TrueType (TTF) file, with no subsetting, no renaming, and no outline changes. If you decompress each WOFF2, the tables are byte-identical to the source, with two exceptions that the WOFF2 format requires. The first exception is head.flags bit 11 (lossless conversion) with its checksum. The second exception is the empty, unsigned DSIG stub of Grenze Gotisch, which WOFF2 drops. The local file names changed. The font names did not change. The full licence texts ship beside the fonts.",
+  "note": "The font and license files come from the Google Fonts distribution at the specified commit. The fonts use Web Open Font Format 2 (WOFF2). Each WOFF2 file preserves its source TrueType (TTF) font without changes to names, glyph coverage, or outlines. Decompression preserves the source tables with two exceptions required by WOFF2. The first exception is head.flags bit 11 and its checksum. This bit identifies lossless conversion. The second exception is the empty, unsigned DSIG table of Grenze Gotisch, which WOFF2 removes. Only the local file names change. The complete license texts ship beside the fonts.",
   "files": [
     {
       "family": "Inter",
