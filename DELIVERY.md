@@ -57,7 +57,7 @@ The validator does not require three empty cells in a save. Ordinary production 
 
 ## Manual checks
 
-`npm run saves:checkpoints` writes 25 saves to `.tools/checkpoint-saves/`, one for each number of paid preparations. A file name gives that number and the next preparation, for example `12-next-clear-the-courtyard.json`. Each save holds the exact coins and the delivered quests for the next preparation. It holds no scene that waits from an earlier payment. A payment then shows only the scenes that it earns.
+`npm run saves:checkpoints` writes 25 saves to `tmp/checkpoint-saves/`, one for each number of paid preparations. A file name gives that number and the next preparation, for example `12-next-clear-the-courtyard.json`. Each save holds the exact coins and the delivered quests for the next preparation. It holds no scene that waits from an earlier payment. A payment then shows only the scenes that it earns.
 
 The finished save holds the scene of preparation 24, the closing scene of chapter 6, and the finale. Import a save with Import saved game in Options. Pay for the next preparation to see its story and reveal. These saves do not measure campaign balance.
 

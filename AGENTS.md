@@ -34,7 +34,10 @@ Git history keeps the past.
   `tests/support.ts` and `tests/browser/support.ts` hold the shared test helpers.
 - `docs/` holds the records and the feature specifications.
 - `.github/` holds the repository skills, the skill link script, and the Pages workflow.
-- Git ignores the local folders `private/`, `analysis/`, `.release/`, `.tools/`, and `.impeccable/`.
+- `.tools/` holds only local tools and scripts for repeated use.
+  Use `tmp/` for script artifacts, scripts for one task, temporary analysis, and results.
+  Configure local tools to write these files to `tmp/`.
+- Git ignores the local folders `private/`, `analysis/`, `.release/`, `.tools/`, `.impeccable/`, and `tmp/`.
   `analysis/` holds the build manifest and the art-generation candidates.
   Do not read `private/` or `analysis/` as an input for source code, content, art, or tests.
 

@@ -29,7 +29,7 @@ export function checkpointState(data: GameData, count: number, start: GameState 
 
 if (import.meta.main) {
   const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
-  const target = new URL('../.tools/checkpoint-saves/', import.meta.url);
+  const target = new URL('../tmp/checkpoint-saves/', import.meta.url);
   await rm(target, { recursive: true, force: true });
   await mkdir(target, { recursive: true });
   for (let count = 0; count <= data.tasks.length; count++) {
@@ -38,5 +38,5 @@ if (import.meta.main) {
     // The same envelope and checks as Export saved game, so every file imports.
     await writeFile(new URL(`${name}.json`, target), exportSave(state, candidate => validateGame(candidate, data)));
   }
-  console.log(`Created ${data.tasks.length + 1} checkpoint saves in .tools/checkpoint-saves/. Import one from Options, with Import saved game.`);
+  console.log(`Created ${data.tasks.length + 1} checkpoint saves in tmp/checkpoint-saves/. Import one from Options, with Import saved game.`);
 }
