@@ -26,7 +26,7 @@ If the user tells you not to edit files, use verification mode.
 
 ## Prepare the artifact
 
-Read `PRODUCT.md`, the changed contracts, `package.json`, `playwright.config.ts`, and `.github/workflows/pages.yml`.
+Read `PRODUCT.md`, `DESIGN.md`, `DELIVERY.md`, `package.json`, `playwright.config.ts`, and `.github/workflows/pages.yml`.
 Build with `npm run build`. The build changes no tracked file.
 For the automated flows, run `npm run test:browser`.
 The command serves `dist/` in Chromium.
@@ -54,8 +54,9 @@ Test pointer selection, drag input, the arrow keys, Enter, Space, and Escape.
 Test the save after a reload. Test export, import, and reset.
 Test a malformed save. The game must keep the stored data and show a recovery message.
 Test the Light, Dark, and System appearance modes and their persistence.
+Test the Reduced, Full, and System motion choices and their persistence.
 Test the desktop and phone viewports that "The One Screen Rule" and "Required actions" in `DESIGN.md` name.
-Test the two fonts and each atlas tile.
+Test the two fonts and each atlas cell.
 
 Use test assertions for state, stored values, roles, and names.
 Use test assertions for geometry, overlap, scrolling, and computed styles.
@@ -64,8 +65,8 @@ Each request must stay in the local origin and in the active base path.
 The paths of `private/` and `analysis/` must give the status 404.
 Screenshots can show a visual result. They do not show state or interaction.
 
-For sound, record a manual listening procedure.
-Automation shows only that the sound setup runs.
+For sound, record a manual procedure that a person follows.
+Automation shows only that the sound code runs.
 Automation cannot do these checks. Give them as limits in the report:
 
 - A drag with a finger on a physical phone.

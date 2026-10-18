@@ -250,7 +250,7 @@ const request = (rows: [string, number][]) => ({ requirements: rows.map(([item, 
   reward: rows.reduce((sum, [item, quantity]) => sum + items[item].price * quantity, 0) });
 const lines = (speaker: string, text: string) => [{ speaker, text }];
 type QuestRow = [id: string, character: string, title: string, window: number, requirements: [string, number][], opening: string, completion: string];
-// The four core arcs keep their requests. The regulars ask for dishes from their favourite chains.
+// The four core arcs keep their quests. The regulars ask for dishes from their favourite chains.
 const questRows: QuestRow[] = [
   ['mara-welcome', 'mara', 'A welcome drink', 0, [['drinks_2', 1]],
     'Let us try a glass of socată for the first welcome. I want something simple to offer when a neighbour comes through the door.',
@@ -463,7 +463,7 @@ const questRows: QuestRow[] = [
     'I built new shelves in the cellar. Something keeps moving the jars to the left. A goulash pot and a zacuscă toast, please. I will eat down there and watch.',
     'The jars stayed still while I ate. When I went upstairs, they moved to the left again. We have agreed to share the shelves.'],
 ];
-// Three requests offer a second finish for a decoration. Delivery adds the finish, and the player can then switch it in the room.
+// Three quests offer a second finish for a decoration. Delivery adds the finish, and the player can then switch it in the room.
 const finishes: Record<string, Quest['unlocks']> = {
   'eszter-green-bowls': { slot: 'tableware', variant: 'green' }, 'ileana-blue-cloth': { slot: 'textiles', variant: 'blue' }, 'sanziana-lilacs': { slot: 'flowers', variant: 'lilacs' },
 };
@@ -523,7 +523,7 @@ campaign.push({ window: 10, quest: { id: 'mina-avram-search', character: 'mina',
 // The tickets show open quests in authored order, so the quests are listed in the order in which they open.
 const quests: Quest[] = campaign.sort((first, second) => first.window - second.window).map(({ quest }) => quest);
 // The renovation: every preparation repaints one room, so the bistro visibly improves as coins are spent.
-// Each area is a series of 3:4 portrait paintings (docs/specs/001-room-states-art-plan.md). A state shows every change paid for in its area.
+// Each area is a series of 3:4 portrait paintings (docs/specs/001-visible-renovation-art-plan.md). A state shows every change paid for in its area.
 const areas: Area[] = [
   { id: 'front-room', name: 'The front room', unlock: null },
   { id: 'courtyard', name: 'The courtyard', unlock: 'task_13' },

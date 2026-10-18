@@ -39,15 +39,15 @@ function delivered(state: GameState,id: string){
   return next;
 }
 
-test('Mina and Avram arrive only after Ionatan’s dinner and their preparation, and stay while their request is open',async({page})=>{
+test('Mina and Avram arrive only after Ionatan’s dinner and their preparation, and stay while their quest is open',async({page})=>{
   // Ionatan's dinner is open, so the shared visit is not.
   await start(page,onTicket(dinner));await guests(page,false);await expect(ticket(page,dinner)).toHaveCount(1);
   // The dinner is delivered, but the preparation that brings them is not done.
   const fed=delivered(onTicket(dinner),dinner.id);expect(fed.decorations).not.toContain(search.afterTask);
   await replaceSave(page,fed);await guests(page,false);
-  // After the preparation, both guests are in the journal and the request is on a ticket.
+  // After the preparation, both guests are in the journal and the quest is on a ticket.
   await replaceSave(page,onTicket(search));await guests(page,true);
-  await expect(ticket(page,search)).toHaveAccessibleName(`${person('mina').name}’s request: ${search.title}`);await portrait(ticket(page,search).locator('.portrait'),person('mina').sprite);
+  await expect(ticket(page,search)).toHaveAccessibleName(`${person('mina').name}’s quest: ${search.title}`);await portrait(ticket(page,search).locator('.portrait'),person('mina').sprite);
 });
 
 test('the shared vegetarian meal has both voices, leaves once, keeps the departure through reload and import',async({page})=>{
@@ -69,7 +69,7 @@ test('the shared vegetarian meal has both voices, leaves once, keeps the departu
 
 test('local news from the road arrives with the third delivery after the shared meal',async({page})=>{
   let state=delivered(deliverable(search),search.id);
-  // Two later requests are delivered through the rules. When no request is open, the next preparation is paid to open more.
+  // Two later quests are delivered through the rules. When no quest is open, the next preparation is paid to open more.
   const next=()=>{
     while(!resolveQuests(state,data).some(view=>view.status==='active')){
       state.coins=data.tasks[state.taskIndex].cost;state=act(state,{type:'task'});for(const id of [...state.pendingScenes])state=act(state,{type:'readScene',id});
@@ -111,7 +111,7 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const
   await page.screenshot({path:testInfo.outputPath('shared-meal.png')});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
 
-test('Vlad’s request shows the red wine picture on its ticket and opens the wine’s help',async({page})=>{
+test('Vlad’s quest shows the red wine picture on its ticket and opens the wine’s help',async({page})=>{
   const value=quest('vlad-after-dark');expect(value.requirements.map(requirement=>requirement.item)).toContain('drinks_5');
   await start(page,onTicket(value));await portrait(ticket(page,value).locator('.portrait'),person('vlad').sprite);
   await winePicture(ticket(page,value));await request(page,value);
@@ -145,7 +145,7 @@ async function winePicture(target: Locator){
   expect(await image.evaluate(async element=>{const image=new Image();image.src=element.getAttribute('href')!;await image.decode();return [image.naturalWidth,image.naturalHeight];})).toEqual([256,256]);
 }
 
-test('red wine made through the visible controls readies Vlad’s request, and Deliver pays it once',async({page})=>{
+test('red wine made through the visible controls readies Vlad’s quest, and Deliver pays it once',async({page})=>{
   test.setTimeout(60000);await page.emulateMedia({reducedMotion:'reduce'});
   const value=quest('vlad-after-dark'),initial=supply(onTicket(value),value.requirements.filter(requirement=>requirement.item!=='drinks_5').map(requirement=>requirement.item));
   await start(page,initial);await expect(deliverButton(page,value)).toBeDisabled();

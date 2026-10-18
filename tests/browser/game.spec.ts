@@ -24,7 +24,7 @@ function beforeFirstPreparation(){
   return state;
 }
 
-test('the bistro produces, merges, delivers a request, and survives reload',async({page})=>{
+test('the bistro produces, merges, delivers a quest, and survives reload',async({page})=>{
   const errors: string[]=[];page.on('pageerror',error=>errors.push(error.message));await start(page);await mergeStart(page);
   // One tap on the drinks source takes Elderflowers; a merge with the other makes the Socată that Mara asks for.
   const before=await saved(page),empty=firstFreeBoardCell(before,data),elderflowers=before.board.findIndex(cell=>cell?.code==='drinks_1');
@@ -58,7 +58,7 @@ test('clicking a different item selects it for single-item actions; only a drag 
   state=await saved(page);expect(state.board[27]?.code).toBe('bakery_1');expect(state.board[22]?.code).toBe('drinks_1');
 });
 
-test('a ticket opens its request, a dish row says how to get the dish, and Show me points at the next step on the board',async({page})=>{
+test('a ticket opens its quest, a dish row says how to get the dish, and Show me points at the next step on the board',async({page})=>{
   await start(page);const dishes=ticket(page,welcome).locator('.ticket-items');
   await expect(dishes).toHaveAccessibleName(`${welcome.title}: 1 ${data.items.drinks_2.name}, 0 on the board`);await dishes.click();
   const dialog=page.getByRole('dialog',{name:welcome.title,exact:true});await expect(dialog.locator('.quest-person')).toHaveText('Mara');
@@ -80,11 +80,11 @@ test('a new game opens on the unfinished front room, with Miez on the windowsill
   await expect(page.locator('#room-caption li')).toHaveText([stateText('front-room-00')]);expect(await page.locator('#room-caption').evaluate(e=>e.getBoundingClientRect().width)).toBeLessThanOrEqual(1);
 });
 
-test('after the last preparation the room is ready for the supper, with the sleeping cat on the counter and no further requests',async({page})=>{
+test('after the last preparation the room is ready for the supper, with the sleeping cat on the counter and no further quests',async({page})=>{
   await start(page,checkpoint(data.tasks.length));
   await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-24');await expect.poll(()=>painting(page)).toMatch(/^front-room-24-/);
   await expect(page.locator('#story')).toContainText('The table is ready.');await expect(page.locator('.counter-cat')).toBeVisible();await expect(page.locator('#cat-button')).toBeVisible();
-  await expect(page.locator('#tickets .ticket')).toHaveCount(0);await expect(page.locator('.tickets-empty')).toHaveText('Every request is delivered. The bistro is yours.');
+  await expect(page.locator('#tickets .ticket')).toHaveCount(0);await expect(page.locator('.tickets-empty')).toHaveText('Every quest is delivered. The bistro is yours.');
   await expect(page.locator('#room-pin')).toHaveAccessibleName(`New: ${stateText('front-room-24')}`);
   await expect(page.locator('#room-caption li').first()).toHaveText(stateText('front-room-00'));await expect(page.locator('#room-caption li').last()).toHaveText(stateText('front-room-24'));
 });
@@ -162,6 +162,16 @@ test('a short-screen resize keeps the board inert until its active reveal ends',
   await payAndRead(page);await expect(page.locator('.game-layout')).toHaveClass(/revealing/);
   await page.setViewportSize({width:844,height:390});
   await expect(page.locator('#drawer-handle')).toBeHidden();await expect(page.locator('#drawer-body')).toHaveAttribute('inert','');
+  await revealed(page);await expect(page.locator('#drawer-body')).not.toHaveAttribute('inert');
+  await mergeStart(page);
+});
+
+test('a reveal on a short screen leaves the board open, because the drawer does not move',async({page})=>{
+  await page.setViewportSize({width:844,height:500});await start(page,checkpoint(0,{ready:true}));
+  await payAndRead(page);await expect(page.locator('.game-layout')).toHaveClass(/revealing/);
+  // The class and the lock are set together, so a snapshot now shows the lock if the reveal sets one.
+  const during=await page.evaluate(()=>({inert:(document.querySelector('#drawer-body') as HTMLElement).inert,reveal:(document.querySelector('#room-stage') as HTMLElement).dataset.reveal}));
+  expect(during.reveal).not.toBe('done');expect(during.inert).toBe(false);
   await revealed(page);await expect(page.locator('#drawer-body')).not.toHaveAttribute('inert');
   await mergeStart(page);
 });
@@ -250,7 +260,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   await expect(page.locator('#tickets .ticket')).toHaveCount(3);
   for(const [slot,value] of open.entries()){
     const card=page.locator('#tickets .ticket').nth(slot),name=data.characters.find(person=>person.id===value.character)!.name;
-    await expect(card).toHaveAttribute('data-quest',value.id);await expect(card).toHaveAccessibleName(`${name}’s request: ${value.title}`);
+    await expect(card).toHaveAttribute('data-quest',value.id);await expect(card).toHaveAccessibleName(`${name}’s quest: ${value.title}`);
     await expect(card.locator('.ticket-item')).toHaveCount(value.requirements.length);await expect(card.locator('.deliver-button')).toBeDisabled();
     await expect(card.locator('.deliver-button')).toHaveAccessibleName(new RegExp(` for ${value.reward} coins$`));await expect(card.locator('.deliver-button')).toContainText(String(value.reward));
     const box=(await card.boundingBox())!;expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(viewport.width);expect(box.y+box.height).toBeLessThanOrEqual(viewport.height);
@@ -266,7 +276,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   await page.screenshot({path:testInfo.outputPath(`tickets-${viewport.width}-${theme}.png`)});
 });
 
-test('delivering a ready request pays its reward with a toast, and a waiting request takes its ticket',async({page})=>{
+test('delivering a ready quest pays its reward with a toast, and a waiting quest takes its ticket',async({page})=>{
   const initial=supply(createGame(data),['drinks_2']),views=resolveQuests(initial,data),waiting=views.find(view=>view.status==='waiting')!.quest;
   const others=views.filter(view=>view.status==='active'&&view.quest!==welcome).map(view=>view.quest.id);
   await start(page,initial);await expect(page.locator('#tickets .ticket').first()).toHaveAttribute('data-quest',welcome.id);
@@ -275,7 +285,7 @@ test('delivering a ready request pays its reward with a toast, and a waiting req
   await expect(page.locator('#modal')).toBeHidden();await expect(toast(page)).toHaveText(`${welcome.title}: delivered. Earned ${welcome.reward} coins.`);
   await expect(page.locator('#coins')).toHaveText(String(welcome.reward));
   const after=await saved(page);expect(after.coins).toBe(welcome.reward);expect(after.completedQuests).toEqual([welcome.id]);expect(after.pendingScenes).toEqual([welcome.id]);
-  // The waiting request takes the delivered ticket; the other tickets keep their places.
+  // The waiting quest takes the delivered ticket; the other tickets keep their places.
   expect(await page.locator('#tickets .ticket').evaluateAll(cards=>cards.map(card=>(card as HTMLElement).dataset.quest))).toEqual([waiting.id,...others]);
   await expect(page.locator('#tickets .ticket').first()).toHaveClass(/arriving/);await expect(page.locator('.deliver-flight')).toHaveCount(0);
   await expect(ticket(page,welcome)).toHaveCount(0);await expect(page.locator('#tickets .ticket')).toHaveCount(3);
@@ -458,7 +468,7 @@ test('a source on a full board takes nothing and says why',async({page})=>{
   await start(page,state);
   const before=await saved(page);await tile(page,1).click();
   await expect(tile(page,1)).toHaveAttribute('aria-pressed','true');expect(await saved(page)).toEqual(before);
-  await expect(page.locator('#status')).toHaveText('The board is full. Merge a pair or deliver a request.');
+  await expect(page.locator('#status')).toHaveText('The board is full. Merge a pair or deliver a quest.');
 });
 
 test('with the story card on screen, the card alone carries Pay and Mara keeps her line',async({page})=>{
@@ -661,7 +671,7 @@ test('only approved assets load from the active root or Pages prefix, and only t
   await expect(page.locator('meta[http-equiv="Content-Security-Policy"]')).toHaveAttribute('content',/script-src 'self'/);
 });
 
-test('a phone ticket with two dishes is one 44px target, and each dish row of its request opens its help and returns',async({page})=>{
+test('a phone ticket with two dishes is one 44px target, and each dish row of its quest opens its help and returns',async({page})=>{
   const sorin=quest('sorin-first-ride');expect(sorin.requirements).toHaveLength(2);
   await page.setViewportSize({width:360,height:740});await start(page);
   const dishes=ticket(page,sorin).locator('.ticket-items');await expect(dishes.locator('.ticket-item')).toHaveCount(2);
@@ -676,7 +686,7 @@ test('a phone ticket with two dishes is one 44px target, and each dish row of it
     const row=dialog.locator('.quest-item').nth(index);await expect(row).toHaveAccessibleName(`${quantity} ${data.items[item].name}: 0 of ${quantity} on the board`);
     await expect(row.locator('.quest-count')).toHaveText(`0 / ${quantity} on board`);
     await row.click();await expect(page.getByRole('dialog',{name:data.items[item].name,exact:true})).toBeVisible();await expect(page.locator('#modal .item-how')).toBeVisible();
-    // Close returns to the request with the row's place.
+    // Close returns to the quest with the row's place.
     await page.getByRole('button',{name:'Close dialog'}).click();await expect(dialog).toBeVisible();await expect(dialog.locator('.quest-item')).toHaveCount(2);
   }
   await page.keyboard.press('Escape');await expect(page.locator('#modal')).toBeHidden();
@@ -896,7 +906,7 @@ test('the skip link lands on the board without scrolling the header away',async(
   await expect(tile(page,0)).toBeFocused();expect(await page.evaluate(()=>scrollY)).toBe(0);
 });
 
-test('keyboard Deliver pays with a toast, and focus moves to the request that takes the ticket',async({page})=>{
+test('keyboard Deliver pays with a toast, and focus moves to the quest that takes the ticket',async({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'});await start(page,supply(createGame(data),['drinks_2']));
   const deliver=deliverButton(page,welcome);await deliver.focus();await page.keyboard.press('Enter');
   await expect(page.locator('#modal')).toBeHidden();await expect(toast(page)).toHaveText(`${welcome.title}: delivered. Earned ${welcome.reward} coins.`);

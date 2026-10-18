@@ -90,7 +90,7 @@ test('every neighbour asks across the whole campaign, and every quest opens befo
 test('tickets show at most three active quests in authored order, and a waiting quest takes a freed ticket', () => {
   assert.equal(QUEST_TICKETS, 3);
   const start = createGame(data);
-  // A second request of a character in the same window waits for the first, so it is locked, not waiting.
+  // A second quest of a character in the same window waits for the first, so it is locked, not waiting.
   const open = data.quests.filter((quest, at) => quest.afterTask === null && !data.quests.slice(0, at).some(earlier => earlier.character === quest.character)).map(quest => quest.id);
   assert.deepEqual(ids(start, 'active'), open.slice(0, 3));
   assert.deepEqual(ids(start, 'waiting'), open.slice(3));
@@ -155,7 +155,7 @@ test('quest data rejects unknown IDs, quantities, cycles, unavailable chains, fi
   }
 });
 
-test('traveller requests return in one shared sequence of packs that fit the board', () => {
+test('traveller quests return in one shared sequence of packs that fit the board', () => {
   const visits = data.quests.filter(quest => {
     const person = data.characters.find(person => person.id === quest.character)!;
     return person.visitor && !person.singleVisit;

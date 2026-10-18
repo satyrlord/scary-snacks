@@ -7,9 +7,9 @@ import { data, deliverButton, deliverable, dialogDeliver, exportText, failWrites
 const firstQuests=data.characters.filter(character=>!character.visitor&&data.quests.some(value=>value.character===character.id)).map(character=>data.quests.find(value=>value.character===character.id)!);
 const itemName=(code: string)=>getItem(code,data)!.name;
 
-for(const value of firstQuests)test(`${value.character} asks on a ticket, the request dialog explains it, and Deliver pays once across reload`,async({page})=>{
+for(const value of firstQuests)test(`${value.character} asks on a ticket, the quest dialog explains it, and Deliver pays once across reload`,async({page})=>{
   const initial=deliverable(value);await start(page,initial);const before=await saved(page),name=person(value.character).name;
-  const card=ticket(page,value);await expect(card).toHaveAccessibleName(`${name}’s request: ${value.title}`);await expect(card.locator('.ticket-name')).toHaveText(name);
+  const card=ticket(page,value);await expect(card).toHaveAccessibleName(`${name}’s quest: ${value.title}`);await expect(card.locator('.ticket-name')).toHaveText(name);
   await expect(card.locator('.ticket-item.ready')).toHaveCount(value.requirements.length);await expect(deliverButton(page,value)).toBeEnabled();
   await request(page,value);const dialog=page.getByRole('dialog',{name:value.title,exact:true});
   await expect(dialog.locator('.quest-person')).toHaveText(name);for(const line of value.opening)await expect(dialog.locator('.quest-view')).toContainText(line.text);
@@ -62,7 +62,7 @@ test('after delivering, the completion scene waits in Story and the journal acro
   await journal(page);await expect(page.getByRole('button',{name:`Replay ${value.title}`,exact:true})).toBeVisible();
 });
 
-test('request rewards survive export and import, while introductions and journal replay give no reward',async({page})=>{
+test('quest rewards survive export and import, while introductions and journal replay give no reward',async({page})=>{
   const value=firstQuests[0];await start(page,deliverable(value));await journal(page);const initial=await saved(page);
   // Only the neighbours present in a new game have entries; later regulars are "Not yet" outlines.
   for(const character of data.characters.filter(character=>!character.singleVisit&&!character.arrivesAfter)){
@@ -73,7 +73,7 @@ test('request rewards survive export and import, while introductions and journal
   await expect(toast(page)).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);
   await story(page);await page.getByRole('button',{name:`Read now: ${value.title}`,exact:true}).click();await readTo(page,'Back to the kitchen');
   const committed=await saved(page);await journal(page);
-  for(const name of [`Read request: ${value.title}`,`Replay ${value.title}`]){
+  for(const name of [`Read quest: ${value.title}`,`Replay ${value.title}`]){
     await page.getByRole('button',{name,exact:true}).click();await finishScene(page);await expect(page.getByRole('button',{name:`Replay ${value.title}`,exact:true})).toBeFocused();expect(await saved(page)).toEqual(committed);
   }
   await page.keyboard.press('Escape');await options(page);const text=await exportText(page);expect(JSON.parse(text).state).toEqual(committed);
@@ -81,7 +81,7 @@ test('request rewards survive export and import, while introductions and journal
   await page.reload();await opened(page);await expect(ticket(page,value)).toHaveCount(0);expect(await saved(page)).toEqual(committed);
 });
 
-test('a surplus on the board reads as the required count on the ticket and in the request rows',async({page})=>{
+test('a surplus on the board reads as the required count on the ticket and in the quest rows',async({page})=>{
   const value=quest('sorin-first-ride'),requirement=value.requirements[0],name=itemName(requirement.item);
   await start(page,supply(deliverable(value),supplies(value)));
   await expect(ticket(page,value).locator('.ticket-items')).toHaveAccessibleName(new RegExp(`^${value.title}: ${requirement.quantity} ${name}, ${requirement.quantity} on the board;`));
@@ -91,7 +91,7 @@ test('a surplus on the board reads as the required count on the ticket and in th
   await expect(row).toBeVisible();await expect(row.locator('.quest-count')).toHaveText(`${requirement.quantity} / ${requirement.quantity} on board`);
 });
 
-test('request dish help keeps focus on the next blocked merge on desktop and phone',async({page})=>{
+test('quest dish help keeps focus on the next blocked merge on desktop and phone',async({page})=>{
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
     await page.setViewportSize(viewport);await start(page,createGame(data));
     const value=firstQuests[0],code=value.requirements[0].item;
@@ -128,7 +128,7 @@ test('after a failed delivery write, Retry save in Options saves the delivery on
   await page.reload();await opened(page);await expect(ticket(page,value)).toHaveCount(0);expect(await saved(page)).toEqual(after);
 });
 
-test('keyboard and emulated touch can open a request and deliver it with focus returned',async({browser,baseURL})=>{
+test('keyboard and emulated touch can open a quest and deliver it with focus returned',async({browser,baseURL})=>{
   const context=await browser.newContext({baseURL,viewport:{width:390,height:844},hasTouch:true,isMobile:true,reducedMotion:'reduce'});
   try{
     const page=await context.newPage(),value=firstQuests[0];await start(page,deliverable(value));
@@ -149,7 +149,7 @@ function almost(state: GameState,value: Quest){
   expect(validate(next)).toBe(true);return {state:next,first,second};
 }
 
-test('a merge that completes a request marks its dishes ready and enables Deliver without opening a dialog',async({page})=>{
+test('a merge that completes a quest marks its dishes ready and enables Deliver without opening a dialog',async({page})=>{
   const value=firstQuests[0],fixture=almost(deliverable(value),value);await start(page,fixture.state);
   await expect(deliverButton(page,value)).toBeDisabled();await expect(ticket(page,value).locator('.ticket-item.ready')).toHaveCount(0);
   await tile(page,fixture.first).click();await tile(page,fixture.second).click();
@@ -159,7 +159,7 @@ test('a merge that completes a request marks its dishes ready and enables Delive
   await expect(ticket(page,value).locator('.ticket-items')).toHaveAccessibleName(`${value.title}: 1 ${itemName(value.requirements[0].item)}, 1 on the board`);
 });
 
-test('another tab that delivers a request takes it off this tab’s ticket, and the reward is paid once',async({page,context})=>{
+test('another tab that delivers a quest takes it off this tab’s ticket, and the reward is paid once',async({page,context})=>{
   const value=firstQuests[0];await start(page,deliverable(value));const before=await saved(page);
   const other=await context.newPage();await other.goto('./');await opened(other);
   await deliverButton(other,value).click();await expect(toast(other)).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);
@@ -210,7 +210,7 @@ for(const replacement of ['import','reset','another tab'] as const)test(`a visib
   expect((await saved(page)).completedQuests).toEqual([]);await expect(toast(page)).toHaveCount(0);
 });
 
-for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`the request dialog fits ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
+for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`the quest dialog fits ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
   await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});
   const value=quest('dochia-sheepskin');await start(page,deliverable(value));await request(page,value);
   const view=page.locator('.quest-view');await expect(view.locator('.quest-item')).toHaveCount(value.requirements.length);

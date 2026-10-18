@@ -5,7 +5,7 @@ Owner: `PRODUCT.md` for play; `DESIGN.md` for generator controls.
 
 ## Current evidence
 
-- `tools/create-original-data.ts` authors the base outputs and production tiers.
+- `tools/create-original-data.ts` authors the base outputs and the production tiers.
 - Three generators start on the board. Preparations 3 and 6 unlock the other two.
 - `src/engine.ts` derives earned outputs from completed preparations and validates the chosen outputs.
 - A take gives the chosen output.
@@ -18,7 +18,7 @@ Owner: `PRODUCT.md` for play; `DESIGN.md` for generator controls.
 
 ## Outcome and scope
 
-Give later chapters permanent production improvements. Keep every dish reachable.
+Later chapters give permanent production improvements. Every dish stays reachable.
 Keep the five chains, unlimited output, no timers, and no consumable generator parts.
 Do not add purchases, a backend, runtime packages, or imported game content.
 Generator assembly is outside this feature.
@@ -45,10 +45,8 @@ Generator assembly is outside this feature.
     A tap on the source takes one item of the chosen output.
 12. A new generator has stage one as the chosen output. An upgrade does not change the chosen output.
 13. Open quests keep their requirements and rewards after an upgrade.
-14. A take of an unearned output fails.
-    A take from a cell without a generator fails.
-    A take on a full board fails.
-    The failure changes no state, no chosen output, and no tier.
+14. A take fails in these cases: the output is unearned, the cell has no generator, or the board is full.
+    A failed take changes no state, no chosen output, and no tier.
     The failure message does not name an unearned output or preparation.
 15. The game does not allow the merge of a generator.
 
@@ -64,17 +62,17 @@ Generator assembly is outside this feature.
 - `src/engine.ts` owns the tiers, the chosen outputs, and the output validation. `src/app.ts` owns their presentation.
 - Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
 - Save and reload preserve the sparse `outputChoices` map and all current progress.
-- An invalid write or a failed write preserves the prior save and does not report success.
+- An invalid write or a failed write keeps the previous save and does not report success.
 
 ## Implemented slices
 
-1. Engine and content: `generatorTierProblems` checks the authored tiers. `generatorOutputs` returns earned outputs. The spawn action takes an optional output and changes the choice only on success.
-2. Persistence: the current envelope stores sparse `outputChoices` and validates each chosen output.
-3. Interface: the selected source has pictorial Take buttons with a pressed state. The paid story names new outputs. The owner documents define the controls and their compact phone row.
+1. Engine and content: `generatorTierProblems` checks the authored tiers. `generatorOutputs` returns the earned outputs. The spawn action takes an optional output and changes the choice only on success.
+2. Persistence: the current envelope stores the sparse `outputChoices` and validates each chosen output.
+3. Interface: the selected source has pictorial Take buttons with a pressed state. The paid story names the new outputs. The owner documents define the controls and their compact phone row.
 
 ## Balance with the campaign test
 
-The campaign test in `tests/campaign-balance.test.ts` delivers the first open quest ticket and pays each preparation when it is ready. It takes the highest earned output that each required item needs, then merges. It injects no coins or items. It validates every action and completes all 24 preparations with no deadlock.
+The campaign test in `tests/campaign-balance.test.ts` delivers the first open quest ticket and pays each preparation when it is ready. It takes the highest earned output that each required item needs, then merges. It injects no coins and no items. It validates every action and completes all 24 preparations with no deadlock.
 
 The fixture reports actions, takes, merges, and deliveries for each preparation and chapter. It measures one deterministic strategy.
 
@@ -86,7 +84,7 @@ The fixture reports actions, takes, merges, and deliveries for each preparation 
   Also test invalid chosen outputs, unknown IDs, write failure, import, export, and repeated load.
   No load can duplicate a reward or a generator.
 - Browser: follow [Verification and release](README.md#verification-and-release).
-  Check the Take labels, focus, and reduced motion.
+  Check the Take labels, the focus, and reduced motion.
   Check the selected source with three Take buttons at 360px, in both themes.
   Check that no unearned output shows before the payment of its preparation.
 - Implementation checks: run `npm run typecheck` and `npm test`. Then run `npm run build` and

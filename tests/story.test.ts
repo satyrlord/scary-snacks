@@ -62,7 +62,7 @@ test('each chapter has a neighbour contribution that opens during it, and the fo
   for (const [index, chapter] of data.chapters.entries()) {
     const quest = data.quests.find(value => value.id === chapter.contribution)!;
     const earlier = data.quests.filter(value => value.character === quest.character && data.quests.indexOf(value) < data.quests.indexOf(quest)).map(value => value.id);
-    // With the neighbour's earlier requests delivered, the contribution is open before the chapter's last preparation.
+    // With the neighbour's earlier quests delivered, the contribution is open before the chapter's last preparation.
     const open = [0, 1, 2, 3].filter(step => ['active', 'waiting'].includes(resolveQuests({ ...checkpoint(boundaries[index] - 4 + step), completedQuests: earlier }, data)
       .find(view => view.quest.id === quest.id)!.status));
     assert.ok(open.length, `${chapter.id}: its contribution must open during the chapter.`);

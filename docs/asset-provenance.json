@@ -772,7 +772,7 @@
       }
     }
   ],
-  "note": "The game uses only project-generated images. The menu atlas and mascots use generated chat atlases from the references list. The core portraits use their first generated candidate. front-room-00 and courtyard-13 use generated room references. The decoration paintings use generated design references. Each later room state edits the previous state of its area. Each composite retains only the changed region. The board-clutter atlas uses chat generation and cell corrections. This record preserves the source and review evidence of the current assets. This record does not give legal clearance.",
+  "note": "The game uses only project-generated images. The menu atlas and mascots use generated chat atlases from the references list. The core portraits use a revision of a generated candidate. front-room-00 and courtyard-13 use generated room references. The decoration paintings use generated design references. Each later room state edits the previous state of its area. Each composite retains only the changed region. The board-clutter atlas uses chat generation and cell corrections. This record preserves the source and review evidence of the current assets. This record does not give legal clearance.",
   "references": [
     {
       "id": "counter-band",

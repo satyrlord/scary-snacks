@@ -38,7 +38,7 @@ A skill must change the decisions of an agent or decrease the work that agents r
 Do not make a skill for a general model function.
 Do not make a skill for a task that has one occurrence.
 Do not make a skill for rules that an owner document controls.
-Point to the owner document. Do not copy its rules, because the copy can drift.
+Refer to the owner document. Do not copy its rules, because the copy can drift.
 
 For an import, record all the files in the source package.
 Keep only the workflow steps that the repository can use again.
@@ -72,6 +72,7 @@ Keep a short skill in one file when more files do not give a better selection.
 
 Write all the files in the package in ASD-STE100 Simplified Technical English.
 This skill must follow the same rules.
+Obey the rules in `AGENTS.md` for public documents and for the current state.
 
 Write the sentences with these rules:
 

@@ -87,7 +87,7 @@ test('Ionatan has one dinner of four final dishes, and the journal shows him onl
   assert.equal(shown(opened(9)).includes(person.id), true);
 });
 
-test('Mina and Avram share one vegetarian request after Ionatan has dined and left', () => {
+test('Mina and Avram share one vegetarian quest after Ionatan has dined and left', () => {
   assert.equal(search.character, 'mina');
   assert.deepEqual(search.companions, ['avram']);
   assert.equal(predecessor, 'ionatan-castle-dinner');

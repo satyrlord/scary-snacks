@@ -1,6 +1,6 @@
 # 011: Motion choice
 
-Status: Implemented. Priority: Medium. Dependencies: none.
+Status: Implemented. Dependencies: none.
 Owner: `PRODUCT.md` controls the motion choice. `DESIGN.md` controls the Options Motion section and the reduced-motion rules.
 
 ## Current behavior
@@ -11,7 +11,7 @@ Options has a Motion section after Appearance. It has three options: System, Red
 - **Reduced** removes every animation and transition on all devices.
 - **Full** plays every animation and transition, also when the device asks for reduced motion.
 
-The game does not show a notice about the device setting. The game has no start screen.
+The game has no start screen.
 The note under the Motion legend tells the player if the device asks for less motion.
 The note updates when the device setting changes while Options is open.
 
@@ -22,10 +22,11 @@ The note updates when the device setting changes while Options is open.
    A new game keeps the choice.
 2. `src/app.ts` sets `data-motion` on the root element to the choice.
    The function `still()` gives the result: Reduced, or System on a device that asks for reduced motion.
-   Each motion in `src/app.ts` asks `still()` at the time that the motion starts.
-   When reduced motion becomes active, running script animations finish at once.
+   Each motion in `src/app.ts` asks `still()` when the motion starts.
+   When reduced motion becomes active, the script animations that run finish at once.
    Their cleanup and delivery notices still complete.
-   When full motion returns, earlier board, ticket, coin, and notice entrance effects do not replay.
+   When full motion returns, the entrance effects that reduced motion hid do not replay.
+   These effects are on the board, the tickets, the coins, and the notices.
 3. `src/style.css` removes animations and transitions under `:root[data-motion='reduced']`.
    Under `prefers-reduced-motion: reduce`, it removes them on each root that is not `[data-motion='full']`.
    Before the script runs, the root has no `data-motion`, so the device setting applies.
@@ -35,7 +36,7 @@ The note updates when the device setting changes while Options is open.
 ## Out of scope
 
 - A start screen before the board. It adds one tap to each visit.
-- A notice about the device setting.
+- A separate notice about the device setting. The note under the Motion legend is the only message.
 
 ## Acceptance checks
 
@@ -47,8 +48,8 @@ Browser tests in `tests/browser/game.spec.ts`:
   System then follows the emulation.
 - Options lists the Motion section after Appearance.
 - A blocked storage getter or write keeps the choice for this visit and reports the storage failure.
-- A change to Reduced, or to the device setting under System, ends a running delivery flight.
+- A change to Reduced, or to the device setting under System, ends a delivery flight that runs.
   The delivery notice still appears once.
-- A painting that finishes loading after reduced motion becomes active does not start a fade.
+- A painting that finishes its load after reduced motion becomes active does not start a fade.
 - The device note updates while Options stays open, without a change of focus.
 - Full does not replay a delivery that completed under Reduced.

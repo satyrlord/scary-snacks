@@ -18,13 +18,13 @@ In that condition, give each edit or check that you did not complete in the repo
 
 ## Record the items that must not change
 
-Read `PRODUCT.md`, `DESIGN.md`, the source code, the callers, the consumers, the tests, and the repository status.
+Read `PRODUCT.md`, `DESIGN.md`, `DELIVERY.md`, the source code, the callers, the tests, and the repository status.
 List the behavior, the contracts, the files, and the validation that must stay the same.
 Do not include feature work, economy changes, content edits, dependency upgrades, or changes to test policy.
 Do not include cleanup that is not related to the refactor.
 
 Select one measurement to compare before and after the refactor.
-Possible measurements are these:
+Use one of these measurements:
 
 - The number of imports.
 - The number of branches in the code.
@@ -37,7 +37,7 @@ Before a high-risk change to structure, add a regression test.
 
 ## Keep the boundaries
 
-Keep the engine free of Document Object Model (DOM) access and storage access.
+Keep the engine free of Document Object Model (DOM) access and browser storage access.
 Keep the storage module free of DOM access.
 Keep the state shape, the save key, the save version, and the save validation.
 Keep the identifiers in the game data.
@@ -45,7 +45,7 @@ Keep the identifiers in the game data.
 Keep the element identifiers, the roles, and the names that the browser tests use.
 Keep the theme tokens, the theme storage key, and the desktop and phone layouts.
 Keep the build allowlist, the relative asset paths, and the Content Security Policy (CSP).
-Keep the asset hashes, the provenance records, and the workflow pins.
+Keep the asset hashes, the provenance records, and the pins in `.github/workflows/pages.yml`.
 
 ## Refactor in small steps
 
@@ -53,12 +53,12 @@ Make one change to structure that removes one named problem.
 Run the smallest related check.
 Continue only if the next step is part of the same refactor.
 Compare the selected measurement with its initial value.
-Stop if a necessary change changes the behavior or an approved contract.
+Stop if a necessary change alters the behavior or an approved contract.
 Use [add-feature](../add-feature/SKILL.md) for the change of behavior.
 
 If you add, move, or remove a file, examine `runtimeFiles` in `tools/build.ts`.
-Examine the file list in `tools/export-source.ts` also.
-Update each list that names the file.
+Also examine `sourceFiles` in `tools/export-source.ts`.
+Change each list that names the file.
 For reachability work on many files, use [dead-code-audit](../dead-code-audit/SKILL.md).
 Run the checks that `AGENTS.md` gives for the scope.
 For the full gate, use [run-quality-gate](../run-quality-gate/SKILL.md).

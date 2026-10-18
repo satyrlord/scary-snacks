@@ -1,6 +1,6 @@
 ---
 name: dead-code-audit
-description: Audit Scary Snacks reachability and remove dead code, files, assets, data, or dependencies that have evidence. Use for a read-only report, or for a cleanup that the user approved directly.
+description: Audit Scary Snacks reachability and remove dead code, files, assets, data, or dependencies that have evidence. Use for a read-only report, or for a cleanup that the user tells you directly to do.
 ---
 
 # Audit dead items
@@ -41,7 +41,7 @@ Record the entry points for production, tests, content, assets, development tool
 
 - `index.html` and the modules that it loads.
 - `runtimeFiles` and `fontFiles` in `tools/build.ts`.
-- The file list in `tools/export-source.ts`.
+- `sourceFiles` in `tools/export-source.ts`.
 - The scripts in `package.json`.
 - The test files in `tests/` and `tests/browser/`.
 
@@ -81,7 +81,7 @@ If a search gives no result, examine the item.
 Give each candidate one of these statuses: `live`, `dead`, or `unresolved`.
 Record the evidence for that status.
 
-## Act in the scope
+## Remove the dead items
 
 In cleanup mode, remove only the smallest set of dead items that have evidence.
 Do not remove save validation or the preservation of malformed saves.

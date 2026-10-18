@@ -16,7 +16,7 @@ The asset and path test also runs at the root path.
 `playwright.config.ts` controls these settings.
 
 The Pages workflow runs the type check, the Node.js tests, and the build.
-The Pages workflow does not run browser tests.
+The Pages workflow does not run the dead-code check or the browser tests.
 
 ## Result
 
@@ -27,18 +27,18 @@ The browser tests serve `dist/` and do not build the game.
 
 ## Node.js coverage
 
-The files in `tests/` check the following areas.
+The files in `tests/` check these areas.
 
 | Test files | Coverage |
 | --- | --- |
 | `engine.test.ts` | Production, merges, swaps, the next source output, preparation payment, room states, and game data validation. |
-| `storage.test.ts` | Save validation, size limits, export, import, reset, failed writes, recovery, invalid data, saved output choices, and preservation of earlier formats. |
+| `storage.test.ts` | Save validation, size limits, export, import, reset, failed writes, recovery, invalid data, unsupported versions that stay unchanged, and saved output choices. |
 | `decorations.test.ts` | Decoration slots, quest unlocks, finish choices, rejected choices, and saved choices. |
 | `economy.test.ts` | Menu prices, quest rewards, and work budgets. |
 | `campaign-goals.test.ts` | Required quests, coins, source space, failed payments, quest order, and sufficient campaign rewards. |
 | `campaign-balance.test.ts` | A complete campaign through valid actions, with accounts for actions and coins. |
 | `quests.test.ts` | Quest data, three tickets, authored order, delivery requirements, failed deliveries, the coin limit on delivery, and visitor order. |
-| `guests.test.ts` | Red wine requests, Ionatan's dinner and journal entry, the shared vegetarian meal, guest departure, and later local news. |
+| `guests.test.ts` | Red wine quests, Ionatan's dinner and journal entry, the shared vegetarian meal, guest departure, and later local news. |
 | `regulars.test.ts` | Arrival pairs, arrival scenes, quest timing, favourite chains, the neighbours list, and cast validation. |
 | `board-clearing.test.ts` | Initial blockers, matching merges, blocked actions, placement space, discoveries, and saved progress. |
 | `preparation-blockers.test.ts` | Preparation batches, deferred placement, free space, source priority, saved history, failed writes, and retry. |
@@ -47,20 +47,20 @@ The files in `tests/` check the following areas.
 | `assets.test.ts` | Masters, variants, hashes, portrait cells, blocker cells, references, asset paths, fonts, and license texts. |
 | `build.test.ts` | The build file list, type removal, executable asset rejection, and linked directory rejection. |
 | `server.test.ts` | Allowed paths, configured server addresses, and Windows path case. |
-| `source-export.test.ts` | Product test coverage in the export, exported imports, document links, local folder exclusions, and ignore rules. |
-| `art-image.test.ts` | Art request fields, image dimensions, masks, composites, file formats, and rejected inputs. |
+| `source-export.test.ts` | Product test coverage in the export, exported imports, document links, local folder exclusions, ignore rules, and the dead-code command of the export. |
+| `art-image.test.ts` | Art generation request fields, image dimensions, masks, composites, file formats, and rejected inputs. |
 
 Generator checks cover both tier boundaries, lower outputs, chosen outputs, rejected takes, and upgrades on a full board.
 The campaign fixture completes all 24 preparations and all 81 quests without injected coins or items.
 The fixture reports actions, takes, merges, deliveries, and income for each preparation and chapter.
-The fixture can finish without a merge that clears a blocker.
+The fixture needs no release of a blocker.
 
 Delivery checks require all portions at once. A failed delivery changes no game state.
 Visitor checks include Ionatan after Vlad's quest and the shared meal after Ionatan's dinner.
 Local news requires three later deliveries.
 
 Preparation blocker checks include adoption by existing saves and repeated use of a cell after resolution.
-Save checks cover export, import, reload, invalid history, and previous data after a failed write.
+Save checks cover export, import, reload, invalid blocker history, and the kept save after a failed write.
 
 Story checks cover every chapter boundary and one finale.
 A complete campaign can retain all earned preparation, quest, chapter, and finale scenes in its queue.
@@ -69,7 +69,7 @@ Save checks cover scenes with and without saved lines.
 
 ## Browser coverage
 
-The files in `tests/browser/` check the following areas.
+The files in `tests/browser/` check these areas.
 
 | Test files | Coverage |
 | --- | --- |
@@ -78,9 +78,9 @@ The files in `tests/browser/` check the following areas.
 | `decorations.spec.ts` | Finish switches, visible targets, keyboard focus, saved choices, failed writes, and concurrent tabs. |
 | `generators.spec.ts` | Upgrades, chosen outputs, Take controls, full boards, keyboard input, touch emulation, and geometry. |
 | `campaign-goals.spec.ts` | Work details, required quests, payment controls, and layout. |
-| `quests.spec.ts` | Tickets, request dialogs, dish help, deliveries, scenes, saves, focus, input, and concurrent tabs. |
-| `visitors.spec.ts` | Supply requests, visitor portraits, introductions, Ionatan's dinner, departure, and save failures. |
-| `guests.spec.ts` | Shared requests, both portraits, vegetarian requirements, local news, departure, and red wine. |
+| `quests.spec.ts` | Tickets, quest dialogs, dish help, deliveries, scenes, saves, focus, input, and concurrent tabs. |
+| `visitors.spec.ts` | Supply quests, visitor portraits, introductions, Ionatan's dinner, departure, and save failures. |
+| `guests.spec.ts` | Shared quests, both portraits, vegetarian requirements, local news, departure, and red wine. |
 | `board-clearing.spec.ts` | Blocked cells, labels, help, input, reload, and web removal at preparation 1. |
 | `preparation-blockers.spec.ts` | Payment, failed payment saves, artwork, matching merges, deferred placement, reload, and layout. |
 | `blocker-help.spec.ts` | Rule marks, matching ingredients, eligible targets, dismissed help, unchanged saves, contrast, and layout. |
@@ -90,19 +90,21 @@ The files in `tests/browser/` check the following areas.
 Play checks include pointer drag, keyboard input, selection, and delivery.
 Room checks include reduced motion, failed image loads, and text that remains available after an image failure.
 Layout checks include the desktop and phone screens, the drawer, the phone bar, and 44px control targets.
+The drawer moves only on a narrow screen that is taller than 600px. Checks on a screen that is 600px high or less require a drawer that stays in place, a reveal that does not wait for it, and an active drawer body.
 Theme checks include Light, Dark, System, and 4.5:1 contrast for main and muted text.
 
 Generator geometry checks cover three outputs at 360×740, 390×800, 390×844, and 1440×900 in both themes.
-Tier-one names and controls also fit at a width of 320px.
-Ticket, request, and story geometry checks include 1440×900, 390×844, and 390×800 in both themes.
-Visitor and shared guest requests have desktop and phone checks in both themes.
+Tier-one names and controls also fit at widths of 320px, 360px, and 390px.
+Ticket and story geometry checks cover 1440×900, 390×844, and 390×800 in both themes.
+Quest dialog checks cover 1440×900 and 390×844 in both themes.
+Visitor and shared guest quests have checks at 1366×900 and 390×844 in both themes.
 
 Quest checks include delivery from the board, delivery notices, the next ticket, journal replay, export, import, and failed writes.
 The quest tests require delivery to leave its completion scene waiting without opening a dialog.
 They also check the unsaved warning in the delivery notice.
 Ionatan has one dinner and an introduction only during his visit.
 His departure removes his replay entries.
-Mina and Avram share one request with both portraits.
+Mina and Avram share one quest with both portraits.
 Their later outcome appears as local news.
 A failed delivery write retains the departure for the session. Reload restores only saved progress.
 

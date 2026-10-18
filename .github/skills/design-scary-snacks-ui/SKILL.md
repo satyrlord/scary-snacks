@@ -1,6 +1,6 @@
 ---
 name: design-scary-snacks-ui
-description: Design, audit, add, repair, or examine the Scary Snacks browser interface through the Impeccable workflow. Use for room, drawer, board, quest, request, story, dialog, or phone-bar changes. Also use for themes, typography, interaction, or motion.
+description: Design, audit, add, repair, or examine the Scary Snacks browser interface through the Impeccable workflow. Use for room, drawer, board, quest, story, dialog, or phone-bar changes. Also use for themes, typography, interaction, or motion.
 ---
 
 # Design the Scary Snacks interface
@@ -19,7 +19,7 @@ Do not use rules from this skill as an alternative to the Impeccable workflow.
 1. Load the full `impeccable` skill before design work.
 2. Run its context command once in each session.
    Use the requested user interface (UI) surface or source path as the target.
-3. Obey its routing rules.
+3. Obey its rules for command selection.
    Load only the playbook for the command that the user gives or that the task makes necessary.
    For a new surface or a replacement visual system, use its new-work playbook.
 4. Examine the target and at least one typical source file of the visual implementation.
@@ -78,7 +78,7 @@ Read the affected sections again if their content or the task scope changes.
 If present, `.impeccable/surfaces/index-html.md` gives the Impeccable direction for the main screen.
 `DESIGN.md` controls the design. If the two files do not agree, obey `DESIGN.md`.
 The named rules and design instructions in `DESIGN.md` are limits for the Impeccable brief.
-Do not copy these rules into this skill or into a brief. Point to the owner document.
+Do not copy these rules into this skill or into a brief. Refer to the owner document.
 
 For new or replacement bitmaps, use [generate-game-art](../generate-game-art/SKILL.md).
 The code rules in `AGENTS.md` apply to interface work.
@@ -88,16 +88,17 @@ They include the module boundaries, `textContent`, and the limit on resources fr
 
 Obey the limits of the user on edits and tests.
 In the report, give each check that you did not run.
+For a change that the user can see, run the checks that `AGENTS.md` gives.
 Run browser tests in headless mode.
 
 In implementation mode and verification mode, do these tests:
 
-- Test pointer selection, drag input, keyboard movement, selection, and the Escape key.
-- Test the desktop size and the phone size that `DESIGN.md` names in The One Screen Rule.
+- Test pointer selection, drag input, keyboard movement, keyboard selection, and the Escape key.
+- Test the desktop size and the phone size that "The One Screen Rule" and "Required actions" in `DESIGN.md` name.
 - Test the Light theme and the Dark theme at each size.
 - Measure the contrast of the main text and the muted text. `DESIGN.md` gives the limit.
 - Examine overlap, horizontal scroll, the phone bar, the dialogs, and the focus ring.
-- Examine each atlas tile for pixels from an adjacent sprite.
+- Examine each atlas cell for pixels from an adjacent sprite.
 
 Use a fresh game or a deterministic save for geometry and screenshots.
 A screenshot does not show interaction.

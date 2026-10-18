@@ -277,7 +277,7 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 .primary-button,.secondary-button { padding: 11px 15px; border: 0; border-radius: var(--control-radius); min-height: 44px; font-weight: 600; font-size: 14px; }
 .primary-button { background: var(--action); color: var(--on-action); }
 .secondary-button { background: var(--inset); color: var(--ink); border: 1px solid var(--control-line); }
-.primary-button:hover:not(:disabled),.secondary-button:hover:not(:disabled) { filter: brightness(1.07); }
+@media (hover: hover) { .primary-button:hover:not(:disabled),.secondary-button:hover:not(:disabled) { filter: brightness(1.07); } }
 .primary-button:disabled,.secondary-button:disabled { background: transparent; color: var(--muted); border: 1px dashed var(--control-line); }
 .text-button { padding: 10px 0; min-height: 44px; border: 0; background: transparent; color: var(--accent); font-size: 13px; text-decoration: underline; text-underline-offset: 4px; }
 .cat-visit { display: flex; align-items: center; width: 100%; gap: 9px; margin: 6px 0 12px; padding: 12px 14px; border: 0; border-radius: var(--control-radius); background: var(--inset); text-align: left; }

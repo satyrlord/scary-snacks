@@ -1,15 +1,15 @@
-# 004 - Character quests and introductions
+# 004: Character quests and introductions
 
 Status: Implemented. The quests are the campaign.
 Spec 008 queues each quest completion scene and resumes it after reload. Spec 005 owns the reward rule, the funding check, and the economy fixture. Spec 007 names one quest of a core character as the contribution of each chapter. Spec 010 owns the regulars.
 
 ## Result and ownership
 
-The game has 81 authored quests. Quests are the only requests, and they earn every coin of the campaign.
+The game has 81 authored quests. Quests earn every coin of the campaign.
 The journal has an optional introduction for each neighbour and replay of completed quest scenes.
 
 The engine owns eligibility, the tickets, delivery, and validation. Storage owns the envelopes and durable writes.
-The app owns the tickets, the request dialog, the dialogue, and focus return.
+The app owns the tickets, the quest dialog, the dialogue, and focus return.
 `tools/create-original-data.ts` authors every record and generates `public/data/game.json`.
 PRODUCT, DESIGN, and DELIVERY own the current product, interface, and delivery contracts.
 
@@ -28,7 +28,7 @@ There is no currency other than coins, and no timer, energy limit, runtime depen
 | Character group | Quests |
 | --- | --- |
 | Mara, Ilie, Eszter, and Sorin | 6, 6, 8, and 6 |
-| Ten regulars from spec 010 | 5 for Dochia and Costel; 4 for Victor, Ana, Sânziana, Dorian, Ileana, and Cezar; 3 for Cătălina and Bran |
+| Ten regulars of spec 010, without Vlad and Elisabeta | 5 for Dochia and Costel; 4 for Victor, Ana, Sânziana, Dorian, Ileana, and Cezar; 3 for Cătălina and Bran |
 | Vlad and Elisabeta | 2 each |
 | Adrian, Monica, and Janos | 3 each |
 | Ionatan | 1 |
@@ -74,9 +74,9 @@ Mara tests a welcome, explores the cellar, and plans a supper service. Ilie test
 Eszter checks cups, bowls, plates, and her kiln, and her second glaze unlocks a finish from spec 002. Sorin prepares food around errands, a patched tyre, the post, and the courtyard welcome.
 The generator owns the exact rewards.
 
-## Visiting travellers
+## Recurring travellers
 
-Adrian, Monica, and Janos each return for three supply requests. Their nine visits alternate in that order. Each visit also waits for the previous visitor delivery, so only one cathedral supply request is open at a time. There is no timer.
+Adrian, Monica, and Janos each return for three supply quests. Each quest supplies a quiet investigation near the cathedral. It needs 12 to 16 portions at merge stage 3 or 4. It can also need 4 to 6 portions at merge stage 5 or 6. Their nine visits alternate in that order. Each visit also waits for the delivery of the previous visitor. Thus only one cathedral supply quest is open at a time. There is no timer.
 
 | Quest ID | Opens after | Requirements |
 | --- | --- | --- |
@@ -94,21 +94,21 @@ Adrian, Monica, and Janos each return for three supply requests. Their nine visi
 
 Ionatan is a foreign real estate agent. His only quest, `ionatan-castle-dinner`, opens after preparation 9 and after Vlad's quest "A guest at the castle" (`vlad-guest`). It needs one goulash pot, one sharing board, one chimney cake, and one plum brandy. The dinner pays its menu value of 220 coins. It is independent of the traveller sequence.
 
-His introduction appears only while his request is open. Delivery records the quest ID once and queues his farewell in Story. His introduction and quest replays are then absent from the journal. Reload and export/import preserve his completed visit. A new game permits another visit. A failed write keeps the departure in the session; reload restores only durable progress.
+His introduction appears only while his quest is open. Delivery records the quest ID once and queues his farewell in Story. His introduction and quest replays are then absent from the journal. Reload and export/import preserve his completed visit. A new game permits another visit. A failed write keeps the departure in the session. A reload restores only durable progress.
 
 ## Shared search visit
 
 Mina and Doctor Avram share one visit per save. Their quest, `mina-avram-search`, has `mina` as its character and `avram` as its companion.
 It opens after preparation 10 and delivery of Ionatan's dinner.
-The request needs two zacuscă toasts, two roasted vegetable plates, one smoked cheese plate, and two fruit teas.
+The quest needs two zacuscă toasts, two roasted vegetable plates, one smoked cheese plate, and two fruit teas.
 The meal is vegetarian. It has a menu value of 168 coins and pays 168 coins.
 
-Their introductions appear only while their request is open. The ticket and the request dialog show both names and both portraits.
+Their introductions appear only while their quest is open. The ticket and the quest dialog show both names and both portraits.
 Delivery records the quest ID once and queues their farewell in Story. Their introductions and quest replays are then absent from the journal.
 They never meet Ionatan at the bistro. A new game permits another visit.
 
 The third delivery after their meal makes the local news scene `mina-avram-news` ("News from the road") a waiting scene.
-Sorin and Mara tell that Mina and Avram found Ionatan gravely ill, and that all three left for Britain.
+Sorin and Mara say that Mina and Avram found Ionatan gravely ill. They say that all three left for Britain.
 The scene has only local speakers and gives no reward. After its delivery gate, the journal shows it under Local news.
 
 ## Quest rules
@@ -124,7 +124,7 @@ The scene has only local speakers and gives no reward. After its delivery gate, 
 7. Reading, skipping, replaying, reloading, and repeated clicks give no second reward.
 8. Quest scenes use the existing dialogue controls. The completion scene waits until the player finishes or skips it, as spec 008 gives. Recorded completion and journal replay remain available.
 
-`questProblems` checks IDs, scenes, quantities, rewards, requested items, and chain availability.
+`questProblems` checks IDs, scenes, quantities, rewards, required items, and chain availability.
 It also checks companions, finishes, news scenes, authored order, the combined prerequisite graph, and the campaign funds.
 The content generator refuses invalid quest data.
 
@@ -133,7 +133,7 @@ The content generator refuses invalid quest data.
 A ticket shows the character portrait, name, dishes, and Deliver with the reward.
 If a dish needs multiple portions, the ticket also shows its count on the board.
 Deliver is unavailable until the board holds every required item.
-A tap on the dishes opens the request dialog.
+A tap on the dishes opens the quest dialog.
 The dialog explains who asks and why.
 It shows each dish with its count on the board, the reward, and Deliver.
 Each dish row opens ingredient help.
@@ -166,13 +166,13 @@ The Node.js tests cover tickets, repeated quantities, atomic failure, single rew
 They also cover prerequisite cycles, unavailable chains, the funding check, and malformed quest records.
 The storage tests cover fresh, partial, and completed saves, malformed and oversized input, and invalid completion lists.
 They also cover failed writes and rejection of unsupported versions.
-They cover the traveller sequence, Ionatan's visit, the shared visit, the vegetarian request, and the news scene three deliveries later.
+They cover the traveller sequence, Ionatan's visit, the shared visit, the vegetarian quest, and the news scene three deliveries later.
 `tests/campaign-balance.test.ts` completes all 24 preparations and all 81 quests through legal actions without injected resources. The fixture fails on a deadlock.
 
 The browser tests use the built game.
-They cover delivery from a ticket and from the request dialog, with items from the board only.
+They cover delivery from a ticket and from the quest dialog, with items from the board only.
 They cover keyboard focus, touch emulation, reload, export, import, scene replay, and unavailable storage.
-They cover the shared request with both portraits and its departure through reload and import.
+They cover the shared quest with both portraits and its departure through reload and import.
 They also cover a failed delivery save and the news scene in the journal.
-The tickets and the request dialog have geometry, contrast, and screenshot checks at desktop and phone sizes in both themes.
+The tickets and the quest dialog have geometry, contrast, and screenshot checks at desktop and phone sizes in both themes.
 Use `npm run quality:full` for the integrated acceptance check.

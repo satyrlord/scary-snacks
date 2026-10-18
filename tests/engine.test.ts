@@ -252,7 +252,7 @@ test('different items swap and empty cells accept items', () => {
 
 test('board-full failures retain state and a merge recovers space', () => {
   let state = fillBoard(initial());
-  assert.match(fail(state, { type: 'spawn', index: 1 }).message, /Merge a pair or deliver a request/);
+  assert.match(fail(state, { type: 'spawn', index: 1 }).message, /Merge a pair or deliver a quest/);
   const flours = state.board.flatMap((cell, index) => cell?.code === 'bakery_1' ? [index] : []);
   state = apply(state, { type: 'move', from: flours[0], to: flours[1] });
   state = apply(state, { type: 'spawn', index: 1 });

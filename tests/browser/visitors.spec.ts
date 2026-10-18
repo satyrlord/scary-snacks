@@ -72,7 +72,7 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const
 async function guestAbsent(page: Page){
   await expect(ticket(page,dinner)).toHaveCount(0);await expect(page.locator('#tickets')).not.toContainText(guest.name);await journal(page);
   await expect(page.getByRole('button',{name:`Meet ${guest.name}`,exact:true})).toHaveCount(0);
-  await expect(page.getByRole('button',{name:`Read request: ${dinner.title}`,exact:true})).toHaveCount(0);
+  await expect(page.getByRole('button',{name:`Read quest: ${dinner.title}`,exact:true})).toHaveCount(0);
   await expect(page.getByRole('button',{name:`Replay ${dinner.title}`,exact:true})).toHaveCount(0);
   await expect(page.getByRole('img',{name:guest.name,exact:true})).toHaveCount(0);await page.keyboard.press('Escape');
 }

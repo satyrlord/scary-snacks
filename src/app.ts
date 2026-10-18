@@ -44,7 +44,7 @@ const movableDrawer = matchMedia('(max-width: 1023px) and (height > 600px)');
 // The Motion choice in Options follows the device (System), or stills or plays the motion whatever the device asks.
 const deviceStill = matchMedia('(prefers-reduced-motion: reduce)');
 const still = () => motion === 'reduced' || (motion === 'system' && deviceStill.matches);
-// The delivery timeline: the dishes land on the ticket, a notice reports the reward, and the next request arrives in the same place.
+// The delivery timeline: the dishes land on the ticket, a notice reports the reward, and the next quest arrives in the same place.
 // RISE_AT sets the arrival delay in style.css; ARRIVAL_MS covers the arrival.
 const FLIGHT_MS = 600, RISE_AT = 700, ARRIVAL_MS = 1300;
 // The reveal timeline: the drawer lowers, the new state comes into focus, the pin lands, and the drawer rises again.
@@ -70,7 +70,7 @@ let recoveryRequired = false;
 let modalReturn: (() => void) | null = null, sceneFlow = false;
 // Each waiting scene whose line could not be saved has warned the player once.
 const unsavedScenes = new Set<string>();
-// The time at which each ticket slot took a new request, so its arrival survives renders.
+// The time at which each ticket slot took a new quest, so its arrival survives renders.
 const arriving: number[] = [];
 let dragging: { index: number; id: number; x: number; y: number; ghost: SVGSVGElement | null } | null = null;
 let spriteSequence = 0, boardFocus = 0;
@@ -339,7 +339,7 @@ function markRecipeBook() {
   $('#discovery-count').textContent = `${state.discovered.filter(code => data.items[code] && !definition(code).generator).length} of ${dishes} dishes discovered${label}`;
 }
 /**
- * The dishes land on the ticket, a notice reports the reward, and the next request takes the ticket's place.
+ * The dishes land on the ticket, a notice reports the reward, and the next quest takes the ticket's place.
  * The completion scene waits in Story. After a failed save, the notice says so, and Options offers Retry save.
  */
 function deliver(quest: Quest) { return changeGame(() => {
@@ -503,7 +503,7 @@ function render() {
   }
   syncRoomControls();
 }
-/** The request on each ticket. A request keeps its ticket, and the next open request takes the first free ticket, in authored order. */
+/** The quest on each ticket. A quest keeps its ticket, and the next open quest takes the first free ticket, in authored order. */
 let ticketQuests: string[] = [];
 const activeQuests = () => {
   const open = resolveQuests(state, data).filter(view => view.status === 'active').map(view => view.quest);
@@ -511,22 +511,22 @@ const activeQuests = () => {
   const kept = ticketQuests.map(id => open.find(quest => quest.id === id) ?? waiting.shift()).filter(quest => quest !== undefined);
   const tickets = [...kept, ...waiting]; ticketQuests = tickets.map(quest => quest.id); return tickets;
 };
-/** The portions of a request that the board holds now, at most the quantity that it needs. */
+/** The portions of a quest that the board holds now, at most the quantity that it needs. */
 const onBoard = (code: string, quantity: number) => Math.min(quantity, state.board.filter((cell, index) => cell?.code === code && !unresolvedObstacle(state, index, data)).length);
-/** Each request on the counter is a paper ticket on the drawer: the neighbour's portrait, the dishes with their counts, and Deliver. */
+/** Each quest on the counter is a paper ticket on the drawer: the neighbour's portrait, the dishes with their counts, and Deliver. */
 function renderTickets() {
   const container = $('#tickets'); container.replaceChildren();
   activeQuests().forEach((quest, slot) => {
     const person = character(quest.character), ready = canDeliverQuest(state, quest, data);
     const card = element('article', 'ticket');
-    card.setAttribute('aria-label', `${person.name}’s request: ${quest.title}`);
+    card.setAttribute('aria-label', `${person.name}’s quest: ${quest.title}`);
     card.dataset.quest = quest.id;
-    // A ticket that has just taken a delivered request's place arrives in the same slot; the delay survives renders.
+    // A ticket that has just taken a delivered quest's place arrives in the same slot; the delay survives renders.
     const since = arriving[slot] ? performance.now() - arriving[slot] : Infinity;
     if (since < ARRIVAL_MS) { card.classList.add('arriving'); card.style.setProperty('--rise-delay', `${RISE_AT - Math.round(since)}ms`); }
     const face = portrait(person.id); face.setAttribute('aria-hidden', 'true');
     const labels = quest.requirements.map(({ item, quantity }) => `${quantity} ${itemName(item)}, ${onBoard(item, quantity)} on the board`);
-    // The dishes open the request: its words, each dish with its count, and Deliver.
+    // The dishes open the quest: its words, each dish with its count, and Deliver.
     const dishes = button('', `ticket-items${quest.requirements.length > 2 ? ' many' : ''}`, () => showQuest(quest));
     dishes.setAttribute('aria-label', `${quest.title}: ${labels.join('; ')}`);
     for (const { item, quantity } of quest.requirements) {
@@ -535,13 +535,13 @@ function renderTickets() {
       if (quantity > 1) value.append(element('span', 'ticket-count', `${onBoard(item, quantity)}/${quantity}`));
       dishes.append(value);
     }
-    // Phones show the reward alone until the request can be delivered, so three tickets fit the drawer's handle.
+    // Phones show the reward alone until the quest can be delivered, so three tickets fit the drawer's handle.
     const deliverButton = button('', 'primary-button deliver-button', () => deliver(quest));
     deliverButton.append(element('span', 'deliver-word', 'Deliver'), element('span', 'deliver-dot', ' ·'), ` ${count.format(quest.reward)}`, coinMark());
     deliverButton.disabled = !ready; deliverButton.setAttribute('aria-label', `Deliver ${quest.title} to ${person.name} for ${coinText(quest.reward)}`);
     card.append(face, element('p', 'ticket-name', person.name), dishes, deliverButton); container.append(card);
   });
-  if (!container.childElementCount) container.append(element('p', 'tickets-empty', state.taskIndex === data.tasks.length ? 'Every request is delivered. The bistro is yours.' : 'No requests wait now. Pay for the next preparation.'));
+  if (!container.childElementCount) container.append(element('p', 'tickets-empty', state.taskIndex === data.tasks.length ? 'Every quest is delivered. The bistro is yours.' : 'No quests wait now. Pay for the next preparation.'));
 }
 function miezSprite() {
   const sprite = element('span', `mascot miez-sprite ${catAsleep ? 'cat-sleeping' : 'cat-sitting'}`); sprite.setAttribute('aria-hidden', 'true'); return sprite;
@@ -568,7 +568,7 @@ function storyContent(inSheet: boolean) {
     notice.append(element('p', '', scene?.prompt ?? 'A story scene is waiting.'), read); content.append(notice);
   }
   const body = element('div', 'task-content');
-  if (!task) body.append(element('h3', '', 'The table is ready.'), element('p', '', 'The community supper is open, and every request is delivered. The board and the recipe book stay yours.'));
+  if (!task) body.append(element('h3', '', 'The table is ready.'), element('p', '', 'The community supper is open, and every quest is delivered. The board and the recipe book stay yours.'));
   else {
     body.append(element('h3', '', task.title));
     const requirements = element('ul', 'task-requirements');
@@ -654,7 +654,7 @@ function renderOffer() {
 function detailNote(code: string) {
   if (definition(code).generator) return 'Tap it on the board, or use Take. It never runs out.';
   const waiting = [...new Set(activeQuests().filter(quest => quest.requirements.some(requirement => requirement.item === code)).map(quest => character(quest.character).name))];
-  return waiting.length ? `${names.format(waiting)} ${waiting.length === 1 ? 'is' : 'are'} waiting for one.` : 'No request on the counter needs it now.';
+  return waiting.length ? `${names.format(waiting)} ${waiting.length === 1 ? 'is' : 'are'} waiting for one.` : 'No quest on the counter needs it now.';
 }
 /** An item's six-stage chain as an ordered list with visible names, three to a row. */
 function chainOf(code: string) {
@@ -667,7 +667,7 @@ function chainOf(code: string) {
   }
   return chain;
 }
-/** The item dialog answers the request's question: how to get this item, and how many are at hand. Its title names the item. */
+/** The item dialog answers the quest's question: how to get this item, and how many are at hand. Its title names the item. */
 function detailContent(code: string) {
   const def = definition(code), name = itemName(code), source = sourceOf(def.chain);
   const onBoard = state.board.filter(cell => cell?.code === code).length;
@@ -750,7 +750,7 @@ function showModal(title: string, content: Node, focus?: HTMLElement, back?: () 
   if(focus)focus.focus();else if(replacing&&!modal.contains(document.activeElement))$('#modal-title').focus();
 }
 function showItem(code: string, back?: () => void) { const content=element('div','item-detail');content.append(detailContent(code));showModal(itemName(code),content,undefined,back); }
-/** A request on a ticket: who asks and why, each dish with the count on the board, the reward, and Deliver. Each dish opens its help. */
+/** A quest on a ticket: who asks and why, each dish with the count on the board, the reward, and Deliver. Each dish opens its help. */
 function showQuest(quest: Quest) {
   const content=element('div','quest-view'),people=[quest.character,...quest.companions??[]],head=element('div','quest-heading'),words=element('div');
   words.append(element('p','quest-person',names.format(people.map(id=>character(id).name))));
@@ -784,7 +784,7 @@ function storyScene(id: string) {
   const more=(dialogue: SceneLine[])=>`${character(dialogue[0].speaker).name} has more to say.`,source=sceneSource(id,data);
   switch(source?.kind){
     case 'task':{const {task}=source;return {title:task.title,dialogue:task.dialogue,completion:data.rooms.find(room=>room.after===id)!.text,prompt:more(task.dialogue)};}
-    case 'quest':{const {quest}=source;return {title:quest.title,dialogue:quest.completion,completion:'The request is delivered.',prompt:more(quest.completion)};}
+    case 'quest':{const {quest}=source;return {title:quest.title,dialogue:quest.completion,completion:'The quest is delivered.',prompt:more(quest.completion)};}
     case 'chapter':{const {chapter,number}=source;return {title:`Chapter ${number} complete: ${chapter.title}`,dialogue:chapter.closing,completion:chapter.payoff,prompt:`Chapter ${number} is complete.`};}
     case 'finale':{const {finale}=source;return {title:finale.title,dialogue:finale.dialogue,completion:finale.ending,prompt:'The supper can begin.'};}
     case 'arrival':{const {person}=source;return {title:`${person.name} arrives`,dialogue:person.arrival!,completion:`${person.name} is now a regular. Read more about ${person.name} in the story journal.`,prompt:'A new neighbour has arrived.'};}
@@ -879,8 +879,8 @@ function journal(focusEntry?: string) {
   if(completed.length)content.append(element('h3','','Neighbour quests'));
   for(const {quest} of completed){
     const section=element('section','quest-journal');section.append(element('h4','',quest.title));
-    const opening=button('Read request','text-button',()=>showStory({title:quest.title,dialogue:quest.opening},false,'',()=>journal(quest.id)));
-    opening.setAttribute('aria-label',`Read request: ${quest.title}`);
+    const opening=button('Read quest','text-button',()=>showStory({title:quest.title,dialogue:quest.opening},false,'',()=>journal(quest.id)));
+    opening.setAttribute('aria-label',`Read quest: ${quest.title}`);
     const waiting=state.pendingScenes.includes(quest.id),replay=button('Read completion','journal-entry',()=>showScene(quest.id,()=>journal(quest.id)));
     replay.dataset.journal=quest.id;replay.setAttribute('aria-label',`${waiting?'Read':'Replay'} ${quest.title}`);replay.append(element('span','',waiting?'New scene':character(quest.character).name));section.append(opening,replay);content.append(section);
   }
@@ -981,7 +981,7 @@ async function showPainting(id: string, fade: number) {
   if(animate){for(const old of holder.children)old.classList.add('leaving');next.classList.add('entering');holder.append(next);}
   else holder.replaceChildren(next);
   const decoded=await next.querySelector('img')!.decode().then(()=>true,()=>false);
-  // Only the current request can replace the room. This also detects a preload that failed before its story ended.
+  // Only the current quest can replace the room. This also detects a preload that failed before its story ended.
   if(token!==paintingToken||!next.isConnected)return;
   if(!decoded){holder.replaceChildren();$('#room-stage').dataset.failed='';return;}
   next.classList.remove('entering');
@@ -1066,7 +1066,7 @@ async function reveal(task: Task) {
   const land=()=>{if(!$('#room-pin').hidden&&!still())$('#room-pin').animate([{opacity:0,transform:'translateY(-14px) scale(.6)'},{opacity:1,transform:'none'}],{duration:450,easing:'cubic-bezier(.16,1,.3,1)'});};
   stage.dataset.reveal='waiting';$('#room-pin').hidden=true;
   if(!still()){
-    layout.classList.add('revealing');if(drawerLayout.matches){$('#drawer-body').inert=true;await pause(LOWER_MS);}
+    layout.classList.add('revealing');if(movableDrawer.matches){$('#drawer-body').inert=true;await pause(LOWER_MS);}
     if(token!==revealToken)return;
   }
   renderAreaSwitch(views,view);

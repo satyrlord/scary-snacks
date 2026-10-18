@@ -10,6 +10,8 @@ Copy the accepted candidate to `public/assets/original/` with no change to its p
 Do not run background removal, color changes, or compression on the candidate.
 Do not put a second file in that folder. The test fails for a file with no record.
 The game never loads a master.
+If the replacement moves a subject inside an atlas, update the cell rectangles.
+They are `spriteBounds`, `blockerFrames`, and `preparationFrames` in `src/app.ts`, and the mascot positions in `src/style.css`.
 Update the records before you make variants with `npm run assets:build`.
 
 ## Update the two records
@@ -28,7 +30,7 @@ In `docs/asset-provenance.json`, update the entry of the asset with measured val
 - `promptId`, which must be the new prompt `id`.
 - `generation`, which gives the route. For the handoff route, give the tool that the user named.
 - `sourceGameImageInput`.
-- For an edit of an earlier painting, set `referenceAsset` to the identifier of that painting.
+- For an edit of another painting, set `referenceAsset` to the identifier of that painting.
   Set `referenceSha256` to its recorded `sha256`.
   The asset test compares the two values with the record of that painting.
 - `review`, which states what the agent examined.
@@ -40,7 +42,7 @@ Calculate the hash from the file in `public/assets/original/`:
 (Get-FileHash -Algorithm SHA256 public/assets/original/<file>.png).Hash.ToLower()
 ```
 
-Update the top-level `note` field of that file only when its statements change.
+Update the top-level `note` field of `docs/asset-provenance.json` only when its statements change.
 
 ## Add a new bitmap
 
@@ -51,10 +53,9 @@ Then do these steps:
 1. Add the entry to `docs/asset-provenance.json` and the prompt to `docs/asset-prompts.json`.
 2. Update the asset count in `tests/assets.test.ts`.
 3. Add the asset to `imageVariants` in `tools/build-image-variants.ts`.
-   Use the display sizes in `DESIGN.md` and the variant choices in `tools/build-image-variants.ts`.
-   Compare the required widths with the source dimensions before you generate variants.
    "Required actions" in `DESIGN.md` gives the formats and the widths of each asset kind.
-   The comments in that file give the reasons.
+   The comments in `tools/build-image-variants.ts` give the reasons.
+   Compare the required widths with the source dimensions before you generate variants.
 4. Run `npm run assets:build`.
 5. Add the code that shows a variant, with a path relative to the file that loads it.
    For a room state, also add its identifier to `roomPaintings` in `src/engine.ts`.

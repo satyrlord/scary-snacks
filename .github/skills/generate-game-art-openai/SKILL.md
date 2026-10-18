@@ -32,7 +32,7 @@ Use it if the chat tool is not available and the user did not choose the API rou
 - **Replacement:** Install an accepted candidate and update the records.
   Inputs: an accepted candidate and the instruction to replace the shipping file.
   Approval: a plan, a review, or a preview task does not approve a shipping change.
-  Files to change: the bitmap, the prompt, provenance, and variant records, and the statements that the route changes.
+  Files to change: the files that [integration](../generate-game-art/references/integration.md) lists, and the statements that the route changes.
   Output: the changed files and the checks.
   Complete when the bitmap, the records, the tests, and the browser checks agree.
 
@@ -47,8 +47,8 @@ An instruction to use the API route for named assets approves one request for ea
 Obey a request limit, a size, or a reference limit that the user gives.
 After a visible defect, make at most one corrective request for each asset, unless the user gives a different limit.
 Get approval from the user before an additional request.
-A new asset identifier changes the request contract in `openai-api.ts` or the room states in `tools/create-original-data.ts`.
-Confirm that the approved scope includes the identifier before you add that identifier.
+A new asset identifier needs a change to the contract in `openai-api.ts`, or to the room states in `tools/create-original-data.ts`.
+Confirm that the approved scope includes the identifier before you add it.
 A plan, a review, or a preview task does not approve a request or a shipping change.
 
 Do not repeat a request that finished or a request with an unknown result.
@@ -84,7 +84,7 @@ Use the chat route for these assets unless the approved scope includes an API co
 
 To print the contract of one asset, run `plan --asset <identifier>`, as [API generation](references/api-generation.md) tells you.
 
-[The art plan](../../../docs/specs/001-room-states-art-plan.md) lists the room states.
+[The art plan](../../../docs/specs/001-visible-renovation-art-plan.md) lists the room states.
 Each later state is a masked edit of the previous accepted state.
 Composite the region back with `art-composite.ts`, as [API generation](references/api-generation.md) tells you.
 Before a new bitmap ships, follow "Add a new bitmap" in [integration](../generate-game-art/references/integration.md).
@@ -94,9 +94,9 @@ Get approval from the user for that change.
 
 ## Load only the necessary modules
 
-- Before prompt work or candidate review, read [atlas generation and review](../generate-game-art/references/atlas-review.md).
-- Before a plan, a request, or a measurement, read [API generation](references/api-generation.md).
-- Before a change to a shipping file or a record, read [integration](../generate-game-art/references/integration.md).
+- Before you write a prompt or review a candidate, read [atlas generation and review](../generate-game-art/references/atlas-review.md).
+- Before you plan, send a request, or measure, read [API generation](references/api-generation.md).
+- Before you change a shipping file or a record, read [integration](../generate-game-art/references/integration.md).
   Also read the section "Record the route" in [API generation](references/api-generation.md).
 
 If a necessary module is missing, stop the action that uses it and give its path in the report.

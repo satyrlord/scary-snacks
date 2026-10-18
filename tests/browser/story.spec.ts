@@ -15,7 +15,7 @@ async function readWithArrivals(page: Page,index: number){
   for(const [at,person] of people.entries()){await expect(scene(page,`${person.name} arrives`)).toBeVisible();await readTo(page,at<people.length-1?'Next scene':'Back to the kitchen');}
 }
 const scene=(page: Page,title: string)=>page.getByRole('dialog',{name:title,exact:true});
-const noMoreRequests=async(page: Page)=>{await expect(page.locator('#tickets .ticket')).toHaveCount(0);await expect(page.locator('.tickets-empty')).toHaveText('Every request is delivered. The bistro is yours.');};
+const noMoreRequests=async(page: Page)=>{await expect(page.locator('#tickets .ticket')).toHaveCount(0);await expect(page.locator('.tickets-empty')).toHaveText('Every quest is delivered. The bistro is yours.');};
 
 test('the story shows the chapter objective and the state of its four preparations',async({page})=>{
   await start(page,ready(5));const chapter=data.chapters[1],tasks=data.tasks.slice(4,8);
@@ -73,7 +73,7 @@ for(const dismiss of ['Escape','Close'] as const)test(`${dismiss} on the next wa
   await expect(page.locator('#story').getByRole('button',{name:'Open the story journal',exact:true})).toBeFocused();
 });
 
-test('the final preparation gives one finale after the chapter scene; Skip and replay change nothing else, and no request waits',async({page})=>{
+test('the final preparation gives one finale after the chapter scene; Skip and replay change nothing else, and no quest waits',async({page})=>{
   const initial=ready(23);await start(page,initial);await payAndRead(page);await expect(scene(page,closing(5))).toBeVisible({timeout:8000});
   const paid=await saved(page);expect(paid.pendingScenes).toEqual(['chapter-6','finale']);expect(paid.coins).toBe(initial.coins-data.tasks[23].cost);
   await readTo(page,'Next scene');const finale=scene(page,data.finale.title);await expect(finale).toBeVisible();

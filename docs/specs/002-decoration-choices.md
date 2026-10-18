@@ -1,10 +1,12 @@
-# 002 Decoration choices
+# 002: Decoration choices
 
-Status: Implemented. Priority: Optional. Dependency: [001](001-visible-renovation.md).
+Status: Implemented.
+
+This spec depends on [spec 001](001-visible-renovation.md).
 
 ## Outcome and scope
 
-Three details of the bistro each have two finishes. The existing artwork is the default finish. A quest unlocks the second finish. A switch on the detail in the room changes the finish. Switches are free, and the player can switch again at any time. Finishes do not change dialogue, campaign progress, income, or rewards.
+Three details of the bistro each have two finishes. The existing artwork is the default finish. A quest unlocks the second finish. A switch on the detail in the room changes the finish. Switches are free. The player can switch again at any time. Finishes do not change dialogue, campaign progress, income, or rewards.
 
 | Slot | Detail shows after | Default | Second finish | Unlocking quest |
 | --- | --- | --- | --- | --- |
@@ -20,10 +22,10 @@ The cloth finish applies to the serving table. The flowers finish applies to the
 2. Delivery of the required quest adds the second finish.
    After delivery, the switch shows when the detail is visible in the room.
 3. A tap on the switch applies the other finish only after a successful save. The status line names the new finish. Focus stays on the switch.
-4. A failed write keeps the prior finish and says that the finish is not saved.
+4. A failed write keeps the previous finish and says that the finish is not saved.
 5. The switch shows only in the area that the room shows. The completion line of each finish quest says where the switch is.
-6. The engine rejects unknown slots, unknown or mismatched finishes, and locked finishes without a state change. A repeated switch grants nothing.
-7. A change from another tab adopts the latest saved game before another action can run.
+6. The engine rejects unknown slots, unknown finishes, mismatched finishes, and locked finishes. A rejection changes no state. A repeated switch grants nothing.
+7. If another tab changes the saved game, the game adopts the latest saved game before the next action can run.
 
 `tools/create-original-data.ts` authors the decoration slots and the `unlocks` field of the three quests.
 Each slot has IDs, names, finishes, asset IDs, defaults, prerequisites, areas, and crop bounds.
@@ -31,15 +33,15 @@ Each slot has IDs, names, finishes, asset IDs, defaults, prerequisites, areas, a
 `questProblems` checks that each second finish has exactly one quest.
 Saves never supply an asset path.
 
-`src/engine.ts` owns `decorationChoices`, `resolveDecorations`, `decorationUnlocked`, validation, and the `decorate` action. The existing `decorations` list remains the prefix of completed preparations. `src/app.ts` owns the switch, the focus, and the save-before-apply boundary. `src/storage.ts` owns the current save format and key.
+`src/engine.ts` owns `decorationChoices`, `resolveDecorations`, `decorationUnlocked`, the validation, and the `decorate` action. The existing `decorations` list remains the prefix of completed preparations. `src/app.ts` owns the switch, the focus, and the boundary that saves before the game applies a finish. `src/storage.ts` owns the current save format and key.
 
-Two full paintings supply the second finishes. The app clips each to its authored region. The 25 room paintings supply the defaults. Prompts, dimensions, hashes, agent review, and the acceptance of the user are in the asset records.
+Two full paintings supply the second finishes. The app clips each painting to its authored region. The 25 room paintings supply the defaults. The asset records hold the prompts, the dimensions, the hashes, the agent review, and the acceptance of the user.
 
 ## Save compatibility
 
 The [shared save compatibility](README.md#shared-save-compatibility) section gives the supported format.
 A missing choice entry means the authored default. A missing or malformed map is invalid. A saved choice must name a finish that its quest unlocked.
-Import validates and saves the full candidate before adoption. A failed write preserves the prior save and offers Retry.
+Import validates and saves the full candidate before the game adopts it. If the write fails, the game keeps the previous save and offers Retry save.
 An explicit new game replaces only the current save.
 
 PRODUCT.md owns these behaviors. DESIGN.md owns the design of the finish switch and of the painted regions.
@@ -50,7 +52,7 @@ PRODUCT.md owns these behaviors. DESIGN.md owns the design of the finish switch 
 
 The two decoration masters are each 1536 by 2048 pixels and fully opaque, like the room states.
 The masters use red, green, and blue (RGB) colour channels.
-The OpenAI Images application programming interface (API) made both as edits of front-room-24 and courtyard-22.
-A composite preserves every pixel outside the changed regions.
+The OpenAI Images application programming interface (API) made both masters as edits of front-room-24 and courtyard-22.
+A composite keeps every pixel outside the changed regions.
 Thus each crop edge meets the room painting.
 `docs/asset-prompts.json` holds the prompts.

@@ -17,8 +17,8 @@ export type TaskRequirement =
   | { kind: 'space'; source: string; met: boolean };
 export type TaskEligibility = { task: Task | null; ready: boolean; requirements: TaskRequirement[]; blockers: string[] };
 /**
- * A request from a character. It opens after the preparation that afterTask names (null: in a new game), after afterQuest, and after
- * the earlier requests of its character. Unlocks names a decoration finish that the delivery adds. A follow-up scene is earned after
+ * A quest from a character. It opens after the preparation that afterTask names (null: in a new game), after afterQuest, and after
+ * the earlier quests of its character. Unlocks names a decoration finish that the delivery adds. A follow-up scene is earned after
  * afterDeliveries further deliveries.
  */
 export type Quest = {
@@ -246,8 +246,8 @@ function questPredecessors(quest: Quest, data: GameData): string[] {
 export const QUEST_TICKETS = 3;
 
 /**
- * Open requests take the tickets in authored order: the first three are active, and the others wait for a free ticket.
- * A character has at most one open request, because each request waits for the earlier requests of its character.
+ * Open quests take the tickets in authored order: the first three are active, and the others wait for a free ticket.
+ * A character has at most one open quest, because each quest waits for the earlier quests of its character.
  */
 export function resolveQuests(state: GameState, data: GameData): QuestView[] {
   let tickets = 0;
@@ -260,7 +260,7 @@ export function requiredQuests(taskIndex: number, data: GameData): Quest[] {
   return data.quests.filter(quest => questOpening(quest, data) < taskIndex);
 }
 
-/** A guest who visits once has a journal introduction only while their request is open. */
+/** A guest who visits once has a journal introduction only while their quest is open. */
 export function journalCharacters(state: GameState, data: GameData): Character[] {
   const quests = resolveQuests(state, data);
   return data.characters.filter(character => hasArrived(state, character)).filter(character => !character.singleVisit
@@ -294,7 +294,7 @@ export function questProblems(data: GameData): string[] {
     for (const character of data.characters) {
       if (character.singleVisit !== undefined && typeof character.singleVisit !== 'boolean') problems.push(`${character.id}: invalid single visit flag.`);
       if (character.singleVisit && (character.visitor !== true || data.quests.filter(quest => quest?.character === character.id || quest?.companions?.includes(character.id)).length !== 1)) {
-        problems.push(`${character.id}: a single visit needs a visitor with exactly one request.`);
+        problems.push(`${character.id}: a single visit needs a visitor with exactly one quest.`);
       }
     }
     for (const [index, task] of data.tasks.entries()) graph.set(`task:${task.id}`, index ? [`task:${data.tasks[index - 1].id}`] : []);
@@ -953,7 +953,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const code = action.output === undefined ? nextOutput(next, item.id, data)! : action.output;
       if (!generatorOutputs(next, item.id, data).includes(code)) return fail('Choose an available output from this source.');
       const empty = firstFreeBoardCell(next, data);
-      if (empty === -1) return fail('The board is full. Merge a pair or deliver a request.');
+      if (empty === -1) return fail('The board is full. Merge a pair or deliver a quest.');
       next.board[empty] = { code };
       if (data.items[code].stage === 1) delete next.outputChoices[item.chain];
       else next.outputChoices[item.chain] = code;

@@ -56,20 +56,20 @@ For game data, use [update-game-content](../update-game-content/SKILL.md).
 
 If the save shape changes, obey "Access and persistence" in `PRODUCT.md`.
 Also obey "Shared save compatibility" in `docs/specs/README.md`.
-These sections give the supported save format, the storage key, and the Retry path.
-The engine validates saves in `validateGame` in `src/engine.ts`.
-Coordinate the state version and `VERSION` in `src/storage.ts` when the save shape changes.
+These sections give the supported save format, the storage key, and the recovery rules.
+`validateGame` in `src/engine.ts` validates saves.
+If the save shape changes, coordinate the game state version in `src/engine.ts` with `VERSION` in `src/storage.ts`.
 Do not add support for an earlier save format without user approval.
 
 If you add, move, or remove a file, examine `runtimeFiles` in `tools/build.ts`.
-Examine the file list in `tools/export-source.ts` also.
+Examine `sourceFiles` in `tools/export-source.ts` also.
 Update each list that names the file.
 The build publishes each runtime `.ts` module as a `.js` script in `dist/`. `index.html` names the `.ts` source.
 
 Add the smallest tests that fail for the changed behavior.
 Update the related developer and user documentation.
 For behavior that the user can see, add evidence from a browser test in `tests/browser/`.
-For sound, keep the automated checks apart from the manual listening test.
+For sound, state in the report that an automated check does not measure how the sound plays.
 
 ## Verify the change
 

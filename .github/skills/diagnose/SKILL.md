@@ -23,8 +23,8 @@ Repair mode:
 - Inputs: the diagnosis and its evidence.
 - Approval: the instruction of the user to repair the cause.
 - Files: only the files that the repair and its regression test need.
-- Output: the changed files, the regression test, and the results of the initial test sequence.
-- Completion: the initial test sequence passes.
+- Output: the changed files, the regression test, and the results of the test sequence.
+- Completion: the test sequence passes.
 
 If the user changes the scope, select the mode again before the next edit.
 If the user prohibits edits, use diagnosis mode.
@@ -68,7 +68,7 @@ Put the cause with the most evidence first.
 Each cause must be testable: one test can show that it is incorrect.
 For each cause, give one test and the result that you expect.
 Change only one condition at a time.
-Stop after one cause agrees with all the evidence.
+Stop when one cause agrees with all the evidence.
 
 In diagnosis mode, use only tests that do not change tracked files or stored data.
 The build changes no tracked file. [run-quality-gate](../run-quality-gate/SKILL.md) gives its outputs.
@@ -78,7 +78,7 @@ Do not show the content of a save file that a user gives, except the fields that
 
 In repair mode, first make the smallest regression test that fails.
 Repair the root cause.
-Run the initial test sequence again.
+Run the test sequence again.
 Remove all temporary logs and traces.
 
 The evidence must show that the cause is different from related alternatives.

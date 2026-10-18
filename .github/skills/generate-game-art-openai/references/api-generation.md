@@ -2,8 +2,8 @@
 
 Read this module before a plan, a request, a measurement, or a record of the route.
 API means application programming interface. PNG means Portable Network Graphics.
+JPEG means Joint Photographic Experts Group. MB means megabytes.
 RGB means red, green, and blue. RGBA adds an alpha channel.
-MB means megabytes.
 
 ## Keep the route fixed
 
@@ -13,7 +13,7 @@ It does not accept a different model, quality, format, or endpoint.
 `art-image.ts` uses only Node.js built-in modules.
 `art-composite.ts` also uses Sharp, a development dependency in `package.json`.
 
-For a helper repair, inspect these modules before the edit:
+For a helper repair, read these modules before the edit:
 
 - [`art-image.ts`](../scripts/art-image.ts): command arguments, safe paths, references, keys, and run records.
 - [`openai-api.ts`](../scripts/openai-api.ts): asset contracts and the API transport.
@@ -25,7 +25,7 @@ Run `npm run typecheck` to check the helper types.
 Keep credentials and paid requests out of those checks.
 
 The helper reads `OPENAI_API_KEY` from `.env.local` when it sends a request.
-It stops if Git tracks the file or does not ignore the file.
+The helper stops if Git tracks the file or does not ignore the file.
 Do not print the file, and do not put the key in a command argument.
 Do not read the file with a shell command.
 The helper does not expose a provider error body.
@@ -50,7 +50,7 @@ It also requires the shape of the asset:
 - 3:4 for a room state and a decoration painting.
 
 The size must divide into equal grid cells.
-The plan sets `experimentalResolution` for a size of more than 2560 by 1440 pixels. Avoid such a size.
+The plan sets `experimentalResolution` for a size of more than 3,686,400 pixels (2560 by 1440). Avoid such a size.
 
 Write the final prompt in a file that is not in the repository, or in an ignored folder.
 Then run the dry run:
@@ -83,7 +83,7 @@ Give each reference a role in the prompt, and name the cells and the features th
 
 A room state after the base is a masked edit of the previous accepted state.
 
-1. **Make the mask.** The mask must be the size of the image that it edits. Transparent pixels mark the region to repaint:
+1. **Make the mask.** The mask must be an RGBA PNG of the same size as the image that it edits. Transparent pixels mark the region to repaint:
 
    ```powershell
    node .github/skills/generate-game-art-openai/scripts/art-composite.ts mask `
@@ -154,7 +154,7 @@ Read `status.json` before you continue:
 | `measurement-review-required` | A measurement failed. | Read `inspection.json`, and select the repair. |
 | `visual-review-required` | The measurements passed. | Examine the candidate in an image viewer. |
 
-After a timeout or an interruption, recover the previous result before you consider another request.
+After a timeout or an interruption, find the result of the previous request before you consider another request.
 The helper never makes a second request for a folder that exists.
 
 ## Measure the candidate
@@ -171,6 +171,7 @@ It sets the exit code to 1 for an `issues` entry. An issue is one of these items
 
 - The size does not agree with `--size`, or the width is not more than 1000 pixels.
 - The image does not divide into the grid.
+- A blank cell of `regulars-3` has a pixel that is not transparent.
 - A transparent asset has no alpha channel or no fully transparent pixel.
 - A cell of a transparent asset has no visible object. A visible object has pixels with an alpha of 128 or more.
 - An opaque painting has a transparent or partly transparent pixel.
@@ -192,12 +193,12 @@ Add these route details:
 - In `docs/asset-provenance.json`, set `generation` to `OpenAI Images API, gpt-image-2.5-flare, high quality`.
   For an edit, add a clause after a semicolon. The clause names the kind of edit and the composite.
 - In `docs/asset-prompts.json`, copy the text of `prompt.txt` unchanged into the new entry.
-  Add a `generation` field to that entry with the model, the quality, the size, and the run folder name.
-  If the run used a reference or a mask, add its description to that field.
+  Add a `generation` field to that entry with the keys `model`, `quality`, `size`, and `run`. The `run` value is the run folder name.
+  If the run used a reference or a mask, add the keys `reference` and `mask` with their descriptions.
   Change the top-level `mode` field so that it names each route that made an entry.
 - Examine the statements that name the built-in chat image generator in `docs/release-notes.md` (section "Art provenance").
-  Change a statement if it is no longer true.
-- Set `sourceGameImageInput` to `false` only if each reference was a shipping bitmap or a candidate of this project.
+  Change a statement that is not true.
+- Set `sourceGameImageInput` to `false` only if each reference is a shipping bitmap or a candidate of this project.
 
 Run `npm run assets:build`, `npm test`, `npm run build`, and `npm run test:browser`.
 Examine the changed assets in the game in both themes at the desktop size and the phone size.

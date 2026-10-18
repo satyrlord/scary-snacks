@@ -8,9 +8,9 @@ This record explains the price model and the work estimates.
 One coin uses approximately one Romanian leu as its reference scale.
 This scale relates small food purchases to repair budgets.
 The model is a game budget, not a precise profit account.
-Production is free. The model does not charge for replacement ingredients or operating expenses.
+Production is free. The model does not charge for replacement ingredients or for the cost to run the bistro.
 
-Each food has a menu price for the portion below.
+Each food has a menu price for the portion that the table lists.
 The menu value of a quest is the sum of its portion prices.
 Merge stage does not multiply the price.
 A later stage does not always cost more. The portion and dish determine the price.
@@ -48,10 +48,10 @@ A later stage does not always cost more. The portion and dish determine the pric
 | Produce | Wild mushroom sauce, two small portions | 28 |
 | Produce | Sharing board, a board for two | 65 |
 
-Vlad and Elisabeta request only meat cabbage rolls, goulash, and red wine.
+Vlad and Elisabeta ask only for cabbage rolls, the goulash pot, and red wine.
 Mina and Avram share a vegetarian meal with a menu value and reward of 168 coins.
-Their request has two zacuscă toasts, two roasted vegetable plates, one smoked cheese plate, and two fruit teas.
-The request permits eggs and dairy. The later local news pays nothing.
+Their quest has two zacuscă toasts, two roasted vegetable plates, one smoked cheese plate, and two fruit teas.
+The quest permits eggs and dairy. The local news that follows pays nothing.
 
 The project defines these portion prices with reference to Romanian shops and restaurants.
 The model does not copy a menu or claim that every restaurant has these prices.
@@ -65,12 +65,12 @@ The game has no sales. Quests are the only income.
 Quests earn campaign coins.
 Every quest pays its menu value: the sum of the prices of its portions.
 No chapter, character, or visit multiplies a reward.
-The count of quests in each window, not a reward rate, makes the quest income cover the preparation costs.
+The number of quests that open before each preparation makes the quest income cover the preparation costs. A reward rate does not.
 
 A quest that opens after preparation N is necessary for preparation N + 1.
-For each preparation, total available quest rewards must equal or exceed total preparation costs to that point.
+For each preparation, the available quest rewards must total at least the cost of all preparations to that point.
 `questProblems` in `src/engine.ts` checks this rule before the data can ship.
-A player who delivers every open quest has sufficient coins for the next preparation.
+A player who delivers every open quest has enough coins for the next preparation.
 
 ## Work and price
 
@@ -113,13 +113,15 @@ The game has no wait for paint to dry, materials to cure, or supplies to arrive.
 
 The work estimates have these limits:
 
-- Window: one replacement pane, seals, and preparation and paint for the existing frame and shutters.
+- Window: one new pane, seals, and the preparation and paint of the existing frame and shutters.
   Materials allow approximately 120 coins for glass and 80 for supplies and finish.
-  The four hours include removal, preparation, installation, seals, and paint. The frame stays in use.
-- Sign: the wood is sound. Sand and repaint the sign with small amounts of finish and 1.5 hours.
-- Shelves: the paintings show existing timber. Clean, secure, repair the finish, and stock the shelves.
+  The four hours cover removal, preparation, installation, seals, and paint. The frame stays in use.
+- Sign: the wood is sound. The work is to sand and repaint the sign. It uses small amounts of finish and 1.5 hours.
+- Shelves: the paintings show timber that is already in the bistro.
+  The work is to clean and secure the shelves, repair the finish, and stock the shelves.
   The estimate does not include a new shelf unit.
-- Lamps: two existing fittings. The estimate covers bulbs, small materials, installation, and connection work.
+- Lamps: two supplied lamps and the existing connections.
+  The estimate covers bulbs, small materials, installation, and a check of the connections.
 - Table and chairs: the existing long table and two chairs.
   Eight hours cover the three pieces and their decorative finish.
 - Tableware: six handmade bowls and six cups with saucers. Later preparations reuse this purchase.
@@ -128,13 +130,14 @@ The work estimates have these limits:
   The estimate has no pavement or landscape work.
 - Herb pots: three clay pots, three small plants, soil, and drainage material.
   The material allowance is 100 coins.
-- Door hood: the sound structure stays in use. Replace approximately two square metres of wood shingles.
+- Door hood: the sound structure stays in use. The work replaces approximately two square metres of wood shingles.
   The estimate allows 800 coins for shingles and 100 for fasteners and weather seals.
   The estimate includes eight active labour hours.
 - First menu: one small slate, chalk, and half an hour for text and pictures.
 - Supper menus: ten strong prints and simple stands cost approximately 40 coins.
   The labour includes movement of the existing long table into the courtyard.
-- Invitations: twenty small prints, the wreath on the kitchen door, the gate lantern, and the pots of red geraniums by the gate and on the wall.
+- Invitations: twenty small prints and a wreath on the kitchen door.
+  The gate has a lantern and pots of red geraniums, and more pots line the wall.
   Existing towels stay in use. The estimate includes the gate decoration.
 - Final flowers: one outdoor light string, supplies to attach the string, and flowers in existing vases.
   The light string must be suitable for outdoor use.
@@ -160,7 +163,7 @@ Verify the source and the portion before a price revision.
 
 - [Auchan flour](https://www.auchan.ro/faina-alba-superioara-000-auchan-1-kg/p): 1.99 lei for a 1 kg bag.
 - [Sergiana menu](https://delivery.sergiana.ro/ro/meniu-restaurant/fel-principal): 7 lei for a mămăligă side and 2 lei for sliced bread.
-  Mushroom stew with mămăligă uses 35 lei. These examples distinguish ingredients, side dishes, and main dishes.
+  Mushroom stew with mămăligă costs 35 lei. These examples distinguish ingredients, side dishes, and main dishes.
 - [Paradisul Transilvaniei menu](https://paradisultransilvaniei.ro/ro/restaurant): tea at 10 lei and socată at 18 lei.
   Other inputs are vegetables at 20 to 22 lei, desserts at 15 to 25 lei, and cheese at 65 lei.
   The game portions can differ from the restaurant portions.
@@ -185,12 +188,13 @@ Verify the source and the portion before a price revision.
 ## Verification and limits
 
 Run `node tools/campaign-balance.ts`.
-The report gives costs, work, actions, takes, merges, and deliveries for each preparation and chapter.
+The report gives costs, work, actions, takes, merges, deliveries, and coins for each preparation and chapter.
 
+The campaign fixture is the play code in `tools/campaign-balance.ts`.
 The fixture plays a fresh game with one repeatable policy.
 The fixture pays each preparation when payment becomes available.
 Otherwise, the fixture delivers the first quest that has a ticket.
-The fixture makes each requested dish from the highest available source output.
+The fixture makes each required dish from the highest available source output.
 If the board is full, the fixture merges spare food: a pair, or a match for a blocked ingredient. A full board without such a merge is a deadlock, and the fixture fails.
 
 This check measures actions under that policy. This check does not establish a satisfactory human play experience.
@@ -200,5 +204,5 @@ Play a late chapter before a price revision.
 Record the device, initial save, action counts, and elapsed human play time.
 Do not convert automated execution time to player time.
 
-A price change changes the reward of each quest that requests the item.
-Run the campaign reward check after each price or reward change.
+A price change changes the reward of each quest that needs the item.
+Run `npm run data:generate` and `npm test` after each price or reward change.

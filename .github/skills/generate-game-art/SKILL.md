@@ -1,6 +1,6 @@
 ---
 name: generate-game-art
-description: Generate, review, repair, or replace Scary Snacks bitmap art with the built-in chat image generator. If the agent has no image generator, give the user a complete prompt. Start here for the OpenAI Images API route also. This skill hands that request to generate-game-art-openai. Use for food, portrait, mascot, and blocker atlases, the timber, and the runner. Also use for room states, decoration paintings, separate item pictures, cell defects, and prompt and provenance records.
+description: Generate, review, repair, or replace Scary Snacks bitmap art with the built-in chat image generator. If the agent has no image generator, give the user a complete prompt. Start here for the OpenAI Images API route also. This skill gives that request to generate-game-art-openai. Use for food, portrait, mascot, and blocker atlases, the timber, and the runner. Also use for room states, decoration paintings, separate item pictures, cell defects, and prompt and provenance records.
 ---
 
 # Generate game art in chat
@@ -34,7 +34,7 @@ In that condition, give each edit or check that you did not complete in the repo
 
 Read `PRODUCT.md`, `DESIGN.md`, `docs/asset-prompts.json`, and `docs/asset-provenance.json`.
 Read `tests/assets.test.ts` and the code that shows the selected asset in `index.html`, `src/app.ts`, and `src/style.css`.
-Examine the repository status before edits.
+Examine the repository status before an edit.
 Examine the file to replace.
 
 The next table lists the layouts of the Portable Network Graphics (PNG) masters in `public/assets/original/`.
@@ -53,7 +53,7 @@ The next table lists the layouts of the Portable Network Graphics (PNG) masters 
 | `red-wine.png` | The red wine menu picture | One square icon | Transparent |
 | `mascots.png` | Three poses of the black cat and one bat | 2 columns by 2 rows | Transparent |
 | `timber-tabletop.png` | The timber under the board | One tileable square | Opaque |
-| `embroidered-runner.png` | The runner strips beside the board | One image, 3:1; the game repeats only x 161, width 503 | Opaque |
+| `embroidered-runner.png` | The runner strips beside the board | One image, 3:1. The game repeats only the region at x 161 with width 503 | Opaque |
 | `front-room-NN.png`, `courtyard-NN.png` | One painted room state | One image, 3:4, 1536 by 2048 pixels | Opaque |
 | `decoration-front.png`, `decoration-courtyard.png` | One decoration edit of a room state | One image, 3:4, 1536 by 2048 pixels | Opaque |
 
@@ -70,8 +70,8 @@ Use the built-in chat image generator for all the art.
 Use the OpenAI Images application programming interface (API) only if the user tells you to.
 If the user chooses the API route, use [generate-game-art-openai](../generate-game-art-openai/SKILL.md) for the request and the measurement.
 That skill uses this skill for the direction, the layouts, the review, and the integration.
-Its asset table gives the supported subset.
-Do not assume that its helper accepts every current master.
+Its asset table gives the supported subset of the masters.
+Do not assume that its helper accepts every master.
 If the chat tool is not available and the user did not choose the API route, use the handoff route:
 
 1. Write the prompt from the brief in [atlas generation and review](references/atlas-review.md).
@@ -90,7 +90,7 @@ That command uses Sharp, the one approved image package. Do not add another imag
 
 Use the art direction in `DESIGN.md` and in the accepted prompts.
 Make each food silhouette readable at 64 pixels.
-Do not use glossy plastic rendering or a mobile-cartoon style with oversized heads.
+Do not use a glossy plastic style or a mobile-cartoon style with oversized heads.
 Do not put text, numbers, logos, grid lines, or interface controls in a bitmap.
 
 These limits protect the release. They have no exceptions:
@@ -107,15 +107,15 @@ Provenance is a record. It is not legal clearance.
 
 ## Load only the necessary procedure
 
-- Before prompt work or candidate review, read [atlas generation and review](references/atlas-review.md).
-- Before a change to a shipping file or a record, read [integration](references/integration.md).
+- Before you write a prompt or review a candidate, read [atlas generation and review](references/atlas-review.md).
+- Before you change a shipping file or a record, read [integration](references/integration.md).
 
-For review mode, the first module is sufficient.
+For review mode, the atlas generation and review module is sufficient.
 If a necessary module is missing, stop the action that uses it and give its path in the report.
 
 ## Limit requests and keep results
 
-Generate one candidate for each request.
+Generate one candidate in each request.
 Save the initial output unchanged before you examine it.
 Measure its dimensions and its alpha. Do not use the description from the generator as a measurement.
 After a visible defect, make a corrective request that names the defect.

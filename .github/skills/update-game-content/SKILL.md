@@ -16,7 +16,7 @@ description: Add or change Scary Snacks items, merge chains, generators, charact
 - **Edit:** Use this mode if the user tells you to add, change, or remove content.
   Inputs: the approved content change.
   Approval: the instruction of the user. Confirm that the approved scope includes any count change.
-  Files to change: only the content generator, the generated data, the tests, and the owner documents in the approved scope.
+  Files to change: only the data tool, the generated data, the tests, and the owner documents in the approved scope.
   Output: the changed files and the checks.
   Complete when the items in "Complete the task" agree.
 
@@ -27,24 +27,25 @@ In that condition, give each edit or check that you did not complete in the repo
 ## Read the content contract
 
 Read `PRODUCT.md`, `DELIVERY.md`, and `tools/create-original-data.ts`.
-That tool is the only source of the game data.
+This skill calls that file the data tool. The data tool is the only source of the game data.
 Read `validateGame`, `dataProblems`, and the quest rules in `src/engine.ts`.
 `validateGame` checks a save against the game data.
 `dataProblems` runs each data check. It also checks that the starting board makes a valid new game.
-The generator and the game both call `dataProblems`. The game does not start on data that has a problem.
+The data tool and the game both call `dataProblems`. The game does not start on data that has a problem.
 Read the content test in `tests/engine.test.ts` and the campaign test in `tests/campaign-balance.test.ts`.
+Read the tests in `tests/quests.test.ts`, `tests/guests.test.ts`, `tests/regulars.test.ts`, and `tests/story.test.ts` if the change touches quests, guests, regulars, or story.
 Read the code in `src/app.ts` that shows items, portraits, and dialogue.
 
-`PRODUCT.md` gives the board size and the counts of the generators, the dishes and drinks, the preparations, and the chapters.
-`PRODUCT.md` gives the count of the characters.
+`PRODUCT.md` gives the board size and these counts: generators, dishes and drinks, characters, quests, preparations, and chapters.
 The content test in `tests/engine.test.ts` checks the board size and the counts of the items, the characters, and the preparations.
+`tests/quests.test.ts` checks the count of the quests.
 A change to one of these counts is a product change.
 Confirm that the approved scope includes that product change.
 Then update `PRODUCT.md`, `DELIVERY.md`, and the tests.
 
 ## Define the change
 
-Change the data only in `tools/create-original-data.ts`, as `AGENTS.md` tells you.
+Change the data only in the data tool, as `AGENTS.md` tells you.
 Then run `npm run data:generate`.
 Examine the diff of the generated file. Confirm that it contains only the approved change.
 
@@ -60,16 +61,15 @@ The first four visitors use the two-by-two visitor portrait atlas.
 Characters with `portraitAtlas: 'guest'` use the two-by-two guest portrait atlas.
 Ten regulars use the two-by-two atlases `regulars-1`, `regulars-2`, and `regulars-3`, in order of arrival.
 The lower cells of `regulars-3` stay transparent.
-Verify each assignment against `portraitAtlas` and `sprite` in the generator.
+Verify each assignment against `portraitAtlas` and `sprite` in the data tool.
 The index goes from left to right, and then from top to bottom.
 A new item or a changed dish must have its own matching art.
 Red wine uses a separate picture for `drinks_5`.
 Each preparation has one authored room state.
-A room state has an identifier that also names its painting.
-The state also gives its area and the preparation in `after`.
-It also has the fields `focus`, `mark`, `label`, and `text`.
+A room state has the fields `id`, `area`, `after`, `focus`, `mark`, `label`, and `text`.
+The `id` also names the painting. The field `after` names the preparation.
 The state of the new game has `null` in `after`.
-The generator stops if an entry of `roomPaintings` in `src/engine.ts` has no approved master in `docs/asset-provenance.json`.
+The data tool stops if an entry of `roomPaintings` in `src/engine.ts` has no approved master in `docs/asset-provenance.json`.
 Use [generate-game-art](../generate-game-art/SKILL.md) for new art. Make the name agree with the picture.
 
 Write new names, dialogue, and descriptions for this game.
@@ -78,7 +78,7 @@ Do not copy text, names, item tables, or progression from a protected work.
 Keep the characters fictional. Do not name a real person or a real business.
 Keep the cosy and slightly eerie tone of an everyday neighborhood.
 Name each dish or drink as `PRODUCT.md` tells you. The letters ș and ț take a comma below.
-A merge chain is a game rule. Do not write it as a cooking recipe.
+A merge chain is a game rule. Do not write it as a recipe for real food.
 Do not add timers, energy limits, purchases, or advertisements to the content.
 
 ## Validate gameplay and provenance
@@ -100,7 +100,7 @@ In the report, give each check that you did not run.
 
 Edit mode is complete when these items agree:
 
-- The generator and the generated data.
+- The data tool and the generated data.
 - The engine validation and the tests.
 - The atlas art and the item names.
 - `PRODUCT.md` and `DELIVERY.md`.

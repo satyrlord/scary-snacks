@@ -14,11 +14,11 @@ if (-not $canonicalSkills.StartsWith(
     $repositoryRoot,
     [System.StringComparison]::OrdinalIgnoreCase
   )) {
-  throw 'The primary skill directory is outside the repository.'
+  throw 'The skill folder .github/skills is outside the repository.'
 }
 
 if (-not (Test-Path -LiteralPath $canonicalSkills -PathType Container)) {
-  throw 'The primary skill directory is missing.'
+  throw 'The skill folder .github/skills is missing.'
 }
 
 foreach ($discoveryRootName in '.claude', '.agents', '.codex') {
@@ -32,10 +32,10 @@ foreach ($discoveryRootName in '.claude', '.agents', '.codex') {
   if (Test-Path -LiteralPath $skillLink) {
     $existing = Get-Item -Force -LiteralPath $skillLink
 
-    # A plain folder has no target, so examine the link type before the target.
+    # A plain folder has no link target. Examine the link type before the link target.
     if ($existing.LinkType -notin 'Junction', 'SymbolicLink' -or
       [System.IO.Path]::GetFullPath([string]$existing.Target) -ne $canonicalSkills) {
-      throw "A different item is at the skill link path: $skillLink"
+      throw "The skill link path holds a different item: $skillLink"
     }
 
     Write-Output "The skill link target is correct: $skillLink"
@@ -44,5 +44,5 @@ foreach ($discoveryRootName in '.claude', '.agents', '.codex') {
 
   New-Item -ItemType Junction -Path $skillLink -Target $canonicalSkills |
     Out-Null
-  Write-Output "Made the skill link: $skillLink"
+  Write-Output "Created the skill link: $skillLink"
 }

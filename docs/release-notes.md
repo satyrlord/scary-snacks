@@ -21,7 +21,7 @@ The fonts use Web Open Font Format 2 (WOFF2).
 The font records describe the conversion from the source fonts.
 The build copies the WOFF2 files without a change.
 
-The build excludes the Portable Network Graphics (PNG) masters, local work folders, and vendor code.
+The build excludes the Portable Network Graphics (PNG) masters, local work folders, and installed packages.
 Tests compare asset hashes with their records.
 Tests also check that runtime files and game data load assets only from the variant and font folders.
 The Pages workflow uploads only `dist/`.
@@ -34,14 +34,14 @@ The records do not establish ownership of every generated output.
 The records do not give trademark clearance for the title.
 A lawyer should review the intended release and the applicable jurisdictions before publication.
 
-The [U.S. Copyright Office](https://www.copyright.gov/register/tx-games.html) distinguishes game ideas and methods from expressive text and artwork.
+The [United States Copyright Office](https://www.copyright.gov/register/tx-games.html) distinguishes game ideas and methods from expressive text and artwork.
 The [United States Patent and Trademark Office](https://www.uspto.gov/trademarks/search/likelihood-confusion) explains confusion between similar marks for related goods.
 These sources describe United States law in general.
 These sources do not determine which law applies to this project.
 
 The project has no comprehensive title clearance.
 Such clearance requires more than an exact-name search.
-Relevant searches include trademark registers, unregistered rights, company names, domains, and jurisdictions outside the United States.
+Relevant searches cover trademark registers, unregistered rights, company names, domains, and jurisdictions outside the United States.
 
 ## Publication
 
@@ -56,7 +56,7 @@ Do not publish the whole workspace or its ignored local work folders.
 
 `AGENTS.md` defines the ignored local work folders and their input limits.
 These folders are not runtime dependencies.
-The build writes its manifest to the local output folder.
+The build writes its manifest to `analysis/`.
 Art candidates also remain outside the published assets.
 
 ## Art provenance
@@ -84,14 +84,14 @@ The OpenAI Images application programming interface (API) supplies these assets 
 
 - The menu atlas and mascots, with project-generated chat atlases as references.
 - The timber tabletop and embroidered runner, from text prompts.
-- The core portraits, from their first text-generated candidate.
+- The core portraits, as a revision of a text-generated candidate.
 - The three regulars atlases, with project-generated portraits as style references.
 - The 25 room states, with project-generated room paintings as the base references.
 - The two decoration paintings, with project-generated design references.
 
-The mascot correction keeps each pose inside its grid cell.
+A correction edit keeps each pose of the mascot atlas inside its grid cell.
 A masked edit changes one cell of the first regulars atlas.
-Sharp scales the two portraits of the third regulars atlas inside their cells.
+The Sharp image library scales the two portraits of the third regulars atlas inside their cells.
 Each later room state edits the previous state of its area.
 A composite applies only the changed region.
 The decoration composites also retain only their changed regions.

@@ -34,30 +34,30 @@ If the user tells you not to run checks, give each check that you did not run in
 
 Examine the status, the staged diff, the unstaged diff, the untracked files, and the last commits.
 Give each changed path a type.
-Do not change work that is not part of the review.
+Do not change a file that is not part of the review.
 
 For a diff review, read each changed file.
 For a checkout review, record and read each file in the selected scope.
-Also read the owner document, callers, consumers, tests, generated outputs, and deployment inputs.
+Also read the owner documents, the callers, the consumers, the tests, the generated outputs, and the deployment inputs.
 For each changed contract, find the evidence.
 
 ## Examine the contracts
 
 Examine each applicable area:
 
-- Keep the rules in `src/engine.ts` deterministic.
-  Keep them free of Document Object Model (DOM) access, storage access, and clock values.
+- Confirm that `src/engine.ts` is deterministic.
+  Confirm that it has no Document Object Model (DOM) access, no storage access, and no clock values.
 - Confirm that an action that is not correct or not available does not change the state.
 - Compare the rules for merges, generators, quests, rewards, and preparations with `PRODUCT.md`.
   Confirm that a value that the interface shows agrees with the value that the engine applies.
-- Keep the safe failure behavior of persistence.
-  This includes the save validation, the size limit, the preservation of malformed saves, and the rejection of unsupported save versions.
+- Confirm that persistence fails safely.
+  Examine the save validation, the size limit, the preservation of malformed saves, and the rejection of unsupported save versions.
 - Confirm that text from game data and from saves uses `textContent`.
-- In user interface (UI) changes, keep the pointer, keyboard, and touch controls, the viewports, the themes, and reduced motion.
+- For a user interface (UI) change, confirm that these items still work: the pointer, keyboard, and touch controls, the viewports, the themes, and reduced motion.
 - Compare `public/data/game.json` with its generator. Examine identifiers, sprite indexes, and unlocks.
 - Examine the build allowlist in `tools/build.ts`, the source export list in `tools/export-source.ts`, and the paths that `tools/server.ts` refuses.
 - Examine the relative asset paths and the `/scary-snacks/` base path.
-- Examine the Content Security Policy (CSP) in `index.html` and in `tools/server.ts`. Confirm that there are no requests to a different origin.
+- Examine the Content Security Policy (CSP) in `index.html` and in `tools/server.ts`. Confirm that no request goes to a different origin.
 - Examine the asset hashes and the font hashes in the provenance records.
 - Confirm that no source code, content, art, or test uses `private/` or `analysis/` as an input.
 - Confirm that no tracked file names another game, a file in `private/`, or reverse-engineering tools or work.
@@ -75,8 +75,8 @@ For each finding, give these items:
 - The smallest repair.
 - The verification step.
 
-Use comments from previous reviews and tool warnings only as possible findings.
-Examine each possible finding before you put the finding in the report.
+Treat a comment from a previous review and a tool warning as a possible finding only.
+Examine each possible finding before you put it in the report.
 
 ## Repair the findings
 
@@ -86,10 +86,10 @@ Run the checks that `AGENTS.md` gives for the scope.
 For the full gate, use [run-quality-gate](../run-quality-gate/SKILL.md).
 Obey the limits of the user on checks.
 In the report, give each check that you did not run.
-For high-risk work, get a last review from an agent that did not make the change.
+For high-risk work, get a final review from an agent that did not make the change.
 
 ## Complete the task
 
 Give a status to each selected path, each changed contract, and each applicable test area.
-List all the applicable checks.
+List each applicable check.
 Complete the mode when its completion condition is true.

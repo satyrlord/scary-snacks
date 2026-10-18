@@ -21,9 +21,13 @@ Git history keeps the past.
   `assets/variants/` holds AV1 Image File Format (AVIF) and WebP images.
   `assets/fonts/` holds the fonts, and `data/game.json` holds the game data.
   `public/assets/original/` holds the 40 Portable Network Graphics (PNG) masters of those variants. The build does not ship the masters.
-- `tools/create-original-data.ts` authors `public/data/game.json`.
+- `tools/` holds the Node.js tools. They build the game, serve it, write the game data, make the image variants, write the checkpoint saves, check the campaign balance, and export the source.
+  `tools/create-original-data.ts` authors `public/data/game.json`.
   Edit the generator.
   Run `npm run data:generate`.
+- `tests/` holds the Node.js tests. `tests/browser/` holds the Playwright browser tests.
+- `docs/` holds the records and the feature specifications.
+- `.github/` holds the repository skills, the skill link script, and the Pages workflow.
 - Git ignores the local folders `private/`, `analysis/`, `.release/`, and `.tools/`.
   `analysis/` holds the build manifest and the art-generation candidates.
   Do not read `private/` or `analysis/` as an input for source code, content, art, or tests.
@@ -42,7 +46,8 @@ For a change that the user can see, also run `npm run build` and then `npm run t
 The browser tests serve `dist/`, so a run without a new build examines an old artifact.
 Install the browser once with `npx playwright install chromium`.
 `npm run quality:full` is the full gate. Use [`run-quality-gate`](.github/skills/run-quality-gate/SKILL.md) for it.
-Run `npm run quality:full` before a push. [`DELIVERY.md`](DELIVERY.md) gives the checks that the Pages workflow runs.
+Run `npm run quality:full` before a push.
+[`DELIVERY.md`](DELIVERY.md) gives the checks that the Pages workflow runs.
 Do not say that a check passed if the script is not in `package.json`.
 Do not say that a check passed if you did not run it.
 
@@ -82,7 +87,7 @@ After a master changes, run `npm run assets:build`.
 The command uses Sharp, a development dependency, to make the AVIF and WebP variants in `public/assets/variants/`.
 The command records the variants in `docs/asset-variants.json`.
 The asset test compares each master and each variant with its record.
-The asset test fails on a variant that an older master made.
+The asset test fails on a variant that the current master did not make.
 The build ships only the variants. The build stops on a file in that folder that is not an AVIF or WebP image.
 Keep candidates, rejected images, and previews out of that folder.
 Use [`generate-game-art`](.github/skills/generate-game-art/SKILL.md) for bitmap art.
@@ -108,6 +113,7 @@ Use [`.github/skills/SKILLS.md`](.github/skills/SKILLS.md) as the index of the r
 Before important work, select the applicable workflow from that index.
 Repository skills do not increase the approval that the user gave.
 Reviews, audits, and diagnosis do not change files unless the user tells you to make a change.
-To show the skills to the skill discovery tools, run `pwsh -File .github/scripts/setup-skill-links.ps1`.
+To let the skill discovery tools find the skills, run `pwsh -File .github/scripts/setup-skill-links.ps1`.
+The script makes the ignored folder links `.claude/skills`, `.agents/skills`, and `.codex/skills`.
 [`.github/copilot-instructions.md`](.github/copilot-instructions.md) and [`CLAUDE.md`](CLAUDE.md) point to this file.
 Change the rules only here.

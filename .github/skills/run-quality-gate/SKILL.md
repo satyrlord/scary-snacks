@@ -15,7 +15,7 @@ description: Run or repair the full Scary Snacks quality gate. Use when the user
   Complete when each applicable check has a status.
 - **Repair:** Use this mode only if the user tells you to repair failed checks.
   Inputs: the failed check and its full diagnostic message.
-  Approval: the instruction to repair. See the list of items that need separate approval below.
+  Approval: the instruction to repair. The list of additions that need separate approval is below.
   Files to change: only the files that the repair of the failed checks needs.
   Output: the report and the changed files.
   Complete when the failed check passes and the gate passes again.
@@ -33,8 +33,7 @@ If the user tells you not to run tests, do not run a check. Give the missing evi
 If the user changes the scope, select the mode again before the next edit.
 
 The build writes `dist/` and `analysis/build-manifest.json`. Git ignores both paths. Do not track files under these paths.
-Confirm that the approved scope includes each addition below.
-If the scope does not include an addition, get approval before that addition:
+Each addition below needs approval before you make it, unless the approved scope includes it:
 
 - A test exclusion, a skipped test, or a retry setting.
 - A less strict compiler option, an `any` type, or a comment that hides a type error.
@@ -47,12 +46,12 @@ If the scope does not include an addition, get approval before that addition:
 
 Read `package.json`, `package-lock.json`, `tsconfig.json`, `.fallowrc.json`, `playwright.config.ts`, and `.github/workflows/pages.yml`.
 Read `DELIVERY.md` and `docs/verification.md`.
-Examine the Git status. Do not change work that is not related to the gate.
+Examine the Git status. Do not change files that the gate does not need.
 For each change, find the related checks.
 
-A script name is not an executable check until the script is in `package.json`.
+A script name is a check only if `package.json` has the script.
 If a necessary script is missing, give that check the status `BLOCKED`.
-Do not make an equivalent command and give it the status `PASS`.
+Do not create an equivalent command and give it the status `PASS`.
 
 The browser phase uses Chromium only. The game supports only Chromium-based browsers.
 If Chromium is not installed, run `npx playwright install chromium`.
@@ -68,7 +67,7 @@ The browser tests use the output in `dist/`.
 A browser run without a new build examines an old artifact.
 If a skill package changed, validate that package with [create-skill](../create-skill/SKILL.md).
 
-Do not run a phase again after it passes, unless there is a change, a failure, or an open problem.
+Do not run a passed phase again, unless a file changed, a check failed, or a problem is open.
 Do not retry a failed test to hide the failure.
 A test that fails and then passes at the next run has a defect. Record the defect, and repair its cause.
 
@@ -76,7 +75,7 @@ In release mode, run the full gate.
 Run `npm run release:source`, and then run `npm ci` and `npm test` in `.release/scary-snacks-source/`.
 Run `git diff --check`.
 Examine the final status and the final diff.
-Release mode does not remove the release risks in `docs/release-notes.md`.
+Release mode does not remove the risks in `docs/release-notes.md`.
 
 In repair mode, record the full diagnostic message.
 Repair the smallest approved cause.

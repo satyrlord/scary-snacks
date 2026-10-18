@@ -19,40 +19,42 @@ For the full gate, use [`run-quality-gate`](run-quality-gate/SKILL.md).
 - [`add-feature`](add-feature/SKILL.md): Add or change product behavior and its
   contracts in the owner documents.
 - [`create-skill`](create-skill/SKILL.md): Make, import, adapt, change, or audit
-  repository skills.
+  a repository skill.
 - [`dead-code-audit`](dead-code-audit/SKILL.md): Audit reachability and give a
-  status for each candidate. Remove dead items only when the user tells you to.
+  status for each candidate. Remove dead items that have evidence only when the user tells you to.
 - [`design-scary-snacks-ui`](design-scary-snacks-ui/SKILL.md): Design,
-  audit, add, repair, or examine the browser interface.
-- [`deslop`](deslop/SKILL.md): Find and remove unsupported content that has evidence.
+  audit, add, repair, or examine the browser interface through the Impeccable workflow.
+- [`deslop`](deslop/SKILL.md): Remove unsupported repository content without a change to correct behavior.
   Use it for a read-only audit, or for a cleanup that the user tells you directly to do.
-- [`diagnose`](diagnose/SKILL.md): Reproduce and isolate failures that are
-  difficult to find. Repair only when the user tells you to.
+- [`diagnose`](diagnose/SKILL.md): Find the cause of failures and performance regressions
+  that are difficult to find. Repair only when the user tells you to.
 - [`full-code-review`](full-code-review/SKILL.md): Review a diff, a branch,
-  or a full checkout. Repair only when the user tells you to.
-- [`generate-game-art`](generate-game-art/SKILL.md): Generate, review, or
+  or a checkout. Repair only when the user tells you to.
+- [`generate-game-art`](generate-game-art/SKILL.md): Generate, review, repair, or
   replace bitmap art with the built-in chat image generator.
-  The art is the atlases, the timber, the runner, the separate item pictures, the painted room states, and the two decoration paintings.
+  The art includes the atlases, the timber, the runner, and the separate item pictures.
+  It also includes the painted room states and the two decoration paintings.
   If the agent has no image generator, give the user a prompt to run.
   Also start here for the OpenAI Images application programming interface (API) route.
-- [`generate-game-art-openai`](generate-game-art-openai/SKILL.md): Plan, send, and measure requests when the user chooses the API route.
+- [`generate-game-art-openai`](generate-game-art-openai/SKILL.md): Plan, send, and measure
+  OpenAI Images API requests, only when the user chooses the API route.
   Its asset table gives the supported bitmaps, including the two decoration paintings.
-  The skill gives its selection rule.
 - [`grill-me`](grill-me/SKILL.md): Challenge a plan one decision at a time,
   when the user tells you to interview them.
 - [`improve-codebase-architecture`](improve-codebase-architecture/SKILL.md):
-  Review ownership and module boundaries, and improve them.
-- [`refactor`](refactor/SKILL.md): Make the structure better without a change
-  to behavior.
+  Review ownership, module boundaries, coupling, data flow, and test boundaries, and improve them.
+- [`refactor`](refactor/SKILL.md): Improve the structure without a change
+  to behavior or contracts.
 - [`run-quality-gate`](run-quality-gate/SKILL.md): Run or repair the full
-  quality gate of the repository. Also collect the evidence for a release.
-- [`update-game-content`](update-game-content/SKILL.md): Change items, merge chains,
+  quality gate. Also collect the evidence for a release.
+- [`update-game-content`](update-game-content/SKILL.md): Add or change items, merge chains,
   generators, characters, chapters, preparations, dialogue, quests, or the initial board.
+  Do not use it for interface text only.
 - [`verify-game`](verify-game/SKILL.md): Examine the game in its production
   browser build, and collect the evidence.
 
-Do not change work that is not related to the task.
+Do not change files that the task does not need.
 
-`AGENTS.md` gives the command that shows these packages to the skill discovery tools.
-The command makes ignored junctions at `.claude/skills`, `.agents/skills`, and `.codex/skills`.
-The junctions show the files in `.github/skills/`. They are not copies.
+`AGENTS.md` gives the command that lets the skill discovery tools find these packages.
+The command makes the ignored junctions `.claude/skills`, `.agents/skills`, and `.codex/skills`.
+Each junction points to `.github/skills/`. A junction is not a copy.

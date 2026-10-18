@@ -66,7 +66,7 @@ test('delivering the last required quest makes the phone offer ready', async ({ 
   expect((await saved(page)).completedQuests).toHaveLength(needed.length);
   await expect(page.locator('#story-button')).toHaveAttribute('data-ready', '');
   await expect(page.locator('#offer').getByRole('button', { name: /^Pay / })).toBeEnabled();
-  await expect(page.locator('.tickets-empty')).toHaveText('No requests wait now. Pay for the next preparation.');
+  await expect(page.locator('.tickets-empty')).toHaveText('No quests wait now. Pay for the next preparation.');
   await expect(page.locator('#story-button')).toBeFocused();
   await page.locator('#story-button').click();
   await expect(page.locator('#modal [data-requirement="quests"]')).toHaveText(`Quests delivered: ${needed.length} / ${needed.length}Complete`);

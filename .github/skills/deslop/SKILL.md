@@ -28,11 +28,12 @@ Cleanup mode:
 
 In this skill, "slop" is content that does not agree with one of these items:
 
-- Its controlling contract.
+- The contract that controls it.
 - The behavior of the code.
 - A repository rule.
 - A correct file of the same type.
 
+Give each candidate one of these statuses: `supported`, `unsupported`, or `unresolved`.
 A warning does not show that there is a defect.
 If you get a warning, examine the content.
 
@@ -53,7 +54,7 @@ Give each file one of these types:
 - Configuration.
 - Generated file.
 - Provenance record.
-- Locked file.
+- Lockfile.
 - Media.
 - Binary file.
 
@@ -76,7 +77,7 @@ If the repository has a command for tests or generated output, record the output
 - Tests: find a defect signal that is different from the other tests.
   Coverage, file length, test count, and the name of a code smell do not show a defect.
 
-Remove history: retired items, dated results, audit figures, and notes about an earlier state.
+Remove text that records history: retired items, dated results, audit figures, and notes about an earlier state.
 `AGENTS.md` gives this rule. Do not remove provenance or a hash of a shipped asset.
 
 Do not change approved bitmaps, fonts, license texts, lockfiles, or the files in ignored paths.

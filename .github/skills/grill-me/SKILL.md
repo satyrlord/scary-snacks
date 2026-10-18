@@ -33,8 +33,8 @@ If the user prohibits tests, use existing evidence and report the checks that yo
 ## Prepare the decision tree
 
 Read `PRODUCT.md`, `DESIGN.md`, `DELIVERY.md`, `docs/release-notes.md`, the source code in the working tree, and the tests.
-Use repository evidence and approved sources to find all the facts that they can give.
-Do not tell the user to find facts that you can find.
+Find each fact that the repository or an approved source gives.
+Do not ask the user for a fact that you can find.
 
 Record only the open decisions.
 Put each decision after the decisions that control it.
@@ -58,7 +58,7 @@ For the active branch, do these steps:
 If a decision shows a new dependency, add it to the tree.
 Do not add branches that have no evidence.
 Open a closed branch again only if new evidence does not agree with the decision.
-Give that evidence.
+Give that evidence to the user.
 
 ## Record the approved decisions
 
@@ -67,7 +67,7 @@ Identify one owner document for each decision that the project must keep.
 `docs/release-notes.md` gives the release limits.
 In record mode, update only that owner and each owner document that does not agree with the decision.
 In interview mode, give the necessary document changes in the report.
-Do not make a different decision log.
+Do not make a separate decision log.
 
 ## Complete the task
 
