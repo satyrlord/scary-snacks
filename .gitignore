@@ -14,3 +14,4 @@ analysis/
 __pycache__/
 .playwright-mcp/
 tmp/
+.fallow/
