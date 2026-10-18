@@ -729,7 +729,7 @@
       "promptId": "regulars-1",
       "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a masked edit repainted the top-right cell, of which only that cell was composited, with tools in .github/skills/generate-game-art-openai/scripts",
       "sourceGameImageInput": false,
-      "review": "The portraits of the four regulars present from the start (spec 013): Dochia top left, Victor top right, Ana bottom left, Costel bottom right. The user asked for Victor without a pencil and slightly older; a masked edit repainted only his cell. The agent reviewed each cell at full resolution and as round crops on both themes. The user accepted it.",
+      "review": "The portraits of the four regulars present from the start (spec 010): Dochia top left, Victor top right, Ana bottom left, Costel bottom right. The user asked for Victor without a pencil and slightly older; a masked edit repainted only his cell. The agent reviewed each cell at full resolution and as round crops on both themes. The user accepted it.",
       "visualAcceptance": {
         "status": "accepted",
         "by": "user"
@@ -747,7 +747,7 @@
       "promptId": "regulars-2",
       "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality",
       "sourceGameImageInput": false,
-      "review": "The portraits of the four regulars who arrive after preparations 4 and 8 (spec 013): Sânziana top left, Dorian top right, Ileana bottom left, Cezar bottom right. The agent reviewed each cell at full resolution and as round crops on both themes. The user accepted it.",
+      "review": "The portraits of the four regulars who arrive after preparations 4 and 8 (spec 010): Sânziana top left, Dorian top right, Ileana bottom left, Cezar bottom right. The agent reviewed each cell at full resolution and as round crops on both themes. The user accepted it.",
       "visualAcceptance": {
         "status": "accepted",
         "by": "user"
@@ -765,7 +765,7 @@
       "promptId": "regulars-3",
       "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; each top portrait was scaled to 88% and placed inside its own cell with Sharp, without repainting",
       "sourceGameImageInput": false,
-      "review": "The portraits of the two regulars who arrive after preparation 12 (spec 013): Cătălina top left, Bran top right. The bottom cells stay empty for later characters. The candidate cut both figures about 60 pixels too low, into the bottom cells; each figure was scaled to 88% and placed inside its own cell (regulars/regulars-3-run1-fit). The agent reviewed both cells at full resolution and as round crops on both themes. The user accepted it.",
+      "review": "The portraits of the two regulars who arrive after preparation 12 (spec 010): Cătălina top left, Bran top right. The bottom cells stay empty for later characters. The candidate cut both figures about 60 pixels too low, into the bottom cells; each figure was scaled to 88% and placed inside its own cell (regulars/regulars-3-run1-fit). The agent reviewed both cells at full resolution and as round crops on both themes. The user accepted it.",
       "visualAcceptance": {
         "status": "accepted",
         "by": "user"

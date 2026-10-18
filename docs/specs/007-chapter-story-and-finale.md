@@ -1,4 +1,4 @@
-# 008 - Chapter objectives, story payoffs, and finale
+# 007 - Chapter objectives, story payoffs, and finale
 
 Status: Implemented. Automated engine, save, and browser checks cover the rules.
 A browser test plays a fresh campaign through the finale.
@@ -65,12 +65,12 @@ After the reveal, the next scene that the payment earned opens, unless another d
 Finish and Skip send `readScene`, which removes only that scene. Then the next waiting scene opens.
 A repeated, stale, or unknown `readScene` changes nothing.
 Close and Escape leave the scene waiting. Story shows the first waiting scene with Read now. After a reload, Mara's line says that a scene is waiting.
-Spec 009 owns the saved line position and the reading state of preparation and quest scenes.
+Spec 008 owns the saved line position and the reading state of preparation and quest scenes.
 
 ## State and save compatibility
 
 The state records `pendingScenes`.
-Validation accepts the closing scenes of complete chapters and, after preparation 24, the finale. Each ID occurs once, in story order. Unknown IDs and scenes that the preparations did not earn fail validation. Spec 009 adds the preparation and quest scenes to the same queue.
+Validation accepts the closing scenes of complete chapters and, after preparation 24, the finale. Each ID occurs once, in story order. Unknown IDs and scenes that the preparations did not earn fail validation. Spec 008 adds the preparation and quest scenes to the same queue.
 Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
 
 ## Acceptance and evidence
@@ -94,4 +94,4 @@ The test delivers each contribution during its chapter.
 The journal shows each contribution beside the payoff.
 The finale names each chapter result.
 The board stays available after the finale.
-Spec 013 can add the names of the regulars who have arrived to the finale. Scene art is a content decision.
+Spec 010 can add the names of the regulars who have arrived to the finale. Scene art is a content decision.

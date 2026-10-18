@@ -1,4 +1,4 @@
-# 006: Campaign goals and economy
+# 005: Campaign goals and economy
 
 Status: Implemented.
 The scope includes preparation budgets, food prices, quest rewards, funding checks, requirement feedback, validated saves, and a legal campaign fixture.

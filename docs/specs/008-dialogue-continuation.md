@@ -1,4 +1,4 @@
-# 009 - Dialogue continuation and reading state
+# 008 - Dialogue continuation and reading state
 
 Status: Implemented.
 
@@ -105,4 +105,4 @@ Follow [Verification and release](README.md#verification-and-release) for the br
 ## Dependencies
 
 The feature has no prerequisite specification.
-Specs 005 and 013 use this continuation behavior.
+Specs 004 and 010 use this continuation behavior.

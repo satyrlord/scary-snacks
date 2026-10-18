@@ -1,4 +1,4 @@
-# 007: Board clearing
+# 006: Board clearing
 
 Status: Implemented.
 Owner: `PRODUCT.md` for board rules; `DESIGN.md` for blocked-space presentation.

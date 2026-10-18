@@ -1,4 +1,4 @@
-# 015: Motion choice
+# 011: Motion choice
 
 Status: Implemented. Priority: Medium. Dependencies: none.
 Owner: `PRODUCT.md` controls the motion choice. `DESIGN.md` controls the Options Motion section and the reduced-motion rules.

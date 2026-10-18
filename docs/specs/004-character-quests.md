@@ -1,7 +1,7 @@
-# 005 - Character quests and introductions
+# 004 - Character quests and introductions
 
 Status: Implemented. The quests are the campaign.
-Spec 009 queues each quest completion scene and resumes it after reload. Spec 006 owns the reward rule, the funding check, and the economy fixture. Spec 008 names one quest of a core character as the contribution of each chapter. Spec 013 owns the regulars.
+Spec 008 queues each quest completion scene and resumes it after reload. Spec 005 owns the reward rule, the funding check, and the economy fixture. Spec 007 names one quest of a core character as the contribution of each chapter. Spec 010 owns the regulars.
 
 ## Result and ownership
 
@@ -28,7 +28,7 @@ There is no currency other than coins, and no timer, energy limit, runtime depen
 | Character group | Quests |
 | --- | --- |
 | Mara, Ilie, Eszter, and Sorin | 6, 6, 8, and 6 |
-| Ten regulars from spec 013 | 5 for Dochia and Costel; 4 for Victor, Ana, Sânziana, Dorian, Ileana, and Cezar; 3 for Cătălina and Bran |
+| Ten regulars from spec 010 | 5 for Dochia and Costel; 4 for Victor, Ana, Sânziana, Dorian, Ileana, and Cezar; 3 for Cătălina and Bran |
 | Vlad and Elisabeta | 2 each |
 | Adrian, Monica, and Janos | 3 each |
 | Ionatan | 1 |
@@ -36,7 +36,7 @@ There is no currency other than coins, and no timer, energy limit, runtime depen
 
 ## Rewards
 
-Spec 006 owns the reward rule.
+Spec 005 owns the reward rule.
 Every quest pays its menu value. No chapter, character, or visit multiplies a reward. Rewards are coins only.
 
 ## Core character arcs
@@ -122,7 +122,7 @@ The scene has only local speakers and gives no reward. After its delivery gate, 
 5. Success records completion in delivery order, pays once, and queues the completion scene in the same change.
 6. Every required chain is available before the quest opens. The combined quest and preparation graph must have no cycle.
 7. Reading, skipping, replaying, reloading, and repeated clicks give no second reward.
-8. Quest scenes use the existing dialogue controls. The completion scene waits until the player finishes or skips it, as spec 009 gives. Recorded completion and journal replay remain available.
+8. Quest scenes use the existing dialogue controls. The completion scene waits until the player finishes or skips it, as spec 008 gives. Recorded completion and journal replay remain available.
 
 `questProblems` checks IDs, scenes, quantities, rewards, requested items, and chain availability.
 It also checks companions, finishes, news scenes, authored order, the combined prerequisite graph, and the campaign funds.

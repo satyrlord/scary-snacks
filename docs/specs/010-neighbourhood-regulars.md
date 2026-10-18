@@ -1,4 +1,4 @@
-# 013: Neighbourhood regulars
+# 010: Neighbourhood regulars
 
 Status: Implemented.
 The game has the regulars, their arrivals, arrival scenes, portraits, and quests.
@@ -14,7 +14,7 @@ Each regular has a name, a trade, a portrait, an introduction, two favourite cha
 The player can find who lives nearby and what they like.
 
 - Keep Mara, Ilie, Eszter, and Sorin as the four core characters. They drive the story,
-  the preparations, and their own quest arcs in 005. Regulars add neighbours. They do not replace the core
+  the preparations, and their own quest arcs in 004. Regulars add neighbours. They do not replace the core
   characters.
 - Only the four core characters are generic neighbours.
   Each regular refers to a horror novel, a horror film, or local folklore.
@@ -37,11 +37,11 @@ The player can find who lives nearby and what they like.
 5. Author the taste of each person from their trade and story. Never derive taste from the
    appearance or age of a neighbour. Never derive taste from an inferred ethnic or national identity.
 6. Dochia and Costel have five quests each. Victor, Ana, Sânziana, Dorian, Ileana, and Cezar have four. Cătălina and Bran have three. Vlad and Elisabeta have two quests each.
-   The quests follow the campaign rules of 005.
+   The quests follow the campaign rules of 004.
 7. The arrival of each later regular plays a short original scene. A core character introduces the
    regular. The regular answers. The payment queues the arrival scene after its preparation scene, chapter scene, and finale.
    The scene follows the continuation
-   rules of 009. Reading or skipping the scene does not change arrival.
+   rules of 008. Reading or skipping the scene does not change arrival.
 8. The neighbours list in the journal shows the core characters, then the regulars in order of arrival.
    Each arrived neighbour shows the portrait, the name, the trade, the favourite chains, and the count of
    delivered quests. A neighbour who has not arrived is a "Not yet" outline without a name or a portrait.
@@ -98,11 +98,11 @@ village. They are awake when the bats are.
 
 - Engine: `tests/regulars.test.ts` covers each arrival pair and one arrival scene after the earned story scenes.
   It covers rejection of an early arrival scene in a save, the neighbours list, and the cast check.
-- Quests: the quest tests of 005 cover the quests of the regulars.
+- Quests: the quest tests of 004 cover the quests of the regulars.
 - Assets: `tests/assets.test.ts` compares the three atlases and their variants with their records.
 - Browser: follow [Verification and release](README.md#verification-and-release). Complete an arrival preparation, read the
   arrival scene, reload, and open the neighbours list. Check that the portraits and names fit the tickets and the list at every size.
 
 ## Remaining decisions
 
-008 may let the finale name the regulars who arrived.
+007 may let the finale name the regulars who arrived.

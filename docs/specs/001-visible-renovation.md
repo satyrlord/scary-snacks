@@ -6,7 +6,7 @@ Status: Implemented. Priority: High. Dependencies: none.
 
 ## Current behavior and outcome
 
-[PRODUCT.md](../../PRODUCT.md), [DESIGN.md](../../DESIGN.md), and [DELIVERY.md](../../DELIVERY.md) own the current contracts. Decoration choices belong to [002](002-decoration-choices.md). Story sequencing belongs to [008](008-chapter-story-and-finale.md).
+[PRODUCT.md](../../PRODUCT.md), [DESIGN.md](../../DESIGN.md), and [DELIVERY.md](../../DELIVERY.md) own the current contracts. Decoration choices belong to [002](002-decoration-choices.md). Story sequencing belongs to [007](007-chapter-story-and-finale.md).
 
 ## Implemented scope
 

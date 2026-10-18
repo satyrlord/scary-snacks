@@ -2,7 +2,7 @@
 export type Item = { id: string; name: string; chain: string; stage: number; next: string | null; sprite: number; price: number; generator?: { outputs: string[] } };
 export type SceneLine = { speaker: string; text: string };
 /**
- * A person of the bistro. The core characters drive the story. A regular (spec 013) is a neighbour who arrives with the preparation that
+ * A person of the bistro. The core characters drive the story. A regular (spec 010) is a neighbour who arrives with the preparation that
  * arrivesAfter names, or is present from the start; arrival plays a short scene, and prefers names the two chains whose dishes they like.
  */
 export type Character = {

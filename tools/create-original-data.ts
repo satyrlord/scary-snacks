@@ -71,7 +71,7 @@ const characters: Character[] = [
   ...regulars(),
 ];
 /**
- * The regulars of spec 013. Each one nods to a horror novel, a horror film, or local folklore, in the name, the trade, or one habit.
+ * The regulars of spec 010. Each one nods to a horror novel, a horror film, or local folklore, in the name, the trade, or one habit.
  * Four are present from the start. The others arrive with the last preparation of chapters 1 to 3, introduced by a core character.
  */
 function regulars(): Character[] {

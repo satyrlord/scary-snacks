@@ -12,7 +12,7 @@ The following boundaries apply to the planned features:
 - no waiting;
 - no purchases, advertisements, or accounts;
 - requests without a deadline;
-- neighbours whose tastes the player can read and plan for (013).
+- neighbours whose tastes the player can read and plan for (010).
 
 The team authors the content, the art, and the rules.
 
@@ -22,31 +22,31 @@ Specs 001 and 002 are implemented. The [verification record](../verification.md)
 
 Spec 003 implements generator tiers, output choices, and persistence. Its acceptance section records the automated evidence.
 
-Spec 005 implements 81 authored quests and three quest tickets.
+Spec 004 implements 81 authored quests and three quest tickets.
 The quests include the four core character arcs, regulars, three recurring travellers, and three guests who visit once.
 The shared guest visit also earns later local news.
 The feature includes optional introductions, atomic delivery, journal replay, and persistence.
 Each preparation needs every quest that opens before it.
-Spec 006 includes all quests in its economy fixture.
-Spec 008 names one quest of a core character as the contribution of each chapter.
+Spec 005 includes all quests in its economy fixture.
+Spec 007 names one quest of a core character as the contribution of each chapter.
 
-Spec 006 implements food prices, preparation budgets, quest rewards, and the funding check.
+Spec 005 implements food prices, preparation budgets, quest rewards, and the funding check.
 The feature also includes requirement feedback and a legal campaign fixture.
 The fixture includes generator upgrades and all quests.
 The economy record gives the price sources and the authored assumptions.
 
-Spec 007 implements blocked board cells, matching merges into visible blocked ingredients, and original blocker art. Each preparation earns two or three contextual blockers with a deferred placement queue. Automated checks cover the rules and the production browser build.
+Spec 006 implements blocked board cells, matching merges into visible blocked ingredients, and original blocker art. Each preparation earns two or three contextual blockers with a deferred placement queue. Automated checks cover the rules and the production browser build.
 
-Spec 008 implements chapter objectives and steps, chapter closing scenes, neighbour contributions, the finale, journal replay, and persistence. Automated engine, save, and browser checks cover the rules. A scripted browser playthrough from a fresh save reaches the finale.
+Spec 007 implements chapter objectives and steps, chapter closing scenes, neighbour contributions, the finale, journal replay, and persistence. Automated engine, save, and browser checks cover the rules. A scripted browser playthrough from a fresh save reaches the finale.
 
-Spec 009 implements saved dialogue continuation.
+Spec 008 implements saved dialogue continuation.
 Preparation scenes and quest completion scenes wait with chapter scenes, arrivals, local news, and the finale.
 Each waiting scene resumes at its saved line after a reload.
 Its acceptance section describes the automated checks.
 
-Spec 011 implements discovery, covered dishes for undiscovered dishes, the new-dish notice, and chain-completion marks.
+Spec 009 implements discovery, covered dishes for undiscovered dishes, the new-dish notice, and chain-completion marks.
 
-Spec 013 implements the regulars, their arrivals, arrival scenes, portraits, and quests.
+Spec 010 implements the regulars, their arrivals, arrival scenes, portraits, and quests.
 The journal lists the neighbours.
 
 Each entry is proposed, unless its specification records an implemented slice. Priority is a suggested order of work. It does not change the approved product.
@@ -56,14 +56,14 @@ Each entry is proposed, unless its specification records an implemented slice. P
 | 001 | [Visible renovation and areas](001-visible-renovation.md), with its [room-states art plan](001-room-states-art-plan.md) | High | None |
 | 002 | [Decoration choices](002-decoration-choices.md) | Optional | 001 |
 | 003 | [Generator progression](003-generator-progression.md) | High | None |
-| 005 | [Character quests](005-character-quests.md) | High | 009 for scene continuation |
-| 006 | [Campaign goals and economy](006-campaign-goals-and-economy.md) | High | None |
-| 007 | [Board clearing](007-board-clearing.md) | Optional | None |
-| 008 | [Chapter story and finale](008-chapter-story-and-finale.md) | High | 001, 005, 009 |
-| 009 | [Dialogue continuation](009-dialogue-continuation.md) | Medium | None |
-| 011 | [Discovery and recipe book](011-discovery-and-recipe-book.md) | Optional | None |
-| 013 | [Neighbourhood regulars](013-neighbourhood-regulars.md) | High | 009 for arrival scenes |
-| 015 | [Motion choice](015-motion-choice.md) | Medium | None |
+| 004 | [Character quests](004-character-quests.md) | High | 008 for scene continuation |
+| 005 | [Campaign goals and economy](005-campaign-goals-and-economy.md) | High | None |
+| 006 | [Board clearing](006-board-clearing.md) | Optional | None |
+| 007 | [Chapter story and finale](007-chapter-story-and-finale.md) | High | 001, 004, 008 |
+| 008 | [Dialogue continuation](008-dialogue-continuation.md) | Medium | None |
+| 009 | [Discovery and recipe book](009-discovery-and-recipe-book.md) | Optional | None |
+| 010 | [Neighbourhood regulars](010-neighbourhood-regulars.md) | High | 008 for arrival scenes |
+| 011 | [Motion choice](011-motion-choice.md) | Medium | None |
 
 A reference to another specification is not always a prerequisite. Early slices can be independent. The table lists the dependencies of the complete feature. The register keeps optional entries, so that planning does not lose them.
 
@@ -73,16 +73,16 @@ The table maps each gap in the current game to the specifications that close it.
 
 | Gap | Owning specifications |
 | --- | --- |
-| The finale names no regulars yet | 008, 013 |
+| The finale names no regulars yet | 007, 010 |
 | No requests remain after the supper, so the game has no goals after the campaign | None |
 
-Neighbour introductions (005) are optional journal reading. Decoration choices (002) are visual choices, not a branching story.
+Neighbour introductions (004) are optional journal reading. Decoration choices (002) are visual choices, not a branching story.
 
 ## Shared product boundaries
 
 - Keep the original Transylvanian bistro, black cats, bats, and local dishes.
   Keep the four core characters: Mara, Ilie, Eszter, and Sorin.
-  Spec 013 adds regulars to the neighbourhood. The regulars do not replace the core characters.
+  Spec 010 adds regulars to the neighbourhood. The regulars do not replace the core characters.
   The features use the existing six chapters and 24 preparations.
 - Keep unlimited energy, immediate production, browser-local saves, and requests without a deadline. Do not add timers, purchases, advertisements, accounts, a backend, or runtime calls to an external origin. A temporary effect lasts a counted number of actions, never a span of time.
 - Author all content and art independently.

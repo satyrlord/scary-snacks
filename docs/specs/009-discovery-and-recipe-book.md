@@ -1,4 +1,4 @@
-# 011 Discovery and recipe book
+# 009 Discovery and recipe book
 
 Status: Implemented. Priority: Optional. Dependencies: none.
 
