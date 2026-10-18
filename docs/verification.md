@@ -42,7 +42,6 @@ The files in `tests/` check the following areas.
 | `board-clearing.test.ts` | Initial blockers, matching merges, blocked actions, placement space, discoveries, and saved progress. |
 | `preparation-blockers.test.ts` | Preparation batches, deferred placement, free space, source priority, saved history, failed writes, and retry. |
 | `story.test.ts` | Chapters, scenes, the finale, queues, saved lines, failed payments, and play after the finale. |
-| `guide.test.ts` | Guide steps, recorded successes, out-of-order play, full-board recovery, Skip and resume, unchanged resources, and saved runs. |
 | `checkpoint-saves.test.ts` | Manual checkpoint saves, the next payment, and the final scenes. |
 | `assets.test.ts` | Masters, variants, hashes, portrait cells, blocker cells, references, asset paths, fonts, and license texts. |
 | `build.test.ts` | The build file list, type removal, executable asset rejection, and linked directory rejection. |
@@ -85,7 +84,6 @@ The files in `tests/browser/` check the following areas.
 | `preparation-blockers.spec.ts` | Payment, failed payment saves, artwork, matching merges, deferred placement, reload, and layout. |
 | `blocker-help.spec.ts` | Rule marks, matching ingredients, eligible targets, dismissed help, unchanged saves, contrast, and layout. |
 | `story.spec.ts` | Chapter goals, steps, scenes, reveals, saved lines, the finale, journal entries, focus, and layout. |
-| `guide.spec.ts` | The guided start, marked targets on desktop and phone, reload, completion after discovery and reveals, Skip, guest replay help, late saves, the finished campaign, failed writes, import, and layout. |
 | `portrait-framing.spec.ts` | Each portrait crop at ticket and dialogue sizes in both themes. |
 
 Play checks include pointer drag, keyboard input, selection, and delivery.

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { createGame, requiredQuests } from '../../src/engine.ts';
 import type { GameState } from '../../src/engine.ts';
-import { data, deliverButton, saved, start, supplies, supply, tile, toast, unguided } from './support.ts';
+import { data, deliverButton, saved, start, supplies, supply, tile, toast } from './support.ts';
 
 const first = data.tasks[0];
 const pay = (page: Page) => page.locator('#story').getByRole('button', { name: /^Pay / });
@@ -10,7 +10,7 @@ const goal = (page: Page, kind: string) => page.locator(`#story [data-requiremen
 const needed = requiredQuests(0, data);
 /** Every quest of the first preparation is delivered but the last, whose dishes are on the board, and the coins reach the cost with its reward. */
 function lastRequestReady() {
-  const state = unguided(), last = needed.at(-1)!;
+  const state = createGame(data), last = needed.at(-1)!;
   state.completedQuests = needed.slice(0, -1).map(quest => quest.id); state.coins = first.cost - last.reward;
   return { state: supply(state, supplies(last)), last };
 }

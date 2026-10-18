@@ -53,7 +53,7 @@ img { max-width: 100%; object-fit: contain; }
 svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .skip-link { position: absolute; left: 16px; top: -100px; z-index: 100; background: var(--surface); padding: 12px; }
 .skip-link:focus { top: 10px; }
-.visually-hidden,.room-caption,.game-layout:is([data-offer],[data-selected]) .guide,.game-layout[data-guiding] #status { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.visually-hidden,.room-caption,.game-layout:is([data-offer],[data-selected]) .mara-line { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 /* The coin figures share the wordmark baseline. */
 .masthead { display: flex; gap: 20px; align-items: baseline; }
 .brand { display: flex; align-items: baseline; gap: 24px; min-width: 0; }
@@ -202,10 +202,10 @@ button.ticket-items { min-height: 44px; padding: 0; border: 0; border-radius: va
 @keyframes first-taste { 0% { transform: scale(.55) rotate(-8deg); } 60% { transform: scale(1.12) rotate(2deg); } }
 @keyframes hint-pulse { 50% { box-shadow: inset 0 0 0 4px var(--focus), var(--tile-lift); } }
 /* Mara's line and the selected item's actions share one place under the board: the actions replace the line while an item is selected. */
-.guide { display: flex; align-items: center; gap: 10px; width: 100%; }
-.guide .portrait { width: 38px; height: 38px; flex-shrink: 0; }
-.guide p { flex: 1; min-width: 0; font-size: 14px; line-height: 1.45; text-wrap: pretty; }
-.guide .text-button { flex-shrink: 0; padding: 0; font-size: 13px; }
+.mara-line { display: flex; align-items: center; gap: 10px; width: 100%; }
+.mara-line .portrait { width: 38px; height: 38px; flex-shrink: 0; }
+.mara-line p { flex: 1; min-width: 0; font-size: 14px; line-height: 1.45; text-wrap: pretty; }
+.mara-line .text-button { flex-shrink: 0; padding: 0; font-size: 13px; }
 /* While the next preparation is affordable and no tile is selected, Mara offers it by name with Pay; a selected tile still wins the place. */
 .game-layout:not([data-offer]) .offer,.game-layout[data-selected] .offer { display: none; }
 body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
@@ -217,13 +217,6 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 .offer .pay-button { flex-shrink: 0; padding: 10px 14px; font-size: 13px; }
 /* Keep status announcements available, but remove the hidden action from keyboard navigation. */
 .game-layout[data-offer] #hint-button,.game-layout[data-selected] #hint-button { display: none; }
-/* While the guide runs, its step and Skip guide take the place of the last message and Find a match; the status line still announces each message. */
-.game-layout:not([data-guiding]) :is(#guide-step,#skip-guide),.game-layout:is([data-offer],[data-selected]) #skip-guide,.game-layout[data-guiding] #hint-button { display: none; }
-.guide-count { color: var(--muted); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
-/* The guide marks its targets with the steady teal ring of a tap target. The step's words name each target, so the ring is never the only cue. */
-.cell.guide-target { box-shadow: inset 0 0 0 3px var(--focus), var(--tile-lift); }
-.ticket.guide-target,.guide-target:is(.pay-button,.text-button) { box-shadow: 0 0 0 3px var(--focus); }
-#story-button.guide-target { box-shadow: inset 0 0 0 3px var(--focus); }
 .game-layout:not([data-selected]) #item-detail { display: none; }
 #item-detail { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; width: 100%; }
 #item-detail.blocker-help { flex-wrap: nowrap; }
@@ -347,17 +340,6 @@ dialog::backdrop { background: #17101ac4; }
 .story-controls>span { font-size: 12px; color: var(--muted); }
 .story-controls .secondary-button:disabled { visibility: hidden; }
 .journal-list { display: flex; flex-direction: column; gap: 8px; }
-/* The kitchen guide: the five steps, each with its mark for the current run, then more help. The marks are words, so colour only repeats them. */
-.guide-steps { margin: 16px 0 0; padding-left: 22px; }
-.guide-steps li+li { margin-top: 10px; }
-.guide-step-title { display: flex; align-items: baseline; gap: 8px; font-size: 14px; }
-.guide-steps .small-copy,.guide-more .small-copy { margin: 2px 0 0; }
-.guide-mark { color: var(--ready); font-size: 12px; font-weight: 600; }
-.guide-mark.now { color: var(--focus); }
-.guide-page h3 { margin-top: 22px; font-size: 16px; }
-.guide-more { margin: 8px 0 20px; }
-.guide-more dt { margin-top: 10px; font-size: 14px; font-weight: 600; }
-.guide-more dd { margin: 0; }
 .journal-entry { display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left; border: 1px solid var(--control-line); background: var(--surface); padding: 13px; border-radius: var(--control-radius); min-height: 44px; }
 .journal-entry>span { font-size: 12px; color: var(--muted); }
 .neighbour-introduction { display: grid; grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr); }
@@ -504,7 +486,7 @@ dialog::backdrop { background: #17101ac4; }
   .table { flex: none; margin-top: 4px; border-radius: var(--card-radius); background-image: url('../assets/variants/timber-tabletop-1024x1024.webp'); background-image: image-set(url('../assets/variants/timber-tabletop-1024x1024.avif') type('image/avif'), url('../assets/variants/timber-tabletop-1024x1024.webp') type('image/webp')); }
   .board { padding: 6px 0; }.cell { padding: 3px; }
   .line-slot { flex: 1; display: flex; align-items: center; min-height: 0; padding: 4px 10px; }
-  .guide,.offer { gap: 8px; }.guide .portrait,.offer .portrait { width: 28px; height: 28px; }.offer strong { font-size: 13px; }.guide p { font-size: 13px; line-height: 1.35; }
+  .mara-line,.offer { gap: 8px; }.mara-line .portrait,.offer .portrait { width: 28px; height: 28px; }.offer strong { font-size: 13px; }.mara-line p { font-size: 13px; line-height: 1.35; }
   .detail-head { flex: 1 1 0; gap: 8px; }.detail-head .food { width: 40px; height: 40px; }
   .detail-words h3 { line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
   .detail-next { line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
@@ -563,7 +545,6 @@ dialog::backdrop { background: #17101ac4; }
   .cell,.primary-button,.secondary-button,.ticket-item,.ticket,.area-choice,.room-pin { border: 1px solid ButtonBorder; }
   .cell.obstacle { border: 2px dashed ButtonText; }
   .cell.selected,.cell:hover { outline: 3px solid Highlight; outline-offset: -3px; }
-  .guide-target { outline: 3px dashed Highlight; outline-offset: -3px; }
   .ticket-item.ready::after,#recipes-button[data-fresh]::after,#story-button[data-ready]::after,.pin-dot { forced-color-adjust: none; background: Highlight; }
   .choice:has(input:checked),.area-choice[aria-pressed='true'],.take-button[aria-pressed='true']:not(:focus-visible) { outline: 2px solid Highlight; outline-offset: -2px; }
 }

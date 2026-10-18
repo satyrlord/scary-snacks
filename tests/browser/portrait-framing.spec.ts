@@ -3,8 +3,8 @@ import { checkpoint, data, journal, onTicket, quest, replaceSave, start } from '
 
 test('every portrait crop stays inside its own cell at ticket and story sizes',async({page},testInfo)=>{
   await start(page,checkpoint(data.tasks.length));
-  await expect(page.locator('.guide .portrait')).toHaveAttribute('aria-label','Mara, the bistro owner');
-  const guide=await page.locator('.guide .portrait').evaluate(element=>{
+  await expect(page.locator('.mara-line .portrait')).toHaveAttribute('aria-label','Mara, the bistro owner');
+  const line=await page.locator('.mara-line .portrait').evaluate(element=>{
     const style=getComputedStyle(element);return {size:style.backgroundSize,position:style.backgroundPosition};
   });
   const portraits: {name:string;className:string;size:string;position:string}[]=[];
@@ -34,8 +34,8 @@ test('every portrait crop stays inside its own cell at ticket and story sizes',a
   },portraits);
   await page.setViewportSize({width:1440,height:1100});
   const mara=page.locator('#portrait-framing-gallery .portrait[aria-label="Mara"]').first();
-  await expect(mara).toHaveCSS('background-size',guide.size);
-  await expect(mara).toHaveCSS('background-position',guide.position);
+  await expect(mara).toHaveCSS('background-size',line.size);
+  await expect(mara).toHaveCSS('background-position',line.position);
   for(const theme of ['light','dark']){
     await page.evaluate(theme=>{document.documentElement.dataset.theme=theme;},theme);
     const frames=await page.locator('#portrait-framing-gallery .portrait').evaluateAll(elements=>elements.map(element=>{

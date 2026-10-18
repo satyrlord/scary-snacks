@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { createGame, firstFreeBoardCell, generatorOutputs, requiredQuests, resolveQuests } from '../../src/engine.ts';
 import type { GameState } from '../../src/engine.ts';
-import { KEY, act, appearance, checkpoint, data, deliverButton, journal, opened, options, painting, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, stateText, supply, tile, ticket, toast, unguided, unselect } from './support.ts';
+import { KEY, act, appearance, checkpoint, data, deliverButton, journal, opened, options, painting, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, stateText, supply, tile, ticket, toast, unselect } from './support.ts';
 
 async function mergeStart(page: Page){await tile(page,13).click();await tile(page,14).click();expect((await saved(page)).board[14]?.code).toBe('bakery_2');}
 const welcome=quest('mara-welcome');
@@ -37,7 +37,7 @@ test('the bistro produces, merges, delivers a request, and survives reload',asyn
 });
 
 test('pointer drag and keyboard merge agree, and the selected dish offers only Clear selection',async({page})=>{
-  await start(page,unguided());const from=(await tile(page,13).boundingBox())!;const to=(await tile(page,14).boundingBox())!;
+  await start(page,createGame(data));const from=(await tile(page,13).boundingBox())!;const to=(await tile(page,14).boundingBox())!;
   await page.mouse.move(from.x+from.width/2,from.y+from.height/2);await page.mouse.down();await page.mouse.move(to.x+to.width/2,to.y+to.height/2,{steps:8});await page.mouse.up();
   expect((await saved(page)).board[14]?.code).toBe('bakery_2');await expect(tile(page,14)).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('#item-detail').getByRole('button')).toHaveText(['']);await expect(page.locator('#item-detail').getByRole('button')).toHaveAccessibleName('Clear selection');
@@ -110,7 +110,7 @@ test('the last required quest enables Pay, and the preparation paid with earned 
   for(const label of ['Continue','Continue','See what changed'])await page.locator('.story-controls .primary-button',{hasText:label}).click();
   await revealed(page);await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-01');
   const pin=page.locator('#room-pin');await expect(pin).toBeFocused();await expect(pin).toHaveAccessibleName(`New: ${stateText('front-room-01')}`);
-  await expect(page.locator('#status')).toHaveText(`${stateText('front-room-01')} The guide is complete. Options has more help: the recipe book, Find a match, and blocked spaces.`);
+  await expect(page.locator('#status')).toHaveText(stateText('front-room-01'));
   // The next preparation counts its own quests, and the tickets carry the quests that the first preparation opened.
   await expect(goal('quests')).toHaveText(`Quests delivered: ${needed} / ${next.length}Need ${next.length-needed}`);await expect(pay).toBeDisabled();
   for(const value of next.slice(needed))await expect(deliverButton(page,value)).toBeVisible();
@@ -346,7 +346,7 @@ test('a source on a full board takes nothing and says why',async({page})=>{
 
 test('with the story card on screen, the card alone carries Pay and Mara keeps her line',async({page})=>{
   await page.setViewportSize({width:1440,height:1000});await start(page,checkpoint(0,{ready:true}));
-  await expect(page.locator('#offer')).toBeHidden();await expect(page.locator('.guide')).toBeVisible();
+  await expect(page.locator('#offer')).toBeHidden();await expect(page.locator('.mara-line')).toBeVisible();
   const pay=page.getByRole('button',{name:/^Pay /});await expect(pay).toHaveCount(1);await expect(page.locator('#story').getByRole('button',{name:/^Pay /})).toBeVisible();
   await payAndRead(page);await revealed(page);const after=await saved(page);expect(after.decorations).toEqual(['task_1']);expect(after.coins).toBe(0);
   // Where the story card leaves the screen, Mara takes the offer over.
@@ -354,14 +354,14 @@ test('with the story card on screen, the card alone carries Pay and Mara keeps h
   await page.setViewportSize({width:390,height:844});await expect(page.locator('#offer').getByRole('button',{name:/^Pay /})).toBeVisible();
 });
 
-for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'phone',width:390,height:844}])test(`keyboard navigation skips the replaced guide at ${viewport.name} and keeps status announcements`,async({page})=>{
+for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'phone',width:390,height:844}])test(`keyboard navigation skips the replaced Mara line at ${viewport.name} and keeps status announcements`,async({page})=>{
   await page.setViewportSize(viewport);await start(page,checkpoint(0,{ready:true}));
   for(const mode of ['light','dark']){
     await appearance(page,mode);await unselect(page);await page.keyboard.press('Tab');
     await expect(viewport.name==='phone'?page.locator('#offer .pay-button'):page.locator('#hint-button')).toBeFocused();
     await tile(page,13).click();await page.keyboard.press('Tab');
     await expect(page.locator('#item-detail').getByRole('button',{name:'Clear selection',exact:true})).toBeFocused();
-    await expect(page.locator('.guide').getByRole('status')).toContainText(/tap another to merge/i);
+    await expect(page.locator('.mara-line').getByRole('status')).toContainText(/tap another to merge/i);
     await unselect(page);await page.keyboard.press('Tab');
     await expect(viewport.name==='phone'?page.locator('#offer .pay-button'):page.locator('#hint-button')).toBeFocused();
   }
@@ -374,7 +374,7 @@ test('Mara offers an affordable preparation with Pay on a phone; it pays once an
   await page.setViewportSize({width:390,height:844});await start(page,checkpoint(0,{coins:10}));
   const offer=page.locator('#offer'),story=page.locator('#story-button');
   // Not affordable: Mara keeps her line, with no greyed button.
-  await expect(offer).toBeHidden();await expect(page.locator('.guide')).toBeVisible();await expect(story).not.toHaveAttribute('data-ready');await expect(story).toHaveAccessibleName('Story');
+  await expect(offer).toBeHidden();await expect(page.locator('.mara-line')).toBeVisible();await expect(story).not.toHaveAttribute('data-ready');await expect(story).toHaveAccessibleName('Story');
   await replaceSave(page,checkpoint(0,{ready:true}));
   const pay=offer.getByRole('button',{name:`Pay ${data.tasks[0].cost} coins: ${data.tasks[0].title}`});
   await expect(offer).toBeVisible();await expect(offer).toContainText(data.tasks[0].title);await expect(pay).toBeVisible();expect((await pay.boundingBox())!.height).toBeGreaterThanOrEqual(44);
@@ -443,12 +443,12 @@ test('export, import, and reset keep portable new-game progress',async({page})=>
   await options(page);await page.locator('input[type=file]').setInputFiles(path);await page.getByRole('button',{name:'Import this saved game'}).click();expect(await saved(page)).toEqual(before);
 });
 
-test('Options holds only the save, appearance, sounds, the guide, the saved game, about, and a fresh start',async({page})=>{
+test('Options holds only the save, appearance, sounds, the saved game, about, and a fresh start',async({page})=>{
   await start(page,checkpoint(12));await options(page);const dialog=page.getByRole('dialog',{name:'Options',exact:true});
   await expect(page.locator('[data-options]:visible')).toHaveAccessibleName('Options');await expect(page.locator('[data-options]:visible')).toContainText('Options');
   await expect(dialog.locator('.save-status').first()).toHaveText('Saved in this browser');
-  await expect(dialog.locator('legend, h3')).toHaveText(['Appearance','Kitchen sounds','Guide','Your saved game','About Scary Snacks','A fresh start']);
-  await expect(dialog.getByRole('button')).toHaveText(['','Turn sound on','Open the kitchen guide','Export saved game','Import saved game','Start a new game']);
+  await expect(dialog.locator('legend, h3')).toHaveText(['Appearance','Kitchen sounds','Your saved game','About Scary Snacks','A fresh start']);
+  await expect(dialog.getByRole('button')).toHaveText(['','Turn sound on','Export saved game','Import saved game','Start a new game']);
   for(const name of ['Retry saved game','Retry save'])await expect(page.getByRole('button',{name,exact:true})).toHaveCount(0);
   await page.setViewportSize({width:390,height:844});await page.keyboard.press('Escape');
   await expect(page.locator('.phone-bar [data-options]')).toHaveAccessibleName('Options');await page.locator('.phone-bar [data-options]').click();await expect(dialog).toBeVisible();
@@ -579,9 +579,9 @@ test('phone shows the room, the tickets, the board and Mara in one screen, with 
   expect(tickets.y).toBeGreaterThanOrEqual(drawer.y);expect(board.y).toBeGreaterThanOrEqual(tickets.y+tickets.height);expect(board.y+board.height).toBeLessThanOrEqual(slot.y);expect(slot.y+slot.height).toBeLessThanOrEqual(bar.y+1);
   for(const deliver of await page.locator('#tickets .deliver-button').all())expect((await deliver.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   expect((await box('[data-cell="0"]')).width).toBeGreaterThanOrEqual(44);
-  await unselect(page);await expect(page.locator('.guide')).toBeVisible();await expect(page.locator('#item-detail')).toBeHidden();
-  await tile(page,14).click();await expect(page.locator('#item-detail')).toBeVisible();expect((await box('.guide')).width).toBeLessThanOrEqual(1);
-  await unselect(page);await expect(page.locator('.guide')).toBeVisible();
+  await unselect(page);await expect(page.locator('.mara-line')).toBeVisible();await expect(page.locator('#item-detail')).toBeHidden();
+  await tile(page,14).click();await expect(page.locator('#item-detail')).toBeVisible();expect((await box('.mara-line')).width).toBeLessThanOrEqual(1);
+  await unselect(page);await expect(page.locator('.mara-line')).toBeVisible();
   const sheet=page.getByRole('dialog');
   await page.locator('#story-button').click();await expect(sheet).toBeVisible();
   await sheet.locator('.cat-visit').click();await expect(sheet.locator('.cat-sleeping')).toBeVisible();
@@ -592,7 +592,7 @@ test('desktop first screen shows the uncovered room beside the tickets, the whol
     await page.setViewportSize(viewport);await start(page);await expect(page.locator('#tickets .ticket')).toHaveCount(3);
     const room=(await page.locator('#room-stage').boundingBox())!;expect([room.x,room.y,room.height]).toEqual([0,0,viewport.height]);expect(room.width).toBeGreaterThanOrEqual(viewport.width*.5-1);
     for(const selector of ['.masthead','#drawer']){const box=(await page.locator(selector).boundingBox())!;expect(box.x,`${selector} beside the room`).toBeGreaterThanOrEqual(room.x+room.width);}
-    const first=['.tickets','#board','.guide','#story','#collection-button'];
+    const first=['.tickets','#board','.mara-line','#story','#collection-button'];
     for(const selector of first){const box=(await page.locator(selector).boundingBox())!;expect(box.y+box.height,`${selector} at ${viewport.width}`).toBeLessThanOrEqual(viewport.height);}
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     expect((await tile(page,0).boundingBox())!.width).toBeGreaterThanOrEqual(44);
@@ -805,7 +805,7 @@ test('starting a new game clears the previous game discovery notification',async
 });
 
 test('a delayed storage event cannot let a stale action overwrite another tab',async({context})=>{
-  const first=await context.newPage();await start(first,unguided());const second=await context.newPage();
+  const first=await context.newPage();await start(first,createGame(data));const second=await context.newPage();
   await second.addInitScript(()=>window.addEventListener('storage',event=>event.stopImmediatePropagation(),true));await start(second);
   await mergeStart(first);const newer=await saved(first);
   await expect(tile(second,14)).toHaveAttribute('aria-label',/: Flour$/);

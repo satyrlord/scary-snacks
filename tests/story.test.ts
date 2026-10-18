@@ -207,9 +207,9 @@ test('a payment queues its preparation scene in the same change, and reading it 
   const before = ready(checkpoint(1));
   const after = apply(before, { type: 'task' });
   assert.deepEqual(after.pendingScenes, [...before.pendingScenes, data.tasks[1].id]);
-  // Reading the preparation scene changes nothing else except the guide's record, and a second read changes nothing.
+  // Reading the preparation scene changes nothing else, and a second read changes nothing.
   const read = apply(after, { type: 'readScene', id: data.tasks[1].id });
-  assert.deepEqual({ ...read, pendingScenes: after.pendingScenes, guide: after.guide }, after);
+  assert.deepEqual({ ...read, pendingScenes: after.pendingScenes }, after);
   rejected(read, { type: 'readScene', id: data.tasks[1].id });
 });
 

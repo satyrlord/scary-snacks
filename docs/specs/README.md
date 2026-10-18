@@ -45,9 +45,6 @@ Preparation scenes and quest completion scenes wait with chapter scenes, arrival
 Each waiting scene resumes at its saved line after a reload.
 Its acceptance section describes the automated checks.
 
-Spec 010 implements the guided start in Mara's line and the kitchen guide in Options.
-The guide records successful actions, marks its targets by rule, and gives no resources.
-
 Spec 013 implements the regulars, their arrivals, arrival scenes, portraits, and quests.
 The journal lists the neighbours.
 
@@ -63,7 +60,6 @@ Each entry is proposed, unless its specification records an implemented slice. S
 | 007 | [Board clearing](007-board-clearing.md) | Optional | None |
 | 008 | [Chapter story and finale](008-chapter-story-and-finale.md) | High | 001, 005, 009 |
 | 009 | [Dialogue continuation](009-dialogue-continuation.md) | Medium | None |
-| 010 | [Guided introduction](010-guided-introduction.md) | Medium | 006, 007, 009 |
 | 011 | [Discovery and recipe book](011-discovery-and-recipe-book.md) | Optional | None |
 | 012 | [Post-campaign goals](012-post-campaign-goals.md) | Optional | 005, 008, 011 |
 | 013 | [Neighbourhood regulars](013-neighbourhood-regulars.md) | High | 009 for arrival scenes |
@@ -112,7 +108,6 @@ The game leaves earlier local bytes unchanged and does not read or convert them.
 Import rejects earlier formats.
 
 The optional preparation obstacle baseline and placement history use this format. A missing record receives no past preparation batches. It starts at the next paid preparation. `PRODUCT.md` owns the queue and placement rules.
-The optional guide record of 010 also uses this format. A missing record has no guide run.
 
 Validate the full envelope and state before import. Adopt the candidate only after its write succeeds. A failed write or invalid input keeps the previous save and offers recovery. Test fresh, partial, and completed current saves, malformed records, unsupported versions, oversized imports, and failed writes.
 
@@ -130,7 +125,7 @@ Mandatory progression must not depend on an exhausted or inaccessible generator.
 1. Build Miez's visits in 014 on the quest campaign of 005. Exit: every open request stays possible, and quest rewards stay the same during the blessing.
 2. Add the remaining work of 011 and 012 as separate slices. These slices must not delay the core progression.
 
-Spec 015 adds no game state and is not part of this order. When it adds the front door, the guide of 010 starts after the front door.
+Spec 015 adds no game state and is not part of this order.
 
 ## Verification and release
 

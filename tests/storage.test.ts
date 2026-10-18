@@ -220,6 +220,17 @@ test('pending story scenes survive export, import, and reload', () => {
   }
 });
 
+test('a new game has no guide record, and a current save that holds one still loads and plays', () => {
+  assert.equal('guide' in createGame(gameData), false);
+  const held = { ...checkpoint(1), guide: { status: 'active', stage: 'merge', done: { merge: false, take: false, deliver: false, prepare: false, story: false } } };
+  const storage = memoryStorage([[SAVE_KEY, envelope(held)]]);
+  const loaded = loadSave<GameState>(storage, validGame);
+  assert.equal(loaded.status, 'loaded');
+  const source = loaded.state!.board.findIndex(cell => cell && gameData.items[cell.code].generator);
+  assert.equal(reduceGame(loaded.state!, { type: 'spawn', index: source }, gameData).ok, true);
+  assert.equal(storage.writes.length, 0);
+});
+
 test('each saved scene line survives a round trip, and a save without lines starts at the first line', () => {
   const paid = paidFourth(), scene = gameData.tasks[3].id;
   assert.equal(Object.hasOwn(paid, 'sceneLines'), false, 'A save without lines starts each waiting scene at the first line.');

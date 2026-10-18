@@ -157,18 +157,6 @@ One tap on an ingredient source takes one ingredient and selects the source. Eac
 
 A dish leaves the board only when the player merges it or delivers it. The game has no sale and no other way to remove a dish. A board full of dishes that cannot merge and that no request needs stays full; only a new game clears it.
 
-A new game starts the guide. The guide has five steps: Merge, Take, Deliver, Prepare, and Read and return. While the guide runs, Mara's line shows the current step and Skip guide. They replace the last message and Find a match. The status line still announces each message.
-
-Each step ends with one kind of successful action: a merge, a take from a source, a delivery, a preparation payment, and a scene that the player finishes or skips. The guide records these actions in any order and then shows the first step that is not done. A failed action, a move, a swap, a hover, or an animation records no step. When the current step is done, the selection clears, so that Mara's line shows the next step.
-
-The guide finds its targets on the current board, not in fixed cells. Merge marks the pair of the lowest stage, or else a match for a blocked ingredient, or else a source. Take marks a source. Deliver marks one ticket: a request that the board can fill, or else the request with the most of its dishes on the board. Prepare names the coins, quests, and space that the next preparation still needs, and marks Pay when the preparation is ready. Read and return marks Read now.
-
-On a full board, the guide tells the player to merge or deliver. The guide never adds, removes, moves, or reorders items or quests. It gives no coins and unlocks nothing. Story scenes open as usual and take precedence, because the guide is not a dialog.
-
-Skip guide closes the guide and changes nothing else. After the last step, the guide is complete, and Mara's line names the further help in Options.
-
-Options has a Guide section that opens the kitchen guide. The kitchen guide explains the five steps and marks the steps that the current run has done. It also explains room on the board, the recipe book, Find a match, and blocked spaces. Reading the page changes nothing. Its button skips an active guide, resumes a closed guide at its step, or starts a new run on the current board. A new run starts after a complete run or in a save without a run.
-
 A new game starts with eight blocked edge cells on the six-by-seven board. Each cell shows its ingredient through the open center of its blocker. Four blockers use crate, sack, crock, or linen art, and four use twine. Webs cover the first four until "Fix the broken window" is complete.
 
 Every blocker has the same rule: merge a matching movable ingredient into the blocked ingredient. The blocker clears and the normal successor stays in that cell. The source cell becomes empty. A merge beside a blocker clears nothing.
@@ -283,10 +271,6 @@ Completed preparations determine chapter completion. Completed quests and their 
 The optional line record maps a waiting scene ID to the zero-based line that the player sees. It holds only lines after the first line, and only for waiting scenes. Reading a scene removes its line. A save without this record starts each waiting scene at its first line.
 
 A line past the end of its scene stays valid, because a line gives no reward. Reset clears the waiting scenes and their lines with the rest of the state. Import replaces them only after full validation and confirmation.
-
-The optional guide record stores the guide status (active, dismissed, or complete), the current step, and one boolean for each step. The current step is the first step that is not done. A complete run has every step done. A save without this record has no guide run.
-
-Load and import reject a record with an unknown status or step, a missing or extra field, or a step that does not agree with the booleans. The record stores no board cell or interface target, and it gives no resource. A failed write keeps the unsaved warning, and a reload repeats the last saved step.
 
 The state records the unique completed quest IDs in delivery order. Each completed quest has its prerequisites earlier in the list, and every completed preparation has its necessary quests in the list. Saved finish choices name only unlocked finishes. Export and import include quest progress and the board layout.
 

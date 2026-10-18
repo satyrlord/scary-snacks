@@ -465,7 +465,7 @@ Buttons are solid and warm. Every button target is at least 44px tall.
   The button reads "Pay · N" with the 16px coin mark. Its accessible name is "Pay N coins: [preparation]" and its description is the requirement list. Pay and the Cost details text button share one 44px row with a 10px gap. Pay fills the remaining width.
 
   Cost details has the accessible name "Work and cost".
-- **Text button:** an underlined accent link at 13px with a 44px target. Find a match, Skip guide, Open the story journal, and Read request use this style. Skip scene, Read now, and Try again also use this style.
+- **Text button:** an underlined accent link at 13px with a 44px target. Find a match, Open the story journal, and Read request use this style. Skip scene, Read now, and Try again also use this style.
 - **Focus:** a 3px Teal Focus ring, offset by 3px. Inside a tile, an area choice, the grip, or a bar item, the offset is -3px. In an appearance choice or on a finish switch, the offset is 2px.
 
 ### The room (signature)
@@ -525,9 +525,6 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 ### Mara's line, the offer, and the selected item
 These three parts share one place under the board. The place is at least 62px tall on wider screens.
 - **Mara's line:** the 38px portrait of Mara (28px below 1024px), the live status line, and "Find a match". At 720px and below, the opening line is shorter, and the note for a selected item does not name the item.
-- **Guide:** while the guide runs, the step replaces the visible status line, and "Skip guide" replaces "Find a match". The step starts with its count, for example "1 of 5", in 12px muted type with tabular figures. The step text uses the type of Mara's line and takes at most three lines at 360px. The status line stays in the accessibility tree and announces each message. The step is also a polite live region.
-
-  The guide marks its targets with the steady 3px Teal Focus ring of a tap target: an inset ring on a tile or on the phone Story item, and an outer ring on a ticket, on Pay, and on Read now. The ring has no motion. The step names each target in words, and a marked tile adds "Marked by the guide" to its label, so colour is never the only cue. Forced colours draw the ring as a dashed Highlight outline. The selected tile keeps its own ring.
 - **Offer:** Mara offers a ready preparation if the story section is off screen and no tile is selected. The offer shows the preparation name, "Ready when you are.", and a primary Pay button. The Story item of the bar then carries the copper dot.
 - **Selected item:** the item picture, its name, and its rule line ("Source of …", "Two make …", or "Final dish"). The item picture is 44px (40px below 1024px). Below 411px, the item picture is 34px. At 360px and below, the item picture and the rule line do not show.
 
@@ -619,7 +616,7 @@ Mina and Avram occupy the bottom row, in that order. The four core portraits use
 
 The second holds Sânziana, Dorian, Ileana, and Cezar. The third holds Cătălina and Bran in its top row, with two empty cells below. Mina and Avram share one request, and its dialog shows both names and portraits. Dialogue uses the portrait of its current speaker.
 
-Each character has an individual square source crop that keeps a consistent face scale and eye line. The crop stays inside its atlas cell and retains headwear and identifying upper-body details. Mara uses the same crop in tickets, dialogue, and the guide. Tall hats keep the small eye-line difference needed to retain the hat.
+Each character has an individual square source crop that keeps a consistent face scale and eye line. The crop stays inside its atlas cell and retains headwear and identifying upper-body details. Mara uses the same crop in tickets, dialogue, and her line under the board. Tall hats keep the small eye-line difference needed to retain the hat.
 
 The portraits keep their colours in both themes.
 
@@ -668,11 +665,7 @@ It adds no motion.
 
 ### Options
 
-Options shows the save state and any applicable Retry saved game or Retry save control. Its other sections are Appearance, Kitchen sounds, Guide, Your saved game, About Scary Snacks, and A fresh start. The sections use the existing dialog, section, button, ink, muted, and focus styles.
-
-Guide has the secondary button "Open the kitchen guide". The kitchen guide is a dialog, or a sheet at 720px and below. It lists the five steps in order, each with its name in 14px semibold and its explanation in small muted copy. A step that the current run has done says "Done" in 12px Ready Green. The current step says "Now" in Teal Focus. A save without a run shows no marks.
-
-"More help" follows, with Room on the board, The recipe book, Find a match, and Blocked spaces as a list of names and explanations. The last control is "Skip the guide" (secondary) during a run, or "Resume the guide", "Guide me again", or "Guide me" (primary). Close and Escape return to Options.
+Options shows the save state and any applicable Retry saved game or Retry save control. Its other sections are Appearance, Kitchen sounds, Your saved game, About Scary Snacks, and A fresh start. The sections use the existing dialog, section, button, ink, muted, and focus styles.
 
 ### Inputs / Fields
 - **Segmented choice:** the Appearance setting is a Flour Dust track with a Control Line border and 44px options. The checked option takes the chosen fill, weight 600, a 2px inset accent ring, and the pressed choice shadow.
