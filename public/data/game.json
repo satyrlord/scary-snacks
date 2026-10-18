@@ -1065,7 +1065,6 @@
       "id": "mara",
       "name": "Mara",
       "role": "Bistro owner",
-      "description": "A practical host with wavy dark brown hair under a red and black headscarf, a white ie blouse with red cross-stitch, and a green woven apron.",
       "sprite": 0,
       "introduction": "I am Mara. I keep the bistro open and make room for neighbours who want a meal or a quiet seat. Help me try a few servings as we prepare the house."
     },
@@ -1073,7 +1072,6 @@
       "id": "ilie",
       "name": "Ilie",
       "role": "Baker",
-      "description": "An older baker with silver hair and moustache, round glasses, a black lambskin căciulă, and a floury sheepskin vest over an embroidered shirt.",
       "sprite": 1,
       "introduction": "I am Ilie, the baker. I bring bread and the notebook where my family kept its dishes. There is room on those pages for what we learn here."
     },
@@ -1081,7 +1079,6 @@
       "id": "eszter",
       "name": "Eszter",
       "role": "Potter",
-      "description": "A Székely potter with a short auburn bob, a white puffed-sleeve blouse, a rust-red bodice edged with green and gold braid, and white beads.",
       "sprite": 2,
       "introduction": "I am Eszter. I make the bowls and plates. A useful dish should sit well on the table and leave room for the person beside you."
     },
@@ -1089,7 +1086,6 @@
       "id": "sorin",
       "name": "Sorin",
       "role": "Bistro helper",
-      "description": "A cheerful young helper with short wavy chestnut hair, an embroidered white shirt with rolled sleeves, a dark embroidered felt vest, and a woven belt.",
       "sprite": 3,
       "introduction": "I am Sorin. I help at the bistro between deliveries around the neighbourhood. I know the steep streets, the quiet doors, and where to stop for lunch."
     },
@@ -1099,7 +1095,6 @@
       "role": "Travelling guard",
       "visitor": true,
       "sprite": 0,
-      "description": "A Romanian middle-aged man with short dark hair, a thick neat moustache, a black lambskin căciulă cap, a cream linen ie with red and black geometric embroidery, a practical weathered steel plate cuirass, and a burgundy wool cloak.",
       "introduction": "I am Adrian. I travel with Monica and Janos. We are checking a few reports from the cathedral beyond the village. We may need provisions for several days at a time."
     },
     {
@@ -1108,7 +1103,6 @@
       "role": "Pathfinder",
       "visitor": true,
       "sprite": 1,
-      "description": "A Romanian adult woman with dark brown hair in a braid under a red and black woven headscarf, a cream embroidered ie blouse, fitted brown leather scout armour with brass buckles and a cross-strap, and a moss-green travelling cloak.",
       "introduction": "I am Monica. I check the paths while Adrian and Janos compare their notes. The old cathedral has more entrances than our map shows. A supply pack lets us stay a few days to look."
     },
     {
@@ -1117,7 +1111,6 @@
       "role": "Travelling scholar",
       "visitor": true,
       "sprite": 2,
-      "description": "An older Hungarian Roma scholar with a warm medium olive complexion, wavy black hair streaked with grey, a neat moustache and short beard, a black wide-brim felt hat, an indigo embroidered waistcoat over a cream shirt, a muted plum neckerchief, and a wooden walking staff.",
       "introduction": "I am Janos. I study the marks in old stonework. Adrian and Monica help me examine the nearby cathedral. Its records leave a few questions, and a long visit needs proper meals."
     },
     {
@@ -1127,7 +1120,6 @@
       "visitor": true,
       "singleVisit": true,
       "sprite": 3,
-      "description": "A reserved young adult with fair skin, neat side-parted chestnut hair, a clean-shaven face, a charcoal travel suit, a cream shirt, a burgundy cravat, and a leather document folio.",
       "introduction": "I am Ionatan, a property agent from another country. I am travelling to the nearby castle to close a real-estate deal with a local noble. I have time for one proper dinner before I leave."
     },
     {
@@ -1152,7 +1144,6 @@
           "text": "Baron, officially. Count, in spirit. I read your new chalk menu by lamplight from my carriage. I dislike the sun, so I approve of a bistro that serves supper late."
         }
       ],
-      "description": "A reserved local baron with long dark hair, a narrow moustache, a red velvet cap with a gold jewel, a dark red court coat, and a fur collar. He styles himself as a count and lives in a castle in the countryside.",
       "introduction": "Count Vlad, if you please. My castle is outside the village, so I seldom dine here. A meat dish and red wine will suit me. The country roads have given me quite an appetite."
     },
     {
@@ -1177,7 +1168,6 @@
           "text": "Quiet, clean, and well lit. I shall read my estate papers here with a glass of red wine. Red suits me. It always has."
         }
       ],
-      "description": "An Austro-Hungarian countess with fair skin, neatly dressed dark hair beneath a white lace headdress, a high white ruff, pearls, and a rich dark red gown. She sometimes visits her land near the village.",
       "introduction": "I am Countess Elisabeta. I have land nearby, though my visits are infrequent. Please bring a meat dish and red wine. I shall review the estate papers after dinner."
     },
     {
@@ -1188,7 +1178,6 @@
       "singleVisit": true,
       "portraitAtlas": "guest",
       "sprite": 2,
-      "description": "A young British middle-class woman in Victorian dress, with fair skin, dark brown hair pinned neatly back, a cream high-collared blouse, a modest charcoal travelling jacket, and a blue ribbon with a small brooch.",
       "introduction": "My name is Mina. My fiancé Ionatan came here to sign a property contract, but his letters stopped. Doctor Avram has come with me to find him. I eat no meat or fish; eggs and dairy are welcome."
     },
     {
@@ -1199,14 +1188,12 @@
       "singleVisit": true,
       "portraitAtlas": "guest",
       "sprite": 3,
-      "description": "An older Hungarian Jewish doctor with fair skin, short silver hair, a clean-shaven face, a dark wool travelling coat, a waistcoat, a white shirt, a restrained necktie, and a leather medical bag.",
       "introduction": "I am Doctor Avram, professional physician and amateur solomonar. I am travelling with Mina to find Ionatan. We will stay together while we ask about the road to the castle."
     },
     {
       "id": "dochia",
       "name": "Dochia",
       "role": "Shepherdess",
-      "description": "An older shepherdess with a white braid under a dark brown headscarf, wearing a cream sheepskin vest over a brown sheepskin coat and a white linen blouse.",
       "introduction": "I am Dochia. I keep sheep on the hill above the village, and I wear all my sheepskins until the weather proves that it deserves fewer. I took one off this morning. The weather has not earned another.",
       "sprite": 0,
       "portraitAtlas": "regulars-1",
@@ -1220,7 +1207,6 @@
       "id": "victor",
       "name": "Victor",
       "role": "Anatomy student",
-      "description": "An anatomy student of about thirty with untidy dark hair and stubble, in a dark charcoal coat with a high collar, a white shirt, and a black neck scarf.",
       "introduction": "I am Victor. I study anatomy at the college and work late in its old laboratory. Last week one of my projects sat up on the table. It was only a soufflé, but my landlady still screamed.",
       "sprite": 1,
       "portraitAtlas": "regulars-1",
@@ -1234,7 +1220,6 @@
       "id": "ana",
       "name": "Ana",
       "role": "Night-shift nurse",
-      "description": "A night-shift nurse with a dark brown bun, in a pale blue work dress and a white apron, with a small braid of garlic pinned to her apron strap.",
       "introduction": "I am Ana. I work nights at the clinic, so this is my breakfast. Every Saint Andrew’s Eve I hang garlic on the ward door. The doctor laughs at me, but none of my patients has ever been bitten.",
       "sprite": 2,
       "portraitAtlas": "regulars-1",
@@ -1248,7 +1233,6 @@
       "id": "costel",
       "name": "Costel",
       "role": "Clock and automaton maker",
-      "description": "A clock and automaton maker with grey curly hair and a trimmed beard, a brass loupe on a band around his head, a green waistcoat with a watch chain, and a small brass key on a cord.",
       "introduction": "I am Costel. I mend clocks and build small brass automata in the shop by the well. If you hear ticking under my coat, it is a mechanical sparrow. It likes bright eyes and shiny spoons, so keep an eye on both.",
       "sprite": 3,
       "portraitAtlas": "regulars-1",
@@ -1262,7 +1246,6 @@
       "id": "sanziana",
       "name": "Sânziana",
       "role": "Florist",
-      "description": "A young florist with long light-brown hair under a crown of small yellow bedstraw flowers, in a white blouse with yellow and green embroidery and a moss-green apron.",
       "introduction": "I am Sânziana. I sell flowers from the cart by the church. On Midsummer Eve I weave crowns of yellow bedstraw and dance in the meadow until dawn. My sisters dance too. Nobody has ever counted all of us at once.",
       "sprite": 0,
       "portraitAtlas": "regulars-2",
@@ -1287,7 +1270,6 @@
       "id": "dorian",
       "name": "Dorian",
       "role": "Portrait painter",
-      "description": "A portrait painter with a smooth, youthful face and waved dark blond hair, in a wine-red velvet jacket with a dusty rose silk cravat and dabs of paint on one cuff.",
       "introduction": "I am Dorian. I paint portraits in the house with the green door. People say I have not aged since they were children. I put it down to good bread and a quiet life. My portrait in the attic does all the worrying for me.",
       "sprite": 1,
       "portraitAtlas": "regulars-2",
@@ -1316,7 +1298,6 @@
       "id": "ileana",
       "name": "Ileana",
       "role": "Seamstress",
-      "description": "A seamstress with dark hair turning grey under a dark blue headscarf, with a tape measure around her neck, a wooden spindle in her apron bib, and a pin cushion.",
       "introduction": "I am Ileana, the seamstress. I finish every spindle before Maundy Thursday, because that night Joimărița checks the houses for idle spinners. She has never visited my house. She has visited my brother twice.",
       "sprite": 2,
       "portraitAtlas": "regulars-2",
@@ -1341,7 +1322,6 @@
       "id": "cezar",
       "name": "Cezar",
       "role": "Night watchman",
-      "description": "A night watchman with greying dark hair and heavy-lidded, sleepy eyes, in a long dark grey wool coat, a black watchman’s cap, and a brass whistle on a cord.",
       "introduction": "I am Cezar, the night watchman. I walk the village from dusk to dawn. Some people say that I do it asleep. That is not true. I am only resting my eyes, and my feet know the way.",
       "sprite": 3,
       "portraitAtlas": "regulars-2",
@@ -1370,7 +1350,6 @@
       "id": "catalina",
       "name": "Cătălina",
       "role": "Church bell-ringer",
-      "description": "A strong church bell-ringer with dark brown hair under a red and black headscarf, a white embroidered blouse, a brown sheepskin vest, and a coil of bell rope over one shoulder.",
       "introduction": "I am Cătălina. I ring the church bell, and when hail clouds come over the hill, I ring until they turn back. The old women say that solomonari ride those clouds. I say that they can ride somewhere else.",
       "sprite": 0,
       "portraitAtlas": "regulars-3",
@@ -1395,7 +1374,6 @@
       "id": "bran",
       "name": "Bran",
       "role": "Night-bus driver",
-      "description": "A broad night-bus driver with a short dark beard, in a navy driver’s cap and a navy jacket with brass buttons, with a long dark red scarf wound high around his neck and a small pumpkin pin.",
       "introduction": "I am Bran. I drive the night bus to the town and back. On my days off, I ride my horse through the woods. I always wear this scarf, because my neck gets cold. Please do not ask more questions about my neck.",
       "sprite": 1,
       "portraitAtlas": "regulars-3",

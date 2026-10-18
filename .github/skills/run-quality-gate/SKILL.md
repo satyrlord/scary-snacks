@@ -53,8 +53,7 @@ A script name is a check only if `package.json` has the script.
 If a necessary script is missing, give that check the status `BLOCKED`.
 Do not create an equivalent command and give it the status `PASS`.
 
-The browser phase uses Chromium only. The game supports only Chromium-based browsers.
-If Chromium is not installed, run `npx playwright install chromium`.
+`AGENTS.md` gives the browser of the browser phase and the command that installs it.
 The browser phase starts its servers on ports 4181 and 4182. It does not use a server that already runs.
 If a port is not available, give the browser phase the status `BLOCKED`. Do not stop a process that you did not start.
 
@@ -63,8 +62,7 @@ If a port is not available, give the browser phase the status `BLOCKED`. Do not 
 Run the applicable related checks first.
 Then run `npm run quality:full` once.
 The gate stops at the first phase that fails.
-The browser tests use the output in `dist/`.
-A browser run without a new build examines an old artifact.
+Before a related browser check, obey the build order in `AGENTS.md`.
 If a skill package changed, validate that package with [create-skill](../create-skill/SKILL.md).
 
 Do not run a passed phase again, unless a file changed, a check failed, or a problem is open.

@@ -69,24 +69,12 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
     rows: 6,
     defaultSize: '1536x1536',
   },
-  portraits: {
-    background: 'transparent',
-    shape: 'square',
-    columns: 2,
-    rows: 2,
-    defaultSize: '1536x1536',
-  },
+  portraits: portraitAtlas,
   // Ten regulars use these atlases in arrival order. The last atlas has two empty lower cells.
   'regulars-1': portraitAtlas,
   'regulars-2': portraitAtlas,
   'regulars-3': { ...portraitAtlas, blankCells: [2, 3] },
-  mascots: {
-    background: 'transparent',
-    shape: 'square',
-    columns: 2,
-    rows: 2,
-    defaultSize: '1536x1536',
-  },
+  mascots: portraitAtlas,
   'timber-tabletop': {
     background: 'opaque',
     shape: 'square',

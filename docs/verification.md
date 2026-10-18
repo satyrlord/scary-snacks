@@ -15,8 +15,7 @@ The full browser suite runs under `/scary-snacks/`, the GitHub Pages path.
 The asset and path test also runs at the root path.
 `playwright.config.ts` controls these settings.
 
-The Pages workflow runs the type check, the Node.js tests, and the build.
-The Pages workflow does not run the dead-code check or the browser tests.
+[`DELIVERY.md`](../DELIVERY.md) gives the checks of the Pages workflow.
 
 ## Result
 
@@ -53,7 +52,8 @@ The files in `tests/` check these areas.
 Generator checks cover both tier boundaries, lower outputs, chosen outputs, rejected takes, and upgrades on a full board.
 The campaign fixture completes all 24 preparations and all 81 quests without injected coins or items.
 The fixture reports actions, takes, merges, deliveries, and income for each preparation and chapter.
-The fixture needs no release of a blocker.
+The fixture can merge into a blocked ingredient on a full board, but the complete campaign clears no blocker.
+This includes the initial blockers and the preparation blockers.
 
 Delivery checks require all portions at once. A failed delivery changes no game state.
 Visitor checks include Ionatan after Vlad's quest and the shared meal after Ionatan's dinner.
@@ -88,9 +88,9 @@ The files in `tests/browser/` check these areas.
 | `portrait-framing.spec.ts` | Each portrait crop at ticket and dialogue sizes in both themes. |
 
 Play checks include pointer drag, keyboard input, selection, and delivery.
-Room checks include reduced motion, failed image loads, and text that remains available after an image failure.
+Room checks include reduced motion, failed image loads, and text that is available after an image failure.
 Layout checks include the desktop and phone screens, the drawer, the phone bar, and 44px control targets.
-The drawer moves only on a narrow screen that is taller than 600px. Checks on a screen that is 600px high or less require a drawer that stays in place, a reveal that does not wait for it, and an active drawer body.
+Checks on a narrow screen that is 600px high or less require a drawer that stays in place, a reveal that does not wait for it, and an active drawer body.
 Theme checks include Light, Dark, System, and 4.5:1 contrast for main and muted text.
 
 Generator geometry checks cover three outputs at 360×740, 390×800, 390×844, and 1440×900 in both themes.
@@ -118,7 +118,7 @@ A failed line write warns once. Reload restores the last saved line.
 A quest completion scene waits through reload and finishes once from Read now.
 
 Asset checks cover the root path and the Pages path.
-Blocker crops remain square and inside their source cells.
+Blocker crops are square and inside their source cells.
 Browser alpha checks measure visible size and position.
 Review galleries use the same crop styles as the game.
 
@@ -129,5 +129,5 @@ Examine the changed interface in both themes at desktop and phone sizes.
 The checks do not include a physical touch device, assistive technology, or audio quality.
 The campaign fixture does not measure human play time.
 
-Title clearance and intellectual-property clearance remain outside these checks.
+Title clearance and intellectual-property clearance are outside these checks.
 See [release notes](release-notes.md).

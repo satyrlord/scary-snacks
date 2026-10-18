@@ -1,9 +1,8 @@
 # 011: Motion choice
 
-Status: Implemented. Dependencies: none.
-Owner: `PRODUCT.md` controls the motion choice. `DESIGN.md` controls the Options Motion section and the reduced-motion rules.
+Status: Implemented.
 
-## Current behavior
+## Behavior
 
 Options has a Motion section after Appearance. It has three options: System, Reduced, and Full.
 
@@ -11,8 +10,8 @@ Options has a Motion section after Appearance. It has three options: System, Red
 - **Reduced** removes every animation and transition on all devices.
 - **Full** plays every animation and transition, also when the device asks for reduced motion.
 
-The game has no start screen.
 The note under the Motion legend tells the player if the device asks for less motion.
+The note is the only message about the device setting.
 The note updates when the device setting changes while Options is open.
 
 ## Rules
@@ -24,7 +23,7 @@ The note updates when the device setting changes while Options is open.
    The function `still()` gives the result: Reduced, or System on a device that asks for reduced motion.
    Each motion in `src/app.ts` asks `still()` when the motion starts.
    When reduced motion becomes active, the script animations that run finish at once.
-   Their cleanup and delivery notices still complete.
+   Their cleanup and delivery notices complete.
    When full motion returns, the entrance effects that reduced motion hid do not replay.
    These effects are on the board, the tickets, the coins, and the notices.
 3. `src/style.css` removes animations and transitions under `:root[data-motion='reduced']`.
@@ -33,12 +32,7 @@ The note updates when the device setting changes while Options is open.
 4. If browser storage is unavailable, the choice applies for this visit.
    The status line says "Motion changed for this session. Browser storage is unavailable."
 
-## Out of scope
-
-- A start screen before the board. It adds one tap to each visit.
-- A separate notice about the device setting. The note under the Motion legend is the only message.
-
-## Acceptance checks
+## Acceptance and evidence
 
 Browser tests in `tests/browser/game.spec.ts`:
 
@@ -49,7 +43,7 @@ Browser tests in `tests/browser/game.spec.ts`:
 - Options lists the Motion section after Appearance.
 - A blocked storage getter or write keeps the choice for this visit and reports the storage failure.
 - A change to Reduced, or to the device setting under System, ends a delivery flight that runs.
-  The delivery notice still appears once.
+  The delivery notice appears once.
 - A painting that finishes its load after reduced motion becomes active does not start a fade.
 - The device note updates while Options stays open, without a change of focus.
 - Full does not replay a delivery that completed under Reduced.

@@ -9,7 +9,7 @@ const pay = (page: Page) => page.locator('#story').getByRole('button', { name: /
 const goal = (page: Page, kind: string) => page.locator(`#story [data-requirement="${kind}"]`);
 const needed = requiredQuests(0, data);
 /** Every quest of the first preparation is delivered but the last, whose dishes are on the board, and the coins reach the cost with its reward. */
-function lastRequestReady() {
+function lastQuestReady() {
   const state = createGame(data), last = needed.at(-1)!;
   state.completedQuests = needed.slice(0, -1).map(quest => quest.id); state.coins = first.cost - last.reward;
   return { state: supply(state, supplies(last)), last };
@@ -58,7 +58,7 @@ test('coins cannot hide undelivered quests', async ({ page }) => {
 test('delivering the last required quest makes the phone offer ready', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  const { state, last } = lastRequestReady(); await start(page, state);
+  const { state, last } = lastQuestReady(); await start(page, state);
   await expect(page.locator('#offer')).toBeHidden();
   const deliver = deliverButton(page, last);
   await deliver.focus(); await page.keyboard.press('Enter');
@@ -74,7 +74,7 @@ test('delivering the last required quest makes the phone offer ready', async ({ 
 
 test('the last delivery returns focus to Story when the selected cell is in the lowered phone drawer',async({page})=>{
   await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'reduce'});
-  const {state,last}=lastRequestReady();await start(page,state);await tile(page,1).click();
+  const {state,last}=lastQuestReady();await start(page,state);await tile(page,1).click();
   await page.locator('#drawer-handle').click();await expect(page.locator('#drawer-body')).toHaveAttribute('inert','');
   await deliverButton(page,last).focus();await page.keyboard.press('Enter');
   await expect(toast(page)).toContainText('Earned');await expect(page.locator('#story-button')).toBeFocused();

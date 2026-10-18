@@ -1,31 +1,15 @@
 # 003: Generator progression
 
 Status: Implemented.
-Owner: `PRODUCT.md` for play; `DESIGN.md` for generator controls.
-
-## Current evidence
-
-- `tools/create-original-data.ts` authors the base outputs and the production tiers.
-- Three generators start on the board. Preparations 3 and 6 unlock the other two.
-- `src/engine.ts` derives earned outputs from completed preparations and validates the chosen outputs.
-- A take gives the chosen output.
-- `validateGame` requires exactly one generator for each unlocked chain on the board.
-- `tests/engine.test.ts` covers free output, generator counts, and full-board failure.
-- The campaign test in `tests/campaign-balance.test.ts` completes all 24 preparations and all quests with legal actions.
-  It confirms that every source has its stage-three output at the end.
-- `src/storage.ts` validates and persists the current save format.
-- The Covered Dish Rule in `DESIGN.md` forbids a preview of anything that the player has not earned.
 
 ## Outcome and scope
 
 Later chapters give permanent production improvements. Every dish stays reachable.
-Keep the five chains, unlimited output, no timers, and no consumable generator parts.
-Do not add purchases, a backend, runtime packages, or imported game content.
-Generator assembly is outside this feature.
 
-## Implemented behavior
+## Rules
 
 1. Each unlocked chain has a permanent production tier and one physical generator.
+   Three generators start on the board. Preparations 3 and 6 unlock the other two.
 2. Tier one produces stage one. Tier two adds a stage-two output. Tier three adds a stage-three output.
 3. A generator keeps all its lower outputs. The player chooses the output of each take.
 4. A take gives exactly the chosen output. A take is not random. A take has no waiting period.
@@ -35,11 +19,13 @@ Generator assembly is outside this feature.
    A generator that a preparation unlocks starts at the current tier of its chain.
 7. The game shows nothing about an upgrade before the player pays for its preparation.
    The story card, Mara's line, and the selected source do not name a future tier, output, or preparation.
+   The Covered Dish Rule in `DESIGN.md` gives this limit.
 8. After the player pays, the completion message names each new output, for example "The Flour bin can now make Dough."
    The reveal of the room does not change.
 9. An upgrade creates no item, uses no board space, and does not change the identity of the generator.
-10. The selected source shows one Take button for each output that the source can make now.
+10. The selected source shows one Take button for each output that the source can make.
     Each Take button shows the picture of its output and names the output, for example "Take Dough".
+    The Take button of the chosen output shows a pressed state.
     At tier one, the selected source shows one Take button.
 11. A Take button takes one item of its output and makes that output the chosen output.
     A tap on the source takes one item of the chosen output.
@@ -52,34 +38,31 @@ Generator assembly is outside this feature.
 
 ## Data and state
 
-- Author the tiers in `tools/create-original-data.ts`.
+- `tools/create-original-data.ts` authors the base outputs and the tiers.
   Each tier has a chain, a stage, and the identifier (ID) of the preparation that grants it.
-- Check the tiers before the generator writes the data. Each tier stage must belong to its chain.
+- `generatorTierProblems` checks the tiers before the generator writes the data. Each tier stage must belong to its chain.
   The tier stages of a chain must increase in preparation order. A tier must not come before the preparation that unlocks its chain.
+- `validateGame` requires exactly one generator for each unlocked chain on the board.
 - Store the chosen outputs in `outputChoices`. Store one item ID for each chain whose chosen output is not stage one.
 - Validate `outputChoices` with strict bounds. Each key must be an unlocked chain.
   Each value must be a non-generator item of that chain, from stage two to the earned tier.
-- `src/engine.ts` owns the tiers, the chosen outputs, and the output validation. `src/app.ts` owns their presentation.
+- `src/engine.ts` owns the tiers, the chosen outputs, and the output validation.
+  `generatorOutputs` returns the earned outputs.
+  `src/app.ts` owns their presentation. `src/storage.ts` stores the sparse `outputChoices` map.
 - Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
 - Save and reload preserve the sparse `outputChoices` map and all current progress.
 - An invalid write or a failed write keeps the previous save and does not report success.
 
-## Implemented slices
-
-1. Engine and content: `generatorTierProblems` checks the authored tiers. `generatorOutputs` returns the earned outputs. The spawn action takes an optional output and changes the choice only on success.
-2. Persistence: the current envelope stores the sparse `outputChoices` and validates each chosen output.
-3. Interface: the selected source has pictorial Take buttons with a pressed state. The paid story names the new outputs. The owner documents define the controls and their compact phone row.
-
 ## Balance with the campaign test
 
-The campaign test in `tests/campaign-balance.test.ts` delivers the first open quest ticket and pays each preparation when it is ready. It takes the highest earned output that each required item needs, then merges. It injects no coins and no items. It validates every action and completes all 24 preparations with no deadlock.
+The campaign test in `tests/campaign-balance.test.ts` delivers the first open quest ticket and pays each preparation when it is ready. It takes the highest earned output that each required item needs, then merges. It injects no coins and no items. It validates every action and completes all 24 preparations and all quests with no deadlock. At the end, every source has its stage-three output.
 
 The fixture reports actions, takes, merges, and deliveries for each preparation and chapter. It measures one deterministic strategy.
 
 ## Acceptance and evidence
 
-- Engine: test both tier boundaries and a full board.
-  Also test unearned outputs, repeated actions, and every output that open low-stage quests need.
+- Engine: `tests/engine.test.ts` covers free output, generator counts, and full-board failure.
+  Test both tier boundaries, unearned outputs, repeated actions, and every output that open low-stage quests need.
 - Save: test save and reload of a complete campaign and a partial campaign.
   Also test invalid chosen outputs, unknown IDs, write failure, import, export, and repeated load.
   No load can duplicate a reward or a generator.
@@ -87,9 +70,3 @@ The fixture reports actions, takes, merges, and deliveries for each preparation 
   Check the Take labels, the focus, and reduced motion.
   Check the selected source with three Take buttons at 360px, in both themes.
   Check that no unearned output shows before the payment of its preparation.
-- Implementation checks: run `npm run typecheck` and `npm test`. Then run `npm run build` and
-  `npm run test:browser`.
-
-## Dependencies
-
-A later spec may grant tiers. Such a spec must extend the tier rule in item 6.

@@ -172,7 +172,7 @@ test('guest metadata rejects broken companions, single visits, and news scenes',
     ['empty news', content => { content.quests.find(quest => quest.id === search.id)!.followUp!.dialogue = []; }],
     ['news without later deliveries', content => { content.quests.find(quest => quest.id === search.id)!.followUp!.afterDeliveries = 0; }],
     ['news with an unknown speaker', content => { content.quests.find(quest => quest.id === search.id)!.followUp!.dialogue[0].speaker = 'nobody'; }],
-    ['single visit with two requests', content => { content.quests.find(quest => quest.id === 'adrian-first-pack')!.companions = ['ionatan']; }],
+    ['single visit with two quests', content => { content.quests.find(quest => quest.id === 'adrian-first-pack')!.companions = ['ionatan']; }],
     ['single visit flag on a regular', content => { content.characters.find(person => person.id === 'vlad')!.singleVisit = true; }],
   ];
   for (const [name, mutate] of cases) {

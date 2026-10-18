@@ -9,14 +9,14 @@ test('renovation cost follows its materials and labour, with less work and money
   assert.deepEqual(economyProblems(data), []);
   for (const task of data.tasks) assert.equal(task.cost, task.work.materials + task.work.labour);
   const [window, sign] = data.tasks;
-  const menu = data.tasks[7], canopy = data.tasks[14], printedMenu = data.tasks[19];
-  for (const small of [sign, menu, printedMenu]) for (const repair of [window, canopy]) {
+  const menu = data.tasks[7], doorHood = data.tasks[14], printedMenu = data.tasks[19];
+  for (const small of [sign, menu, printedMenu]) for (const repair of [window, doorHood]) {
     assert.ok(small.cost < repair.cost, `${small.title} costs less than ${repair.title}.`);
     assert.ok(small.work.hours < repair.work.hours, `${small.title} needs less work than ${repair.title}.`);
   }
 });
 
-test('every quest pays exactly the menu value of its dishes, with no multiplier', () => {
+test('every quest pays exactly the menu value of its dishes',() => {
   const menuValue = (quest: GameData['quests'][number]) => quest.requirements.reduce((sum, { item, quantity }) => sum + data.items[item].price * quantity, 0);
   for (const quest of data.quests) assert.equal(quest.reward, menuValue(quest), quest.id);
 });

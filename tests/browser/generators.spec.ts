@@ -4,7 +4,7 @@ import { unresolvedObstacle } from '../../src/engine.ts';
 import type { GameState } from '../../src/engine.ts';
 import { appearance, checkpoint, data, saved, start } from './support.ts';
 
-/** The game after count preparations, ready to pay the next one. Every open request is delivered, so no ticket offers a dish. */
+/** The game after count preparations, ready to pay the next one. Every open quest is delivered, so no ticket offers a dish. */
 const afterPreparations=(count: number)=>checkpoint(count,{ready:true});
 const take=(page: Page,code: string)=>page.getByRole('button',{name:`Take ${data.items[code].name}`,exact:true});
 const source=(page: Page,state: GameState,chain='bakery')=>page.locator(`[data-cell="${state.board.findIndex(cell=>cell?.code===`generator_${chain}`)}"]`);

@@ -146,7 +146,13 @@ The runner finds `quick_validate.py` in the installed `skill-creator` package.
 The runner tries an isolated `uv` environment with PyYAML first.
 If that environment is not available, the runner tries an installed Python interpreter with PyYAML.
 The runner does not change the system Python installation.
-Set `CODEX_HOME` when the package is not in its default user location.
+The runner examines these folders for the package:
+
+- `skills/.system/skill-creator` in the `CODEX_HOME` folder. If `CODEX_HOME` is not set, the runner uses `~/.codex`.
+- `~/.claude/skills/skill-creator`.
+- `~/.agents/skills/skill-creator`.
+
+If the package is in a different Codex home folder, set `CODEX_HOME` to that folder.
 Do not put an absolute path from the computer of a user in the repository.
 If the runner shows a `BLOCKED` message, give that message and its next step in the report.
 Do not give a pass for a blocked run.

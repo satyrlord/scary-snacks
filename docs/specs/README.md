@@ -4,7 +4,7 @@ Each specification in this folder records one feature of Scary Snacks: its rules
 
 The specifications cover act 1.
 
-The current game has six chapters, 24 preparations, and 81 authored quests. It also has dialogue replay and item discovery. The specifications extend those systems. They do not replace those systems.
+The game has six chapters, 24 preparations, and 81 authored quests.
 
 ## File names
 
@@ -42,46 +42,13 @@ All specifications in this register are implemented. The status of a specificati
 | 010 | [Neighbourhood regulars](010-neighbourhood-regulars.md) | Implemented | 008 for arrival scenes |
 | 011 | [Motion choice](011-motion-choice.md) | Implemented | None |
 
-A dependency is a specification that the complete feature needs. A reference to another specification is not always a dependency. Early slices can be independent.
-
-### Implemented scope
-
-- Spec 001 and spec 002: the room has 25 painted states. The [verification record](../verification.md) gives the test coverage of spec 001. Spec 002 has three second finishes. Three quests unlock them, and a switch on each detail in the room changes the finish. Its [acceptance section](002-decoration-choices.md#acceptance-and-evidence) gives the checks.
-- Spec 003: generator tiers, output choices, and persistence. Its acceptance section records the automated evidence.
-- Spec 004: 81 authored quests and three quest tickets.
-  The quests include the four core character arcs, the regulars, three recurring travellers, and three guests who visit once.
-  The shared guest visit also earns later local news.
-  The feature includes optional introductions, atomic delivery, journal replay, and persistence.
-  Each preparation needs every quest that opens before it.
-  Spec 005 includes all quests in its economy fixture.
-  Spec 007 names one quest of a core character as the contribution of each chapter.
-- Spec 005: food prices, preparation budgets, quest rewards, and the funding check.
-  The feature also includes requirement feedback and a legal campaign fixture.
-  The fixture includes generator upgrades and all quests.
-  The economy record gives the price sources and the authored assumptions.
-- Spec 006: blocked board cells, matching merges into visible blocked ingredients, and original blocker art.
-  Each preparation earns two or three contextual blockers with a deferred placement queue.
-  Automated checks cover the rules and the production browser build.
-- Spec 007: chapter objectives and steps, chapter closing scenes, neighbour contributions, the finale, journal replay, and persistence.
-  Automated engine, save, and browser checks cover the rules.
-  A scripted browser playthrough from a fresh save reaches the finale.
-- Spec 008: saved dialogue continuation.
-  Preparation scenes and quest completion scenes wait with chapter scenes, arrivals, local news, and the finale.
-  Each waiting scene resumes at its saved line after a reload.
-  Its acceptance section describes the automated checks.
-- Spec 009: discovery, covered dishes for undiscovered dishes, the new-dish notice, and chain-completion marks.
-- Spec 010: the regulars, their arrivals, arrival scenes, portraits, and quests.
-  The journal lists the neighbours.
-- Spec 011: the Motion choice in Options.
-
-Neighbour introductions (004) are optional journal reading. Decoration choices (002) are visual choices, not a branching story.
+A dependency is a specification that the complete feature needs. A reference to another specification is not always a dependency. Only this register lists the dependencies.
 
 ## Shared product boundaries
 
 - Keep the original Transylvanian bistro, black cats, bats, and local dishes.
   Keep the four core characters: Mara, Ilie, Eszter, and Sorin.
-  Spec 010 adds regulars to the neighbourhood. The regulars do not replace the core characters.
-  The features use the existing six chapters and 24 preparations.
+  The regulars of spec 010 do not replace the core characters.
 - Keep unlimited energy, immediate production, browser-local saves, and quests without a deadline. Do not add timers, purchases, advertisements, accounts, a backend, or runtime calls to an external origin. A temporary effect lasts a counted number of actions, never a span of time.
 - Author all content and art independently.
   Obey the source-input limits in [AGENTS.md](../../AGENTS.md).
@@ -131,4 +98,4 @@ These files are repository documents. They are not runtime inputs, and the sourc
 
 ## Completion record
 
-When you implement a specification, update its status, implemented scope, acceptance checks, and open decisions. Do not mark a specification complete from an engine test alone if the specification requires scene, story, or browser evidence. Keep each deferred item in the register with a reason.
+When you implement a specification, update its status, its scope, its acceptance checks, and its open decisions. Do not mark a specification complete from an engine test alone if the specification requires scene, story, or browser evidence. Keep each deferred item in the register with a reason.

@@ -30,43 +30,35 @@ for (const [row, [chain, , names, generator]] of chains.entries()) {
 }
 
 const characters: Character[] = [
-  { id: 'mara', name: 'Mara', role: 'Bistro owner', description: 'A practical host with wavy dark brown hair under a red and black headscarf, a white ie blouse with red cross-stitch, and a green woven apron.', sprite: 0,
+  { id: 'mara', name: 'Mara', role: 'Bistro owner', sprite: 0,
     introduction: 'I am Mara. I keep the bistro open and make room for neighbours who want a meal or a quiet seat. Help me try a few servings as we prepare the house.' },
-  { id: 'ilie', name: 'Ilie', role: 'Baker', description: 'An older baker with silver hair and moustache, round glasses, a black lambskin căciulă, and a floury sheepskin vest over an embroidered shirt.', sprite: 1,
+  { id: 'ilie', name: 'Ilie', role: 'Baker', sprite: 1,
     introduction: 'I am Ilie, the baker. I bring bread and the notebook where my family kept its dishes. There is room on those pages for what we learn here.' },
-  { id: 'eszter', name: 'Eszter', role: 'Potter', description: 'A Székely potter with a short auburn bob, a white puffed-sleeve blouse, a rust-red bodice edged with green and gold braid, and white beads.', sprite: 2,
+  { id: 'eszter', name: 'Eszter', role: 'Potter', sprite: 2,
     introduction: 'I am Eszter. I make the bowls and plates. A useful dish should sit well on the table and leave room for the person beside you.' },
-  { id: 'sorin', name: 'Sorin', role: 'Bistro helper', description: 'A cheerful young helper with short wavy chestnut hair, an embroidered white shirt with rolled sleeves, a dark embroidered felt vest, and a woven belt.', sprite: 3,
+  { id: 'sorin', name: 'Sorin', role: 'Bistro helper', sprite: 3,
     introduction: 'I am Sorin. I help at the bistro between deliveries around the neighbourhood. I know the steep streets, the quiet doors, and where to stop for lunch.' },
   { id: 'adrian', name: 'Adrian', role: 'Travelling guard', visitor: true, sprite: 0,
-    description: 'A Romanian middle-aged man with short dark hair, a thick neat moustache, a black lambskin căciulă cap, a cream linen ie with red and black geometric embroidery, a practical weathered steel plate cuirass, and a burgundy wool cloak.',
     introduction: 'I am Adrian. I travel with Monica and Janos. We are checking a few reports from the cathedral beyond the village. We may need provisions for several days at a time.' },
   { id: 'monica', name: 'Monica', role: 'Pathfinder', visitor: true, sprite: 1,
-    description: 'A Romanian adult woman with dark brown hair in a braid under a red and black woven headscarf, a cream embroidered ie blouse, fitted brown leather scout armour with brass buckles and a cross-strap, and a moss-green travelling cloak.',
     introduction: 'I am Monica. I check the paths while Adrian and Janos compare their notes. The old cathedral has more entrances than our map shows. A supply pack lets us stay a few days to look.' },
   { id: 'janos', name: 'Janos', role: 'Travelling scholar', visitor: true, sprite: 2,
-    description: 'An older Hungarian Roma scholar with a warm medium olive complexion, wavy black hair streaked with grey, a neat moustache and short beard, a black wide-brim felt hat, an indigo embroidered waistcoat over a cream shirt, a muted plum neckerchief, and a wooden walking staff.',
     introduction: 'I am Janos. I study the marks in old stonework. Adrian and Monica help me examine the nearby cathedral. Its records leave a few questions, and a long visit needs proper meals.' },
   { id: 'ionatan', name: 'Ionatan', role: 'Foreign property agent', visitor: true, singleVisit: true, sprite: 3,
-    description: 'A reserved young adult with fair skin, neat side-parted chestnut hair, a clean-shaven face, a charcoal travel suit, a cream shirt, a burgundy cravat, and a leather document folio.',
     introduction: 'I am Ionatan, a property agent from another country. I am travelling to the nearby castle to close a real-estate deal with a local noble. I have time for one proper dinner before I leave.' },
   { id: 'vlad', name: 'Vlad', role: 'Local baron', portraitAtlas: 'guest', sprite: 0, regular: true,
     prefers: ['warm', 'drinks'], arrivesAfter: 'task_8',
     arrival: [{ speaker: 'mara', text: 'A carriage has stopped at the gate. Count Vlad sends word that he will dine with us tonight.' },
       { speaker: 'vlad', text: 'Baron, officially. Count, in spirit. I read your new chalk menu by lamplight from my carriage. I dislike the sun, so I approve of a bistro that serves supper late.' }],
-    description: 'A reserved local baron with long dark hair, a narrow moustache, a red velvet cap with a gold jewel, a dark red court coat, and a fur collar. He styles himself as a count and lives in a castle in the countryside.',
     introduction: 'Count Vlad, if you please. My castle is outside the village, so I seldom dine here. A meat dish and red wine will suit me. The country roads have given me quite an appetite.' },
   { id: 'elisabeta', name: 'Elisabeta', role: 'Visiting countess', portraitAtlas: 'guest', sprite: 1, regular: true,
     prefers: ['warm', 'drinks'], arrivesAfter: 'task_8',
     arrival: [{ speaker: 'eszter', text: 'Countess Elisabeta is visiting her land again. She asked whether our front room is quiet.' },
       { speaker: 'elisabeta', text: 'Quiet, clean, and well lit. I shall read my estate papers here with a glass of red wine. Red suits me. It always has.' }],
-    description: 'An Austro-Hungarian countess with fair skin, neatly dressed dark hair beneath a white lace headdress, a high white ruff, pearls, and a rich dark red gown. She sometimes visits her land near the village.',
     introduction: 'I am Countess Elisabeta. I have land nearby, though my visits are infrequent. Please bring a meat dish and red wine. I shall review the estate papers after dinner.' },
   { id: 'mina', name: 'Mina', role: 'Searching for her fiancé', visitor: true, singleVisit: true, portraitAtlas: 'guest', sprite: 2,
-    description: 'A young British middle-class woman in Victorian dress, with fair skin, dark brown hair pinned neatly back, a cream high-collared blouse, a modest charcoal travelling jacket, and a blue ribbon with a small brooch.',
     introduction: 'My name is Mina. My fiancé Ionatan came here to sign a property contract, but his letters stopped. Doctor Avram has come with me to find him. I eat no meat or fish; eggs and dairy are welcome.' },
   { id: 'avram', name: 'Avram', role: 'Travelling doctor', visitor: true, singleVisit: true, portraitAtlas: 'guest', sprite: 3,
-    description: 'An older Hungarian Jewish doctor with fair skin, short silver hair, a clean-shaven face, a dark wool travelling coat, a waistcoat, a white shirt, a restrained necktie, and a leather medical bag.',
     introduction: 'I am Doctor Avram, professional physician and amateur solomonar. I am travelling with Mina to find Ionatan. We will stay together while we ask about the road to the castle.' },
   ...regulars(),
 ];
@@ -76,54 +68,44 @@ const characters: Character[] = [
  */
 function regulars(): Character[] {
   const rows: [id: string, name: string, role: string, atlas: Character['portraitAtlas'], sprite: number, prefers: [string, string], arrivesAfter: number,
-    description: string, introduction: string, arrival?: [speaker: string, text: string][]][] = [
+    introduction: string, arrival?: [speaker: string, text: string][]][] = [
     ['dochia', 'Dochia', 'Shepherdess', 'regulars-1', 0, ['warm', 'bakery'], 0,
-      'An older shepherdess with a white braid under a dark brown headscarf, wearing a cream sheepskin vest over a brown sheepskin coat and a white linen blouse.',
       'I am Dochia. I keep sheep on the hill above the village, and I wear all my sheepskins until the weather proves that it deserves fewer. I took one off this morning. The weather has not earned another.'],
     ['victor', 'Victor', 'Anatomy student', 'regulars-1', 1, ['warm', 'drinks'], 0,
-      'An anatomy student of about thirty with untidy dark hair and stubble, in a dark charcoal coat with a high collar, a white shirt, and a black neck scarf.',
       'I am Victor. I study anatomy at the college and work late in its old laboratory. Last week one of my projects sat up on the table. It was only a soufflé, but my landlady still screamed.'],
     ['ana', 'Ana', 'Night-shift nurse', 'regulars-1', 2, ['warm', 'drinks'], 0,
-      'A night-shift nurse with a dark brown bun, in a pale blue work dress and a white apron, with a small braid of garlic pinned to her apron strap.',
       'I am Ana. I work nights at the clinic, so this is my breakfast. Every Saint Andrew’s Eve I hang garlic on the ward door. The doctor laughs at me, but none of my patients has ever been bitten.'],
     ['costel', 'Costel', 'Clock and automaton maker', 'regulars-1', 3, ['sweet', 'drinks'], 0,
-      'A clock and automaton maker with grey curly hair and a trimmed beard, a brass loupe on a band around his head, a green waistcoat with a watch chain, and a small brass key on a cord.',
       'I am Costel. I mend clocks and build small brass automata in the shop by the well. If you hear ticking under my coat, it is a mechanical sparrow. It likes bright eyes and shiny spoons, so keep an eye on both.'],
     ['sanziana', 'Sânziana', 'Florist', 'regulars-2', 0, ['sweet', 'produce'], 4,
-      'A young florist with long light-brown hair under a crown of small yellow bedstraw flowers, in a white blouse with yellow and green embroidery and a moss-green apron.',
       'I am Sânziana. I sell flowers from the cart by the church. On Midsummer Eve I weave crowns of yellow bedstraw and dance in the meadow until dawn. My sisters dance too. Nobody has ever counted all of us at once.',
       [['eszter', 'The front room is ready, and the first flowers have come to see it. This is Sânziana, from the flower cart by the church.'],
         ['sanziana', 'Eszter promised me a jug for the counter. I promised her flowers that last until midsummer. After that, they make their own plans.']]],
     ['dorian', 'Dorian', 'Portrait painter', 'regulars-2', 1, ['sweet', 'drinks'], 4,
-      'A portrait painter with a smooth, youthful face and waved dark blond hair, in a wine-red velvet jacket with a dusty rose silk cravat and dabs of paint on one cuff.',
       'I am Dorian. I paint portraits in the house with the green door. People say I have not aged since they were children. I put it down to good bread and a quiet life. My portrait in the attic does all the worrying for me.',
       [['mara', 'Dorian, the painter, has asked for a seat under the new lamps. He says the light is finally good enough for a portrait.'],
         ['dorian', 'I painted this room once before, Mara, when your grandmother ran it. It has hardly changed. Neither have I.'],
         ['mara', 'I will pretend that I did not hear that. Sit down, and I will bring the menu.']]],
     ['ileana', 'Ileana', 'Seamstress', 'regulars-2', 2, ['produce', 'drinks'], 8,
-      'A seamstress with dark hair turning grey under a dark blue headscarf, with a tape measure around her neck, a wooden spindle in her apron bib, and a pin cushion.',
       'I am Ileana, the seamstress. I finish every spindle before Maundy Thursday, because that night Joimărița checks the houses for idle spinners. She has never visited my house. She has visited my brother twice.',
       [['ilie', 'Ileana sews the aprons for half the village. She heard that we have a real kitchen now.'],
         ['ileana', 'I heard that you have four aprons and eight stains. I brought thread. Finish your work before Thursday, and nobody gets into trouble.']]],
     ['cezar', 'Cezar', 'Night watchman', 'regulars-2', 3, ['warm', 'produce'], 8,
-      'A night watchman with greying dark hair and heavy-lidded, sleepy eyes, in a long dark grey wool coat, a black watchman’s cap, and a brass whistle on a cord.',
       'I am Cezar, the night watchman. I walk the village from dusk to dawn. Some people say that I do it asleep. That is not true. I am only resting my eyes, and my feet know the way.',
       [['sorin', 'This is Cezar. He watches the street at night, and he saw the kitchen lights from the square.'],
         ['cezar', 'Good evening. Or good morning. I lose track. A warm plate at the end of my round would be very welcome.'],
         ['sorin', 'He says that at noon too.']]],
     ['catalina', 'Cătălina', 'Church bell-ringer', 'regulars-3', 0, ['sweet', 'warm'], 12,
-      'A strong church bell-ringer with dark brown hair under a red and black headscarf, a white embroidered blouse, a brown sheepskin vest, and a coil of bell rope over one shoulder.',
       'I am Cătălina. I ring the church bell, and when hail clouds come over the hill, I ring until they turn back. The old women say that solomonari ride those clouds. I say that they can ride somewhere else.',
       [['mara', 'Cătălina rings the bell at the church. She heard that the shared table is open.'],
         ['catalina', 'I heard it from the bell tower. I hear everything from the bell tower. Save me a seat by the door, in case the hail comes.']]],
     ['bran', 'Bran', 'Night-bus driver', 'regulars-3', 1, ['bakery', 'warm'], 12,
-      'A broad night-bus driver with a short dark beard, in a navy driver’s cap and a navy jacket with brass buttons, with a long dark red scarf wound high around his neck and a small pumpkin pin.',
       'I am Bran. I drive the night bus to the town and back. On my days off, I ride my horse through the woods. I always wear this scarf, because my neck gets cold. Please do not ask more questions about my neck.',
       [['sorin', 'This is Bran. He drives the night bus. Once he gave me a lift, and my bicycle too.'],
         ['bran', 'From tomorrow, the bus stops by the square for a loaf of bread. The horse prefers apples, but the horse does not drive.']]],
   ];
-  return rows.map(([id, name, role, portraitAtlas, sprite, prefers, after, description, introduction, arrival]) => ({
-    id, name, role, description, introduction, sprite, portraitAtlas, regular: true, prefers,
+  return rows.map(([id, name, role, portraitAtlas, sprite, prefers, after, introduction, arrival]) => ({
+    id, name, role, introduction, sprite, portraitAtlas, regular: true, prefers,
     ...(after ? { arrivesAfter: `task_${after}`, arrival: arrival!.map(([speaker, text]) => ({ speaker, text })) } : {}),
   }));
 }
@@ -246,7 +228,7 @@ const tasks: Task[] = taskRows.map(([title, a, at, b, bt, c, ct], index) => {
 });
 // The quest campaign. A quest in window w opens after preparation w (0: in a new game), and preparation w + 1 needs it.
 // Every quest pays the menu value of its dishes. Each preparation is paid by the quests that open before it; questProblems checks the funds.
-const request = (rows: [string, number][]) => ({ requirements: rows.map(([item, quantity]) => ({ item, quantity })),
+const questTerms = (rows: [string, number][]) => ({ requirements: rows.map(([item, quantity]) => ({ item, quantity })),
   reward: rows.reduce((sum, [item, quantity]) => sum + items[item].price * quantity, 0) });
 const lines = (speaker: string, text: string) => [{ speaker, text }];
 type QuestRow = [id: string, character: string, title: string, window: number, requirements: [string, number][], opening: string, completion: string];
@@ -468,7 +450,7 @@ const finishes: Record<string, Quest['unlocks']> = {
   'eszter-green-bowls': { slot: 'tableware', variant: 'green' }, 'ileana-blue-cloth': { slot: 'textiles', variant: 'blue' }, 'sanziana-lilacs': { slot: 'flowers', variant: 'lilacs' },
 };
 const campaign: { window: number; quest: Quest }[] = questRows.map(([id, character, title, window, requirements, opening, completion]) => ({ window, quest: {
-  id, character, title, afterTask: window ? `task_${window}` : null, ...request(requirements), opening: lines(character, opening), completion: lines(character, completion),
+  id, character, title, afterTask: window ? `task_${window}` : null, ...questTerms(requirements), opening: lines(character, opening), completion: lines(character, completion),
   ...(finishes[id] ? { unlocks: finishes[id] } : {}) } }));
 // The travellers return three times each, in one shared sequence, at fixed places in the campaign.
 const visitorRows: QuestRow[] = [
@@ -502,14 +484,14 @@ const visitorRows: QuestRow[] = [
 ];
 for (const [index, [id, character, title, window, requirements, opening, completion]] of visitorRows.entries()) {
   campaign.push({ window, quest: { id, character, title, afterTask: `task_${window}`, ...(index ? { afterQuest: visitorRows[index - 1][0] } : {}),
-    ...request(requirements), opening: lines(character, opening), completion: lines(character, completion) } });
+    ...questTerms(requirements), opening: lines(character, opening), completion: lines(character, completion) } });
 }
 campaign.push({ window: 9, quest: { id: 'ionatan-castle-dinner', character: 'ionatan', title: 'Dinner before the castle', afterTask: 'task_9', afterQuest: 'vlad-guest',
-  ...request([['warm_6', 1], ['produce_6', 1], ['sweet_6', 1], ['drinks_6', 1]]),
+  ...questTerms([['warm_6', 1], ['produce_6', 1], ['sweet_6', 1], ['drinks_6', 1]]),
   opening: [{ speaker: 'ionatan', text: 'I have come from abroad to close a real-estate deal with a local noble at the nearby castle. Before I continue, I would like a proper dinner: a goulash pot, a sharing board, a chimney cake, and plum brandy.' }],
   completion: [{ speaker: 'ionatan', text: 'An excellent dinner. Here is the payment, with my thanks. My papers are in order, and I must leave for the castle now. My journey takes me on from there, so I will not return. Farewell.' }] } });
 campaign.push({ window: 10, quest: { id: 'mina-avram-search', character: 'mina', companions: ['avram'], title: 'A meal before the search', afterTask: 'task_10',
-  afterQuest: 'ionatan-castle-dinner', ...request([['bakery_5', 2], ['produce_3', 2], ['warm_4', 1], ['drinks_3', 2]]),
+  afterQuest: 'ionatan-castle-dinner', ...questTerms([['bakery_5', 2], ['produce_3', 2], ['warm_4', 1], ['drinks_3', 2]]),
   opening: [{ speaker: 'mina', text: 'Ionatan is my fiancé. He came from Britain to sign a property contract at the castle, but he has not written back. Have you seen him?' },
     { speaker: 'mara', text: 'He had dinner here and left for the castle. He has not returned to the bistro.' },
     { speaker: 'avram', text: 'Then Mina and I will follow that road together. Before we leave, could you prepare a meal for two? We will both eat vegetarian food.' },
@@ -604,7 +586,7 @@ const layouts: BoardLayout[] = [
   ] },
 ];
 // Each finished preparation leaves its own materials and supplies to sort on the board.
-// Preparation clutter mixes its matching new pictures with existing packing; tied food uses its food picture.
+// Preparation clutter uses a preparation-clutter picture (atlas 'preparation') or a board-clutter packing picture; tied food uses its food picture.
 const preparations: PreparationObstacleBatch[] = [
   { after: 'task_1', context: 'The window repair leaves packing and cleaning cloths to put away.', obstacles: [
     { id: 'prep-1-frame-offcuts', name: 'Window-frame offcuts', type: 'clutter', ingredient: 'bakery_1', atlas: 'preparation', sprite: 0 },

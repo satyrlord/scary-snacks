@@ -176,8 +176,8 @@ It sets the exit code to 1 for an `issues` entry. An issue is one of these items
 - A cell of a transparent asset has no visible object. A visible object has pixels with an alpha of 128 or more.
 - An opaque painting has a transparent or partly transparent pixel.
 
-The decoder rejects PNG color-key transparency (`tRNS`).
-Use an RGB image without a color key, or an RGBA image, so that the alpha is exact.
+The decoder rejects PNG colour-key transparency (`tRNS`).
+Use an RGB image without a colour key, or an RGBA image, so that the alpha is exact.
 
 A `warnings` entry reports visible pixels in the edge band of a cell.
 Generated grids are not exact, and the accepted atlases also give this warning.

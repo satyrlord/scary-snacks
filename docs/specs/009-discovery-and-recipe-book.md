@@ -1,8 +1,8 @@
 # 009: Discovery and recipe book
 
-Status: Implemented. Dependencies: none.
+Status: Implemented.
 
-## Current behavior
+## Behavior
 
 [`src/engine.ts`](../../src/engine.ts) records the item codes that the player discovers in the permanent `discovered` set.
 A new game discovers only the items on its initial board.
@@ -20,7 +20,8 @@ An undiscovered dish shows a "Not yet" covered dish: a plate under a dome cover.
 When a take or a merge discovers a dish, the action message starts with "[Dish] is a new dish! It is in the recipe book now."
 The other parts of the message stay, for example a blocker placement.
 The book link shows the new marker until the player opens the book.
-The book link also shows the count of discovered dishes. While the marker shows, the count adds the number of new dishes.
+The book link also shows the count of discovered dishes, for example "12 of 30 dishes discovered".
+While the marker shows, the count ends with ", N new". N is the number of new dishes.
 The marker is for display only. A reload clears it and does not replay a notice. The marker gives no reward.
 
 The book covers dishes only. It does not hide a source instruction or a merge instruction that the player needs.
@@ -50,7 +51,7 @@ An unresolved blocker needs no discovery.
 Validation also accepts the ingredient of an unresolved blocker in `discovered`. The game keeps that discovery.
 Text from a save never becomes HyperText Markup Language (HTML).
 
-## Acceptance checks
+## Acceptance and evidence
 
 - Engine: a new game discovers only its initial board items.
   A take and a merge discover a dish once.

@@ -1,13 +1,10 @@
 import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { readFileSync } from 'node:fs';
 import { boardObstacles, createGame, firstFreeBoardCell, freeBoardCells, requiredQuests, pendingPreparationObstacles, reduceGame, unresolvedObstacle, validateGame } from '../../src/engine.ts';
-import type { GameData, GameState } from '../../src/engine.ts';
+import type { GameState } from '../../src/engine.ts';
 import { SAVE_KEY, exportSave } from '../../src/storage.ts';
-import { failWrites } from './support.ts';
+import { data, failWrites, saved, tile } from './support.ts';
 
-const data: GameData = JSON.parse(readFileSync('public/data/game.json', 'utf8'));
-const tile = (page: Page, index: number) => page.locator(`[data-cell="${index}"]`);
 function checkpoint(count = 0) {
   let state = createGame(data);
   for (let index = 0; index < count; index++) {
@@ -36,9 +33,6 @@ async function start(page: Page, state: GameState, theme = 'light') {
   }, { key: SAVE_KEY, value, theme });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('./'); await expect(page.locator('#board button')).toHaveCount(42);
-}
-async function saved(page: Page): Promise<GameState> {
-  return page.evaluate(key => navigator.locks.request(key, () => JSON.parse(localStorage.getItem(key)!).state), SAVE_KEY);
 }
 async function pay(page: Page) {
   await page.locator('#story').getByRole('button', { name: /^Pay / }).click();

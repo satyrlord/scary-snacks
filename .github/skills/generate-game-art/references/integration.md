@@ -7,7 +7,7 @@ Use it only after the candidate review passes and the scope includes a replaceme
 
 Keep the file name and the asset identifier for a replacement.
 Copy the accepted candidate to `public/assets/original/` with no change to its pixels.
-Do not run background removal, color changes, or compression on the candidate.
+Do not run background removal, colour changes, or compression on the candidate.
 Do not put a second file in that folder. The test fails for a file with no record.
 The game never loads a master.
 If the replacement moves a subject inside an atlas, update the cell rectangles.

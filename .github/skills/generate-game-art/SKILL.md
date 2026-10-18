@@ -44,12 +44,12 @@ The next table lists the layouts of the Portable Network Graphics (PNG) masters 
 | --- | --- | --- | --- |
 | `menu-atlas.png` | Food, drinks, and generators | 6 columns by 6 rows | Transparent |
 | `portraits.png` | The four core characters | 2 columns by 2 rows | Transparent |
-| `visitor-portraits.png` | The four visitors | 2 columns by 2 rows | Transparent |
+| `visitor-portraits.png` | Adrian, Monica, Janos, and Ionatan | 2 columns by 2 rows | Transparent |
 | `guests.png` | Vlad, Elisabeta, Mina, and Avram | 2 columns by 2 rows | Transparent |
 | `regulars-1.png`, `regulars-2.png` | Eight regulars, in arrival order | 2 columns by 2 rows | Transparent |
 | `regulars-3.png` | Two regulars; lower cells stay empty | 2 columns by 2 rows | Transparent |
-| `board-clutter.png` | Six blockers with open centers | 3 columns by 2 rows | Transparent |
-| `preparation-clutter.png` | Twelve blockers with open centers | 4 columns by 3 rows, 1448 by 1086 pixels | Transparent |
+| `board-clutter.png` | Six blockers with open centres | 3 columns by 2 rows | Transparent |
+| `preparation-clutter.png` | Twelve blockers with open centres | 4 columns by 3 rows, 1448 by 1086 pixels | Transparent |
 | `red-wine.png` | The red wine menu picture | One square icon | Transparent |
 | `mascots.png` | Three poses of the black cat and one bat | 2 columns by 2 rows | Transparent |
 | `timber-tabletop.png` | The timber under the board | One tileable square | Opaque |
@@ -57,12 +57,8 @@ The next table lists the layouts of the Portable Network Graphics (PNG) masters 
 | `front-room-NN.png`, `courtyard-NN.png` | One painted room state | One image, 3:4, 1536 by 2048 pixels | Opaque |
 | `decoration-front.png`, `decoration-courtyard.png` | One decoration edit of a room state | One image, 3:4, 1536 by 2048 pixels | Opaque |
 
-The build does not ship the masters.
-`npm run assets:build` makes the AV1 Image File Format (AVIF) and WebP variants that the game loads, in `public/assets/variants/`.
-That command also records the variants in `docs/asset-variants.json`.
-The asset test compares the masters with the provenance record and the variants with their record.
-Keep candidates, rejected images, and previews out of `public/assets/original/` and `public/assets/variants/`.
-Keep these files in an ignored task folder, for example `analysis/art-generation/<task>/`.
+`AGENTS.md` gives the rules for the masters, the variants, and their records.
+Keep candidates, rejected images, and previews in an ignored task folder, for example `analysis/art-generation/<task>/`.
 
 ## Use the approved direction and route
 
@@ -85,8 +81,8 @@ If the chat tool is not available and the user did not choose the API route, use
 
 Do not use a paid API route that the user did not choose.
 Do not replace a missing bitmap with Cascading Style Sheets (CSS) art or Scalable Vector Graphics (SVG) art.
-Make the shipped variants only with `npm run assets:build`.
-That command uses Sharp, the one approved image package. Do not add another image package.
+Make the shipped variants only with `npm run assets:build`, as `AGENTS.md` tells you.
+Do not add another image package.
 
 Use the art direction in `DESIGN.md` and in the accepted prompts.
 Make each food silhouette readable at 64 pixels.

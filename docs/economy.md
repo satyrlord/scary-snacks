@@ -29,12 +29,12 @@ A later stage does not always cost more. The portion and dish determine the pric
 | Warm | Smoked cheese plate, one plate | 40 |
 | Warm | Cabbage rolls, one meat main portion | 50 |
 | Warm | Goulash pot, two main portions | 80 |
-| Sweets | Walnuts, one small ingredient portion | 3 |
-| Sweets | Doughnut, one piece | 8 |
-| Sweets | Papanași, one dessert portion | 32 |
-| Sweets | Plum dumplings, one dessert portion | 28 |
-| Sweets | Cozonac, one small loaf | 40 |
-| Sweets | Chimney cake, one cake | 35 |
+| Dessert | Walnuts, one small ingredient portion | 3 |
+| Dessert | Doughnut, one piece | 8 |
+| Dessert | Papanași, one dessert portion | 32 |
+| Dessert | Plum dumplings, one dessert portion | 28 |
+| Dessert | Cozonac, one small loaf | 40 |
+| Dessert | Chimney cake, one cake | 35 |
 | Drinks | Elderflowers, one small fresh bunch | 1 |
 | Drinks | Socată, one glass | 12 |
 | Drinks | Fruit tea, one small pot | 18 |
@@ -48,24 +48,16 @@ A later stage does not always cost more. The portion and dish determine the pric
 | Produce | Wild mushroom sauce, two small portions | 28 |
 | Produce | Sharing board, a board for two | 65 |
 
-Vlad and Elisabeta ask only for cabbage rolls, the goulash pot, and red wine.
-Mina and Avram share a vegetarian meal with a menu value and reward of 168 coins.
-Their quest has two zacuscă toasts, two roasted vegetable plates, one smoked cheese plate, and two fruit teas.
-The quest permits eggs and dairy. The local news that follows pays nothing.
-
 The project defines these portion prices with reference to Romanian shops and restaurants.
 The model does not copy a menu or claim that every restaurant has these prices.
 The raw ingredient prices stay between 1 and 3 coins.
 Merge chains are game rules, not recipes for food preparation.
 
-The game has no sales. Quests are the only income.
-
 ## Quest rewards
 
-Quests earn campaign coins.
+Quests earn campaign coins. Quests are the only income.
 Every quest pays its menu value: the sum of the prices of its portions.
-No chapter, character, or visit multiplies a reward.
-The number of quests that open before each preparation makes the quest income cover the preparation costs. A reward rate does not.
+The number of quests that open before each preparation makes the quest income cover the preparation costs.
 
 A quest that opens after preparation N is necessary for preparation N + 1.
 For each preparation, the available quest rewards must total at least the cost of all preparations to that point.
@@ -183,7 +175,7 @@ Verify the source and the portion before a price revision.
   [Corund sets](https://www.invietraditia.ro/arta-populara-romaneasca-si-obiecte-de-artizanat/ceramica-de-corund-korond/) inform the 160 lei allowance for six cups and saucers.
   These examples inform the handmade tableware budget. The game does not use disposable plates.
 - [Outdoor light string](https://www.dedeman.ro/ro/ghirlanda-luminoasa-party-hoff-interior/-exterior-12-led-uri-multicolore-soclu-g45-10-5-m-controler/p/1051995): 104.89 lei for an outdoor example.
-  The example informs the budget only. The game retains its warm lights.
+  The example informs the budget only. The game shows warm lights.
 
 ## Verification and limits
 
@@ -198,9 +190,8 @@ The fixture makes each required dish from the highest available source output.
 If the board is full, the fixture merges spare food: a pair, or a match for a blocked ingredient. A full board without such a merge is a deadlock, and the fixture fails.
 
 This check measures actions under that policy. This check does not establish a satisfactory human play experience.
-The first repair remains the largest balance uncertainty: the player does substantial work before the first room reward.
-Play an early chapter before a price revision.
-Play a late chapter before a price revision.
+The first repair is the largest balance uncertainty: the player does substantial work before the first room reward.
+Play an early chapter and a late chapter before a price revision.
 Record the device, initial save, action counts, and elapsed human play time.
 Do not convert automated execution time to player time.
 

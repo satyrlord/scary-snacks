@@ -62,7 +62,7 @@ A quest earns coins. Some preparations unlock a source. Each preparation unlocks
 
 Each dish has an explicit menu price for its portion. Flour and cornmeal cost 2 coins each. Elderflowers cost 1 coin. A prepared dish has a higher price. The price depends on its ingredients, its work, and its portion.
 
-The menu value of a quest is the sum of the prices of its portions. Every quest pays its menu value. No chapter, character, or visit multiplies a reward. Quests are the only income.
+The menu value of a quest is the sum of the prices of its portions. Every quest pays its menu value. Quests are the only income.
 
 Each preparation has a work scope, a material cost, a labour cost, and an estimate of active person-hours. Its coin cost is the material cost plus the labour cost. The cost does not rise with the position of the preparation in the story. The cost model uses one coin for about one Romanian leu as a reference scale. It includes reuse of the furniture and supplies that the bistro has. It leaves out running costs and keeps production free. The [economy record](docs/economy.md) gives the quantities, the portions, the primary references, and the assumptions.
 
@@ -76,7 +76,7 @@ The game checks the coins, the necessary quests, and the space for an unlocked s
 
 Three quest tickets sit on the counter. The first three open quests, in authored order, take the tickets. The other open quests wait without a ticket. The next open quest takes the first free ticket. A character has at most one open quest, because each quest waits for the earlier quests of its character.
 
-A ticket shows the portrait and the name of the character, the dishes, and Deliver with its reward. A dish that needs several portions shows how many portions the board holds. Deliver is available when the board holds every portion. A tap on the dishes opens the quest dialog. The accessible name of a ticket is "[Name]’s quest: [title]". The label of the ticket section is "Neighbour quests".
+A ticket shows the portrait and the name of the character, the dishes, and Deliver with its reward. The quest dialog and the accessible name of the ticket dishes give the board count of each dish. On a wider screen, a dish that needs several portions also shows that count on the ticket. Deliver is available when the board holds every portion. A tap on the dishes opens the quest dialog. The label of the ticket section is "Neighbour quests".
 
 The quest dialog shows who asks and why, each dish with its board count, the reward, and Deliver. Each dish row opens the help for that item. Deliver takes all the required portions from the board in one change. A delivery changes nothing in these cases:
 
@@ -86,23 +86,25 @@ The quest dialog shows who asks and why, each dish with its board count, the rew
 - The player repeats the delivery.
 - The coin total cannot hold the reward.
 
-The dishes fly to the ticket. A temporary notice reports the delivery and the reward. The next open quest takes the ticket. There is no deadline. If no quest is open, the counter shows "No quests wait now. Pay for the next preparation." After the last quest, it shows "Every quest is delivered. The bistro is yours." A waiting scene is a scene that the player has not finished or skipped. The completion scene of a delivered quest is a waiting scene in Story.
+The dishes fly to the ticket. A temporary notice reports the delivery and the reward. The next open quest takes the ticket. If no quest is open, the counter shows "No quests wait now. Pay for the next preparation." After the last quest, it shows "Every quest is delivered. The bistro is yours."
+
+A waiting scene is a scene that the player has not finished or skipped.
 
 The four core characters are Mara, Ilie, Eszter, and Sorin. They have quest arcs in the six chapters. Mara, Ilie, and Sorin have six quests each, and Eszter has eight. Dochia and Costel have five quests each. Victor, Ana, Sânziana, Dorian, Ileana, and Cezar have four quests each. Cătălina and Bran have three quests each. Vlad and Elisabeta have two quests each.
 
 A visitor is a character who does not live in the neighbourhood. Adrian, Monica, and Janos are returning visitors who come from time to time. Each has three supply quests. The nine supply quests alternate in that order. They open after preparations 6, 8, 9, 13, 14, 17, 19, 21, and 22.
 
-Each supply quest also waits for the delivery of the previous supply quest. So only one cathedral supply quest is open at a time. There is no timer and no expiry. These visitors do not join the finale.
+Each supply quest also waits for the delivery of the previous supply quest. So only one cathedral supply quest is open at a time. These visitors do not join the finale.
 
 A cathedral supply quest asks for supplies for several days. The visitors make a quiet investigation near the cathedral. A quest has one of two sizes. The first size is 12 to 16 portions of stage 3 or stage 4 dishes. The second size is 4 to 6 portions of stage 5 or stage 6 dishes. The story journal (the journal) is a dialog that Story opens. The journal holds the introduction of each returning visitor and each completed quest.
 
 Ionatan is a foreign real estate agent who visits once in each save. His quest opens after preparation 9 and after Vlad's quest "A guest at the castle". It needs one goulash pot, one sharing board, one chimney cake, and one plum brandy. He stops for dinner on his way to a nearby castle. At the castle, he plans to close a property deal with a local noble.
 
-The dinner pays its menu value of 220 coins. His quest does not depend on the cathedral supply quests. It can be open at the same time as one of them. It has no deadline. He never joins the finale.
+The dinner pays its menu value of 220 coins. His quest does not depend on the cathedral supply quests. It can be open at the same time as one of them. He never joins the finale.
 
 The delivery records his quest identifier (ID) once and ends his visit. His farewell scene waits in Story. A reload, an export, and an import keep the record of his departure. A new game allows a new visit.
 
-The neighbourhood has 16 neighbours: the four core characters and 12 regulars. The six visitors are not neighbours. Each regular has a name, a trade, a portrait, an introduction, and two favourite chains. Each quest of a regular asks for at least one dish from those chains. Each regular refers to a horror novel, a horror film, or local folklore. The reference is in the name, the trade, or one habit.
+The neighbourhood has 16 neighbours: the four core characters and 12 regulars. The six visitors are not neighbours. Each regular has a name, a trade, a portrait, an introduction, and two favourite chains. Each quest of a regular asks for at least one dish from those chains. Each regular refers to a horror novel, a horror film, local folklore, or a historical figure. The reference is in the name, the trade, or one habit. Vlad refers to Vlad III Dracula. Elisabeta refers to Elizabeth Báthory (Báthory Erzsébet).
 
 Dochia, Victor, Ana, and Costel are present from the start. Sânziana and Dorian arrive with preparation 4. Vlad, Elisabeta, Ileana, and Cezar arrive with preparation 8, and their arrival scenes queue in that order. Cătălina and Bran arrive with preparation 12.
 
@@ -122,9 +124,7 @@ The journal holds optional introductions for the neighbours and the three return
 
 A waiting arrival scene opens from the journal entry of its regular. After the scene, the entry opens the introduction. Ionatan, Mina, and Avram have introductions only while their quest is open. The journal does not replay their completed quests.
 
-A scene gives no reward when the player reads, skips, or replays it.
-
-A delivery queues the completion scene in the same change. A temporary notice reports the delivery. The notice does not open the scene and does not stop play. Read now opens the waiting scene from Story. The journal has a Read completion entry for each quest of a neighbour or a returning visitor. It also has a Read quest button, with the accessible name "Read quest: [title]", for the opening scene of each quest. Finish and Skip mark the scene as read.
+A delivery queues the completion scene in the same change. The delivery notice does not open the scene and does not stop play. Read now opens the waiting scene from Story. The journal has a Read completion entry for each quest of a neighbour or a returning visitor. It also has a Read quest button for the opening scene of each quest. Finish and Skip mark the scene as read.
 
 Close and Escape leave the scene waiting. The delivery stays recorded. The journal can replay the scenes of neighbours and returning visitors. If the save of a delivery fails, the game keeps the current session. The delivery notice then includes a warning that the session is not saved. Options offers Retry save. An export includes the current session. A reload restores only the progress that the game saved.
 
@@ -157,11 +157,11 @@ Each area has one painting for each of its states. The room shows the state of t
 
 An area switch in a corner of the room shows the other area. A locked area shows only its name and the preparation that opens it. A small "New" pin marks the latest change in the area. The pin shows the short name of the change, for example "New: lamps lit". The pin points at the edge of the change and does not cover the change. If the name does not fit, the pin says only "New".
 
-To merge, the player taps an item and then a matching item. The player can also drag an item onto a matching item. A tap on an empty space moves the selected item there. A drag onto a different item swaps the two items. A tap on the dishes of a ticket opens the quest dialog. Each dish there opens its item dialog. The dialog names the neighbours whose tickets need the dish. If no ticket needs it, the dialog says "No quest on the counter needs it now." "Show me on the board" shows the next step to make the dish. "Find a match" in Mara's line shows a pair to merge.
+To merge, the player taps an item and then a matching item. The player can also drag an item onto a matching item. A tap on an empty space moves the selected item there. A drag onto a different item swaps the two items. The item dialog names the neighbours whose tickets need the dish. If no ticket needs it, the dialog says "No quest on the counter needs it now." "Show me on the board" shows the next step to make the dish. "Find a match" in Mara's line shows a pair to merge.
 
 One tap on a source takes one ingredient and selects the source. Each further tap takes another ingredient. A drag moves the source and takes nothing. If the board is full, the source takes nothing and Mara says why.
 
-A dish leaves the board only when the player merges it or delivers it. The game has no sale and no other way to remove a dish. If the board is full of dishes that cannot merge and that no quest needs, the board stays full. Only a new game clears it. The board-full notice says "The board is full. Merge a pair or deliver a quest."
+A dish leaves the board only when the player merges it or delivers it. If the board is full of dishes that cannot merge and that no quest needs, only a new game clears the board. The board-full notice says "The board is full. Merge a pair or deliver a quest."
 
 The recipe book lists the six dishes of each chain. A new game discovers the items on its initial board. After that, only a take or a merge discovers a dish. A dish that the player has not discovered shows as a covered dish with the label "Not yet". A discovered dish shows its picture and its name and opens its item dialog. The first take or merge of a dish shows the notice "[Dish] is a new dish! It is in the recipe book now." A chain with six discovered dishes shows "Complete" in its heading. The recipe book button shows how many dishes the player has discovered. These marks give no reward.
 
@@ -171,7 +171,7 @@ Every blocker has the same rule: merge a matching movable item into the blocked 
 
 A blocked item cannot move and cannot fill a quest. Clearing a blocker needs no free space. It is optional for campaign progress and for quests. A blocked cell is not a free space for any placement or space count. "Find a match" and "Show me on the board" can show any matching blocked item. A blocker does not add its item to the recipe book.
 
-Each blocker has a small help mark. A tap selects the blocker. The name of the blocker and its clearing rule replace the item actions or the preparation offer under the board. The help names the exact matching item and marks the movable matches. The label of each marked space gives its meaning. To leave the help, tap the blocker again, select another item, use Clear selection, or press Escape. The help changes no game state. A selected matching item merges directly into the blocked space.
+Each blocker has a small help mark. A tap selects the blocker. The name of the blocker and its clearing rule replace the item actions or the preparation offer under the board. The help names the exact matching item and marks the movable matches. To leave the help, tap the blocker again, select another item, use Clear selection, or press Escape. The help changes no game state. A selected matching item merges directly into the blocked space.
 
 Each of the 24 preparation payments earns one authored batch of two or three new blockers. The batch describes the work that the player completed with that payment: repair supplies, courtyard leaves, planting supplies, recipe papers, menu packing, or supper supplies. The items of a batch come only from chains that the payment has opened. Each batch has one blocker with a contextual picture. The other blockers use familiar clutter art or an anchored item.
 
@@ -185,15 +185,15 @@ A placement never replaces an item and never moves an item. A blocked cell can r
 
 Each chain has one source. When preparation 12 is complete, all sources also give stage 2 items. When preparation 20 is complete, all sources also give stage 3 items. Lower outputs stay available. A selected source has one Take button for each earned output, with its picture and name.
 
-A successful Take sets the output for later taps on that source. A new source starts with stage 1. An upgrade or a move keeps the chosen output. Production is free and immediate. Sources cannot merge.
+A successful Take sets the output for later taps on that source. A new source starts with stage 1. An upgrade or a move keeps the chosen output. Sources cannot merge.
 
 An upgrade needs no board space. Open quests keep their requirements and rewards. Before the payment, the interface does not name a future tier or a future output. It also does not name the preparation that upgrades a source. After the payment, the completion message of the preparation scene names each new output. A failed take changes no state and no chosen output. It does not show an output that the player has not earned.
 
 The screen shows one Pay control at a time. If the story card is on the screen, only the story card has Pay. If Story is a sheet, Mara's line has Pay. Mara's line offers the next preparation by name with a Pay button.
 
-Mara's line makes this offer if the player meets all the requirements and has not selected a board tile. If the player selects a tile, Mara's line shows the actions of that tile. While the offer shows, the Story button has a copper dot. If the player cannot pay yet, Mara's line does not change. Pay in Mara's line works like Pay in Story.
+Mara's line makes this offer if the player meets all the requirements and has not selected a board tile. If the player selects a tile, Mara's line shows the actions of that tile. While the player can pay and the story card is not on the screen, the Story button has a copper dot. If the player cannot pay yet, Mara's line does not change. Pay in Mara's line works like Pay in Story.
 
-After the player pays for a preparation, its preparation scene plays. When the scene ends, the reveal runs in this order. First, where the drawer can move, the drawer lowers. Next, the new painting fades in over the old painting. Next, the pin marks the change. Last, where the drawer can move, the drawer rises again. The drawer can move on a narrow screen that is taller than 600px. On a narrow screen that is 600px high or less, the drawer does not move. The reveal then does not wait for the drawer, and the drawer body stays active. With reduced motion (defined in Access and persistence), the game shows the result immediately. The reveal does not spend coins and does not earn coins again.
+After the player pays for a preparation, its preparation scene plays. When the scene ends, the reveal runs. The new painting replaces the old painting, and the pin marks the change. The drawer can move on a narrow screen that is taller than 600px. There, the drawer lowers for the reveal and then rises again. On a narrow screen that is 600px high or less, the drawer does not move, and the drawer body stays active during the reveal. [`DESIGN.md`](DESIGN.md) gives the order and the timing of the reveal. With reduced motion (defined in Access and persistence), the game shows the result immediately. The reveal does not spend coins and does not earn coins again.
 
 Every preparation repaints one area. Miez, the bistro cat, sits on the windowsill of the front room. When the supper is ready, a second black cat sleeps on the counter. Captions describe every earned change.
 
@@ -203,9 +203,7 @@ A bat crosses the dusk beyond the mended window of the front room after each pre
 
 A caption stays available if a painting cannot load. If a state has no accepted painting, the room shows the latest earlier painting of its area. It shows the caption of the new state. Authored lamps and lanterns light the room at story milestones.
 
-The game has no time-of-day clock.
-
-The game has no energy limit. It has no timers, no purchases, no ads, and no accounts.
+The game has no time-of-day clock, no energy limit, no timers, no purchases, no ads, and no accounts.
 
 Three quests offer a second finish for a detail of the bistro:
 
@@ -242,7 +240,7 @@ The game has 40 generated Portable Network Graphics (PNG) masters. They provide 
 
 [`DELIVERY.md`](DELIVERY.md) gives the shipped image variants and the fonts.
 
-The user chose the title. A first name search is not trademark clearance. The project gives no guarantee against intellectual-property claims.
+The [release notes](docs/release-notes.md) give the release limits, including the limits of title clearance.
 
 ## Access and persistence
 
@@ -250,7 +248,7 @@ The game supports pointer, keyboard, and touch controls. It supports Light, Dark
 
 The Motion choice in Options has three choices. System is the default. System follows the reduced-motion setting of the device. Reduced removes the motion on all devices. Full plays all the motion, also when the device asks for reduced motion. In this document, "reduced motion" means Reduced, or System on a device that asks for reduced motion. In forced colours mode (Windows high contrast), the board spaces and the selection stay visible.
 
-The browser stores the save, the appearance choice, the Motion choice, and the area that the room shows. The area is a display preference and is not part of the save. A reveal moves the room to the area of its change.
+The browser stores the save, the appearance choice, the Motion choice, and the area that the room shows. The area is a display preference and is not part of the save.
 
 If the browser blocks storage, the player can play for the current visit only. Options and each change say that the game is not saved. A preparation or a finish switch needs a successful save, so it does not complete.
 
@@ -258,7 +256,7 @@ If the game is open in more than one tab, each tab follows the latest save. A ta
 
 If the game data cannot load or does not pass its checks, the kitchen says so and offers Try again. The game also disables the Story button, the Options button, and the buttons that open the recipe book. The game does not read or write the save in that case.
 
-An import validates the envelope and the state of the save. The envelope is the outer record with the format and the version. An import rejects damaged saved data and keeps the current save. An import enforces a size limit of 2 mebibytes (MiB). Load, save, import, and reset use only the save key of this game. They do not change other browser data.
+An import validates the envelope and the state of the save. The envelope is the outer record with the format and the version. A load and an import accept a top-level state field that the save format does not define. Play, the next save, and an export keep that field. A load ignores an envelope field that the format does not define, and the next save drops it. A board cell with an undefined field makes the save not valid. An import rejects damaged saved data and keeps the current save. An import enforces a size limit of 2 mebibytes (MiB). Load, save, import, and reset use only the save key of this game. They do not change other browser data.
 
 A current save has game state version 12 in envelope version 11 at the key `scary-snacks-save-v11`. The game supports only this format. Load reads only this key. If no current save exists, the game starts a new campaign.
 

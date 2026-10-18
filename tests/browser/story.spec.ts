@@ -15,7 +15,7 @@ async function readWithArrivals(page: Page,index: number){
   for(const [at,person] of people.entries()){await expect(scene(page,`${person.name} arrives`)).toBeVisible();await readTo(page,at<people.length-1?'Next scene':'Back to the kitchen');}
 }
 const scene=(page: Page,title: string)=>page.getByRole('dialog',{name:title,exact:true});
-const noMoreRequests=async(page: Page)=>{await expect(page.locator('#tickets .ticket')).toHaveCount(0);await expect(page.locator('.tickets-empty')).toHaveText('Every quest is delivered. The bistro is yours.');};
+const noMoreQuests=async(page: Page)=>{await expect(page.locator('#tickets .ticket')).toHaveCount(0);await expect(page.locator('.tickets-empty')).toHaveText('Every quest is delivered. The bistro is yours.');};
 
 test('the story shows the chapter objective and the state of its four preparations',async({page})=>{
   await start(page,ready(5));const chapter=data.chapters[1],tasks=data.tasks.slice(4,8);
@@ -86,7 +86,7 @@ test('the final preparation gives one finale after the chapter scene; Skip and r
   await expect(page.getByRole('button',{name:'Skip scene'})).toHaveCount(0);await page.getByRole('button',{name:'Return',exact:true}).click();
   await expect(page.getByRole('button',{name:`Replay ${data.finale.title}`,exact:true})).toBeFocused();expect(await saved(page)).toEqual(skipped);
   await page.keyboard.press('Escape');await page.reload();await opened(page);expect(await saved(page)).toEqual(skipped);
-  await expect(page.locator('#modal')).toBeHidden();await noMoreRequests(page);
+  await expect(page.locator('#modal')).toBeHidden();await noMoreQuests(page);
 });
 
 test('a reload during the last preparation story resumes the waiting scenes in order, and the board still plays',async({page})=>{
@@ -96,7 +96,7 @@ test('a reload during the last preparation story resumes the waiting scenes in o
   await story(page);await page.locator('.story-waiting').getByRole('button',{name:`Read now: ${data.tasks[23].title}`,exact:true}).click();await expect(scene(page,data.tasks[23].title)).toBeVisible();
   await readTo(page,'Next scene');await expect(scene(page,closing(5))).toBeVisible();
   await readTo(page,'Next scene');await expect(scene(page,data.finale.title)).toBeVisible();await readTo(page,'Back to the kitchen');expect((await saved(page)).pendingScenes).toEqual([]);
-  await noMoreRequests(page);
+  await noMoreQuests(page);
   const before=await saved(page),source=before.board.findIndex(cell=>cell?.code==='generator_bakery');await page.locator(`[data-cell="${source}"]`).click();
   expect((await saved(page)).board.filter(Boolean).length).toBe(before.board.filter(Boolean).length+1);
 });
@@ -139,7 +139,7 @@ test('a fresh save plays through every payment, chapter scene, and the finale, a
     state=await saved(page);expect(state.taskIndex).toBe(index+1);expect(state.pendingScenes).toEqual([]);
   }
   expect(new Set(state.completedQuests)).toEqual(new Set(data.quests.map(value=>value.id)));
-  await expect(page.locator('#story')).toContainText('The table is ready.');await noMoreRequests(page);
+  await expect(page.locator('#story')).toContainText('The table is ready.');await noMoreQuests(page);
   await journal(page);await expect(page.getByRole('button',{name:`Replay ${data.finale.title}`,exact:true})).toBeVisible();
   expect(errors).toEqual([]);
 });

@@ -1,9 +1,6 @@
 # 010: Neighbourhood regulars
 
 Status: Implemented.
-The game has the regulars, their arrivals, arrival scenes, portraits, and quests.
-The journal lists the neighbours.
-Owner: `PRODUCT.md` for the cast, the arrivals, and the quests; `DESIGN.md` for portraits and the neighbours list.
 
 In this spec, a neighbour is a core character or a regular.
 The core characters are Mara, Ilie, Eszter, and Sorin.
@@ -14,15 +11,12 @@ The neighbourhood of the bistro grows as the renovation progresses. New regulars
 Each regular has a name, a trade, a portrait, an introduction, two favourite chains, and quests.
 The player can find who lives nearby and what they like.
 
-- Keep Mara, Ilie, Eszter, and Sorin as the four core characters.
-  They drive the story, the preparations, and their own quest arcs in 004.
-  Regulars add neighbours. They do not replace the core characters.
+- The four core characters drive the story, the preparations, and their own quest arcs in 004.
 - Only the four core characters are generic neighbours.
-  Each regular refers to a horror novel, a horror film, or local folklore.
+  Each regular refers to a horror novel, a horror film, local folklore, or a historical figure.
   The reference uses the name, the trade, or one habit.
-- Keep unlimited energy, no waiting, and no expiry. A regular never sulks, queues, or charges a penalty.
+- A regular never sulks, queues, or charges a penalty.
   Play earns an arrival. Time does not earn an arrival.
-- Do not add a currency, purchases, a backend, a dependency, or imported game content.
 
 ## Rules
 
@@ -65,7 +59,7 @@ The player can find who lives nearby and what they like.
 ## Roster
 
 Each reference is in the name, the trade, or one habit of the regular.
-A reference never copies text, a plot, or a design from the work.
+A reference never copies text, a plot, or a design from its source.
 The Favourite chains column gives chain IDs.
 
 | Arrives | Regular | Trade | Favourite chains | Reference |
@@ -76,8 +70,8 @@ The Favourite chains column gives chain IDs.
 | Start | Costel | Clock and automaton maker | sweet, drinks | *The Sandman* (E. T. A. Hoffmann, 1816) |
 | After preparation 4 | Sânziana | Florist | sweet, produce | The Sânziene, the midsummer flower fairies. She weaves bedstraw crowns on 24 June (Romanian folklore) |
 | After preparation 4 | Dorian | Portrait painter | sweet, drinks | *The Picture of Dorian Gray* (Oscar Wilde, 1890). He seems never to age |
-| After preparation 8 | Vlad | Local baron | warm, drinks | A baron who styles himself as a count and lives in a countryside castle |
-| After preparation 8 | Elisabeta | Visiting countess | warm, drinks | An Austro-Hungarian countess who sometimes visits her land nearby |
+| After preparation 8 | Vlad | Local baron | warm, drinks | Vlad III Dracula, voivode of Wallachia (historical figure, 15th century). He is a baron who styles himself as a count and lives in a countryside castle |
+| After preparation 8 | Elisabeta | Visiting countess | warm, drinks | Báthory Erzsébet (Elizabeth Báthory), a Hungarian countess (historical figure, 1560–1614). She is an Austro-Hungarian countess who sometimes visits her land nearby |
 | After preparation 8 | Ileana | Seamstress | produce, drinks | She finishes every spindle before Maundy Thursday, for fear of Joimărița, who punishes idle spinners (Romanian folklore) |
 | After preparation 8 | Cezar | Night watchman | warm, produce | *The Cabinet of Dr. Caligari* (film, 1920). He seems to sleepwalk his rounds |
 | After preparation 12 | Cătălina | Church bell-ringer | sweet, warm | She rings the bell against hailstorms and the solomonari who ride the storm clouds (village custom) |
@@ -106,7 +100,7 @@ They are awake when the bats are.
   The second atlas holds Sânziana, Dorian, Ileana, and Cezar.
   The third atlas holds Cătălina and Bran at the top, with two empty cells below.
   The atlases use the style, the framing, and the scale of the `portraits` master.
-- Vlad and Elisabeta keep their portraits in the `guests` master.
+- The `guests` master holds the portraits of Vlad and Elisabeta.
 - The asset records hold the prompts, the provenance, and the variants of the three atlases.
 
 ## Acceptance and evidence

@@ -1,12 +1,9 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { readFileSync } from 'node:fs';
 import { boardObstacles, createGame, reduceGame, requiredQuests, validateGame } from '../../src/engine.ts';
-import type { GameData, GameState } from '../../src/engine.ts';
 import { SAVE_KEY, exportSave } from '../../src/storage.ts';
+import { data, saved, tile } from './support.ts';
 
-const data: GameData = JSON.parse(readFileSync('public/data/game.json', 'utf8'));
-const tile = (page: Page, index: number) => page.locator(`[data-cell="${index}"]`);
 const help = (page: Page) => page.locator('#item-detail.blocker-help');
 function ready() {
   const state = createGame(data);
@@ -26,9 +23,6 @@ async function start(page: Page, state = createGame(data), theme = 'light') {
   }, { key: SAVE_KEY, value, theme });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('./'); await expect(page.locator('#board button')).toHaveCount(42);
-}
-async function saved(page: Page): Promise<GameState> {
-  return page.evaluate(key => navigator.locks.request(key, () => JSON.parse(localStorage.getItem(key)!).state), SAVE_KEY);
 }
 async function targets(page: Page) {
   return page.locator('#board .blocker-target').evaluateAll(elements => elements.map(element => Number((element as HTMLElement).dataset.cell)));

@@ -220,15 +220,20 @@ test('pending story scenes survive export, import, and reload', () => {
   }
 });
 
-test('a new game has no guide record, and a current save that holds one still loads and plays', () => {
-  assert.equal('guide' in createGame(gameData), false);
-  const held = { ...checkpoint(1), guide: { status: 'active', stage: 'merge', done: { merge: false, take: false, deliver: false, prepare: false, story: false } } };
-  const storage = memoryStorage([[SAVE_KEY, envelope(held)]]);
+test('a current save with fields that the format does not define still loads and plays, and the next save keeps only the state field', () => {
+  const held = { ...checkpoint(1), unknownField: 'kept' };
+  const storage = memoryStorage([[SAVE_KEY, JSON.stringify({ format: 'scary-snacks', version: 11, state: held, unknownField: 'ignored' })]]);
   const loaded = loadSave<GameState>(storage, validGame);
   assert.equal(loaded.status, 'loaded');
+  assert.deepEqual(loaded.state, held);
   const source = loaded.state!.board.findIndex(cell => cell && gameData.items[cell.code].generator);
-  assert.equal(reduceGame(loaded.state!, { type: 'spawn', index: source }, gameData).ok, true);
+  const played = reduceGame(loaded.state!, { type: 'spawn', index: source }, gameData);
+  assert.equal(played.ok, true, played.message);
   assert.equal(storage.writes.length, 0);
+  assert.equal(saveGame(storage, played.state, validGame).ok, true);
+  const written = JSON.parse(storage.values.get(SAVE_KEY)!);
+  assert.deepEqual(Object.keys(written), ['format', 'version', 'state']);
+  assert.equal(written.state.unknownField, 'kept');
 });
 
 test('each saved scene line survives a round trip, and a save without lines starts at the first line', () => {

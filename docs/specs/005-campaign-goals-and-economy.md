@@ -1,32 +1,29 @@
 # 005: Campaign goals and economy
 
 Status: Implemented.
-The scope includes preparation budgets, food prices, quest rewards, funding checks, requirement feedback, validated saves, and a legal campaign fixture.
-Owner: `PRODUCT.md` for rules; `DESIGN.md` for feedback; `DELIVERY.md` for delivery commands.
-The [economy record](../economy.md) gives the portions, the work scopes, the price sources, and the assumptions.
 
 ## Outcome and scope
 
 A basic ingredient has little value. A prepared dish has a price for its portion and work.
-A repair costs more money and effort than a new menu or a repainted sound sign.
+A repair costs more money and effort than a new menu.
+A repair also costs more than new paint on a welcome board whose wood is sound.
 Task position and merge stage do not determine prices.
+Quests earn the coins of the campaign.
+The [economy record](../economy.md) gives the portions, the work scopes, the price sources, and the assumptions.
 
-Keep free immediate production, unlimited energy, no timers, no purchases, and no hidden limits.
-Quests earn the coins of the campaign. The game has no sales.
-
-## Implemented economy
+## Economy rules
 
 1. Each food has an explicit positive menu price. Flour and cornmeal cost 2 coins each. Elderflowers cost 1 coin.
    The menu value of a quest is the sum of the prices of its portions.
 2. Prices follow the item's portion and preparation. They do not have to increase at every merge stage.
    The food table and its reference portions are in the economy record.
-3. Every quest pays its menu value. No chapter, character, or visit multiplies a reward.
+3. Every quest pays its menu value.
 4. A window is the group of quests that open after one preparation. The number of quests in each window makes the quest income cover the preparation costs.
-5. The game has no sales. A dish leaves the board only by a merge or a delivery.
+5. A dish leaves the board only by a merge or a delivery.
 6. Each preparation defines its work scope, material or stock allowance, labour allowance,
    and estimated active person-hours. Its cost is materials plus labour. The order of the preparations does not change the cost.
 7. The reference scale is one coin for about one Romanian leu. The model uses supplier and service
-   prices as references. Work quantities, labour hours, and budget allocations remain authored estimates.
+   prices as references. Work quantities, labour hours, and budget allocations are authored estimates.
 8. A quest that opens after preparation N is necessary for preparation N + 1.
    Each preparation needs its coins and every quest that opens before it.
 9. The funding check compares cumulative quest rewards with cumulative preparation costs at each preparation.
@@ -86,13 +83,11 @@ The report measures gameplay effort under one stated policy. It does not measure
 - Saves: current saves, export and import, failed writes, and malformed data.
 - Browser: text requirements, readiness, payment, keyboard focus, cost details, return focus, reload, imports, themes,
   and desktop and phone geometry.
-- Full gate: `npm run quality:full` runs the type check, the dead code check, and the Node.js tests. It also runs a new build and the Chromium tests.
-  The browser tests use `/scary-snacks/`. The asset and path check also uses the root path.
 - Synthetic reveal saves: `npm run saves:checkpoints` supplies the necessary quests and the exact coins for the next preparation.
   These supplied resources are not balance evidence.
 
-## Later economy changes
+## Economy changes
 
-Rerun the fixture for later economy features. A later economy change must revise an explicit scope, portion,
+Rerun the fixture after an economy change. The change must revise an explicit scope, portion,
 cost assumption, or menu price. It must keep the funding check true. Costs must not rise with the position
-of a preparation, and no reward multiplier is permitted. No waiting time is part of this economy.
+of a preparation.

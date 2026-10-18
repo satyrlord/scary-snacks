@@ -56,5 +56,5 @@ For the full gate, use [`run-quality-gate`](run-quality-gate/SKILL.md).
 Do not change files that the task does not need.
 
 `AGENTS.md` gives the command that lets the skill discovery tools find these packages.
-The command makes the ignored junctions `.claude/skills`, `.agents/skills`, and `.codex/skills`.
-Each junction points to `.github/skills/`. A junction is not a copy.
+The command makes the ignored folder links `.claude/skills`, `.agents/skills`, and `.codex/skills`.
+Each folder link points to `.github/skills/`. A folder link is not a copy.

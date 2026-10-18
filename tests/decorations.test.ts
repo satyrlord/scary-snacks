@@ -50,7 +50,7 @@ test('slots unlock with their own preparation and resolve an implicit default', 
   }
 });
 
-test('choices affect only their slot, remain immutable, and repeated Apply gives no reward', () => {
+test('a finish choice changes only its slot, leaves the earlier state unchanged, and a repeated choice changes nothing', () => {
   let state = checkpoint(24);
   const original = structuredClone(state);
   for (const slot of data.decorationSlots) {

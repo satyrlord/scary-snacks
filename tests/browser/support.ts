@@ -76,10 +76,10 @@ export const ticket=(page: Page,value: Quest)=>page.locator(`#tickets .ticket[da
 export const deliverButton=(page: Page,value: Quest)=>ticket(page,value).locator('.deliver-button');
 /** The toast that reports a delivery. It clears itself, so a test that needs the next one waits for this one to go first. */
 export const toast=(page: Page)=>page.locator('.toast');
-/** The Deliver control inside the open request dialog. */
+/** The Deliver control inside the open quest dialog. */
 export const dialogDeliver=(page: Page,value: Quest)=>page.getByRole('dialog',{name:value.title,exact:true}).getByRole('button',{name:`Deliver ${value.title} for ${value.reward.toLocaleString('en')} coins`,exact:true});
-/** Opens the request dialog from the dishes on the ticket. */
-export async function request(page: Page,value: Quest){
+/** Opens the quest dialog from the dishes on the ticket. */
+export async function openQuest(page: Page,value: Quest){
   await ticket(page,value).locator('.ticket-items').click();await expect(page.getByRole('dialog',{name:value.title,exact:true})).toBeVisible();
 }
 export async function story(page: Page){if(!await page.locator('#story').isVisible())await page.locator('#story-button').click();}

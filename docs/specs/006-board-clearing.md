@@ -1,7 +1,6 @@
 # 006: Board clearing
 
 Status: Implemented.
-Owner: `PRODUCT.md` for board rules; `DESIGN.md` for blocked-space presentation.
 
 ## Behavior
 
@@ -74,7 +73,6 @@ The optional preparation record holds a baseline and the placed IDs with their c
 Waiting blockers come from paid batches after that baseline.
 A missing record starts before the next successful payment and adds no past batches.
 Resolved history can share a cell with a later placement. Active positions must be unique.
-The save format and the envelope stay unchanged.
 An invalid import and a failed write keep the previously saved bytes.
 
 ## Art
@@ -86,7 +84,7 @@ Each frame leaves the ingredient visible in its open center.
 Both atlases use built-in chat image generation. The game loads their WebP variants.
 The prompt, provenance, and variant records identify the generated art.
 
-## Verification
+## Acceptance and evidence
 
 - Engine checks cover every blocker type, matching and wrong ingredients,
   unchanged neighbours, full boards, discoveries, and atomic failure.

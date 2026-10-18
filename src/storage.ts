@@ -118,7 +118,7 @@ export function saveGame(storage: SaveStorage | null, state: unknown, validate: 
     return { ok: false, error: `The existing save was preserved. ${existing.error}` };
   }
   try {
-    available(storage).setItem(SAVE_KEY, text);
+    storage.setItem(SAVE_KEY, text);
     return { ok: true, error: null };
   } catch (error) {
     return { ok: false, error: `Cannot write the save: ${message(error, 'Storage is unavailable.')}` };

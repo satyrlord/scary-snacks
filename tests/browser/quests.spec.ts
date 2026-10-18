@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { createGame, firstFreeBoardCell, getItem } from '../../src/engine.ts';
 import type { GameState, Quest } from '../../src/engine.ts';
-import { data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, KEY, onTicket, opened, options, person, quest, ratio, readTo, request, restoreWrites, saved, serialize, start, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate } from './support.ts';
+import { data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readTo, restoreWrites, saved, serialize, start, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate } from './support.ts';
 
-/** The first request of each neighbour who lives in the village. */
+/** The first quest of each neighbour who lives in the village. */
 const firstQuests=data.characters.filter(character=>!character.visitor&&data.quests.some(value=>value.character===character.id)).map(character=>data.quests.find(value=>value.character===character.id)!);
 const itemName=(code: string)=>getItem(code,data)!.name;
 
@@ -11,7 +11,7 @@ for(const value of firstQuests)test(`${value.character} asks on a ticket, the qu
   const initial=deliverable(value);await start(page,initial);const before=await saved(page),name=person(value.character).name;
   const card=ticket(page,value);await expect(card).toHaveAccessibleName(`${name}’s quest: ${value.title}`);await expect(card.locator('.ticket-name')).toHaveText(name);
   await expect(card.locator('.ticket-item.ready')).toHaveCount(value.requirements.length);await expect(deliverButton(page,value)).toBeEnabled();
-  await request(page,value);const dialog=page.getByRole('dialog',{name:value.title,exact:true});
+  await openQuest(page,value);const dialog=page.getByRole('dialog',{name:value.title,exact:true});
   await expect(dialog.locator('.quest-person')).toHaveText(name);for(const line of value.opening)await expect(dialog.locator('.quest-view')).toContainText(line.text);
   for(const {item,quantity} of value.requirements)await expect(dialog.getByRole('button',{name:`${quantity} ${itemName(item)}: ${quantity} of ${quantity} on the board`,exact:true})).toBeVisible();
   await expect(dialog.locator('.quest-reward')).toHaveText(`Reward: ${value.reward} coins`);expect(await saved(page)).toEqual(before);
@@ -86,7 +86,7 @@ test('a surplus on the board reads as the required count on the ticket and in th
   await start(page,supply(deliverable(value),supplies(value)));
   await expect(ticket(page,value).locator('.ticket-items')).toHaveAccessibleName(new RegExp(`^${value.title}: ${requirement.quantity} ${name}, ${requirement.quantity} on the board;`));
   await expect(ticket(page,value).locator('.ticket-count').first()).toHaveText(`${requirement.quantity}/${requirement.quantity}`);
-  await request(page,value);
+  await openQuest(page,value);
   const row=page.getByRole('button',{name:`${requirement.quantity} ${name}: ${requirement.quantity} of ${requirement.quantity} on the board`,exact:true});
   await expect(row).toBeVisible();await expect(row.locator('.quest-count')).toHaveText(`${requirement.quantity} / ${requirement.quantity} on board`);
 });
@@ -95,7 +95,7 @@ test('quest dish help keeps focus on the next blocked merge on desktop and phone
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
     await page.setViewportSize(viewport);await start(page,createGame(data));
     const value=firstQuests[0],code=value.requirements[0].item;
-    await request(page,value);await page.getByRole('button',{name:new RegExp(`^1 ${itemName(code)}:`)}).click();
+    await openQuest(page,value);await page.getByRole('button',{name:new RegExp(`^1 ${itemName(code)}:`)}).click();
     await page.getByRole('button',{name:'Show me on the board',exact:true}).click();
     await expect(page.locator('#modal')).toBeHidden();
     const movable=page.locator('#board .selected');await expect(movable).toHaveAttribute('aria-label',/Elderflowers/);
@@ -141,7 +141,7 @@ test('keyboard and emulated touch can open a quest and deliver it with focus ret
   }finally{await context.close();}
 });
 
-/** The first dish waits as two lower items, so one merge makes the request deliverable. */
+/** The first dish waits as two lower items, so one merge makes the quest deliverable. */
 function almost(state: GameState,value: Quest){
   const next=structuredClone(state),item=value.requirements[0].item,lower=Object.values(data.items).find(candidate=>candidate.next===item)!.id;
   const first=next.board.findIndex(cell=>cell?.code===item);next.board[first]={code:lower};
@@ -212,7 +212,7 @@ for(const replacement of ['import','reset','another tab'] as const)test(`a visib
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`the quest dialog fits ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
   await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});
-  const value=quest('dochia-sheepskin');await start(page,deliverable(value));await request(page,value);
+  const value=quest('dochia-sheepskin');await start(page,deliverable(value));await openQuest(page,value);
   const view=page.locator('.quest-view');await expect(view.locator('.quest-item')).toHaveCount(value.requirements.length);
   for(const control of await page.locator('#modal button').all()){const box=(await control.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);}
   const colors=await view.evaluate(element=>{
@@ -221,7 +221,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   });for(const ink of colors.inks)expect(ratio(colors.background,ink)).toBeGreaterThanOrEqual(4.5);
   expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth&&element.scrollHeight<=element.clientHeight)).toBe(true);
   await expect(dialogDeliver(page,value)).toBeInViewport();await expect(dialogDeliver(page,value)).toBeEnabled();
-  await page.screenshot({path:testInfo.outputPath('request.png')});
+  await page.screenshot({path:testInfo.outputPath('quest.png')});
 });
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:390,height:800}])for(const theme of ['light','dark'] as const)test(`a ticket with four dishes fits ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{

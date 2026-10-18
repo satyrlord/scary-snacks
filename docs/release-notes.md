@@ -24,8 +24,7 @@ The build copies the WOFF2 files without a change.
 The build excludes the Portable Network Graphics (PNG) masters, local work folders, and installed packages.
 Tests compare asset hashes with their records.
 Tests also check that runtime files and game data load assets only from the variant and font folders.
-The Pages workflow uploads only `dist/`.
-The workflow runs on every push to `main` and when a person starts the workflow manually.
+[`DELIVERY.md`](../DELIVERY.md) gives the Pages workflow.
 
 ## Legal limits
 
@@ -54,15 +53,14 @@ Do not publish the whole workspace or its ignored local work folders.
 
 ## Local folders
 
-`AGENTS.md` defines the ignored local work folders and their input limits.
+`AGENTS.md` (repository only) defines the ignored local work folders and their input limits.
 These folders are not runtime dependencies.
 The build writes its manifest to `analysis/`.
-Art candidates also remain outside the published assets.
+Art candidates are not in the published assets.
 
 ## Art provenance
 
 The game ships image variants from 40 masters.
-The build excludes the PNG masters.
 [Asset provenance](asset-provenance.json) records each master, its references, processing, review limits, and hash.
 [Asset prompts](asset-prompts.json) preserves the exact generation prompts.
 These records describe the source of the current assets. These records do not give legal clearance.
@@ -75,9 +73,8 @@ The built-in chat image generator supplies these assets:
 - The preparation-clutter atlas, with a precise alpha correction that the user approved.
 - The visitor portraits, with the core portraits as their style reference.
 
-The visitor atlas retains the complete Ionatan cell through fixed-cell assembly.
-Adrian retains steel plate armour. Monica retains leather armour.
-Their dress and Janos's dress follow the recorded local references.
+Fixed-cell assembly gives the visitor atlas the complete Ionatan cell.
+The dress of Adrian, Monica, and Janos follows the recorded local references.
 The provenance record distinguishes recorded user acceptance from agent review.
 
 The OpenAI Images application programming interface (API) supplies these assets through `gpt-image-2.5-flare` at high quality:
@@ -94,5 +91,5 @@ A masked edit changes one cell of the first regulars atlas.
 The Sharp image library scales the two portraits of the third regulars atlas inside their cells.
 Each later room state edits the previous state of its area.
 A composite applies only the changed region.
-The decoration composites also retain only their changed regions.
+The decoration composites also apply only their changed regions.
 The application displays the authored decoration regions.

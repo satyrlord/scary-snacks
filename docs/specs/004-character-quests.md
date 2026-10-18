@@ -1,21 +1,18 @@
 # 004: Character quests and introductions
 
-Status: Implemented. The quests are the campaign.
-Spec 008 queues each quest completion scene and resumes it after reload. Spec 005 owns the reward rule, the funding check, and the economy fixture. Spec 007 names one quest of a core character as the contribution of each chapter. Spec 010 owns the regulars.
+Status: Implemented.
 
 ## Result and ownership
 
 The game has 81 authored quests. Quests earn every coin of the campaign.
 The journal has an optional introduction for each neighbour and replay of completed quest scenes.
+Spec 005 owns the funding check and the economy fixture. Spec 007 names one quest of a core character as the contribution of each chapter. Spec 010 owns the regulars.
 
 The engine owns eligibility, the tickets, delivery, and validation. Storage owns the envelopes and durable writes.
 The app owns the tickets, the quest dialog, the dialogue, and focus return.
 `tools/create-original-data.ts` authors every record and generates `public/data/game.json`.
-PRODUCT, DESIGN, and DELIVERY own the current product, interface, and delivery contracts.
 
-The five permanent chains, 30 permanent dishes, and 24 preparation identifiers (IDs) stay.
-Quests use only ordinary dishes and drinks. No quest lends a source or adds quest-only items.
-There is no currency other than coins, and no timer, energy limit, runtime dependency, backend, or network service.
+Quests use only ordinary dishes and drinks.
 
 ## The quest campaign
 
@@ -37,7 +34,7 @@ There is no currency other than coins, and no timer, energy limit, runtime depen
 ## Rewards
 
 Spec 005 owns the reward rule.
-Every quest pays its menu value. No chapter, character, or visit multiplies a reward. Rewards are coins only.
+Every quest pays its menu value in coins.
 
 ## Core character arcs
 
@@ -76,7 +73,7 @@ The generator owns the exact rewards.
 
 ## Recurring travellers
 
-Adrian, Monica, and Janos each return for three supply quests. Each quest supplies a quiet investigation near the cathedral. It needs 12 to 16 portions at merge stage 3 or 4. It can also need 4 to 6 portions at merge stage 5 or 6. Their nine visits alternate in that order. Each visit also waits for the delivery of the previous visitor. Thus only one cathedral supply quest is open at a time. There is no timer.
+Adrian, Monica, and Janos each return for three supply quests. Each quest supplies a quiet investigation near the cathedral. A supply quest has one of two sizes: 12 to 16 portions at merge stage 3 or 4, or 4 to 6 portions at merge stage 5 or 6. Their nine visits alternate in that order. Each visit also waits for the delivery of the previous visitor. Thus only one cathedral supply quest is open at a time. There is no timer.
 
 | Quest ID | Opens after | Requirements |
 | --- | --- | --- |
@@ -122,7 +119,7 @@ The scene has only local speakers and gives no reward. After its delivery gate, 
 5. Success records completion in delivery order, pays once, and queues the completion scene in the same change.
 6. Every required chain is available before the quest opens. The combined quest and preparation graph must have no cycle.
 7. Reading, skipping, replaying, reloading, and repeated clicks give no second reward.
-8. Quest scenes use the existing dialogue controls. The completion scene waits until the player finishes or skips it, as spec 008 gives. Recorded completion and journal replay remain available.
+8. Quest scenes use the same dialogue controls as the other scenes. The completion scene waits until the player finishes or skips it, as spec 008 gives.
 
 `questProblems` checks IDs, scenes, quantities, rewards, required items, and chain availability.
 It also checks companions, finishes, news scenes, authored order, the combined prerequisite graph, and the campaign funds.
@@ -131,7 +128,8 @@ The content generator refuses invalid quest data.
 ## Interface
 
 A ticket shows the character portrait, name, dishes, and Deliver with the reward.
-If a dish needs multiple portions, the ticket also shows its count on the board.
+The accessible name of the ticket dishes gives the board count of each dish.
+On a wider screen, a dish that needs multiple portions also shows that count on the ticket.
 Deliver is unavailable until the board holds every required item.
 A tap on the dishes opens the quest dialog.
 The dialog explains who asks and why.
@@ -166,7 +164,8 @@ The Node.js tests cover tickets, repeated quantities, atomic failure, single rew
 They also cover prerequisite cycles, unavailable chains, the funding check, and malformed quest records.
 The storage tests cover fresh, partial, and completed saves, malformed and oversized input, and invalid completion lists.
 They also cover failed writes and rejection of unsupported versions.
-They cover the traveller sequence, Ionatan's visit, the shared visit, the vegetarian quest, and the news scene three deliveries later.
+`tests/quests.test.ts` covers the traveller sequence and Ionatan's visit.
+`tests/guests.test.ts` covers Ionatan's dinner, the shared visit, the vegetarian quest, and the news scene three deliveries later.
 `tests/campaign-balance.test.ts` completes all 24 preparations and all 81 quests through legal actions without injected resources. The fixture fails on a deadlock.
 
 The browser tests use the built game.
@@ -175,4 +174,3 @@ They cover keyboard focus, touch emulation, reload, export, import, scene replay
 They cover the shared quest with both portraits and its departure through reload and import.
 They also cover a failed delivery save and the news scene in the journal.
 The tickets and the quest dialog have geometry, contrast, and screenshot checks at desktop and phone sizes in both themes.
-Use `npm run quality:full` for the integrated acceptance check.

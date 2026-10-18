@@ -6,7 +6,7 @@ description: Plan, send, and measure OpenAI Images API requests for Scary Snacks
 # Generate game art through the OpenAI Images API
 
 The application programming interface (API) route is an alternative to the built-in chat image generator.
-The chat route in [generate-game-art](../generate-game-art/SKILL.md) stays the default.
+The chat route in [generate-game-art](../generate-game-art/SKILL.md) is the default.
 Use this skill only if the user chooses the API route, or tells you to use this skill.
 Codex does not select this skill automatically, because `agents/openai.yaml` sets `allow_implicit_invocation` to `false`.
 Codex reaches this skill by its name or through [generate-game-art](../generate-game-art/SKILL.md).
@@ -77,7 +77,7 @@ It reads each other value from the asset:
 | `embroidered-runner` | `1536x512` | `opaque` | One image, 3:1, repeats horizontally |
 | Each room state in `public/data/game.json` | `1536x2048` | `opaque` | One image, 3:4 portrait, a painted room state |
 | `decoration-front`, `decoration-courtyard` | `1536x2048` | `opaque` | One image, 3:4 portrait, a decoration edit of a room state |
-| `board-clutter` | `1536x1024` | `transparent` | 3 columns by 2 rows, six blockers with open centers |
+| `board-clutter` | `1536x1024` | `transparent` | 3 columns by 2 rows, six blockers with open centres |
 
 The helper does not accept `visitor-portraits`, `guests`, `red-wine`, or `preparation-clutter`.
 Use the chat route for these assets unless the approved scope includes an API contract change.

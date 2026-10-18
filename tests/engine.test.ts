@@ -43,8 +43,8 @@ function fillBoard(state: GameState) {
   while (firstFreeBoardCell(state, data) !== -1) state = apply(state, { type: 'spawn', index });
   return state;
 }
-/** A request with only these requirements, to test how a delivery finds its items. */
-const request = (requirements: Quest['requirements']): Quest => ({ ...data.quests[0], requirements });
+/** A quest with only these requirements, to test how a delivery finds its items. */
+const questWith = (requirements: Quest['requirements']): Quest => ({ ...data.quests[0], requirements });
 
 test('original data has 30 named stages, five generators, 22 characters, and 24 tasks', () => {
   assert.equal(data.board.columns * data.board.rows, 42);
@@ -178,7 +178,7 @@ test('lower-stage outputs stay available after upgrades and fill a duplicate req
       const index = state.board.findIndex(cell => cell?.code === `generator_${chain.id}`);
       state = apply(state, { type: 'spawn', index, output: code });
       state = apply(state, { type: 'spawn', index, output: code });
-      assert.ok(questDeliveryCells(state, request([{ item: code, quantity: 2 }]), data).every(cell => cell >= 0), code);
+      assert.ok(questDeliveryCells(state, questWith([{ item: code, quantity: 2 }]), data).every(cell => cell >= 0), code);
     }
   }
 });
@@ -261,9 +261,9 @@ test('board-full failures retain state and a merge recovers space', () => {
 
 test('a delivery takes each duplicate from its own cell', () => {
   let state = initial();
-  assert.deepEqual(questDeliveryCells(state, request([{ item: 'bakery_1', quantity: 2 }]), data), [13, 14]);
+  assert.deepEqual(questDeliveryCells(state, questWith([{ item: 'bakery_1', quantity: 2 }]), data), [13, 14]);
   state.board[13] = null;
-  assert.deepEqual(questDeliveryCells(state, request([{ item: 'bakery_1', quantity: 2 }]), data), [14, -1]);
+  assert.deepEqual(questDeliveryCells(state, questWith([{ item: 'bakery_1', quantity: 2 }]), data), [14, -1]);
 });
 
 test('invalid, unknown, and unavailable actions do not change state', () => {

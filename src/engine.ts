@@ -6,7 +6,7 @@ export type SceneLine = { speaker: string; text: string };
  * arrivesAfter names, or is present from the start; arrival plays a short scene, and prefers names the two chains whose dishes they like.
  */
 export type Character = {
-  id: string; name: string; role: string; description: string; introduction: string; sprite: number; visitor?: boolean; singleVisit?: boolean;
+  id: string; name: string; role: string; introduction: string; sprite: number; visitor?: boolean; singleVisit?: boolean;
   portraitAtlas?: PortraitAtlas; regular?: boolean; arrivesAfter?: string; prefers?: string[]; arrival?: SceneLine[];
 };
 const portraitAtlases = ['guest', 'regulars-1', 'regulars-2', 'regulars-3'] as const;
@@ -90,8 +90,8 @@ export type GameState = {
   /** Completed preparations at adoption, and permanent placement history. Missing records do not add past batches. */
   preparationObstacles?: { start: number; placed: { id: string; position: number }[] };
   /**
-   * The earned scenes that the player has not finished or skipped: preparation scenes, quest completion scenes, local news, chapter
-   * closing scenes, and the finale. Preparation scenes, chapter scenes, and the finale keep story order.
+   * The earned scenes that the player has not finished or skipped: preparation scenes, quest completion scenes, regular arrival
+   * scenes, local news, chapter closing scenes, and the finale. Preparation scenes, chapter scenes, and the finale keep story order.
    */
   pendingScenes: string[];
   /** The line that the player sees in a waiting scene, after its first line. A missing record starts the scene at its first line. */
@@ -282,7 +282,7 @@ export function canDeliverQuest(state: GameState, quest: Quest | string, data: G
 }
 
 /**
- * Check the combined preparation and quest graph, the requested items, chain availability, the decoration finishes, the authored
+ * Check the combined preparation and quest graph, the required items, chain availability, the decoration finishes, the authored
  * order, and the campaign funds: each preparation is paid by the rewards of the quests that open before it, so no player can be stuck.
  */
 export function questProblems(data: GameData): string[] {
@@ -534,7 +534,7 @@ export function taskEligibility(state: GameState, data: GameData): TaskEligibili
 
 /** Every output earned by this source. Completed preparations are the only tier input. */
 export function generatorOutputs(state: Pick<GameState, 'taskIndex'>, generatorCode: string, data: GameData): string[] {
-  const item = own(data.items, generatorCode) ? data.items[generatorCode] : null;
+  const item = getItem(generatorCode, data);
   if (!item?.generator || !availableChains(state, data).includes(item.chain)) return [];
   const completed = data.tasks.slice(0, state.taskIndex).map(task => task.id);
   return [...item.generator.outputs, ...data.generatorTiers.filter(tier => tier.chain === item.chain && completed.includes(tier.after))

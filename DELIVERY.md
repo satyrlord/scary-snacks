@@ -18,7 +18,7 @@ The workflow in `.github/workflows/pages.yml` runs on every push to `main`. A pe
 
 The Pages source of the repository must stay set to GitHub Actions. A branch deployment serves the source tree, and the source tree cannot run.
 
-The site is public. The release limits apply. See [release notes](docs/release-notes.md). The project gives no legal clearance and no guarantee against claims.
+The site is public. The [release notes](docs/release-notes.md) give the release limits.
 
 ## Source export
 
@@ -28,11 +28,11 @@ The site is public. The release limits apply. See [release notes](docs/release-n
 
 40 Portable Network Graphics (PNG) masters in `public/assets/original/` are the source of the game art. The game ships variants of the masters in AV1 Image File Format (AVIF) and WebP. The sizes of the variants fit the screens. The variants come only from these masters. The local folders `private/` and `analysis/` are not release inputs.
 
-The transparent board-clutter atlas has six open-center overlays in square cells. The preparation-clutter atlas has 12 contextual overlays with transparent centers, in a four-by-three grid of 1448 by 1086 pixels. The chat image generator made the preparation-clutter atlas. The atlas ships as one WebP variant at its original size. Red wine (`drinks_5`) uses its own transparent picture instead of its cell in the menu atlas.
+The transparent board-clutter atlas has six open-center overlays in square cells. The preparation-clutter atlas has 12 contextual overlays with transparent centers, in a four-by-three grid of 1448 by 1086 pixels. The chat image generator made the preparation-clutter atlas. The atlas ships as one WebP variant at its original size. The core, visitor, guest, and three regulars portrait atlases and the mascot atlas each ship one 640-by-640 WebP variant. Red wine (`drinks_5`) uses its own transparent picture instead of its cell in the menu atlas.
 
 After a master changes, run `npm run assets:build`. [Asset variants](docs/asset-variants.json) records the files, the sizes, and the hashes.
 
-[Asset provenance](docs/asset-provenance.json) records the masters and their hashes. [Prompts](docs/asset-prompts.json) records the generation instructions. The repository skill `generate-game-art` gives the procedure to add or replace a master. The procedure covers a room painting.
+[Asset provenance](docs/asset-provenance.json) records the masters and their hashes. [Prompts](docs/asset-prompts.json) records the generation instructions. The repository skill `generate-game-art` (repository only) gives the procedure to add or replace a master. The procedure covers a room painting.
 
 The game makes its sounds as tones that code generates in the browser. The interface text uses the font Inter. The wordmark uses the font Grenze Gotisch. The project self-hosts both fonts as Web Open Font Format 2 (WOFF2) files. The WOFF2 files hold the downloaded fonts without loss. Each font includes its SIL Open Font License (OFL) 1.1 text. [Font provenance](docs/font-provenance.json) records the fonts.
 
@@ -47,7 +47,7 @@ The generator refuses to write the game data in these conditions:
 
 The data checks require a complete six-stage merge path for each chain and one source unlock for each later chain. Initial blockers must use valid atlas cells. A regular's quest must open after the regular arrives and ask for a dish from a favourite chain.
 
-Data generation validates prerequisites, shared companions, finishes, follow-up scenes, the quest order, and the campaign funds. The core, visitor, guest, and regulars portrait atlases each ship one 640-by-640 WebP variant.
+Data generation validates prerequisites, shared companions, finishes, follow-up scenes, the quest order, and the campaign funds.
 
 The game runs `dataProblems` when it starts, before it reads the save. The game does not have the asset records, so it does not check the decoration image names.
 

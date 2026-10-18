@@ -91,7 +91,7 @@ test('each blocker accepts only its matching ingredient, even on a full board', 
   }
 });
 
-test('anchors and wrappers reject ordinary item actions and never count toward a delivery', () => {
+test('clutter and anchored blockers reject ordinary item actions and never count toward a delivery', () => {
   const state = start();
   state.board[7] = { code: 'bakery_1' };
   for (const action of [
@@ -99,7 +99,7 @@ test('anchors and wrappers reject ordinary item actions and never count toward a
     { type: 'move', from: 6, to: 7 },
   ] as Action[]) rejected(state, action);
   assert.deepEqual(state.resolvedObstacles, []);
-  // The tied socata and the covered elderflower drink are on the board, but the welcome drink cannot use them.
+  // The covered socată and the tied elderflowers are on the board, but the welcome drink cannot use them.
   const welcome = data.quests.find(quest => quest.id === 'mara-welcome')!;
   assert.deepEqual(welcome.requirements, [{ item: 'drinks_2', quantity: 1 }]);
   assert.deepEqual(questDeliveryCells(state, welcome, data), [-1]);

@@ -2,22 +2,20 @@
 
 Status: Implemented.
 
-## Implemented scope
+## Outcome and scope
 
 Each earned scene waits until the player finishes or skips it.
 A waiting scene is one of these: a preparation scene, a quest completion scene, local news, an arrival scene, a chapter closing scene, or the finale.
 A reload resumes each waiting scene at its saved line.
 After a reload, a preparation scene resumes its conversation without another payment.
-The game keeps Back, Continue, "Skip scene", "Read now", the journal, and journal replay.
 Play never waits for a scene. Opening a scene again gives no reward.
 
-## Scope and ownership
+## Ownership
 
 - `src/engine.ts` owns the validated transitions: the scene list, the `readScene` and `sceneLine` actions, `sceneDialogue`, `storyScenes`, `storyProblems`, and save validation.
-- `src/storage.ts` owns persistence. The save envelope does not change.
+- `src/storage.ts` owns persistence.
 - `src/app.ts` owns the dialogs, the focus, the reading controls, and the save messages.
-- `tools/create-original-data.ts` authors the scene identifiers (IDs). The IDs do not change.
-- The feature adds no network call, timer, energy limit, or runtime dependency.
+- `tools/create-original-data.ts` authors the scene identifiers (IDs).
 
 ## Rules
 
@@ -93,7 +91,7 @@ Reset clears `pendingScenes` and `sceneLines` with the rest of the state.
 Import replaces them only after full validation and the usual confirmation.
 Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
 
-## Acceptance
+## Acceptance and evidence
 
 - `tests/story.test.ts` covers the payment queue order, the story order in validation, and unique scene IDs.
   It covers `sceneLine` at the first and last line, stale actions, and the line after `readScene`.
@@ -108,8 +106,3 @@ Follow [Shared save compatibility](README.md#shared-save-compatibility) in the s
 - `tests/browser/quests.spec.ts` covers delivery notices and a waiting quest completion scene across reload.
 
 Follow [Verification and release](README.md#verification-and-release) for the browser evidence.
-
-## Dependencies
-
-The feature has no prerequisite specification.
-Specs 004 and 010 use this continuation behavior.

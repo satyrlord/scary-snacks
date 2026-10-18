@@ -2,11 +2,9 @@
 
 Status: Implemented.
 
-This spec depends on [spec 001](001-visible-renovation.md).
-
 ## Outcome and scope
 
-Three details of the bistro each have two finishes. The existing artwork is the default finish. A quest unlocks the second finish. A switch on the detail in the room changes the finish. Switches are free. The player can switch again at any time. Finishes do not change dialogue, campaign progress, income, or rewards.
+Three details of the bistro each have two finishes. The room painting is the default finish. A quest unlocks the second finish. A switch on the detail in the room changes the finish. Switches are free. The player can switch again at any time. Finishes do not change dialogue, campaign progress, income, or rewards.
 
 | Slot | Detail shows after | Default | Second finish | Unlocking quest |
 | --- | --- | --- | --- | --- |
@@ -14,7 +12,7 @@ Three details of the bistro each have two finishes. The existing artwork is the 
 | Courtyard table cloth | 22: Prepare the serving station | Red embroidery | Blue embroidery | Ileana's "A blue table cloth", after preparation 22 |
 | Final flowers | 24: Welcome the community supper | Wildflowers | Lilacs | Sânziana's "Lilacs for the dresser", after preparation 23 |
 
-The cloth finish applies to the serving table. The flowers finish applies to the jug on the front-room dresser. The courtyard flowers stay as painted. These narrow locations fit the current room paintings and keep all later preparations visible. Stable identifiers (IDs) in authored data control the details and the finishes.
+The cloth finish applies to the serving table. The flowers finish applies to the jug on the front-room dresser. The courtyard flowers stay as painted. These narrow locations fit the room paintings and keep all later preparations visible. Stable identifiers (IDs) in authored data control the details and the finishes.
 
 ## Rules and ownership
 
@@ -33,7 +31,7 @@ Each slot has IDs, names, finishes, asset IDs, defaults, prerequisites, areas, a
 `questProblems` checks that each second finish has exactly one quest.
 Saves never supply an asset path.
 
-`src/engine.ts` owns `decorationChoices`, `resolveDecorations`, `decorationUnlocked`, the validation, and the `decorate` action. The existing `decorations` list remains the prefix of completed preparations. `src/app.ts` owns the switch, the focus, and the boundary that saves before the game applies a finish. `src/storage.ts` owns the current save format and key.
+`src/engine.ts` owns `decorationChoices`, `resolveDecorations`, `decorationUnlocked`, the validation, and the `decorate` action. The `decorations` list holds the completed preparation IDs in order. `src/app.ts` owns the switch, the focus, and the boundary that saves before the game applies a finish. `src/storage.ts` owns the current save format and key.
 
 Two full paintings supply the second finishes. The app clips each painting to its authored region. The 25 room paintings supply the defaults. The asset records hold the prompts, the dimensions, the hashes, the agent review, and the acceptance of the user.
 

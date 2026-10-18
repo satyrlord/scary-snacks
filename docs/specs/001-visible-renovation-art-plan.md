@@ -1,6 +1,6 @@
 # 001 Room states: art plan
 
-Status: Implemented. The game includes all 25 accepted states.
+Status: Implemented.
 
 This plan is the companion of [spec 001](001-visible-renovation.md). It defines the painted room states for the "room and drawer" screen. [DESIGN.md](../../DESIGN.md) controls the design of that screen. Each preparation repaints the room itself. Every change has the perspective, the light, and the contact shadows of the painting.
 
@@ -107,7 +107,7 @@ Keep the perspective and architecture the same as the accepted room.
 Exclude people, cats, text, letters, numbers, signs, logos, frames, and interface controls.
 Include the composition table for the area.
 
-For an edit, instruct the generator to preserve the existing painting and style.
+For an edit, instruct the generator to preserve the reference painting and its style.
 Specify the single change from the table above.
 Specify the change region if the request has a mask.
 Name the surface that supports the changed object.

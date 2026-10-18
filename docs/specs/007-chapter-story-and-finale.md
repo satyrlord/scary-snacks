@@ -1,15 +1,13 @@
 # 007: Chapter objectives, story payoffs, and finale
 
-Status: Implemented. Automated engine, save, and browser checks cover the rules.
-A browser test plays a fresh campaign through the finale.
-The test checks that the goals, contributions, and chapter results agree.
+Status: Implemented.
 
 ## Result
 
 `tools/create-original-data.ts` authors six chapters and one finale.
 Each chapter has a stable identifier (ID), a title, an objective, and opening context.
 Each chapter also has a payoff, one neighbour contribution, and a closing scene.
-The 24 preparations keep their IDs, their three dialogue lines, and their chapter numbers.
+Each of the 24 preparations has a stable ID, three dialogue lines, and a chapter number.
 The chapter number of a preparation is the only link between a chapter and its preparations.
 Each preparation has one room state from 001. The journal names that change beside the preparation.
 The player can see the current chapter goal and the state of its four preparations.
@@ -20,13 +18,10 @@ The board and the recipe book stay available.
 
 ## Scope and ownership
 
-- The six chapter titles, their four preparations each, and the original cast stay.
 - The story has one path. It has no alternative endings and no other campaign.
-- Keep unlimited energy and local play. Add no timer and no account.
 - `tools/create-original-data.ts` authors the content.
   `src/engine.ts` owns `resolveChapters`, `storyScenes`, `storyProblems`, the `readScene` action, and save validation.
 - `src/app.ts` owns the story card, the scene dialogs, and the journal. `src/storage.ts` owns the envelope version.
-- `PRODUCT.md` owns the behavior. `DESIGN.md` owns the interface.
 
 ## Chapter outline
 
@@ -53,8 +48,7 @@ The closing scene of chapter 1 names the one friendly spider that stays under th
 2. The payment for the last preparation of a chapter also queues the closing scene of that chapter.
    The game derives chapter completion from the completed preparations.
    The next preparation never waits for the scene.
-3. Each preparation keeps its one room state from 001, with the same stable IDs.
-   The game keeps no second count of completed preparations.
+3. The game keeps no second count of completed preparations.
 4. Each contribution is a quest of a core character.
    It opens after the previous chapter closes. It opens before the last preparation of its chapter.
    The six contributions cover all four core characters.
@@ -98,7 +92,7 @@ Validation accepts the closing scene of each complete chapter.
 After preparation 24, validation also accepts the finale.
 Each ID occurs once, and story scenes keep story order.
 Validation rejects unknown IDs and scenes that the preparations did not earn.
-Spec 008 adds the preparation scenes and the quest scenes to the same list.
+The same list holds the preparation scenes and the quest scenes of spec 008.
 Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
 
 ## Acceptance and evidence
@@ -122,7 +116,3 @@ The test delivers each contribution during its chapter.
 The journal shows each contribution beside the payoff.
 The finale names each chapter result.
 The board stays available after the finale.
-
-## Remaining decisions
-
-Scene art is a content decision.

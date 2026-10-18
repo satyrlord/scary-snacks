@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { firstFreeBoardCell, generatorOutputs, resolveQuests } from '../../src/engine.ts';
 import type { GameState, SceneLine } from '../../src/engine.ts';
-import { act, data, deliverButton, deliverable, exportText, failWrites, journal, onTicket, opened, options, person, quest, readTo, replaceSave, request, saved, start, startAgainAndImport, story, supplies, supply, ticket, toast } from './support.ts';
+import { act, data, deliverButton, deliverable, exportText, failWrites, journal, onTicket, opened, openQuest, options, person, quest, readTo, replaceSave, saved, start, startAgainAndImport, story, supplies, supply, ticket, toast } from './support.ts';
 
 const dinner=quest('ionatan-castle-dinner');
 const search=quest('mina-avram-search');
@@ -15,7 +15,7 @@ async function scene(page: Page,lines: SceneLine[]){
   }
   await page.locator('.story-controls .primary-button').click();
 }
-/** Mina and Avram have journal introductions only while their shared request is open. */
+/** Mina and Avram have journal introductions only while their shared quest is open. */
 async function guests(page: Page,present: boolean){
   await journal(page);
   for(const id of companions)await expect(page.getByRole('button',{name:`Meet ${person(id).name}`,exact:true})).toHaveCount(present?1:0);
@@ -51,7 +51,7 @@ test('Mina and Avram arrive only after Ionatan’s dinner and their preparation,
 });
 
 test('the shared vegetarian meal has both voices, leaves once, keeps the departure through reload and import',async({page})=>{
-  await start(page,deliverable(search));await guests(page,true);await request(page,search);
+  await start(page,deliverable(search));await guests(page,true);await openQuest(page,search);
   const dialog=page.getByRole('dialog',{name:search.title,exact:true});
   await expect(dialog.locator('.quest-person')).toHaveText('Mina and Avram');
   for(const id of companions)await portrait(dialog.getByRole('img',{name:person(id).name,exact:true}),person(id).sprite);
@@ -96,7 +96,7 @@ test('a failed shared delivery save removes both guests in the session, and relo
   await page.reload();await opened(page);await guests(page,true);await expect(deliverButton(page,search)).toBeEnabled();
 });
 
-for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`all four guest portraits and the shared meal fit ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
+for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`all four portraits in the guests atlas and the shared meal fit ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
   await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});await start(page,deliverable(search));await journal(page);
   for(const guest of data.characters.filter(value=>value.portraitAtlas==='guest')){
     const entry=page.getByRole('button',{name:`Meet ${guest.name}`,exact:true});await entry.scrollIntoViewIfNeeded();await portrait(entry.locator('.portrait'),guest.sprite);await expect(entry).toContainText(guest.role);
@@ -105,7 +105,7 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const
     expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth&&element.scrollHeight<=element.clientHeight)).toBe(true);
     await page.screenshot({path:testInfo.outputPath(`${guest.id}.png`)});await scene(page,[{speaker:guest.id,text:guest.introduction}]);
   }
-  await page.keyboard.press('Escape');await request(page,search);const view=page.locator('.quest-view');
+  await page.keyboard.press('Escape');await openQuest(page,search);const view=page.locator('.quest-view');
   await portrait(view.getByRole('img',{name:'Mina',exact:true}),person('mina').sprite);await portrait(view.getByRole('img',{name:'Avram',exact:true}),person('avram').sprite);
   expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
   await page.screenshot({path:testInfo.outputPath('shared-meal.png')});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
@@ -114,7 +114,7 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const
 test('Vlad’s quest shows the red wine picture on its ticket and opens the wine’s help',async({page})=>{
   const value=quest('vlad-after-dark');expect(value.requirements.map(requirement=>requirement.item)).toContain('drinks_5');
   await start(page,onTicket(value));await portrait(ticket(page,value).locator('.portrait'),person('vlad').sprite);
-  await winePicture(ticket(page,value));await request(page,value);
+  await winePicture(ticket(page,value));await openQuest(page,value);
   await page.getByRole('button',{name:`1 Red wine: 0 of 1 on the board`,exact:true}).click();
   await expect(page.getByRole('dialog',{name:'Red wine',exact:true})).toBeVisible();await winePicture(page.locator('#modal'));
   await expect(page.getByRole('dialog')).toContainText('Merge two Cherry compote to make Red wine.');

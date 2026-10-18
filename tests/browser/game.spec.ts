@@ -58,7 +58,7 @@ test('clicking a different item selects it for single-item actions; only a drag 
   state=await saved(page);expect(state.board[27]?.code).toBe('bakery_1');expect(state.board[22]?.code).toBe('drinks_1');
 });
 
-test('a ticket opens its quest, a dish row says how to get the dish, and Show me points at the next step on the board',async({page})=>{
+test('a ticket opens its quest, a dish row says how to get the dish, Show me points at the next step, and the story card shows Pay disabled with no Continue',async({page})=>{
   await start(page);const dishes=ticket(page,welcome).locator('.ticket-items');
   await expect(dishes).toHaveAccessibleName(`${welcome.title}: 1 ${data.items.drinks_2.name}, 0 on the board`);await dishes.click();
   const dialog=page.getByRole('dialog',{name:welcome.title,exact:true});await expect(dialog.locator('.quest-person')).toHaveText('Mara');
@@ -326,7 +326,7 @@ test('a chain with all six dishes discovered shows its completion mark across re
   expect(await saved(page)).toEqual(state);
 });
 
-test('a requested dish stays covered in the book until it is made, and stays revealed after delivery and reload',async({page})=>{
+test('a quest dish stays covered in the book until it is made, and stays revealed after delivery and reload',async({page})=>{
   const dish=data.items[welcome.requirements[0].item],part=`${dish.chain}_${dish.stage-1}`,state=supply(createGame(data),[part]);
   const [first,second]=state.board.flatMap((cell,index)=>cell?.code===part?[index]:[]);
   expect(state.discovered).not.toContain(dish.id);await start(page,state);await expect(ticket(page,welcome).locator('.ticket-items')).toHaveAccessibleName(new RegExp(dish.name));
@@ -711,7 +711,7 @@ test('phone shows the room, the tickets, the board and Mara in one screen, with 
   await unselect(page);await expect(page.locator('.mara-line')).toBeVisible();
   const sheet=page.getByRole('dialog');
   await page.locator('#story-button').click();await expect(sheet).toBeVisible();
-  await sheet.locator('.cat-visit').click();await expect(sheet.locator('.cat-sleeping')).toBeVisible();
+  await sheet.locator('.miez-card').click();await expect(sheet.locator('.cat-sleeping')).toBeVisible();
 });
 
 test('desktop first screen shows the uncovered room beside the tickets, the whole board, Mara, the story and the recipe book',async({page},testInfo)=>{

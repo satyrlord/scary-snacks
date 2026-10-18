@@ -1,23 +1,6 @@
 import { test, expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
-import { readFileSync } from 'node:fs';
-import { createGame, requiredQuests, reduceGame, validateGame } from '../../src/engine.ts';
-import type { GameData, GameState } from '../../src/engine.ts';
-import { SAVE_KEY, exportSave } from '../../src/storage.ts';
-
-const data: GameData = JSON.parse(readFileSync('public/data/game.json', 'utf8'));
-const tile = (page: Page, index: number) => page.locator(`[data-cell="${index}"]`);
-async function start(page: Page, state?: GameState) {
-  if (state) {
-    const save = exportSave(state, candidate => validateGame(candidate, data));
-    await page.addInitScript(([key, value]) => { if (localStorage.getItem(key) === null) localStorage.setItem(key, value); }, [SAVE_KEY, save]);
-  }
-  await page.goto('./');
-  await expect(page.locator('#board button')).toHaveCount(42);
-}
-async function saved(page: Page): Promise<GameState> {
-  return page.evaluate(key => navigator.locks.request(key, () => JSON.parse(localStorage.getItem(key)!).state), SAVE_KEY);
-}
+import { createGame, requiredQuests, reduceGame } from '../../src/engine.ts';
+import { data, saved, start, tile } from './support.ts';
 
 test('new board explains blocked spaces and counts only usable empty cells', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -113,7 +96,7 @@ test('Find a match selects movable food and points to matching clutter', async (
   await expect(tile(page, 0)).not.toHaveClass(/obstacle/);
 });
 
-test('the first preparation removes wrapper webs without clearing the clutter', async ({ page }) => {
+test('the first preparation removes the webs without clearing the clutter blockers', async ({ page }) => {
   const state = createGame(data);
   state.coins = data.tasks[0].cost;
   state.completedQuests = requiredQuests(0, data).map(quest => quest.id);

@@ -72,11 +72,12 @@ The state of the new game has `null` in `after`.
 The data tool stops if an entry of `roomPaintings` in `src/engine.ts` has no approved master in `docs/asset-provenance.json`.
 Use [generate-game-art](../generate-game-art/SKILL.md) for new art. Make the name agree with the picture.
 
-Write new names, dialogue, and descriptions for this game.
+Write new names, dialogue, and room-state text for this game.
 Do not use `private/` or `analysis/` as an input, as `AGENTS.md` tells you.
 Do not copy text, names, item tables, or progression from a protected work.
-Keep the characters fictional. Do not name a real person or a real business.
-Keep the cosy and slightly eerie tone of an everyday neighborhood.
+Keep the characters fictional. `PRODUCT.md` gives the references that a regular can have.
+Do not use the full name of a real person or the name of a real business.
+Keep the cosy and slightly eerie tone of an everyday neighbourhood.
 Name each dish or drink as `PRODUCT.md` tells you. The letters ș and ț take a comma below.
 A merge chain is a game rule. Do not write it as a recipe for real food.
 Do not add timers, energy limits, purchases, or advertisements to the content.

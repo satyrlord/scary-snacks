@@ -58,7 +58,8 @@ const plural = new Intl.PluralRules(locale);
 const count = new Intl.NumberFormat(locale);
 const compact = new Intl.NumberFormat(locale, { notation:'compact', maximumFractionDigits:1, roundingMode:'trunc' });
 const names = new Intl.ListFormat(locale, { type:'conjunction' });
-const coinText = (value: number) => `${count.format(value)} ${plural.select(value) === 'one' ? 'coin' : 'coins'}`;
+const coinWord = (value: number) => plural.select(value) === 'one' ? 'coin' : 'coins';
+const coinText = (value: number) => `${count.format(value)} ${coinWord(value)}`;
 // Mara's note when nothing is selected: the move gesture, in the same words as the other board guidance.
 const MOVE_HINT = 'Tap an item, then tap where it should go.';
 const BLOCKED_STORAGE = 'Not saved: this browser blocks storage, so this game lasts only for this visit.';
@@ -85,7 +86,7 @@ const definition = (code: string) => getItem(code,data)!;
 const itemName = (code: string) => definition(code).name;
 const character = (id: string) => data.characters.find(value => value.id === id)!;
 // Players meet generators as ingredient sources: the Flour bin, the Copper pot, and so on. They take ingredients from them.
-const sourceOf = (chain: string) => Object.values(data.items).find(item => item.generator && item.chain === chain)!;
+const sourceOf = (chain: string) => definition(`generator_${chain}`);
 const chosenOutput = (code: string) => nextOutput(state,code,data)!;
 const sourceOutput = (code: string) => generatorOutputs(state,code,data).map(itemName).join(' or ');
 const matchingBlocker = (code: string) => boardObstacles(state,data).find(obstacle =>
@@ -400,10 +401,9 @@ function batFlight() {
 /** Phones abbreviate large totals so the coins never reach the wordmark; screen readers always hear the exact amount. */
 function renderCoins() {
   const short = phone.matches && state.coins >= 10000;
-  const label = plural.select(state.coins) === 'one' ? 'coin' : 'coins';
   $('#coins').textContent = short ? compact.format(state.coins) : count.format(state.coins);
-  $('#coin-label').textContent = label;
-  $('#coin-total').textContent = `${count.format(state.coins)} ${label}`;
+  $('#coin-label').textContent = coinWord(state.coins);
+  $('#coin-total').textContent = coinText(state.coins);
   $('#coin-count').classList.toggle('long', state.coins >= 1000);
 }
 function celebrateCoins(gain: number) {
@@ -596,7 +596,7 @@ function storyContent(inSheet: boolean) {
   const links = element('div', 'story-links');
   const journalLink=button('Journal','text-button',journal);journalLink.setAttribute('aria-label','Open the story journal');links.append(journalLink);
   // The drawer can cover the windowsill on phones, so the cat also waits in the Story sheet there.
-  const cat = button('', 'cat-visit', toggleCat); const words = element('span');
+  const cat = button('', 'miez-card', toggleCat); const words = element('span');
   words.append(element('strong', '', 'Miez is on kitchen duty.'), element('small', '', 'Give the resident cat some attention.'));
   cat.append(miezSprite(), words);
   // The count is short so that it shares a line with the save state. Screen readers also hear the word "preparations".
@@ -779,7 +779,7 @@ function chapterSteps(view: ChapterView, numbered: boolean) {
   const done=element('span','',numbered?`Chapter ${view.number}`:`${view.done} of ${view.tasks.length} done`);done.setAttribute('aria-hidden','true');
   row.append(list,done);return row;
 }
-/** A preparation scene, a quest completion scene, a chapter's closing scene, the finale, or local news, by its saved ID. An unknown ID has no scene, so the game never invents one. */
+/** A preparation scene, a quest completion scene, a regular's arrival scene, a chapter's closing scene, the finale, or local news, by its saved ID. An unknown ID has no scene, so the game never invents one. */
 function storyScene(id: string) {
   const more=(dialogue: SceneLine[])=>`${character(dialogue[0].speaker).name} has more to say.`,source=sceneSource(id,data);
   switch(source?.kind){
@@ -981,7 +981,7 @@ async function showPainting(id: string, fade: number) {
   if(animate){for(const old of holder.children)old.classList.add('leaving');next.classList.add('entering');holder.append(next);}
   else holder.replaceChildren(next);
   const decoded=await next.querySelector('img')!.decode().then(()=>true,()=>false);
-  // Only the current quest can replace the room. This also detects a preload that failed before its story ended.
+  // Only the latest painting can replace the room. This also detects a preload that failed before its story ended.
   if(token!==paintingToken||!next.isConnected)return;
   if(!decoded){holder.replaceChildren();$('#room-stage').dataset.failed='';return;}
   next.classList.remove('entering');
