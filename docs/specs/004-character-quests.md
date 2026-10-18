@@ -73,7 +73,7 @@ The generator owns the exact rewards.
 
 ## Recurring travellers
 
-Adrian, Monica, and Janos each return for three supply quests. Each quest supplies a quiet investigation near the cathedral. A supply quest has one of two sizes: 12 to 16 portions at merge stage 3 or 4, or 4 to 6 portions at merge stage 5 or 6. Their nine visits alternate in that order. Each visit also waits for the delivery of the previous visitor. Thus only one cathedral supply quest is open at a time. There is no timer.
+Adrian, Monica, and Janos each return for three supply quests. Each quest supplies a stay in the passages under the cathedral, one level deeper on each visit. Each opening reports a finding to a core character. A supply quest has one of two sizes: 12 to 16 portions at merge stage 3 or 4, or 4 to 6 portions at merge stage 5 or 6. Their nine visits alternate in that order. Each visit also waits for the delivery of the previous visitor. Thus only one cathedral supply quest is open at a time. There is no timer.
 
 | Quest ID | Opens after | Requirements |
 | --- | --- | --- |
@@ -127,16 +127,16 @@ The content generator refuses invalid quest data.
 
 ## Interface
 
-A ticket shows the character portrait, name, dishes, and Deliver with the reward.
-The accessible name of the ticket dishes gives the board count of each dish.
+A ticket shows the character portrait, name, dishes, and Deliver with the reward. A wider screen also shows the quest title.
+The accessible name of the ticket face gives the board count of each dish.
 On a wider screen, a dish that needs multiple portions also shows that count on the ticket.
 Deliver is unavailable until the board holds every required item.
-A tap on the dishes opens the quest dialog.
+A tap on the face of the ticket (the portrait, name, title, and dishes) opens the quest dialog.
 The dialog explains who asks and why.
 It shows each dish with its count on the board, the reward, and Deliver.
 Each dish row opens ingredient help.
 
-Deliver takes the dishes from the board. The dishes fly to the ticket, and a temporary notice reports the delivery and reward. The completion scene waits in Story. The next open quest takes the ticket.
+Deliver takes the dishes from the board. The dishes fly to the ticket, and a temporary notice reports the delivery and reward. The notice offers the reply of the character. The completion scene waits in Story. The next open quest takes the ticket.
 
 The notice does not block play or take focus.
 After a failed save, the notice includes the unsaved warning.

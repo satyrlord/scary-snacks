@@ -103,9 +103,11 @@ function payButton(task: Task) {
  */
 export function renderOffer() {
   const eligibility = taskEligibility(state, data), task = eligibility.task, offer = $('#offer'), story = $('#story-button');
-  const ready = eligibility.ready && !$('#story').checkVisibility();
+  const docked = $('#story').checkVisibility(), ready = eligibility.ready && !docked, waiting = !docked && state.pendingScenes.length > 0;
   $('.game-layout').toggleAttribute('data-offer', ready);
-  story.toggleAttribute('data-ready', ready); story.setAttribute('aria-label', ready ? 'Story, a preparation is ready' : 'Story');
+  // The dot marks the Story button while the sheet holds a payment or a scene to read.
+  story.toggleAttribute('data-ready', ready || waiting);
+  story.setAttribute('aria-label', ready && waiting ? 'Story, a preparation is ready and a scene is waiting' : ready ? 'Story, a preparation is ready' : waiting ? 'Story, a scene is waiting' : 'Story');
   if (!ready) { offer.replaceChildren(); return; }
   const face = portrait('mara'), words = element('p');
   face.setAttribute('aria-hidden', 'true'); words.append(element('strong', '', task!.title), element('span', '', 'Ready when you are.'));
@@ -126,7 +128,7 @@ function storyScene(id: string) {
   const more=(dialogue: SceneLine[])=>`${character(dialogue[0].speaker).name} has more to say.`,source=sceneSource(id,data);
   switch(source?.kind){
     case 'task':{const {task}=source;return {title:task.title,dialogue:task.dialogue,completion:data.rooms.find(room=>room.after===id)!.text,prompt:more(task.dialogue)};}
-    case 'quest':{const {quest}=source;return {title:quest.title,dialogue:quest.completion,completion:'The quest is delivered.',prompt:more(quest.completion)};}
+    case 'quest':{const {quest}=source,who=names.format([quest.character,...quest.companions??[]].map(person=>character(person).name));return {title:quest.title,dialogue:quest.completion,completion:'',prompt:`${who} replied to “${quest.title}”.`};}
     case 'chapter':{const {chapter,number}=source;return {title:`Chapter ${number} complete: ${chapter.title}`,dialogue:chapter.closing,completion:chapter.payoff,prompt:`Chapter ${number} is complete.`};}
     case 'finale':{const {finale}=source;return {title:finale.title,dialogue:finale.dialogue,completion:finale.ending,prompt:'The supper can begin.'};}
     case 'arrival':{const {person}=source;return {title:`${person.name} arrives`,dialogue:person.arrival!,completion:`${person.name} is now a regular. Read more about ${person.name} in the story journal.`,prompt:'A new neighbour has arrived.'};}

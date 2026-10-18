@@ -75,13 +75,13 @@ export const tile=(page: Page,index: number)=>page.locator(`[data-cell="${index}
 export async function unselect(page: Page){await tile(page,0).focus();await page.keyboard.press('Escape');}
 export const ticket=(page: Page,value: Quest)=>page.locator(`#tickets .ticket[data-quest="${value.id}"]`);
 export const deliverButton=(page: Page,value: Quest)=>ticket(page,value).locator('.deliver-button');
-/** The toast that reports a delivery. It clears itself, so a test that needs the next one waits for this one to go first. */
-export const toast=(page: Page)=>page.locator('.toast');
+/** The words of the toast that reports a delivery. It clears itself, so a test that needs the next one waits for this one to go first. */
+export const toast=(page: Page)=>page.locator('.toast-text');
 /** The Deliver control inside the open quest dialog. */
 export const dialogDeliver=(page: Page,value: Quest)=>page.getByRole('dialog',{name:value.title,exact:true}).getByRole('button',{name:`Deliver ${value.title} for ${value.reward.toLocaleString('en')} coins`,exact:true});
 /** Opens the quest dialog from the dishes on the ticket. */
 export async function openQuest(page: Page,value: Quest){
-  await ticket(page,value).locator('.ticket-items').click();await expect(page.getByRole('dialog',{name:value.title,exact:true})).toBeVisible();
+  await ticket(page,value).locator('.ticket-face').click();await expect(page.getByRole('dialog',{name:value.title,exact:true})).toBeVisible();
 }
 export async function story(page: Page){if(!await page.locator('#story').isVisible())await page.locator('#story-button').click();}
 export async function journal(page: Page){

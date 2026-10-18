@@ -235,7 +235,7 @@ components:
     backgroundColor: "{colors.light-tile-a}"
     rounded: "{rounded.tile}"
     padding: "5px"
-    size: "clamp(44px, min(calc((var(--panel-w) - var(--side-w) - 116px) / 6), calc((100dvh - 400px) / 7)), 96px)"
+    size: "clamp(44px, min(calc((var(--panel-w) - var(--side-w) - 116px) / 6), calc((100dvh - 432px) / 7)), 96px)"
   board-tile-phone:
     backgroundColor: "{colors.light-tile-a}"
     rounded: "{rounded.tile}"
@@ -356,7 +356,7 @@ The palette is warm and has low saturation. Each theme has one action colour. Th
 - **Title small** (600, 15px, 1.25): the name of the selected item under the board. It also sets the Miez card and the recipe book title, at a line height of 1.4.
 - **Figure** (600, 24px, 1, tabular numerals): the coin total. It is 21px below 1024px.
 - **Body** (400, 14px, 1.7): dialog copy and control labels. Mara's line is 14px at 1.45 (13px at 1.35 below 1024px). Story dialogue is 16px at 1.75 (14px at 720px and below).
-- **Body small** (400, 13px, 1.65): the story copy, Deliver, the area names, and the ticket name (600). It also sets the offer, the item actions, and the bar labels.
+- **Body small** (400, 13px, 1.65): the story copy, Deliver, the area names, and the ticket name (600). It also sets the offer, the item actions, and the bar labels. The ticket title uses the Label size in the accent colour.
 - **Label** (400, 12px, 1.5): the chapter number, the save state, and the "N of 24 done" count. Screen readers hear "N of 24 preparations done". It also sets the rule line of the selected item, the pin, and Deliver on phones.
 
 ### Named Rules
@@ -394,7 +394,7 @@ The bar is 56px tall plus the safe area. The safe area is the space that the dev
 **The lowered drawer.** The grip is a button. Its accessible name is "Lower the kitchen to see the room", and then "Raise the kitchen". The grip lowers the drawer, and the drawer then shows the whole painting. The tickets stay in view, 68px above the bar. The drawer moves over 0.6s. While the drawer is lowered, the board does not accept input.
 
 **The height budget.** The cell size and the visible room share one budget:
-- Wider screens: `--cell: clamp(44px, min(calc((var(--panel-w) - var(--side-w) - 116px) / 6), calc((100dvh - 400px) / 7)), 96px)`, with 4px gaps.
+- Wider screens: `--cell: clamp(44px, min(calc((var(--panel-w) - var(--side-w) - 116px) / 6), calc((100dvh - 432px) / 7)), 96px)`, with 4px gaps.
 - Phones: `--cell: clamp(44px, min(calc((100vw - 40px) / 6), calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7)), 60px)`, with 3px gaps. The value of `--drawer-chrome` is 156px. The room shows at least 29.5dvh above the drawer when the cell size allows it. The unit dvh is one percent of the dynamic viewport height.
 
 **Short screens.** On a short screen, the room, the drawer, and the bar are not fixed. They follow each other in the page, and the page scrolls. The room is 240px tall. The grip does not show. A change to this layout clears the lowered drawer state, so the kitchen accepts input after rotation.
@@ -469,7 +469,7 @@ Buttons are solid and warm. Every button target is at least 44px tall.
   The button reads "Pay · N" with the 16px coin mark. Its accessible name is "Pay N coins: [preparation]", and its description is the requirement list. Pay and the Cost details text button share one 44px row with a 10px gap. Pay fills the remaining width.
 
   Cost details has the accessible name "Work and cost".
-- **Text button:** an underlined accent link at 13px with a 44px target. Find a match, Journal, and Read quest use this style. Skip scene, Read now, and Try again also use this style.
+- **Text button:** an underlined accent link at 13px with a 44px target. Find a match, Journal, and Read quest use this style. Skip scene, Read now, the reply in a delivery notice, and Try again also use this style.
 - **Focus:** a 3px Teal Focus ring, offset by 3px. Inside a tile, an area choice, the grip, or a bar item, the offset is -3px. In a segmented choice, the offset is 2px. A finish switch has its own focus outline (see Finish switches).
 
 ### The room (signature)
@@ -491,12 +491,12 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 - **Change:** a new area fades in from an 8px blur over 400ms. The game saves the choice apart from the game save, as a viewing preference.
 
 ### Paper tickets
-- **Wider screens:** Fresh Linen, a hairline border, a 12px radius, and 8px padding. A 36px portrait, the name (13px, 600), and the dishes share the top row. Deliver spans the ticket below them. The tickets show the first three open quests, in the order of the game data. The accessible name of a ticket is "[Name]’s quest: [title]". With no open quest, one muted 13px line takes the row. `PRODUCT.md` gives the text of the line.
-- **Phones:** 50px tall, a 9px radius, 2px × 3px padding. A 22px portrait sits on the upper-left corner with a ring of the ticket colour. The name shows only to a screen reader. Deliver fills the rest of the width.
-- **Dishes:** 38px on wider screens (30px in a 34px slot when a quest needs more than two kinds of dish). A Ready Green dot marks a dish when the board holds every portion of it. On wider screens, a dish that needs several portions has an "n/q" badge at the lower-left corner. The badge uses 10px tabular figures at weight 600, Fresh Linen, and a hairline ring. Phones leave out the badge.
-- **Dish target:** the dishes of a ticket are one target, at least 44px tall, that opens the quest dialog. Below 1024px, the dishes show as 26px pictures (22px at 360px and below). The accessible name of the target starts with the quest title. Each dish follows with its quantity and the count on the board.
+- **Wider screens:** Fresh Linen, a hairline border, a 12px radius, and 8px padding. A 36px portrait sits beside two lines: the name (13px, 600) and the quest title (12px, accent). Each line ends with an ellipsis if it does not fit. The dishes follow in a row under the portrait, as 32px pictures in 40px by 36px slots. Deliver spans the ticket below them. On hover, the title is underlined. The tickets show the first three open quests, in the order of the game data. The accessible name of a ticket is "[Name]’s quest: [title]". With no open quest, one muted 13px line takes the row. `PRODUCT.md` gives the text of the line.
+- **Phones:** 50px tall, a 9px radius, 2px × 3px padding. A 22px portrait sits on the upper-left corner with a ring of the ticket colour. The name and the title do not show. The accessible names of the face and Deliver give them. Deliver fills the rest of the width.
+- **Dishes:** 32px on wider screens (30px in a 34px slot when a quest needs more than two kinds of dish). A Ready Green dot marks a dish when the board holds every portion of it. On wider screens, a dish that needs several portions has an "n/q" badge at the lower-left corner. The badge uses 10px tabular figures at weight 600, Fresh Linen, and a hairline ring. Phones leave out the badge.
+- **Face target:** the portrait, the name, the title, and the dishes of a ticket are one target, the face, that opens the quest dialog. The face is at least 44px tall and 44px wide. Below 1024px, the dishes show as 26px pictures (22px at 360px and below). The accessible name of the face starts with the quest title. Each dish follows with its quantity and the count on the board.
 - **Narrowest tickets:** at 360px and below, the ticket padding is 2px, and Deliver has 1px side padding. Each target on a ticket stays at least 44px wide down to 320px.
-- **Deliver:** "Deliver · N" with the 16px coin mark. On phones, it shows "Deliver N". If the board does not hold every portion, the button shows the dashed "not yet" style. On phones, the not-yet style shows only the reward and a 14px coin mark. The accessible name is "Deliver [quest] to [name] for N coins".
+- **Deliver:** "Deliver · N" with the 16px coin mark. On phones, a ready Deliver shows only the word "Deliver", at its full width. The fanned dishes of the face give way. If the board does not hold every portion, the button shows the dashed "not yet" style. On phones, the not-yet style shows only the reward and a 14px coin mark. The accessible name is "Deliver [quest] to [name] for N coins".
 - **Delivery motion:** the dishes fly to the ticket over 600ms. Each dish starts 60ms after the one before. The sixth and later dishes start together. The delivery notice appears after all dishes arrive. The next quest arrives on the same ticket over 450ms, 700ms after the delivery. With reduced motion, the notice shows at once, and the next ticket appears without motion.
 
 ### Timber table and runners
@@ -568,7 +568,7 @@ This text can describe the planned work. It does not show an unearned painting o
 
 ### Navigation
 - **Wider screens:** there is no navigation. Options is a Fresh Linen button in the masthead with a sliders icon.
-- **Phone bar:** the bar is Parchment, 56px tall plus the safe area, with a hairline on its top edge. Story, Recipes, and Options share the width. Each has a 24px vector icon over a 13px Hearth Ink label. The Story item carries the copper dot while a preparation is ready. The Recipes item carries the candle dot while new dishes wait.
+- **Phone bar:** the bar is Parchment, 56px tall plus the safe area, with a hairline on its top edge. Story, Recipes, and Options share the width. Each has a 24px vector icon over a 13px Hearth Ink label. The Story item carries the copper dot while a preparation is ready or a scene waits. Its accessible name then says "a preparation is ready", "a scene is waiting", or both. The Recipes item carries the candle dot while new dishes wait.
 
 ### Dialogs
 - **Style:** dialogs are Parchment with an 18px radius and 26px padding. A dialog is at most 560px wide. It has a headline title and a 44px close button.
@@ -592,7 +592,8 @@ A waiting scene is one line under the chapter steps, above the hairline of the p
 - "The supper can begin."
 - "News has reached the bistro."
 - "A new neighbour has arrived."
-- "[First speaker] has more to say." (for a preparation scene or a quest completion scene)
+- "[First speaker] has more to say." (for a preparation scene)
+- "[Name] replied to “[quest title]”." (for a quest completion scene)
 
 The accessible name of the button names the scene. On phones, the row is in the Story sheet. The row has no motion and no dot.
 
@@ -604,7 +605,7 @@ The title of a scene dialog depends on the scene:
 
 Each waiting scene uses the story portrait, dialogue, Back, line count, and Continue. A "Skip scene" text button with a 44px target follows the controls.
 
-The completion message shows the payoff, the ending, the room change of the preparation, or the delivery result. The message of a quest completion scene is "The quest is delivered." A waiting scene opens at its saved line. If the saved line is past the end of the scene, a muted 14px notice shows above the portrait. The notice says "Someone lost the thread. The conversation starts again from the beginning." If a line save fails, a bordered error box shows under the completion message.
+The completion message shows the payoff, the ending, the room change of the preparation, the arrival, or the news. A quest completion scene has no completion message. A waiting scene opens at its saved line. If the saved line is past the end of the scene, a muted 14px notice shows above the portrait. The notice says "Someone lost the thread. The conversation starts again from the beginning." If a line save fails, a bordered error box shows under the completion message.
 
 The box states that the session is not saved and that the player can continue to read. The box shows once for each scene and does not take focus. The last line reads "Next scene" when another scene waits, and "Back to the kitchen" otherwise. From the journal, the last line reads "Return".
 
@@ -624,7 +625,7 @@ A completed quest has a "Read completion" entry. It says "New scene" while its s
 
 The title of the quest dialog is the quest title. A 44px portrait for each person sits beside their names. The first lines of the quest follow in 16px body text.
 
-A line by another speaker starts with the name of that speaker. The food rows show the exact quantity and the count on the board. Each row opens ingredient help, which returns to the quest. The coin reward follows in gold. Then come Deliver ("Deliver · N" with the coin mark) and one muted line: "Delivery uses dishes on the board. There is no deadline."
+If more than one character speaks, the lines form an exchange. Each line is a paragraph, 12px from the next. At each change of speaker, the name of the speaker (13px, 600) stands on its own line above the words. Screen readers hear "[Name]:" before the words. The food rows show the exact quantity and the count on the board. Each row opens ingredient help, which returns to the quest. The coin reward follows in gold. Then come Deliver ("Deliver · N" with the coin mark) and one muted line: "Delivery uses dishes on the board. There is no deadline."
 
 Deliver has the dashed disabled style until the board holds every portion. Deliver closes the dialog and starts the delivery motion.
 
@@ -658,13 +659,14 @@ These parts have no animation.
 A delivery notice is a temporary text message, also called a toast.
 The notice shows the delivery result and any save warning.
 The status region uses polite announcements.
-The notice does not take focus or accept pointer input.
+The notice does not take focus.
+While the completion scene waits, the notice ends with the text button "Read [Name]’s reply". The button opens the scene and removes the notice. Only a notice with this button accepts pointer input.
 After the last delivery, focus moves to Read now in Story when no selected board cell can receive focus.
 On phones, focus moves to the Story button instead.
 
-Each notice stays for 4.2 seconds, then fades over 300ms.
+Each notice stays for 4.2 seconds, then fades over 300ms. A notice with a reply stays for 8 seconds. It waits while the pointer or focus is on it, and leaves 4.2 seconds after they leave.
 Its entrance is a 300ms fade and a scale from 92%.
-With reduced motion, the notice has no animation and leaves after 4.2 seconds.
+With reduced motion, the notice has no animation and leaves after the same time.
 Several notices form a vertical stack with 8px gaps.
 
 At 1024px and above, the stack sits 20px from the right edge and the bottom edge.

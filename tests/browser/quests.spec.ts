@@ -34,12 +34,43 @@ test('the delivery toast sits bottom-right on desktop, reports the reward withou
   await start(page,deliverable(value));await deliverButton(page,value).click();
   const note=toast(page);await expect(note).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);
   await expect(page.locator('#modal')).toBeHidden();await expect(page.getByRole('dialog')).toHaveCount(0);
-  // The toast never takes input, so the board stays usable while it shows.
+  // The toast sits away from the board, so the board stays usable while it shows.
   await tile(page,0).click();await expect(tile(page,0)).toBeFocused();
   const box=(await note.boundingBox())!,viewport=page.viewportSize()!;
   expect(box.x+box.width).toBeLessThanOrEqual(viewport.width);expect(box.y+box.height).toBeLessThanOrEqual(viewport.height);
   expect(box.x).toBeGreaterThan(viewport.width*.5);expect(box.y).toBeGreaterThan(viewport.height*.5);
-  await expect(note).toHaveCount(0,{timeout:6000});
+  // A notice that offers a reply stays for 8 seconds.
+  await expect(note).toHaveCount(0,{timeout:10000});
+});
+
+test('a desktop ticket shows who asks and the quest title, and its portrait opens the quest with a name at each change of speaker',async({page})=>{
+  const value=quest('mina-avram-search');await start(page,onTicket(value));const card=ticket(page,value);
+  await expect(card.locator('.ticket-name')).toHaveText('Mina');await expect(card.locator('.ticket-title')).toHaveText(value.title);await expect(card.locator('.ticket-title')).toBeVisible();
+  await card.locator('.portrait').click();const dialog=page.getByRole('dialog',{name:value.title,exact:true});await expect(dialog).toBeVisible();
+  const turns=value.opening.filter((line,at)=>line.speaker!==value.opening[at-1]?.speaker).map(line=>`${person(line.speaker).name}:`);
+  await expect(dialog.locator('.quest-speaker')).toHaveText(turns);await expect(dialog.locator('.quest-line')).toHaveCount(value.opening.length);
+});
+
+for(const width of [390,320])test(`a ready ticket with four dishes shows the whole Deliver word at ${width}px`,async({page})=>{
+  await page.setViewportSize({width,height:844});const value=quest('mina-avram-search');await start(page,deliverable(value));
+  const deliver=deliverButton(page,value);await expect(deliver).toBeEnabled();
+  const button=(await deliver.boundingBox())!,word=(await deliver.locator('.deliver-word').boundingBox())!;
+  expect(word.x).toBeGreaterThanOrEqual(button.x);expect(word.x+word.width).toBeLessThanOrEqual(button.x+button.width);
+  for(const control of await ticket(page,value).getByRole('button').all()){const size=(await control.boundingBox())!;expect(size.width).toBeGreaterThanOrEqual(44);expect(size.height).toBeGreaterThanOrEqual(44);}
+});
+
+test('the delivery notice offers the reply by name, and the phone Story button and Story name the reply until it is read',async({page})=>{
+  const value=quest('eszter-bowls'),storyButton=page.locator('#story-button');await page.setViewportSize({width:390,height:844});
+  await start(page,deliverable(value));await expect(storyButton).toHaveAccessibleName('Story');
+  await deliverButton(page,value).click();
+  const reply=page.getByRole('button',{name:'Read Eszter’s reply',exact:true});await expect(reply).toBeVisible();
+  await expect(storyButton).toHaveAttribute('data-ready','');await expect(storyButton).toHaveAccessibleName('Story, a scene is waiting');
+  await reply.click();await expect(page.getByRole('dialog',{name:value.title,exact:true})).toBeVisible();await expect(page.locator('.toast')).toHaveCount(0);
+  await expect(page.locator('#story-line')).toContainText(value.completion[0].text);await expect(page.locator('.completion-message')).toHaveCount(0);
+  // Close leaves the reply waiting, and Story names it.
+  await page.keyboard.press('Escape');await story(page);await expect(page.locator('#modal .story-waiting')).toContainText(`Eszter replied to “${value.title}”.`);
+  await page.getByRole('button',{name:`Read now: ${value.title}`,exact:true}).click();await readTo(page,'Back to the kitchen');
+  await expect(storyButton).not.toHaveAttribute('data-ready');await expect(storyButton).toHaveAccessibleName('Story');
 });
 
 test('the delivery toast sits top-center on a phone',async({page})=>{
@@ -85,7 +116,7 @@ test('quest rewards survive export and import, while introductions and journal r
 test('a surplus on the board reads as the required count on the ticket and in the quest rows',async({page})=>{
   const value=quest('sorin-first-ride'),requirement=value.requirements[0],name=itemName(requirement.item);
   await start(page,supply(deliverable(value),supplies(value)));
-  await expect(ticket(page,value).locator('.ticket-items')).toHaveAccessibleName(new RegExp(`^${value.title}: ${requirement.quantity} ${name}, ${requirement.quantity} on the board;`));
+  await expect(ticket(page,value).locator('.ticket-face')).toHaveAccessibleName(new RegExp(`^${value.title}: ${requirement.quantity} ${name}, ${requirement.quantity} on the board;`));
   await expect(ticket(page,value).locator('.ticket-count').first()).toHaveText(`${requirement.quantity}/${requirement.quantity}`);
   await openQuest(page,value);
   const row=page.getByRole('button',{name:`${requirement.quantity} ${name}: ${requirement.quantity} of ${requirement.quantity} on the board`,exact:true});
@@ -143,11 +174,11 @@ test('keyboard and emulated touch can open a quest and deliver it with focus ret
   const context=await browser.newContext({baseURL,viewport:{width:390,height:844},hasTouch:true,isMobile:true,reducedMotion:'reduce'});
   try{
     const page=await context.newPage(),value=firstQuests[0];await start(page,deliverable(value));
-    await ticket(page,value).locator('.ticket-items').tap();await expect(page.getByRole('dialog',{name:value.title,exact:true})).toBeVisible();
+    await ticket(page,value).locator('.ticket-face').tap();await expect(page.getByRole('dialog',{name:value.title,exact:true})).toBeVisible();
     await dialogDeliver(page,value).focus();await page.keyboard.press('Space');
     await expect(page.locator('#modal')).toBeHidden();await expect(toast(page)).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);
     expect((await saved(page)).completedQuests).toContain(value.id);
-    await expect(page.locator('#tickets .ticket').first().locator('.ticket-items')).toBeFocused();
+    await expect(page.locator('#tickets .ticket').first().locator('.ticket-face')).toBeFocused();
     expect(await page.locator('#board').evaluate(board=>board.getAnimations({subtree:true}).length)).toBe(0);
   }finally{await context.close();}
 });
@@ -167,7 +198,7 @@ test('a merge that completes a quest marks its dishes ready and enables Deliver 
   await expect(deliverButton(page,value)).toBeEnabled();await expect(ticket(page,value).locator('.ticket-item.ready')).toHaveCount(1);
   await expect(page.locator('#modal')).toBeHidden();await expect(tile(page,fixture.second)).toBeFocused();
   const merged=await saved(page);expect(merged.completedQuests).toEqual(fixture.state.completedQuests);
-  await expect(ticket(page,value).locator('.ticket-items')).toHaveAccessibleName(`${value.title}: 1 ${itemName(value.requirements[0].item)}, 1 on the board`);
+  await expect(ticket(page,value).locator('.ticket-face')).toHaveAccessibleName(`${value.title}: 1 ${itemName(value.requirements[0].item)}, 1 on the board`);
 });
 
 test('another tab that delivers a quest takes it off this tab’s ticket, and the reward is paid once',async({page,context})=>{

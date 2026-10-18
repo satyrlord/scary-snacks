@@ -76,9 +76,9 @@ The game checks the coins, the necessary quests, and the space for an unlocked s
 
 Three quest tickets sit on the counter. The first three open quests, in authored order, take the tickets. The other open quests wait without a ticket. The next open quest takes the first free ticket. A character has at most one open quest, because each quest waits for the earlier quests of its character.
 
-A ticket shows the portrait and the name of the character, the dishes, and Deliver with its reward. The quest dialog and the accessible name of the ticket dishes give the board count of each dish. On a wider screen, a dish that needs several portions also shows that count on the ticket. Deliver is available when the board holds every portion. A tap on the dishes opens the quest dialog. The label of the ticket section is "Neighbour quests".
+A ticket shows the portrait and the name of the character, the dishes, and Deliver with its reward. On a wider screen, the ticket also shows the quest title. The quest dialog and the accessible name of the ticket face give the board count of each dish. On a wider screen, a dish that needs several portions also shows that count on the ticket. Deliver is available when the board holds every portion. The face of the ticket is the portrait, the name, the title, and the dishes. A tap on the face opens the quest dialog. The label of the ticket section is "Neighbour quests".
 
-The quest dialog shows who asks and why, each dish with its board count, the reward, and Deliver. Each dish row opens the help for that item. Deliver takes all the required portions from the board in one change. A delivery changes nothing in these cases:
+The quest dialog shows who asks and why, each dish with its board count, the reward, and Deliver. If more than one character speaks, the name of the speaker starts each change of speaker. The dish rows give the exact dishes, so the dialogue does not list them. Each dish row opens the help for that item. Deliver takes all the required portions from the board in one change. A delivery changes nothing in these cases:
 
 - An item is missing.
 - The quest has no ticket.
@@ -86,17 +86,17 @@ The quest dialog shows who asks and why, each dish with its board count, the rew
 - The player repeats the delivery.
 - The coin total cannot hold the reward.
 
-The dishes fly to the ticket. A temporary notice reports the delivery and the reward. The next open quest takes the ticket. If no quest is open, the counter shows "No quests wait now. Pay for the next preparation." After the last quest, it shows "Every quest is delivered. The bistro is yours."
+The dishes fly to the ticket. A temporary notice reports the delivery and the reward. While the completion scene waits, the notice also offers "Read [Name]’s reply", which opens that scene. The next open quest takes the ticket. If no quest is open, the counter shows "No quests wait now. Pay for the next preparation." After the last quest, it shows "Every quest is delivered. The bistro is yours."
 
 A waiting scene is a scene that the player has not finished or skipped.
 
-The four core characters are Mara, Ilie, Eszter, and Sorin. They have quest arcs in the six chapters. Mara, Ilie, and Sorin have six quests each, and Eszter has eight. Dochia and Costel have five quests each. Victor, Ana, Sânziana, Dorian, Ileana, and Cezar have four quests each. Cătălina and Bran have three quests each. Vlad and Elisabeta have two quests each.
+The four core characters are Mara, Ilie, Eszter, and Sorin. They have quest arcs in the six chapters. Each of their quests is a short exchange of at least two turns at its opening and at its completion. A quest gives its character a want, a small complication, and a change at the end. Mara worries as a host. Ilie keeps the habits of his family. Eszter is proud of her craft. Sorin tells what he sees on his round. Mara, Ilie, and Sorin have six quests each, and Eszter has eight. Dochia and Costel have five quests each. Victor, Ana, Sânziana, Dorian, Ileana, and Cezar have four quests each. Cătălina and Bran have three quests each. Vlad and Elisabeta have two quests each.
 
 A visitor is a character who does not live in the neighbourhood. Adrian, Monica, and Janos are returning visitors who come from time to time. Each has three supply quests. The nine supply quests alternate in that order. They open after preparations 6, 8, 9, 13, 14, 17, 19, 21, and 22.
 
 Each supply quest also waits for the delivery of the previous supply quest. So only one cathedral supply quest is open at a time. These visitors do not join the finale.
 
-A cathedral supply quest asks for supplies for several days. The visitors make a quiet investigation near the cathedral. A quest has one of two sizes. The first size is 12 to 16 portions of stage 3 or stage 4 dishes. The second size is 4 to 6 portions of stage 5 or stage 6 dishes. The story journal (the journal) is a dialog that Story opens. The journal holds the introduction of each returning visitor and each completed quest.
+A cathedral supply quest asks for supplies for a stay under the cathedral. The visitors explore the passages under the cathedral, one level deeper on each visit. In each opening, a visitor tells a core character what the visitors found, and the core character answers. Each later visit follows from the finding of the visit before. The mystery stays open at the end of act 1. A quest has one of two sizes. The first size is 12 to 16 portions of stage 3 or stage 4 dishes. The second size is 4 to 6 portions of stage 5 or stage 6 dishes. The story journal (the journal) is a dialog that Story opens. The journal holds the introduction of each returning visitor and each completed quest.
 
 Ionatan is a foreign real estate agent who visits once in each save. His quest opens after preparation 9 and after Vlad's quest "A guest at the castle". It needs one goulash pot, one sharing board, one chimney cake, and one plum brandy. He stops for dinner on his way to a nearby castle. At the castle, he plans to close a property deal with a local noble.
 
@@ -124,7 +124,7 @@ The journal holds optional introductions for the neighbours and the three return
 
 A waiting arrival scene opens from the journal entry of its regular. After the scene, the entry opens the introduction. Ionatan, Mina, and Avram have introductions only while their quest is open. The journal does not replay their completed quests.
 
-A delivery queues the completion scene in the same change. The delivery notice does not open the scene and does not stop play. Read now opens the waiting scene from Story. The journal has a Read completion entry for each quest of a neighbour or a returning visitor. It also has a Read quest button for the opening scene of each quest. Finish and Skip mark the scene as read.
+A delivery queues the completion scene in the same change. The delivery notice does not open the scene and does not stop play. Read now opens the waiting scene from Story. The delivery notice also offers the scene by the name of the character. The journal has a Read completion entry for each quest of a neighbour or a returning visitor. It also has a Read quest button for the opening scene of each quest. Finish and Skip mark the scene as read.
 
 Close and Escape leave the scene waiting. The delivery stays recorded. The journal can replay the scenes of neighbours and returning visitors. If the save of a delivery fails, the game keeps the current session. The delivery notice then includes a warning that the session is not saved. Options offers Retry save. An export includes the current session. A reload restores only the progress that the game saved.
 
@@ -191,7 +191,7 @@ An upgrade needs no board space. Open quests keep their requirements and rewards
 
 The screen shows one Pay control at a time. If the story card is on the screen, only the story card has Pay. If Story is a sheet, Mara's line has Pay. Mara's line offers the next preparation by name with a Pay button.
 
-Mara's line makes this offer if the player meets all the requirements and has not selected a board tile. If the player selects a tile, Mara's line shows the actions of that tile. While the player can pay and the story card is not on the screen, the Story button has a copper dot. If the player cannot pay yet, Mara's line does not change. Pay in Mara's line works like Pay in Story.
+Mara's line makes this offer if the player meets all the requirements and has not selected a board tile. If the player selects a tile, Mara's line shows the actions of that tile. While the story card is not on the screen, the Story button has a copper dot if the player can pay or if a scene waits. If the player cannot pay yet, Mara's line does not change. Pay in Mara's line works like Pay in Story.
 
 After the player pays for a preparation, its preparation scene plays. When the scene ends, the reveal runs. The new painting replaces the old painting, and the pin marks the change. The drawer can move on a narrow screen that is taller than 600px. There, the drawer lowers for the reveal and then rises again. On a narrow screen that is 600px high or less, the drawer does not move, and the drawer body stays active during the reveal. [`DESIGN.md`](DESIGN.md) gives the order and the timing of the reveal. With reduced motion (defined in Access and persistence), the game shows the result immediately. The reveal does not spend coins and does not earn coins again.
 

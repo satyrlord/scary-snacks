@@ -105,7 +105,8 @@ test('traveller quests return in one shared sequence of packs that fit the board
     const quantity = quest.requirements.reduce((sum, requirement) => sum + requirement.quantity, 0);
     assert.ok(quantity <= 16, 'The pack leaves room for sources, obstacles, and production.');
     assert.match(quest.opening.map(line => line.text).join(' '), /cathedral/);
-    assert.match(quest.opening.map(line => line.text).join(' '), /several days/);
+    // Each visit tells a core character what the visitors found, and the neighbour answers.
+    assert.ok(quest.opening.some(line => ['mara', 'ilie', 'eszter', 'sorin'].includes(line.speaker)), `${quest.id} needs a neighbour in its opening.`);
   }
   // A save cannot hold a pack before the pack that it follows.
   const finished = checkpoint(24);
@@ -113,6 +114,15 @@ test('traveller quests return in one shared sequence of packs that fit the board
   const swapped = [...finished.completedQuests];
   [swapped[first], swapped[second]] = [swapped[second], swapped[first]];
   assert.equal(validateGame({ ...finished, completedQuests: swapped }, data), false);
+});
+
+test('each quest of a core character is a short exchange at its opening and at its completion', () => {
+  const core = ['mara', 'ilie', 'eszter', 'sorin'], quests = data.quests.filter(quest => core.includes(quest.character));
+  assert.equal(quests.length, 26);
+  for (const quest of quests) {
+    assert.ok(quest.opening.length >= 2 && quest.completion.length >= 2, `${quest.id} needs at least two turns in each scene.`);
+    assert.ok([...quest.opening, ...quest.completion].every(line => line.text.length <= 140), `${quest.id} has a turn that is too long for a phone.`);
+  }
 });
 
 test('Ionatan dinner delivery pays once, keeps failed visits open, and records his departure across reloads', () => {

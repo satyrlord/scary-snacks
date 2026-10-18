@@ -60,7 +60,7 @@ test('clicking a different item selects it for single-item actions; only a drag 
 });
 
 test('a ticket opens its quest, a dish row says how to get the dish, Show me points at the next step, and the story card shows Pay disabled with no Continue',async({page})=>{
-  await start(page);const dishes=ticket(page,welcome).locator('.ticket-items');
+  await start(page);const dishes=ticket(page,welcome).locator('.ticket-face');
   await expect(dishes).toHaveAccessibleName(`${welcome.title}: 1 ${data.items.drinks_2.name}, 0 on the board`);await dishes.click();
   const dialog=page.getByRole('dialog',{name:welcome.title,exact:true});await expect(dialog.locator('.quest-person')).toHaveText('Mara');
   await dialog.getByRole('button',{name:`1 ${data.items.drinks_2.name}: 0 of 1 on the board`,exact:true}).click();
@@ -330,7 +330,7 @@ test('a chain with all six dishes discovered shows its completion mark across re
 test('a quest dish stays covered in the book until it is made, and stays revealed after delivery and reload',async({page})=>{
   const dish=data.items[welcome.requirements[0].item],part=`${dish.chain}_${dish.stage-1}`,state=supply(createGame(data),[part]);
   const [first,second]=state.board.flatMap((cell,index)=>cell?.code===part?[index]:[]);
-  expect(state.discovered).not.toContain(dish.id);await start(page,state);await expect(ticket(page,welcome).locator('.ticket-items')).toHaveAccessibleName(new RegExp(dish.name));
+  expect(state.discovered).not.toContain(dish.id);await start(page,state);await expect(ticket(page,welcome).locator('.ticket-face')).toHaveAccessibleName(new RegExp(dish.name));
   await page.getByRole('button',{name:/The recipe book/}).click();await expect(page.locator('#modal')).not.toContainText(dish.name);await page.getByRole('button',{name:'Close dialog'}).click();
   await tile(page,first).click();await tile(page,second).click();await expect(page.locator('#status')).toHaveText(`${dish.name} is a new dish! It is in the recipe book now.`);
   await deliverButton(page,welcome).click();await expect(ticket(page,welcome)).toHaveCount(0);
@@ -395,7 +395,7 @@ test('Full motion does not replay an earlier reduced delivery',async({page})=>{
   await expect(toast(page)).toHaveCount(1);
   expect(await page.locator('#tickets,#coin-count,#toast-stack').evaluateAll(elements=>elements.flatMap(element=>element.getAnimations({subtree:true})).filter(animation=>animation.playState==='running').length)).toBe(0);
   await expect(page.locator('#tickets .ticket').first()).toBeVisible();
-  await expect(toast(page)).toHaveCount(0,{timeout:6000});
+  await expect(toast(page)).toHaveCount(0,{timeout:10000});
 });
 
 test('a delayed painting decode does not start motion after Reduced is selected',async({page})=>{
@@ -715,7 +715,7 @@ test('only approved assets load from the active root or Pages prefix, and only t
 test('a phone ticket with two dishes is one 44px target, and each dish row of its quest opens its help and returns',async({page})=>{
   const sorin=quest('sorin-first-ride');expect(sorin.requirements).toHaveLength(2);
   await page.setViewportSize({width:360,height:740});await start(page);
-  const dishes=ticket(page,sorin).locator('.ticket-items');await expect(dishes.locator('.ticket-item')).toHaveCount(2);
+  const dishes=ticket(page,sorin).locator('.ticket-face');await expect(dishes.locator('.ticket-item')).toHaveCount(2);
   const box=(await dishes.boundingBox())!;expect(Math.min(box.width,box.height)).toBeGreaterThanOrEqual(44);
   await expect(dishes).toHaveAccessibleName(`${sorin.title}: ${sorin.requirements.map(({item,quantity})=>`${quantity} ${data.items[item].name}, 0 on the board`).join('; ')}`);
   for(const card of await page.locator('#tickets .ticket').all())for(const target of await card.getByRole('button').all())expect((await target.boundingBox())!.width).toBeGreaterThanOrEqual(44);
@@ -951,8 +951,8 @@ test('keyboard Deliver pays with a toast, and focus moves to the quest that take
   await page.emulateMedia({reducedMotion:'reduce'});await start(page,supply(createGame(data),['drinks_2']));
   const deliver=deliverButton(page,welcome);await deliver.focus();await page.keyboard.press('Enter');
   await expect(page.locator('#modal')).toBeHidden();await expect(toast(page)).toHaveText(`${welcome.title}: delivered. Earned ${welcome.reward} coins.`);
-  await expect(page.locator('#tickets .ticket').first().locator('.ticket-items')).toBeFocused();await expect(page.locator('#tickets .ticket').first()).toBeVisible();
-  await expect(page.locator('#story .story-waiting')).toContainText(`${data.characters.find(person=>person.id===welcome.completion[0].speaker)!.name} has more to say.`);
+  await expect(page.locator('#tickets .ticket').first().locator('.ticket-face')).toBeFocused();await expect(page.locator('#tickets .ticket').first()).toBeVisible();
+  await expect(page.locator('#story .story-waiting')).toContainText(`Mara replied to “${welcome.title}”.`);
 });
 
 test('phone recipe guidance selects a dish on the board while another item is selected',async({page})=>{

@@ -152,9 +152,14 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .ticket-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .ticket { position: relative; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--control-radius); box-shadow: 0 1px 2px #2a1a1029; }
 .ticket .portrait { width: 36px; height: 36px; }
-.ticket-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 600; line-height: 1.3; }
+/* The face of a ticket is one target that opens the quest. Its title is the reading cue, in the accent of things that the player can press. */
+.ticket-face { min-width: 0; min-height: 44px; padding: 0; border: 0; border-radius: var(--tile-radius); background: transparent; color: inherit; text-align: left; }
+.ticket-words { display: grid; min-width: 0; }
+.ticket-name,.ticket-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ticket-name { font-size: 13px; font-weight: 600; line-height: 1.3; }
+.ticket-title { color: var(--accent); font-size: 12px; line-height: 1.4; text-underline-offset: 3px; }
+@media (hover: hover) { .ticket-face:hover .ticket-title { text-decoration: underline; } }
 .ticket-items { display: flex; justify-content: center; align-items: center; gap: 2px; }
-button.ticket-items { min-height: 44px; padding: 0; border: 0; border-radius: var(--tile-radius); background: transparent; }
 .ticket-item { position: relative; display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--tile-radius); }
 .ticket-item .food { width: 38px; height: 38px; }
 .ticket-item.ready::after { content: ''; position: absolute; right: 1px; bottom: 3px; width: 9px; height: 9px; background: var(--ready); border: 2px solid var(--surface); border-radius: 50%; }
@@ -354,6 +359,10 @@ dialog::backdrop { background: #17101ac4; }
 .quest-person,.quest-note,.quest-count { color: var(--muted); font-size: 13px; line-height: 1.6; }
 .quest-person { margin: 2px 0 0; }
 .quest-note { margin: 8px 0 14px; }
+.quest-lines { display: grid; gap: 12px; margin-bottom: 14px; }
+.quest-line { margin: 0; }
+/* In an exchange, each turn starts with its speaker's name on its own line. */
+.quest-speaker { display: block; font-size: 13px; font-weight: 600; line-height: 1.4; }
 .quest-requirements { list-style: none; margin: 0; padding: 0; }
 .quest-item { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 6px 0; text-align: left; border: 0; background: transparent; }
 .quest-item .food { width: 40px; height: 40px; flex-shrink: 0; }
@@ -405,14 +414,17 @@ dialog::backdrop { background: #17101ac4; }
   .game-layout {
     --view-h: 100dvh; --frame-w: max(100cqw, 75cqh); --gap: 4px; --runner-h: 14px;
     --side-w: clamp(240px, calc(var(--panel-w) * .36), 300px);
-    --cell: clamp(44px, min(calc((var(--panel-w) - var(--side-w) - 116px) / 6), calc((100dvh - 400px) / 7)), 96px);
+    --cell: clamp(44px, min(calc((var(--panel-w) - var(--side-w) - 116px) / 6), calc((100dvh - 432px) / 7)), 96px);
     padding: 0 24px 16px;
   }
   .room { position: fixed; z-index: 0; inset: 0 auto 0 0; width: calc(100vw - var(--panel-w)); }
   .drawer { display: flex; flex-direction: column; gap: 14px; background: none; }
   .ticket-row { gap: 12px; }
-  .ticket { display: grid; grid-template-columns: 36px minmax(0,1fr) auto; grid-template-areas: 'face name dishes' 'deliver deliver deliver'; align-items: center; gap: 6px 8px; padding: 8px; border-radius: var(--card-radius); }
-  .ticket .portrait { grid-area: face; }.ticket-name { grid-area: name; }.ticket-items { grid-area: dishes; }.deliver-button { grid-area: deliver; width: 100%; }
+  .ticket { display: flex; flex-direction: column; gap: 6px; padding: 8px; border-radius: var(--card-radius); }
+  .ticket-face { display: grid; grid-template-columns: 36px minmax(0,1fr); grid-template-areas: 'face words' 'dishes dishes'; align-items: center; gap: 4px 8px; }
+  .ticket-face .portrait { grid-area: face; }.ticket-words { grid-area: words; }.ticket-items { grid-area: dishes; justify-content: flex-start; }
+  .ticket .ticket-item { width: 40px; height: 36px; }.ticket .ticket-item .food { width: 32px; height: 32px; }
+  .ticket .ticket-items.many .ticket-item { width: 34px; }.ticket .ticket-items.many .food { width: 30px; height: 30px; }
   .drawer-body { display: grid; grid-template-columns: auto minmax(0,1fr); align-items: start; gap: 20px; }
   .kitchen { width: calc(var(--cell) * 6 + var(--gap) * 5 + 28px); display: flex; flex-direction: column; gap: 12px; }
   .table { border-radius: var(--radius); box-shadow: 0 2px 4px #2a1a1029, var(--shadow); }
@@ -465,23 +477,26 @@ dialog::backdrop { background: #17101ac4; }
   .tickets { flex: none; padding: 14px 8px 4px; }
   .ticket-row { gap: 6px; }
   .ticket { display: flex; align-items: center; gap: 2px; height: 50px; padding: 2px 3px; }
-  /* The neighbour's portrait sits on the ticket's corner; the Deliver button names them to screen readers. */
+  /* The neighbour's portrait sits on the ticket's corner, inside the face target; the face and Deliver name the quest to screen readers. */
+  .ticket-face { display: flex; align-items: center; flex: 0 1 auto; min-width: 44px; }
+  .ticket-words { display: none; }
   .ticket .portrait { position: absolute; left: -4px; top: -9px; z-index: 1; width: 22px; height: 22px; box-shadow: 0 0 0 2px var(--surface); }
-  .ticket-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .ticket-items { flex: none; gap: 0; }
   /* A phone ticket is too small for counts; the quest dialog gives them. */
   .ticket-count { display: none; }
   .ticket-items:has(>:only-child) .ticket-item { width: 44px; }
   /* Two dishes on one target are pictures, so they draw smaller and leave Deliver its 44px. */
-  button.ticket-items .ticket-item { width: 26px; }button.ticket-items .food { width: 26px; height: 26px; }
+  .ticket-items .ticket-item { width: 26px; }.ticket-items .food { width: 26px; height: 26px; }
   /* Three or four dishes overlap like a fanned stack, so Deliver keeps its 44px. */
-  button.ticket-items.many { flex: 0 1 auto; min-width: 0; }
-  button.ticket-items.many .ticket-item { flex: 0 1 26px; min-width: 6px; justify-items: start; }button.ticket-items.many .ticket-item:last-child { flex-shrink: 0; }
-  button.ticket-items.many .food { width: 26px; height: 26px; }
+  .ticket-items.many { flex: 0 1 auto; min-width: 0; }
+  .ticket-items.many .ticket-item { flex: 0 1 26px; min-width: 6px; justify-items: start; }.ticket-items.many .ticket-item:last-child { flex-shrink: 0; }
+  .ticket-items.many .food { width: 26px; height: 26px; }
   .ticket-item.ready::after { right: -1px; bottom: 6px; width: 8px; height: 8px; }
   .deliver-button { flex: 1; min-width: 44px; padding: 0 3px; gap: 3px; font-size: 12px; }
   .deliver-dot,.deliver-button .coin { display: none; }
-  .deliver-button:disabled .deliver-word { display: none; }
+  .deliver-button:disabled .deliver-word,.deliver-button:enabled .deliver-reward { display: none; }
+  /* A ready Deliver keeps its whole word; the fanned dishes give way. */
+  .deliver-button:enabled { flex: 1 0 auto; }
   .deliver-button:disabled .coin { display: block; width: 14px; height: 14px; }
   .drawer-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   .kitchen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
@@ -521,7 +536,7 @@ dialog::backdrop { background: #17101ac4; }
 @media (max-width: 410px) { .detail-head .food { width: 34px; height: 34px; } }
 @media (max-width: 360px) { .detail-head .food,.detail-next { display: none; }.item-actions button { padding-inline: 9px; } }
 /* The narrowest tickets give Deliver every spare pixel, so each target on a ticket stays 44px wide. */
-@media (max-width: 360px) { .ticket { padding-inline: 2px; }.deliver-button { padding-inline: 1px; }button.ticket-items .ticket-item,button.ticket-items .food { width: 22px; }button.ticket-items .food { height: 22px; } }
+@media (max-width: 360px) { .ticket { padding-inline: 2px; }.deliver-button { padding-inline: 1px; }.ticket-items .ticket-item,.ticket-items .food { width: 22px; }.ticket-items .food { height: 22px; } }
 /* Landscape phones and 200% zoom leave too little height for a fixed drawer over the room, so the room, the drawer and the bar return to the page flow. */
 @media (max-width: 1023px) and (max-height: 600px) {
   .game-layout { --view-h: 240px; --drawer-drop: 0px; transition: none; }
@@ -534,6 +549,10 @@ dialog::backdrop { background: #17101ac4; }
 /* A quest's completion notice: it reports itself and clears on its own, so delivering a quest never stops play for a tap. */
 .toast-stack { position: fixed; z-index: 100; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
 .toast { pointer-events: none; max-width: 340px; padding: 10px 14px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: var(--card-radius); box-shadow: var(--shadow); font-size: 14px; line-height: 1.4; text-wrap: pretty; }
+.toast-text { margin: 0; }
+/* A notice that offers a reply takes the pointer, so it can wait while the player reaches for Read. */
+.toast:has(.toast-reply) { pointer-events: auto; }
+.toast-reply { display: block; margin: -2px 0 -10px; }
 .toast.entering { animation: toast-in .3s cubic-bezier(.16,1,.3,1); }
 .toast.leaving { animation: toast-out .3s ease forwards; }
 @keyframes toast-in { from { opacity: 0; scale: .92; } }
@@ -542,6 +561,7 @@ dialog::backdrop { background: #17101ac4; }
 @media (max-width: 1023px) {
   .toast-stack { top: calc(var(--head-h) + 10px); left: 50%; translate: -50% 0; align-items: center; width: min(92vw, 360px); }
   .toast { max-width: none; width: 100%; text-align: center; }
+  .toast-reply { margin-inline: auto; }
 }
 /* Forced colours drop the tile fills and the inset rings: spaces, buttons and the selection keep system-colour edges. */
 @media (forced-colors: active) {
