@@ -109,7 +109,7 @@ test('blocker guidance excludes sources, final dishes, mismatches and blocked in
 });
 
 test('anchor help marks matching movable food and preserves one-tap release', async ({ page }) => {
-  const state = createGame(data); state.board[13] = null; state.board[14] = { code: 'bakery_2' };
+  const state = createGame(data); state.board[13] = null; state.board[14] = { code: 'bakery_2' }; state.discovered.push('bakery_2');
   await start(page, state); await tile(page, 6).click();
   await expect(help(page)).toBeVisible(); await expect(help(page).locator('.blocker-title')).toHaveText('Tied dough');
   await expect(page.locator('#blocker-rule')).toHaveText('Merge another Dough into this blocked space.');

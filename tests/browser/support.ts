@@ -131,4 +131,3 @@ export function ratio(a: string,b: string){
   const luminance=(value: string)=>value.match(/\d+(?:\.\d+)?/g)!.slice(0,3).map(Number).map(n=>n/255).map(n=>n<=.04045?n/12.92:((n+.055)/1.055)**2.4).reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);
   const x=luminance(a),y=luminance(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05);
 }
-export const noSideScroll=(page: Page)=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth);

@@ -8,7 +8,7 @@ const output=resolve(root,'.release/scary-snacks-source');
 if(relative(root,output).replaceAll('\\','/')!=='.release/scary-snacks-source')throw new Error('Invalid source export directory.');
 // The export keeps the repository's own ignore rules, so a repository made from it also ignores .env.local and the local folders private/ and analysis/.
 export const sourceFiles=[...runtimeFiles,'public/data/game.json',...fontFiles.map(path=>`public/${path}`),
-  'package.json','package-lock.json','tsconfig.json','playwright.config.ts','.gitignore','README.md','PRODUCT.md','DESIGN.md','DELIVERY.md',
+  'package.json','package-lock.json','tsconfig.json','playwright.config.ts','.fallowrc.json','.gitignore','README.md','PRODUCT.md','DESIGN.md','DELIVERY.md',
   'tools/build.ts','tools/build-image-variants.ts','tools/server.ts','tools/create-original-data.ts','tools/create-checkpoint-saves.ts','tools/export-source.ts',
   'tests/assets.test.ts','tests/build.test.ts','tests/server.test.ts','tests/engine.test.ts','tests/storage.test.ts','tests/decorations.test.ts','tests/source-export.test.ts','tests/browser/game.spec.ts','tests/browser/renovation.spec.ts','tests/browser/decorations.spec.ts','tests/browser/generators.spec.ts',
   'tests/quests.test.ts','tests/guests.test.ts','tests/regulars.test.ts','tests/browser/quests.spec.ts','tests/browser/visitors.spec.ts','tests/browser/guests.spec.ts',

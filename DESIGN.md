@@ -292,7 +292,7 @@ The setting is homely and lit by lamps. The eerie parts stay at the window: blac
 
 Paper tickets carry the requests of the neighbours. The board rests on timber between cross-stitch runner strips. The small details are authored. These are a copper coin with a crescent moon and a cat on the wordmark baseline.
 
-The other details are a copper-glow "New" pin, dashed "not yet" outlines, and dashed cloches over unmade dishes. Light mode uses cream and parchment with plum and dark brown ink. Dark mode uses walnut and plum with ivory and candle amber. The System choice follows the device.
+The other details are a copper-glow "New" pin, dashed "not yet" outlines, and dashed covered dishes in place of unmade dishes. Light mode uses cream and parchment with plum and dark brown ink. Dark mode uses walnut and plum with ivory and candle amber. The System choice follows the device.
 
 **Key Characteristics:**
 - The room is one full-height 3:4 painting for each area. On wider screens, only the pin, the area switch, and unlocked finish switches cover it.
@@ -544,11 +544,12 @@ These three parts share one place under the board. The place is at least 62px ta
 
   They add no motion or colour code. Journal has the accessible name "Open the story journal". The save state and progress count follow. The recipe book is an accent link with the bat sprite and the "N of 30 dishes discovered" line.
 - **Phones:** each opens as a sheet from the bar.
-- **Cloche:** an unmade dish is a transparent slot with a dashed Control Line border. The slot shows a Smoke cloche and "Not yet". The cloche has a dashed dome, a knob, and a plate, at the 1.7 stroke.
+- **Complete chain:** when all six dishes of a chain are discovered, its book heading shows a 14px check and "Complete" after the chain name. They use the Label size at weight 600 in Ready Green. The heading reads "[Chain], complete" to screen readers. The mark has no notice and earns nothing. No other place shows it.
+- **Covered dish:** an unmade dish is a transparent slot with a dashed Control Line border. The slot shows a Smoke covered dish and "Not yet". The covered dish is a plate under a dashed dome cover with a knob, at the 1.7 stroke.
 
-**The Covered Dish Rule.** The game does not preview unearned dishes or room changes. An unmade dish shows only as a "Not yet" cloche. Each room change shows only after its preparation is paid. A locked area shows only its name and the preparation that opens it. Tickets and the request dialog show their required food pictures and names, so that the player can plan a delivery. Waiting requests do not show until they take a ticket.
+**The Covered Dish Rule.** The game does not preview unearned dishes or room changes. An unmade dish shows only as a "Not yet" covered dish. Each room change shows only after its preparation is paid. A locked area shows only its name and the preparation that opens it. Tickets and the request dialog show their required food pictures and names, so that the player can plan a delivery. A blocked ingredient shows on the board, but its recipe book entry stays covered until the player takes or makes that dish. Waiting requests do not show until they take a ticket.
 
-Generator upgrades have no preview. Before payment, the story, Mara's line, and the source controls name no future tier or output. After payment, the story completion message names each source and its new output. The Take buttons show all earned outputs, including an output that the player has not yet taken. The recipe book keeps the cloche until the player makes the dish. The room reveal keeps its sequence.
+Generator upgrades have no preview. Before payment, the story, Mara's line, and the source controls name no future tier or output. After payment, the story completion message names each source and its new output. The Take buttons show all earned outputs, including an output that the player has not yet taken. The recipe book keeps the dish covered until the player makes it. The room reveal keeps its sequence.
 
 Cost details opens the existing dialog or phone sheet. It names the current preparation and its work scope. Materials and supplies, Labour, and Total have separate coin rows. Estimated person-hours describe the work scale, with an explicit no-timer explanation.
 

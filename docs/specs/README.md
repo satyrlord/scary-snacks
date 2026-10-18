@@ -45,10 +45,12 @@ Preparation scenes and quest completion scenes wait with chapter scenes, arrival
 Each waiting scene resumes at its saved line after a reload.
 Its acceptance section describes the automated checks.
 
+Spec 011 implements discovery, covered dishes for undiscovered dishes, the new-dish notice, and chain-completion marks.
+
 Spec 013 implements the regulars, their arrivals, arrival scenes, portraits, and quests.
 The journal lists the neighbours.
 
-Each entry is proposed, unless its specification records an implemented slice. Spec 011 has discovery cloches, notices, and item help. Its chain-completion marks are proposed. Priority is a suggested order of work. It does not change the approved product.
+Each entry is proposed, unless its specification records an implemented slice. Priority is a suggested order of work. It does not change the approved product.
 
 | Number | Specification | Priority | Full-feature dependencies |
 | --- | --- | --- | --- |
@@ -75,9 +77,8 @@ The table maps each gap in the current game to the specifications that close it.
 | Gap | Owning specifications |
 | --- | --- |
 | The finale names no regulars yet | 008, 013 |
-| The recipe book has no chain-completion marks | 011 |
 | No requests remain after the supper, so the game has no goals after the campaign | 012 |
-| Proposed features need browser coverage when implemented | Acceptance checks in 011, 012, 014, 015 |
+| Proposed features need browser coverage when implemented | Acceptance checks in 012, 014, 015 |
 | The resident cat has no part in play | 014 |
 | No start screen. Reduced motion can be on without a notice, and the player cannot change it | 015 |
 
@@ -123,7 +124,7 @@ Mandatory progression must not depend on an exhausted or inaccessible generator.
 ## Suggested delivery order
 
 1. Build Miez's visits in 014 on the quest campaign of 005. Exit: every open request stays possible, and quest rewards stay the same during the blessing.
-2. Add the remaining work of 011 and 012 as separate slices. These slices must not delay the core progression.
+2. Add the slices of 012 separately. These slices must not delay the core progression.
 
 Spec 015 adds no game state and is not part of this order.
 

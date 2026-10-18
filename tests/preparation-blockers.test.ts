@@ -112,6 +112,19 @@ test('full-board batches queue and drain only above three free cells, with at mo
   assert.equal(pendingPreparationObstacles(state, data).length, 2);
 });
 
+test('a merge that makes a new dish and places a waiting blocker keeps both notices and discovers only the dish', () => {
+  let state = act(full(ready()), { type: 'task' });
+  for (let count = 1; count <= 3; count++) state = mergeOne(state);
+  state.discovered = state.discovered.filter(code => data.items[code].generator || state.board.some(cell => cell?.code === code));
+  const known = [...state.discovered];
+  const [from, to] = state.board.flatMap((cell, index) => cell?.code === 'bakery_2' ? [index] : []);
+  const result = reduceGame(state, { type: 'move', from, to }, data);
+  assert.ok(result.ok && valid(result.state));
+  assert.equal(active(result.state).length, 1);
+  assert.equal(result.message, `${data.items.bakery_3.name} is a new dish! It is in the recipe book now. 1 preparation blocker placed.`);
+  assert.deepEqual(result.state.discovered, [...known, 'bakery_3']);
+});
+
 test('all preparation blockers require a matching ingredient on their own cell', () => {
   let state = act(ready(2), { type: 'task' });
   const [clutter, anchor] = state.preparationObstacles!.placed;
@@ -127,7 +140,7 @@ test('all preparation blockers require a matching ingredient on their own cell',
   state.board[10] = { code: 'bakery_1' };
   const failed = reduceGame(state, { type: 'move', from: 10, to: anchor.position }, data);
   assert.equal(failed.ok, false); assert.equal(failed.state, state);
-  state.board[10] = { code: 'sweet_1' };
+  state.board[10] = { code: 'sweet_1' }; state.discovered.push('sweet_1');
   state = act(state, { type: 'move', from: 10, to: anchor.position });
   assert.equal(state.board[anchor.position]?.code, 'sweet_2');
   assert.ok(state.resolvedObstacles.includes(anchor.id));

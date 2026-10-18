@@ -283,16 +283,15 @@ function applyAction(action: Action, select?: number | null) {
     state = result.state; if (select !== undefined) selected = select; if(action.type!=='task'&&action.type!=='decorate')persist();
     if (result.event && TONE_EVENTS.includes(result.event)) playTone(result.event);
   }
-  let message = result.message;
   render();
   if (state.coins > coins) celebrateCoins(state.coins - coins);
   if (result.ok && (result.event === 'merge' || result.event === 'spawn')) {
     // A new dish settles onto its tile; the first one of its kind arrives with a little flourish and goes into the recipe book.
     state.board.forEach((cell, index) => { if (cell && cell.code !== before[index]) $(`[data-cell="${index}"]`).classList.add(known.has(cell.code) ? 'settle' : 'first'); });
     const first = state.discovered.filter(code => !known.has(code) && data.items[code] && !definition(code).generator);
-    if (first.length) { freshDishes += first.length; markRecipeBook(); message = `${itemName(first[0])} is a new dish! It is in the recipe book now.`; }
+    if (first.length) { freshDishes += first.length; markRecipeBook(); }
   }
-  status(message);
+  status(result.message);
   return result;
 }
 /** The recipe book shows how many dishes are new since it was last opened. */
@@ -628,7 +627,7 @@ function chainOf(code: string) {
     const id=`${def.chain}_${stage}`; const step=element('li', id===code?'current':'');
     if (id===code) step.setAttribute('aria-current','step');
     const known = state.discovered.includes(id);
-    step.append(known ? food(id) : cloche(), element('span', '', known ? itemName(id) : 'Not yet')); chain.append(step);
+    step.append(known ? food(id) : coveredDish(), element('span', '', known ? itemName(id) : 'Not yet')); chain.append(step);
   }
   return chain;
 }
@@ -889,24 +888,30 @@ function journal(focusEntry?: string) {
   }
   showModal('Story journal',content,focusEntry?content.querySelector<HTMLElement>(`[data-journal="${focusEntry}"]`)??undefined:undefined);
 }
-/** A serving cloche with a dashed dome: the "not yet" mark for a dish nobody has made. */
-function cloche() {
-  const value=svg('svg');value.setAttribute('class','cloche');value.setAttribute('viewBox','0 0 48 48');value.setAttribute('aria-hidden','true');
-  const dome=svg('path');dome.setAttribute('class','cloche-dome');dome.setAttribute('d','M9 33a15 15 0 0 1 30 0');
+/** A plate under a dashed dome cover: the "not yet" mark for a dish nobody has made. */
+function coveredDish() {
+  const value=svg('svg');value.setAttribute('class','covered-dish');value.setAttribute('viewBox','0 0 48 48');value.setAttribute('aria-hidden','true');
+  const dome=svg('path');dome.setAttribute('class','covered-dish-dome');dome.setAttribute('d','M9 33a15 15 0 0 1 30 0');
   const knob=svg('path');knob.setAttribute('d','M24 18v-2.5M21.5 15.5h5');
   const plate=svg('path');plate.setAttribute('d','M6 33h36M10 36.5h28');
   value.append(dome,knob,plate);return value;
 }
-/** Undiscovered dishes wait under cloches, so the book never spoils what the kitchen has not made yet. */
+/** Undiscovered dishes stay covered, so the book never spoils what the kitchen has not made yet. */
 function recipeBook() {
   freshDishes=0;markRecipeBook();
-  const content=element('div');content.append(element('p','modal-copy','A playful menu inspired by regional foods and drinks. Merge paths are game rules, not cooking recipes. Dishes you have not made yet wait under a cloche.'));
+  const content=element('div');content.append(element('p','modal-copy','A playful menu inspired by regional foods and drinks. Merge paths are game rules, not cooking recipes. Dishes you have not made yet stay covered.'));
   for(const chain of data.chains) {
-    const section=element('section','recipe-chain');section.append(element('h3','',chain.name));
+    const section=element('section','recipe-chain'),heading=element('h3','',chain.name);section.append(heading);
+    // A chain is complete once all six of its dishes are discovered. The mark is derived, never saved, and earns nothing.
+    if([1,2,3,4,5,6].every(stage=>state.discovered.includes(`${chain.id}_${stage}`))){
+      heading.setAttribute('aria-label',`${chain.name}, complete`);
+      const mark=element('span','chain-complete'),check=svg('svg');check.setAttribute('viewBox','0 0 16 16');check.setAttribute('aria-hidden','true');
+      const tick=svg('path');tick.setAttribute('d','M3.5 8.5l3 3 6-7');check.append(tick);mark.append(check,element('span','','Complete'));heading.append(mark);
+    }
     const grid=element('div','recipe-grid');
     for(let stage=1;stage<=6;stage++) {
       const code=`${chain.id}_${stage}`;
-      if(!state.discovered.includes(code)){const slot=element('div','recipe-item not-yet');slot.append(cloche(),element('span','','Not yet'));grid.append(slot);continue;}
+      if(!state.discovered.includes(code)){const slot=element('div','recipe-item not-yet');slot.append(coveredDish(),element('span','','Not yet'));grid.append(slot);continue;}
       const value=button('','recipe-item',()=>showItem(code));value.append(food(code),element('span','',itemName(code)));grid.append(value);
     }
     section.append(grid);content.append(section);

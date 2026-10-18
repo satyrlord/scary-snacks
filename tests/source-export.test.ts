@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdir, readFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sourceFiles } from '../tools/export-source.ts';
@@ -56,4 +58,29 @@ test('the source export keeps the ignore rules for the local key and the local f
   assert.ok(sourceFiles.includes('.gitignore'));
   const rules = (await readFile(new URL('.gitignore', root), 'utf8')).split(/\r?\n/);
   for (const rule of ['.env.local', 'private/', 'analysis/', '.release/', '.tools/']) assert.ok(rules.includes(rule), rule);
+});
+
+test('the exported dead-code command rejects an unused development dependency', async t => {
+  assert.ok(sourceFiles.includes('.fallowrc.json'));
+  const fixture = await mkdtemp(join(tmpdir(), 'scary-snacks-deadcode-'));
+  t.after(() => rm(fixture, { recursive: true, force: true }));
+  const { scripts } = JSON.parse(await readFile(new URL('package.json', root), 'utf8'));
+  const [command, ...args] = scripts.deadcode.split(/\s+/);
+  assert.equal(command, 'fallow');
+  await writeFile(join(fixture, '.fallowrc.json'), await readFile(new URL('.fallowrc.json', root)));
+  await writeFile(join(fixture, 'package.json'), JSON.stringify({
+    name: 'deadcode-fixture', type: 'module', scripts: { start: 'node main.ts' },
+    devDependencies: { 'unused-fixture': '1.0.0' },
+  }));
+  await writeFile(join(fixture, 'main.ts'), 'console.log("fixture");');
+  const dependency = join(fixture, 'node_modules/unused-fixture');
+  await mkdir(dependency, { recursive: true });
+  await writeFile(join(dependency, 'package.json'), JSON.stringify({ name: 'unused-fixture', version: '1.0.0', main: 'index.ts' }));
+  await writeFile(join(dependency, 'index.ts'), 'export const unused = true;');
+  const result = spawnSync(process.execPath, [fileURLToPath(new URL('node_modules/fallow/bin/fallow', root)), ...args,
+    '--root', fixture, '--format', 'json', '--quiet', '--no-cache'], { cwd: fixture, encoding: 'utf8', timeout: 30000 });
+  assert.ifError(result.error);
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(report.unused_dev_dependencies.map((dependency: { package_name: string }) => dependency.package_name), ['unused-fixture']);
+  assert.equal(result.status, 1, result.stderr || 'An unused development dependency must fail the gate.');
 });

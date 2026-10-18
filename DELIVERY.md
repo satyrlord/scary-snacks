@@ -4,7 +4,9 @@
 
 The source is TypeScript 7 in strict mode, HyperText Markup Language (HTML), and Cascading Style Sheets (CSS). The repository has no JavaScript source files. Node.js 24 runs the tools and the tests from the `.ts` files directly. The build removes the types from the three runtime modules and publishes them as browser scripts in `dist/`. `npm run typecheck` runs the compiler without output.
 
-Playwright, TypeScript, Sharp (for image variants), and the Node.js type definitions are development dependencies.
+Playwright, TypeScript, Sharp (for image variants), Fallow (for dead code), and the Node.js type definitions are development dependencies.
+
+`npm run deadcode` runs Fallow on the module graph. The check fails on an unused file, export, type, or dependency, and on an import that Fallow cannot resolve. `.fallowrc.json` gives the entry points that Fallow cannot find and the runtime URLs that the build resolves.
 
 `npm run preview` serves `dist/` at http://127.0.0.1:4178. `npm run dev` serves the source. To serve at a subdirectory, set `BASE_PATH` to `/scary-snacks/` before you start the server. The address then becomes http://127.0.0.1:4178/scary-snacks/.
 

@@ -62,9 +62,10 @@ different clearing rules. Validation checks unique positions, known ingredients
 with successors, available chains, and separation from initial items.
 
 The state keeps the layout ID and resolved obstacle IDs. Movable items cannot
-occupy unresolved cells. A fresh game discovers every visible blocked ingredient.
-Current saves can omit discoveries for unresolved clutter; successful actions
-record those visible ingredients. This keeps the current save format valid.
+occupy unresolved cells. A blocker does not discover its ingredient, so the
+recipe book keeps that dish covered until the player takes or makes it. A
+resolved blocker needs its ingredient in the discoveries. A save can list a
+blocked ingredient that the player has not made; the game keeps it.
 
 The optional preparation record holds a baseline and placed IDs with cells.
 Waiting blockers come from paid batches after that baseline. Missing records

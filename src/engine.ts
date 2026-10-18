@@ -157,6 +157,12 @@ const availableChains = (state: Pick<GameState, 'taskIndex'>, data: GameData) =>
 function discover(state: GameState, code: string) {
   if (!state.discovered.includes(code)) state.discovered.push(code);
 }
+/** Discovers a dish that the player makes or takes. The first one of its kind gets the new-dish notice instead of the usual line. */
+function made(state: GameState, code: string, name: string, line: string) {
+  const first = !state.discovered.includes(code);
+  discover(state, code);
+  return first ? `${name} is a new dish! It is in the recipe book now.` : line;
+}
 /** Keep production space. Place in stable cell order. */
 function placePreparationObstacles(state: GameState, data: GameData): number {
   const progress = state.preparationObstacles;
@@ -180,8 +186,7 @@ export function createGame(data: GameData): GameState {
   return {
     version: 12, layoutId, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] }, pendingScenes: [],
     board: data.board.initial.map(code => code ? { code } : null), coins: 0, taskIndex: 0,
-    discovered: [...new Set([...data.board.initial.filter(present),
-      ...(data.board.layouts.find(layout => layout.id === layoutId)?.obstacles.map(obstacle => obstacle.ingredient) ?? [])])],
+    discovered: [...new Set(data.board.initial.filter(present))],
     decorations: [], decorationChoices: {}, outputChoices: {}, completedQuests: [],
   };
 }
@@ -832,10 +837,9 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
       || new Set(state.discovered).size !== state.discovered.length
       || !state.discovered.every(code => own(data.items, code) && chains.includes(data.items[code].chain))
       || !cells.every(cell => state.discovered.includes(cell.code))) return false;
-    {
-      if (boardObstacles(state, data).some(obstacle => (obstacle.type === 'anchored' || state.resolvedObstacles.includes(obstacle.id))
-        && !state.discovered.includes(obstacle.ingredient))) return false;
-    }
+    // A blocker does not discover its ingredient, but clearing one needs that ingredient on the board.
+    if (boardObstacles(state, data).some(obstacle => state.resolvedObstacles.includes(obstacle.id)
+      && !state.discovered.includes(obstacle.ingredient))) return false;
     if (!Array.isArray(state.decorations) || state.decorations.length !== state.taskIndex
       || !state.decorations.every((id, index) => id === data.tasks[index].id)) return false;
     const choices = state.decorationChoices;
@@ -931,9 +935,9 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
         next.board[action.to] = { code: item.next };
         next.board[action.from] = null;
         if (obstacle) next.resolvedObstacles.push(obstacle.id);
-        discover(next, item.next);
+        const name = getItem(item.next, data)!.name;
+        message = made(next, item.next, name, `Made ${name}.`);
         event = 'merge';
-        message = `Made ${getItem(item.next, data)!.name}.`;
       } else {
         if (obstacle) return fail('Merge a matching ingredient into this blocked space.');
         next.board[action.to] = source;
@@ -953,8 +957,8 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       next.board[empty] = { code };
       if (data.items[code].stage === 1) delete next.outputChoices[item.chain];
       else next.outputChoices[item.chain] = code;
-      discover(next, code);
-      message = `Took ${getItem(code, data)!.name}.`;
+      const name = getItem(code, data)!.name;
+      message = made(next, code, name, `Took ${name}.`);
       break;
     }
     case 'task': {
@@ -997,6 +1001,5 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
     const pending = pendingPreparationObstacles(next, data).length;
     if (action.type === 'task' && pending) message += ` ${pending} ${pending === 1 ? 'blocker waits' : 'blockers wait'} for safe space.`;
   }
-  for (const obstacle of boardObstacles(next, data)) discover(next, obstacle.ingredient);
   return { state: next, ok: true, message, event };
 }

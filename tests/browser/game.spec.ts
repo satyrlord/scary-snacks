@@ -290,7 +290,7 @@ function beforeNewDish(){
 }
 const dishCount=()=>({known:createGame(data).discovered.filter(code=>!data.items[code].generator).length,total:Object.values(data.items).filter(item=>!item.generator).length});
 
-test('the recipe book keeps undiscovered dishes under cloches and marks new ones until it is opened',async({page})=>{
+test('the recipe book keeps undiscovered dishes covered and marks new ones until it is opened',async({page})=>{
   const {state,dish,first,second}=beforeNewDish(),{known,total}=dishCount();
   await start(page,state);await page.getByRole('button',{name:/The recipe book/}).click();
   await expect(page.locator('.recipe-item.not-yet')).toHaveCount(total-known);await expect(page.locator('#modal')).not.toContainText(dish.name);await page.getByRole('button',{name:'Close dialog'}).click();
@@ -299,6 +299,32 @@ test('the recipe book keeps undiscovered dishes under cloches and marks new ones
   await expect(page.locator('#collection-button')).toHaveAttribute('data-fresh','');await expect(page.locator('#discovery-count')).toHaveText(`${known+1} of ${total} dishes discovered, 1 new`);
   await page.getByRole('button',{name:/The recipe book/}).click();await expect(page.locator('.recipe-item.not-yet')).toHaveCount(total-known-1);await expect(page.locator('#modal')).toContainText(dish.name);
   await page.getByRole('button',{name:'Close dialog'}).click();await expect(page.locator('#collection-button')).not.toHaveAttribute('data-fresh','');
+});
+
+test('a chain with all six dishes discovered shows its completion mark across reload, and earns nothing',async({page})=>{
+  const state=createGame(data);for(const code of [1,2,3,4,5,6].map(stage=>`bakery_${stage}`).concat([1,2,3,4,5].map(stage=>`warm_${stage}`)))if(!state.discovered.includes(code))state.discovered.push(code);
+  const bakery=data.chains.find(chain=>chain.id==='bakery')!.name,warm=data.chains.find(chain=>chain.id==='warm')!.name;
+  await start(page,state);
+  for(let round=0;round<2;round++){
+    await page.getByRole('button',{name:/The recipe book/}).click();const book=page.getByRole('dialog');
+    await expect(book.getByRole('heading',{name:`${bakery}, complete`,exact:true})).toContainText('Complete');
+    await expect(book.getByRole('heading',{name:warm,exact:true})).not.toContainText('Complete');
+    await expect(book.locator('.chain-complete')).toHaveCount(1);
+    await page.getByRole('button',{name:'Close dialog'}).click();
+    if(!round){await page.reload();await opened(page);}
+  }
+  expect(await saved(page)).toEqual(state);
+});
+
+test('a requested dish stays covered in the book until it is made, and stays revealed after delivery and reload',async({page})=>{
+  const dish=data.items[welcome.requirements[0].item],part=`${dish.chain}_${dish.stage-1}`,state=supply(createGame(data),[part]);
+  const [first,second]=state.board.flatMap((cell,index)=>cell?.code===part?[index]:[]);
+  expect(state.discovered).not.toContain(dish.id);await start(page,state);await expect(ticket(page,welcome).locator('.ticket-items')).toHaveAccessibleName(new RegExp(dish.name));
+  await page.getByRole('button',{name:/The recipe book/}).click();await expect(page.locator('#modal')).not.toContainText(dish.name);await page.getByRole('button',{name:'Close dialog'}).click();
+  await tile(page,first).click();await tile(page,second).click();await expect(page.locator('#status')).toHaveText(`${dish.name} is a new dish! It is in the recipe book now.`);
+  await deliverButton(page,welcome).click();await expect(ticket(page,welcome)).toHaveCount(0);
+  await page.reload();await opened(page);expect((await saved(page)).discovered).toContain(dish.id);
+  await page.getByRole('button',{name:/The recipe book/}).click();await expect(page.locator('#modal').getByRole('button',{name:dish.name,exact:true})).toBeVisible();
 });
 
 test('reduced motion keeps the delivery outcome and words without the flight',async({page})=>{

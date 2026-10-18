@@ -34,7 +34,7 @@ If the user tells you not to run checks, give each check that you did not run in
 
 ## Make the dependency graph
 
-Read `PRODUCT.md`, `DESIGN.md`, `DELIVERY.md`, and `package.json`.
+Read `PRODUCT.md`, `DESIGN.md`, `DELIVERY.md`, `package.json`, and `.fallowrc.json`.
 Read `playwright.config.ts`, the tools in `tools/`, and the workflow in `.github/workflows/`.
 Examine the repository status.
 Record the entry points for production, tests, content, assets, development tools, and deployment:
@@ -46,6 +46,25 @@ Record the entry points for production, tests, content, assets, development tool
 - The test files in `tests/` and `tests/browser/`.
 
 Run `npm test` before you record candidates.
+
+## Find candidates with Fallow
+
+Run `npx fallow dead-code --type-aware --format json --quiet`.
+Fallow reports unused files, exports, types, and dependencies, and imports that it cannot resolve.
+The type-aware pass uses the TypeScript checker to follow aliases and re-exports.
+To find the importers of one export, run `npx fallow dead-code --type-aware --symbol-impact <file>:<export> --format json --quiet`.
+Record each Fallow finding as a candidate.
+
+A Fallow finding is not evidence that an item is dead.
+A Fallow result with no findings is not a clean audit.
+Fallow examines only the module graph.
+It does not examine CSS selectors, element identifiers, game data, assets, or records.
+Use the procedure below for each candidate and for the items that Fallow does not examine.
+
+Do not run `fallow fix` without `--dry-run`.
+Do not add an entry, an ignore pattern, or a `fallow-ignore` comment to hide a dead item.
+Add one only for a live item that Fallow cannot find, and only with the approval that [run-quality-gate](../run-quality-gate/SKILL.md) gives.
+Record the reason in the report.
 
 ## Find evidence for each candidate
 
@@ -71,6 +90,7 @@ Keep the files in `private/`, `analysis/`, `.release/`, and `.tools/`. They are 
 For game data, obey the generator rule in `AGENTS.md`.
 
 After each removal, run the checks that the removal touches.
+Run `npm run deadcode`. It must pass.
 Then run the checks that `AGENTS.md` gives for the scope.
 For the full gate, use [run-quality-gate](../run-quality-gate/SKILL.md).
 Obey the limits of the user on checks.

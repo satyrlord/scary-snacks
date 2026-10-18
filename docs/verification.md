@@ -5,9 +5,10 @@
 `npm run quality:full` is the full gate. The gate runs these steps in order:
 
 1. The type check.
-2. The Node.js tests.
-3. The build.
-4. The Playwright browser tests on Chromium, against the build.
+2. The dead-code check with Fallow.
+3. The Node.js tests.
+4. The build.
+5. The Playwright browser tests on Chromium, against the build.
 
 The browser tests use 40% of the logical processors. Each test has its own browser context and save.
 The full browser suite runs under `/scary-snacks/`, the GitHub Pages path.

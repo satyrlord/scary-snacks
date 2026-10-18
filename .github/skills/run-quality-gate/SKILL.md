@@ -27,7 +27,7 @@ description: Run or repair the full Scary Snacks quality gate. Use when the user
   Complete when each release check has a status.
 
 The full gate is `npm run quality:full`.
-It runs `npm run typecheck`, `npm run test`, `npm run build`, and `npm run test:browser` in that order.
+It runs `npm run typecheck`, `npm run deadcode`, `npm run test`, `npm run build`, and `npm run test:browser` in that order.
 A pass of only `npm test` is not full-gate evidence and is not release evidence.
 If the user tells you not to run tests, do not run a check. Give the missing evidence in the report.
 If the user changes the scope, select the mode again before the next edit.
@@ -41,10 +41,11 @@ If the scope does not include an addition, get approval before that addition:
 - A changed pin or a new command.
 - A lower limit, for example a contrast limit or a size limit.
 - A new entry in a build allowlist or a provenance record.
+- A new entry, ignore pattern, or rule in `.fallowrc.json`, or a `fallow-ignore` comment.
 
 ## Find the gate configuration
 
-Read `package.json`, `package-lock.json`, `tsconfig.json`, `playwright.config.ts`, and `.github/workflows/pages.yml`.
+Read `package.json`, `package-lock.json`, `tsconfig.json`, `.fallowrc.json`, `playwright.config.ts`, and `.github/workflows/pages.yml`.
 Read `DELIVERY.md` and `docs/verification.md`.
 Examine the Git status. Do not change work that is not related to the gate.
 For each change, find the related checks.

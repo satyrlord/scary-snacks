@@ -161,7 +161,7 @@ A new game starts with eight blocked edge cells on the six-by-seven board. Each 
 
 Every blocker has the same rule: merge a matching movable ingredient into the blocked ingredient. The blocker clears and the normal successor stays in that cell. The source cell becomes empty. A merge beside a blocker clears nothing.
 
-A blocked ingredient cannot move or fill a quest. Clearing needs no free space and is optional for campaign progress and quests. A blocked cell is not a free space for any placement or space count. The board hint can point to any matching blocked ingredient.
+A blocked ingredient cannot move or fill a quest. Clearing needs no free space and is optional for campaign progress and quests. A blocked cell is not a free space for any placement or space count. The board hint can point to any matching blocked ingredient. A blocker does not add its ingredient to the recipe book. A new game discovers the items on its initial board. After that, only a take or a merge discovers a dish.
 
 Each blocker has a small help mark. A tap selects the blocker. Its name and clearing rule replace the item actions or preparation offer under the board. The help names the exact matching ingredient and marks movable matches.
 
