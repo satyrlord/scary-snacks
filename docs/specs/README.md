@@ -12,8 +12,7 @@ The following boundaries apply to the planned features:
 - no waiting;
 - no purchases, advertisements, or accounts;
 - requests without a deadline;
-- neighbours whose tastes the player can read and plan for (013);
-- the cats of the bistro as part of play (014).
+- neighbours whose tastes the player can read and plan for (013).
 
 The team authors the content, the art, and the rules.
 
@@ -65,7 +64,6 @@ Each entry is proposed, unless its specification records an implemented slice. P
 | 011 | [Discovery and recipe book](011-discovery-and-recipe-book.md) | Optional | None |
 | 012 | [Post-campaign goals](012-post-campaign-goals.md) | Optional | 005, 008, 011 |
 | 013 | [Neighbourhood regulars](013-neighbourhood-regulars.md) | High | 009 for arrival scenes |
-| 014 | [Miez's visits](014-miez-visits.md) | Medium | 006 for balance, 009 for the first-visit scene |
 | 015 | [The front door](015-front-door.md) | Medium | None |
 
 A reference to another specification is not always a prerequisite. Early slices can be independent. The table lists the dependencies of the complete feature. The register keeps optional entries, so that planning does not lose them.
@@ -78,11 +76,10 @@ The table maps each gap in the current game to the specifications that close it.
 | --- | --- |
 | The finale names no regulars yet | 008, 013 |
 | No requests remain after the supper, so the game has no goals after the campaign | 012 |
-| Proposed features need browser coverage when implemented | Acceptance checks in 012, 014, 015 |
-| The resident cat has no part in play | 014 |
+| Proposed features need browser coverage when implemented | Acceptance checks in 012, 015 |
 | No start screen. Reduced motion can be on without a notice, and the player cannot change it | 015 |
 
-Neighbour introductions (005) are optional journal reading. Miez's visits (014) and optional post-campaign goals (012) remain proposed. Decoration choices (002) are visual choices, not a branching story.
+Neighbour introductions (005) are optional journal reading. Optional post-campaign goals (012) remain proposed. Decoration choices (002) are visual choices, not a branching story.
 
 ## Shared product boundaries
 
@@ -123,8 +120,7 @@ Mandatory progression must not depend on an exhausted or inaccessible generator.
 
 ## Suggested delivery order
 
-1. Build Miez's visits in 014 on the quest campaign of 005. Exit: every open request stays possible, and quest rewards stay the same during the blessing.
-2. Add the slices of 012 separately. These slices must not delay the core progression.
+Add the slices of 012 separately. These slices must not delay the core progression.
 
 Spec 015 adds no game state and is not part of this order.
 
