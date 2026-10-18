@@ -62,9 +62,8 @@ Each entry is proposed, unless its specification records an implemented slice. P
 | 008 | [Chapter story and finale](008-chapter-story-and-finale.md) | High | 001, 005, 009 |
 | 009 | [Dialogue continuation](009-dialogue-continuation.md) | Medium | None |
 | 011 | [Discovery and recipe book](011-discovery-and-recipe-book.md) | Optional | None |
-| 012 | [Post-campaign goals](012-post-campaign-goals.md) | Optional | 005, 008, 011 |
 | 013 | [Neighbourhood regulars](013-neighbourhood-regulars.md) | High | 009 for arrival scenes |
-| 015 | [The front door](015-front-door.md) | Medium | None |
+| 015 | [Motion choice](015-motion-choice.md) | Medium | None |
 
 A reference to another specification is not always a prerequisite. Early slices can be independent. The table lists the dependencies of the complete feature. The register keeps optional entries, so that planning does not lose them.
 
@@ -75,11 +74,9 @@ The table maps each gap in the current game to the specifications that close it.
 | Gap | Owning specifications |
 | --- | --- |
 | The finale names no regulars yet | 008, 013 |
-| No requests remain after the supper, so the game has no goals after the campaign | 012 |
-| Proposed features need browser coverage when implemented | Acceptance checks in 012, 015 |
-| No start screen. Reduced motion can be on without a notice, and the player cannot change it | 015 |
+| No requests remain after the supper, so the game has no goals after the campaign | None |
 
-Neighbour introductions (005) are optional journal reading. Optional post-campaign goals (012) remain proposed. Decoration choices (002) are visual choices, not a branching story.
+Neighbour introductions (005) are optional journal reading. Decoration choices (002) are visual choices, not a branching story.
 
 ## Shared product boundaries
 
@@ -117,12 +114,6 @@ Otherwise, reject the action.
 Explain the space that the action needs.
 Never lose an item or pay a reward twice.
 Mandatory progression must not depend on an exhausted or inaccessible generator.
-
-## Suggested delivery order
-
-Add the slices of 012 separately. These slices must not delay the core progression.
-
-Spec 015 adds no game state and is not part of this order.
 
 ## Verification and release
 

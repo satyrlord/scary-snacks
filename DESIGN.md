@@ -666,10 +666,10 @@ It adds no motion.
 
 ### Options
 
-Options shows the save state and any applicable Retry saved game or Retry save control. Its other sections are Appearance, Kitchen sounds, Your saved game, About Scary Snacks, and A fresh start. The sections use the existing dialog, section, button, ink, muted, and focus styles.
+Options shows the save state and any applicable Retry saved game or Retry save control. Its other sections are Appearance, Motion, Kitchen sounds, Your saved game, About Scary Snacks, and A fresh start. The sections use the existing dialog, section, button, ink, muted, and focus styles.
 
 ### Inputs / Fields
-- **Segmented choice:** the Appearance setting is a Flour Dust track with a Control Line border and 44px options. The checked option takes the chosen fill, weight 600, a 2px inset accent ring, and the pressed choice shadow.
+- **Segmented choice:** the Appearance and Motion settings each use a Flour Dust track with a Control Line border and 44px options. The checked option takes the chosen fill, weight 600, a 2px inset accent ring, and the pressed choice shadow.
 
 ## Design instructions
 
@@ -686,7 +686,7 @@ Options shows the save state and any applicable Retry saved game or Retry save c
 - Keep the wordmark as the top-level heading (h1) of the page.
 - Keep one Pay button on screen at a time.
 - Recompute `--cell` and the visible room together if either changes. Check 1440×900, 390×844, and 390×800.
-- Respect reduced motion. Reduced motion removes every animation and transition. Reduced motion keeps every outcome and line of text.
+- Respect reduced motion. Reduced motion is the Motion choice Reduced, or System on a device that asks for reduced motion. Reduced motion removes every animation and transition. Reduced motion keeps every outcome and line of text. Full keeps every animation and transition.
 - Use the house words: the board and a preparation. Call an ingredient source by its own name (the Flour bin). Players take, merge, deliver, and pay.
 
 ### Prohibited actions

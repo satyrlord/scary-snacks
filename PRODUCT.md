@@ -195,7 +195,7 @@ Pay in Mara's line works like Pay in the story.
 
 After the player pays for a preparation, its story plays. When the story ends, the drawer lowers on phones. Next, the new painting fades in over the old painting. Next, the pin marks the change.
 
-Last, the drawer rises again on phones. If the browser requests reduced motion, the game shows the result at once. The reveal does not spend coins and does not earn coins a second time.
+Last, the drawer rises again on phones. With reduced motion, the game shows the result at once. The reveal does not spend coins and does not earn coins a second time.
 
 Every preparation repaints one room. Miez sits on the windowsill of the front room. When the supper is ready, a second black cat sleeps on the counter. Captions describe every earned change.
 
@@ -215,7 +215,7 @@ Lower the drawer to reach a detail outside the current crop. The completion line
 
 ## Feature specifications
 
-The repository-only backlog at `docs/specs/README.md` records 14 feature specifications, their status, the product limits, and the product direction.
+The repository-only backlog at `docs/specs/README.md` records the feature specifications, their status, the product limits, and the product direction.
 This document owns the implemented behavior.
 The repository-only art plan, `docs/specs/001-room-states-art-plan.md`, defines the 25 painted room states.
 
@@ -240,9 +240,11 @@ The user selected the title. A preliminary name search is not trademark clearanc
 
 ## Access and persistence
 
-The game supports pointer, keyboard, and touch controls. The game supports Light, Dark, and System appearance, visible focus, and reduced motion. Forced colours (Windows high contrast) keep the spaces and the selection visible.
+The game supports pointer, keyboard, and touch controls. The game supports Light, Dark, and System appearance, visible focus, and reduced motion.
 
-The browser stores the saves, the theme preferences, and the area that the player chose with the area switch. The area is a display preference. The area is not part of the save. The next reveal moves the room to the area of the change.
+The Motion choice in Options has three options. System is the default. System follows the reduced-motion setting of the device. Reduced removes the motion on all devices. Full plays all the motion, also when the device asks for reduced motion. In this document, "reduced motion" means Reduced, or System on a device that asks for reduced motion. Forced colours (Windows high contrast) keep the spaces and the selection visible.
+
+The browser stores the saves, the theme preferences, the motion choice, and the area that the player chose with the area switch. The area is a display preference. The area is not part of the save. The next reveal moves the room to the area of the change.
 
 If the browser blocks storage, the game is playable for the current visit only. Options and each change say that the game is not saved. Preparations and finish switches need a successful save, so they do not complete.
 

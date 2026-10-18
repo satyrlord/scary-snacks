@@ -89,7 +89,7 @@ export async function journal(page: Page){
 }
 export async function options(page: Page){await page.locator('[data-options]:visible').first().click();await expect(page.locator('#modal-title')).toHaveText('Options');}
 export async function appearance(page: Page,mode: string){
-  await options(page);await page.getByRole('radio',{name:mode[0].toUpperCase()+mode.slice(1),exact:true}).check();await page.getByRole('button',{name:'Close dialog'}).click();
+  await options(page);await page.getByRole('group',{name:'Appearance'}).getByRole('radio',{name:mode[0].toUpperCase()+mode.slice(1),exact:true}).check();await page.getByRole('button',{name:'Close dialog'}).click();
 }
 /** Reads the open scene to its end and presses the end control, which has this label. */
 export async function readTo(page: Page,label: string){

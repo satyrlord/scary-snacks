@@ -1,6 +1,6 @@
 # 001 Room states: art plan
 
-Status: Approved. The game includes all 25 accepted states.
+Status: Implemented. The game includes all 25 accepted states.
 
 This plan defines the painted room states of [spec 001](001-visible-renovation.md) for the "room and drawer" screen. [DESIGN.md](../../DESIGN.md) controls the design of that screen. Each preparation repaints the room itself. Every change shares the perspective, the light, and the contact shadows of the painting.
 

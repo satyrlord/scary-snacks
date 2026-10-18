@@ -105,4 +105,4 @@ village. They are awake when the bats are.
 
 ## Remaining decisions
 
-008 may let the finale name the regulars who arrived. The challenges in 012 stay with the core four.
+008 may let the finale name the regulars who arrived.

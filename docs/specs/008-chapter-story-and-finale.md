@@ -94,4 +94,4 @@ The test delivers each contribution during its chapter.
 The journal shows each contribution beside the payoff.
 The finale names each chapter result.
 The board stays available after the finale.
-Spec 012 owns goals after the story. Spec 013 can add the names of the regulars who have arrived to the finale. Scene art is a content decision.
+Spec 013 can add the names of the regulars who have arrived to the finale. Scene art is a content decision.

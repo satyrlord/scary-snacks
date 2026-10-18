@@ -334,6 +334,97 @@ test('reduced motion keeps the delivery outcome and words without the flight',as
   await expect(page.locator('#tickets .ticket')).toHaveCount(3);await expect(page.locator('#tickets .ticket').first()).toBeVisible();
 });
 
+/** Chooses a Motion option in Options and closes Options. */
+async function chooseMotion(page: Page,name: string){
+  await options(page);await page.getByRole('group',{name:'Motion'}).getByRole('radio',{name,exact:true}).check();await page.keyboard.press('Escape');
+}
+const buttonTransition=(page: Page)=>page.locator('#hint-button').evaluate(button=>getComputedStyle(button).transitionDuration);
+
+for(const denied of ['access','write'])test(`motion and appearance changes report denied storage ${denied}`,async({page})=>{
+  await page.addInitScript(mode=>{
+    if(mode==='access')Object.defineProperty(window,'localStorage',{get(){throw new DOMException('Storage blocked.','SecurityError');}});
+    else {const original=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key==='scary-snacks-motion'||key==='scary-snacks-theme')throw new DOMException('Storage full.','QuotaExceededError');original.call(this,key,value);};}
+  },denied);
+  await start(page);if(!await page.getByRole('dialog',{name:'Options',exact:true}).isVisible())await options(page);
+  for(const [group,choice,attribute] of [['Motion','Reduced','motion'],['Appearance','Dark','theme']]){
+    await page.getByRole('group',{name:group}).getByRole('radio',{name:choice,exact:true}).check();
+    await expect(page.locator('html')).toHaveAttribute(`data-${attribute}`,choice.toLowerCase());
+    await expect(page.locator('#status')).toHaveText(`${group} changed for this session. Browser storage is unavailable.`);
+  }
+});
+
+for(const change of ['choice','device'])test(`live motion ${change} ends a delivery flight and keeps its notice`,async({page})=>{
+  await start(page,supply(createGame(data),['drinks_2']));
+  // Hold a real delivery flight so the preference change cannot race its normal finish.
+  await page.evaluate(()=>{const original=Element.prototype.animate;Element.prototype.animate=function(...args){const animation=original.apply(this,args);if(this.classList.contains('deliver-flight'))animation.pause();return animation;};});
+  await deliverButton(page,welcome).click();await expect(page.locator('.deliver-flight')).toHaveCount(1);
+  if(change==='choice')await chooseMotion(page,'Reduced');else await page.emulateMedia({reducedMotion:'reduce'});
+  await expect(page.locator('.deliver-flight')).toHaveCount(0);
+  await expect(toast(page)).toHaveCount(1);await expect(toast(page)).toContainText(`Earned ${welcome.reward} coins.`);
+  expect((await saved(page)).completedQuests).toEqual([welcome.id]);
+});
+
+test('the open Motion note follows a device preference change',async({page})=>{
+  await page.emulateMedia({reducedMotion:'reduce'});await start(page);await options(page);
+  const group=page.getByRole('group',{name:'Motion'});
+  await expect(group).toContainText('System follows your device, which asks for less motion.');
+  await group.getByRole('radio',{name:'System',exact:true}).focus();
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  await expect(group).toContainText('System follows your device’s motion setting.');
+  await expect(group.getByRole('radio',{name:'System',exact:true})).toBeFocused();
+  await page.keyboard.press('ArrowRight');await expect(group.getByRole('radio',{name:'Reduced',exact:true})).toBeFocused();
+  await expect(group.getByRole('radio',{name:'Reduced',exact:true})).toBeChecked();
+  await expect(page.locator('html')).toHaveAttribute('data-motion','reduced');
+});
+
+test('Full motion does not replay an earlier reduced delivery',async({page})=>{
+  await start(page,supply(createGame(data),['drinks_2']));await chooseMotion(page,'Reduced');
+  await deliverButton(page,welcome).click();await expect(toast(page)).toHaveCount(1);
+  await chooseMotion(page,'Full');
+  await expect(toast(page)).toHaveCount(1);
+  expect(await page.locator('#tickets,#coin-count,#toast-stack').evaluateAll(elements=>elements.flatMap(element=>element.getAnimations({subtree:true})).filter(animation=>animation.playState==='running').length)).toBe(0);
+  await expect(page.locator('#tickets .ticket').first()).toBeVisible();
+  await expect(toast(page)).toHaveCount(0,{timeout:6000});
+});
+
+test('a delayed painting decode does not start motion after Reduced is selected',async({page})=>{
+  await start(page,checkpoint(13));await expect.poll(()=>painting(page)).not.toBe('');
+  await page.evaluate(()=>{
+    const original=HTMLImageElement.prototype.decode;
+    HTMLImageElement.prototype.decode=function(){return original.call(this).then(()=>new Promise<void>(resolve=>document.addEventListener('release-painting',()=>resolve(),{once:true})));};
+    const animate=Element.prototype.animate;
+    Element.prototype.animate=function(...args){if(this.classList.contains('room-painting'))document.documentElement.dataset.unwantedFade='';return animate.apply(this,args);};
+  });
+  await page.getByRole('button',{name:'Front room',exact:true}).click();await expect(page.locator('.room-painting.entering')).toHaveCount(1);
+  await chooseMotion(page,'Reduced');
+  await page.evaluate(()=>document.dispatchEvent(new Event('release-painting')));
+  await expect(page.locator('#room-paintings .room-painting')).toHaveCount(1);
+  await expect(page.locator('html')).not.toHaveAttribute('data-unwanted-fade');
+});
+
+test('Full motion plays the delivery flight on a device that asks for less motion, across reload and a new game',async({page})=>{
+  await page.emulateMedia({reducedMotion:'reduce'});await start(page,supply(createGame(data),['drinks_2']));
+  await options(page);await expect(page.getByRole('group',{name:'Motion'})).toContainText('System follows your device, which asks for less motion.');
+  await expect(page.getByRole('group',{name:'Motion'}).getByRole('radio',{name:'System'})).toBeChecked();await page.keyboard.press('Escape');
+  expect(await buttonTransition(page)).toBe('0s');
+  await chooseMotion(page,'Full');expect(await buttonTransition(page)).not.toBe('0s');
+  await deliverButton(page,welcome).click();await expect(page.locator('.deliver-flight').first()).toBeAttached();
+  await expect(toast(page)).toContainText(`Earned ${welcome.reward} coins.`);
+  await page.reload();await opened(page);await expect(page.locator('html')).toHaveAttribute('data-motion','full');
+  await options(page);await page.getByRole('button',{name:'Start a new game',exact:true}).click();await page.getByRole('button',{name:'Erase and start again'}).click();
+  await options(page);await expect(page.getByRole('group',{name:'Motion'}).getByRole('radio',{name:'Full'})).toBeChecked();
+});
+
+test('Reduced motion stills the delivery on a device that allows motion, and System follows the device again',async({page})=>{
+  await start(page,supply(createGame(data),['drinks_2']));
+  await options(page);await expect(page.getByRole('group',{name:'Motion'})).toContainText('System follows your device’s motion setting.');await page.keyboard.press('Escape');
+  expect(await buttonTransition(page)).not.toBe('0s');
+  await chooseMotion(page,'Reduced');expect(await page.evaluate(()=>localStorage.getItem('scary-snacks-motion'))).toBe('reduced');expect(await buttonTransition(page)).toBe('0s');
+  await deliverButton(page,welcome).click();await expect(page.locator('.deliver-flight')).toHaveCount(0);await expect(toast(page)).toContainText(`Earned ${welcome.reward} coins.`);
+  await chooseMotion(page,'System');expect(await buttonTransition(page)).not.toBe('0s');
+  await page.emulateMedia({reducedMotion:'reduce'});expect(await buttonTransition(page)).toBe('0s');
+});
+
 test('delivering the selected item clears the selection',async({page})=>{
   const initial=supply(createGame(data),['drinks_2']),index=initial.board.findIndex(cell=>cell?.code==='drinks_2');
   await start(page,initial);await tile(page,index).click();await expect(tile(page,index)).toHaveAttribute('aria-pressed','true');
@@ -469,11 +560,11 @@ test('export, import, and reset keep portable new-game progress',async({page})=>
   await options(page);await page.locator('input[type=file]').setInputFiles(path);await page.getByRole('button',{name:'Import this saved game'}).click();expect(await saved(page)).toEqual(before);
 });
 
-test('Options holds only the save, appearance, sounds, the saved game, about, and a fresh start',async({page})=>{
+test('Options holds only the save, appearance, motion, sounds, the saved game, about, and a fresh start',async({page})=>{
   await start(page,checkpoint(12));await options(page);const dialog=page.getByRole('dialog',{name:'Options',exact:true});
   await expect(page.locator('[data-options]:visible')).toHaveAccessibleName('Options');await expect(page.locator('[data-options]:visible')).toContainText('Options');
   await expect(dialog.locator('.save-status').first()).toHaveText('Saved in this browser');
-  await expect(dialog.locator('legend, h3')).toHaveText(['Appearance','Kitchen sounds','Your saved game','About Scary Snacks','A fresh start']);
+  await expect(dialog.locator('legend, h3')).toHaveText(['Appearance','Motion','Kitchen sounds','Your saved game','About Scary Snacks','A fresh start']);
   await expect(dialog.getByRole('button')).toHaveText(['','Turn sound on','Export saved game','Import saved game','Start a new game']);
   for(const name of ['Retry saved game','Retry save'])await expect(page.getByRole('button',{name,exact:true})).toHaveCount(0);
   await page.setViewportSize({width:390,height:844});await page.keyboard.press('Escape');

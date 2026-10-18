@@ -33,13 +33,17 @@ const THEME_KEY = 'scary-snacks-theme';
 // The area the room shows when the player chose one: a viewing preference, kept apart from the save.
 const AREA_KEY = 'scary-snacks-area';
 const THEMES = [['system','System'],['light','Light'],['dark','Dark']];
+const MOTION_KEY = 'scary-snacks-motion';
+const MOTIONS = [['system','System'],['reduced','Reduced'],['full','Full']];
 const phone = matchMedia('(max-width: 720px)');
 // Up to this width the kitchen uses sheets; wider screens dock it beside the room.
 const drawerLayout = matchMedia('(max-width: 1023px)');
 // Short screens put the kitchen in page flow and have no drawer handle.
 const movableDrawer = matchMedia('(max-width: 1023px) and (height > 600px)');
 // Reduced motion keeps every outcome and line of text, without the flights, the drawer's movement, the fades, or the bats.
-const still = matchMedia('(prefers-reduced-motion: reduce)');
+// The Motion choice in Options follows the device (System), or stills or plays the motion whatever the device asks.
+const deviceStill = matchMedia('(prefers-reduced-motion: reduce)');
+const still = () => motion === 'reduced' || (motion === 'system' && deviceStill.matches);
 // The delivery timeline: the dishes land on the ticket, a notice reports the reward, and the next request arrives in the same place.
 // RISE_AT sets the arrival delay in style.css; ARRIVAL_MS covers the arrival.
 const FLIGHT_MS = 600, RISE_AT = 700, ARRIVAL_MS = 1300;
@@ -58,7 +62,7 @@ const coinText = (value: number) => `${count.format(value)} ${plural.select(valu
 // Mara's note when nothing is selected: the move gesture, in the same words as the other board guidance.
 const MOVE_HINT = 'Tap an item, then tap where it should go.';
 const BLOCKED_STORAGE = 'Not saved: this browser blocks storage, so this game lasts only for this visit.';
-let theme = 'system';
+let theme = 'system', motion = 'system';
 let data: GameData, state: GameState, selected: number | null = null, sound = false, audioContext: AudioContext | null = null;
 let saveMessage = '', saveFailed = false, ignoreClick = false, catAsleep = false, freshDishes = 0;
 let observedSave: string | null = null, gameVersion = 0, deliveryToken = 0;
@@ -89,9 +93,9 @@ const matchingBlocker = (code: string) => boardObstacles(state,data).find(obstac
 function status(text: string) { $('#status').textContent = text; }
 /** A short notice that reports itself and clears on its own: used where the game should not stop for a tap. */
 function toast(text: string) {
-  const note = element('p', 'toast', text); note.setAttribute('aria-atomic', 'true');
+  const note = element('p', still() ? 'toast' : 'toast entering', text); note.setAttribute('aria-atomic', 'true');
   toastStack.append(note);
-  setTimeout(() => { note.classList.add('leaving'); setTimeout(() => note.remove(), still.matches ? 0 : TOAST_OUT_MS); }, TOAST_MS);
+  setTimeout(() => { note.classList.add('leaving'); setTimeout(() => note.remove(), still() ? 0 : TOAST_OUT_MS); }, TOAST_MS);
 }
 /** Mara's note for a selected item, which the status region announces. On phones the note leaves out the name, which the selection strip shows. */
 function selectionLine(code: string) {
@@ -200,7 +204,7 @@ function setTheme(choice: string, persist = false) {
   document.documentElement.dataset.theme = theme;
   syncThemeColor();
   if (persist) {
-    try { storage?.setItem(THEME_KEY, theme); }
+    try { if(!storage)throw new Error('Browser storage is unavailable.');storage.setItem(THEME_KEY, theme); }
     catch { status('Appearance changed for this session. Browser storage is unavailable.'); }
   }
 }
@@ -208,6 +212,38 @@ let initialTheme = 'system';
 try { initialTheme = storage?.getItem(THEME_KEY) || 'system'; } catch { /* Use the system appearance. */ }
 setTheme(initialTheme);
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncThemeColor);
+const motionNote = () => deviceStill.matches ? 'System follows your device, which asks for less motion.' : 'System follows your device’s motion setting.';
+let motionReduced = still();
+function syncMotion() {
+  const note = document.querySelector('#motion-note');
+  if(note)note.textContent=motionNote();
+  // Effects suppressed by reduced motion must not replay when motion returns.
+  if(motionReduced&&!still()) {
+    arriving.fill(0);
+    for(const notice of toastStack.children)notice.classList.remove('entering');
+    for(const cell of document.querySelectorAll('.cell'))cell.classList.remove('first','settle','hint');
+    for(const card of document.querySelectorAll('.ticket'))card.classList.remove('arriving');
+    $('#coin-count').classList.remove('gained');document.querySelector('.coin-delta')?.remove();
+  }
+  motionReduced=still();
+  // CSS stops its own effects. Finish script animations so their cleanup and delivery notices still run.
+  if(still())for(const animation of document.getAnimations()) {
+    if(Number.isFinite(animation.effect?.getComputedTiming().endTime))animation.finish();
+  }
+}
+function setMotion(choice: string, persist = false) {
+  motion = MOTIONS.some(([value]) => value === choice) ? choice : 'system';
+  document.documentElement.dataset.motion = motion;
+  syncMotion();
+  if (persist) {
+    try { if(!storage)throw new Error('Browser storage is unavailable.');storage.setItem(MOTION_KEY, motion); }
+    catch { status('Motion changed for this session. Browser storage is unavailable.'); }
+  }
+}
+let initialMotion = 'system';
+try { initialMotion = storage?.getItem(MOTION_KEY) || 'system'; } catch { /* Follow the device. */ }
+setMotion(initialMotion);
+deviceStill.addEventListener('change',syncMotion);
 
 function playTone(kind: string) {
   if (!sound) return;
@@ -319,7 +355,7 @@ function deliver(quest: Quest) { return changeGame(() => {
   const message = `${result.message}${saveFailed ? ' This session is not saved. Use Retry save in Options, or export before leaving.' : ''}`;
   const token = deliveryToken;
   const notify = () => { if (token === deliveryToken) toast(message); };
-  if (still.matches || !into) notify(); else void fly(codes, from, into).then(notify);
+  if (still() || !into) notify(); else void fly(codes, from, into).then(notify);
 }); }
 /** Delivered dishes lift off their tiles, arc over the board and land on the neighbour's ticket, visible all the way. */
 function fly(codes: string[], from: DOMRect[], target: DOMRect) {
@@ -350,7 +386,7 @@ function replaceGame(next: GameState) {
 /** Now and then a bat crosses the dusk beyond the front room's mended window: after each preparation, and after every third delivery. Never while the page is hidden, under reduced motion, or before the window is mended. */
 function batFlight() {
   const frame = $('#room-frame');
-  if (still.matches || document.hidden || frame.dataset.area !== 'front-room' || frame.dataset.painting === 'front-room-00' || $('#room-stage').hasAttribute('data-failed')) return;
+  if (still() || document.hidden || frame.dataset.area !== 'front-room' || frame.dataset.painting === 'front-room-00' || $('#room-stage').hasAttribute('data-failed')) return;
   const sky = $('.window-sky'), bat = element('span', 'mascot bat'); bat.setAttribute('aria-hidden', 'true'); sky.append(bat);
   const { width, height } = sky.getBoundingClientRect();
   bat.animate([
@@ -941,7 +977,7 @@ async function showPainting(id: string, fade: number) {
   if(shown?.dataset.painting===id)return;
   const next=preloaded?.dataset.painting===id?preloaded:roomPicture(id);preloaded=null;
   $('#room-stage').removeAttribute('data-failed');
-  const animate=Boolean(shown&&fade&&!still.matches);
+  const animate=Boolean(shown&&fade&&!still());
   if(animate){for(const old of holder.children)old.classList.add('leaving');next.classList.add('entering');holder.append(next);}
   else holder.replaceChildren(next);
   const decoded=await next.querySelector('img')!.decode().then(()=>true,()=>false);
@@ -950,7 +986,7 @@ async function showPainting(id: string, fade: number) {
   if(!decoded){holder.replaceChildren();$('#room-stage').dataset.failed='';return;}
   next.classList.remove('entering');
   // The states share every pixel outside their change, so the old painting stays under the new one until the fade ends.
-  if(animate)await next.animate([{opacity:0,filter:'blur(8px)'},{opacity:1,filter:'blur(0)'}],{duration:fade,easing:'cubic-bezier(.16,1,.3,1)'}).finished.catch(()=>{});
+  if(animate&&!still())await next.animate([{opacity:0,filter:'blur(8px)'},{opacity:1,filter:'blur(0)'}],{duration:fade,easing:'cubic-bezier(.16,1,.3,1)'}).finished.catch(()=>{});
   if(token!==paintingToken)return;
   for(const old of holder.querySelectorAll('.leaving'))old.remove();
 }
@@ -1027,19 +1063,19 @@ async function reveal(task: Task) {
   const token=++revealToken,changed=data.rooms.find(room=>room.after===task.id)!,layout=$('.game-layout'),stage=$('#room-stage');
   viewArea=changed.area;try{storage?.setItem(AREA_KEY,viewArea);}catch{/* The room still follows the change. */}
   const {views,view}=currentView(),pause=(ms: number)=>new Promise(resolve=>setTimeout(resolve,ms));
-  const land=()=>{if(!$('#room-pin').hidden&&!still.matches)$('#room-pin').animate([{opacity:0,transform:'translateY(-14px) scale(.6)'},{opacity:1,transform:'none'}],{duration:450,easing:'cubic-bezier(.16,1,.3,1)'});};
+  const land=()=>{if(!$('#room-pin').hidden&&!still())$('#room-pin').animate([{opacity:0,transform:'translateY(-14px) scale(.6)'},{opacity:1,transform:'none'}],{duration:450,easing:'cubic-bezier(.16,1,.3,1)'});};
   stage.dataset.reveal='waiting';$('#room-pin').hidden=true;
-  if(!still.matches){
+  if(!still()){
     layout.classList.add('revealing');if(drawerLayout.matches){$('#drawer-body').inert=true;await pause(LOWER_MS);}
     if(token!==revealToken)return;
   }
   renderAreaSwitch(views,view);
-  stage.dataset.reveal='run';await drawRoom(view,still.matches?0:FOCUS_MS);
+  stage.dataset.reveal='run';await drawRoom(view,still()?0:FOCUS_MS);
   if(token!==revealToken)return;
   land();status(changed.text);
   // The pin is described by the change, so focus lands where the change is.
   if(!$('#room-pin').hidden)$('#room-pin').focus({preventScroll:true});
-  if(!still.matches)await pause(SETTLE_MS);
+  if(!still())await pause(SETTLE_MS);
   if(token!==revealToken)return;
   layout.classList.remove('revealing');$('#drawer-body').inert=lowered;stage.dataset.reveal='done';
   // A failed painting has no pin. Return focus only after the board can take input again.
@@ -1156,19 +1192,25 @@ function swapMark() {
   const arrows=svg('path');arrows.setAttribute('d','M7.5 10a5 5 0 0 1 8.6-2.2M16.5 5.5v2.8h-2.8M16.5 14a5 5 0 0 1-8.6 2.2M7.5 18.5v-2.8h2.8');
   value.append(face,arrows);return value;
 }
-/** Options: appearance, sound, the saved game, About Scary Snacks, and a fresh start. */
+/** A setting in Options: a segmented radio group with its legend and one line of explanation. */
+function segmented(name: string, legend: string, note: string, values: string[][], current: string, choose: (value: string) => void) {
+  const section=element('section','settings-section'),choices=element('fieldset','choice-fieldset'),group=element('div','choice-group');
+  for(const [value,label] of values) {
+    const choice=element('label','choice');const input=element('input');input.type='radio';input.name=name;input.value=value;input.checked=current===value;
+    input.addEventListener('change',()=>choose(value));choice.append(input,element('span','',label));group.append(choice);
+  }
+  const description=element('p','',note);description.id=`${name}-note`;
+  choices.append(element('legend','',legend),description,group);section.append(choices);return section;
+}
+/** Options: appearance, motion, sound, the saved game, About Scary Snacks, and a fresh start. */
 function options() {
   const content=element('div');content.append(element('p','modal-copy save-status',saveMessage));
   // Writes never replace an unreadable save, so only a new game (an explicit reset) lets this browser save again.
   if(saveFailed&&recoveryRequired)content.append(element('p','save-error',['invalid','unsupported'].includes(loadSave(storage,validate).status)?`${saveMessage} To save in this browser again, start a new game below. That replaces the unreadable save.`:saveMessage));
   if(recoveryRequired)content.append(button('Retry saved game','primary-button',()=>location.reload()));
   else if(saveFailed&&storage)content.append(button('Retry save','secondary-button',()=>changeGame(()=>{persist();options();status(saveFailed?`This session is not saved. ${saveMessage}`:'Your progress is saved in this browser.');})));
-  const appearance=element('section','settings-section');const choices=element('fieldset','choice-fieldset');const group=element('div','choice-group');
-  for(const [value,name] of THEMES) {
-    const choice=element('label','choice');const input=element('input');input.type='radio';input.name='appearance';input.value=value;input.checked=theme===value;
-    input.addEventListener('change',()=>setTheme(value,true));choice.append(input,element('span','',name));group.append(choice);
-  }
-  choices.append(element('legend','','Appearance'),element('p','','System follows your device’s light or dark setting.'),group);appearance.append(choices);content.append(appearance);
+  content.append(segmented('appearance','Appearance','System follows your device’s light or dark setting.',THEMES,theme,value=>setTheme(value,true)),
+    segmented('motion','Motion',motionNote(),MOTIONS,motion,value=>setMotion(value,true)));
   const audio=element('section','settings-section');audio.append(element('h3','','Kitchen sounds'),element('p','','Soft tones for merging, delivering, and finishing preparations. Sound stays off until you turn it on.'),soundToggle());content.append(audio);
   const saves=element('section','settings-section');saves.append(element('h3','','Your saved game'),element('p','','Export a copy to keep it safe or to carry on in another browser.'));
   const actions=element('div','settings-actions');actions.append(button('Export saved game','secondary-button',downloadSave));
@@ -1188,7 +1230,7 @@ function options() {
   });
   actions.append(button('Import saved game','secondary-button',()=>file.click()),file);saves.append(actions);content.append(saves);
   const about=element('section','settings-section');about.append(element('h3','','About Scary Snacks'),element('p','','Original setting, characters, dialogue, progression, and AI-generated artwork made for this project. No advertising, payments, accounts, or remote game services.'));content.append(about);
-  const reset=element('section','settings-section');reset.append(element('h3','','A fresh start'),element('p','','Erase this game from this browser and start again. Exported files and your appearance setting stay.'),button('Start a new game','danger-button',()=>{
+  const reset=element('section','settings-section');reset.append(element('h3','','A fresh start'),element('p','','Erase this game from this browser and start again. Exported files and your appearance and motion settings stay.'),button('Start a new game','danger-button',()=>{
     // The safe choice holds focus, so a stray Enter keeps the game.
     const keep=button('Keep this game','secondary-button',options),choice=element('div','settings-actions');
     choice.append(button('Erase and start again','danger-button',()=>changeGame(()=>{

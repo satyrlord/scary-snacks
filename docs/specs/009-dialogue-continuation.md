@@ -105,5 +105,4 @@ Follow [Verification and release](README.md#verification-and-release) for the br
 ## Dependencies
 
 The feature has no prerequisite specification.
-Specs 005, 012, and 013 use this continuation behavior.
-Spec 015 can add a "Resume the story" entry to the front door if a scene is waiting.
+Specs 005 and 013 use this continuation behavior.
