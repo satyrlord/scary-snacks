@@ -1,30 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { createGame, dataProblems, questProblems, reduceGame, requiredQuests, taskEligibility, unresolvedObstacle, validateGame } from '../src/engine.ts';
-import type { Action, GameData, GameState } from '../src/engine.ts';
+import { requiredQuests, taskEligibility, unresolvedObstacle } from '../src/model.ts';
+import { validateGame } from '../src/engine.ts';
+import { dataProblems, questProblems } from '../src/content.ts';
+import type { Action } from '../src/model.ts';
 import { checkpointState } from '../tools/create-checkpoint-saves.ts';
+import { act, addOpenLayout, data, openGame, rejected } from './support.ts';
 
-const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
-data.board.layouts.push({ id: 'test-open', obstacles: [] });
-const openGame = (content = data) => ({ ...createGame(content), layoutId: 'test-open' });
-function act(state: GameState, action: Action, content = data): GameState {
-  const before = structuredClone(state);
-  const result = reduceGame(state, action, content);
-  assert.ok(result.ok, result.message);
-  assert.deepEqual(state, before);
-  assert.ok(validateGame(result.state, content));
-  return result.state;
-}
-function rejected(state: GameState, action: Action = { type: 'task' }, content = data) {
-  const before = structuredClone(state);
-  const result = reduceGame(state, action, content);
-  assert.equal(result.ok, false);
-  assert.equal(result.state, state);
-  assert.deepEqual(state, before);
-  assert.equal(result.event, null);
-  return result;
-}
+addOpenLayout();
 /** Before the payment of the preparation at index count: its quests delivered and its exact cost in coins. */
 const checkpoint = (count: number) => checkpointState(data, count, openGame());
 /** The same checkpoint before the quests that open with the previous preparation are delivered. */
@@ -52,7 +35,7 @@ test('eligibility lists the unmet coins and quests and keeps the exact totals ab
     { kind: 'quests', current: 0, required: quests.length, met: false },
   ]);
   assert.deepEqual(eligibility.blockers, [`Earn ${data.tasks[0].cost} more coins to pay for this preparation.`, `Deliver ${quests.length} more quests for this preparation.`]);
-  assert.equal(rejected(state).message, eligibility.blockers.join(' '));
+  assert.equal(rejected(state, { type: 'task' }).message, eligibility.blockers.join(' '));
   Object.assign(state, { coins: data.tasks[0].cost + 100, completedQuests: quests.map(quest => quest.id) });
   const ready = taskEligibility(state, data);
   assert.ok(ready.ready);
@@ -71,14 +54,14 @@ test('exact coins and quests complete a preparation once', () => {
   assert.equal(completed.taskIndex, 1);
   assert.deepEqual(completed.decorations, ['task_1']);
   assert.equal(completed.coins, 0);
-  rejected(completed);
+  rejected(completed, { type: 'task' });
   assert.equal(completed.taskIndex, 1);
 });
 
 test('one missing coin blocks completion after the quests are delivered', () => {
   const state = { ...checkpoint(5), coins: data.tasks[5].cost - 1 };
   assert.deepEqual(taskEligibility(state, data).blockers, ['Earn 1 more coin to pay for this preparation.']);
-  assert.match(rejected(state).message, /1 more coin/);
+  assert.match(rejected(state, { type: 'task' }).message, /1 more coin/);
 });
 
 test('one missing quest blocks completion with enough coins', () => {
@@ -86,7 +69,7 @@ test('one missing quest blocks completion with enough coins', () => {
   const state = { ...ready, completedQuests: ready.completedQuests.slice(0, -1), coins: 100_000 };
   assert.ok(validateGame(state, data));
   assert.deepEqual(taskEligibility(state, data).blockers, ['Deliver 1 more quest for this preparation.']);
-  rejected(state);
+  rejected(state, { type: 'task' });
 });
 
 test('coins alone cannot complete the first preparation without its quests', () => {
@@ -95,7 +78,7 @@ test('coins alone cannot complete the first preparation without its quests', () 
   state.coins = data.tasks[0].cost;
   assert.deepEqual(state.completedQuests, []);
   assert.deepEqual(taskEligibility(state, data).blockers, [`Deliver ${requiredQuests(0, data).length} more quests for this preparation.`]);
-  rejected(state);
+  rejected(state, { type: 'task' });
 });
 
 test('generator placement is part of eligibility and failed completion leaves every field unchanged', () => {
@@ -105,10 +88,10 @@ test('generator placement is part of eligibility and failed completion leaves ev
   const eligibility = taskEligibility(state, data);
   assert.equal(eligibility.blockers.length, 3);
   assert.deepEqual(eligibility.requirements.at(-1), { kind: 'space', source: data.items.generator_sweet.name, met: false });
-  assert.equal(rejected(state).message, eligibility.blockers.join(' '));
+  assert.equal(rejected(state, { type: 'task' }).message, eligibility.blockers.join(' '));
   Object.assign(state, { coins: data.tasks[2].cost, completedQuests: checkpoint(2).completedQuests });
   assert.deepEqual(taskEligibility(state, data).blockers, [`Free a space on the board for the ${data.items.generator_sweet.name}.`]);
-  rejected(state);
+  rejected(state, { type: 'task' });
   const space = state.board.findIndex(cell => cell?.code === 'bakery_1');
   state.board[space] = null;
   assert.ok(taskEligibility(state, data).ready);
@@ -152,12 +135,12 @@ test('the last preparation needs its own quests and repeated completion changes 
   assert.ok(validateGame(state, data));
   const missing = requiredQuests(23, data).length - state.completedQuests.length;
   assert.deepEqual(taskEligibility(state, data).blockers, [`Deliver ${missing} more ${missing === 1 ? 'quest' : 'quests'} for this preparation.`]);
-  rejected(state);
+  rejected(state, { type: 'task' });
   const completed = act(ready, { type: 'task' });
   assert.equal(completed.taskIndex, 24);
   assert.equal(completed.coins, 0);
   assert.deepEqual(taskEligibility(completed, data), { task: null, ready: false, requirements: [], blockers: ['The community supper is ready.'] });
-  rejected(completed);
+  rejected(completed, { type: 'task' });
 });
 
 test('board actions never count as quests, and invalid actions change nothing', () => {

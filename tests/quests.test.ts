@@ -1,73 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { canDeliverQuest, createGame, dataProblems, firstFreeBoardCell, generatorOutputs, getItem, journalCharacters, QUEST_TICKETS, questDeliveryCells, questProblems,
-  reduceGame, requiredQuests, resolveQuests, validateGame } from '../src/engine.ts';
-import type { Action, GameData, GameState } from '../src/engine.ts';
-import { checkpointState } from '../tools/create-checkpoint-saves.ts';
+import { canDeliverQuest, journalCharacters, QUEST_TICKETS, questDeliveryCells, requiredQuests, resolveQuests } from '../src/model.ts';
+import { createGame, reduceGame, validateGame } from '../src/engine.ts';
+import { dataProblems, questProblems } from '../src/content.ts';
+import type { GameData, GameState } from '../src/model.ts';
+import { checkpoint, data, deliver, opened, player, rejected, supply } from './support.ts';
 
-const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
-
-function player(initial = createGame(data), content = data) {
-  let state = initial;
-  assert.deepEqual(dataProblems(content), [], 'The fixture data passes its checks.');
-  function act(action: Action) {
-    const before = structuredClone(state);
-    const result = reduceGame(state, action, content);
-    assert.equal(result.ok, true, result.message);
-    assert.deepEqual(state, before, 'Actions preserve their input.');
-    state = result.state;
-    assert.equal(validateGame(state, content), true, `Valid state after ${action.type}.`);
-    return state;
-  }
-  function produce(code: string): number {
-    const item = getItem(code, content)!;
-    const source = `generator_${item.chain}`;
-    if (generatorOutputs(state, source, content).includes(code)) {
-      const empty = firstFreeBoardCell(state, content);
-      assert.ok(empty >= 0, 'Normal production fits the board.');
-      act({ type: 'spawn', index: state.board.findIndex(cell => cell?.code === source), output: code });
-      assert.equal(state.board[empty]?.code, code);
-      return empty;
-    }
-    const previous = Object.values(content.items).find(previous => previous.next === code)!;
-    const first = produce(previous.id);
-    const second = produce(previous.id);
-    act({ type: 'move', from: first, to: second });
-    assert.equal(state.board[second]?.code, code);
-    return second;
-  }
-  return { get state() { return state; }, content, act, produce };
-}
-
-function rejected(state: GameState, action: Action, content = data) {
-  const before = structuredClone(state);
-  const result = reduceGame(state, action, content);
-  assert.equal(result.ok, false);
-  assert.equal(result.state, state);
-  assert.equal(result.event, null);
-  assert.deepEqual(state, before);
-  return result;
-}
-
-/** Direct supplies isolate the ticket rules from production, which has its own legal-play tests. */
-function supply(state: GameState, id: string): GameState {
-  const supplied = structuredClone(state);
-  for (const { item, quantity } of data.quests.find(quest => quest.id === id)!.requirements) for (let count = 0; count < quantity; count++) {
-    supplied.board[firstFreeBoardCell(supplied, data)] = { code: item };
-    if (!supplied.discovered.includes(item)) supplied.discovered.push(item);
-  }
-  return supplied;
-}
-function deliver(state: GameState, id: string): GameState {
-  const result = reduceGame(supply(state, id), { type: 'deliverQuest', id }, data);
-  assert.equal(result.ok, true, result.message);
-  assert.equal(validateGame(result.state, data), true);
-  return result.state;
-}
-const checkpoint = (count: number) => checkpointState(data, count);
-/** The preparation at index count is paid for, and the quests that open with it wait. */
-const opened = (count: number) => ({ ...checkpoint(count), completedQuests: checkpoint(count - 1).completedQuests, coins: 0 });
 const ids = (state: GameState, status: string) => resolveQuests(state, data).filter(view => view.status === status).map(view => view.quest.id);
 
 test('every neighbour asks across the whole campaign, and every quest opens before the last preparation', () => {
@@ -280,4 +218,11 @@ test('quest saves reject a wrong version, unknown, duplicate, early, and out-of-
   ];
   assert.equal(validateGame(good, data), true);
   for (const [label, mutate] of cases) { const broken = structuredClone(good); mutate(broken); assert.equal(validateGame(broken, data), false, label); }
+});
+
+test('a long quest line of one character resolves its openings once each', () => {
+  // Each quest waits for every earlier quest of its character, so a check without shared openings grows with 2 to the number of quests.
+  const content = structuredClone(data);
+  for (const quest of content.quests) quest.character = 'mara';
+  assert.equal(requiredQuests(content.tasks.length, content).length, content.quests.length);
 });

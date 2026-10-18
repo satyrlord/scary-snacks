@@ -69,7 +69,7 @@ Record the reason in the report.
 ## Find evidence for each candidate
 
 Examine static and dynamic imports and exports.
-Examine element identifiers, class names, `data-` attributes, and event names in `index.html` and `src/app.ts`.
+Examine element identifiers, class names, `data-` attributes, and event names in `index.html` and the interface modules in `src/`.
 Examine Cascading Style Sheets (CSS) selectors, custom properties, and theme tokens in `src/style.css`.
 Examine the identifiers and the sprite indexes in `public/data/game.json` and in `tools/create-original-data.ts`.
 Examine the records in `docs/asset-provenance.json`, `docs/asset-prompts.json`, `docs/asset-variants.json`, and `docs/font-provenance.json`.

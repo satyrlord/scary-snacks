@@ -1,15 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { generatorOutputs, validateGame } from '../src/engine.ts';
-import type { GameData } from '../src/engine.ts';
+import { generatorOutputs } from '../src/model.ts';
+import { validateGame } from '../src/engine.ts';
 import { runCampaignBalance } from '../tools/campaign-balance.ts';
 import type { CampaignTotals } from '../tools/campaign-balance.ts';
+import { data } from './support.ts';
 
-const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
+const report = runCampaignBalance(data);
 
 test('the legal quest campaign reaches the finale and accounts for every action and coin by chapter and preparation', t => {
-  const report = runCampaignBalance(data);
   const { totals, finalState } = report;
   assert.equal(finalState.taskIndex, data.tasks.length);
   assert.equal(validateGame(finalState, data), true);
@@ -50,5 +49,5 @@ test('the legal quest campaign reaches the finale and accounts for every action 
 });
 
 test('the legal action policy reproduces the same campaign evidence', () => {
-  assert.deepEqual(runCampaignBalance(data), runCampaignBalance(data));
+  assert.deepEqual(runCampaignBalance(data), report);
 });

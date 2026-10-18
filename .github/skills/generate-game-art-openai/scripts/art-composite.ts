@@ -5,7 +5,6 @@
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import sharp from 'sharp';
 import { TASK_ROOT, checkMask, isInside, pathExists, readReference, resolveWithAncestors } from './art-image.ts';
@@ -148,7 +147,7 @@ async function main() {
   }
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (import.meta.main) {
   main().catch((error) => {
     console.error(error instanceof Error ? error.message : 'The composite helper failed.');
     process.exitCode = 1;

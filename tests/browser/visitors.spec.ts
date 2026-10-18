@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { createGame, getItem } from '../../src/engine.ts';
-import { checkpoint, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, opened, openQuest, options, person, readTo, saved, start, startAgainAndImport, story, supplies, ticket, toast } from './support.ts';
+import { getItem } from '../../src/model.ts';
+import { createGame } from '../../src/engine.ts';
+import { checkpoint, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, opened, openQuest, options, person, portraitCell, readTo, saved, start, startAgainAndImport, story, supplies, ticket, toast } from './support.ts';
 
 const visitors=data.characters.filter(value=>value.visitor&&!value.singleVisit);
 const quests=data.quests.filter(value=>visitors.some(visitor=>visitor.id===value.character));
@@ -9,20 +10,7 @@ const firstQuests=visitors.map(visitor=>quests.find(value=>value.character===vis
 const guest=data.characters.find(value=>value.singleVisit&&data.quests.some(other=>other.character===value.id))!;
 const dinner=data.quests.find(value=>value.character===guest.id)!;
 async function checkPortrait(portrait: Locator,sprite: number){
-  await expect(portrait).toHaveClass(/visitor-portrait/);
-  const style=await portrait.evaluate(element=>{
-    const style=getComputedStyle(element);return {image:style.backgroundImage,position:style.backgroundPosition,size:style.backgroundSize,filter:style.filter};
-  });
-  expect(style.image).toContain('/assets/variants/visitor-portraits-640x640.webp');
-  await expect(portrait).toHaveClass(new RegExp(`portrait-${sprite}`));
-  const side=200/parseFloat(style.size),position=style.position.split(' ').map(parseFloat);
-  const left=position[0]/100*(2-side)-sprite%2,top=position[1]/100*(2-side)-Math.floor(sprite/2);
-  expect(side).toBeGreaterThan(.7);expect(side).toBeLessThan(.9);
-  expect(left).toBeGreaterThanOrEqual(-.00001);expect(top).toBeGreaterThanOrEqual(-.00001);
-  expect(left+side).toBeLessThanOrEqual(1.00001);expect(top+side).toBeLessThanOrEqual(1.00001);expect(style.filter).toBe('none');
-  expect(await portrait.evaluate(async element=>{
-    const image=new Image();image.src=getComputedStyle(element).backgroundImage.slice(5,-2);await image.decode();return [image.naturalWidth,image.naturalHeight];
-  })).toEqual([640,640]);
+  await expect(portrait).toHaveClass(/visitor-portrait/);await portraitCell(portrait,'visitor-portraits',sprite);
 }
 
 for(const value of firstQuests)test(`${value.character} shows the exact expedition supplies and pays the reward once across reload and export`,async({page},testInfo)=>{

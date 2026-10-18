@@ -11,7 +11,7 @@ Do not run background removal, colour changes, or compression on the candidate.
 Do not put a second file in that folder. The test fails for a file with no record.
 The game never loads a master.
 If the replacement moves a subject inside an atlas, update the cell rectangles.
-They are `spriteBounds`, `blockerFrames`, and `preparationFrames` in `src/app.ts`, and the mascot positions in `src/style.css`.
+They are `spriteBounds`, `blockerFrames`, and `preparationFrames` in `src/art.ts`, and the mascot positions in `src/style.css`.
 Update the records before you make variants with `npm run assets:build`.
 
 ## Update the two records
@@ -58,7 +58,7 @@ Then do these steps:
    Compare the required widths with the source dimensions before you generate variants.
 4. Run `npm run assets:build`.
 5. Add the code that shows a variant, with a path relative to the file that loads it.
-   For a room state, also add its identifier to `roomPaintings` in `src/engine.ts`.
+   For a room state, also add its identifier to `roomPaintings` in `src/model.ts`.
 6. Update the asset statements in `PRODUCT.md`, `DESIGN.md`, and `DELIVERY.md`.
 
 The build collects the variants. The source export collects the masters and the variants from their records.

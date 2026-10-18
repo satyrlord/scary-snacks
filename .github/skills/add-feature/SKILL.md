@@ -58,7 +58,7 @@ If the save shape changes, obey "Access and persistence" in `PRODUCT.md`.
 Also obey "Shared save compatibility" in `docs/specs/README.md`.
 These sections give the supported save format, the storage key, and the recovery rules.
 `validateGame` in `src/engine.ts` validates saves.
-If the save shape changes, coordinate the game state version in `src/engine.ts` with `VERSION` in `src/storage.ts`.
+If the save shape changes, coordinate the game state version in `src/model.ts` and `src/engine.ts` with `VERSION` in `src/storage.ts`.
 Do not add support for an earlier save format without user approval.
 
 If you add, move, or remove a file, examine `runtimeFiles` in `tools/build.ts`.

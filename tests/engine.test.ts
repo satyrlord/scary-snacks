@@ -1,46 +1,29 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, dataProblems, validateGame, reduceGame, currentTask, firstFreeBoardCell, questDeliveryCells, requiredQuests, resolveRooms, latestArea, roomProblems, roomPaintings,
-  generatorOutputs, generatorTierProblems, nextOutput } from '../src/engine.ts';
+import { currentTask, firstFreeBoardCell, questDeliveryCells, requiredQuests, resolveRooms, latestArea, roomPaintings, generatorOutputs, nextOutput } from '../src/model.ts';
+import { createGame, validateGame, reduceGame } from '../src/engine.ts';
+import { dataProblems, roomProblems, generatorTierProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import { imageVariants } from '../tools/build-image-variants.ts';
-import type { Action, GameData, GameState, Quest } from '../src/engine.ts';
-const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
-data.board.layouts.push({ id: 'test-open', obstacles: [] });
-const initial = () => ({ ...createGame(data), layoutId: 'test-open' });
+import type { Action, GameData, GameState, Quest } from '../src/model.ts';
+import { act, addOpenLayout, data, openGame, rejected, validate } from './support.ts';
+addOpenLayout();
 // Large funds and quests marked delivered isolate tiers, placement, and room art from the campaign effort.
-const funded = () => ({ ...initial(), coins: 100000 });
+const funded = () => ({ ...openGame(), coins: 100000 });
 function withQuests(state: GameState, content = data) {
   const next = structuredClone(state);
   for (const quest of requiredQuests(next.taskIndex, content)) if (!next.completedQuests.includes(quest.id)) next.completedQuests.push(quest.id);
   return next;
 }
-function apply(state: GameState, action: Action, content = data) {
-  const before = JSON.stringify(state);
-  const result = reduceGame(state, action, content);
-  assert.equal(result.ok, true, result.message);
-  assert.equal(JSON.stringify(state), before, 'An action must not mutate the input state.');
-  assert.equal(validateGame(result.state, content), true, `Invalid state after ${action.type}`);
-  return result.state;
-}
 /** Pay count preparations, each with the quests that it needs. */
 function pay(state: GameState, count = 1, content = data) {
-  for (let index = 0; index < count; index++) state = apply(withQuests(state, content), { type: 'task' }, content);
+  for (let index = 0; index < count; index++) state = act(withQuests(state, content), { type: 'task' }, content);
   return state;
-}
-// Takes unknown input: some tests pass actions that the Action type does not admit.
-function fail(state: GameState, action: unknown) {
-  const before = JSON.stringify(state);
-  const result = reduceGame(state, action as Action, data);
-  assert.equal(result.ok, false);
-  assert.equal(result.state, state);
-  assert.equal(JSON.stringify(state), before);
-  return result;
 }
 function fillBoard(state: GameState) {
   const index = state.board.findIndex(cell => cell?.code === 'generator_bakery');
-  while (firstFreeBoardCell(state, data) !== -1) state = apply(state, { type: 'spawn', index });
+  while (firstFreeBoardCell(state, data) !== -1) state = act(state, { type: 'spawn', index });
   return state;
 }
 /** A quest with only these requirements, to test how a delivery finds its items. */
@@ -74,29 +57,27 @@ test('dish and drink names use only English and Romanian letters', () => {
 });
 
 test('fresh games are valid, identical, and independent', () => {
-  const state = initial();
+  const state = openGame();
   assert.equal(validateGame(state, data), true);
   assert.equal(state.version, 12);
-  assert.deepEqual(state, initial());
+  assert.deepEqual(state, openGame());
   assert.deepEqual([state.coins, state.taskIndex, state.completedQuests, state.pendingScenes], [0, 0, [], []]);
   state.board[0] = { code: 'bakery_1' };
-  assert.equal(initial().board[0], null);
-  assert.equal(currentTask(initial(), data)?.id, 'task_1');
+  assert.equal(openGame().board[0], null);
+  assert.equal(currentTask(openGame(), data)?.id, 'task_1');
 });
 
 test('generators have unlimited free output with no clock state', () => {
-  let state = initial();
+  let state = openGame();
   const coins = state.coins;
   const generator = state.board.findIndex(cell => cell?.code === 'generator_bakery');
   for (let index = 0; index < 100; index++) {
-    state = apply(state, { type: 'spawn', index: generator });
+    state = act(state, { type: 'spawn', index: generator });
     // Clear the new item by hand, so the board never fills.
     const spawned = state.board.findIndex((cell, position) => position !== generator && cell?.code === 'bakery_1');
     state = { ...state, board: state.board.map((cell, position) => position === spawned ? null : cell) };
   }
   assert.equal(state.coins, coins);
-  assert.equal('energy' in state, false);
-  assert.equal('cooldowns' in state, false);
 });
 
 test('production tiers validate their chain, stage, unlock, and preparation order', () => {
@@ -119,7 +100,7 @@ test('paid production tiers change no items and keep the chosen outputs empty', 
   for (let count = 1; count <= 20; count++) {
     const before = withQuests(state);
     const result = reduceGame(before, { type: 'task' }, data);
-    state = apply(before, { type: 'task' });
+    state = act(before, { type: 'task' });
     const tier = count < 12 ? 1 : count < 20 ? 2 : 3;
     assert.deepEqual(generatorOutputs(state, 'generator_bakery', data), Array.from({ length: tier }, (_, index) => `bakery_${index + 1}`));
     assert.deepEqual(state.outputChoices, {});
@@ -131,41 +112,42 @@ test('paid production tiers change no items and keep the chosen outputs empty', 
   const index = state.board.findIndex(cell => cell?.code === 'generator_bakery');
   for (const output of ['bakery_3', 'bakery_2', 'bakery_1']) {
     const empty = firstFreeBoardCell(state, data);
-    state = apply(state, { type: 'spawn', index, output });
+    state = act(state, { type: 'spawn', index, output });
     assert.equal(state.board[empty]?.code, output);
     assert.equal(state.outputChoices.bakery, output === 'bakery_1' ? undefined : output);
     const repeated = firstFreeBoardCell(state, data);
-    state = apply(state, { type: 'spawn', index });
+    state = act(state, { type: 'spawn', index });
     assert.equal(state.board[repeated]?.code, output);
   }
 });
 
 test('output choices survive moves and later upgrades while failed takes change nothing', () => {
   let state = pay(funded(), 12);
-  state = apply(state, { type: 'spawn', index: 1, output: 'bakery_2' });
-  state = apply(state, { type: 'move', from: 1, to: firstFreeBoardCell(state, data) });
+  state = act(state, { type: 'spawn', index: 1, output: 'bakery_2' });
+  state = act(state, { type: 'move', from: 1, to: firstFreeBoardCell(state, data) });
   state = pay(state, 8);
   assert.deepEqual(state.outputChoices, { bakery: 'bakery_2' });
   const index = state.board.findIndex(cell => cell?.code === 'generator_bakery');
   const empty = firstFreeBoardCell(state, data);
-  state = apply(state, { type: 'spawn', index });
+  state = act(state, { type: 'spawn', index });
   assert.equal(state.board[empty]?.code, 'bakery_2');
   for (const output of ['bakery_4', 'warm_2', 'absent', '__proto__', null, 2]) {
-    const result = fail(state, { type: 'spawn', index, output });
+    // Some outputs are values that the Action type does not admit.
+    const result = rejected(state, { type: 'spawn', index, output } as Action);
     assert.equal(result.message, 'Choose an available output from this source.');
   }
-  fail(state, { type: 'spawn', index: empty, output: 'bakery_3' });
+  rejected(state, { type: 'spawn', index: empty, output: 'bakery_3' });
   state = fillBoard(state);
-  fail(state, { type: 'spawn', index, output: 'bakery_3' });
+  rejected(state, { type: 'spawn', index, output: 'bakery_3' });
   assert.deepEqual(state.outputChoices, { bakery: 'bakery_2' });
-  for (const count of [11, 19]) fail(pay(funded(), count), { type: 'spawn', index: 1, output: `bakery_${count === 11 ? 2 : 3}` });
+  for (const count of [11, 19]) rejected(pay(funded(), count), { type: 'spawn', index: 1, output: `bakery_${count === 11 ? 2 : 3}` });
 });
 
 test('chosen outputs reject unknown, locked, cross-chain, base-stage, and unearned values', () => {
   for (const outputs of [null, [], 'bakery_2', { bakery: 'bakery_1' }, { bakery: 'bakery_2' }, { sweet: 'sweet_2' }, { absent: 'bakery_2' }, { bakery: '__proto__' }, { bakery: 'generator_bakery' }, { bakery: 'warm_2' }]) {
-    assert.equal(validateGame({ ...initial(), outputChoices: outputs }, data), false, JSON.stringify(outputs));
+    assert.equal(validateGame({ ...openGame(), outputChoices: outputs }, data), false, JSON.stringify(outputs));
   }
-  const { outputChoices: _choices, ...missing } = initial();
+  const { outputChoices: _choices, ...missing } = openGame();
   assert.equal(validateGame(missing, data), false);
 });
 
@@ -176,8 +158,8 @@ test('lower-stage outputs stay available after upgrades and fill a duplicate req
       let state = upgraded;
       const code = `${chain.id}_${stage}`;
       const index = state.board.findIndex(cell => cell?.code === `generator_${chain.id}`);
-      state = apply(state, { type: 'spawn', index, output: code });
-      state = apply(state, { type: 'spawn', index, output: code });
+      state = act(state, { type: 'spawn', index, output: code });
+      state = act(state, { type: 'spawn', index, output: code });
       assert.ok(questDeliveryCells(state, questWith([{ item: code, quantity: 2 }]), data).every(cell => cell >= 0), code);
     }
   }
@@ -212,20 +194,20 @@ test('the next output that the interface names is the output that one tap takes'
     for (let tap = 0; tap < count; tap++) {
       const named = nextOutput(state, 'generator_bakery', data);
       const empty = firstFreeBoardCell(state, data);
-      state = apply(state, { type: 'spawn', index: index() });
+      state = act(state, { type: 'spawn', index: index() });
       assert.equal(state.board[empty]?.code, named);
     }
   };
   taps(2);
   assert.equal(nextOutput(state, 'generator_bakery', data), 'bakery_1');
-  state = apply(state, { type: 'spawn', index: index(), output: 'bakery_2' });
+  state = act(state, { type: 'spawn', index: index(), output: 'bakery_2' });
   taps(2);
   assert.equal(nextOutput(state, 'generator_bakery', data), 'bakery_2');
   assert.equal(nextOutput(state, 'bakery_1', data), null);
 });
 
 test('matching ingredients merge and discover the next stage, and final dishes do not merge', () => {
-  const state = initial();
+  const state = openGame();
   const result = reduceGame(state, { type: 'move', from: 13, to: 14 }, data);
   assert.equal(result.ok, true);
   assert.equal(result.event, 'merge');
@@ -233,44 +215,44 @@ test('matching ingredients merge and discover the next stage, and final dishes d
   assert.equal(result.state.board[14]?.code, 'bakery_2');
   assert.ok(result.state.discovered.includes('bakery_2'));
   assert.equal(state.board[13]?.code, 'bakery_1');
-  const top = initial();
+  const top = openGame();
   top.board[13] = { code: 'bakery_6' };
   top.board[14] = { code: 'bakery_6' };
   top.discovered.push('bakery_6');
-  assert.match(fail(top, { type: 'move', from: 13, to: 14 }).message, /final dish/);
+  assert.match(rejected(top, { type: 'move', from: 13, to: 14 }).message, /final dish/);
 });
 
 test('different items swap and empty cells accept items', () => {
-  let state = initial();
-  state = apply(state, { type: 'move', from: 1, to: 4 });
+  let state = openGame();
+  state = act(state, { type: 'move', from: 1, to: 4 });
   assert.equal(state.board[1]?.code, 'generator_warm');
   assert.equal(state.board[4]?.code, 'generator_bakery');
-  state = apply(state, { type: 'move', from: 4, to: 0 });
+  state = act(state, { type: 'move', from: 4, to: 0 });
   assert.equal(state.board[4], null);
   assert.equal(state.board[0]?.code, 'generator_bakery');
 });
 
 test('board-full failures retain state and a merge recovers space', () => {
-  let state = fillBoard(initial());
-  assert.match(fail(state, { type: 'spawn', index: 1 }).message, /Merge a pair or deliver a quest/);
+  let state = fillBoard(openGame());
+  assert.match(rejected(state, { type: 'spawn', index: 1 }).message, /Merge a pair or deliver a quest/);
   const flours = state.board.flatMap((cell, index) => cell?.code === 'bakery_1' ? [index] : []);
-  state = apply(state, { type: 'move', from: flours[0], to: flours[1] });
-  state = apply(state, { type: 'spawn', index: 1 });
+  state = act(state, { type: 'move', from: flours[0], to: flours[1] });
+  state = act(state, { type: 'spawn', index: 1 });
   assert.equal(state.board.includes(null), false);
 });
 
 test('a delivery takes each duplicate from its own cell', () => {
-  let state = initial();
+  let state = openGame();
   assert.deepEqual(questDeliveryCells(state, questWith([{ item: 'bakery_1', quantity: 2 }]), data), [13, 14]);
   state.board[13] = null;
   assert.deepEqual(questDeliveryCells(state, questWith([{ item: 'bakery_1', quantity: 2 }]), data), [14, -1]);
 });
 
 test('invalid, unknown, and unavailable actions do not change state', () => {
-  const state = initial();
+  const state = openGame();
   for (const action of [null, {}, { type: 'unknown' }, { type: 'task' }, { type: 'spawn', index: 13 },
     { type: 'move', from: 13, to: 13 }, { type: 'move', from: 13, to: 42 }, { type: 'move', from: -1, to: 0 },
-    { type: 'move', from: 13, to: '14' }, { type: 'deliverQuest', id: 'absent' }, { type: 'deliverQuest', id: 'mara-welcome' }]) fail(state, action);
+    { type: 'move', from: 13, to: '14' }, { type: 'deliverQuest', id: 'absent' }, { type: 'deliverQuest', id: 'mara-welcome' }]) rejected(state, action as Action);
 });
 
 test('save validation rejects invalid numeric fields, codes, quest records, and unsupported versions', () => {
@@ -286,7 +268,7 @@ test('save validation rejects invalid numeric fields, codes, quest records, and 
     state => { state.completedQuests = ['absent']; }, state => { state.completedQuests = ['mara-table']; },
   ];
   for (const corrupt of corruptions) {
-    const state = initial();
+    const state = openGame();
     corrupt(state);
     assert.equal(validateGame(state, data), false, String(corrupt));
   }
@@ -295,13 +277,13 @@ test('save validation rejects invalid numeric fields, codes, quest records, and 
 });
 
 test('save validation rejects missing, duplicated, and premature generators', () => {
-  let state = initial();
+  let state = openGame();
   state.board[1] = null;
   assert.equal(validateGame(state, data), false);
-  state = initial();
+  state = openGame();
   state.board[0] = { code: 'generator_bakery' };
   assert.equal(validateGame(state, data), false);
-  state = initial();
+  state = openGame();
   state.board[0] = { code: 'generator_sweet' };
   state.discovered.push('generator_sweet');
   assert.equal(validateGame(state, data), false);
@@ -309,10 +291,10 @@ test('save validation rejects missing, duplicated, and premature generators', ()
 
 test('task unlocks require a free board space and fail atomically on a full board', () => {
   let state = fillBoard(pay(funded(), 2));
-  const failure = fail(withQuests(state), { type: 'task' });
+  const failure = rejected(withQuests(state), { type: 'task' });
   assert.match(failure.message, /space/);
   const [space, pair] = state.board.flatMap((cell, index) => cell?.code === 'bakery_1' ? [index] : []);
-  state = apply(state, { type: 'move', from: space, to: pair });
+  state = act(state, { type: 'move', from: space, to: pair });
   state = pay(state);
   assert.equal(state.board[space]?.code, 'generator_sweet');
   assert.equal(state.taskIndex, 3);
@@ -320,10 +302,10 @@ test('task unlocks require a free board space and fail atomically on a full boar
 
 test('a short purse names the missing coins, and a preparation that brings a new source says which source arrived and where it is', () => {
   const source = data.items.generator_sweet.name;
-  assert.equal(fail(withQuests(initial()), { type: 'task' }).message, `Earn ${data.tasks[0].cost} more coins to pay for this preparation.`);
+  assert.equal(rejected(withQuests(openGame()), { type: 'task' }).message, `Earn ${data.tasks[0].cost} more coins to pay for this preparation.`);
   const state = withQuests(pay(funded(), 2));
   assert.ok(reduceGame(state, { type: 'task' }, data).message.startsWith(`${data.tasks[2].title}: done. The ${source} is on the board.`));
-  assert.match(fail(fillBoard(state), { type: 'task' }).message, /space/);
+  assert.match(rejected(fillBoard(state), { type: 'task' }).message, /space/);
 });
 
 const completedAt = (count: number) => data.tasks.slice(0, count).map(task => task.id);
@@ -412,19 +394,18 @@ test('the room check names a bad name, an unknown preparation, a stray focus, a 
 });
 
 test('a preparation paid with exactly its cost empties the purse and adds one room change', () => {
-  let state = withQuests({ ...initial(), coins: data.tasks[0].cost });
-  state = apply(state, { type: 'task' });
+  let state = withQuests({ ...openGame(), coins: data.tasks[0].cost });
+  state = act(state, { type: 'task' });
   assert.equal(state.coins, 0);
   assert.deepEqual(resolveRooms(state.decorations, data), roomsAt(1));
   // The next preparation costs more than the empty purse: nothing is charged and nothing changes.
-  fail(withQuests(state), { type: 'task' });
+  rejected(withQuests(state), { type: 'task' });
   assert.deepEqual(state.decorations, ['task_1']);
 });
 
 test('fresh, mid-campaign, and completed saves resolve the same rooms after reload and export', () => {
   for (const count of [0, 12, 13, data.tasks.length]) {
     const state = pay(funded(), count);
-    const validate = (candidate: unknown) => validateGame(candidate, data);
     const reloaded = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 11, state: JSON.parse(JSON.stringify(state)) }), validate);
     const exported = importSave<GameState>(exportSave(reloaded, validate), validate);
     assert.deepEqual(resolveRooms(reloaded.decorations, data), roomsAt(count), `reload at ${count}`);

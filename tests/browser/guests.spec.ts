@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { firstFreeBoardCell, generatorOutputs, resolveQuests } from '../../src/engine.ts';
-import type { GameState, SceneLine } from '../../src/engine.ts';
-import { act, data, deliverButton, deliverable, exportText, failWrites, journal, onTicket, opened, openQuest, options, person, quest, readTo, replaceSave, saved, start, startAgainAndImport, story, supplies, supply, ticket, toast } from './support.ts';
+import { firstFreeBoardCell, generatorOutputs, resolveQuests } from '../../src/model.ts';
+import type { GameState, SceneLine } from '../../src/model.ts';
+import { act, data, deliverButton, deliverable, exportText, failWrites, journal, onTicket, opened, openQuest, options, person, portraitCell, quest, readTo, replaceSave, saved, start, startAgainAndImport, story, supplies, supply, ticket, toast } from './support.ts';
 
 const dinner=quest('ionatan-castle-dinner');
 const search=quest('mina-avram-search');
@@ -22,16 +22,7 @@ async function guests(page: Page,present: boolean){
   await expect(page.getByRole('button',{name:`Replay ${search.title}`,exact:true})).toHaveCount(0);await page.keyboard.press('Escape');
   await expect(ticket(page,search)).toHaveCount(present?1:0);
 }
-async function portrait(target: Locator,sprite: number){
-  const style=await target.evaluate(element=>{const style=getComputedStyle(element);return {image:style.backgroundImage,position:style.backgroundPosition,size:style.backgroundSize,filter:style.filter};});
-  expect(style.image).toContain('/assets/variants/guests-640x640.webp');await expect(target).toHaveClass(new RegExp(`portrait-${sprite}`));
-  const side=200/parseFloat(style.size),position=style.position.split(' ').map(parseFloat);
-  const left=position[0]/100*(2-side)-sprite%2,top=position[1]/100*(2-side)-Math.floor(sprite/2);
-  expect(side).toBeGreaterThan(.7);expect(side).toBeLessThan(.9);
-  expect(left).toBeGreaterThanOrEqual(-.00001);expect(top).toBeGreaterThanOrEqual(-.00001);
-  expect(left+side).toBeLessThanOrEqual(1.00001);expect(top+side).toBeLessThanOrEqual(1.00001);expect(style.filter).toBe('none');
-  expect(await target.evaluate(async element=>{const image=new Image();image.src=getComputedStyle(element).backgroundImage.slice(5,-2);await image.decode();return [image.naturalWidth,image.naturalHeight];})).toEqual([640,640]);
-}
+const portrait=(target: Locator,sprite: number)=>portraitCell(target,'guests',sprite);
 /** Delivers through the rules, with the dishes supplied, and reads the scenes that the delivery queued. */
 function delivered(state: GameState,id: string){
   let next=act(supply(state,supplies(quest(id))),{type:'deliverQuest',id});

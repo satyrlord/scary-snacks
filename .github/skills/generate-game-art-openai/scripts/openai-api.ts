@@ -1,7 +1,7 @@
 // OpenAI Images application programming interface (API) transport. Do not read credentials here.
 // Do not print provider response bodies.
 import { readFileSync } from 'node:fs';
-import type { GameData } from '../../../../src/engine.ts';
+import type { GameData } from '../../../../src/model.ts';
 
 export const MODEL = 'gpt-image-2.5-flare';
 export const QUALITY = 'high';

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { createGame, requiredQuests, reduceGame } from '../../src/engine.ts';
+import { requiredQuests } from '../../src/model.ts';
+import { createGame, reduceGame } from '../../src/engine.ts';
 import { data, saved, start, tile } from './support.ts';
 
 test('new board explains blocked spaces and counts only usable empty cells', async ({ page }) => {

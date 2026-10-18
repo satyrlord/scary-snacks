@@ -1,10 +1,9 @@
 // Synthetic saves at every preparation checkpoint, for manual checks without playing the whole campaign.
 // Each save has its preparations paid, the quests that the next preparation needs delivered, and the exact coins for the next reveal.
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { createGame, currentTask, reduceGame, requiredQuests, validateGame } from '../src/engine.ts';
-import type { GameData, GameState } from '../src/engine.ts';
+import { currentTask, requiredQuests } from '../src/model.ts';
+import { createGame, reduceGame, validateGame } from '../src/engine.ts';
+import type { GameData, GameState } from '../src/model.ts';
 import { exportSave } from '../src/storage.ts';
 
 /**
@@ -28,7 +27,7 @@ export function checkpointState(data: GameData, count: number, start: GameState 
   }
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (import.meta.main) {
   const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
   const target = new URL('../.tools/checkpoint-saves/', import.meta.url);
   await rm(target, { recursive: true, force: true });

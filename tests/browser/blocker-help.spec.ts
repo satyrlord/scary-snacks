@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { boardObstacles, createGame, reduceGame, requiredQuests, validateGame } from '../../src/engine.ts';
-import { SAVE_KEY, exportSave } from '../../src/storage.ts';
-import { data, saved, tile } from './support.ts';
+import { boardObstacles, requiredQuests } from '../../src/model.ts';
+import { createGame, reduceGame } from '../../src/engine.ts';
+import { data, saved, start as open, tile } from './support.ts';
 
 const help = (page: Page) => page.locator('#item-detail.blocker-help');
 function ready() {
@@ -16,13 +16,7 @@ function firstPreparation() {
   expect(result.ok, result.message).toBe(true); return result.state;
 }
 async function start(page: Page, state = createGame(data), theme = 'light') {
-  const value = exportSave(state, candidate => validateGame(candidate, data));
-  await page.addInitScript(({ key, value, theme }) => {
-    if (localStorage.getItem(key) === null) localStorage.setItem(key, value);
-    localStorage.setItem('scary-snacks-theme', theme);
-  }, { key: SAVE_KEY, value, theme });
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('./'); await expect(page.locator('#board button')).toHaveCount(42);
+  await page.emulateMedia({ reducedMotion: 'reduce' }); await open(page, state, theme);
 }
 async function targets(page: Page) {
   return page.locator('#board .blocker-target').evaluateAll(elements => elements.map(element => Number((element as HTMLElement).dataset.cell)));

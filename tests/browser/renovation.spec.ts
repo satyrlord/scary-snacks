@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { resolveRooms, latestArea } from '../../src/engine.ts';
+import { resolveRooms, latestArea } from '../../src/model.ts';
 import { createHash } from 'node:crypto';
 import { KEY, checkpoint, data, options, saved, serialize, start } from './support.ts';
 

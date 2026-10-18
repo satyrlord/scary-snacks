@@ -1,36 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { createGame, dataProblems, firstFreeBoardCell, reduceGame, requiredQuests, resolveChapters, resolveQuests, storyProblems, storyScenes, validateGame } from '../src/engine.ts';
-import type { Action, GameData, GameState } from '../src/engine.ts';
+import { firstFreeBoardCell, resolveChapters, resolveQuests, storyScenes } from '../src/model.ts';
+import { createGame, validateGame } from '../src/engine.ts';
+import { dataProblems, storyProblems } from '../src/content.ts';
+import type { GameData } from '../src/model.ts';
+import { act, data, payNext, ready, rejected } from './support.ts';
 
-const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
 const titles = ['Open the shutters', 'A kitchen for everyone', 'Around one table', 'The courtyard', 'Recipes to share', 'The first community supper'];
 const boundaries = [4, 8, 12, 16, 20, 24];
-function apply(state: GameState, action: Action, content = data) {
-  const result = reduceGame(state, action, content);
-  assert.equal(result.ok, true, result.message);
-  assert.equal(validateGame(result.state, content), true, `Invalid state after ${action.type}`);
-  return result.state;
-}
-function rejected(state: GameState, action: Action, content = data) {
-  const before = JSON.stringify(state);
-  const result = reduceGame(state, action, content);
-  assert.equal(result.ok, false);
-  assert.equal(JSON.stringify(result.state), before);
-  return result;
-}
-/** The next preparation's exact cost, with every quest that it needs marked delivered. */
-function ready(state: GameState, content = data) {
-  const next = structuredClone(state);
-  for (const quest of requiredQuests(next.taskIndex, content)) if (!next.completedQuests.includes(quest.id)) next.completedQuests.push(quest.id);
-  next.coins = content.tasks[next.taskIndex].cost;
-  return next;
-}
 /** A synthetic checkpoint after count payments, with every scene that the payments queued still waiting. */
 function checkpoint(count: number, content = data) {
   let state = createGame(content);
-  while (state.taskIndex < count) state = apply(ready(state, content), { type: 'task' }, content);
+  while (state.taskIndex < count) state = payNext(state, content);
   return state;
 }
 /** The arrival scenes of the regulars that a preparation brings. */
@@ -106,14 +87,14 @@ test('a chapter opens at its first preparation and completes only with its last 
     assert.equal(chapters[index].done, 3);
     assert.ok(chapters.slice(index + 1).every(view => view.status === 'locked'));
     assert.deepEqual(before.pendingScenes, queued(boundary - 1));
-    const after = apply(ready(before), { type: 'task' });
+    const after = payNext(before);
     assert.equal(resolveChapters(after, data)[index].status, 'complete');
     assert.deepEqual(after.pendingScenes, [...before.pendingScenes, data.tasks[boundary - 1].id, data.chapters[index].id, ...(boundary === 24 ? [data.finale.id] : []), ...arrivals(boundary - 1)]);
     if (boundary < 24) {
       assert.equal(resolveChapters(after, data)[index + 1].status, 'current');
       assert.equal(resolveChapters(after, data)[index + 1].done, 0);
       // The next preparation never waits for the closing scene. It queues only its own scene.
-      const next = apply(ready(after), { type: 'task' });
+      const next = payNext(after);
       assert.deepEqual(next.pendingScenes, [...after.pendingScenes, data.tasks[boundary].id, ...arrivals(boundary)]);
     }
   }
@@ -131,7 +112,7 @@ test('a failed payment, a missing required quest, or a full destination complete
   placed.tasks[3].unlock = 'sweet';
   let full = checkpoint(3, placed);
   const source = full.board.findIndex(cell => cell?.code === 'generator_bakery');
-  while (firstFreeBoardCell(full, placed) !== -1) full = apply(full, { type: 'spawn', index: source }, placed);
+  while (firstFreeBoardCell(full, placed) !== -1) full = act(full, { type: 'spawn', index: source }, placed);
   full = ready(full, placed);
   assert.match(rejected(full, { type: 'task' }, placed).message, /Free a space/);
   assert.equal(resolveChapters(full, placed)[0].status, 'current');
@@ -139,11 +120,11 @@ test('a failed payment, a missing required quest, or a full destination complete
 
 test('the last preparation queues its scene, the chapter scene, and the finale once, with no second charge or reward', () => {
   const before = ready(checkpoint(23));
-  const after = apply(before, { type: 'task' });
+  const after = act(before, { type: 'task' });
   assert.deepEqual(after.pendingScenes.slice(-3), [data.tasks[23].id, 'chapter-6', 'finale']);
   assert.equal(after.coins, before.coins - data.tasks[23].cost);
   assert.match(rejected(after, { type: 'task' }).message, /community supper is ready/);
-  const read = apply(apply(after, { type: 'readScene', id: 'chapter-6' }), { type: 'readScene', id: 'finale' });
+  const read = act(act(after, { type: 'readScene', id: 'chapter-6' }), { type: 'readScene', id: 'finale' });
   assert.deepEqual(read.pendingScenes, queued(24).filter(id => !['chapter-6', 'finale'].includes(id)));
   for (const key of ['coins', 'taskIndex', 'board', 'completedQuests', 'decorations'] as const) {
     assert.deepEqual(read[key], after[key], `Reading a scene must not change ${key}.`);
@@ -158,10 +139,10 @@ test('the finale needs every quest, leaves no ticket, and keeps the board playab
   const before = ready(checkpoint(23));
   assert.deepEqual(new Set(before.completedQuests), new Set(data.quests.map(quest => quest.id)), 'Every quest is required before the finale.');
   for (const quest of data.quests) rejected({ ...before, completedQuests: before.completedQuests.filter(id => id !== quest.id) }, { type: 'task' });
-  let state = apply(apply(before, { type: 'task' }), { type: 'readScene', id: 'finale' });
+  let state = act(act(before, { type: 'task' }), { type: 'readScene', id: 'finale' });
   assert.ok(resolveQuests(state, data).every(view => view.status === 'complete'));
   const source = state.board.findIndex(cell => cell?.code === 'generator_bakery');
-  state = apply(state, { type: 'spawn', index: source });
+  state = act(state, { type: 'spawn', index: source });
   assert.deepEqual(state.pendingScenes, queued(24).filter(id => id !== 'finale'));
 });
 
@@ -205,10 +186,10 @@ test('scene IDs must be unique across preparations, quests, local news, chapters
 
 test('a payment queues its preparation scene in the same change, and reading it changes nothing else', () => {
   const before = ready(checkpoint(1));
-  const after = apply(before, { type: 'task' });
+  const after = act(before, { type: 'task' });
   assert.deepEqual(after.pendingScenes, [...before.pendingScenes, data.tasks[1].id]);
   // Reading the preparation scene changes nothing else, and a second read changes nothing.
-  const read = apply(after, { type: 'readScene', id: data.tasks[1].id });
+  const read = act(after, { type: 'readScene', id: data.tasks[1].id });
   assert.deepEqual({ ...read, pendingScenes: after.pendingScenes }, after);
   rejected(read, { type: 'readScene', id: data.tasks[1].id });
 });
@@ -216,23 +197,23 @@ test('a payment queues its preparation scene in the same change, and reading it 
 test('sceneLine records the line of a waiting scene from the first to the last line, and readScene removes it', () => {
   const state = checkpoint(4), id = data.tasks[3].id, last = data.tasks[3].dialogue.length - 1;
   assert.equal(Object.hasOwn(state, 'sceneLines'), false);
-  const second = apply(state, { type: 'sceneLine', id, line: 1 });
+  const second = act(state, { type: 'sceneLine', id, line: 1 });
   assert.deepEqual(second.sceneLines, { [id]: 1 });
-  const end = apply(second, { type: 'sceneLine', id, line: last });
+  const end = act(second, { type: 'sceneLine', id, line: last });
   assert.deepEqual(end.sceneLines, { [id]: last });
   // The first line needs no record.
-  const first = apply(end, { type: 'sceneLine', id, line: 0 });
+  const first = act(end, { type: 'sceneLine', id, line: 0 });
   assert.equal(Object.hasOwn(first, 'sceneLines'), false);
   assert.deepEqual(first, state);
   // A different waiting scene keeps its own line.
-  const both = apply(end, { type: 'sceneLine', id: 'chapter-1', line: 2 });
+  const both = act(end, { type: 'sceneLine', id: 'chapter-1', line: 2 });
   assert.deepEqual(both.sceneLines, { [id]: last, 'chapter-1': 2 });
   for (const key of ['coins', 'taskIndex', 'board', 'pendingScenes', 'completedQuests'] as const) {
     assert.deepEqual(both[key], state[key], `A line must not change ${key}.`);
   }
-  const read = apply(both, { type: 'readScene', id });
+  const read = act(both, { type: 'readScene', id });
   assert.deepEqual(read.sceneLines, { 'chapter-1': 2 });
-  assert.equal(Object.hasOwn(apply(read, { type: 'readScene', id: 'chapter-1' }), 'sceneLines'), false);
+  assert.equal(Object.hasOwn(act(read, { type: 'readScene', id: 'chapter-1' }), 'sceneLines'), false);
   // Stale, unknown, and out-of-range lines change nothing.
   rejected(read, { type: 'sceneLine', id, line: 1 });
   rejected(both, { type: 'sceneLine', id, line: last + 1 });
@@ -248,7 +229,7 @@ test('saved lines must be a plain record of waiting scenes with lines after the 
   const state = checkpoint(4), id = data.tasks[3].id;
   for (const sceneLines of [{}, { [id]: 1 }, { [id]: 2, 'chapter-1': 1 }, { [id]: 99 }]) assert.equal(validateGame({ ...state, sceneLines }, data), true, JSON.stringify(sceneLines));
   for (const sceneLines of [null, [], 'task_4', 3, { [id]: 0 }, { [id]: -1 }, { [id]: 1.5 }, { [id]: '1' }, { [id]: null }, { 'chapter-2': 1 }, { unknown: 1 },
-    { [id]: Number.MAX_SAFE_INTEGER + 1 }]) {
+    { [id]: Number.MAX_SAFE_INTEGER + 1 }, JSON.parse('{"__proto__":1}'), Object.assign(Object.create({ inherited: 1 }), { [id]: 1 })]) {
     assert.equal(validateGame({ ...state, sceneLines }, data), false, JSON.stringify(sceneLines));
   }
   // A line of a read scene is not kept.

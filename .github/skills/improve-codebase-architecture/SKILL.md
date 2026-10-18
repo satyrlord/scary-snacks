@@ -29,9 +29,11 @@ In that condition, give each edit or check that you did not complete in the repo
 Read `PRODUCT.md`, `DESIGN.md`, `DELIVERY.md`, `package.json`, `playwright.config.ts`, and the source code in the working tree.
 Map the selected behavior across these owners:
 
-- `src/engine.ts`: the rules, the state, and the state validation.
+- `src/model.ts`, `src/engine.ts`, and `src/content.ts`: the types, the rules, the state validation, and the data checks.
 - `src/storage.ts`: the save, load, export, import, and reset behavior.
-- `src/app.ts`, `src/style.css`, and `index.html`: the view, the input, the themes, and the sound.
+- `src/session.ts`: the game of the tab, its writes, and the lock between tabs.
+- `src/app.ts`, the interface modules, `src/style.css`, and `index.html`: the view, the input, the themes, and the sound.
+  `AGENTS.md` gives the owner of each interface module.
 - `tools/create-original-data.ts` and `public/data/game.json`: the game data.
 - `tools/build.ts`, `tools/server.ts`, and `tools/export-source.ts`: the build, the server, and the source export.
 - `tests/` and `.github/workflows/pages.yml`: the checks and the deployment.
@@ -46,7 +48,7 @@ Give the file evidence for each problem.
 - Gain: the boundary must reduce the information that the callers need.
 - Locality: code and contracts that change together must have one owner.
 - Dependencies: the engine must not use the Document Object Model (DOM), storage, sound, or rendering.
-  The storage module must not use the DOM. The storage module receives the browser storage from `src/app.ts`.
+  The storage module must not use the DOM. The storage module receives the browser storage from `src/session.ts`.
 - Determinism: the engine must have no random values and no clock values.
   The same state and the same actions must give the same result.
 - One value, one owner: one function must give a value that the interface shows and the engine applies.

@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { createGame, firstFreeBoardCell, getItem } from '../../src/engine.ts';
-import type { GameState, Quest } from '../../src/engine.ts';
+import { firstFreeBoardCell, getItem } from '../../src/model.ts';
+import { createGame } from '../../src/engine.ts';
+import type { GameState, Quest } from '../../src/model.ts';
 import { data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readTo, restoreWrites, saved, serialize, start, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate } from './support.ts';
 
 /** The first quest of each neighbour who lives in the village. */
@@ -126,6 +127,16 @@ test('after a failed delivery write, Retry save in Options saves the delivery on
   await expect(page.locator('#status')).toHaveText('Your progress is saved in this browser.');await expect(page.getByRole('button',{name:'Retry save',exact:true})).toHaveCount(0);
   const after=await saved(page);expect(after.completedQuests).toEqual([...before.completedQuests,value.id]);expect(after.coins).toBe(before.coins+value.reward);expect(after.pendingScenes).toEqual([value.id]);
   await page.reload();await opened(page);await expect(ticket(page,value)).toHaveCount(0);expect(await saved(page)).toEqual(after);
+});
+
+test('a storage read that fails during a delivery does not make the tab take its own save for another tab’s',async({page})=>{
+  const value=firstQuests[0];await start(page,deliverable(value));const before=await saved(page);
+  await page.evaluate(key=>{const original=Storage.prototype.getItem;Storage.prototype.getItem=function(name){if(name===key)throw new DOMException('Access denied.','SecurityError');return original.call(this,name);};},KEY);
+  await deliverButton(page,value).click();await expect(toast(page)).toContainText('This session is not saved.');
+  await page.evaluate(()=>{const frame=document.createElement('iframe');document.body.append(frame);Storage.prototype.getItem=frame.contentWindow!.localStorage.getItem;frame.remove();});
+  await options(page);await page.getByRole('button',{name:'Retry save',exact:true}).click();
+  await expect(page.locator('#status')).toHaveText('Your progress is saved in this browser.');
+  const after=await saved(page);expect(after.completedQuests).toEqual([...before.completedQuests,value.id]);expect(after.coins).toBe(before.coins+value.reward);
 });
 
 test('keyboard and emulated touch can open a quest and deliver it with focus returned',async({browser,baseURL})=>{

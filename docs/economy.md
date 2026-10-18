@@ -12,7 +12,6 @@ Production is free. The model does not charge for replacement ingredients or for
 
 Each food has a menu price for the portion that the table lists.
 The menu value of a quest is the sum of its portion prices.
-Merge stage does not multiply the price.
 A later stage does not always cost more. The portion and dish determine the price.
 
 | Chain | Item and reference portion | Coins |
@@ -61,7 +60,7 @@ The number of quests that open before each preparation makes the quest income co
 
 A quest that opens after preparation N is necessary for preparation N + 1.
 For each preparation, the available quest rewards must total at least the cost of all preparations to that point.
-`questProblems` in `src/engine.ts` checks this rule before the data can ship.
+`questProblems` in `src/content.ts` checks this rule before the data can ship.
 A player who delivers every open quest has enough coins for the next preparation.
 
 ## Work and price

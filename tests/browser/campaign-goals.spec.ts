@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { createGame, requiredQuests } from '../../src/engine.ts';
-import type { GameState } from '../../src/engine.ts';
+import { requiredQuests } from '../../src/model.ts';
+import { createGame } from '../../src/engine.ts';
+import type { GameState } from '../../src/model.ts';
 import { data, deliverButton, saved, start, supplies, supply, tile, toast } from './support.ts';
 
 const first = data.tasks[0];

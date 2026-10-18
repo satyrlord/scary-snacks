@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { boardObstacles, createGame, firstFreeBoardCell, freeBoardCells, requiredQuests, pendingPreparationObstacles, reduceGame, unresolvedObstacle, validateGame } from '../../src/engine.ts';
-import type { GameState } from '../../src/engine.ts';
-import { SAVE_KEY, exportSave } from '../../src/storage.ts';
-import { data, failWrites, saved, tile } from './support.ts';
+import { boardObstacles, firstFreeBoardCell, freeBoardCells, requiredQuests, pendingPreparationObstacles, unresolvedObstacle } from '../../src/model.ts';
+import { createGame, reduceGame, validateGame } from '../../src/engine.ts';
+import type { GameState } from '../../src/model.ts';
+import { data, failWrites, replaceSave, saved, start as open, tile } from './support.ts';
 
 function checkpoint(count = 0) {
   let state = createGame(data);
@@ -26,13 +26,7 @@ function paidCheckpoint(count = 0) {
   expect(result.ok, result.message).toBe(true); return result.state;
 }
 async function start(page: Page, state: GameState, theme = 'light') {
-  const value = exportSave(state, candidate => validateGame(candidate, data));
-  await page.addInitScript(({ key, value, theme }) => {
-    if (localStorage.getItem(key) === null) localStorage.setItem(key, value);
-    localStorage.setItem('scary-snacks-theme', theme);
-  }, { key: SAVE_KEY, value, theme });
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('./'); await expect(page.locator('#board button')).toHaveCount(42);
+  await page.emulateMedia({ reducedMotion: 'reduce' }); await open(page, state, theme);
 }
 async function pay(page: Page) {
   await page.locator('#story').getByRole('button', { name: /^Pay / }).click();
@@ -194,9 +188,7 @@ for (const theme of ['light', 'dark']) test(`all twelve preparation atlas tiles 
     const count = data.board.preparations.findIndex(batch => batch.obstacles.some(obstacle => obstacle.atlas === 'preparation' && obstacle.sprite === sprite));
     expect(count, `batch using sprite ${sprite}`).toBeGreaterThanOrEqual(0);
     const state = paidCheckpoint(count); state.pendingScenes = [];
-    const value = exportSave(state, candidate => validateGame(candidate, data));
-    await page.evaluate(({ key, value }) => localStorage.setItem(key, value), { key: SAVE_KEY, value });
-    await page.reload(); await expect(page.locator('#board button')).toHaveCount(42);
+    await replaceSave(page, state);
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
     const obstacle = active(state).find(obstacle => obstacle.atlas === 'preparation' && obstacle.sprite === sprite)!;
     expect(obstacle, `placed sprite ${sprite}`).toBeDefined();

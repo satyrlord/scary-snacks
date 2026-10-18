@@ -31,6 +31,10 @@ function listening(server: ReturnType<typeof spawn>) {
   });
 }
 
+async function stop(server: ReturnType<typeof spawn>) {
+  if (server.exitCode === null) { const stopped = once(server, 'exit'); server.kill(); await stopped; }
+}
+
 function request(address: string, path: string) {
   return new Promise<number | undefined>((resolve, reject) => {
     get(address + path, response => { response.resume(); response.on('end', () => resolve(response.statusCode)); }).on('error', reject);
@@ -66,7 +70,7 @@ for (const built of [false, true]) for (const basePath of ['/', '/scary-snacks/'
         assert.equal(await request(address, basePath.slice(0, -1)), 308);
       }
     } finally {
-      if (server.exitCode === null) { const stopped = once(server, 'exit'); server.kill(); await stopped; }
+      await stop(server);
     }
   });
 }
@@ -82,7 +86,7 @@ test('browser test servers serve their configured URLs despite an inherited prev
       const address = await listening(server);
       for (const path of ['', 'src/app.js', 'data/game.json']) assert.equal(await request(address, basePath + path), 200, configured.url + path);
     } finally {
-      if (server.exitCode === null) { const stopped = once(server, 'exit'); server.kill(); await stopped; }
+      await stop(server);
     }
   }
 });
@@ -95,6 +99,19 @@ test('development server serves files when Windows reports the drive letter in l
     const address = await listening(server);
     for (const path of ['', 'src/app.js', 'data/game.json']) assert.equal(await request(address, '/' + path), 200, path);
   } finally {
-    if (server.exitCode === null) { const stopped = once(server, 'exit'); server.kill(); await stopped; }
+    await stop(server);
+  }
+});
+
+test('development server answers a runtime source that does not compile and keeps serving', async t => {
+  const root = await fixture(t);
+  await writeFile(join(root, 'src/app.ts'), 'enum Unsupported { Value }');
+  const server = spawn(process.execPath, ['tools/server.ts'], { cwd: root, env: { ...process.env, PORT: '0', BASE_PATH: '/' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  try {
+    const address = await listening(server);
+    assert.equal(await request(address, '/src/app.js'), 500);
+    assert.equal(await request(address, '/'), 200);
+  } finally {
+    await stop(server);
   }
 });

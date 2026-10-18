@@ -1,26 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { boardLayoutProblems, canDeliverQuest, createGame, firstFreeBoardCell, freeBoardCells, questDeliveryCells, reduceGame,
-  unresolvedObstacle, validateGame } from '../src/engine.ts';
-import type { Action, GameData, GameState } from '../src/engine.ts';
+import { canDeliverQuest, firstFreeBoardCell, freeBoardCells, questDeliveryCells, unresolvedObstacle } from '../src/model.ts';
+import { createGame, reduceGame, validateGame } from '../src/engine.ts';
+import { boardLayoutProblems } from '../src/content.ts';
+import type { Action } from '../src/model.ts';
 import { exportSave, importSave, loadSave, saveGame, SAVE_KEY } from '../src/storage.ts';
+import { act, data, memoryStorage, rejected, validate } from './support.ts';
 
-const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
 const start = () => createGame(data);
-function apply(state: GameState, action: Action) {
-  const result = reduceGame(state, action, data);
-  assert.equal(result.ok, true, result.message);
-  assert.equal(validateGame(result.state, data), true);
-  return result.state;
-}
-function rejected(state: GameState, action: Action) {
-  const before = structuredClone(state);
-  const result = reduceGame(state, action, data);
-  assert.equal(result.ok, false);
-  assert.equal(result.state, state);
-  assert.deepEqual(state, before);
-}
 
 test('new games reserve eight obstacle cells and leave the blocked ingredients undiscovered', () => {
   const state = start();
@@ -43,7 +30,6 @@ test('matching a blocked ingredient merges it without clearing its neighbour', (
   assert.equal(result.ok, true);
   assert.equal(result.event, 'merge');
   assert.equal(result.state.board[6]?.code, 'bakery_3');
-  assert.equal(result.state.board[0], null);
   assert.equal(result.state.board[7], null);
   assert.deepEqual(result.state.resolvedObstacles, ['tied-dough']);
   assert.equal(result.state.discovered.filter(code => code === 'bakery_3').length, 1);
@@ -57,20 +43,20 @@ test('merges beside blockers do not clear them from any side', () => {
   const state = start();
   state.board[24] = { code: 'bakery_1' };
   state.board[30] = { code: 'bakery_1' };
-  const cleared = apply(state, { type: 'move', from: 24, to: 30 });
-  assert.equal(cleared.board[36], null);
+  const cleared = act(state, { type: 'move', from: 24, to: 30 });
+  assert.ok(unresolvedObstacle(cleared, 36, data));
   assert.ok(!cleared.resolvedObstacles.includes('covered-crock'));
   assert.ok(!cleared.resolvedObstacles.includes('linen-bundle'));
   assert.ok(!cleared.resolvedObstacles.includes('tied-elderflowers'));
 
-  const reverse = apply(state, { type: 'move', from: 30, to: 24 });
-  assert.equal(reverse.board[36], null);
+  const reverse = act(state, { type: 'move', from: 30, to: 24 });
+  assert.ok(unresolvedObstacle(reverse, 36, data));
   assert.deepEqual(reverse.resolvedObstacles, []);
   const diagonal = start();
   diagonal.board[8] = { code: 'bakery_1' };
   diagonal.board[14] = { code: 'bakery_1' };
-  const merged = apply(diagonal, { type: 'move', from: 8, to: 14 });
-  assert.equal(merged.board[0], null);
+  const merged = act(diagonal, { type: 'move', from: 8, to: 14 });
+  assert.equal(unresolvedObstacle(merged, 0, data)?.id, 'old-crate');
   assert.deepEqual(merged.resolvedObstacles, []);
 });
 
@@ -114,9 +100,9 @@ test('blocked null cells do not provide placement or preparation space', () => {
   assert.equal(freeBoardCells(state, data), 0);
   assert.equal(firstFreeBoardCell(state, data), -1);
   rejected(state, { type: 'spawn', index: 1 });
-  const merged = apply(state, { type: 'move', from: 2, to: 3 });
+  const merged = act(state, { type: 'move', from: 2, to: 3 });
   assert.equal(firstFreeBoardCell(merged, data), 2);
-  const produced = apply(merged, { type: 'spawn', index: 1 });
+  const produced = act(merged, { type: 'spawn', index: 1 });
   assert.equal(produced.board[2]?.code, 'bakery_1');
 });
 
@@ -134,26 +120,20 @@ test('open, partly cleared, and fully cleared boards survive export, import, and
   const open = start();
   open.board[7] = { code: 'bakery_2' };
   open.discovered.push('bakery_2');
-  const partial = apply(open, { type: 'move', from: 7, to: 6 });
+  const partial = act(open, { type: 'move', from: 7, to: 6 });
   let full = structuredClone(partial);
   for (const obstacle of data.board.layouts[0].obstacles.filter(obstacle => !full.resolvedObstacles.includes(obstacle.id))) {
     full.board[7] = { code: obstacle.ingredient };
     if (!full.discovered.includes(obstacle.ingredient)) full.discovered.push(obstacle.ingredient);
-    full = apply(full, { type: 'move', from: 7, to: obstacle.position });
+    full = act(full, { type: 'move', from: 7, to: obstacle.position });
   }
   assert.equal(full.resolvedObstacles.length, 8);
   for (const state of [open, partial, full]) {
-    const validate = (candidate: unknown) => validateGame(candidate, data);
     const text = exportSave(state, validate);
     assert.deepEqual(importSave(text, validate), state);
-    const values = new Map<string, string>();
-    const storage = {
-      getItem: (key: string) => values.get(key) ?? null,
-      setItem: (key: string, value: string) => { values.set(key, value); },
-      removeItem: (key: string) => { values.delete(key); },
-    };
+    const storage = memoryStorage();
     assert.equal(saveGame(storage, state, validate).ok, true);
-    assert.equal(values.get(SAVE_KEY), text);
+    assert.equal(storage.values.get(SAVE_KEY), text);
     assert.deepEqual(loadSave(storage, validate).state, state);
   }
 });
@@ -188,7 +168,7 @@ test('visible blockers never discover their ingredients, so the recipe book keep
   const hidden = data.board.layouts[0].obstacles.map(obstacle => obstacle.ingredient).filter(code => !data.board.initial.includes(code));
   let state = start();
   for (const action of [{ type: 'spawn', index: 1 }, { type: 'move', from: 2, to: 3 }] as Action[]) {
-    state = apply(state, action);
+    state = act(state, action);
     for (const code of hidden.filter(code => !state.board.some(cell => cell?.code === code))) assert.ok(!state.discovered.includes(code), code);
   }
 });
@@ -196,7 +176,6 @@ test('visible blockers never discover their ingredients, so the recipe book keep
 test('a save that already lists a blocked ingredient stays valid and keeps that discovery', () => {
   const state = start();
   state.discovered.push('bakery_3');
-  const validate = (candidate: unknown) => validateGame(candidate, data);
   assert.deepEqual(importSave(exportSave(state, validate), validate), state);
-  assert.ok(apply(state, { type: 'spawn', index: 1 }).discovered.includes('bakery_3'));
+  assert.ok(act(state, { type: 'spawn', index: 1 }).discovered.includes('bakery_3'));
 });

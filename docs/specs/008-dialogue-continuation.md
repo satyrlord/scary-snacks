@@ -12,9 +12,9 @@ Play never waits for a scene. Opening a scene again gives no reward.
 
 ## Ownership
 
-- `src/engine.ts` owns the validated transitions: the scene list, the `readScene` and `sceneLine` actions, `sceneDialogue`, `storyScenes`, `storyProblems`, and save validation.
+- `src/engine.ts` owns the validated transitions: the `readScene` and `sceneLine` actions and save validation. `src/model.ts` owns the scene list, `sceneDialogue`, and `storyScenes`. `src/content.ts` owns `storyProblems`.
 - `src/storage.ts` owns persistence.
-- `src/app.ts` owns the dialogs, the focus, the reading controls, and the save messages.
+- `src/story.ts` owns the dialogs, the focus, and the reading controls. `src/session.ts` owns the save messages.
 - `tools/create-original-data.ts` authors the scene identifiers (IDs).
 
 ## Rules

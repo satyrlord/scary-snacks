@@ -1,10 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { canDeliverQuest, createGame, currentTask, firstFreeBoardCell, generatorOutputs, getItem, reduceGame, resolveQuests, taskEligibility,
-  unresolvedObstacle, validateGame } from '../src/engine.ts';
-import type { Action, GameData, GameState, Quest, Task } from '../src/engine.ts';
+import { canDeliverQuest, currentTask, firstFreeBoardCell, generatorOutputs, getItem, resolveQuests, taskEligibility, unresolvedObstacle } from '../src/model.ts';
+import { createGame, reduceGame, validateGame } from '../src/engine.ts';
+import type { Action, GameData, GameState, Quest, Task } from '../src/model.ts';
 
 export type CampaignTotals = {
   actions: number; spawns: number; merges: number; quests: number;
@@ -129,7 +127,7 @@ export function runCampaignBalance(data: GameData): CampaignBalance {
   return { chapters, preparations, totals, finalState: state };
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (import.meta.main) {
   const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
   const { finalState, ...report } = runCampaignBalance(data);
   console.log(JSON.stringify({ ...report, final: { preparations: finalState.taskIndex, balance: finalState.coins, quests: finalState.completedQuests.length } }, null, 2));

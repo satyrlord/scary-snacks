@@ -82,7 +82,7 @@ They are awake when the bats are.
 
 ## Data and state
 
-- `Character` in `src/engine.ts` has `regular`, `arrivesAfter`, `prefers`, `arrival`, and `portraitAtlas`.
+- `Character` in `src/model.ts` has `regular`, `arrivesAfter`, `prefers`, `arrival`, and `portraitAtlas`.
   `tools/create-original-data.ts` authors the records.
 - `characterProblems` checks unique IDs, portrait cells, and known arrival preparations.
   Each regular must have two different known favourite chains.

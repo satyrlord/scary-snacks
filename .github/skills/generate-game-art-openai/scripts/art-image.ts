@@ -337,7 +337,7 @@ async function main() {
   } else throw new Error('Give --asset and --input to inspect.');
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (import.meta.main) {
   main().catch((error) => {
     console.error(error instanceof Error ? error.message : 'The art helper failed.');
     process.exitCode = 1;

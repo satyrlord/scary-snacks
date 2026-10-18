@@ -1,8 +1,7 @@
-import { createHash } from 'node:crypto';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
+import { sha256 } from './build.ts';
 
 // The PNG masters in public/assets/original stay unchanged and are not shipped. The build ships these variants instead.
 // Widths follow the largest size each image is shown at, at twice the device pixel ratio.
@@ -59,8 +58,6 @@ const encoderSettings = {
 const variantDirectory = 'public/assets/variants';
 const variantRecord = 'docs/asset-variants.json';
 
-const sha256 = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex');
-
 async function buildImageVariants(root = resolve(import.meta.dirname, '..')) {
   const provenance = JSON.parse(await readFile(resolve(root, 'docs/asset-provenance.json'), 'utf8')) as { assets: { id: string; file: string; sha256: string }[] };
   const planned = new Set(Object.keys(imageVariants));
@@ -91,7 +88,7 @@ async function buildImageVariants(root = resolve(import.meta.dirname, '..')) {
   return variants;
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (import.meta.main) {
   const variants = await buildImageVariants();
   const total = variants.reduce((sum, variant) => sum + variant.bytes, 0);
   console.log(`Wrote ${variants.length} image variants (${(total / 1048576).toFixed(2)} MiB) to ${variantDirectory} and recorded them in ${variantRecord}.`);

@@ -20,8 +20,8 @@ The board and the recipe book stay available.
 
 - The story has one path. It has no alternative endings and no other campaign.
 - `tools/create-original-data.ts` authors the content.
-  `src/engine.ts` owns `resolveChapters`, `storyScenes`, `storyProblems`, the `readScene` action, and save validation.
-- `src/app.ts` owns the story card, the scene dialogs, and the journal. `src/storage.ts` owns the envelope version.
+  `src/model.ts` owns `resolveChapters` and `storyScenes`. `src/content.ts` owns `storyProblems`. `src/engine.ts` owns the `readScene` action and save validation.
+- `src/story.ts` owns the story card, the scene dialogs, and the journal. `src/storage.ts` owns the envelope version.
 
 ## Chapter outline
 
@@ -106,13 +106,12 @@ Follow [Shared save compatibility](README.md#shared-save-compatibility) in the s
   It checks the layout at 1440×900, 390×844, and 390×800 in both themes.
 
 The playthrough in `tests/browser/story.spec.ts` starts from a fresh save in the built game.
-Between payments, the engine makes legal moves: it takes, it merges, and it delivers each open quest.
+Before each payment, the test writes a save with the quests that the payment needs and the exact coins.
+`tests/campaign-balance.test.ts` covers legal play from a new game to the finale.
 The test makes every payment through the interface.
 It reads every preparation scene, runs every reveal, and reads every chapter scene and the finale.
 The test also checks the journal.
 The playthrough checks that the story agrees with the campaign.
-Each closing scene names the room changes of its four preparations.
-The test delivers each contribution during its chapter.
 The journal shows each contribution beside the payoff.
 The finale names each chapter result.
 The board stays available after the finale.

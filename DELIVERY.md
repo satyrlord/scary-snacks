@@ -2,7 +2,7 @@
 
 ## Tools
 
-The source is TypeScript 7 in strict mode, Hypertext Markup Language (HTML), and Cascading Style Sheets (CSS). The repository has no JavaScript source files. Node.js 24 runs the tools and the tests from the `.ts` files directly. The build removes the types from the three runtime modules and publishes them as browser scripts in `dist/`. `npm run typecheck` runs the compiler without output.
+The source is TypeScript 7 in strict mode, Hypertext Markup Language (HTML), and Cascading Style Sheets (CSS). The repository has no JavaScript source files. Node.js 24.2 or newer runs the tools and the tests from the `.ts` files directly. The build removes the types from the runtime modules and publishes them as browser scripts in `dist/`. `npm run typecheck` runs the compiler without output.
 
 Playwright, TypeScript, Sharp (for image variants), Fallow (for dead code), and the Node.js type definitions are development dependencies.
 
@@ -42,8 +42,8 @@ The game makes its sounds as tones that code generates in the browser. The inter
 
 The generator refuses to write the game data in these conditions:
 
-- An identifier (ID) in `roomPaintings` in `src/engine.ts` has no approved master.
-- `dataProblems` in `src/engine.ts` reports a problem. It checks the board, preparation blocker batches, room states, decoration slots, and production tiers. It also checks the cast, quests, campaign funds, story, and menu prices. Every preparation needs two or three blockers with stable IDs, valid art cells, context, and ingredients from an available chain. The starting board must make a new game that passes the save validation.
+- An identifier (ID) in `roomPaintings` in `src/model.ts` has no approved master.
+- `dataProblems` in `src/content.ts` reports a problem. It checks the board, preparation blocker batches, room states, decoration slots, and production tiers. It also checks the cast, quests, campaign funds, story, and menu prices. Every preparation needs two or three blockers with stable IDs, valid art cells, context, and ingredients from an available chain. The starting board must make a new game that passes the save validation.
 
 The data checks require a complete six-stage merge path for each chain and one source unlock for each later chain. Initial blockers must use valid atlas cells. A regular's quest must open after the regular arrives and ask for a dish from a favourite chain.
 

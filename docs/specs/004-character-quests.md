@@ -170,7 +170,7 @@ They also cover failed writes and rejection of unsupported versions.
 
 The browser tests use the built game.
 They cover delivery from a ticket and from the quest dialog, with items from the board only.
-They cover keyboard focus, touch emulation, reload, export, import, scene replay, and unavailable storage.
+They cover keyboard focus, touch emulation, reload, export, import, and scene replay.
 They cover the shared quest with both portraits and its departure through reload and import.
 They also cover a failed delivery save and the news scene in the journal.
 The tickets and the quest dialog have geometry, contrast, and screenshot checks at desktop and phone sizes in both themes.

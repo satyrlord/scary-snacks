@@ -1,9 +1,10 @@
 // Shared fixtures for the browser specs: saves made by the rules, and the controls that the specs use most.
 import { expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { createGame, firstFreeBoardCell, reduceGame, requiredQuests, resolveQuests, validateGame } from '../../src/engine.ts';
-import type { Action, GameData, GameState, Quest } from '../../src/engine.ts';
+import { firstFreeBoardCell, requiredQuests, resolveQuests } from '../../src/model.ts';
+import { createGame, reduceGame, validateGame } from '../../src/engine.ts';
+import type { Action, GameData, GameState, Quest } from '../../src/model.ts';
 import { SAVE_KEY, exportSave } from '../../src/storage.ts';
 
 export const data: GameData=JSON.parse(readFileSync('public/data/game.json','utf8'));
@@ -127,6 +128,17 @@ export async function startAgainAndImport(page: Page,text: string){
   await page.getByRole('button',{name:'Import this saved game'}).click();
 }
 /** The WCAG contrast ratio of two computed colours. */
+/** A portrait shows its own cell of a 640px atlas variant: an unfiltered square crop that stays inside the cell. */
+export async function portraitCell(target: Locator,atlas: string,sprite: number){
+  const style=await target.evaluate(element=>{const style=getComputedStyle(element);return {image:style.backgroundImage,position:style.backgroundPosition,size:style.backgroundSize,filter:style.filter};});
+  expect(style.image).toContain(`/assets/variants/${atlas}-640x640.webp`);await expect(target).toHaveClass(new RegExp(`portrait-${sprite}`));
+  const side=200/parseFloat(style.size),position=style.position.split(' ').map(parseFloat);
+  const left=position[0]/100*(2-side)-sprite%2,top=position[1]/100*(2-side)-Math.floor(sprite/2);
+  expect(side).toBeGreaterThan(.7);expect(side).toBeLessThan(.9);
+  expect(left).toBeGreaterThanOrEqual(-.00001);expect(top).toBeGreaterThanOrEqual(-.00001);
+  expect(left+side).toBeLessThanOrEqual(1.00001);expect(top+side).toBeLessThanOrEqual(1.00001);expect(style.filter).toBe('none');
+  expect(await target.evaluate(async element=>{const image=new Image();image.src=getComputedStyle(element).backgroundImage.slice(5,-2);await image.decode();return [image.naturalWidth,image.naturalHeight];})).toEqual([640,640]);
+}
 export function ratio(a: string,b: string){
   const luminance=(value: string)=>value.match(/\d+(?:\.\d+)?/g)!.slice(0,3).map(Number).map(n=>n/255).map(n=>n<=.04045?n/12.92:((n+.055)/1.055)**2.4).reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);
   const x=luminance(a),y=luminance(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05);

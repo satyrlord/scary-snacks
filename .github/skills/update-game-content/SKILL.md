@@ -28,13 +28,13 @@ In that condition, give each edit or check that you did not complete in the repo
 
 Read `PRODUCT.md`, `DELIVERY.md`, and `tools/create-original-data.ts`.
 This skill calls that file the data tool. The data tool is the only source of the game data.
-Read `validateGame`, `dataProblems`, and the quest rules in `src/engine.ts`.
+Read `validateGame` in `src/engine.ts`, `dataProblems` in `src/content.ts`, and the quest rules in `src/model.ts` and `src/engine.ts`.
 `validateGame` checks a save against the game data.
 `dataProblems` runs each data check. It also checks that the starting board makes a valid new game.
 The data tool and the game both call `dataProblems`. The game does not start on data that has a problem.
 Read the content test in `tests/engine.test.ts` and the campaign test in `tests/campaign-balance.test.ts`.
 Read the tests in `tests/quests.test.ts`, `tests/guests.test.ts`, `tests/regulars.test.ts`, and `tests/story.test.ts` if the change touches quests, guests, regulars, or story.
-Read the code in `src/app.ts` that shows items, portraits, and dialogue.
+Read the code in `src/art.ts`, `src/tickets.ts`, and `src/story.ts` that shows items, portraits, and dialogue.
 
 `PRODUCT.md` gives the board size and these counts: generators, dishes and drinks, characters, quests, preparations, and chapters.
 The content test in `tests/engine.test.ts` checks the board size and the counts of the items, the characters, and the preparations.
@@ -69,7 +69,7 @@ Each preparation has one authored room state.
 A room state has the fields `id`, `area`, `after`, `focus`, `mark`, `label`, and `text`.
 The `id` also names the painting. The field `after` names the preparation.
 The state of the new game has `null` in `after`.
-The data tool stops if an entry of `roomPaintings` in `src/engine.ts` has no approved master in `docs/asset-provenance.json`.
+The data tool stops if an entry of `roomPaintings` in `src/model.ts` has no approved master in `docs/asset-provenance.json`.
 Use [generate-game-art](../generate-game-art/SKILL.md) for new art. Make the name agree with the picture.
 
 Write new names, dialogue, and room-state text for this game.

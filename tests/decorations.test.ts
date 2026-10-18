@@ -1,27 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createGame, decorationUnlocked, firstFreeBoardCell, reduceGame, validateGame, resolveDecorations, decorationProblems } from '../src/engine.ts';
+import { decorationUnlocked, resolveDecorations } from '../src/model.ts';
+import { reduceGame } from '../src/engine.ts';
+import { decorationProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
-import type { Action, GameData, GameState } from '../src/engine.ts';
+import type { Action, GameData, GameState } from '../src/model.ts';
 import { checkpointState } from '../tools/create-checkpoint-saves.ts';
+import { addOpenLayout, data, deliver, openGame, rejected, validate } from './support.ts';
 
-const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
-data.board.layouts.push({ id: 'test-open', obstacles: [] });
+addOpenLayout();
 const provenance: { assets: { id: string }[] } = JSON.parse(await readFile(new URL('../docs/asset-provenance.json', import.meta.url), 'utf8'));
-const validate = (state: unknown) => validateGame(state, data);
-const checkpoint = (count: number) => checkpointState(data, count, { ...createGame(data), layoutId: 'test-open' });
-/** Deliver an active quest with its items placed on free cells. */
-function deliver(state: GameState, id: string) {
-  const next = structuredClone(state);
-  for (const { item, quantity } of data.quests.find(quest => quest.id === id)!.requirements) for (let count = 0; count < quantity; count++) {
-    next.board[firstFreeBoardCell(next, data)] = { code: item };
-    if (!next.discovered.includes(item)) next.discovered.push(item);
-  }
-  const result = reduceGame(next, { type: 'deliverQuest', id }, data);
-  assert.equal(result.ok, true, result.message);
-  return result.state;
-}
+/** The checkpoint save on the board without obstacles. */
+const checkpoint = (count: number) => checkpointState(data, count, openGame());
+
 test('every decoration has a distinct default, a preparation, a valid crop, and known images', () => {
   const images = provenance.assets.map(asset => asset.id);
   assert.deepEqual(decorationProblems(data, images), []);
@@ -85,12 +77,7 @@ test('a finish unlocks only with the delivery of its quest, and the decorate act
   assert.equal(resolveDecorations(open.decorations, open.decorationChoices, data)[0].unlocked, true);
   assert.equal(decorationUnlocked(open, slot, 'blue', data), true, 'A default finish needs no quest.');
   assert.equal(decorationUnlocked(open, slot, 'green', data), false);
-  const before = structuredClone(open);
-  const locked = reduceGame(open, { type: 'decorate', slot: 'tableware', variant: 'green' }, data);
-  assert.equal(locked.ok, false);
-  assert.match(locked.message, /Deliver the quest/);
-  assert.equal(locked.state, open);
-  assert.deepEqual(open, before);
+  assert.match(rejected(open, { type: 'decorate', slot: 'tableware', variant: 'green' }).message, /Deliver the quest/);
   assert.equal(validate({ ...open, decorationChoices: { tableware: 'green' } }), false, 'A save cannot hold a locked finish.');
   const delivered = deliver(deliver(open, 'eszter-table'), 'eszter-green-bowls');
   assert.equal(decorationUnlocked(delivered, slot, 'green', data), true);
@@ -106,13 +93,7 @@ test('locked, unknown, and mismatched choices fail without any state change', ()
     [checkpoint(24), { type: 'decorate', slot: 'unknown', variant: 'green' }],
     [checkpoint(24), { type: 'decorate', slot: 'tableware', variant: 'lilacs' }],
     [checkpoint(24), { type: 'decorate', slot: '__proto__', variant: 'blue' }],
-  ] as [GameState, Action][]) {
-    const before = structuredClone(state);
-    const result = reduceGame(state, action, data);
-    assert.equal(result.ok, false);
-    assert.equal(result.state, state);
-    assert.deepEqual(state, before);
-  }
+  ] as [GameState, Action][]) rejected(state, action);
 });
 
 test('save validation rejects malformed choice maps and choices before unlock', () => {

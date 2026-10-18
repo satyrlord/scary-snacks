@@ -14,9 +14,14 @@ Git history keeps the past.
 
 ## Project structure
 
-- `src/` holds the three runtime modules and the stylesheet.
-  `engine.ts` holds the rules, `storage.ts` holds the saves, and `app.ts` holds the interface.
+- `src/` holds the runtime modules and the stylesheet.
+  The rules are in three modules. `model.ts` holds the content and state types and the read-only game queries.
+  `engine.ts` holds the new game, the actions, and the save validation. `content.ts` holds the checks of the game data.
+  `storage.ts` holds the saves.
   Keep the rules and the saves free of Document Object Model (DOM) access.
+  `session.ts` holds the game of the tab, its saves, and the lock between tabs. `app.ts` opens the game and draws it after each change.
+  Each interface module holds one part of the page: `board.ts`, `tickets.ts`, `story.ts`, `room.ts`, `dishes.ts`, and `options.ts`.
+  `dom.ts`, `art.ts`, `dialog.ts`, and `preferences.ts` hold the shared interface parts.
 - `public/` holds the shipped image variants, fonts, and game data.
   `assets/variants/` holds AV1 Image File Format (AVIF) and WebP images.
   `assets/fonts/` holds the fonts, and `data/game.json` holds the game data.
@@ -26,9 +31,10 @@ Git history keeps the past.
   Edit the generator.
   Run `npm run data:generate`.
 - `tests/` holds the Node.js tests. `tests/browser/` holds the Playwright browser tests.
+  `tests/support.ts` and `tests/browser/support.ts` hold the shared test helpers.
 - `docs/` holds the records and the feature specifications.
 - `.github/` holds the repository skills, the skill link script, and the Pages workflow.
-- Git ignores the local folders `private/`, `analysis/`, `.release/`, and `.tools/`.
+- Git ignores the local folders `private/`, `analysis/`, `.release/`, `.tools/`, and `.impeccable/`.
   `analysis/` holds the build manifest and the art-generation candidates.
   Do not read `private/` or `analysis/` as an input for source code, content, art, or tests.
 
@@ -67,6 +73,7 @@ Do not add code that is not necessary.
 ## Test guidelines
 
 Give each Node.js test file a name that tells its area, for example `storage.test.ts`.
+Put a helper that more than one test file uses in the shared helper file of its test kind.
 Give each test a name that tells its behavior.
 Add a regression test for each defect.
 The game supports only Chromium-based browsers. The full browser suite runs on Chromium under `/scary-snacks/`, the GitHub Pages path. The asset and path test also runs at the root path.

@@ -1,23 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { arrivalScene, characterProblems, createGame, dataProblems, hasArrived, journalCharacters, reduceGame, requiredQuests, resolveNeighbours, resolveQuests, validateGame } from '../src/engine.ts';
-import type { GameData, GameState } from '../src/engine.ts';
-import { checkpointState } from '../tools/create-checkpoint-saves.ts';
+import { arrivalScene, hasArrived, journalCharacters, resolveNeighbours, resolveQuests } from '../src/model.ts';
+import { createGame, reduceGame, validateGame } from '../src/engine.ts';
+import { characterProblems, dataProblems } from '../src/content.ts';
+import type { GameData } from '../src/model.ts';
+import { checkpoint, data, payNext } from './support.ts';
 
-const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
 const regulars = data.characters.filter(person => person.regular);
-
-/** Pay the next preparation with its exact cost, after its quests are marked delivered. */
-function pay(state: GameState) {
-  const next = structuredClone(state);
-  for (const quest of requiredQuests(next.taskIndex, data)) if (!next.completedQuests.includes(quest.id)) next.completedQuests.push(quest.id);
-  next.coins = data.tasks[next.taskIndex].cost;
-  const result = reduceGame(next, { type: 'task' }, data);
-  assert.equal(result.ok, true, result.message);
-  return result.state;
-}
-const checkpoint = (count: number) => checkpointState(data, count);
 
 test('twelve regulars arrive in pairs: four at the start, then with preparations 4, 8, and 12, and the nobles also with preparation 8', () => {
   assert.deepEqual(characterProblems(data), []);
@@ -41,15 +30,15 @@ test('twelve regulars arrive in pairs: four at the start, then with preparations
 
 test('the preparation that brings a regular queues the arrival scene once, after its story scenes', () => {
   const before = checkpoint(3);
-  const after = pay(before);
+  const after = payNext(before);
   assert.deepEqual(after.pendingScenes, ['task_4', 'chapter-1', 'arrival-sanziana', 'arrival-dorian']);
   const read = reduceGame(after, { type: 'readScene', id: 'arrival-dorian' }, data);
   assert.equal(read.ok, true);
   assert.equal(read.state.pendingScenes.includes('arrival-dorian'), false);
   assert.equal(reduceGame(read.state, { type: 'readScene', id: 'arrival-dorian' }, data).ok, false, 'A read arrival cannot be read again as new.');
   for (const key of ['coins', 'taskIndex', 'board', 'completedQuests'] as const) assert.deepEqual(read.state[key], after[key]);
-  assert.deepEqual(pay(after).pendingScenes.slice(after.pendingScenes.length), ['task_5']);
-  const nobles = pay(checkpoint(7));
+  assert.deepEqual(payNext(after).pendingScenes.slice(after.pendingScenes.length), ['task_5']);
+  const nobles = payNext(checkpoint(7));
   assert.deepEqual(nobles.pendingScenes.slice(-6), ['task_8', 'chapter-2', 'arrival-vlad', 'arrival-elisabeta', 'arrival-ileana', 'arrival-cezar']);
 });
 
@@ -70,7 +59,7 @@ test('each regular asks only after arrival, and the journal shows only arrived n
   }
   const before = checkpoint(7);
   assert.ok(resolveQuests(before, data).every(view => !['vlad', 'elisabeta'].includes(view.quest.character) || view.status === 'locked'));
-  const after = pay(before);
+  const after = payNext(before);
   assert.ok(resolveQuests(after, data).some(view => view.quest.character === 'vlad' && view.status !== 'locked'));
   const delivered = resolveNeighbours(checkpoint(24), data);
   assert.ok(delivered.every(view => view.arrived && view.delivered === data.quests.filter(quest => quest.character === view.person.id).length));

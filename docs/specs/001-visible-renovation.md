@@ -27,7 +27,7 @@ The [room states art plan](001-visible-renovation-art-plan.md) gives the 25 stat
 Each state has a stable ID, an area, and a preparation prerequisite.
 Each state also has focus coordinates, a pin mark, a pin label, and a caption.
 The ID of a state also names its painting.
-`roomProblems` in `src/engine.ts` checks the room states.
+`roomProblems` in `src/content.ts` checks the room states.
 [DELIVERY.md "Game data"](../../DELIVERY.md#game-data) gives the conditions that prevent data generation.
 The tests compare the painting list with the shipped variant plan.
 The tests also resolve all 25 campaign checkpoints.

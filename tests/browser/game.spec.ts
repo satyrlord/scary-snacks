@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { createGame, firstFreeBoardCell, generatorOutputs, requiredQuests, resolveQuests } from '../../src/engine.ts';
-import type { GameState } from '../../src/engine.ts';
+import { firstFreeBoardCell, generatorOutputs, requiredQuests, resolveQuests } from '../../src/model.ts';
+import { createGame } from '../../src/engine.ts';
+import type { GameState } from '../../src/model.ts';
 import { KEY, act, appearance, checkpoint, data, deliverButton, journal, opened, options, painting, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, stateText, supply, tile, ticket, toast, unselect } from './support.ts';
 
 async function mergeStart(page: Page){await tile(page,13).click();await tile(page,14).click();expect((await saved(page)).board[14]?.code).toBe('bakery_2');}
@@ -611,6 +612,46 @@ test('a valid save from another tab restores play after load recovery',async({pa
 
 test('corrupt saves remain intact and report recovery',async({page})=>{
   await page.addInitScript(key=>localStorage.setItem(key,'broken-save'),KEY);await start(page);await expect(page.getByRole('dialog')).toBeVisible();await expect(page.locator('.save-error')).toContainText('could not be loaded');expect(await page.evaluate(key=>localStorage.getItem(key),KEY)).toBe('broken-save');
+});
+
+for(const writer of ['this tab','another tab'] as const)test(`a corrupt live save from ${writer} blocks changes and offers saved-game recovery`,async({page,context})=>{
+  await start(page,createGame(data));await mergeStart(page);
+  const original=await page.evaluate(key=>localStorage.getItem(key)!,KEY);
+  const before=await page.locator('#board button').evaluateAll(cells=>cells.map(cell=>cell.getAttribute('aria-label')));
+  const other=writer==='another tab'?await context.newPage():null;
+  try{
+    if(other){
+      await other.goto('./');await opened(other);
+      await options(page);
+      await page.evaluate(key=>window.addEventListener('storage',event=>{if(event.key===key)document.documentElement.dataset.liveSaveChanged='';},{once:true}),KEY);
+    }
+    await (other??page).evaluate(key=>localStorage.setItem(key,'broken-live-save'),KEY);
+    if(other){
+      // The storage event must expose recovery before the player tries another action.
+      await expect(page.locator('html')).toHaveAttribute('data-live-save-changed','');
+      await expect(page.getByRole('button',{name:'Retry saved game',exact:true})).toBeVisible();await page.keyboard.press('Escape');
+    }
+    await tile(page,1).click();
+    await page.evaluate(key=>navigator.locks.request(key,()=>{}),KEY);
+    expect(await page.locator('#board button').evaluateAll(cells=>cells.map(cell=>cell.getAttribute('aria-label')))).toEqual(before);
+    expect(await page.evaluate(key=>localStorage.getItem(key),KEY)).toBe('broken-live-save');
+    await options(page);await expect(page.getByRole('button',{name:'Retry saved game',exact:true})).toBeVisible();
+    await expect(page.getByRole('button',{name:'Retry save',exact:true})).toHaveCount(0);
+    if(other){
+      // Identical bytes must restore play even though this tab already observed them before corruption.
+      await other.evaluate(({key,text})=>localStorage.setItem(key,text),{key:KEY,text:original});
+      await expect(page.locator('#modal')).toBeHidden();await expect(page.locator('#status')).toContainText('another tab');
+      expect(await page.evaluate(key=>localStorage.getItem(key),KEY)).toBe(original);
+      expect(await page.locator('#board button').evaluateAll(cells=>cells.map(cell=>cell.getAttribute('aria-label')))).toEqual(before);
+    }else{
+      await page.getByRole('button',{name:'Start a new game',exact:true}).click();
+      await page.getByRole('button',{name:'Erase and start again',exact:true}).click();
+      await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(createGame(data));
+    }
+    const recovered=await saved(page);await tile(page,1).click();
+    expect((await saved(page)).board.filter(Boolean)).toHaveLength(recovered.board.filter(Boolean).length+1);
+    await options(page);await expect(page.getByRole('button',{name:'Retry saved game',exact:true})).toHaveCount(0);
+  }finally{await other?.close();}
 });
 
 for(const preparations of [1,9,19,24])test(`a previous-format campaign at preparation ${preparations} stays untouched beside a new campaign`,async({page})=>{

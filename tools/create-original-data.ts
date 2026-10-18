@@ -1,8 +1,9 @@
 // Original setting, dialogue, progression, and economy authored for this browser game.
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { roomPaintings, dataProblems } from '../src/engine.ts';
-import type { Area, BoardLayout, Chapter, Character, DecorationSlot, Finale, GameData, Item, PreparationObstacleBatch, Quest, RoomState, Task } from '../src/engine.ts';
+import { roomPaintings } from '../src/model.ts';
+import { dataProblems } from '../src/content.ts';
+import type { Area, BoardLayout, Chapter, Character, DecorationSlot, Finale, GameData, Item, PreparationObstacleBatch, Quest, RoomState, Task } from '../src/model.ts';
 
 const chains: [id: string, name: string, stages: string[], generator: string][] = [
   ['bakery', 'Bread counter', ['Flour', 'Dough', 'Pogăcele', 'Langoș', 'Zacuscă toast', 'Bread basket'], 'Flour bin'],
@@ -11,7 +12,7 @@ const chains: [id: string, name: string, stages: string[], generator: string][] 
   ['drinks', 'Drinks counter', ['Elderflowers', 'Socată', 'Fruit tea', 'Cherry compote', 'Red wine', 'Plum brandy'], 'Drinks pitcher'],
   ['produce', 'Market produce', ['Aubergine', 'Peppers', 'Roasted vegetables', 'Zacuscă', 'Wild mushroom sauce', 'Sharing board'], 'Produce basket'],
 ];
-// Prices are for the portions in docs/economy.md. A merge stage is not a price multiplier.
+// Prices are for the portions in docs/economy.md.
 const menuPrices: Record<string, number[]> = {
   bakery: [2, 4, 12, 22, 28, 35],
   warm: [2, 8, 32, 40, 50, 80],
@@ -232,7 +233,7 @@ const questTerms = (rows: [string, number][]) => ({ requirements: rows.map(([ite
   reward: rows.reduce((sum, [item, quantity]) => sum + items[item].price * quantity, 0) });
 const lines = (speaker: string, text: string) => [{ speaker, text }];
 type QuestRow = [id: string, character: string, title: string, window: number, requirements: [string, number][], opening: string, completion: string];
-// The four core arcs keep their quests. The regulars ask for dishes from their favourite chains.
+// The regulars ask for dishes from their favourite chains.
 const questRows: QuestRow[] = [
   ['mara-welcome', 'mara', 'A welcome drink', 0, [['drinks_2', 1]],
     'Let us try a glass of socată for the first welcome. I want something simple to offer when a neighbour comes through the door.',

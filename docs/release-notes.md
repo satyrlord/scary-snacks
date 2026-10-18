@@ -6,11 +6,11 @@ Scary Snacks is a fictional Transylvanian bistro game.
 The project authors its cast, dialogue, board, item progression, economy, art, and sounds.
 
 The source is TypeScript 7.
-The build publishes three runtime modules as browser scripts.
+The build publishes the runtime modules as browser scripts.
 The build file list contains these items:
 
 - `index.html`.
-- Three runtime scripts and one stylesheet.
+- The runtime scripts and one stylesheet.
 - The authored game data in JavaScript Object Notation (JSON).
 - AV1 Image File Format (AVIF) and WebP variants of the approved masters.
 - Two fonts under the SIL Open Font License (OFL).

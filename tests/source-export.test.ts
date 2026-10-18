@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -83,4 +84,15 @@ test('the exported dead-code command rejects an unused development dependency', 
   const report = JSON.parse(result.stdout);
   assert.deepEqual(report.unused_dev_dependencies.map((dependency: { package_name: string }) => dependency.package_name), ['unused-fixture']);
   assert.equal(result.status, 1, result.stderr || 'An unused development dependency must fail the gate.');
+});
+
+test('each document or record that an exported test reads is exported, or the test reads it only where it exists', async () => {
+  const exported = new Set(sourceFiles);
+  for (const file of sourceFiles.filter(path => path.startsWith('tests/'))) {
+    const text = await readFile(new URL(file, root), 'utf8');
+    for (const [, path] of text.matchAll(/['"]((?:docs\/)?[A-Za-z0-9_-]+\.(?:md|json))['"]/g)) {
+      if (!existsSync(new URL(path, root))) continue;
+      assert.ok(exported.has(path) || text.includes(`existsSync('${path}')`), `${file} reads ${path}, which the source export leaves out`);
+    }
+  }
 });

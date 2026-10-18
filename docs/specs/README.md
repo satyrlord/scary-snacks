@@ -53,7 +53,7 @@ A dependency is a specification that the complete feature needs. A reference to 
 - Author all content and art independently.
   Obey the source-input limits in [AGENTS.md](../../AGENTS.md).
   Use the current source and these independently authored requirements.
-- Put the rules in `src/engine.ts`, the persistence in `src/storage.ts`, and the interaction in `src/app.ts`. Do not use the Document Object Model (DOM) in the first two files. Author data through `tools/create-original-data.ts`.
+- Put the rules in `src/model.ts`, `src/engine.ts`, and `src/content.ts`, the persistence in `src/storage.ts`, and the interaction in the interface modules. [`AGENTS.md`](../../AGENTS.md) gives the owner of each module. Do not use the Document Object Model (DOM) in the rules or the persistence. Author data through `tools/create-original-data.ts`.
 - The game state has no random seed. A feature with random outcomes adds a seed to the state. A failed action does not use resources, advance progress, change a seed, or grant part of a reward.
 - Give every objective and reward a stable identifier (ID). Claim each one-time reward once. Journal replay, scene viewing, repeated input, and reload must not claim the reward again.
 - Show a reachable next goal. A mandatory task must not require a reward, area, item, or quest that the same task unlocks. Validate the combined prerequisite graph before release.

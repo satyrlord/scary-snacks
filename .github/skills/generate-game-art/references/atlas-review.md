@@ -21,7 +21,7 @@ For an atlas, give these items in the prompt:
 
 For food and portraits, match the `sprite` indexes in `tools/create-original-data.ts`.
 For mascots, match the cell positions in `src/style.css`.
-For blockers, match the frame rectangles `blockerFrames` and `preparationFrames` in `src/app.ts`.
+For blockers, match the frame rectangles `blockerFrames` and `preparationFrames` in `src/art.ts`.
 For blockers, preserve each transparent centre and the clear cell margins that `tests/assets.test.ts` checks.
 In the food atlas, row `r` holds the six stages of chain `r`.
 The first five cells of the last row hold the five generators.
@@ -83,8 +83,8 @@ For a room state or a decoration painting, examine the whole painting at full si
 Give each defect one of these causes:
 
 1. The bitmap: the object, the cell position, the alpha, or the style.
-2. The runtime code: the cell rectangle, the clip region, the scale, or the position in `src/app.ts` or `src/style.css`.
-   The food rectangles are `spriteBounds` in `src/app.ts`.
+2. The runtime code: the cell rectangle, the clip region, the scale, or the position in `src/art.ts` or `src/style.css`.
+   The food rectangles are `spriteBounds` in `src/art.ts`.
 3. The data: a `sprite` index or a name in the content generator.
 
 Do not change a value until the evidence identifies the owner.

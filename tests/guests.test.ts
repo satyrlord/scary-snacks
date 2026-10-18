@@ -1,39 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { createGame, deliveriesSince, firstFreeBoardCell, generatorOutputs, journalCharacters, questProblems, reduceGame, resolveQuests, validateGame } from '../src/engine.ts';
+import { deliveriesSince, journalCharacters, resolveQuests } from '../src/model.ts';
+import { createGame, reduceGame, validateGame } from '../src/engine.ts';
+import { questProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
-import type { Action, GameData, GameState } from '../src/engine.ts';
-import { checkpointState } from '../tools/create-checkpoint-saves.ts';
+import type { GameData, GameState } from '../src/model.ts';
+import { act, data, deliver, opened, player, validate } from './support.ts';
 
-const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
 const search = data.quests.find(quest => quest.id === 'mina-avram-search')!;
 const predecessor = search.afterQuest!;
-const validator = (candidate: unknown) => validateGame(candidate, data);
-
-function act(state: GameState, action: Action): GameState {
-  const before = structuredClone(state);
-  const result = reduceGame(state, action, data);
-  assert.equal(result.ok, true, result.message);
-  assert.deepEqual(state, before);
-  assert.equal(validateGame(result.state, data), true, `Valid state after ${action.type}.`);
-  return result.state;
-}
-
-/** Direct supplies isolate visit sequencing from merge rules, which have their own legal-play tests. */
-function deliver(state: GameState, id: string): GameState {
-  const supplied = structuredClone(state);
-  for (const { item, quantity } of data.quests.find(quest => quest.id === id)!.requirements) for (let count = 0; count < quantity; count++) {
-    const index = firstFreeBoardCell(supplied, data);
-    assert.notEqual(index, -1);
-    supplied.board[index] = { code: item };
-    if (!supplied.discovered.includes(item)) supplied.discovered.push(item);
-  }
-  return act(supplied, { type: 'deliverQuest', id });
-}
-
-/** The preparation at index count is paid for, and the quests that open with it wait. */
-const opened = (count: number) => ({ ...checkpointState(data, count), completedQuests: checkpointState(data, count - 1).completedQuests, coins: 0 });
 const status = (state: GameState, id = search.id) => resolveQuests(state, data).find(view => view.quest.id === id)!.status;
 /** Deliver the active tickets until the shared visit is active. */
 function untilSearch(state: GameState): GameState {
@@ -43,35 +18,19 @@ function untilSearch(state: GameState): GameState {
 
 // Vlad asks before the second source tier opens, so his dinner comes from first-stage outputs.
 test(`Vlad's dinner after dark is deliverable by merging red wine and cabbage rolls from first-stage outputs`, () => {
-  let state = opened(8);
+  const play = player(opened(8));
   assert.equal(data.items.drinks_5.name, 'Red wine');
   assert.equal(data.items.drinks_4.next, 'drinks_5');
   const quest = data.quests.find(quest => quest.id === 'vlad-after-dark')!;
-  assert.equal(status(state, quest.id), 'active');
-  const produce = (code: string): number => {
-    const item = data.items[code], source = `generator_${item.chain}`;
-    if (item.stage === 1) {
-      assert.ok(generatorOutputs(state, source, data).includes(code));
-      const position = firstFreeBoardCell(state, data);
-      assert.ok(position >= 0);
-      state = act(state, { type: 'spawn', index: state.board.findIndex(cell => cell?.code === source), output: code });
-      return position;
-    }
-    const lower = Object.values(data.items).find(value => value.next === code)!;
-    assert.ok(lower, `The merge path reaches ${code}.`);
-    const first = produce(lower.id), second = produce(lower.id);
-    state = act(state, { type: 'move', from: first, to: second });
-    assert.equal(state.board[second]?.code, code);
-    return second;
-  };
-  for (const { item, quantity } of quest.requirements) for (let count = 0; count < quantity; count++) produce(item);
-  assert.ok(state.discovered.includes('drinks_5'));
-  const before = structuredClone(state);
-  state = act(state, { type: 'deliverQuest', id: quest.id });
-  assert.equal(state.coins, before.coins + quest.reward);
-  assert.deepEqual(state.completedQuests, [...before.completedQuests, quest.id]);
-  assert.equal(state.board.some(cell => cell?.code === 'drinks_5' || cell?.code === 'warm_5'), false);
-  assert.deepEqual(importSave<GameState>(exportSave(state, validator), validator), state);
+  assert.equal(status(play.state, quest.id), 'active');
+  for (const { item, quantity } of quest.requirements) for (let count = 0; count < quantity; count++) play.produce(item);
+  assert.ok(play.state.discovered.includes('drinks_5'));
+  const before = structuredClone(play.state);
+  play.act({ type: 'deliverQuest', id: quest.id });
+  assert.equal(play.state.coins, before.coins + quest.reward);
+  assert.deepEqual(play.state.completedQuests, [...before.completedQuests, quest.id]);
+  assert.equal(play.state.board.some(cell => cell?.code === 'drinks_5' || cell?.code === 'warm_5'), false);
+  assert.deepEqual(importSave<GameState>(exportSave(play.state, validate), validate), play.state);
 });
 
 test('Ionatan has one dinner of four final dishes, and the journal shows him only once his visit opens', () => {
@@ -137,7 +96,7 @@ test('the road news follows the shared visit after exactly three later deliverie
   assert.match(report, /Britain/);
   assert.match(report, /did not stop/);
   assert.ok(search.followUp!.dialogue.every(line => !['mina', 'avram', 'ionatan'].includes(line.speaker)));
-  state = importSave<GameState>(exportSave(state, validator), validator);
+  state = importSave<GameState>(exportSave(state, validate), validate);
   assert.ok(state.pendingScenes.includes(news));
   state = act(state, { type: 'readScene', id: news });
   state = deliver(state, resolveQuests(state, data).find(view => view.status === 'active')!.quest.id);
@@ -154,10 +113,10 @@ test('waiting news keeps its place between the chapter closings around it throug
     state = ticket ? deliver(state, ticket.quest.id) : act({ ...state, coins: data.tasks[state.taskIndex].cost }, { type: 'task' });
   }
   assert.deepEqual(story(state), [earlier, news, later]);
-  state = importSave<GameState>(exportSave(state, validator), validator);
+  state = importSave<GameState>(exportSave(state, validate), validate);
   assert.deepEqual(story(state), [earlier, news, later]);
   state = act(state, { type: 'readScene', id: news });
-  state = importSave<GameState>(exportSave(state, validator), validator);
+  state = importSave<GameState>(exportSave(state, validate), validate);
   assert.deepEqual(story(state), [earlier, later], 'Reading the news preserves the chapter scenes.');
   state = act(state, { type: 'readScene', id: earlier });
   state = act(state, { type: 'readScene', id: later });

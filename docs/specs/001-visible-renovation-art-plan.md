@@ -125,7 +125,7 @@ Follow the route and the approval rules of that skill.
 - The "room and drawer" screen shows the states.
   `tools/create-original-data.ts` gives each state its focus coordinates and caption.
 - The game finds the state from the completed preparations. The save does not store the state.
-- The list `roomPaintings` in `src/engine.ts` names the states that have an accepted painting. Every state is in the list. [PRODUCT.md](../../PRODUCT.md) gives the fallback for a state with no painting.
+- The list `roomPaintings` in `src/model.ts` names the states that have an accepted painting. Every state is in the list. [PRODUCT.md](../../PRODUCT.md) gives the fallback for a state with no painting.
 - To add a painting, follow the steps in [DELIVERY.md "Assets"](../../DELIVERY.md#assets). A new master changes the count in the asset test.
 - Spec 001, PRODUCT.md, and DESIGN.md describe the screen.
 

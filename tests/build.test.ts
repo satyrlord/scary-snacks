@@ -26,6 +26,8 @@ test('build publishes only explicit runtime and image variants, never the PNG ma
   assert.equal(await readFile(join(root, 'dist/data/game.json'), 'utf8'), 'public/data/game.json');
   assert.ok(!((await readdir(join(root, 'dist'))).includes('old.png')));
   assert.deepEqual(JSON.parse(await readFile(join(root, 'analysis/build-manifest.json'), 'utf8')), manifest);
+  const variants = manifest.map(file => file.path).filter(path => path.startsWith('assets/variants/'));
+  assert.deepEqual(variants, variants.toSorted((a, b) => a.localeCompare(b)), 'The manifest keeps one order on every file system.');
 });
 
 test('runtime sources are published as scripts with types removed and module names rewritten', async t => {

@@ -60,7 +60,7 @@ A quest is a task that a character gives to the player. The quests are authored.
 
 A quest earns coins. Some preparations unlock a source. Each preparation unlocks story scenes and visibly changes the bistro.
 
-Each dish has an explicit menu price for its portion. Flour and cornmeal cost 2 coins each. Elderflowers cost 1 coin. A prepared dish has a higher price. The price depends on its ingredients, its work, and its portion.
+Each dish has an explicit menu price for its portion. Flour and cornmeal cost 2 coins each. Elderflowers cost 1 coin. The price of a dish depends on its ingredients, its work, and its portion. A later stage does not always cost more.
 
 The menu value of a quest is the sum of the prices of its portions. Every quest pays its menu value. Quests are the only income.
 

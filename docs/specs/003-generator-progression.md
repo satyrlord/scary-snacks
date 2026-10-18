@@ -46,9 +46,9 @@ Later chapters give permanent production improvements. Every dish stays reachabl
 - Store the chosen outputs in `outputChoices`. Store one item ID for each chain whose chosen output is not stage one.
 - Validate `outputChoices` with strict bounds. Each key must be an unlocked chain.
   Each value must be a non-generator item of that chain, from stage two to the earned tier.
-- `src/engine.ts` owns the tiers, the chosen outputs, and the output validation.
+- `src/model.ts` owns the tiers and the chosen outputs. `src/engine.ts` owns the output validation.
   `generatorOutputs` returns the earned outputs.
-  `src/app.ts` owns their presentation. `src/storage.ts` stores the sparse `outputChoices` map.
+  `src/board.ts` owns their presentation. `src/storage.ts` stores the sparse `outputChoices` map.
 - Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
 - Save and reload preserve the sparse `outputChoices` map and all current progress.
 - An invalid write or a failed write keeps the previous save and does not report success.

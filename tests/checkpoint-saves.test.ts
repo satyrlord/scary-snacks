@@ -1,11 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { currentTask, reduceGame, taskEligibility, validateGame } from '../src/engine.ts';
-import type { GameData } from '../src/engine.ts';
+import { currentTask, taskEligibility } from '../src/model.ts';
+import { reduceGame, validateGame } from '../src/engine.ts';
 import { checkpointState } from '../tools/create-checkpoint-saves.ts';
-
-const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
+import { data } from './support.ts';
 
 test('each manual checkpoint is valid and ready for its next payment without earlier scenes', () => {
   for (let count = 0; count < data.tasks.length; count++) {

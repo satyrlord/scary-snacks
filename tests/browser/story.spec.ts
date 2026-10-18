@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { requiredQuests } from '../../src/engine.ts';
-import type { GameState, SceneLine } from '../../src/engine.ts';
+import { requiredQuests } from '../../src/model.ts';
+import type { GameState, SceneLine } from '../../src/model.ts';
 import { KEY, act, checkpoint, data, exportText, journal, opened, options, payAndRead, readTo, saved, serialize, start, story } from './support.ts';
 
 const closing=(index: number)=>`Chapter ${index+1} complete: ${data.chapters[index].title}`;

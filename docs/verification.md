@@ -108,7 +108,7 @@ Mina and Avram share one quest with both portraits.
 Their later outcome appears as local news.
 A failed delivery write retains the departure for the session. Reload restores only saved progress.
 
-Story checks follow every payment, chapter scene, and the finale from a fresh save.
+Story checks make every payment, and read every chapter scene and the finale, from a new game. Before each payment, the check writes the quests and the coins that the payment needs.
 Checks compare the displayed goals, neighbour help, and chapter outcomes.
 Escape, Close, reload, export, and import preserve saved scene positions.
 Skip starts the room reveal after a paid scene, then opens the next earned scene.

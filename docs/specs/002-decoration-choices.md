@@ -31,7 +31,7 @@ Each slot has IDs, names, finishes, asset IDs, defaults, prerequisites, areas, a
 `questProblems` checks that each second finish has exactly one quest.
 Saves never supply an asset path.
 
-`src/engine.ts` owns `decorationChoices`, `resolveDecorations`, `decorationUnlocked`, the validation, and the `decorate` action. The `decorations` list holds the completed preparation IDs in order. `src/app.ts` owns the switch, the focus, and the boundary that saves before the game applies a finish. `src/storage.ts` owns the current save format and key.
+`src/model.ts` owns `decorationChoices`, `resolveDecorations`, and `decorationUnlocked`. `src/engine.ts` owns the validation and the `decorate` action. The `decorations` list holds the completed preparation IDs in order. `src/room.ts` owns the switch and the focus. `src/session.ts` owns the boundary that saves before the game applies a finish. `src/storage.ts` owns the current save format and key.
 
 Two full paintings supply the second finishes. The app clips each painting to its authored region. The 25 room paintings supply the defaults. The asset records hold the prompts, the dimensions, the hashes, the agent review, and the acceptance of the user.
 

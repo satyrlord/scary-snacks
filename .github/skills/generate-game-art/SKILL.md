@@ -33,7 +33,7 @@ In that condition, give each edit or check that you did not complete in the repo
 ## Read the task contract
 
 Read `PRODUCT.md`, `DESIGN.md`, `docs/asset-prompts.json`, and `docs/asset-provenance.json`.
-Read `tests/assets.test.ts` and the code that shows the selected asset in `index.html`, `src/app.ts`, and `src/style.css`.
+Read `tests/assets.test.ts` and the code that shows the selected asset in `index.html`, `src/art.ts`, `src/room.ts`, and `src/style.css`.
 Examine the repository status before an edit.
 Examine the file to replace.
 

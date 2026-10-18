@@ -1,10 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { dataProblems, economyProblems } from '../src/engine.ts';
-import type { GameData } from '../src/engine.ts';
+import { dataProblems, economyProblems } from '../src/content.ts';
+import type { GameData } from '../src/model.ts';
+import { data } from './support.ts';
 
-const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
 test('renovation cost follows its materials and labour, with less work and money for signs and menus', () => {
   assert.deepEqual(economyProblems(data), []);
   for (const task of data.tasks) assert.equal(task.cost, task.work.materials + task.work.labour);

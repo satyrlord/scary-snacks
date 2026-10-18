@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { unresolvedObstacle } from '../../src/engine.ts';
-import type { GameState } from '../../src/engine.ts';
+import { unresolvedObstacle } from '../../src/model.ts';
+import type { GameState } from '../../src/model.ts';
 import { appearance, checkpoint, data, saved, start } from './support.ts';
 
 /** The game after count preparations, ready to pay the next one. Every open quest is delivered, so no ticket offers a dish. */

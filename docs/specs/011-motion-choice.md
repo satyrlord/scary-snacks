@@ -19,9 +19,9 @@ The note updates when the device setting changes while Options is open.
 1. The browser stores the choice under `scary-snacks-motion`, as it stores the appearance choice.
    The game save does not hold the choice. Export and import do not include the choice.
    A new game keeps the choice.
-2. `src/app.ts` sets `data-motion` on the root element to the choice.
+2. `src/preferences.ts` sets `data-motion` on the root element to the choice.
    The function `still()` gives the result: Reduced, or System on a device that asks for reduced motion.
-   Each motion in `src/app.ts` asks `still()` when the motion starts.
+   Each motion in the interface modules asks `still()` when the motion starts.
    When reduced motion becomes active, the script animations that run finish at once.
    Their cleanup and delivery notices complete.
    When full motion returns, the entrance effects that reduced motion hid do not replay.

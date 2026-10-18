@@ -12,7 +12,7 @@ A delivery, a blocker placement, and a dialog do not discover a dish.
 A preparation payment discovers the source that it unlocks. A source is not a dish.
 Thus one action discovers at most one dish.
 
-The `recipeBook` function in [`src/app.ts`](../../src/app.ts) shows each chain as a list of six dishes in a fixed order.
+The `recipeBook` function in [`src/dishes.ts`](../../src/dishes.ts) shows each chain as a list of six dishes in a fixed order.
 A discovered dish shows its art and name and opens its item dialog.
 An undiscovered dish shows a "Not yet" covered dish: a plate under a dome cover. The player cannot use it.
 `DESIGN.md` controls the covered dish.

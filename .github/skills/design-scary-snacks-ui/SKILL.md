@@ -27,7 +27,7 @@ Do not use rules from this skill as an alternative to the Impeccable workflow.
 5. Before an approved UI edit, load the Impeccable craft-floor playbook.
 
 `PRODUCT.md` and `DESIGN.md` give the product context and the design context.
-`.impeccable/config.json` records the detector findings to ignore.
+If `.impeccable/config.json` is present, it records the detector findings to ignore.
 Check the evidence for each relevant entry before you rely on that entry.
 Do not infer user approval from an ignore entry.
 Do not invent tokens, a palette, typography, or a component language that `DESIGN.md` does not give.
