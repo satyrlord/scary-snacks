@@ -21,12 +21,13 @@ export type TaskEligibility = { task: Task | null; ready: boolean; requirements:
 /**
  * A quest from a character. It opens after the preparation that afterTask names (null: in a new game), after afterQuest, and after
  * the earlier quests of its character. Unlocks names a decoration finish that the delivery adds. A follow-up scene is earned after
- * afterDeliveries further deliveries.
+ * afterDeliveries further deliveries. The supper quest has a cost instead of dishes and a reward; its payment earns the finale.
+ * A recurring quest is open only while the coins do not cover the supper; its delivery pays its reward and is never recorded.
  */
 export type Quest = {
   id: string; character: string; title: string; afterTask: string | null; afterQuest?: string;
   requirements: { item: string; quantity: number }[]; reward: number; opening: SceneLine[]; completion: SceneLine[];
-  companions?: string[]; unlocks?: { slot: string; variant: string };
+  companions?: string[]; unlocks?: { slot: string; variant: string }; cost?: number; repeat?: true;
   followUp?: { id: string; title: string; afterDeliveries: number; dialogue: SceneLine[] };
 };
 /**
@@ -35,7 +36,7 @@ export type Quest = {
  * Contribution is the optional neighbour quest that opens during the chapter.
  */
 export type Chapter = { id: string; title: string; objective: string; opening: string; payoff: string; contribution: string; closing: SceneLine[] };
-/** The scene that plays after the last preparation. Ending is the line that returns the player to the kitchen. */
+/** The scene that the payment of the supper quest earns. Ending is the line that returns the player to the kitchen. */
 export type Finale = { id: string; title: string; dialogue: SceneLine[]; ending: string };
 export type ChapterView = { chapter: Chapter; number: number; tasks: Task[]; done: number; status: 'complete' | 'current' | 'locked' };
 /** Active: on one of the three tickets. Waiting: open, until a ticket is free. */
@@ -88,6 +89,8 @@ export type GameState = {
   outputChoices: Record<string, string>;
   /** The delivered quests, in the order of delivery. */
   completedQuests: string[];
+  /** The last preparation requires the supper payment. A completed save without this marker keeps its earned finale. */
+  supperPayment?: true;
   layoutId: string; resolvedObstacles: string[];
   /** Completed preparations at adoption, and permanent placement history. Missing records do not add past batches. */
   preparationObstacles?: { start: number; placed: { id: string; position: number }[] };
@@ -185,13 +188,21 @@ export const QUEST_TICKETS = 3;
  */
 export function resolveQuests(state: GameState, data: GameData): QuestView[] {
   let tickets = 0;
-  return data.quests.map(quest => ({ quest, status: questDone(state, quest.id) ? 'complete'
-    : !questReady(state, quest, data) ? 'locked' : tickets++ < QUEST_TICKETS ? 'active' : 'waiting' }));
+  const supper = supperQuest(data), complete = supperComplete(state, data);
+  const short = !!supper && !complete && questReady(state, supper, data) && state.coins < supper.cost!;
+  return data.quests.map(quest => ({ quest, status: questDone(state, quest.id) || (quest === supper && complete) ? 'complete'
+    : !questReady(state, quest, data) || (quest.repeat && !short) ? 'locked' : tickets++ < QUEST_TICKETS ? 'active' : 'waiting' }));
 }
-/** The quests that the preparation at this index needs: every quest that opens before it. */
+/** The quest whose payment earns the finale. */
+export const supperQuest = (data: GameData) => data.quests.find(quest => quest.cost !== undefined);
+/** A completed save without the payment marker keeps the finale that its last preparation earned. */
+export function supperComplete(state: Pick<GameState, 'taskIndex' | 'completedQuests' | 'supperPayment'>, data: GameData): boolean {
+  return state.completedQuests.includes(supperQuest(data)?.id ?? '') || (state.taskIndex === data.tasks.length && state.supperPayment === undefined);
+}
+/** The quests that the preparation at this index needs: every quest that opens before it, except the supper and the recurring quests. */
 export function requiredQuests(taskIndex: number, data: GameData): Quest[] {
   const known = new Map<Quest, number>();
-  return data.quests.filter(quest => questOpening(quest, data, known) < taskIndex);
+  return data.quests.filter(quest => quest.cost === undefined && !quest.repeat && questOpening(quest, data, known) < taskIndex);
 }
 /** A guest who visits once has a journal introduction only while their quest is open. */
 export function journalCharacters(state: GameState, data: GameData): Character[] {
@@ -209,7 +220,7 @@ export function questDeliveryCells(state: GameState, quest: Quest, data: GameDat
 }
 export function canDeliverQuest(state: GameState, quest: Quest | string, data: GameData): boolean {
   const view = resolveQuests(state, data).find(view => view.quest.id === (typeof quest === 'string' ? quest : quest.id));
-  return view?.status === 'active' && questDeliveryCells(state, view.quest, data).every(index => index >= 0);
+  return view?.status === 'active' && state.coins >= (view.quest.cost ?? 0) && questDeliveryCells(state, view.quest, data).every(index => index >= 0);
 }
 /**
  * The index of the latest preparation that a quest and its predecessors wait for: -1 when it opens in a new game.
@@ -278,10 +289,11 @@ export function deliveriesSince(state: Pick<GameState, 'completedQuests'>, id: s
   return at === -1 ? -1 : state.completedQuests.length - 1 - at;
 }
 /** The scenes that the completed preparations and quests have earned. A save can hold only these as pending scenes. */
-export function earnedScenes(state: Pick<GameState, 'taskIndex' | 'completedQuests' | 'decorations'>, data: GameData): string[] {
-  return [...data.tasks.slice(0, state.taskIndex).map(task => task.id), ...state.completedQuests,
+export function earnedScenes(state: Pick<GameState, 'taskIndex' | 'completedQuests' | 'decorations' | 'supperPayment'>, data: GameData): string[] {
+  return [...data.tasks.slice(0, state.taskIndex).map(task => task.id),
+    ...state.completedQuests.filter(id => data.quests.some(quest => quest.id === id && quest.completion.length > 0)),
     ...resolveChapters(state, data).filter(view => view.status === 'complete').map(view => view.chapter.id),
-    ...(state.taskIndex === data.tasks.length ? [data.finale.id] : []),
+    ...(supperComplete(state, data) ? [data.finale.id] : []),
     ...data.quests.flatMap(quest => quest.followUp && deliveriesSince(state, quest.id) >= quest.followUp.afterDeliveries ? [quest.followUp.id] : []),
     ...data.characters.flatMap(person => person.arrival && hasArrived(state, person) ? [arrivalScene(person)] : [])];
 }

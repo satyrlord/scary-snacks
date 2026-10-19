@@ -41,7 +41,7 @@ The files in `tests/` check these areas.
 | `regulars.test.ts` | Arrival pairs, arrival scenes, quest timing, favourite chains, the neighbours list, and cast validation. |
 | `board-clearing.test.ts` | Initial blockers, matching merges, blocked actions, placement space, discoveries, and saved progress. |
 | `preparation-blockers.test.ts` | Preparation batches, deferred placement, free space, source priority, saved history, failed writes, and retry. |
-| `story.test.ts` | Chapters, scenes, the finale, queues, saved lines, failed payments, and play after the finale. |
+| `story.test.ts` | Chapters, scenes, the supper payment, the finale, queues, saved lines, failed payments, and play after the finale. |
 | `checkpoint-saves.test.ts` | Manual checkpoint saves, the next payment, and the final scenes. |
 | `assets.test.ts` | Masters, variants, hashes, portrait cells, blocker cells, references, asset paths, fonts, and license texts. |
 | `build.test.ts` | The build file list, type removal, executable asset rejection, and linked directory rejection. |
@@ -50,7 +50,8 @@ The files in `tests/` check these areas.
 | `art-image.test.ts` | Art generation request fields, image dimensions, masks, composites, file formats, and rejected inputs. |
 
 Generator checks cover both tier boundaries, lower outputs, chosen outputs, rejected takes, and upgrades on a full board.
-The campaign fixture completes all 24 preparations and all 81 quests without injected coins or items.
+The campaign fixture completes all 24 preparations and all 81 campaign quests without injected coins or items.
+It leaves the supper unpaid and checks that the remaining coins cover its cost. The recurring quest stays closed.
 The fixture reports actions, takes, merges, deliveries, and income for each preparation and chapter.
 The fixture can merge into a blocked ingredient on a full board, but the complete campaign clears no blocker.
 This includes the initial blockers and the preparation blockers.
@@ -63,9 +64,11 @@ Preparation blocker checks include adoption by existing saves and repeated use o
 Save checks cover export, import, reload, invalid blocker history, and the kept save after a failed write.
 
 Story checks cover every chapter boundary and one finale.
-A complete campaign can retain all earned preparation, quest, chapter, and finale scenes in its queue.
+A complete campaign can retain all earned preparation, quest, and chapter scenes in its queue, and its coins pay for the supper. The recurring quest checks cover a short purse.
 Line checks cover unique scene identifiers, queue order, saved positions, stale positions, and invalid line records.
 Save checks cover scenes with and without saved lines.
+Completed current saves without `supperPayment` retain their finale, coins, and saved finale line through load, export, and import.
+Checks reject malformed payment markers and a marker before preparation 24.
 
 ## Browser coverage
 
@@ -84,7 +87,7 @@ The files in `tests/browser/` check these areas.
 | `board-clearing.spec.ts` | Blocked cells, labels, help, input, reload, and web removal at preparation 1. |
 | `preparation-blockers.spec.ts` | Payment, failed payment saves, artwork, matching merges, deferred placement, reload, and layout. |
 | `blocker-help.spec.ts` | Rule marks, matching ingredients, eligible targets, dismissed help, unchanged saves, contrast, and layout. |
-| `story.spec.ts` | Chapter goals, steps, scenes, reveals, saved lines, the finale, journal entries, focus, and layout. |
+| `story.spec.ts` | Chapter goals, steps, scenes, reveals, saved lines, the supper ticket, the finale, the supper painting, journal entries, focus, and layout. |
 | `portrait-framing.spec.ts` | Each portrait crop at ticket and dialogue sizes in both themes. |
 
 Play checks include pointer drag, keyboard input, selection, and delivery.
@@ -100,7 +103,8 @@ Quest dialog checks cover 1440×900 and 390×844 in both themes.
 Visitor and shared guest quests have checks at 1366×900 and 390×844 in both themes.
 
 Quest checks include delivery from the board, delivery notices, the next ticket, journal replay, export, import, and failed writes.
-The quest tests require delivery to leave its completion scene waiting without opening a dialog.
+The campaign quest tests require delivery to leave its completion scene waiting without opening a dialog.
+The supper payment opens the finale. A recurring delivery queues no scene.
 They also check the unsaved warning in the delivery notice.
 Ionatan has one dinner and an introduction only during his visit.
 His departure removes his replay entries.
@@ -108,13 +112,15 @@ Mina and Avram share one quest with both portraits.
 Their later outcome appears as local news.
 A failed delivery write retains the departure for the session. Reload restores only saved progress.
 
-Story checks make every payment, and read every chapter scene and the finale, from a new game. Before each payment, the check writes the quests and the coins that the payment needs.
+Story checks make every payment, read every chapter scene, pay for the supper, and read the finale and the supper painting, from a new game. Before each payment, the check writes the quests and the coins that the payment needs.
 Checks compare the displayed goals, neighbour help, and chapter outcomes.
 Escape, Close, reload, export, and import preserve saved scene positions.
 Skip starts the room reveal after a paid scene, then opens the next earned scene.
 A replay does not change the saved line of a scene that waits.
 A saved line past the last line restarts the scene with a notice.
 A failed line write warns once. Reload restores the last saved line.
+A failed supper save warns inside the finale before the player changes lines. Chromium exposes this warning to assistive technology.
+Three successive recurring deliveries check the bat cadence with full motion. The first two deliveries show no bat.
 A quest completion scene waits through reload and finishes once from Read now.
 
 Asset checks cover the root path and the Pages path.

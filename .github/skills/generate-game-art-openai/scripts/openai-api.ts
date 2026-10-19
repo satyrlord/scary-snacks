@@ -26,6 +26,7 @@ export type AssetId =
   | 'embroidered-runner'
   | 'decoration-front'
   | 'decoration-courtyard'
+  | 'finale-supper'
   | 'board-clutter'
   | RoomStateId
   | SketchId
@@ -52,7 +53,7 @@ interface ImageRequest {
 
 // These contracts select the assets that the API helper supports.
 // The provenance record contains more assets than this table.
-// The room states and decoration paintings are opaque 3:4 portrait images.
+// The room states, the decoration paintings, and the victory painting are opaque 3:4 portrait images.
 const roomState: AssetContract = { background: 'opaque', shape: 'portrait-3x4', columns: 1, rows: 1, defaultSize: '1536x2048' };
 const portraitAtlas: AssetContract = { background: 'transparent', shape: 'square', columns: 2, rows: 2, defaultSize: '1536x1536' };
 // Each character has one pencil sketch, and each quest scene is a 3:2 pencil drawing. The request asks for plain white paper;
@@ -66,6 +67,8 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   ...(Object.fromEntries(sceneIds.map(id => [id, scene])) as Record<SceneId, AssetContract>),
   'decoration-front': roomState,
   'decoration-courtyard': roomState,
+  // The victory painting: the courtyard of the last state with the guests of the supper.
+  'finale-supper': roomState,
   'board-clutter': {
     background: 'transparent',
     shape: 'landscape-3x2',

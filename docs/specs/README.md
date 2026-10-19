@@ -4,7 +4,8 @@ Each specification in this folder records one feature of Scary Snacks: its rules
 
 The specifications cover act 1.
 
-The game has six chapters, 24 preparations, and 81 authored quests.
+The game has six chapters, 24 preparations, and 83 authored quests.
+These include 81 campaign quests, the supper quest, and the recurring quest.
 
 ## File names
 
@@ -68,6 +69,9 @@ The game leaves earlier local bytes unchanged and does not read or convert them.
 Import rejects earlier formats.
 
 The optional preparation obstacle baseline and placement history use this format. A missing record receives no past preparation batches. It starts at the next paid preparation. `PRODUCT.md` owns the queue and placement rules.
+
+The optional `supperPayment` field also uses this format. A completed current save without the field retains its earned finale.
+An unfinished current save receives the field when preparation 24 is paid. `PRODUCT.md` owns the supper compatibility rule.
 
 Validate the full envelope and state before import. Adopt the candidate only after its write succeeds. If a write fails or the input is invalid, keep the previous save and offer recovery. Test fresh, partial, and completed current saves, malformed records, unsupported versions, oversized imports, and failed writes.
 

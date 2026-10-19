@@ -497,6 +497,7 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 - **Face target:** the portrait, the name, the title, and the dishes of a ticket are one target, the face, that opens the quest dialog. The face is at least 44px tall and 44px wide. Below 1024px, the dishes show as 26px pictures (22px at 360px and below). The accessible name of the face starts with the quest title. Each dish follows with its quantity and the count on the board.
 - **Narrowest tickets:** at 360px and below, the ticket padding is 2px, and Deliver has 1px side padding. Each target on a ticket stays at least 44px wide down to 320px.
 - **Deliver:** "Deliver · N" with the 16px coin mark. On phones, a ready Deliver shows only the word "Deliver", at its full width. The fanned dishes of the face give way. If the board does not hold every portion, the button shows the dashed "not yet" style. On phones, the not-yet style shows only the reward and a 14px coin mark. The accessible name is "Deliver [quest] to [name] for N coins".
+- **Supper ticket:** the supper quest shows a coin mark in the place of the dishes, and "Pay · N" in the place of Deliver. Pay has the dashed "not yet" style until the purse holds the cost. The accessible name is "Pay N coins for [quest]". Pay opens the finale at once, without the delivery motion.
 - **Delivery motion:** the dishes fly to the ticket over 600ms. Each dish starts 60ms after the one before. The sixth and later dishes start together. The delivery notice appears after all dishes arrive. The next quest arrives on the same ticket over 450ms, 700ms after the delivery. With reduced motion, the notice shows at once, and the next ticket appears without motion.
 
 ### Timber table and runners
@@ -605,9 +606,11 @@ The title of a scene dialog depends on the scene:
 
 Each waiting scene uses the story portrait, dialogue, Back, line count, and Continue. A "Skip scene" text button with a 44px target follows the controls.
 
-The completion message shows the payoff, the ending, the room change of the preparation, the arrival, or the news. A quest completion scene has no completion message. A waiting scene opens at its saved line. If the saved line is past the end of the scene, a muted 14px notice shows above the portrait. The notice says "Someone lost the thread. The conversation starts again from the beginning." If a line save fails, a bordered error box shows under the completion message.
+The completion message shows the payoff, the room change of the preparation, the arrival, or the news. The finale ending appears below the supper painting. A quest completion scene has no completion message. A waiting scene opens at its saved line. If the saved line is past the end of the scene, a muted 14px notice shows above the portrait. The notice says "Someone lost the thread. The conversation starts again from the beginning." If a line save fails, a bordered error box shows under the completion message.
 
-The box states that the session is not saved and that the player can continue to read. The box shows once for each scene and does not take focus. The last line reads "Next scene" when another scene waits, and "Back to the kitchen" otherwise. From the journal, the last line reads "Return".
+The box states that the session is not saved and that the player can continue to read. The box shows once for each scene and does not take focus. The last line reads "Next scene" when another scene waits, and "Back to the kitchen" otherwise. From the journal, the last line reads "Return". The finale uses "See the supper" in each case.
+
+If a scene opens while the session is not saved, the same box appears immediately inside the dialog.
 
 After the reveal of the payment that earned the scene, the scene opens and focus moves to Continue. Close and Escape leave the scene waiting. When the scene dialog closes, focus returns to the control that opened it. If Read now is not present, focus returns to the Journal link on wider screens. On phones, focus returns to the Story button.
 
@@ -631,7 +634,7 @@ Each character introduction shows its individual transparent pencil sketch. Ques
 
 Victor draws the sketches while he waits for his meal. Keep light, steady pencil lines drawn by a practised hand, and accurate anatomy, proportions, and perspective. Facial features are lightly drawn but present: awake people have visible open eyes when the view permits, and sleepers have indicated closed eyelids. Victor's secret crush explains Mara's more detailed face. Match the accepted sketches without adding dense fabric or surface detail.
 
-If more than one character speaks, the lines form an exchange. Each line is a paragraph, 12px from the next. At each change of speaker, the name of the speaker (13px, 600) stands on its own line above the words. Screen readers hear "[Name]:" before the words. The food rows show the exact quantity and the count on the board. Each row opens ingredient help, which returns to the quest. The coin reward follows in gold. Then come Deliver ("Deliver · N" with the coin mark) and one muted line: "Delivery uses dishes on the board. There is no deadline."
+If more than one character speaks, the lines form an exchange. Each line is a paragraph, 12px from the next. At each change of speaker, the name of the speaker (13px, 600) stands on its own line above the words. Screen readers hear "[Name]:" before the words. The food rows show the exact quantity and the count on the board. Each row opens ingredient help, which returns to the quest. The coin reward follows in gold. Then come Deliver ("Deliver · N" with the coin mark) and one muted line: "Delivery uses dishes on the board. There is no deadline." The supper quest has no food rows. Its line "Cost: N coins. In the purse: N coins." replaces the reward, then come "Pay · N" and the muted line "The payment uses coins, not dishes. There is no deadline."
 
 Deliver has the dashed disabled style until the board holds every portion. Deliver closes the dialog and starts the delivery motion.
 
@@ -656,9 +659,13 @@ A row opens the waiting arrival scene, or else the introduction. A regular who h
 
 Traveller rows follow. A traveller row has a 44px portrait and two equal text columns. The names align left, and the roles align right. Long names and roles wrap within their columns.
 
-Finished quests sit under the heading "Neighbour quests". Each has a "Read quest" text button for the opening, with the accessible name "Read quest: [title]", and a "Read completion" entry for the completion. These controls come before the chapters. Quest scenes and introductions use the existing portrait, dialogue, Back, and Continue controls. Return, Close, and Escape restore focus to the quest heading or the journal entry. When the player closes the quest sheet, focus returns to the visible Story link or to the phone Story button.
+Finished quests sit under the heading "Neighbour quests". Each has a "Read quest" text button for the opening, with the accessible name "Read quest: [title]". A quest with a completion scene also has a "Read completion" entry. The supper quest has only its opening entry. The recurring quest has no entry. These controls come before the chapters. Quest scenes and introductions use the existing portrait, dialogue, Back, and Continue controls. Return, Close, and Escape restore focus to the quest heading or the journal entry. When the player closes the quest sheet, focus returns to the visible Story link or to the phone Story button.
 
 These parts have no animation.
+
+### Supper painting
+
+The supper painting follows the finale. The dialog title is "The supper". The 3:4 painting is centred, with the card radius, at most min(62dvh, 680px) tall. The finale ending line follows in the completion style, 14px above and 16px below. One primary button ends the dialog: "Back to the kitchen", or "Continue" when the journal or another waiting scene follows. The image has a text alternative that names each guest. The painting is the same in both themes.
 
 ### Delivery notices
 
@@ -705,12 +712,13 @@ Options shows the save state. It also shows the Retry saved game control or the 
 ## Design instructions
 
 ### Required actions
-- Use only the 74 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
+- Use only the 75 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
   - The 25 room masters are front-room-00 to front-room-12, front-room-17, front-room-24, courtyard-13 to courtyard-16, and courtyard-18 to courtyard-23.
+  - The supper master is finale-supper, an edit of courtyard-23 with the guests of the supper.
   - The two decoration masters are decoration-front and decoration-courtyard.
   - The 47 other masters are menu-atlas, red-wine, board-clutter, preparation-clutter, portraits, visitor-portraits, guests, regulars-1, regulars-2, regulars-3, mascots, timber-tabletop, embroidered-runner, parchment-page, 22 character sketches, nine cathedral scenes, and two visitor meal scenes.
 - Paint each room state as a complete 3:4 painting, 1536 by 2048, opaque. Keep every pixel outside the change the same as the state before it.
-- Ship room states as AVIF and WebP at 768 and 1536px wide, AVIF first. Ship the timber as AVIF and WebP at 1024 and 1536px wide. Ship the decoration paintings as WebP at 1536px wide. Ship the transparent atlases and the runner as WebP.
+- Ship room states and the supper painting as AVIF and WebP at 768 and 1536px wide, AVIF first. Ship the timber as AVIF and WebP at 1024 and 1536px wide. Ship the decoration paintings as WebP at 1536px wide. Ship the transparent atlases and the runner as WebP.
 - Ship the parchment as a WebP at its native 1254px square size. Ship the 22 character sketches as transparent WebP at 768px square and the 11 landscape scenes as transparent WebP at 1024px wide.
 - Keep the neighbours in working village dress: Mara, Ilie, and Sorin in Romanian dress, and Eszter in Székely dress.
 - Draw every control icon as a vector with a 1.7 stroke and round caps and joins.

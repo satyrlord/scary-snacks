@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { currentTask, taskEligibility } from '../src/model.ts';
+import { canDeliverQuest, currentTask, supperQuest, taskEligibility } from '../src/model.ts';
 import { reduceGame, validateGame } from '../src/engine.ts';
 import { checkpointState } from '../tools/create-checkpoint-saves.ts';
 import { data } from './support.ts';
@@ -16,12 +16,13 @@ test('each manual checkpoint is valid and ready for its next payment without ear
   }
 });
 
-test('the finished manual checkpoint retains the last preparation, chapter, and finale scenes', () => {
+test('the finished manual checkpoint retains the last preparation and chapter scenes, with the coins for the supper', () => {
   const state = checkpointState(data, data.tasks.length);
   assert.ok(validateGame(state, data));
   assert.equal(state.taskIndex, data.tasks.length);
-  assert.equal(state.coins, 0);
-  assert.deepEqual(state.pendingScenes, [data.tasks.at(-1)!.id, data.chapters.at(-1)!.id, data.finale.id]);
+  assert.equal(state.coins, supperQuest(data)!.cost);
+  assert.ok(canDeliverQuest(state, supperQuest(data)!, data));
+  assert.deepEqual(state.pendingScenes, [data.tasks.at(-1)!.id, data.chapters.at(-1)!.id]);
 });
 
 test('a checkpoint from a partially read save clears the earlier scene and its line without changing the input', () => {

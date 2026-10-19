@@ -24,9 +24,10 @@ Play never waits for a scene. Opening a scene again gives no reward.
    Each scene ID must be unique across preparations, quests, local news, arrivals, chapters, and the finale.
    `storyProblems` rejects a duplicate ID.
 2. The `task` action queues the preparation scene in the same state change as the payment.
-   The `deliverQuest` action queues the quest completion scene in the same state change as the delivery.
+   A campaign `deliverQuest` action queues its completion scene in the same state change as the delivery.
+   The supper payment queues the finale. The recurring quest queues no scene.
    A failed action queues nothing.
-3. One payment queues its scenes in this order: the preparation scene, the chapter closing scene, and then the finale.
+3. One payment queues its scenes in this order: the preparation scene, then the chapter closing scene. The payment of the supper quest queues the finale.
    Other scenes join the end of the list in event order.
 4. The paid preparation scene opens at once. Its last line leads to the room change.
    "Skip scene" on a paid scene marks the scene as read and starts the room change.
@@ -34,7 +35,8 @@ Play never waits for a scene. Opening a scene again gives no reward.
    After the room change, the next scene that the payment earned opens, unless another dialog is open.
 5. If the room change is already done, a resumed preparation scene ends with the usual end label.
    The scene does not offer "See what changed". This case occurs after a reload.
-6. Delivery shows a temporary notice and leaves the quest completion scene waiting.
+6. A campaign delivery shows a temporary notice and leaves the quest completion scene waiting.
+   The supper payment opens the finale immediately. A recurring delivery shows its reward notice and queues no scene.
    Read now opens the scene from Story. Recurring characters also have a Read completion entry in the journal.
    Finish and Skip mark the scene as read. Close and Escape leave the scene waiting.
 7. The `sceneLine` action records the line that the player sees in a waiting scene.
@@ -72,11 +74,12 @@ A save without a waiting entry for a scene treats that scene as read.
 `validateGame` accepts these scene IDs in `pendingScenes`:
 
 - the ID of a complete preparation;
-- the ID of a complete quest;
+- the ID of a complete quest that has a completion scene;
 - the ID of earned local news;
 - the arrival scene of an arrived regular;
 - the ID of a complete chapter;
-- the finale ID after preparation 24.
+- the finale ID after the payment of the supper quest;
+- the finale ID in a completed current save without `supperPayment`, under the compatibility rule in `PRODUCT.md`.
 
 Preparation scenes, chapter scenes, and the finale keep one story order.
 In that order, each chapter scene follows the four preparations of its chapter.

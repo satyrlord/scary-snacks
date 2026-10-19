@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { arrivalScene, hasArrived, journalCharacters, resolveNeighbours, resolveQuests } from '../src/model.ts';
+import { arrivalScene, hasArrived, journalCharacters, requiredQuests, resolveNeighbours, resolveQuests } from '../src/model.ts';
 import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import { characterProblems, dataProblems } from '../src/content.ts';
 import type { GameData } from '../src/model.ts';
@@ -72,7 +72,7 @@ test('each regular asks only after arrival, and the journal shows only arrived n
   const after = payNext(before);
   assert.ok(resolveQuests(after, data).some(view => view.quest.character === 'vlad' && view.status !== 'locked'));
   const delivered = resolveNeighbours(checkpoint(24), data);
-  assert.ok(delivered.every(view => view.arrived && view.delivered === data.quests.filter(quest => quest.character === view.person.id).length));
+  assert.ok(delivered.every(view => view.arrived && view.delivered === requiredQuests(data.tasks.length, data).filter(quest => quest.character === view.person.id).length));
   const fresh = createGame(data);
   const shown = journalCharacters(fresh, data).map(person => person.id);
   assert.ok(shown.includes('dochia') && !shown.includes('sanziana') && !shown.includes('vlad'));

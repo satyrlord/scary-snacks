@@ -85,6 +85,8 @@ export const imageVariants = {
   'courtyard-21': { widths: [768, 1536], formats: ['avif', 'webp'] },
   'courtyard-22': { widths: [768, 1536], formats: ['avif', 'webp'] },
   'courtyard-23': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  // The painting of the supper fills the dialog on a phone and a half-height dialog on a wider screen.
+  'finale-supper': { widths: [768, 1536], formats: ['avif', 'webp'] },
   'front-room-24': { widths: [768, 1536], formats: ['avif', 'webp'] },
 } as const;
 const encoderSettings = {

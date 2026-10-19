@@ -147,7 +147,7 @@ const chapterRows: [title: string, objective: string, opening: string, payoff: s
       ['mara', 'That is the menu I wanted. Not ours. Everyone’s.']]],
   ['The first community supper', 'Bring every preparation together and welcome the guests.',
     'The rooms are ready and the menu is printed. Now the street needs invitations, a serving station, and the last few flowers.',
-    'Mara and the team share the completed supper with the neighbourhood.', 'mara-supper',
+    'Mara and the team have prepared the bistro for the community supper.', 'mara-supper',
     [['sorin', 'Every invitation is delivered. Some people asked twice if they really need to bring only an appetite.'],
       ['eszter', 'The flowers are short, the lights are on, and every dish on the serving table has its label.'],
       ['mara', 'Then we are ready. Let us open the doors.']]],
@@ -155,7 +155,8 @@ const chapterRows: [title: string, objective: string, opening: string, payoff: s
 const chapters: Chapter[] = chapterRows.map(([title, objective, opening, payoff, contribution, closing], index) => ({
   id: `chapter-${index + 1}`, title, objective, opening, payoff, contribution, closing: closing.map(([speaker, text]) => ({ speaker, text })),
 }));
-// The finale names the outcome of each chapter, and every core character speaks. The last line returns the player to the kitchen.
+// The finale names the outcome of each chapter, and every core character speaks. The payment of the supper quest earns it.
+// The last line leads to the painting of the supper, and then back to the kitchen.
 const finale: Finale = { id: 'finale', title: 'Supper at the bistro', dialogue: [
   { speaker: 'mara', text: 'Look at them. The front room is full, and the courtyard too.' },
   { speaker: 'ilie', text: 'We opened the shutters and lit the room. Then we made a kitchen where everyone could help.' },
@@ -608,6 +609,20 @@ campaign.push({ window: 10, quest: { id: 'mina-avram-search', character: 'mina',
   followUp: { id: 'mina-avram-news', title: 'News from the road', afterDeliveries: 3,
     dialogue: [{ speaker: 'sorin', text: 'There is news going round the village. Mina and Doctor Avram found Ionatan gravely ill. All three have left for Britain. They did not stop at our bistro on the way back.' },
       { speaker: 'mara', text: 'Then he is no longer alone. I hope he recovers at home. Thank you for bringing the news, Sorin.' }] } } });
+// After the last preparation, Mara pays for the supper, and the payment earns the finale. While the coins do not cover the supper,
+// Ilie asks for sarmale again and again.
+campaign.push({ window: 24, quest: { id: 'mara-community-supper', character: 'mara', title: 'The community supper', afterTask: 'task_24', requirements: [], reward: 0, cost: 1000,
+  opening: lines('mara', [['mara', 'Every quest is delivered, and every table is set. Only the supper itself is left to pay for.'],
+    ['sorin', 'I asked on my round. Vlad and Elisabeta sent their regrets. They do not eat supper, they said. Not this kind.'],
+    ['ilie', 'Then we are eleven, and the courtyard has ten seats.'],
+    ['mara', 'I will stand. A host never sits until the pot is empty. The bistro pays for this one, and nobody else pays a coin tonight.']]),
+  completion: [] } });
+campaign.push({ window: 24, quest: { id: 'ilie-sarmale', character: 'ilie', title: 'Sarmale for the supper', afterTask: 'task_24', ...questTerms([['warm_5', 2]]), repeat: true,
+  opening: lines('ilie', [['ilie', 'The supper costs more than the purse holds. In my family, a short purse never spoiled a feast.'],
+    ['ilie', 'Bring me two plates of sarmale. The neighbours pay for them at the gate, and each plate brings the supper closer.'],
+    ['mara', 'And if we are still short?'],
+    ['ilie', 'Then we cook more sarmale. That is the whole plan. It has worked for two hundred years.']]),
+  completion: [] } });
 // The tickets show open quests in authored order, so the quests are listed in the order in which they open.
 const quests: Quest[] = campaign.sort((first, second) => first.window - second.window).map(({ quest }) => quest);
 // The renovation: every preparation repaints one room, so the bistro visibly improves as coins are spent.
@@ -797,7 +812,7 @@ const preparations: PreparationObstacleBatch[] = [
     { id: 'prep-23-stem-trimmings', name: 'Flower stem trimmings', type: 'clutter', ingredient: 'drinks_1', atlas: 'preparation', sprite: 11 },
     { id: 'prep-23-flower-cloths', name: 'Flower-arranging linen bundle', type: 'clutter', ingredient: 'sweet_1', sprite: 3 },
   ] },
-  { after: 'task_24', context: 'The supper has begun; clear the final flower trimmings and serving supplies.', obstacles: [
+  { after: 'task_24', context: 'The bistro is ready for the supper; clear the final flower trimmings and serving supplies.', obstacles: [
     { id: 'prep-24-flower-trimmings', name: 'Final flower stem trimmings', type: 'clutter', ingredient: 'produce_2', atlas: 'preparation', sprite: 11 },
     { id: 'prep-24-supper-crock', name: 'Covered supper crock', type: 'clutter', ingredient: 'warm_2', sprite: 2 },
     { id: 'prep-24-bread-dough', name: 'Tied next-day dough', type: 'anchored', ingredient: 'bakery_2' },

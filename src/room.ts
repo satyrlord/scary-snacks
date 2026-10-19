@@ -29,11 +29,11 @@ export function holdChange(task: Task | null, scene: string | null = null) { hel
 export function takeHeldChange() { const change = held; held = null; return change; }
 /** The completed preparations the room shows: a paid preparation waits for the end of its story before its change appears. */
 const roomCompleted = () => held ? state.decorations.filter(id => id !== held!.task.id) : state.decorations;
-/** A room painting from its variants, AVIF first. Built before it is shown, it starts to download at once. */
-function roomPicture(id: string) {
+/** A 3:4 painting from its variants, AVIF first: a room state, or the supper. Built before it is shown, it starts to download at once. */
+export function roomPicture(id: string, sizes = ROOM_SIZES) {
   const picture=element('picture','room-painting'),url=(width: number,type: string)=>new URL(`../assets/variants/${id}-${width}x${width*4/3}.${type}`,import.meta.url).href;
   picture.dataset.painting=id;
-  for(const type of ['avif','webp']){const source=element('source');source.type=`image/${type}`;source.srcset=[768,1536].map(width=>`${url(width,type)} ${width}w`).join(', ');source.sizes=ROOM_SIZES;picture.append(source);}
+  for(const type of ['avif','webp']){const source=element('source');source.type=`image/${type}`;source.srcset=[768,1536].map(width=>`${url(width,type)} ${width}w`).join(', ');source.sizes=sizes;picture.append(source);}
   // The image joins its picture before it gets a source, so the browser chooses among the variants.
   const image=element('img');picture.append(image);image.alt='';image.draggable=false;image.width=1536;image.height=2048;image.src=url(1536,'webp');
   return picture;

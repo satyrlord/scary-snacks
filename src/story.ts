@@ -1,10 +1,10 @@
 // The story: the chapter card with the next preparation and its payment, the scenes, and the story journal.
-import { arrivalScene, deliveriesSince, journalCharacters, resolveChapters, resolveNeighbours, resolveQuests, sceneSource, taskEligibility } from './model.ts';
+import { arrivalScene, deliveriesSince, journalCharacters, resolveChapters, resolveNeighbours, resolveQuests, sceneSource, supperComplete, supperQuest, taskEligibility } from './model.ts';
 import type { Character, ChapterView, SceneLine, Task } from './model.ts';
 import { $, button, coinText, count, element, names } from './dom.ts';
 import { coinMark, portrait, questSketch } from './art.ts';
 import { modal, showModal } from './dialog.ts';
-import { holdChange, miezSprite, preloadRoom, toggleCat } from './room.ts';
+import { holdChange, miezSprite, preloadRoom, roomPicture, toggleCat } from './room.ts';
 import { apply, changeGame, character, data, keep, saveFailed, saveMessage, state } from './session.ts';
 
 // A scene that leads on to the next waiting scene, so that focus can return to the story when the last one closes.
@@ -29,7 +29,9 @@ export function storyContent(inSheet: boolean) {
     notice.append(element('p', '', scene?.prompt ?? 'A story scene is waiting.'), read); content.append(notice);
   }
   const body = element('div', 'task-content');
-  if (!task) body.append(element('h3', '', 'The table is ready.'), element('p', '', 'The community supper is open, and every quest is delivered. The board and the recipe book stay yours.'));
+  const supper = supperQuest(data)!;
+  if (!task && !supperComplete(state,data)) body.append(element('h3', '', supper.title), element('p', '', `Every preparation is done. ${character(supper.character).name}’s last quest waits on the counter: pay for the supper there.`));
+  else if (!task) body.append(element('h3', '', 'The table is ready.'), element('p', '', 'The community supper is open, and every quest is delivered. The board and the recipe book stay yours.'));
   else {
     body.append(element('h3', '', task.title));
     const requirements = element('ul', 'task-requirements');
@@ -130,7 +132,8 @@ function storyScene(id: string) {
     case 'task':{const {task}=source;return {title:task.title,dialogue:task.dialogue,completion:data.rooms.find(room=>room.after===id)!.text,prompt:more(task.dialogue)};}
     case 'quest':{const {quest}=source,who=names.format([quest.character,...quest.companions??[]].map(person=>character(person).name));return {title:quest.title,dialogue:quest.completion,questCharacter:quest.character,questId:quest.id,completion:'',prompt:`${who} replied to “${quest.title}”.`};}
     case 'chapter':{const {chapter,number}=source;return {title:`Chapter ${number} complete: ${chapter.title}`,dialogue:chapter.closing,completion:chapter.payoff,prompt:`Chapter ${number} is complete.`};}
-    case 'finale':{const {finale}=source;return {title:finale.title,dialogue:finale.dialogue,completion:finale.ending,prompt:'The supper can begin.'};}
+    // The ending line of the finale stands under the supper painting.
+    case 'finale':{const {finale}=source;return {title:finale.title,dialogue:finale.dialogue,completion:'',prompt:'The supper can begin.'};}
     case 'arrival':{const {person}=source;return {title:`${person.name} arrives`,dialogue:person.arrival!,completion:`${person.name} is now a regular. Read more about ${person.name} in the story journal.`,prompt:'A new neighbour has arrived.'};}
     case 'news':{const {news}=source;return {title:news.title,dialogue:news.dialogue,completion:'The news is recorded in the story journal.',prompt:'News has reached the bistro.'};}
     default:return null;
@@ -140,6 +143,7 @@ function storyScene(id: string) {
  * A waiting scene plays from its saved line until Finish or Skip, which move it to the journal and lead on to the next waiting scene.
  * Close and Escape leave it waiting at its line. A scene that is already read replays from the journal and changes nothing.
  * A paid preparation's scene ends instead with the change that it made, which the room then reveals in place.
+ * The finale always ends with the painting of the supper.
  */
 export function showScene(id: string, backTo?: () => void, options: { paid?: boolean; completion?: string } = {}) {
   const scene=storyScene(id);
@@ -147,17 +151,17 @@ export function showScene(id: string, backTo?: () => void, options: { paid?: boo
     const content=element('div');content.append(element('p','save-error','This story scene could not open. Your progress is safe.'),button('Try again','secondary-button',()=>location.reload()));
     showModal('Story unavailable',content);return;
   }
-  const completion=options.completion??scene.completion;
-  if(!state.pendingScenes.includes(id)){showStory(scene,false,completion,backTo);return;}
+  const completion=options.completion??scene.completion,finale=id===data.finale.id;
+  if(!state.pendingScenes.includes(id)){showStory(scene,false,completion,backTo,undefined,finale?()=>showSupper(backTo):undefined);return;}
   if(!options.paid)sceneFlow=true;
   const read=()=>changeGame(()=>{
     const result=apply({type:'readScene',id});if(!result.ok)return;
     // The close of a paid scene starts the reveal, which then opens the next scene that the payment earned.
     if(options.paid){modal.close();return;}
-    const next=state.pendingScenes[0];
-    if(backTo)backTo();else if(next)showScene(next);else modal.close();
+    const next=state.pendingScenes[0],after=backTo??(next?()=>showScene(next):undefined);
+    if(finale)showSupper(after);else if(after)after();else modal.close();
   });
-  showStory(scene,options.paid,completion,backTo,{id,label:backTo?'Return':state.pendingScenes.length>1?'Next scene':'Back to the kitchen',finish:read,skip:read});
+  showStory(scene,options.paid,completion,backTo,{id,label:finale?'See the supper':backTo?'Return':state.pendingScenes.length>1?'Next scene':'Back to the kitchen',finish:read,skip:read});
 }
 /** After the last scene of a flow closes, focus returns to the story, because reading can remove the control that opened the scene. */
 export function endSceneFlow() {
@@ -178,8 +182,8 @@ function recordLine(id: string, line: number, warn: () => void) {
     if(saveFailed&&!unsavedScenes.has(id)){unsavedScenes.add(id);warn();}
   });
 }
-/** A conversation. A waiting scene starts at its saved line and records each change of line. */
-function showStory(task: { title: string; dialogue: SceneLine[]; questCharacter?: string; questId?: string }, paid = false, completion = '', backTo?: () => void, end?: { id: string; label: string; finish: () => void; skip: () => void }) {
+/** A conversation. A waiting scene starts at its saved line and records each change of line. After, if given, follows the last line of a replay. */
+function showStory(task: { title: string; dialogue: SceneLine[]; questCharacter?: string; questId?: string }, paid = false, completion = '', backTo?: () => void, end?: { id: string; label: string; finish: () => void; skip: () => void }, after?: () => void) {
   const last=task.dialogue.length-1,saved=end?state.sceneLines?.[end.id]??0:0;
   // A release can remove lines, so a saved line past the end starts the scene again.
   let cursor=saved>last?0:saved;
@@ -190,7 +194,7 @@ function showStory(task: { title: string; dialogue: SceneLine[]; questCharacter?
   const warn=()=>{unsaved.className='save-error scene-unsaved';unsaved.textContent='This session is not saved. You can keep reading. Use Retry save in Options before you leave.';};
   const move=(step: number)=>{cursor+=step;draw();if(end)void recordLine(end.id,cursor,warn);};
   const back=button('Back','secondary-button',()=>{move(-1);if(back.disabled)forward.focus();});
-  const forward=button('Continue','primary-button',()=>{if(cursor<last)move(1);else if(end)end.finish();else if(backTo)backTo();else modal.close();});
+  const forward=button('Continue','primary-button',()=>{if(cursor<last)move(1);else if(end)end.finish();else if(after)after();else if(backTo)backTo();else modal.close();});
   forward.setAttribute('aria-describedby','story-line');
   if(saved>last)content.append(element('p','modal-copy','Someone lost the thread. The conversation starts again from the beginning.'));
   stage.append(portrait(task.dialogue[cursor].speaker),words);controls.append(back,counter,forward);
@@ -199,14 +203,27 @@ function showStory(task: { title: string; dialogue: SceneLine[]; questCharacter?
   reading.append(stage);content.append(reading,controls);
   if (end) content.append(button('Skip scene','text-button skip-scene',end.skip));
   if (completion) content.append(element('p','completion-message',completion));
-  if (end) content.append(unsaved);
+  if (end) {
+    // A delivery can open this scene before its save warning is read outside the modal.
+    if(saveFailed&&!unsavedScenes.has(end.id)){unsavedScenes.add(end.id);warn();}
+    content.append(unsaved);
+  }
   function draw() {
     const line=task.dialogue[cursor];stage.firstElementChild!.replaceWith(portrait(line.speaker));
     speaker.textContent=character(line.speaker).name;said.textContent=line.text;counter.textContent=`${cursor+1} / ${task.dialogue.length}`;
-    back.disabled=cursor===0;forward.textContent=cursor<last?'Continue':paid?'See what changed':end?end.label:backTo?'Return':'Back to the kitchen';
+    back.disabled=cursor===0;forward.textContent=cursor<last?'Continue':paid?'See what changed':end?end.label:after?'See the supper':backTo?'Return':'Back to the kitchen';
   }
   draw();showModal(task.title,content,forward,backTo);
 }
+/** The painting of the supper: the neighbours at the courtyard tables. It ends the finale, and the journal replays it with the finale. */
+function showSupper(after?: () => void) {
+  const content=element('div','supper-view'),picture=roomPicture('finale-supper','(max-width: 1023px) 100vw, 560px');
+  picture.className='supper-painting';picture.querySelector('img')!.alt=SUPPER_PICTURE;
+  const done=button(after?'Continue':'Back to the kitchen','primary-button',()=>after?after():modal.close());
+  content.append(picture,element('p','completion-message',data.finale.ending),done);
+  showModal('The supper',content,done,after);
+}
+const SUPPER_PICTURE='The supper in the courtyard under the string lights. Mara stands at the long table with a steaming pot. Ilie, Costel, Sorin and Victor sit on one bench, and Eszter, Ana, Ileana and Bran on the other. Cătălina and Cezar share the small table by the lantern, and two black cats wait for scraps.';
 function journal(focusEntry?: string) {
   const content=element('div','journal-list');
   content.append(element('p','modal-copy','Meet your neighbours and read your saved conversations. Reading never gives another reward.'));
@@ -236,8 +253,11 @@ function journal(focusEntry?: string) {
     const section=element('section','quest-journal');section.append(element('h4','',quest.title));
     const opening=button('Read quest','text-button',()=>showStory({title:quest.title,dialogue:quest.opening,questCharacter:quest.character,questId:quest.id},false,'',()=>journal(quest.id)));
     opening.setAttribute('aria-label',`Read quest: ${quest.title}`);
+    section.append(opening);content.append(section);
+    // The supper earns the finale in place of a completion scene, and the finale has its own entry.
+    if(!quest.completion.length){opening.dataset.journal=quest.id;continue;}
     const waiting=state.pendingScenes.includes(quest.id),replay=button('Read completion','journal-entry',()=>showScene(quest.id,()=>journal(quest.id)));
-    replay.dataset.journal=quest.id;replay.setAttribute('aria-label',`${waiting?'Read':'Replay'} ${quest.title}`);replay.append(element('span','',waiting?'New scene':character(quest.character).name));section.append(opening,replay);content.append(section);
+    replay.dataset.journal=quest.id;replay.setAttribute('aria-label',`${waiting?'Read':'Replay'} ${quest.title}`);replay.append(element('span','',waiting?'New scene':character(quest.character).name));section.append(replay);
   }
   const quests=resolveQuests(state,data);
   const sceneEntry=(id: string)=>{
@@ -274,7 +294,7 @@ function journal(focusEntry?: string) {
     if(view.status==='complete')section.append(sceneEntry(view.chapter.id));
     content.append(section);
   }
-  if(state.taskIndex===data.tasks.length){
+  if(supperComplete(state,data)){
     const section=element('section','chapter-journal');section.append(element('h4','','The finale'),sceneEntry(data.finale.id));content.append(section);
   }
   showModal('Story journal',content,focusEntry?content.querySelector<HTMLElement>(`[data-journal="${focusEntry}"]`)??undefined:undefined);

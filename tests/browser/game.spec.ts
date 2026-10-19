@@ -81,11 +81,12 @@ test('a new game opens on the unfinished front room, with Miez on the windowsill
   await expect(page.locator('#room-caption li')).toHaveText([stateText('front-room-00')]);expect(await page.locator('#room-caption').evaluate(e=>e.getBoundingClientRect().width)).toBeLessThanOrEqual(1);
 });
 
-test('after the last preparation the room is ready for the supper, with the sleeping cat on the counter and no further quests',async({page})=>{
-  await start(page,checkpoint(data.tasks.length));
+test('after the last preparation the room is ready for the supper, with the sleeping cat on the counter and only the supper quest on the counter',async({page})=>{
+  const supper=data.quests.find(value=>value.cost!==undefined)!;
+  await start(page,checkpoint(data.tasks.length,{coins:supper.cost}));
   await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-24');await expect.poll(()=>painting(page)).toMatch(/^front-room-24-/);
-  await expect(page.locator('#story')).toContainText('The table is ready.');await expect(page.locator('.counter-cat')).toBeVisible();await expect(page.locator('#cat-button')).toBeVisible();
-  await expect(page.locator('#tickets .ticket')).toHaveCount(0);await expect(page.locator('.tickets-empty')).toHaveText('Every quest is delivered. The bistro is yours.');
+  await expect(page.locator('#story .task-content')).toContainText(supper.title);await expect(page.locator('.counter-cat')).toBeVisible();await expect(page.locator('#cat-button')).toBeVisible();
+  await expect(page.locator('#tickets .ticket')).toHaveCount(1);await expect(page.locator('#tickets .ticket')).toHaveAttribute('data-quest',supper.id);
   await expect(page.locator('#room-pin')).toHaveAccessibleName(`New: ${stateText('front-room-24')}`);
   await expect(page.locator('#room-caption li').first()).toHaveText(stateText('front-room-00'));await expect(page.locator('#room-caption li').last()).toHaveText(stateText('front-room-24'));
 });

@@ -42,7 +42,7 @@ The player can find who lives nearby and what they like.
    The quests follow the campaign rules of 004.
 7. The arrival of each later regular plays a short original scene.
    A core character introduces the regular. The regular answers.
-   The payment queues the arrival scene after the preparation scene, the closing scene, and the finale that it earned.
+   The payment queues the arrival scene after the preparation scene and the closing scene that it earned.
    The scene follows the continuation rules of 008.
    Reading or skipping the scene does not change the arrival.
 8. The neighbours list in the journal shows the core characters, then the regulars in order of arrival.

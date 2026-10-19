@@ -13,7 +13,7 @@ const checkpoint = (count: number) => checkpointState(data, count, openGame());
 /** The same checkpoint before the quests that open with the previous preparation are delivered. */
 const withoutWindow = (count: number) => ({ ...checkpoint(count), completedQuests: checkpoint(count - 1).completedQuests });
 
-test('each preparation needs every quest that opens before it, and the finale needs every quest', () => {
+test('each preparation needs every quest that opens before it, and the last one needs every quest except the supper and its recurring quest', () => {
   assert.deepEqual(questProblems(data), []);
   assert.deepEqual(requiredQuests(0, data).map(quest => quest.id), data.quests.filter(quest => quest.afterTask === null && !quest.afterQuest).map(quest => quest.id));
   for (let index = 1; index < data.tasks.length; index++) {
@@ -21,7 +21,7 @@ test('each preparation needs every quest that opens before it, and the finale ne
     assert.deepEqual(now.slice(0, earlier.length), earlier, 'Each preparation keeps the quests of the one before it.');
     assert.ok(now.length > earlier.length, `${data.tasks[index].id} adds at least one quest.`);
   }
-  assert.deepEqual(requiredQuests(data.tasks.length - 1, data), data.quests);
+  assert.deepEqual(requiredQuests(data.tasks.length - 1, data), data.quests.filter(quest => quest.cost === undefined && !quest.repeat));
 });
 
 test('eligibility lists the unmet coins and quests and keeps the exact totals above a requirement', () => {
@@ -118,15 +118,22 @@ test('the funding check rejects a preparation that the quests before it cannot p
   assert.match(questProblems(later).join(' '), /^task_24: the quests before it pay/);
 });
 
-test('the quest check rejects quests out of opening order and a quest that opens with the last preparation', () => {
+test('the quest check rejects quests out of opening order, a quest that opens with the last preparation, and a misplaced or unfunded supper', () => {
   const late = structuredClone(data);
-  late.quests.at(-1)!.afterTask = data.tasks.at(-1)!.id;
+  late.quests.findLast(quest => quest.cost === undefined && !quest.repeat)!.afterTask = data.tasks.at(-1)!.id;
   assert.ok(questProblems(late).includes('Every quest must open before the last preparation.'));
   const swapped = structuredClone(data);
   const first = swapped.quests.findIndex(quest => quest.afterTask === 'task_1');
   [swapped.quests[0], swapped.quests[first]] = [swapped.quests[first], swapped.quests[0]];
   assert.ok(questProblems(swapped).includes('Quests must be in the order in which they open.'));
   assert.ok(dataProblems(swapped).length);
+  const second = structuredClone(data);
+  Object.assign(second.quests[0], { cost: 10, reward: 0, requirements: [], completion: [] });
+  assert.ok(questProblems(second).includes('The finale needs exactly one quest with a cost.'));
+  assert.ok(questProblems(second).includes('The supper quest and the recurring quests open after the last preparation.'));
+  const dear = structuredClone(data), supper = dear.quests.find(quest => quest.cost !== undefined)!;
+  supper.cost = 1_000_000;
+  assert.match(questProblems(dear).join(' '), /^mara-community-supper: the quests leave \d+ coins, less than the 1000000 that it costs\.$/);
 });
 
 test('the last preparation needs its own quests and repeated completion changes nothing', () => {

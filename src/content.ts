@@ -26,6 +26,8 @@ export function characterProblems(data: GameData): string[] {
   } catch { problems.push('The character records are malformed.'); }
   return problems;
 }
+/** The supper quest and the recurring quests close the campaign: they open after the last preparation. */
+const closing = (quest: Quest) => quest.cost !== undefined || !!quest.repeat;
 /**
  * Check the combined preparation and quest graph, the required items, chain availability, the decoration finishes, the authored
  * order, and the campaign funds: each preparation is paid by the rewards of the quests that open before it, so no player can be stuck.
@@ -52,11 +54,13 @@ export function questProblems(data: GameData): string[] {
       if (quest.companions !== undefined && (!Array.isArray(quest.companions) || !quest.companions.length
         || new Set(quest.companions).size !== quest.companions.length
         || !quest.companions.every(id => id !== quest.character && data.characters.some(character => character.id === id && character.visitor)))) problems.push(`${quest.id}: invalid companions.`);
-      if (!integer(quest.reward, 1)) problems.push(`${quest.id}: invalid coin reward.`);
-      if (!scene(quest.opening, data) || !scene(quest.completion, data)) problems.push(`${quest.id}: invalid scene.`);
+      if (quest.cost !== undefined ? !integer(quest.cost, 1) || quest.reward !== 0 || quest.repeat !== undefined : !integer(quest.reward, 1)) problems.push(`${quest.id}: invalid coin reward or cost.`);
+      if (quest.repeat !== undefined && (quest.repeat !== true || quest.followUp || quest.unlocks)) problems.push(`${quest.id}: invalid recurring quest.`);
+      // The supper quest earns the finale, and a recurring quest has no reply, so neither has a completion scene.
+      if (!scene(quest.opening, data) || (closing(quest) ? !Array.isArray(quest.completion) || quest.completion.length !== 0 : !scene(quest.completion, data))) problems.push(`${quest.id}: invalid scene.`);
       if (quest.followUp && (!stable(quest.followUp.id) || !quest.followUp.title
         || !integer(quest.followUp.afterDeliveries, 1) || !scene(quest.followUp.dialogue, data))) problems.push(`${quest.id}: invalid follow-up scene.`);
-      if (!Array.isArray(quest.requirements) || !quest.requirements.length || quest.requirements.reduce((count, requirement) => count + requirement.quantity, 0) > data.board.initial.length) problems.push(`${quest.id}: invalid delivery size.`);
+      if (!Array.isArray(quest.requirements) || quest.requirements.length === 0 !== (quest.cost !== undefined) || quest.requirements.reduce((count, requirement) => count + requirement.quantity, 0) > data.board.initial.length) problems.push(`${quest.id}: invalid delivery size.`);
       for (const requirement of quest.requirements) {
         const item = getItem(requirement.item, data);
         if (!item || item.generator || !integer(requirement.quantity, 1, data.board.initial.length)) problems.push(`${quest.id}: invalid requirement.`);
@@ -89,13 +93,20 @@ export function questProblems(data: GameData): string[] {
     const known = new Map<Quest, number>(), openings = data.quests.map(quest => questOpening(quest, data, known));
     if (openings.some((opening, at) => at && opening < openings[at - 1])) problems.push('Quests must be in the order in which they open.');
     // Every quest opens before the last preparation, so the campaign needs it, and each preparation is paid by the quests before it.
-    if (openings.some(opening => opening >= data.tasks.length - 1)) problems.push('Every quest must open before the last preparation.');
+    // Only the supper quest and the recurring quests open after the last preparation.
+    if (openings.some((opening, at) => opening >= data.tasks.length - 1 && !closing(data.quests[at]))) problems.push('Every quest must open before the last preparation.');
+    if (openings.some((opening, at) => closing(data.quests[at]) && opening !== data.tasks.length - 1)) problems.push('The supper quest and the recurring quests open after the last preparation.');
+    const supper = data.quests.filter(quest => quest.cost !== undefined);
+    if (supper.length !== 1) problems.push('The finale needs exactly one quest with a cost.');
     let earned = 0, spent = 0;
     for (const [index, task] of data.tasks.entries()) {
       earned += data.quests.filter((_, at) => openings[at] === index - 1).reduce((sum, quest) => sum + quest.reward, 0);
       spent += task.cost;
       if (earned < spent) problems.push(`${task.id}: the quests before it pay ${earned} coins, less than the ${spent} that the preparations cost.`);
     }
+    // The coins left after the last preparation pay for the supper, so the recurring quests are only a safety net.
+    const left = data.quests.filter(quest => !quest.repeat).reduce((sum, quest) => sum + quest.reward, 0) - spent;
+    if (supper.length === 1 && left < supper[0].cost!) problems.push(`${supper[0].id}: the quests leave ${left} coins, less than the ${supper[0].cost} that it costs.`);
     const ancestors = (id: string, found = new Set<string>()): Set<string> => {
       for (const dependency of graph.get(id) ?? []) if (!found.has(dependency)) { found.add(dependency); ancestors(dependency, found); }
       return found;

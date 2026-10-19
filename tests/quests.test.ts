@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { canDeliverQuest, journalCharacters, QUEST_TICKETS, questDeliveryCells, requiredQuests, resolveQuests } from '../src/model.ts';
+import { canDeliverQuest, journalCharacters, QUEST_TICKETS, questDeliveryCells, requiredQuests, resolveQuests, supperQuest } from '../src/model.ts';
 import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import { dataProblems, questProblems } from '../src/content.ts';
 import type { GameData, GameState } from '../src/model.ts';
@@ -8,9 +8,9 @@ import { checkpoint, data, deliver, opened, player, rejected, supply } from './s
 
 const ids = (state: GameState, status: string) => resolveQuests(state, data).filter(view => view.status === status).map(view => view.quest.id);
 
-test('every neighbour asks across the whole campaign, and every quest opens before the last preparation', () => {
+test('every neighbour asks across the whole campaign, and every quest except the supper and its recurring quest opens before the last preparation', () => {
   assert.deepEqual(questProblems(data), []);
-  assert.equal(data.quests.length, 81);
+  assert.equal(data.quests.length, 83);
   assert.equal(Object.keys(data.items).length, 35);
   assert.equal(data.chains.length, 5);
   assert.equal(data.tasks.length, 24);
@@ -21,8 +21,9 @@ test('every neighbour asks across the whole campaign, and every quest opens befo
     else assert.ok(count >= 2, character.id);
   }
   const windows = new Set(data.quests.map(quest => quest.afterTask === null ? 0 : data.tasks.findIndex(task => task.id === quest.afterTask) + 1));
-  assert.deepEqual([...windows].sort((a, b) => a - b), Array.from({ length: data.tasks.length }, (_, index) => index), 'Each window opens at least one quest.');
-  assert.deepEqual(requiredQuests(data.tasks.length - 1, data), data.quests);
+  assert.deepEqual([...windows].sort((a, b) => a - b), Array.from({ length: data.tasks.length + 1 }, (_, index) => index), 'Each window opens at least one quest.');
+  assert.deepEqual(requiredQuests(data.tasks.length - 1, data), data.quests.filter(quest => quest.cost === undefined && !quest.repeat));
+  assert.deepEqual(data.quests.filter(quest => quest.cost !== undefined || quest.repeat).map(quest => [quest.id, quest.afterTask]), [['mara-community-supper', 'task_24'], ['ilie-sarmale', 'task_24']]);
 });
 
 test('tickets show at most three active quests in authored order, and a waiting quest takes a freed ticket', () => {
@@ -93,6 +94,17 @@ test('quest data rejects unknown IDs, quantities, cycles, unavailable chains, fi
   }
 });
 
+test('supper and recurring quests require an empty array for their absent completion scenes', () => {
+  for (const id of data.quests.filter(quest => quest.cost !== undefined || quest.repeat).map(quest => quest.id)) {
+    for (const completion of ['', { length: 0 }, null]) {
+      const content = structuredClone(data);
+      Object.assign(content.quests.find(quest => quest.id === id)!, { completion });
+      assert.ok(questProblems(content).includes(`${id}: invalid scene.`));
+      assert.ok(dataProblems(content).length);
+    }
+  }
+});
+
 test('traveller quests return in one shared sequence of packs that fit the board', () => {
   const visits = data.quests.filter(quest => {
     const person = data.characters.find(person => person.id === quest.character)!;
@@ -116,11 +128,13 @@ test('traveller quests return in one shared sequence of packs that fit the board
   assert.equal(validateGame({ ...finished, completedQuests: swapped }, data), false);
 });
 
-test('each quest of a core character is a short exchange at its opening and at its completion', () => {
+test('each quest of a core character is a short exchange at its opening and at its completion, and the closing quests have no completion', () => {
   const core = ['mara', 'ilie', 'eszter', 'sorin'], quests = data.quests.filter(quest => core.includes(quest.character));
-  assert.equal(quests.length, 26);
+  assert.equal(quests.length, 28);
   for (const quest of quests) {
-    assert.ok(quest.opening.length >= 2 && quest.completion.length >= 2, `${quest.id} needs at least two turns in each scene.`);
+    // The supper earns the finale, and the recurring quest has no reply.
+    const closing = quest.cost !== undefined || !!quest.repeat;
+    assert.ok(quest.opening.length >= 2 && (closing ? !quest.completion.length : quest.completion.length >= 2), `${quest.id} needs at least two turns in each scene.`);
     assert.ok([...quest.opening, ...quest.completion].every(line => line.text.length <= 140), `${quest.id} has a turn that is too long for a phone.`);
   }
 });
@@ -234,5 +248,25 @@ test('a long quest line of one character resolves its openings once each', () =>
   // Each quest waits for every earlier quest of its character, so a check without shared openings grows with 2 to the number of quests.
   const content = structuredClone(data);
   for (const quest of content.quests) quest.character = 'mara';
-  assert.equal(requiredQuests(content.tasks.length, content).length, content.quests.length);
+  assert.equal(requiredQuests(content.tasks.length, content).length, content.quests.filter(quest => quest.cost === undefined && !quest.repeat).length);
+});
+
+test('the recurring quest opens only while the coins do not cover the supper, pays its reward each time, and is never recorded', () => {
+  const supper = supperQuest(data)!, sarmale = data.quests.find(quest => quest.repeat)!;
+  const status = (state: GameState) => resolveQuests(state, data).find(view => view.quest.id === sarmale.id)!.status;
+  assert.equal(status(checkpoint(24)), 'locked', 'The coins of a finished campaign cover the supper.');
+  let state: GameState = { ...checkpoint(24), coins: 0 };
+  assert.equal(status(state), 'active');
+  assert.match(rejected(state, { type: 'deliverQuest', id: supper.id }).message, new RegExp(`Earn ${supper.cost} more coins`));
+  for (let count = 1; state.coins < supper.cost!; count++) {
+    state = deliver(state, sarmale.id);
+    assert.equal(state.coins, count * sarmale.reward);
+    assert.ok(!state.completedQuests.includes(sarmale.id) && !state.pendingScenes.includes(sarmale.id), 'A recurring quest leaves no record and no reply.');
+  }
+  assert.equal(status(state), 'locked');
+  rejected(supply(state, sarmale.id), { type: 'deliverQuest', id: sarmale.id });
+  state = deliver(state, supper.id);
+  assert.equal(state.coins, 0);
+  assert.equal(status(state), 'locked', 'The paid supper closes the recurring quest.');
+  assert.equal(validateGame({ ...state, completedQuests: [...state.completedQuests, sarmale.id] }, data), false);
 });

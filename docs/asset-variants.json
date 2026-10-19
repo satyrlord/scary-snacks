@@ -1534,6 +1534,46 @@
       "format": "webp",
       "bytes": 360740,
       "sha256": "ad3d3562d4dd2063c328c20a54d4d28b0edd4c37e50d1992a0145e4a23b2d1e6"
+    },
+    {
+      "file": "public/assets/variants/finale-supper-768x1024.avif",
+      "master": "finale-supper",
+      "masterSha256": "074eff91c090bd4514a999035b2e4843774b3b8a12778410f2861c81b27a65ea",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 238879,
+      "sha256": "acce9d87f460d257219c379960880876ad3b5872e354d29f1cbad11095bbb514"
+    },
+    {
+      "file": "public/assets/variants/finale-supper-768x1024.webp",
+      "master": "finale-supper",
+      "masterSha256": "074eff91c090bd4514a999035b2e4843774b3b8a12778410f2861c81b27a65ea",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 339664,
+      "sha256": "574e703650150ab4cb66fd28bc93d8e56f1491e71d636f3c933c9a04a0b5bd04"
+    },
+    {
+      "file": "public/assets/variants/finale-supper-1536x2048.avif",
+      "master": "finale-supper",
+      "masterSha256": "074eff91c090bd4514a999035b2e4843774b3b8a12778410f2861c81b27a65ea",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 749850,
+      "sha256": "0035c0016feea3e876b7e5df27063db909c1bcfef4bbd52d6b8fa84c09c2c938"
+    },
+    {
+      "file": "public/assets/variants/finale-supper-1536x2048.webp",
+      "master": "finale-supper",
+      "masterSha256": "074eff91c090bd4514a999035b2e4843774b3b8a12778410f2861c81b27a65ea",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1166084,
+      "sha256": "f6639aa965b2d67925fe4a119399c6ad3dd97e7c428a7f9a529239f41f784cda"
     }
   ]
 }

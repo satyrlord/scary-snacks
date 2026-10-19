@@ -4,7 +4,8 @@ Status: Implemented.
 
 ## Result and ownership
 
-The game has 81 authored quests. Quests earn every coin of the campaign.
+The game has 83 authored quests: 81 campaign quests, one supper quest, and one recurring quest.
+Quests earn every coin of the campaign.
 The journal has an optional introduction for each neighbour and replay of completed quest scenes.
 Spec 005 owns the funding check and the economy fixture. Spec 007 names one quest of a core character as the contribution of each chapter. Spec 010 owns the regulars.
 
@@ -12,19 +13,21 @@ The engine owns eligibility, the tickets, delivery, and validation. Storage owns
 The app owns the tickets, the quest dialog, the dialogue, and focus return.
 `tools/create-original-data.ts` authors every record and generates `public/data/game.json`.
 
-Quests use only ordinary dishes and drinks.
+Campaign quests and the recurring quest use only ordinary dishes and drinks. The supper quest requires coins.
+The campaign rules below apply to the 81 campaign quests. `PRODUCT.md` owns the two special quests and save compatibility.
 
 ## The quest campaign
 
 1. Each quest opens after a preparation (`afterTask`), or in a new game. A quest can also wait for one earlier quest (`afterQuest`). Each quest waits for the earlier quests of its character, so a character has at most one open quest.
-2. A quest that opens after preparation N is necessary for preparation N + 1. Thus each preparation needs every quest that opens before it, and the player delivers every quest before the finale.
-3. The quests are in the order in which they open. Every quest opens before the last preparation.
+2. A campaign quest that opens after preparation N is necessary for preparation N + 1. Each preparation needs every campaign quest that opens before it. The player delivers all campaign quests before the supper quest.
+3. The quests are in the order in which they open. Every campaign quest opens before the last preparation. The supper quest and the recurring quest open after preparation 24.
 4. Three quest tickets sit on the counter. The first three open quests, in authored order, take the tickets. Other open quests wait without a ticket. The next open quest takes the first ticket that is free.
 5. There is no deadline and no expiry.
 
 | Character group | Quests |
 | --- | --- |
-| Mara, Ilie, Eszter, and Sorin | 6, 6, 8, and 6 |
+| Mara, Ilie, Eszter, and Sorin | 6, 6, 8, and 6 campaign quests |
+| Mara and Ilie | 1 supper quest and 1 recurring quest, respectively |
 | Ten regulars of spec 010, without Vlad and Elisabeta | 5 for Dochia and Costel; 4 for Victor, Ana, Sânziana, Dorian, Ileana, and Cezar; 3 for Cătălina and Bran |
 | Vlad and Elisabeta | 2 each |
 | Adrian, Monica, and Janos | 3 each |
@@ -110,6 +113,9 @@ The scene has only local speakers and gives no reward. After its delivery gate, 
 
 ## Quest rules
 
+These rules apply to campaign quests. The supper quest spends coins and queues the finale instead of a completion scene.
+The recurring quest pays each valid delivery but records no completion and queues no scene.
+
 1. A quest has a stable ID, character ID, opening preparation, item quantities, coin reward, opening scene, and completion scene.
    A quest can also wait for an earlier quest.
    Optional fields define companions, a finish that the quest unlocks, and a later news scene.
@@ -143,7 +149,8 @@ After a failed save, the notice includes the unsaved warning.
 Options offers Retry save.
 A failed save keeps the current session.
 
-The journal starts with the neighbours list and the optional introductions. Completed quests keep both their opening and completion scenes, except the quests of single-visit guests.
+The journal starts with the neighbours list and the optional introductions. Completed campaign quests keep both scenes, except the quests of single-visit guests.
+The paid supper quest keeps only its opening. The finale has its own entry. The recurring quest has no entry.
 Local news shows an earned news scene. It reads as a new scene while it waits, and as a replay after that.
 Close, Escape, and Return from a quest scene restore the journal focus.
 
@@ -166,7 +173,9 @@ The storage tests cover fresh, partial, and completed saves, malformed and overs
 They also cover failed writes and rejection of unsupported versions.
 `tests/quests.test.ts` covers the traveller sequence and Ionatan's visit.
 `tests/guests.test.ts` covers Ionatan's dinner, the shared visit, the vegetarian quest, and the news scene three deliveries later.
-`tests/campaign-balance.test.ts` completes all 24 preparations and all 81 quests through legal actions without injected resources. The fixture fails on a deadlock.
+`tests/campaign-balance.test.ts` completes all 24 preparations and all 81 campaign quests through legal actions without injected resources.
+The fixture leaves the supper unpaid and checks that the remaining coins cover its cost. The recurring quest stays closed.
+The fixture fails on a deadlock.
 
 The browser tests use the built game.
 They cover delivery from a ticket and from the quest dialog, with items from the board only.

@@ -51,14 +51,14 @@ The board has six columns and seven rows. The game has these authored parts:
 - five chains of six items each, which are 30 dishes and drinks
 - five ingredient sources (generators), one for each chain
 - 22 characters
-- 81 quests
+- 83 quests: 81 campaign quests, one supper quest, and one recurring quest
 - 24 preparations in six chapters
 
 In this document, "dish" also means a drink. An ingredient is a dish that a source gives. Each dish has an English name. If English has no name for the dish, the dish has its Romanian regional name with diacritics. The initial layout, the prices, the progression, the characters, and the dialogue are new works.
 
 A quest is a task that a character gives to the player. The quests are authored.
 
-A quest earns coins. Some preparations unlock a source. Each preparation unlocks story scenes and visibly changes the bistro.
+A campaign quest earns coins. Some preparations unlock a source. Each preparation unlocks story scenes and visibly changes the bistro.
 
 Each dish has an explicit menu price for its portion. Flour and cornmeal cost 2 coins each. Elderflowers cost 1 coin. The price of a dish depends on its ingredients, its work, and its portion. A later stage does not always cost more.
 
@@ -66,13 +66,17 @@ The menu value of a quest is the sum of the prices of its portions. Every quest 
 
 Each preparation has a work scope, a material cost, a labour cost, and an estimate of active person-hours. Its coin cost is the material cost plus the labour cost. The cost does not rise with the position of the preparation in the story. The cost model uses one coin for about one Romanian leu as a reference scale. It includes reuse of the furniture and supplies that the bistro has. It leaves out running costs and keeps production free. The [economy record](docs/economy.md) gives the quantities, the portions, the primary references, and the assumptions.
 
-A quest opens after a named preparation, or in a new game. A quest that opens after preparation N is necessary for preparation N + 1. So each preparation needs every quest that opens before it. The player delivers every quest before the finale, which is the last scene of the game. The quests that open before a preparation pay for it.
+A campaign quest opens after a named preparation, or in a new game. A campaign quest that opens after preparation N is necessary for preparation N + 1. Each preparation needs every campaign quest that opens before it. The player delivers all 81 campaign quests before the supper quest. The quests that open before a preparation pay for it.
 
-The data check adds the rewards of the quests that open before each preparation. It adds the costs of the preparations up to that one. The rewards must cover the costs. So a player who delivers every open quest always has the coins for the next preparation.
+The supper quest is Mara's last quest, "The community supper". It opens after preparation 24. It asks for no dishes and gives no reward. It costs 1,000 coins. Its ticket shows Pay with the cost, and its dialog shows the cost and the coins in the purse. Pay is available when the purse holds the cost. The payment spends the coins once, records the quest, and queues the finale in place of a completion scene. The finale opens immediately.
+
+The recurring quest is Ilie's "Sarmale for the supper". It asks for two cabbage rolls and pays their menu value of 100 coins. It is open only while the supper quest is open and the purse holds less than the cost of the supper. A delivery pays the reward. It records nothing, queues no scene, and leaves the quest open until the purse holds the cost. Its dialog says "This quest returns until the purse holds enough for the supper." The recurring quest is a safety net: a player who delivers every campaign quest and pays every preparation has 2,195 coins after preparation 24.
+
+The data check adds the rewards of the quests that open before each preparation. It adds the costs of the preparations up to that one. The rewards must cover the costs. So a player who delivers every open quest always has the coins for the next preparation. The coins that remain after the last preparation must cover the supper. Only the supper quest and the recurring quests open after the last preparation, and the data has exactly one supper quest.
 
 Story is a card on a wide screen and a sheet on a narrow screen. A narrow screen is 1023px wide or less. Story shows the current chapter and the next preparation. It shows the coins and the delivered quests that the next preparation needs. Cost details shows the work and the budget.
 
-The game checks the coins, the necessary quests, and the space for an unlocked source at the same time. A failed check changes nothing. A payment spends the coins once and completes one preparation. A quest prerequisite that is unknown or cyclic is not valid. The authored quests are in the order in which they open. Every quest opens before the last preparation.
+The game checks the coins, the necessary quests, and the space for an unlocked source at the same time. A failed check changes nothing. A payment spends the coins once and completes one preparation. A quest prerequisite that is unknown or cyclic is not valid. The authored quests are in the order in which they open. Every campaign quest opens before the last preparation.
 
 Three quest tickets sit on the counter. The first three open quests, in authored order, take the tickets. The other open quests wait without a ticket. The next open quest takes the first free ticket. A character has at most one open quest, because each quest waits for the earlier quests of its character.
 
@@ -92,7 +96,7 @@ The dishes fly to the ticket. A temporary notice reports the delivery and the re
 
 A waiting scene is a scene that the player has not finished or skipped.
 
-The four core characters are Mara, Ilie, Eszter, and Sorin. They have quest arcs in the six chapters. Each of their quests is a short exchange of at least two turns at its opening and at its completion. A quest gives its character a want, a small complication, and a change at the end. Mara worries as a host. Ilie keeps the habits of his family. Eszter is proud of her craft. Sorin tells what he sees on his round. Mara, Ilie, and Sorin have six quests each, and Eszter has eight. Dochia and Costel have five quests each. Victor, Ana, Sânziana, Dorian, Ileana, and Cezar have four quests each. Cătălina and Bran have three quests each. Vlad and Elisabeta have two quests each.
+The four core characters are Mara, Ilie, Eszter, and Sorin. They have quest arcs in the six chapters. Each campaign quest has at least two turns at its opening and at its completion. A campaign quest gives its character a want, a small complication, and a change at the end. Mara worries as a host. Ilie keeps the habits of his family. Eszter is proud of her craft. Sorin tells what he sees on his round. Mara, Ilie, and Sorin have six campaign quests each, and Eszter has eight. Mara also has the supper quest, and Ilie has the recurring quest. These two quests have no completion scene. Dochia and Costel have five quests each. Victor, Ana, Sânziana, Dorian, Ileana, and Cezar have four quests each. Cătălina and Bran have three quests each. Vlad and Elisabeta have two quests each.
 
 A visitor is a character who does not live in the neighbourhood. Adrian, Monica, and Janos are returning visitors who come from time to time. Each has three supply quests. The nine supply quests alternate in that order. They open after preparations 6, 8, 9, 13, 14, 17, 19, 21, and 22.
 
@@ -110,7 +114,7 @@ The neighbourhood has 16 neighbours: the four core characters and 12 regulars. T
 
 Dochia, Victor, Ana, and Costel are present from the start. Sânziana and Dorian arrive with preparation 4. Vlad, Elisabeta, Ileana, and Cezar arrive with preparation 8, and their arrival scenes queue in that order. Cătălina and Bran arrive with preparation 12. Dorian is a wealthy gentleman of leisure. He sits for portraits and attends social meals.
 
-A regular arrives only when a preparation is complete. Each regular who arrives later has a short arrival scene. In the scene, a core character introduces the regular, and the regular answers. The payment that brings a regular queues the arrival scene. The arrival scene follows the preparation scene, the closing scene, and the finale that the payment earns. The arrival scene follows the rules of the story for waiting scenes.
+A regular arrives only when a preparation is complete. Each regular who arrives later has a short arrival scene. In the scene, a core character introduces the regular, and the regular answers. The payment that brings a regular queues the arrival scene. The arrival scene follows the preparation scene and the closing scene that the payment earns. The arrival scene follows the rules of the story for waiting scenes.
 
 Vlad is a local baron who calls himself a count and lives in a castle in the countryside. Elisabeta is an Austro-Hungarian countess who sometimes visits her land nearby. They like the Warm kitchen and Drinks counter chains. Their quests ask for cabbage rolls, goulash, and red wine. Red wine has the stable item ID `drinks_5` and costs 35 coins for one small carafe. Vlad and Elisabeta do not join the finale.
 
@@ -126,13 +130,15 @@ The journal holds optional introductions for the neighbours and the three return
 
 A waiting arrival scene opens from the journal entry of its regular. After the scene, the entry opens the introduction. Ionatan, Mina, and Avram have introductions only while their quest is open. The journal does not replay their completed quests.
 
-A delivery queues the completion scene in the same change. The delivery notice does not open the scene and does not stop play. Read now opens the waiting scene from Story. The delivery notice also offers the scene by the name of the character. The journal has a Read completion entry for each quest of a neighbour or a returning visitor. It also has a Read quest button for the opening scene of each quest. Finish and Skip mark the scene as read.
+A campaign quest delivery queues the completion scene in the same change. The delivery notice does not open the scene and does not stop play. Read now opens the waiting scene from Story. The delivery notice also offers the scene by the name of the character. The journal has a Read completion entry for each completed campaign quest of a neighbour or a returning visitor. It also has a Read quest button for each recorded quest opening. The supper quest has no Read completion entry. The recurring quest has no journal entry. Finish and Skip mark the scene as read.
 
 Close and Escape leave the scene waiting. The delivery stays recorded. The journal can replay the scenes of neighbours and returning visitors. If the save of a delivery fails, the game keeps the current session. The delivery notice then includes a warning that the session is not saved. Options offers Retry save. An export includes the current session. A reload restores only the progress that the game saved.
 
+If the supper save fails, the finale also shows the save warning immediately inside its dialog.
+
 The campaign has six chapters with four preparations each. Story shows the title and the objective of the current chapter. It also shows one step for each preparation of the chapter: done, now, or not yet. A chapter opens at its first preparation and needs no payment of its own. Its closing scene stays hidden until the chapter is complete. Each chapter names one quest of a core character. That quest opens during the chapter.
 
-Each payment queues the scene of its preparation. The payment for the last preparation of a chapter also records the chapter as complete. In the same change, it queues the closing scene of the chapter. The payment for preparation 24 also queues the finale after the closing scene of chapter 6. A payment queues its scenes in this order: the preparation scene, the closing scene, and the finale.
+Each payment queues the scene of its preparation. The payment for the last preparation of a chapter also records the chapter as complete. In the same change, it queues the closing scene of the chapter. A payment queues its scenes in this order: the preparation scene, then the closing scene. The payment of the supper quest queues the finale.
 
 The game records the finale once. A failed payment queues nothing. The reveal is the change of the room that a paid preparation earns. After a payment, the preparation scene opens immediately. Its last line leads to the reveal. Skip scene moves the preparation scene to the journal and starts the reveal.
 
@@ -148,7 +154,7 @@ A replay of a read scene starts at the first line. It keeps its position only in
 
 The journal lists each chapter that is current or complete. A current chapter shows its opening context, its goal, and the state of each preparation. It also shows its neighbour help after that quest opens. A complete chapter shows its payoff and its neighbour help. It also shows its preparations, each with the name of its room change, and its closing scene. After the supper, the journal also holds the finale.
 
-In the finale, the four core characters speak, and the finale names the result of each chapter. It ends with a return to the kitchen. No quests remain after the supper. The supper card says "The community supper is open, and every quest is delivered. The board and the recipe book stay yours."
+In the finale, the four core characters speak, and the finale names the result of each chapter. Its last button, "See the supper", opens the supper painting. The painting shows 11 neighbours in the courtyard: Mara stands at the long table with a steaming pot. Ilie, Costel, Sorin, and Victor sit on one bench, and Eszter, Ana, Ileana, and Bran sit on the other. Cătălina and Cezar share the small table. Miez and the second black cat wait for scraps. The finale ending line is under the painting, and its button returns to the kitchen. A replay of the finale from the journal also ends with the painting. No quests remain after the supper. While the supper needs payment, the supper card names the supper quest on the counter. When the supper is complete, the card says "The community supper is open, and every quest is delivered. The board and the recipe book stay yours."
 
 The kitchen is the board with the tickets and Mara's line. Mara's line is the line of text under the board. Mara says what the player can do next. The room is the home of the game and its reward. On a narrow screen, the kitchen is a drawer over the room. On a wider screen, the kitchen is a panel beside the room. The room shows one painted area of the bistro. The area shows the state that the completed preparations leave. The bistro has two areas:
 
@@ -203,6 +209,8 @@ Story has a Miez card. A tap on the card or on the cat on the windowsill changes
 
 A bat crosses the dusk beyond the mended window of the front room after each preparation. It also crosses after every third delivered quest. It crosses only while the room shows the front room. It never crosses while the page is hidden, with reduced motion, before the player mends the window, or if the room painting failed to load.
 
+Recurring deliveries count towards this motion only during the current tab visit. A reload, import, reset, or adopted save clears that temporary count.
+
 A caption stays available if a painting cannot load. If a state has no accepted painting, the room shows the latest earlier painting of its area. It shows the caption of the new state. Authored lamps and lanterns light the room at story milestones.
 
 The game has no time-of-day clock, no energy limit, no timers, no purchases, no ads, and no accounts.
@@ -227,13 +235,14 @@ The art plan `docs/specs/001-visible-renovation-art-plan.md` defines the 25 pain
 
 ## Identity
 
-The game has 74 generated Portable Network Graphics (PNG) masters. They provide these items:
+The game has 75 generated Portable Network Graphics (PNG) masters. They provide these items:
 
 - food
 - a separate red wine picture for its menu item
 - portraits, including three atlases for the regulars
 - parchment paper, 22 character sketches, nine cathedral scenes, and two visitor meal scenes
 - 25 painted room states
+- the supper painting
 - two decoration edit paintings, sampled only within their authored regions
 - the timber tabletop
 - the embroidered runner
@@ -262,6 +271,8 @@ If the game data cannot load or does not pass its checks, the kitchen says so an
 An import validates the envelope and the state of the save. The envelope is the outer record with the format and the version. A load and an import accept a top-level state field that the save format does not define. Play, the next save, and an export keep that field. A load ignores an envelope field that the format does not define, and the next save drops it. A board cell with an undefined field makes the save not valid. An import rejects damaged saved data and keeps the current save. An import enforces a size limit of 2 mebibytes (MiB). Load, save, import, and reset use only the save key of this game. They do not change other browser data.
 
 A current save has game state version 12 in envelope version 11 at the key `scary-snacks-save-v11`. The game supports only this format. Load reads only this key. If no current save exists, the game starts a new campaign.
+
+The optional `supperPayment` field has the value `true` when preparation 24 earns the supper quest. The supper then requires payment, and its completed quest ID records that payment. A current save with all preparations complete and no field retains its earned finale without another payment. Its waiting finale, saved line, journal replay, coins, and completed quests stay valid. A current save with unfinished preparations receives the field when preparation 24 is paid. This rule uses the current save format and does not convert earlier formats.
 
 Saves in an earlier format stay unchanged. The game does not read them or convert them. Import rejects earlier formats. A new game uses the authored blocked layout. A save records the ID of the layout and the IDs of the cleared blockers. A layout ID must stay the same after release.
 

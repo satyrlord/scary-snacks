@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { firstFreeBoardCell, resolveChapters, resolveQuests, storyScenes } from '../src/model.ts';
+import { firstFreeBoardCell, requiredQuests, resolveChapters, resolveQuests, storyScenes, supperComplete, supperQuest } from '../src/model.ts';
 import { createGame, validateGame } from '../src/engine.ts';
 import { dataProblems, storyProblems } from '../src/content.ts';
 import type { GameData } from '../src/model.ts';
@@ -17,11 +17,10 @@ function checkpoint(count: number, content = data) {
 /** The arrival scenes of the regulars that a preparation brings. */
 const arrivals = (index: number) => data.characters.filter(person => person.arrival && person.arrivesAfter === data.tasks[index].id).map(person => `arrival-${person.id}`);
 /**
- * The scenes that count payments queue: each preparation scene, then the closing scene of a complete chapter, then the finale,
+ * The scenes that count payments queue: each preparation scene, then the closing scene of a complete chapter,
  * then the arrivals of the regulars that the preparation brings.
  */
-const queued = (count: number) => data.tasks.slice(0, count).flatMap((task, index) => [task.id, ...((index + 1) % 4 ? [] : [data.chapters[index / 4 | 0].id]),
-  ...(index === data.tasks.length - 1 ? [data.finale.id] : []), ...arrivals(index)]);
+const queued = (count: number) => data.tasks.slice(0, count).flatMap((task, index) => [task.id, ...((index + 1) % 4 ? [] : [data.chapters[index / 4 | 0].id]), ...arrivals(index)]);
 
 test('six chapters keep their titles and cover all 24 preparations, each with a painted result', () => {
   assert.deepEqual(storyProblems(data), []);
@@ -89,7 +88,7 @@ test('a chapter opens at its first preparation and completes only with its last 
     assert.deepEqual(before.pendingScenes, queued(boundary - 1));
     const after = payNext(before);
     assert.equal(resolveChapters(after, data)[index].status, 'complete');
-    assert.deepEqual(after.pendingScenes, [...before.pendingScenes, data.tasks[boundary - 1].id, data.chapters[index].id, ...(boundary === 24 ? [data.finale.id] : []), ...arrivals(boundary - 1)]);
+    assert.deepEqual(after.pendingScenes, [...before.pendingScenes, data.tasks[boundary - 1].id, data.chapters[index].id, ...arrivals(boundary - 1)]);
     if (boundary < 24) {
       assert.equal(resolveChapters(after, data)[index + 1].status, 'current');
       assert.equal(resolveChapters(after, data)[index + 1].done, 0);
@@ -118,32 +117,45 @@ test('a failed payment, a missing required quest, or a full destination complete
   assert.equal(resolveChapters(full, placed)[0].status, 'current');
 });
 
-test('the last preparation queues its scene, the chapter scene, and the finale once, with no second charge or reward', () => {
+test('the last preparation queues its scene and the chapter scene once, with no second charge or reward', () => {
   const before = ready(checkpoint(23));
   const after = act(before, { type: 'task' });
-  assert.deepEqual(after.pendingScenes.slice(-3), [data.tasks[23].id, 'chapter-6', 'finale']);
+  assert.deepEqual(after.pendingScenes.slice(-2), [data.tasks[23].id, 'chapter-6']);
+  assert.equal(before.supperPayment, undefined);
+  assert.equal(after.supperPayment, true);
+  assert.equal(supperComplete(after, data), false);
   assert.equal(after.coins, before.coins - data.tasks[23].cost);
   assert.match(rejected(after, { type: 'task' }).message, /community supper is ready/);
-  const read = act(act(after, { type: 'readScene', id: 'chapter-6' }), { type: 'readScene', id: 'finale' });
-  assert.deepEqual(read.pendingScenes, queued(24).filter(id => !['chapter-6', 'finale'].includes(id)));
+  const read = act(after, { type: 'readScene', id: 'chapter-6' });
+  assert.deepEqual(read.pendingScenes, queued(24).filter(id => id !== 'chapter-6'));
   for (const key of ['coins', 'taskIndex', 'board', 'completedQuests', 'decorations'] as const) {
     assert.deepEqual(read[key], after[key], `Reading a scene must not change ${key}.`);
   }
-  // Repeated, stale, and unknown reading events change nothing.
+  // Repeated, stale, unearned, and unknown reading events change nothing.
+  rejected(read, { type: 'readScene', id: 'chapter-6' });
   rejected(read, { type: 'readScene', id: 'finale' });
   rejected(read, { type: 'readScene', id: 'unknown' });
   rejected(read, { type: 'readScene', id: undefined as unknown as string });
 });
 
-test('the finale needs every quest, leaves no ticket, and keeps the board playable', () => {
+test('the supper quest takes its cost once, earns the finale, leaves no ticket, and keeps the board playable', () => {
+  const supper = supperQuest(data)!, campaign = requiredQuests(data.tasks.length, data);
   const before = ready(checkpoint(23));
-  assert.deepEqual(new Set(before.completedQuests), new Set(data.quests.map(quest => quest.id)), 'Every quest is required before the finale.');
-  for (const quest of data.quests) rejected({ ...before, completedQuests: before.completedQuests.filter(id => id !== quest.id) }, { type: 'task' });
-  let state = act(act(before, { type: 'task' }), { type: 'readScene', id: 'finale' });
-  assert.ok(resolveQuests(state, data).every(view => view.status === 'complete'));
+  assert.deepEqual(new Set(before.completedQuests), new Set(campaign.map(quest => quest.id)), 'Every campaign quest is required before the supper.');
+  for (const quest of campaign) rejected({ ...before, completedQuests: before.completedQuests.filter(id => id !== quest.id) }, { type: 'task' });
+  const paid = act(before, { type: 'task' });
+  assert.equal(resolveQuests(paid, data).find(view => view.quest.id === supper.id)!.status, 'active');
+  assert.match(rejected(paid, { type: 'deliverQuest', id: supper.id }).message, new RegExp(`Earn ${supper.cost} more coins to pay for ${supper.title}`));
+  let state = act({ ...paid, coins: supper.cost! + 5 }, { type: 'deliverQuest', id: supper.id });
+  assert.equal(state.coins, 5);
+  assert.deepEqual(state.pendingScenes, [...queued(24), 'finale']);
+  assert.deepEqual(state.completedQuests.slice(-1), [supper.id]);
+  rejected({ ...state, coins: supper.cost! }, { type: 'deliverQuest', id: supper.id });
+  state = act(state, { type: 'readScene', id: 'finale' });
+  assert.ok(resolveQuests(state, data).every(view => view.status === 'complete' || (view.quest.repeat && view.status === 'locked')));
   const source = state.board.findIndex(cell => cell?.code === 'generator_bakery');
   state = act(state, { type: 'spawn', index: source });
-  assert.deepEqual(state.pendingScenes, queued(24).filter(id => id !== 'finale'));
+  assert.deepEqual(state.pendingScenes, queued(24));
 });
 
 test('saved scene queues hold only earned scenes, once each, in story order', () => {
@@ -163,10 +175,12 @@ test('saved scene queues hold only earned scenes, once each, in story order', ()
   }
   const { pendingScenes: _scenes, ...missing } = middle;
   assert.equal(validateGame(missing, data), false);
-  const finished = checkpoint(24);
-  assert.equal(validateGame({ ...finished, pendingScenes: ['finale'] }, data), true);
-  assert.equal(validateGame({ ...finished, pendingScenes: ['finale', 'chapter-6'] }, data), false);
-  assert.equal(validateGame({ ...finished, pendingScenes: ['finale', 'task_24'] }, data), false);
+  const finished = checkpoint(24), supped = { ...finished, completedQuests: [...finished.completedQuests, supperQuest(data)!.id] };
+  assert.equal(validateGame({ ...finished, pendingScenes: ['finale'] }, data), false, 'The finale waits for the supper.');
+  assert.equal(validateGame({ ...supped, pendingScenes: ['finale'] }, data), true);
+  assert.equal(validateGame({ ...supped, pendingScenes: ['finale', 'chapter-6'] }, data), false);
+  assert.equal(validateGame({ ...supped, pendingScenes: ['finale', 'task_24'] }, data), false);
+  assert.equal(validateGame({ ...supped, pendingScenes: [supperQuest(data)!.id] }, data), false, 'The supper has no completion scene.');
 });
 
 test('scene IDs must be unique across preparations, quests, local news, chapters, and the finale', () => {

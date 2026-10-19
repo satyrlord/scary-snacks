@@ -1450,6 +1450,26 @@
         "status": "accepted",
         "by": "user"
       }
+    },
+    {
+      "id": "finale-supper",
+      "file": "public/assets/original/finale-supper.png",
+      "sha256": "074eff91c090bd4514a999035b2e4843774b3b8a12778410f2861c81b27a65ea",
+      "bytes": 7388459,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "finale-supper",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an edit of courtyard-23 with a mask of the near courtyard, with the core portrait atlas, the regulars-1, regulars-2 and regulars-3 atlases and the mascot atlas as identity references; the candidate ships whole, without a composite, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "courtyard-23",
+      "referenceSha256": "9251d3e7cf7ee8907bf2cc280416b1fa799ba3fe0a16f7357204cfcead998713",
+      "review": "The supper after the payment of the supper quest: the courtyard of courtyard-23 with eleven people. Mara stands at the long table with a steaming pot; Ilie, Costel, Sorin and Victor sit on the left bench; Eszter, Ana, Ileana and Bran on the right bench; Catalina and Cezar at the right small table; two black cats. Each face was compared with its portrait, and the corners hold no text or signature. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
     }
   ],
   "note": "The game uses only project-generated images. The menu atlas and mascots use generated chat atlases from the references list. The core portraits use a revision of a generated candidate. front-room-00 and courtyard-13 use generated room references. The decoration paintings use generated design references. Each later room state edits the previous state of its area. Each composite retains only the changed region. The board-clutter atlas uses chat generation and cell corrections. Five pencil sketches, four quest scenes, and the second regulars atlas revise their previous versions, and the references list keeps each previous version. This record preserves the source and review evidence of the current assets. This record does not give legal clearance.",

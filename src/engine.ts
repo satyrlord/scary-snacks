@@ -38,14 +38,14 @@ export function createGame(data: GameData): GameState {
     decorations: [], decorationChoices: {}, outputChoices: {}, completedQuests: [],
   };
 }
-/** Delivered quests are known, unique, and opened in delivery order, and every completed preparation had its quests. */
+/** Delivered quests are known, unique, not recurring, and opened in delivery order, and every completed preparation had its quests. */
 function validateQuestProgress(state: GameState, data: GameData): boolean {
   const complete = state.completedQuests;
   if (!Array.isArray(complete) || complete.length > data.quests.length || new Set(complete).size !== complete.length) return false;
   const done = new Set<string>();
   for (const id of complete) {
     const quest = data.quests.find(quest => quest.id === id);
-    if (!quest || (quest.afterTask !== null && !state.decorations.includes(quest.afterTask))
+    if (!quest || quest.repeat || (quest.afterTask !== null && !state.decorations.includes(quest.afterTask))
       || !questPredecessors(quest, data).every(previous => done.has(previous))) return false;
     done.add(id);
   }
@@ -59,6 +59,7 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
     if (!Array.isArray(state.board) || state.board.length !== data.board.columns * data.board.rows) return false;
     if (!integer(state.coins)) return false;
     if (!integer(state.taskIndex, 0, data.tasks.length)) return false;
+    if (state.supperPayment !== undefined && (state.supperPayment !== true || state.taskIndex !== data.tasks.length)) return false;
     const chains = availableChains(state, data);
     {
       // Pending scenes are unique and earned, and story scenes keep story order, so an imported save cannot open a later scene.
@@ -143,15 +144,20 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
   switch (action.type) {
     case 'deliverQuest': {
       const quest = data.quests.find(quest => quest.id === action.id);
+      if (quest?.cost && next.coins < quest.cost) return fail(`Earn ${quest.cost - next.coins} more coins to pay for ${quest.title}.`);
       if (!quest || !canDeliverQuest(next, quest, data)) return fail('This quest needs every required item on the board. Check that the quest is still on a ticket.');
       if (!integer(next.coins + quest.reward)) return fail('Spend some coins before you deliver this quest.');
       for (const index of questDeliveryCells(next, quest, data)) next.board[index] = null;
-      next.completedQuests.push(quest.id);
-      next.pendingScenes.push(quest.id);
-      next.coins += quest.reward;
-      // A follow-up scene waits for a count of later deliveries; it is earned by the delivery that reaches the count.
-      for (const earlier of data.quests) if (earlier.followUp && deliveriesSince(next, earlier.id) === earlier.followUp.afterDeliveries) next.pendingScenes.push(earlier.followUp.id);
-      message = `${quest.title}: delivered. Earned ${quest.reward} coins.`;
+      next.coins += quest.reward - (quest.cost ?? 0);
+      // A recurring quest keeps no record and has no reply, so it can open again.
+      if (!quest.repeat) {
+        next.completedQuests.push(quest.id);
+        // The payment of the supper earns the finale in place of a reply.
+        next.pendingScenes.push(quest.cost ? data.finale.id : quest.id);
+        // A follow-up scene waits for a count of later deliveries; it is earned by the delivery that reaches the count.
+        for (const earlier of data.quests) if (earlier.followUp && deliveriesSince(next, earlier.id) === earlier.followUp.afterDeliveries) next.pendingScenes.push(earlier.followUp.id);
+      }
+      message = quest.cost ? `${quest.title}: paid ${quest.cost} coins.` : `${quest.title}: delivered. Earned ${quest.reward} coins.`;
       break;
     }
     case 'decorate': {
@@ -239,11 +245,11 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       }
       next.coins -= task.cost;
       next.taskIndex++;
+      if (next.taskIndex === data.tasks.length) next.supperPayment = true;
       next.decorations.push(task.id);
-      // The payment queues the preparation scene, then the closing scene of a completed chapter, then the finale, in the same change.
+      // The payment queues the preparation scene, then the closing scene of a completed chapter, in the same change.
       next.pendingScenes.push(task.id);
       if (resolveChapters(next, data)[task.chapter - 1].status === 'complete') next.pendingScenes.push(data.chapters[task.chapter - 1].id);
-      if (next.taskIndex === data.tasks.length) next.pendingScenes.push(data.finale.id);
       // The preparation that brings a regular queues their arrival after the story scenes that it earned.
       for (const person of data.characters) if (person.arrival && person.arrivesAfter === task.id) next.pendingScenes.push(arrivalScene(person));
       for (const chain of availableChains(next, data)) {

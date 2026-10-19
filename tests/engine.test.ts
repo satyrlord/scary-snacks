@@ -425,7 +425,7 @@ test('one data check gathers every content check, and the game can run it withou
     content => { content.rooms[1].after = 'absent'; },
     content => { content.generatorTiers[0].stage = 4; },
     content => { content.quests[0].reward = -1; },
-    content => { content.quests.at(-1)!.afterTask = 'task_24'; },
+    content => { content.quests[0].afterTask = 'task_24'; },
     content => { content.tasks[0].cost++; },
     content => { (content as { tasks: unknown }).tasks = null; },
   ];

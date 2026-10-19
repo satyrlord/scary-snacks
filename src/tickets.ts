@@ -19,10 +19,12 @@ const toastStack = $('#toast-stack');
 const arriving: number[] = [];
 // A delivery notice belongs to the game that made it.
 let deliveryToken = 0;
+// Recurring deliveries have no saved record. Their share of the bat cadence lasts for this game in this tab.
+let recurringDeliveries = 0;
 /** The quest on each ticket. A quest keeps its ticket, and the next open quest takes the first free ticket, in authored order. */
 let ticketQuests: string[] = [];
 onReplace(() => {
-  deliveryToken++; arriving.fill(0); ticketQuests = [];
+  deliveryToken++; recurringDeliveries = 0; arriving.fill(0); ticketQuests = [];
   for (const flight of document.querySelectorAll('.deliver-flight')) flight.remove();
   toastStack.replaceChildren();
 });
@@ -69,7 +71,8 @@ export function renderTickets() {
     // A ticket that has just taken a delivered quest's place arrives in the same slot; the delay survives renders.
     const since = arriving[slot] ? performance.now() - arriving[slot] : Infinity;
     if (since < ARRIVAL_MS) { card.classList.add('arriving'); card.style.setProperty('--rise-delay', `${RISE_AT - Math.round(since)}ms`); }
-    const labels = quest.requirements.map(({ item, quantity }) => `${quantity} ${itemName(item)}, ${onBoard(item, quantity)} on the board`);
+    const labels = quest.cost ? [`costs ${coinText(quest.cost)}, ${coinText(state.coins)} in the purse`]
+      : quest.requirements.map(({ item, quantity }) => `${quantity} ${itemName(item)}, ${onBoard(item, quantity)} on the board`);
     // The face of the ticket is one target that opens the quest: the portrait, the name and title, and the dishes.
     const face = button('', 'ticket-face', () => showQuest(quest)), picture = portrait(person.id), words = element('span', 'ticket-words');
     face.setAttribute('aria-label', `${quest.title}: ${labels.join('; ')}`);
@@ -81,11 +84,14 @@ export function renderTickets() {
       if (quantity > 1) value.append(element('span', 'ticket-count', `${onBoard(item, quantity)}/${quantity}`));
       dishes.append(value);
     }
+    // The supper costs coins instead of dishes.
+    if (quest.cost) { const value = element('span', 'ticket-item'); value.append(coinMark()); dishes.append(value); }
     face.append(picture, words, dishes);
     // Phones show the reward alone until the quest can be delivered, and then the word alone, so three tickets fit the drawer's handle.
     const deliverButton = button('', 'primary-button deliver-button', () => deliver(quest));
-    deliverButton.append(element('span', 'deliver-word', 'Deliver'), element('span', 'deliver-dot', ' · '), element('span', 'deliver-reward', count.format(quest.reward)), coinMark());
-    deliverButton.disabled = !ready; deliverButton.setAttribute('aria-label', `Deliver ${quest.title} to ${person.name} for ${coinText(quest.reward)}`);
+    deliverButton.append(element('span', 'deliver-word', quest.cost ? 'Pay' : 'Deliver'), element('span', 'deliver-dot', ' · '), element('span', 'deliver-reward', count.format(quest.cost ?? quest.reward)), coinMark());
+    deliverButton.disabled = !ready;
+    deliverButton.setAttribute('aria-label', quest.cost ? `Pay ${coinText(quest.cost)} for ${quest.title}` : `Deliver ${quest.title} to ${person.name} for ${coinText(quest.reward)}`);
     card.append(face, deliverButton); container.append(card);
   });
   if (!container.childElementCount) container.append(element('p', 'tickets-empty', state.taskIndex === data.tasks.length ? 'Every quest is delivered. The bistro is yours.' : 'No quests wait now. Pay for the next preparation.'));
@@ -93,6 +99,7 @@ export function renderTickets() {
 /**
  * The dishes land on the ticket, a notice reports the reward, and the next quest takes the ticket's place.
  * The completion scene waits in Story. After a failed save, the notice says so, and Options offers Retry save.
+ * The payment of the supper opens the finale at once.
  */
 function deliver(quest: Quest) { return changeGame(() => {
   const slot = activeQuests().indexOf(quest);
@@ -103,14 +110,16 @@ function deliver(quest: Quest) { return changeGame(() => {
   arriving[slot] = performance.now();
   const result = apply({ type:'deliverQuest', id:quest.id });
   if (!result.ok) { arriving[slot] = 0; renderTickets(); return; }
-  if (state.completedQuests.length % 3 === 0) batFlight();
+  if (quest.repeat) recurringDeliveries++;
+  if ((state.completedQuests.length + recurringDeliveries) % 3 === 0) batFlight();
   const message = `${result.message}${saveFailed ? ' This session is not saved. Use Retry save in Options, or export before leaving.' : ''}`;
   // The reply of the neighbour waits in Story; the notice offers it at once, by name.
   const who = names.format([quest.character, ...quest.companions ?? []].map(id => character(id).name));
   const reply = state.pendingScenes.includes(quest.id) ? { label: `Read ${who}’s reply`, read: () => showScene(quest.id) } : undefined;
   const token = deliveryToken;
   const notify = () => { if (token === deliveryToken) toast(message, reply); };
-  if (still() || !into) notify(); else void fly(codes, from, into).then(notify);
+  if (quest.cost) { notify(); showScene(data.finale.id); }
+  else if (still() || !into) notify(); else void fly(codes, from, into).then(notify);
 }); }
 /** Delivered dishes lift off their tiles, arc over the board and land on the neighbour's ticket, visible all the way. */
 function fly(codes: string[], from: DOMRect[], target: DOMRect) {
@@ -149,9 +158,11 @@ function showQuest(quest: Quest) {
     inspect.setAttribute('aria-label',`${quantity} ${itemName(item)}: ${have} of ${quantity} on the board`);
     inspect.append(food(item),element('span','',`${quantity} ${itemName(item)}`),element('span','quest-count',`${have} / ${quantity} on board`));row.append(inspect);requirements.append(row);
   }
-  const deliverButton=button(`Deliver · ${count.format(quest.reward)}`,'primary-button quest-deliver',()=>{modal.close();void deliver(quest);});
-  deliverButton.append(coinMark());deliverButton.setAttribute('aria-label',`Deliver ${quest.title} for ${coinText(quest.reward)}`);deliverButton.disabled=!canDeliverQuest(state,quest,data);
+  const deliverButton=button(`${quest.cost?'Pay':'Deliver'} · ${count.format(quest.cost??quest.reward)}`,'primary-button quest-deliver',()=>{modal.close();void deliver(quest);});
+  deliverButton.append(coinMark());deliverButton.setAttribute('aria-label',quest.cost?`Pay ${coinText(quest.cost)} for ${quest.title}`:`Deliver ${quest.title} for ${coinText(quest.reward)}`);deliverButton.disabled=!canDeliverQuest(state,quest,data);
   const actions=element('div','quest-actions');actions.append(deliverButton);
-  content.append(requirements,element('p','quest-reward',`Reward: ${coinText(quest.reward)}`),actions,element('p','quest-note','Delivery uses dishes on the board. There is no deadline.'));
+  // The supper costs coins and no dishes. A recurring quest returns until the coins cover the supper.
+  if(quest.cost)content.append(element('p','quest-reward',`Cost: ${coinText(quest.cost)}. In the purse: ${coinText(state.coins)}.`),actions,element('p','quest-note','The payment uses coins, not dishes. There is no deadline.'));
+  else content.append(requirements,element('p','quest-reward',`Reward: ${coinText(quest.reward)}`),actions,element('p','quest-note',quest.repeat?'This quest returns until the purse holds enough for the supper.':'Delivery uses dishes on the board. There is no deadline.'));
   showModal(quest.title,content);
 }

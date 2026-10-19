@@ -34,7 +34,7 @@ The Objective column quotes the game. The Payoff column summarizes the payoff te
 | 3. Around one table | 9-12 | Make shared seating that is useful and welcoming. | Eszter's tableware sets every place. The recipe corner keeps room for memories. | eszter-table |
 | 4. The courtyard | 13-16 | Open an outdoor space where everyone can gather and move easily. | Sorin's practical help clears the way. The courtyard is ready for outdoor service. | sorin-path |
 | 5. Recipes to share | 17-20 | Test the dishes of the neighbourhood and write them down. | The supper menu shows each dish. Neighbours can find their own recipes on it. | ilie-family |
-| 6. The first community supper | 21-24 | Bring every preparation together and welcome the guests. | Mara and the team share the completed supper with the neighbourhood. | mara-supper |
+| 6. The first community supper | 21-24 | Bring every preparation together and welcome the guests. | Mara and the team have prepared the bistro for the community supper. | mara-supper |
 
 Miez, the bats, and the early spiders are quiet details of the setting.
 They are not obstacles. They are not supernatural villains.
@@ -54,13 +54,13 @@ The closing scene of chapter 1 names the one friendly spider that stays under th
    The six contributions cover all four core characters.
    Like every quest, a contribution is necessary for the preparation that follows its opening.
    `questProblems` checks the combined graph of preparations and quests for cycles and unknown prerequisites.
-5. After preparation 24, the finale waits after the closing scene of chapter 6.
+5. After preparation 24, Mara's supper quest opens. Its payment of 1,000 coins queues the finale and opens it.
    The game records the finale once.
    The game does not charge a preparation again and does not give a reward again.
 6. The finale names the outcome of each chapter, and all four core characters speak.
-   The dialog shows the ending line of the finale.
-   The last control reads "Back to the kitchen" if no other scene waits. No quests remain.
-7. The journal replays the closing scene of each complete chapter and, after the supper, the finale.
+   Its last control, "See the supper", opens the supper painting with the ending line of the finale.
+   The painting ends with "Back to the kitchen" if no other scene waits. No quests remain.
+7. The journal replays the closing scene of each complete chapter and, after the supper, the finale with the supper painting.
    Replay, Skip, Back, and closing a dialog have no economic effect.
 8. A failed payment, missing coins, a missing required quest, and a full board for a new source change nothing.
    They complete no chapter, queue no scene, and open no finale.
@@ -89,27 +89,30 @@ Spec 008 owns the saved line of a scene and the rules for reading preparation sc
 ## State and save compatibility
 
 Validation accepts the closing scene of each complete chapter.
-After preparation 24, validation also accepts the finale.
+After the payment of the supper quest, validation also accepts the finale.
+The optional `supperPayment` field follows the compatibility rule in `PRODUCT.md`.
+A completed current save without that field retains its earned finale without another payment.
+An unfinished current save receives the field when preparation 24 is paid.
 Each ID occurs once, and story scenes keep story order.
-Validation rejects unknown IDs and scenes that the preparations did not earn.
+Validation rejects unknown IDs and scenes that the saved progress did not earn.
 The same list holds the preparation scenes and the quest scenes of spec 008.
 Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
 
 ## Acceptance and evidence
 
 - `tests/story.test.ts` covers the outline, the content checks, every chapter boundary, and failed payments.
-  It also covers the single finale, the scene actions, the board after the finale, and the validation of saved scenes.
+  It also covers the supper payment, the single finale, the scene actions, the board after the finale, and the validation of saved scenes.
 - `tests/storage.test.ts` covers failed writes, malformed saves, and save and load of valid scene lists.
-- `tests/campaign-balance.test.ts` shows that a legal fresh campaign ends with each chapter scene, in story order, and one finale waiting.
+- `tests/campaign-balance.test.ts` shows that a legal fresh campaign ends with each chapter scene waiting, in story order, and the coins for the supper.
 - `tests/browser/story.spec.ts` covers the objective, the preparation steps, the chapter changes, and Escape and reload with a waiting scene.
-  It covers the finale with Skip and replay, and the board after the finale.
+  It covers the supper payment, the finale with Skip and replay, the supper painting, and the board after the finale.
   It checks the layout at 1440×900, 390×844, and 390×800 in both themes.
 
 The playthrough in `tests/browser/story.spec.ts` starts from a fresh save in the built game.
 Before each payment, the test writes a save with the quests that the payment needs and the exact coins.
-`tests/campaign-balance.test.ts` covers legal play from a new game to the finale.
+`tests/campaign-balance.test.ts` covers legal play from a new game to the supper quest.
 The test makes every payment through the interface.
-It reads every preparation scene, runs every reveal, and reads every chapter scene and the finale.
+It reads every preparation scene, runs every reveal, and reads every chapter scene. It pays for the supper and reads the finale.
 The test also checks the journal.
 The playthrough checks that the story agrees with the campaign.
 The journal shows each contribution beside the payoff.

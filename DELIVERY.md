@@ -26,7 +26,7 @@ The site is public. The [release notes](docs/release-notes.md) give the release 
 
 ## Assets
 
-74 Portable Network Graphics (PNG) masters in `public/assets/original/` are the source of the game art. The game ships variants of the masters in AV1 Image File Format (AVIF) and WebP. The sizes of the variants fit the screens. The variants come only from these masters. The local folders `private/` and `analysis/` are not release inputs.
+75 Portable Network Graphics (PNG) masters in `public/assets/original/` are the source of the game art. The game ships variants of the masters in AV1 Image File Format (AVIF) and WebP. The sizes of the variants fit the screens. The variants come only from these masters. The local folders `private/` and `analysis/` are not release inputs.
 
 The transparent board-clutter atlas has six open-center overlays in square cells. The preparation-clutter atlas has 12 contextual overlays with transparent centers, in a four-by-three grid of 1448 by 1086 pixels. The chat image generator made the preparation-clutter atlas. The atlas ships as one WebP variant at its original size. The core, visitor, guest, and three regulars portrait atlases and the mascot atlas each ship one 640-by-640 WebP variant. Red wine (`drinks_5`) uses its own transparent picture instead of its cell in the menu atlas.
 
@@ -61,6 +61,6 @@ The validator does not require three empty cells in a save. Ordinary production 
 
 `npm run saves:checkpoints` writes 25 saves to `tmp/checkpoint-saves/`, one for each number of paid preparations. A file name gives that number and the next preparation, for example `12-next-clear-the-courtyard.json`. Each save holds the exact coins and the delivered quests for the next preparation. It holds no scene that waits from an earlier payment. A payment then shows only the scenes that it earns.
 
-The finished save holds the scene of preparation 24, the closing scene of chapter 6, and the finale. Import a save with Import saved game in Options. Pay for the next preparation to see its story and reveal. These saves do not measure campaign balance.
+The finished save holds the scene of preparation 24 and the closing scene of chapter 6, and the coins for the supper quest. Import a save with Import saved game in Options. Pay for the next preparation to see its story and reveal. These saves do not measure campaign balance.
 
 `node tools/campaign-balance.ts` runs a reproducible campaign balance check. The [economy record](docs/economy.md) explains the report and the limits of the check. [Verification](docs/verification.md) gives the coverage of the automated checks.

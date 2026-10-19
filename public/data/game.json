@@ -669,7 +669,7 @@
       },
       {
         "after": "task_24",
-        "context": "The supper has begun; clear the final flower trimmings and serving supplies.",
+        "context": "The bistro is ready for the supper; clear the final flower trimmings and serving supplies.",
         "obstacles": [
           {
             "id": "prep-24-flower-trimmings",
@@ -1519,7 +1519,7 @@
       "title": "The first community supper",
       "objective": "Bring every preparation together and welcome the guests.",
       "opening": "The rooms are ready and the menu is printed. Now the street needs invitations, a serving station, and the last few flowers.",
-      "payoff": "Mara and the team share the completed supper with the neighbourhood.",
+      "payoff": "Mara and the team have prepared the bistro for the community supper.",
       "contribution": "mara-supper",
       "closing": [
         {
@@ -5556,6 +5556,67 @@
         "slot": "flowers",
         "variant": "lilacs"
       }
+    },
+    {
+      "id": "mara-community-supper",
+      "character": "mara",
+      "title": "The community supper",
+      "afterTask": "task_24",
+      "requirements": [],
+      "reward": 0,
+      "cost": 1000,
+      "opening": [
+        {
+          "speaker": "mara",
+          "text": "Every quest is delivered, and every table is set. Only the supper itself is left to pay for."
+        },
+        {
+          "speaker": "sorin",
+          "text": "I asked on my round. Vlad and Elisabeta sent their regrets. They do not eat supper, they said. Not this kind."
+        },
+        {
+          "speaker": "ilie",
+          "text": "Then we are eleven, and the courtyard has ten seats."
+        },
+        {
+          "speaker": "mara",
+          "text": "I will stand. A host never sits until the pot is empty. The bistro pays for this one, and nobody else pays a coin tonight."
+        }
+      ],
+      "completion": []
+    },
+    {
+      "id": "ilie-sarmale",
+      "character": "ilie",
+      "title": "Sarmale for the supper",
+      "afterTask": "task_24",
+      "requirements": [
+        {
+          "item": "warm_5",
+          "quantity": 2
+        }
+      ],
+      "reward": 100,
+      "repeat": true,
+      "opening": [
+        {
+          "speaker": "ilie",
+          "text": "The supper costs more than the purse holds. In my family, a short purse never spoiled a feast."
+        },
+        {
+          "speaker": "ilie",
+          "text": "Bring me two plates of sarmale. The neighbours pay for them at the gate, and each plate brings the supper closer."
+        },
+        {
+          "speaker": "mara",
+          "text": "And if we are still short?"
+        },
+        {
+          "speaker": "ilie",
+          "text": "Then we cook more sarmale. That is the whole plan. It has worked for two hundred years."
+        }
+      ],
+      "completion": []
     }
   ],
   "generatorTiers": [

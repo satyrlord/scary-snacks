@@ -47,7 +47,7 @@ It also requires the shape of the asset:
 - Square for the food, core portrait, regular portrait, and mascot atlases, the timber, and the character sketches.
 - 3:1 for the runner.
 - 3:2 for the board-clutter atlas and the quest scenes.
-- 3:4 for a room state and a decoration painting.
+- 3:4 for a room state, a decoration painting, and the supper painting.
 
 The size must divide into equal grid cells.
 The plan sets `experimentalResolution` for a size of more than 3,686,400 pixels (2560 by 1440). Avoid such a size.

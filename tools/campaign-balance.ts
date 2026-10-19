@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { canDeliverQuest, currentTask, firstFreeBoardCell, generatorOutputs, getItem, resolveQuests, taskEligibility, unresolvedObstacle } from '../src/model.ts';
+import { canDeliverQuest, currentTask, firstFreeBoardCell, generatorOutputs, getItem, requiredQuests, resolveQuests, supperQuest, taskEligibility, unresolvedObstacle } from '../src/model.ts';
 import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import type { Action, GameData, GameState, Quest, Task } from '../src/model.ts';
 
@@ -121,7 +121,9 @@ export function runCampaignBalance(data: GameData): CampaignBalance {
   }
 
   assert.equal(state.taskIndex, data.tasks.length);
-  assert.equal(state.completedQuests.length, data.quests.length, 'The finale needs every quest.');
+  assert.equal(state.completedQuests.length, requiredQuests(data.tasks.length, data).length, 'The last preparation needs every campaign quest.');
+  // The coins left after the last preparation pay for the supper, so its recurring quest stays closed.
+  assert.ok(canDeliverQuest(state, supperQuest(data)!, data), 'The coins left pay for the supper.');
   assert.equal(validateGame(state, data), true);
   assert.equal(totals.preparationCoins, preparations.reduce((sum, task) => sum + task.cost, 0));
   return { chapters, preparations, totals, finalState: state };
