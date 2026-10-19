@@ -17,31 +17,32 @@ export const movableDrawer = matchMedia('(max-width: 1023px) and (height > 600px
 // Reduced motion keeps every outcome and line of text, without the flights, the drawer's movement, the fades, or the bats.
 // The Motion choice in Options follows the device (System), or stills or plays the motion whatever the device asks.
 const deviceStill = matchMedia('(prefers-reduced-motion: reduce)');
-export let theme = 'system', motion = 'system';
+// Dark is the appearance of a browser that has no choice stored. Motion follows the device until the player chooses.
+export let theme = 'dark', motion = 'system';
 export const still = () => motion === 'reduced' || (motion === 'system' && deviceStill.matches);
 let sound = false, audioContext: AudioContext | null = null;
 
 /** A viewing preference, kept apart from the save. Without storage it holds for this visit. */
-function storedSetting(key: string) {
-  try { return storage?.getItem(key) || 'system'; } catch { return 'system'; }
+function storedSetting(key: string, fallback = 'system') {
+  try { return storage?.getItem(key) || fallback; } catch { return fallback; }
 }
 function storeSetting(key: string, value: string, setting: string) {
   try { if(!storage)throw new Error('Browser storage is unavailable.');storage.setItem(key, value); }
   catch { status(`${setting} changed for this session. Browser storage is unavailable.`); }
 }
-/** Both theme-color metas take the resolved page colour, so the browser chrome follows a forced theme too. */
+/** The theme-color meta uses the resolved page colour, so the browser chrome follows a chosen theme too. */
 function syncThemeColor() {
   const color = getComputedStyle(document.documentElement).getPropertyValue('--page').trim();
   if (!color) return;
   for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) meta.content = color;
 }
 export function setTheme(choice: string, persist = false) {
-  theme = THEMES.some(([value]) => value === choice) ? choice : 'system';
+  theme = THEMES.some(([value]) => value === choice) ? choice : 'dark';
   document.documentElement.dataset.theme = theme;
   syncThemeColor();
   if (persist) storeSetting(THEME_KEY, theme, 'Appearance');
 }
-setTheme(storedSetting(THEME_KEY));
+setTheme(storedSetting(THEME_KEY, 'dark'));
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncThemeColor);
 export const motionNote = () => deviceStill.matches ? 'System follows your device, which asks for less motion.' : 'System follows your device’s motion setting.';
 // Effects that reduced motion suppressed must not replay when motion returns, so each part of the interface ends its own.

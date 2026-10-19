@@ -13,6 +13,8 @@ const MAX_REFERENCE_BYTES = 50_000_000;
 // State 00 of the front room shows the new game. Each other state shows its area after one preparation.
 const gameData: GameData = JSON.parse(readFileSync(new URL('../../../../public/data/game.json', import.meta.url), 'utf8'));
 type RoomStateId = `front-room-${string}` | `courtyard-${string}`;
+type SketchId = `sketch-${string}`;
+type SceneId = `scene-${string}`;
 export type AssetId =
   | 'menu-atlas'
   | 'portraits'
@@ -25,7 +27,9 @@ export type AssetId =
   | 'decoration-front'
   | 'decoration-courtyard'
   | 'board-clutter'
-  | RoomStateId;
+  | RoomStateId
+  | SketchId
+  | SceneId;
 type Background = 'transparent' | 'opaque';
 interface AssetContract {
   background: Background;
@@ -51,8 +55,15 @@ interface ImageRequest {
 // The room states and decoration paintings are opaque 3:4 portrait images.
 const roomState: AssetContract = { background: 'opaque', shape: 'portrait-3x4', columns: 1, rows: 1, defaultSize: '1536x2048' };
 const portraitAtlas: AssetContract = { background: 'transparent', shape: 'square', columns: 2, rows: 2, defaultSize: '1536x1536' };
+// Each character has one pencil sketch, and each quest scene is a 3:2 pencil drawing. The request asks for plain white paper;
+// art-composite.ts ink then makes the paper transparent, so no paper survives as a fill inside a closed shape.
+const sketch: AssetContract = { background: 'opaque', shape: 'square', columns: 1, rows: 1, defaultSize: '1024x1024' };
+const scene: AssetContract = { background: 'opaque', shape: 'landscape-3x2', columns: 1, rows: 1, defaultSize: '1536x1024' };
+const sceneIds = [...Array.from({ length: 9 }, (_, index) => `scene-cathedral-${index + 1}`), 'scene-ionatan-dinner', 'scene-mina-avram-meal'];
 const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   ...(Object.fromEntries(gameData.rooms.map(state => [state.id, roomState])) as Record<RoomStateId, AssetContract>),
+  ...(Object.fromEntries(gameData.characters.map(person => [`sketch-${person.id}`, sketch])) as Record<SketchId, AssetContract>),
+  ...(Object.fromEntries(sceneIds.map(id => [id, scene])) as Record<SceneId, AssetContract>),
   'decoration-front': roomState,
   'decoration-courtyard': roomState,
   'board-clutter': {
@@ -115,7 +126,7 @@ export function validateAssetSize(assetId: unknown, size: unknown) {
   const shapes = {
     square: [width === height, 'Use a square size for this asset.'],
     'landscape-3x1': [width === height * 3, 'Use a 3:1 landscape size for this strip.'],
-    'landscape-3x2': [width * 2 === height * 3, 'Use a 3:2 landscape size for this atlas.'],
+    'landscape-3x2': [width * 2 === height * 3, 'Use a 3:2 landscape size for this asset.'],
     'portrait-3x4': [width * 4 === height * 3, 'Use a 3:4 portrait size for this room state.'],
   } as const;
   const [shapeMatches, shapeError] = shapes[asset.shape];

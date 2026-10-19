@@ -2,7 +2,7 @@
 import { canDeliverQuest, questDeliveryCells, resolveQuests, unresolvedObstacle } from './model.ts';
 import type { Quest } from './model.ts';
 import { $, button, coinText, count, element, names } from './dom.ts';
-import { coinMark, food, portrait } from './art.ts';
+import { coinMark, food, portrait, questSketch } from './art.ts';
 import { modal, showModal } from './dialog.ts';
 import { showItem } from './dishes.ts';
 import { batFlight } from './room.ts';
@@ -130,7 +130,7 @@ function fly(codes: string[], from: DOMRect[], target: DOMRect) {
 }
 /** A quest on a ticket: who asks and why, each dish with the count on the board, the reward, and Deliver. Each dish opens its help. */
 function showQuest(quest: Quest) {
-  const content=element('div','quest-view'),people=[quest.character,...quest.companions??[]],head=element('div','quest-heading'),words=element('div');
+  const content=element('div','quest-view quest-page-content'),people=[quest.character,...quest.companions??[]],head=element('div','quest-heading'),words=element('div');
   words.append(element('p','quest-person',names.format(people.map(id=>character(id).name))));
   for(const id of people)head.append(portrait(id));
   head.append(words);content.append(head);
@@ -141,7 +141,8 @@ function showQuest(quest: Quest) {
     if(exchange&&line.speaker!==quest.opening[at-1]?.speaker){const name=element('span','quest-speaker',character(line.speaker).name);name.append(element('span','visually-hidden',': '));turn.append(name);}
     turn.append(line.text);turns.append(turn);
   }
-  content.append(turns);
+  const page=element('div','quest-reading');
+  page.append(questSketch(quest.character,quest.id),turns);content.append(page);
   const requirements=element('ul','quest-requirements');
   for(const {item,quantity} of quest.requirements){
     const have=onBoard(item,quantity),row=element('li'),inspect=button('','quest-item',()=>showItem(item,()=>showQuest(quest)));

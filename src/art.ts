@@ -2,6 +2,56 @@
 import { element, svg } from './dom.ts';
 import { character, definition } from './session.ts';
 
+// Every character has a sketch (tests/assets.test.ts). Each entry describes what the sketch shows.
+const sketches: Record<string,string>={
+  mara:'Mara with a tray, her free hand held out in welcome.',
+  ilie:'Ilie in his cap and glasses draws a loaf from the oven on a long peel.',
+  eszter:'Eszter shapes a bowl at her potter’s wheel, with finished bowls on a shelf behind her.',
+  sorin:'Sorin, seen from behind, pushes a delivery bicycle with parcels up a cobbled lane.',
+  adrian:'Adrian, a rolled pack on his back, holds up a lantern.',
+  monica:'Monica kneels in her headscarf and cloak to trace a route on a flat stone, a lantern beside her.',
+  janos:'Janos sits on a stone in his brimmed hat and reads loose pages by a candle, his staff beside him.',
+  ionatan:'Ionatan stands and reads a book, a travel bag at his feet.',
+  vlad:'Vlad sits at a table and raises a glass of wine beside a carafe and a candle.',
+  elisabeta:'Elisabeta, in a pearl headdress and veil, reads a letter beside a glass of wine.',
+  mina:'Mina holds a folded letter, a travelling case at her feet.',
+  avram:'Avram stands with his walking stick and his doctor’s bag.',
+  dochia:'Dochia leans on her crook among her sheep.',
+  victor:'Victor rests his head on his hand at a table beside a classroom skeleton with a napkin at its neck.',
+  ana:'Ana hangs a string of garlic on a door, a lantern at her feet.',
+  costel:'Costel smiles at a small mechanical bird on his finger, with clockwork parts on his bench.',
+  sanziana:'Sânziana, in a flower crown, holds a bunch of flowers beside her flower cart.',
+  dorian:'Dorian lounges at a small table with a glass of wine.',
+  ileana:'Ileana sews at her table beside a dress on a tailor’s dummy.',
+  cezar:'Cezar walks the night streets in his long coat and cap, a lantern in his hand.',
+  catalina:'Cătălina pulls the bell rope in the tower.',
+  bran:'Bran, his scarf wrapped high, stands beside his horse and holds its rein.',
+};
+const questScenes: Record<string,readonly [string,string]>={
+  'adrian-first-pack':['scene-cathedral-1','Adrian, Monica, and Janos stand above a staircase descending behind the cathedral altar.'],
+  'monica-first-pack':['scene-cathedral-2','A large cook waves a cleaver as Adrian runs upstairs toward Monica and Janos.'],
+  'janos-first-pack':['scene-cathedral-3','Janos reads beside a crowned skeleton king dozing on a throne.'],
+  'adrian-second-pack':['scene-cathedral-4','A small goblin offers a rock to Adrian, who holds a basket of bread.'],
+  'monica-second-pack':['scene-cathedral-5','Monica studies a stone map beside the underground stream and well shaft.'],
+  'janos-second-pack':['scene-cathedral-6','Janos turns a page beside the distressed librarian and a plate of chimney cake.'],
+  'adrian-third-pack':['scene-cathedral-7','An archbishop preaches to empty benches while Adrian watches from the doorway.'],
+  'monica-third-pack':['scene-cathedral-8','The travellers slip away as the archbishop preaches to a closed iron-banded door.'],
+  'janos-third-pack':['scene-cathedral-9','Janos carries loose pages past the sleeping archbishop and the closed door.'],
+  'ionatan-castle-dinner':['scene-ionatan-dinner','Ionatan dines beside his papers, with a distant castle visible through the window.'],
+  'mina-avram-search':['scene-mina-avram-meal','Mina and Avram share a meal as Mara points toward the road and distant castle.'],
+};
+/** The quest scene takes precedence over its owner's drawing and stays through speaker changes. */
+export function questSketch(person: string, questId?: string) {
+  const scene=questId?questScenes[questId]:undefined;
+  const image=element('img',`quest-sketch${scene?' quest-scene-sketch':''}`);
+  const asset=scene?`${scene[0]}-1024x683`:`sketch-${person}-768x768`;
+  image.src=new URL(`../assets/variants/${asset}.webp`,import.meta.url).href;
+  image.alt=`A pencil sketch: ${scene?scene[1]:sketches[person]??character(person).name}`;
+  image.width=scene?1024:768;image.height=scene?683:768;
+  image.addEventListener('error',()=>image.remove(),{once:true});
+  return image;
+}
+
 // The runtime loads image variants of the PNG masters (npm run assets:build). The atlas keeps its master size, so the sprite bounds below apply to it.
 const atlas = new URL('../assets/variants/menu-atlas-1536x1536.webp', import.meta.url).href;
 // Measured from the atlas alpha channel: each sprite's bounds, padded only where no neighbouring sprite intrudes.

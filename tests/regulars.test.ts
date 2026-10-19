@@ -8,6 +8,16 @@ import { checkpoint, data, payNext } from './support.ts';
 
 const regulars = data.characters.filter(person => person.regular);
 
+test('Dorian is a gentleman of leisure who sits for a portrait and entertains guests', () => {
+  const person = data.characters.find(person => person.id === 'dorian')!;
+  const quests = data.quests.filter(quest => quest.character === person.id);
+  assert.equal(person.role, 'Gentleman of leisure');
+  assert.match(person.introduction, /fortune.*fine suppers.*company/);
+  assert.match(quests.find(quest => quest.id === 'dorian-sitting')!.opening[0].text, /artist has asked me to sit for a portrait/);
+  assert.match(quests.find(quest => quest.id === 'dorian-gallery')!.opening[0].text, /gallery is showing my portrait/);
+  assert.match(quests.find(quest => quest.id === 'dorian-sitter')!.opening[0].text, /invited me to a candlelit supper/);
+});
+
 test('twelve regulars arrive in pairs: four at the start, then with preparations 4, 8, and 12, and the nobles also with preparation 8', () => {
   assert.deepEqual(characterProblems(data), []);
   assert.deepEqual(regulars.map(person => person.id), ['vlad', 'elisabeta', 'dochia', 'victor', 'ana', 'costel', 'sanziana', 'dorian', 'ileana', 'cezar', 'catalina', 'bran']);

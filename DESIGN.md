@@ -296,7 +296,7 @@ Paper tickets carry the quests of the neighbours. The board rests on timber betw
 - dashed "not yet" outlines
 - dashed covered dishes in place of unmade dishes
 
-Light mode uses cream and parchment with plum and dark brown ink. Dark mode uses walnut and plum with ivory and candle amber. The System choice follows the device.
+Light mode uses cream and parchment with plum and dark brown ink. Dark mode uses walnut and plum with ivory and candle amber. Dark mode is the default, from the first paint. The System choice follows the device.
 
 **Key Characteristics:**
 - The room is one full-height 3:4 painting for each area.
@@ -625,6 +625,12 @@ A completed quest has a "Read completion" entry. It says "New scene" while its s
 
 The title of the quest dialog is the quest title. A 44px portrait for each person sits beside their names. The first lines of the quest follow in 16px body text.
 
+Character introductions, quest dialogs, quest completion scenes, and journal replays of quests use the parchment texture. The paper stays warm cream with dark brown ink (#3b2a1e) in both themes. The texture repeats at 512px square. Muted text uses #58402e. Controls keep their 44px targets, with dark borders and the light-theme action colours. Other dialogs use the current theme. Forced colours use the system canvas.
+
+Each character introduction shows its individual transparent pencil sketch. Quest openings, replies, and journal replays show the owner's sketch, except that each of the nine cathedral supply quests and the two visitor meal quests shows its accepted scene illustration. The chosen art stays through speaker changes. On a wider dialog, an individual sketch floats to the right at 42% of the reading area, up to 210px wide. At 540px and below, it is centred above the words at 170px wide. Landscape scenes are centred above the words at the reading width, up to 460px, with their natural image proportions. The text and controls remain in normal flow and the dialog can scroll vertically. If an image fails to load, it is removed and all words and controls remain. Local news keeps its existing story layout.
+
+Victor draws the sketches while he waits for his meal. Keep light, steady pencil lines drawn by a practised hand, and accurate anatomy, proportions, and perspective. Facial features are lightly drawn but present: awake people have visible open eyes when the view permits, and sleepers have indicated closed eyelids. Victor's secret crush explains Mara's more detailed face. Match the accepted sketches without adding dense fabric or surface detail.
+
 If more than one character speaks, the lines form an exchange. Each line is a paragraph, 12px from the next. At each change of speaker, the name of the speaker (13px, 600) stands on its own line above the words. Screen readers hear "[Name]:" before the words. The food rows show the exact quantity and the count on the board. Each row opens ingredient help, which returns to the quest. The coin reward follows in gold. Then come Deliver ("Deliver · N" with the coin mark) and one muted line: "Delivery uses dishes on the board. There is no deadline."
 
 Deliver has the dashed disabled style until the board holds every portion. Deliver closes the dialog and starts the delivery motion.
@@ -699,12 +705,13 @@ Options shows the save state. It also shows the Retry saved game control or the 
 ## Design instructions
 
 ### Required actions
-- Use only the 40 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
+- Use only the 74 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
   - The 25 room masters are front-room-00 to front-room-12, front-room-17, front-room-24, courtyard-13 to courtyard-16, and courtyard-18 to courtyard-23.
   - The two decoration masters are decoration-front and decoration-courtyard.
-  - The 13 other masters are menu-atlas, red-wine, board-clutter, preparation-clutter, portraits, visitor-portraits, guests, regulars-1, regulars-2, regulars-3, mascots, timber-tabletop, and embroidered-runner.
+  - The 47 other masters are menu-atlas, red-wine, board-clutter, preparation-clutter, portraits, visitor-portraits, guests, regulars-1, regulars-2, regulars-3, mascots, timber-tabletop, embroidered-runner, parchment-page, 22 character sketches, nine cathedral scenes, and two visitor meal scenes.
 - Paint each room state as a complete 3:4 painting, 1536 by 2048, opaque. Keep every pixel outside the change the same as the state before it.
 - Ship room states as AVIF and WebP at 768 and 1536px wide, AVIF first. Ship the timber as AVIF and WebP at 1024 and 1536px wide. Ship the decoration paintings as WebP at 1536px wide. Ship the transparent atlases and the runner as WebP.
+- Ship the parchment as a WebP at its native 1254px square size. Ship the 22 character sketches as transparent WebP at 768px square and the 11 landscape scenes as transparent WebP at 1024px wide.
 - Keep the neighbours in working village dress: Mara, Ilie, and Sorin in Romanian dress, and Eszter in Székely dress.
 - Draw every control icon as a vector with a 1.7 stroke and round caps and joins.
 - Give every interactive boundary `--control-line`. Keep every target at least 44px.

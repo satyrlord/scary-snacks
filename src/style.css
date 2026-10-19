@@ -4,36 +4,37 @@
 @property --fx { syntax: '<number>'; inherits: true; initial-value: .5; }
 @property --fy { syntax: '<number>'; inherits: true; initial-value: .3; }
 @property --drawer-drop { syntax: '<length>'; inherits: true; initial-value: 0px; }
+/* Dark mode is the default: the bistro by lamplight, walnut and plum surfaces warmed by candles, not cool grey. */
 :root {
-  color-scheme: light;
-  --page: #eee7dc; --panel: #f8f2e8; --surface: #fffbf3; --inset: #e9dfd0; --chosen: #fffbf3;
-  --ink: #33292a; --muted: #6d5853; --line: #d6c6b9; --accent: #6e3d50;
-  --action: #6e3d50; --on-action: #fff6ea; --gold: #835121; --focus: #276d6c;
-  --tile-a: #f2e7d5; --tile-b: #e7d8c2; --selected: #9b6644; --ready: #3e6848;
-  --control-line: #8f7a70; --coin-face: #d39a5c; --coin-rim: #835121; --cat-glow: none; --tile-lift: 0 1px 2px #2a1a1040;
-  --shadow: 0 9px 26px #42282412; --radius: 14px; --control-radius: 9px; --tile-radius: 6px; --card-radius: 12px; --dialog-radius: 18px;
-  font-family: Inter, system-ui, sans-serif; color: var(--ink); background: var(--page);
-  font-optical-sizing: auto; font-synthesis: none;
-}
-/* Dark mode is the bistro by lamplight: walnut and plum surfaces warmed by candles, not cool grey. */
-:root[data-theme='dark'] {
   color-scheme: dark;
   --page: #1c1614; --panel: #2a201e; --surface: #33272a; --inset: #382b29; --chosen: #56423a;
   --ink: #f5e9d8; --muted: #cdb7a6; --line: #544039; --accent: #ecc1a2;
   --action: #e8b58e; --on-action: #2a2028; --gold: #e8bd83; --focus: #8fd0ca;
   --tile-a: #47362f; --tile-b: #3b2c27; --selected: #e8b58e; --ready: #9ecea1;
-  --control-line: #8c7064; --coin-face: #e8bd83; --coin-rim: #8f5f2e; --cat-glow: drop-shadow(0 0 1px #e8b58e80) drop-shadow(0 3px 10px #e8b58e30);
-  --shadow: 0 9px 26px #0a060433;
+  --control-line: #8c7064; --coin-face: #e8bd83; --coin-rim: #8f5f2e; --cat-glow: drop-shadow(0 0 1px #e8b58e80) drop-shadow(0 3px 10px #e8b58e30); --tile-lift: 0 1px 2px #2a1a1040;
+  --shadow: 0 9px 26px #0a060433; --radius: 14px; --control-radius: 9px; --tile-radius: 6px; --card-radius: 12px; --dialog-radius: 18px;
+  font-family: Inter, system-ui, sans-serif; color: var(--ink); background: var(--page);
+  font-optical-sizing: auto; font-synthesis: none;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    color-scheme: dark;
-    --page: #1c1614; --panel: #2a201e; --surface: #33272a; --inset: #382b29; --chosen: #56423a;
-    --ink: #f5e9d8; --muted: #cdb7a6; --line: #544039; --accent: #ecc1a2;
-    --action: #e8b58e; --on-action: #2a2028; --gold: #e8bd83; --focus: #8fd0ca;
-    --tile-a: #47362f; --tile-b: #3b2c27; --selected: #e8b58e; --ready: #9ecea1;
-    --control-line: #8c7064; --coin-face: #e8bd83; --coin-rim: #8f5f2e; --cat-glow: drop-shadow(0 0 1px #e8b58e80) drop-shadow(0 3px 10px #e8b58e30);
-    --shadow: 0 9px 26px #0a060433;
+/* Light mode: cream and parchment with plum and dark brown ink. The System choice takes it on a light device. */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --page: #eee7dc; --panel: #f8f2e8; --surface: #fffbf3; --inset: #e9dfd0; --chosen: #fffbf3;
+  --ink: #33292a; --muted: #6d5853; --line: #d6c6b9; --accent: #6e3d50;
+  --action: #6e3d50; --on-action: #fff6ea; --gold: #835121; --focus: #276d6c;
+  --tile-a: #f2e7d5; --tile-b: #e7d8c2; --selected: #9b6644; --ready: #3e6848;
+  --control-line: #8f7a70; --coin-face: #d39a5c; --coin-rim: #835121; --cat-glow: none;
+  --shadow: 0 9px 26px #42282412;
+}
+@media (prefers-color-scheme: light) {
+  :root[data-theme='system'] {
+    color-scheme: light;
+    --page: #eee7dc; --panel: #f8f2e8; --surface: #fffbf3; --inset: #e9dfd0; --chosen: #fffbf3;
+    --ink: #33292a; --muted: #6d5853; --line: #d6c6b9; --accent: #6e3d50;
+    --action: #6e3d50; --on-action: #fff6ea; --gold: #835121; --focus: #276d6c;
+    --tile-a: #f2e7d5; --tile-b: #e7d8c2; --selected: #9b6644; --ready: #3e6848;
+    --control-line: #8f7a70; --coin-face: #d39a5c; --coin-rim: #835121; --cat-glow: none;
+    --shadow: 0 9px 26px #42282412;
   }
 }
 * { box-sizing: border-box; scrollbar-color: var(--line) var(--page); scrollbar-width: thin; }
@@ -320,6 +321,29 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 .phone-bar { display: none; }
 dialog { width: 560px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 40px); padding: 26px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: var(--dialog-radius); box-shadow: 0 24px 70px #100b173f; }
 dialog::backdrop { background: #17101ac4; }
+/* Quest pages keep the same paper and brown ink in either theme. */
+dialog:has(.quest-page-content) {
+  color-scheme: light;
+  --panel: #f3dfb3; --surface: #fffbf3; --inset: #e9dfd0; --ink: #3b2a1e; --muted: #58402e;
+  --line: #95754d; --control-line: #806345; --accent: #6e3d50; --gold: #624020;
+  --action: #6e3d50; --on-action: #fff6ea; --focus: #27605b; --coin-face: #d39a5c; --coin-rim: #624020;
+  background: var(--panel) url('../assets/variants/parchment-page-1254x1254.webp') repeat 0 0 / 512px 512px;
+  color: var(--ink);
+}
+.quest-reading { display: flow-root; }
+.quest-sketch { display: block; float: right; width: 42%; max-width: 210px; height: auto; margin: 0 0 12px 16px; }
+.quest-page-content .story-stage { display: block; min-height: 170px; }
+.quest-page-content .story-stage .portrait { float: left; width: 44px; height: 44px; margin: 0 12px 8px 0; }
+.quest-page-content .story-dialogue h3 { min-height: 44px; display: flex; align-items: center; margin-bottom: 12px; }
+.quest-page-content .quest-lines { display: block; line-height: 1.75; }
+.quest-page-content .quest-line + .quest-line { margin-top: 12px; }
+@media (max-width: 540px) {
+  .quest-sketch { float: none; width: 170px; margin: 0 auto 14px; }
+}
+.quest-sketch.quest-scene-sketch { float: none; width: 100%; max-width: 460px; margin: 0 auto 16px; }
+@media (forced-colors: active) {
+  dialog:has(.quest-page-content) { background: Canvas; color: CanvasText; --ink: CanvasText; --muted: CanvasText; --gold: CanvasText; }
+}
 .modal-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 19px; }
 .modal-copy { font-size: 14px; line-height: 1.7; margin-bottom: 18px; color: var(--muted); }
 .settings-actions { display: flex; flex-wrap: wrap; gap: 9px; }

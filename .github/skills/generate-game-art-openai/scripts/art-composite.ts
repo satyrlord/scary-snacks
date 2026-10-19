@@ -1,4 +1,4 @@
-// Make masks and region composites for the painted room states.
+// Make masks and region composites for the painted room states, and convert and patch pencil drawings.
 // A provider can change pixels outside a mask.
 // The composite preserves the previous state outside the region and its soft edge.
 // It uses generated pixels inside that region.
@@ -7,7 +7,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import sharp from 'sharp';
-import { TASK_ROOT, checkMask, isInside, pathExists, readReference, resolveWithAncestors } from './art-image.ts';
+import { REPO, TASK_ROOT, checkMask, isInside, pathExists, readReference, resolveWithAncestors } from './art-image.ts';
 
 const sha256 = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex');
 type Box = { left: number; top: number; width: number; height: number };
@@ -81,12 +81,75 @@ export async function compositeRegion(base: Buffer, candidate: Buffer, mask: Buf
   const pixels = Buffer.alloc(width * height * channels);
   for (let index = 0; index < width * height; index++) {
     const share = Math.max(inside[index], soft[index]) / 255;
+    const offset = index * channels;
+    if (share === 0 || share === 1) {
+      const source = share === 0 ? under.data : over.data;
+      source.copy(pixels, offset, offset, offset + channels);
+      continue;
+    }
+    if (channels === 4) {
+      // Blend visible colour with its alpha. Hidden RGB in clear pixels must not tint the soft edge.
+      const underAlpha = under.data[offset + 3] * (1 - share), overAlpha = over.data[offset + 3] * share;
+      const alpha = underAlpha + overAlpha;
+      for (let channel = 0; channel < 3; channel++)
+        pixels[offset + channel] = alpha === 0 ? 0 : Math.round((under.data[offset + channel] * underAlpha + over.data[offset + channel] * overAlpha) / alpha);
+      pixels[offset + 3] = Math.round(alpha);
+      continue;
+    }
     for (let channel = 0; channel < channels; channel++) {
-      const at = index * channels + channel;
-      pixels[at] = share === 0 ? under.data[at] : Math.round(under.data[at] * (1 - share) + over.data[at] * share);
+      const at = offset + channel;
+      pixels[at] = Math.round(under.data[at] * (1 - share) + over.data[at] * share);
     }
   }
   return sharp(pixels, { raw: { width, height, channels } }).png().toBuffer();
+}
+
+/**
+ * Turn a drawing on plain paper into marks on transparency. The paper colour is the median of the brighter half of the
+ * pixels. Each pixel keeps the ink that, laid over that paper, gives its colour: paper becomes clear, and no paper
+ * survives as a fill inside a closed shape. Alpha under `floor` is paper grain and becomes 0.
+ */
+export async function paperToAlpha(drawing: Buffer, floor = 0.04) {
+  const { data, info } = await sharp(drawing).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const count = info.width * info.height;
+  const light = (index: number) => data[index * 3] + data[index * 3 + 1] + data[index * 3 + 2];
+  const order = Array.from({ length: count }, (_, index) => index).sort((a, b) => light(a) - light(b));
+  const bright = order.slice(Math.floor(count / 2));
+  const paper = [0, 1, 2].map(channel => bright.map(index => data[index * 3 + channel]).sort((a, b) => a - b)[Math.floor(bright.length / 2)]);
+  if (paper.some(value => value < 200)) throw new Error('Use a drawing on light paper.');
+  const pixels = Buffer.alloc(count * 4);
+  for (let index = 0; index < count; index++) {
+    let alpha = 0;
+    for (let channel = 0; channel < 3; channel++) alpha = Math.max(alpha, (paper[channel] - data[index * 3 + channel]) / paper[channel]);
+    if (alpha < floor) continue;
+    for (let channel = 0; channel < 3; channel++) {
+      const ink = (data[index * 3 + channel] - (1 - alpha) * paper[channel]) / alpha;
+      pixels[index * 4 + channel] = Math.max(0, Math.min(255, Math.round(ink)));
+    }
+    pixels[index * 4 + 3] = Math.round(alpha * 255);
+  }
+  return { bytes: await sharp(pixels, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toBuffer(), paper, floor };
+}
+
+/**
+ * Lay a transparent pencil drawing on white paper. Pad each side to the next multiple of 16, so that the provider
+ * edits the drawing at its own scale and no pixel is resampled.
+ */
+export async function paperCopy(drawing: Buffer) {
+  const { width, height } = await sharp(drawing).metadata();
+  const extra = (size: number) => Math.ceil(size / 16) * 16 - size;
+  const left = Math.floor(extra(width!) / 2), top = Math.floor(extra(height!) / 2);
+  const bytes = await sharp(drawing).flatten({ background: '#ffffff' })
+    .extend({ left, top, right: extra(width!) - left, bottom: extra(height!) - top, background: '#ffffff' }).png().toBuffer();
+  return { bytes, left, top };
+}
+
+/** Take the masked region of an edit of a paper copy back into the transparent drawing, with its paper made clear. */
+export async function inkPatch(drawing: Buffer, edit: Buffer, mask: Buffer, left: number, top: number, feather = 8) {
+  const { width, height } = await sharp(drawing).metadata();
+  const region = { left, top, width: width!, height: height! };
+  const { bytes } = await paperToAlpha(await sharp(edit).extract(region).png().toBuffer());
+  return compositeRegion(drawing, bytes, await sharp(mask).extract(region).png().toBuffer(), feather);
 }
 
 async function newOutput(file: string) {
@@ -142,8 +205,49 @@ async function main() {
     const record = { baseSha256: base.sha256, candidateSha256: candidate.sha256, maskSha256: sha256(mask), feather, ...(ramp ? { ramp } : {}), sourceSha256: sha256(bytes) };
     await writeFile(path.join(out, 'composite.json'), `${JSON.stringify(record, null, 2)}\n`, { flag: 'wx' });
     console.log(JSON.stringify({ composite: path.join(out, 'composite.png'), ...record }));
+  } else if (command === 'ink' && values.candidate && values.out) {
+    // The drawing must be a candidate.png from a helper run, so its record names the request.
+    const candidate = await readReference(values.candidate);
+    if (path.basename(values.candidate) !== 'candidate.png') throw new Error('Convert a candidate.png from a helper run.');
+    const out = await newOutput(values.out);
+    const { bytes, paper, floor } = await paperToAlpha(candidate.bytes);
+    await mkdir(out, { recursive: true });
+    await writeFile(path.join(out, 'ink.png'), bytes, { flag: 'wx' });
+    const record = { candidateSha256: candidate.sha256, paper, floor, sourceSha256: sha256(bytes) };
+    await writeFile(path.join(out, 'ink.json'), `${JSON.stringify(record, null, 2)}\n`, { flag: 'wx' });
+    console.log(JSON.stringify({ ink: path.join(out, 'ink.png'), ...record }));
+  } else if (command === 'paper' && values.base && values.out) {
+    const base = await readReference(values.base);
+    const out = await newOutput(values.out);
+    const { bytes, left, top } = await paperCopy(base.bytes);
+    await mkdir(out, { recursive: true });
+    await writeFile(path.join(out, 'paper.png'), bytes, { flag: 'wx' });
+    const record = { base: path.relative(REPO, await resolveWithAncestors(values.base)).replaceAll('\\', '/'), baseSha256: base.sha256, left, top, sourceSha256: sha256(bytes) };
+    await writeFile(path.join(out, 'paper.json'), `${JSON.stringify(record, null, 2)}\n`, { flag: 'wx' });
+    console.log(JSON.stringify({ paper: path.join(out, 'paper.png'), ...record }));
+  } else if (command === 'patch' && values.base && values.candidate && values.mask && values.out) {
+    // The base is a paper.png; its record names the drawing and the padding.
+    const paper = await readReference(values.base);
+    if (path.basename(values.base) !== 'paper.png') throw new Error('Patch from a paper.png that the paper command made.');
+    const record = JSON.parse(await readFile(path.join(path.dirname(values.base), 'paper.json'), 'utf8')) as { base: string; baseSha256: string; left: number; top: number };
+    const drawing = await readReference(path.join(REPO, record.base));
+    if (drawing.sha256 !== record.baseSha256) throw new Error('The drawing changed after its paper copy was made.');
+    const candidate = await readReference(values.candidate);
+    if (path.basename(values.candidate) !== 'candidate.png') throw new Error('Patch with a candidate.png from a helper run.');
+    const maskPath = await resolveWithAncestors(values.mask);
+    if (!isInside(await resolveWithAncestors(TASK_ROOT), maskPath)) throw new Error('Keep the mask inside analysis/art-generation/.');
+    const mask = await readFile(maskPath);
+    const feather = values.feather === undefined ? 8 : Number(values.feather);
+    if (!Number.isSafeInteger(feather) || feather < 0 || feather > 128) throw new Error('Use a feather from 0 to 128 pixels.');
+    const out = await newOutput(values.out);
+    const bytes = await inkPatch(drawing.bytes, candidate.bytes, mask, record.left, record.top, feather);
+    await mkdir(out, { recursive: true });
+    await writeFile(path.join(out, 'patch.png'), bytes, { flag: 'wx' });
+    const result = { baseSha256: drawing.sha256, paperSha256: paper.sha256, candidateSha256: candidate.sha256, maskSha256: sha256(mask), feather, sourceSha256: sha256(bytes) };
+    await writeFile(path.join(out, 'patch.json'), `${JSON.stringify(result, null, 2)}\n`, { flag: 'wx' });
+    console.log(JSON.stringify({ patch: path.join(out, 'patch.png'), ...result }));
   } else {
-    throw new Error('Use "mask --size WxH [--box left,top,width,height] [--ellipse x,y,rx,ry] [--polygon x1,y1,x2,y2,x3,y3,...] --out <file>" or "composite --base <png> --candidate <candidate.png> --mask <png> --out <dir> [--feather 24] [--ramp]".');
+    throw new Error('Use "mask --size WxH [--box left,top,width,height] [--ellipse x,y,rx,ry] [--polygon x1,y1,x2,y2,x3,y3,...] --out <file>", "composite --base <png> --candidate <candidate.png> --mask <png> --out <dir> [--feather 24] [--ramp]", "ink --candidate <candidate.png> --out <dir>", "paper --base <drawing png> --out <dir>", or "patch --base <paper.png> --candidate <candidate.png> --mask <png> --out <dir> [--feather 8]".');
   }
 }
 

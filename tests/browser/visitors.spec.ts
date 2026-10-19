@@ -48,9 +48,10 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const
     expect(await entry.evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
     await entry.click();await expect(page.locator('#story-line')).toContainText(visitor.introduction);
     const portrait=page.locator('.story-stage .portrait');await checkPortrait(portrait,visitor.sprite);
-    const box=(await portrait.boundingBox())!;expect(box.width).toBe(viewport.width>1023?120:82);expect(box.height).toBe(box.width);
-    await expect(page.getByRole('button',{name:'Return',exact:true})).toBeInViewport();
-    expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth&&element.scrollHeight<=element.clientHeight)).toBe(true);
+    const box=(await portrait.boundingBox())!;expect(box.width).toBe(44);expect(box.height).toBe(box.width);
+    await expect(page.locator('.quest-sketch')).toHaveAttribute('src',new RegExp(`sketch-${visitor.id}-768x768\\.webp$`));
+    const returnButton=page.getByRole('button',{name:'Return',exact:true});await returnButton.scrollIntoViewIfNeeded();await expect(returnButton).toBeInViewport();
+    expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
     await page.screenshot({path:testInfo.outputPath(`${visitor.id}.png`)});
     await finishScene(page);await expect(page.getByRole('button',{name:`Meet ${visitor.name}`,exact:true})).toBeFocused();expect(await saved(page)).toEqual(before);
   }
@@ -114,12 +115,14 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const
   const before=await saved(page),entry=page.getByRole('button',{name:`Meet ${guest.name}`,exact:true});
   await entry.scrollIntoViewIfNeeded();await checkPortrait(entry.locator('.portrait'),guest.sprite);await entry.click();
   await expect(page.locator('#story-line')).toContainText(guest.introduction);await checkPortrait(page.locator('.story-stage .portrait'),guest.sprite);
-  await expect(page.getByRole('button',{name:'Return',exact:true})).toBeInViewport();
-  expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth&&element.scrollHeight<=element.clientHeight)).toBe(true);
+  await expect(page.locator('.quest-sketch')).toHaveAttribute('src',/sketch-ionatan-768x768\.webp$/);
+  const returnButton=page.getByRole('button',{name:'Return',exact:true});await returnButton.scrollIntoViewIfNeeded();await expect(returnButton).toBeInViewport();
+  expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
   await page.screenshot({path:testInfo.outputPath('ionatan-introduction.png')});await finishScene(page);
   await page.keyboard.press('Escape');await openQuest(page,dinner);const dialog=page.locator('.quest-view');
   await checkPortrait(dialog.locator('.portrait'),guest.sprite);await expect(dialog).toContainText(dinner.opening[0].text);
+  await expect(dialog.locator('.quest-scene-sketch')).toHaveAttribute('src',/scene-ionatan-dinner-1024x683\.webp$/);
   expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
   await page.screenshot({path:testInfo.outputPath('ionatan-dinner.png')});
-  await expect(dialogDeliver(page,dinner)).toBeEnabled();await expect(dialogDeliver(page,dinner)).toBeInViewport();expect(await saved(page)).toEqual(before);
+  await dialogDeliver(page,dinner).scrollIntoViewIfNeeded();await expect(dialogDeliver(page,dinner)).toBeEnabled();await expect(dialogDeliver(page,dinner)).toBeInViewport();expect(await saved(page)).toEqual(before);
 });

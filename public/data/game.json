@@ -1269,8 +1269,8 @@
     {
       "id": "dorian",
       "name": "Dorian",
-      "role": "Portrait painter",
-      "introduction": "I am Dorian. I paint portraits in the house with the green door. People say I have not aged since they were children. I put it down to good bread and a quiet life. My portrait in the attic does all the worrying for me.",
+      "role": "Gentleman of leisure",
+      "introduction": "I am Dorian. I live in the house with the green door. My fortune leaves me free for fine suppers, good company, and very little work. People say I have not aged since they were children. My portrait in the attic does all the worrying for me.",
       "sprite": 1,
       "portraitAtlas": "regulars-2",
       "regular": true,
@@ -1282,11 +1282,11 @@
       "arrival": [
         {
           "speaker": "mara",
-          "text": "Dorian, the painter, has asked for a seat under the new lamps. He says the light is finally good enough for a portrait."
+          "text": "Dorian has asked for a seat under the new lamps. He says that good light is wasted on an empty chair."
         },
         {
           "speaker": "dorian",
-          "text": "I painted this room once before, Mara, when your grandmother ran it. It has hardly changed. Neither have I."
+          "text": "I dined in this room when your grandmother ran it, Mara. It has hardly changed. Neither have I."
         },
         {
           "speaker": "mara",
@@ -3375,13 +3375,13 @@
       "opening": [
         {
           "speaker": "dorian",
-          "text": "I am painting the miller. He has to sit still for hours, and he gets hungry. Papanași and a fruit tea for him, please."
+          "text": "An artist has asked me to sit for a portrait. Looking effortless is hungry work. Papanași and a fruit tea for me, please, before I return to the chair."
         }
       ],
       "completion": [
         {
           "speaker": "dorian",
-          "text": "He sat perfectly still. A little too still near the end, but I think he was only asleep."
+          "text": "I sat perfectly still until the tea arrived. The artist says that I am a difficult subject. I prefer interesting."
         }
       ]
     },
@@ -4347,13 +4347,13 @@
       "opening": [
         {
           "speaker": "dorian",
-          "text": "My exhibition opens on Friday. Cherry compote and plum dumplings for the guests, please. The paintings do not eat, whatever people say."
+          "text": "A gallery is showing my portrait on Friday. I have invited a few friends to admire it. Cherry compote and plum dumplings for the guests, please."
         }
       ],
       "completion": [
         {
           "speaker": "dorian",
-          "text": "Everyone loved the portraits. One guest said that the eyes followed her around the room. I told her that is what eyes are for."
+          "text": "Everyone admired the portrait. One guest said that its eyes followed her around the room. I hope that she found them attentive."
         }
       ]
     },
@@ -4592,7 +4592,7 @@
     {
       "id": "dorian-sitter",
       "character": "dorian",
-      "title": "A sitter after dark",
+      "title": "Company after dark",
       "afterTask": "task_14",
       "requirements": [
         {
@@ -4608,13 +4608,13 @@
       "opening": [
         {
           "speaker": "dorian",
-          "text": "A gentleman from the castle wants his portrait painted, but only by candlelight. Two cozonac and two cherry compotes, please. These sittings last all night."
+          "text": "A gentleman from the castle has invited me to a candlelit supper. Two cozonac and two cherry compotes, please. His evenings tend to last until dawn."
         }
       ],
       "completion": [
         {
           "speaker": "dorian",
-          "text": "The portrait is finished. He was very pleased, although he could not find himself in the mirror to compare."
+          "text": "A charming evening. My host had no mirrors, so I checked my cravat in a spoon. One must make an effort for good company."
         }
       ]
     },
@@ -5150,7 +5150,7 @@
         },
         {
           "speaker": "adrian",
-          "text": "Hotter at the back, like your stove. The archbishop is down there in a red robe. He preaches to an empty hall, and we need one more stay to learn who listens."
+          "text": "Hotter at the back, like your stove. The archbishop is down there. He preaches to an empty hall, and we need one more stay to learn who listens."
         }
       ],
       "completion": [

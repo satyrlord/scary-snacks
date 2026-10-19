@@ -2,17 +2,136 @@ import { test, expect } from '@playwright/test';
 import { firstFreeBoardCell, getItem } from '../../src/model.ts';
 import { createGame } from '../../src/engine.ts';
 import type { GameState, Quest } from '../../src/model.ts';
-import { data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readTo, restoreWrites, saved, serialize, start, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate } from './support.ts';
+import { checkpoint, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readTo, replaceSave, restoreWrites, saved, serialize, start, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate } from './support.ts';
 
 /** The first quest of each neighbour who lives in the village. */
 const firstQuests=data.characters.filter(character=>!character.visitor&&data.quests.some(value=>value.character===character.id)).map(character=>data.quests.find(value=>value.character===character.id)!);
 const itemName=(code: string)=>getItem(code,data)!.name;
 
+for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'])test(`Mara's parchment page shows her sketch and returns from item help at ${viewport.width}px in ${theme}`,async({page},testInfo)=>{
+  await page.setViewportSize(viewport);const value=quest('mara-welcome');await start(page,deliverable(value),theme);await openQuest(page,value);
+  const modal=page.locator('#modal'),sketch=modal.locator('.quest-sketch');
+  await expect(sketch).toBeVisible();expect(await sketch.evaluate(async node=>{await (node as HTMLImageElement).decode();return (node as HTMLImageElement).naturalWidth;})).toBe(768);
+  expect(await modal.evaluate(node=>getComputedStyle(node).backgroundImage)).toContain('parchment-page-1254x1254.webp');
+  expect(await modal.evaluate(node=>getComputedStyle(node).color)).toBe('rgb(59, 42, 30)');
+  expect(await modal.evaluate(node=>node.scrollWidth<=node.clientWidth)).toBe(true);
+  await page.screenshot({path:testInfo.outputPath(`mara-${theme}-${viewport.width}.png`)});
+  await modal.locator('.quest-item').first().click();await expect(modal.locator('.quest-page-content')).toHaveCount(0);
+  expect(await modal.evaluate(node=>getComputedStyle(node).backgroundImage)).toBe('none');
+  await page.getByRole('button',{name:'Close dialog'}).click();await expect(sketch).toBeVisible();
+  await page.keyboard.press('Escape');await expect(modal).toBeHidden();await expect(ticket(page,value).locator('.ticket-face')).toBeFocused();
+});
+
+test('Mara keeps her sketch through reply speaker changes and both journal replays',async({page})=>{
+  const value=quest('mara-welcome');await start(page,deliverable(value),'dark');await deliverButton(page,value).click();
+  await page.getByRole('button',{name:'Read Mara’s reply',exact:true}).click();
+  const sketch=page.locator('#modal .quest-sketch');await expect(sketch).toBeVisible();
+  for(let line=1;line<value.completion.length;line++){
+    await page.getByRole('button',{name:'Continue',exact:true}).click();await expect(sketch).toBeVisible();await expect(sketch).toHaveAttribute('src',/sketch-mara-/);
+  }
+  const back=page.getByRole('button',{name:'Back',exact:true});await expect(back).toBeEnabled();
+  const backColors=await back.evaluate(node=>{const style=getComputedStyle(node);return {background:style.backgroundColor,ink:style.color};});
+  expect(ratio(backColors.background,backColors.ink)).toBeGreaterThanOrEqual(4.5);
+  await page.getByRole('button',{name:'Back to the kitchen',exact:true}).click();await journal(page);
+  await page.getByRole('button',{name:`Read quest: ${value.title}`,exact:true}).click();await expect(sketch).toBeVisible();
+  await page.keyboard.press('Escape');await page.getByRole('button',{name:`Replay ${value.title}`,exact:true}).click();await expect(sketch).toBeVisible();
+});
+
+test('a failed Mara sketch leaves quest words and delivery usable',async({page})=>{
+  await page.route('**/assets/variants/sketch-mara-*.webp',route=>route.abort());
+  const value=quest('mara-welcome');await start(page,deliverable(value));await openQuest(page,value);
+  await expect(page.locator('.quest-sketch')).toHaveCount(0);await expect(page.locator('.quest-lines')).toContainText(value.opening[0].text);
+  await dialogDeliver(page,value).click();expect((await saved(page)).completedQuests).toContain(value.id);
+});
+
+test('Ilie keeps his own sketch when Mara speaks in his quest',async({page})=>{
+  const value=quest('ilie-counter');expect(value.opening.some(line=>line.speaker==='mara')).toBe(true);
+  await start(page,onTicket(value));await openQuest(page,value);
+  await expect(page.locator('.quest-page-content')).toBeVisible();await expect(page.locator('.quest-sketch')).toHaveAttribute('src',/sketch-ilie-768x768\.webp$/);
+  await expect(page.locator('.quest-lines')).toContainText(value.opening.find(line=>line.speaker==='mara')!.text);
+});
+
+const illustratedScenes=[
+  ['adrian-first-pack','scene-cathedral-1'],['monica-first-pack','scene-cathedral-2'],['janos-first-pack','scene-cathedral-3'],
+  ['adrian-second-pack','scene-cathedral-4'],['monica-second-pack','scene-cathedral-5'],['janos-second-pack','scene-cathedral-6'],
+  ['adrian-third-pack','scene-cathedral-7'],['monica-third-pack','scene-cathedral-8'],['janos-third-pack','scene-cathedral-9'],
+  ['ionatan-castle-dinner','scene-ionatan-dinner'],['mina-avram-search','scene-mina-avram-meal'],
+] as const;
+
+for(const [id,asset] of illustratedScenes)test(`${id} loads its accepted scene instead of a character drawing`,async({page})=>{
+  const value=quest(id);await start(page,onTicket(value));await openQuest(page,value);
+  const sketch=page.locator('#modal .quest-sketch');await expect(sketch).toHaveCount(1);
+  await expect(sketch).toHaveAttribute('src',new RegExp(`${asset}-1024x683\\.webp$`));
+  expect(await sketch.evaluate(async node=>{const image=node as HTMLImageElement;await image.decode();return [image.naturalWidth,image.naturalHeight];})).toEqual([1024,683]);
+});
+
+for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'])test(`quest scenes keep their proportions, speakers, and journal art at ${viewport.width}px in ${theme}`,async({page},testInfo)=>{
+  await page.setViewportSize(viewport);await page.emulateMedia({reducedMotion:'reduce'});
+  const examples=[['adrian-first-pack','scene-cathedral-1'],['ionatan-castle-dinner','scene-ionatan-dinner'],['mina-avram-search','scene-mina-avram-meal']] as const;
+  await start(page,deliverable(quest(examples[0][0])),theme);
+  for(const [id,asset] of examples){
+    const value=quest(id);await replaceSave(page,deliverable(value));await openQuest(page,value);
+    const modal=page.locator('#modal'),sketch=modal.locator('.quest-sketch');
+    await expect(sketch).toHaveAttribute('src',new RegExp(`${asset}-1024x683\\.webp$`));
+    const bounds=(await sketch.boundingBox())!;expect(bounds.width/bounds.height).toBeCloseTo(1024/683,2);
+    expect(await sketch.evaluate(node=>getComputedStyle(node).float)).toBe('none');
+    expect(await modal.evaluate(node=>node.scrollWidth<=node.clientWidth)).toBe(true);
+    await page.screenshot({path:testInfo.outputPath(`${asset}-${theme}-${viewport.width}.png`)});
+    await dialogDeliver(page,value).click();await story(page);await page.getByRole('button',{name:`Read now: ${value.title}`,exact:true}).click();
+    for(let line=0;line<value.completion.length;line++){
+      await expect(sketch).toHaveAttribute('src',new RegExp(`${asset}-1024x683\\.webp$`));
+      await expect(page.locator('#story-line h3')).toHaveText(person(value.completion[line].speaker).name);
+      if(line<value.completion.length-1)await page.getByRole('button',{name:'Continue',exact:true}).click();
+    }
+    await page.getByRole('button',{name:'Back to the kitchen',exact:true}).click();await journal(page);
+    if(person(value.character).singleVisit){
+      for(const id of [value.character,...value.companions??[]])await expect(page.getByRole('button',{name:`Meet ${person(id).name}`,exact:true})).toHaveCount(0);
+      await expect(page.getByRole('button',{name:`Read quest: ${value.title}`,exact:true})).toHaveCount(0);
+      await expect(page.getByRole('button',{name:`Replay ${value.title}`,exact:true})).toHaveCount(0);
+    }else{
+      await page.getByRole('button',{name:`Read quest: ${value.title}`,exact:true}).click();
+      await expect(sketch).toHaveAttribute('src',new RegExp(`${asset}-1024x683\\.webp$`));
+      await page.keyboard.press('Escape');await page.getByRole('button',{name:`Replay ${value.title}`,exact:true}).click();
+      await expect(sketch).toHaveAttribute('src',new RegExp(`${asset}-1024x683\\.webp$`));
+      await page.keyboard.press('Escape');
+    }
+    await page.keyboard.press('Escape');
+  }
+});
+
+test('a missing quest scene leaves its words and delivery usable',async({page})=>{
+  await page.route('**/assets/variants/scene-cathedral-1-*.webp',route=>route.abort());
+  const value=quest('adrian-first-pack');await start(page,deliverable(value));await openQuest(page,value);
+  await expect(page.locator('.quest-sketch')).toHaveCount(0);await expect(page.locator('.quest-lines')).toContainText(value.opening[0].text);
+  await dialogDeliver(page,value).click();expect((await saved(page)).completedQuests).toContain(value.id);
+});
+
+test('the road news uses its existing dialogue without an unapproved scene',async({page})=>{
+  await start(page,checkpoint(24));await journal(page);await page.getByRole('button',{name:'Replay News from the road',exact:true}).click();
+  await expect(page.locator('#story-line')).toContainText('Mina and Doctor Avram found Ionatan');
+  await expect(page.locator('.quest-sketch')).toHaveCount(0);await expect(page.locator('.quest-page-content')).toHaveCount(0);
+});
+
+for(const visitor of data.characters.filter(person=>person.visitor))test(`${visitor.id}'s introduction shows the individual sketch outside quest scenes`,async({page})=>{
+  const visit=data.quests.find(value=>value.character===visitor.id||value.companions?.includes(visitor.id))!;
+  await start(page,visitor.singleVisit?onTicket(visit):checkpoint(24),'dark');await journal(page);
+  await page.getByRole('button',{name:`Meet ${visitor.name}`,exact:true}).click();
+  const sketch=page.locator('#modal .quest-sketch');await expect(sketch).toHaveAttribute('src',new RegExp(`sketch-${visitor.id}-768x768\\.webp$`));
+  expect(await sketch.evaluate(async node=>{const image=node as HTMLImageElement;await image.decode();return [image.naturalWidth,image.naturalHeight];})).toEqual([768,768]);
+  await expect(page.locator('.quest-page-content')).toBeVisible();await expect(sketch).not.toHaveClass(/quest-scene-sketch/);
+  await expect(page.locator('#story-line')).toContainText(visitor.introduction);
+  await page.keyboard.press('Escape');await expect(page.getByRole('button',{name:`Meet ${visitor.name}`,exact:true})).toBeFocused();
+});
+
 for(const value of firstQuests)test(`${value.character} asks on a ticket, the quest dialog explains it, and Deliver pays once across reload`,async({page})=>{
   const initial=deliverable(value);await start(page,initial);const before=await saved(page),name=person(value.character).name;
   const card=ticket(page,value);await expect(card).toHaveAccessibleName(`${name}’s quest: ${value.title}`);await expect(card.locator('.ticket-name')).toHaveText(name);
   await expect(card.locator('.ticket-item.ready')).toHaveCount(value.requirements.length);await expect(deliverButton(page,value)).toBeEnabled();
+  await journal(page);await page.getByRole('button',{name:`Meet ${name}`,exact:true}).click();
+  await expect(page.locator('#modal .quest-sketch')).toHaveAttribute('src',new RegExp(`sketch-${value.character}-768x768\\.webp$`));
+  await expect(page.locator('.quest-page-content')).toBeVisible();await page.keyboard.press('Escape');await page.keyboard.press('Escape');
   await openQuest(page,value);const dialog=page.getByRole('dialog',{name:value.title,exact:true});
+  await expect(dialog.locator('.quest-sketch')).toHaveAttribute('src',new RegExp(`sketch-${value.character}-768x768\\.webp$`));
   await expect(dialog.locator('.quest-person')).toHaveText(name);for(const line of value.opening)await expect(dialog.locator('.quest-view')).toContainText(line.text);
   for(const {item,quantity} of value.requirements)await expect(dialog.getByRole('button',{name:`${quantity} ${itemName(item)}: ${quantity} of ${quantity} on the board`,exact:true})).toBeVisible();
   await expect(dialog.locator('.quest-reward')).toHaveText(`Reward: ${value.reward} coins`);expect(await saved(page)).toEqual(before);
@@ -261,8 +380,8 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
     const background=getComputedStyle(element.closest('dialog')!).backgroundColor;
     return {background,inks:[...element.querySelectorAll('p,li,.quest-count')].map(node=>getComputedStyle(node).color)};
   });for(const ink of colors.inks)expect(ratio(colors.background,ink)).toBeGreaterThanOrEqual(4.5);
-  expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth&&element.scrollHeight<=element.clientHeight)).toBe(true);
-  await expect(dialogDeliver(page,value)).toBeInViewport();await expect(dialogDeliver(page,value)).toBeEnabled();
+  expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
+  await dialogDeliver(page,value).scrollIntoViewIfNeeded();await expect(dialogDeliver(page,value)).toBeInViewport();await expect(dialogDeliver(page,value)).toBeEnabled();
   await page.screenshot({path:testInfo.outputPath('quest.png')});
 });
 

@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { firstFreeBoardCell, generatorOutputs, requiredQuests, resolveQuests } from '../../src/model.ts';
 import { createGame } from '../../src/engine.ts';
 import type { GameState } from '../../src/model.ts';
-import { KEY, act, appearance, checkpoint, data, deliverButton, journal, opened, options, painting, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, stateText, supply, tile, ticket, toast, unselect } from './support.ts';
+import { KEY, act, appearance, checkpoint, data, deliverButton, journal, onTicket, opened, options, painting, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, stateText, supply, tile, ticket, toast, unselect } from './support.ts';
 
 async function mergeStart(page: Page){await tile(page,13).click();await tile(page,14).click();expect((await saved(page)).board[14]?.code).toBe('bakery_2');}
 const welcome=quest('mara-welcome');
@@ -357,7 +357,7 @@ for(const denied of ['access','write'])test(`motion and appearance changes repor
     else {const original=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key==='scary-snacks-motion'||key==='scary-snacks-theme')throw new DOMException('Storage full.','QuotaExceededError');original.call(this,key,value);};}
   },denied);
   await start(page);if(!await page.getByRole('dialog',{name:'Options',exact:true}).isVisible())await options(page);
-  for(const [group,choice,attribute] of [['Motion','Reduced','motion'],['Appearance','Dark','theme']]){
+  for(const [group,choice,attribute] of [['Motion','Reduced','motion'],['Appearance','Light','theme']]){
     await page.getByRole('group',{name:group}).getByRole('radio',{name:choice,exact:true}).check();
     await expect(page.locator('html')).toHaveAttribute(`data-${attribute}`,choice.toLowerCase());
     await expect(page.locator('#status')).toHaveText(`${group} changed for this session. Browser storage is unavailable.`);
@@ -535,8 +535,11 @@ test('a second pointer during a drag leaves no ghost behind',async({page})=>{
   await page.mouse.up();await expect(page.locator('.drag-ghost')).toHaveCount(0);expect(await saved(page)).toEqual(before);
 });
 
-test('light, dark, and system themes persist with readable contrast at desktop and phone',async({page},testInfo)=>{
+test('a first visit is dark on a light device, and light, dark, and system themes persist with readable contrast at desktop and phone',async({page},testInfo)=>{
   await page.emulateMedia({colorScheme:'light'});await start(page);
+  // With no stored choice, the page is dark, and the stylesheet is dark before the script sets the theme.
+  await expect(page.locator('html')).toHaveAttribute('data-theme','dark');
+  expect(await page.evaluate(()=>{document.documentElement.removeAttribute('data-theme');const value=getComputedStyle(document.documentElement).getPropertyValue('--page').trim();document.documentElement.dataset.theme='dark';return value;})).toBe('#1c1614');
   await page.evaluate(()=>document.fonts.ready);
   expect(await page.locator('body').evaluate(e=>getComputedStyle(e).fontFamily)).toContain('Inter');
   expect(await page.locator('.wordmark').evaluate(e=>getComputedStyle(e).fontFamily)).toContain('Grenze Gotisch');
@@ -688,10 +691,19 @@ test('only approved assets load from the active root or Pages prefix, and only t
   for(const id of ['front-room-00','timber-tabletop','embroidered-runner','menu-atlas','portraits','mascots','regulars-1'])await expect.poll(()=>loaded.some(path=>path.includes(`/assets/variants/${id}-`)),{message:id}).toBe(true);await expect(page).toHaveTitle('Scary Snacks');
   const rooms=()=>[...new Set(loaded.filter(path=>/\/assets\/variants\/(front-room|courtyard)-\d\d-/.test(path)).map(path=>path.match(/(front-room|courtyard)-\d\d/)![0]))];
   expect(rooms()).toEqual(['front-room-00']);
+  await ticket(page,welcome).locator('.ticket-face').click();
+  const sketch=page.locator('#modal .quest-sketch');
+  expect(await sketch.evaluate(async node=>{await (node as HTMLImageElement).decode();return (node as HTMLImageElement).naturalWidth;})).toBe(768);
+  for(const id of ['parchment-page','sketch-mara'])await expect.poll(()=>loaded.some(path=>path.includes(`/assets/variants/${id}-`))).toBe(true);
+  await page.getByRole('button',{name:'Close dialog'}).click();
   await page.getByRole('button',{name:/The recipe book/}).click();await expect(page.locator('.recipe-item')).toHaveCount(30);await page.getByRole('button',{name:'Close dialog'}).click();
   await page.getByRole('button',{name:'Open the story journal',exact:true}).click();
   await expect(page.locator('.neighbour-introduction .visitor-portrait')).toHaveCount(3);
   await expect.poll(()=>loaded.some(path=>path.includes('/assets/variants/visitor-portraits-'))).toBe(true);
+  await page.getByRole('button',{name:'Close dialog'}).click();
+  const expedition=quest('adrian-first-pack');await replaceSave(page,onTicket(expedition));await ticket(page,expedition).locator('.ticket-face').click();
+  expect(await sketch.evaluate(async node=>{const image=node as HTMLImageElement;await image.decode();return [image.naturalWidth,image.naturalHeight];})).toEqual([1024,683]);
+  await expect.poll(()=>loaded.some(path=>path.includes('/assets/variants/scene-cathedral-1-1024x683.webp'))).toBe(true);
   await page.getByRole('button',{name:'Close dialog'}).click();
   // The completed save opens on the front room with its selected decorations. The courtyard loads only when the player opens it.
   const decorated=checkpoint(24);decorated.decorationChoices={tableware:'green',textiles:'blue',flowers:'lilacs'};

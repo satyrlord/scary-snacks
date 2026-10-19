@@ -15,7 +15,7 @@ import {
 import type { AssetId, ReferenceImage } from './openai-api.ts';
 import { hasPngSignature, inspectPng } from './png-facts.ts';
 
-const REPO = fileURLToPath(new URL('../../../../', import.meta.url));
+export const REPO = fileURLToPath(new URL('../../../../', import.meta.url));
 export const TASK_ROOT = path.join(REPO, 'analysis', 'art-generation');
 const SHIPPING_ROOT = path.join(REPO, 'public', 'assets', 'original');
 const EXPERIMENTAL_PIXELS = 2560 * 1440;
@@ -123,13 +123,13 @@ export function verifyReferenceHash(bytes: Buffer, expectedHash: unknown) {
 }
 
 // Use only project-generated images as references.
-// Accept shipping bitmaps, helper candidates, and room composites that art-composite.ts makes from those images.
+// Accept shipping bitmaps, helper candidates, and the composites and paper copies that art-composite.ts makes from those images.
 export async function readReference(file: string): Promise<ReferenceImage & { sha256: string }> {
   const resolved = await realpath(path.resolve(file));
   const shipping = await resolveWithAncestors(SHIPPING_ROOT);
   const tasks = await resolveWithAncestors(TASK_ROOT);
   const isShipping = isInside(shipping, resolved);
-  const record = { 'candidate.png': 'generation.json', 'composite.png': 'composite.json' }[path.basename(resolved)];
+  const record = { 'candidate.png': 'generation.json', 'composite.png': 'composite.json', 'paper.png': 'paper.json' }[path.basename(resolved)];
   const isCandidate =
     isInside(tasks, resolved) && record !== undefined && (await pathExists(path.join(path.dirname(resolved), record)));
   if (!isShipping && !isCandidate)
@@ -175,11 +175,13 @@ async function readMask(file: string, edited: Buffer): Promise<ReferenceImage & 
   return { bytes, format: 'png', sha256: sha256(bytes) };
 }
 
-function inspectOptions(assetId: AssetId, size?: string) {
+function inspectOptions(assetId: AssetId, size?: string, processed = false) {
   const asset = assetContract(assetId);
+  if (processed && !assetId.startsWith('sketch-') && !assetId.startsWith('scene-'))
+    throw new Error('Use --processed only for a character sketch or a quest scene.');
   const expectedSize = size ? validateAssetSize(assetId, size) : undefined;
   return {
-    background: asset.background,
+    background: processed ? 'transparent' as const : asset.background,
     columns: asset.columns,
     rows: asset.rows,
     ...(asset.blankCells ? { blankCells: asset.blankCells } : {}),
@@ -314,13 +316,14 @@ async function main() {
       out: { type: 'string' },
       input: { type: 'string' },
       size: { type: 'string' },
+      processed: { type: 'boolean' },
       'dry-run': { type: 'boolean' },
     },
   });
   const allowed = {
     plan: ['asset', 'size'],
     generate: ['asset', 'prompt', 'reference', 'mask', 'out', 'size', 'dry-run'],
-    inspect: ['asset', 'input', 'size'],
+    inspect: ['asset', 'input', 'size', 'processed'],
   }[command as 'plan' | 'generate' | 'inspect'];
   if (!allowed || Object.keys(values).some((key) => !allowed.includes(key)))
     throw new Error('Use a documented helper command and its arguments.');
@@ -330,7 +333,7 @@ async function main() {
     await generate(values);
   } else if (values.input && values.asset) {
     const assetId = values.asset as AssetId;
-    const options = inspectOptions(assetId, values.size);
+    const options = inspectOptions(assetId, values.size, values.processed);
     const report = inspectPng(await readFile(values.input), options);
     console.log(JSON.stringify(report));
     if (!report.valid) process.exitCode = 1;

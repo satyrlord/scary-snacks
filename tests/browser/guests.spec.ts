@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { firstFreeBoardCell, generatorOutputs, resolveQuests } from '../../src/model.ts';
 import type { GameState, SceneLine } from '../../src/model.ts';
-import { act, data, deliverButton, deliverable, exportText, failWrites, journal, onTicket, opened, openQuest, options, person, portraitCell, quest, readTo, replaceSave, saved, start, startAgainAndImport, story, supplies, supply, ticket, toast } from './support.ts';
+import { act, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, journal, onTicket, opened, openQuest, options, person, portraitCell, quest, readTo, replaceSave, saved, start, startAgainAndImport, story, supplies, supply, ticket, toast } from './support.ts';
 
 const dinner=quest('ionatan-castle-dinner');
 const search=quest('mina-avram-search');
@@ -92,14 +92,18 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const
   for(const guest of data.characters.filter(value=>value.portraitAtlas==='guest')){
     const entry=page.getByRole('button',{name:`Meet ${guest.name}`,exact:true});await entry.scrollIntoViewIfNeeded();await portrait(entry.locator('.portrait'),guest.sprite);await expect(entry).toContainText(guest.role);
     expect(await entry.evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);await entry.click();await portrait(page.locator('.story-stage .portrait'),guest.sprite);
-    await expect(page.locator('#story-line')).toContainText(guest.introduction);await expect(page.getByRole('button',{name:'Return',exact:true})).toBeInViewport();
-    expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth&&element.scrollHeight<=element.clientHeight)).toBe(true);
+    await expect(page.locator('#story-line')).toContainText(guest.introduction);
+    await expect(page.locator('.quest-sketch')).toHaveAttribute('src',new RegExp(`sketch-${guest.id}-768x768\\.webp$`));
+    const returnButton=page.getByRole('button',{name:'Return',exact:true});await returnButton.scrollIntoViewIfNeeded();await expect(returnButton).toBeInViewport();
+    expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
     await page.screenshot({path:testInfo.outputPath(`${guest.id}.png`)});await scene(page,[{speaker:guest.id,text:guest.introduction}]);
   }
   await page.keyboard.press('Escape');await openQuest(page,search);const view=page.locator('.quest-view');
   await portrait(view.getByRole('img',{name:'Mina',exact:true}),person('mina').sprite);await portrait(view.getByRole('img',{name:'Avram',exact:true}),person('avram').sprite);
+  await expect(view.locator('.quest-scene-sketch')).toHaveAttribute('src',/scene-mina-avram-meal-1024x683\.webp$/);
   expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
   await page.screenshot({path:testInfo.outputPath('shared-meal.png')});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await dialogDeliver(page,search).scrollIntoViewIfNeeded();await expect(dialogDeliver(page,search)).toBeEnabled();await expect(dialogDeliver(page,search)).toBeInViewport();
 });
 
 test('Vlad’s quest shows the red wine picture on its ticket and opens the wine’s help',async({page})=>{

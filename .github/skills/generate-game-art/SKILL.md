@@ -56,6 +56,9 @@ The next table lists the layouts of the Portable Network Graphics (PNG) masters 
 | `embroidered-runner.png` | The runner strips beside the board | One image, 3:1. The game repeats only the region at x 161 with width 503 | Opaque |
 | `front-room-NN.png`, `courtyard-NN.png` | One painted room state | One image, 3:4, 1536 by 2048 pixels | Opaque |
 | `decoration-front.png`, `decoration-courtyard.png` | One decoration edit of a room state | One image, 3:4, 1536 by 2048 pixels | Opaque |
+| `parchment-page.png` | The paper of the quest dialogs | One tileable square, 1254 by 1254 pixels | Opaque |
+| `sketch-<character>.png` | The pencil sketch of one character | One image, square, at least 1024 pixels | Transparent |
+| `scene-<name>.png` | The pencil scene of one quest | One image, 3:2, 1536 by 1024 pixels | Transparent |
 
 `AGENTS.md` gives the rules for the masters, the variants, and their records.
 Keep candidates, rejected images, and previews in an ignored task folder, for example `analysis/art-generation/<task>/`.

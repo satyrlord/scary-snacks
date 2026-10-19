@@ -69,7 +69,7 @@ The Favourite chains column gives chain IDs.
 | Start | Ana | Night-shift nurse | warm, drinks | She hangs garlic on the ward door on Saint Andrew's Eve, when the strigoi walk (Romanian folklore) |
 | Start | Costel | Clock and automaton maker | sweet, drinks | *The Sandman* (E. T. A. Hoffmann, 1816) |
 | After preparation 4 | Sânziana | Florist | sweet, produce | The Sânziene, the midsummer flower fairies. She weaves bedstraw crowns on 24 June (Romanian folklore) |
-| After preparation 4 | Dorian | Portrait painter | sweet, drinks | *The Picture of Dorian Gray* (Oscar Wilde, 1890). He seems never to age |
+| After preparation 4 | Dorian | Gentleman of leisure | sweet, drinks | *The Picture of Dorian Gray* (Oscar Wilde, 1890). He seems never to age |
 | After preparation 8 | Vlad | Local baron | warm, drinks | Vlad III Dracula, voivode of Wallachia (historical figure, 15th century). He is a baron who styles himself as a count and lives in a countryside castle |
 | After preparation 8 | Elisabeta | Visiting countess | warm, drinks | Báthory Erzsébet (Elizabeth Báthory), a Hungarian countess (historical figure, 1560–1614). She is an Austro-Hungarian countess who sometimes visits her land nearby |
 | After preparation 8 | Ileana | Seamstress | produce, drinks | She finishes every spindle before Maundy Thursday, for fear of Joimărița, who punishes idle spinners (Romanian folklore) |

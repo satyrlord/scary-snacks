@@ -1178,12 +1178,12 @@
     {
       "file": "public/assets/variants/regulars-2-640x640.webp",
       "master": "regulars-2",
-      "masterSha256": "fba50332fc97340580bae7903297c084e4a29d5187832fc14686dbaf96f2c433",
+      "masterSha256": "b3f18ba5426c331da69de15b97c626940f5bc04e3bc3512186073684121d25dc",
       "width": 640,
       "height": 640,
       "format": "webp",
-      "bytes": 136358,
-      "sha256": "06e8f0a6c245138a7ac1bdcf49a23c114827fd61634529046fed7acff102f8c5"
+      "bytes": 136084,
+      "sha256": "b5638eec0e86351e0ac02889cf446a461d9d94c15badd32664ee234c7ad00178"
     },
     {
       "file": "public/assets/variants/regulars-3-640x640.webp",
@@ -1194,6 +1194,346 @@
       "format": "webp",
       "bytes": 59222,
       "sha256": "18a5b0804093bc607e46d2fd0b7fe2c85b91b4031ea4e12bdd91f75ba3b3966c"
+    },
+    {
+      "file": "public/assets/variants/parchment-page-1254x1254.webp",
+      "master": "parchment-page",
+      "masterSha256": "4897528c106a82254a39aa32203be47e95c300d400f9c240df789747406d637a",
+      "width": 1254,
+      "height": 1254,
+      "format": "webp",
+      "bytes": 138982,
+      "sha256": "843144e873b5eecb5092f408a16500c25f57595e70918bae6927d56f4f0c6ebd"
+    },
+    {
+      "file": "public/assets/variants/sketch-mara-768x768.webp",
+      "master": "sketch-mara",
+      "masterSha256": "9ceef4a750d8c34587cb9b991dccf0de1e80d7c09c866a1d1c960b96608f498d",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 164770,
+      "sha256": "7e060d912749cc95847501556e7deb15def7d7b84e621d8570555c4e3792595e"
+    },
+    {
+      "file": "public/assets/variants/sketch-ilie-768x768.webp",
+      "master": "sketch-ilie",
+      "masterSha256": "a8fd41d1b3c10157219d56b2d083489c0b1039fa202e8dfbd3d50ad3834e1e7f",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 259610,
+      "sha256": "3fc7df5248203254c46a7d56c58860d30c5348f3c3b539cc3353c10e9580083a"
+    },
+    {
+      "file": "public/assets/variants/sketch-eszter-768x768.webp",
+      "master": "sketch-eszter",
+      "masterSha256": "e563308c18e44e0e49a5ff79106024a9aaa68ee39eb43ee9008c189f8c4eadc3",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 226758,
+      "sha256": "0f5e4a3e66715fa72c53f8d82d58d3174c4bdae8a777c1250a56b26d1c3f9e28"
+    },
+    {
+      "file": "public/assets/variants/sketch-sorin-768x768.webp",
+      "master": "sketch-sorin",
+      "masterSha256": "ba2d0eaf114365fab0b73927b48c01e722bb8c0bd00bd5235d2aa2b07e9ced26",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 198698,
+      "sha256": "361f0ff797bd1111771601c9edb93e9bb57a8fcb4b6ba2422716b9e8151ed587"
+    },
+    {
+      "file": "public/assets/variants/sketch-adrian-768x768.webp",
+      "master": "sketch-adrian",
+      "masterSha256": "8347193caae77b84a7bb1ad69a8c6bda512b92d9f12fef554407ffbab8f60950",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 173612,
+      "sha256": "85a9921f158e51bb0f5f86181b146fb944d97a96d8ea253bc3b235d24b046a35"
+    },
+    {
+      "file": "public/assets/variants/sketch-monica-768x768.webp",
+      "master": "sketch-monica",
+      "masterSha256": "57179d93a5090f8bd5c9367ec387e23d491001324c970c3405fab44672eafeb5",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 276458,
+      "sha256": "69391f1c36ea76a32b9d2f5941bdae3b83a0ed1115f37e30fef1f33a8a8644a9"
+    },
+    {
+      "file": "public/assets/variants/sketch-janos-768x768.webp",
+      "master": "sketch-janos",
+      "masterSha256": "e08e3cdea1450d089809cee9a72879d063257142a351294e9b4fc83b0ab7d2df",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 309580,
+      "sha256": "f2b3b1d9db55bf80763bc6bb02324a8c54851b7ddaf5dc01b227b1bf39158577"
+    },
+    {
+      "file": "public/assets/variants/sketch-ionatan-768x768.webp",
+      "master": "sketch-ionatan",
+      "masterSha256": "dbc524d8c62951de5b2d61bc433ac1d8257c002428615a24188ebcefcea63d50",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 156770,
+      "sha256": "ee48116ec9b267395bd10b4b8e1a584b685456568c6a8fc6fd032db0f540152b"
+    },
+    {
+      "file": "public/assets/variants/sketch-vlad-768x768.webp",
+      "master": "sketch-vlad",
+      "masterSha256": "6d47b6483492a3d36275390f9c80ced0f82e35bdc5595a6cfdcb1fcf20f7431a",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 292520,
+      "sha256": "90535da3c9bf1faba7ab67aacb2880189f15250cefaa12005a8f3168d5f728c6"
+    },
+    {
+      "file": "public/assets/variants/sketch-elisabeta-768x768.webp",
+      "master": "sketch-elisabeta",
+      "masterSha256": "4f44657c69a5b6b344b55c2d9537297db66304e3297db64565c028473a1cef90",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 253610,
+      "sha256": "ddc65531d3d4b856e0a875d0c663f7f17a27d2475a30cd936c62a96e0acc24d8"
+    },
+    {
+      "file": "public/assets/variants/sketch-mina-768x768.webp",
+      "master": "sketch-mina",
+      "masterSha256": "37460690da2bf2c416e7c0df58bec3e83003f5dad86c57dbf82fef720d2070b4",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 155678,
+      "sha256": "7ddad90b45751a82abed31ea403d02841b6e6c5aaaa80035f3e8f09f903e5621"
+    },
+    {
+      "file": "public/assets/variants/sketch-avram-768x768.webp",
+      "master": "sketch-avram",
+      "masterSha256": "a2a4c3f0977aed9b50249a1939e9d1c03cfb513ae457fe2aafac922ca8edc639",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 149960,
+      "sha256": "9ab9c02aefde565921aab86d23c40ae92b55f3fa00c49c2aec2fb6416fbebc8b"
+    },
+    {
+      "file": "public/assets/variants/sketch-dochia-768x768.webp",
+      "master": "sketch-dochia",
+      "masterSha256": "c504e9eb254299a14d079de593761f65bf1e1d635efa9ee8eadd5f293a96b186",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 244464,
+      "sha256": "7e18461dc18887e57974f39aa25e540ddc631c2f19b45a59ee20cb87391b0f0d"
+    },
+    {
+      "file": "public/assets/variants/sketch-victor-768x768.webp",
+      "master": "sketch-victor",
+      "masterSha256": "f6af1b7a85515788b8c81816359d4f2a6c7365e006150850533c7de51579627f",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 244992,
+      "sha256": "193d1bc566f7fe8f7f5ec03a5a9764b7098fdd9cdbc694b9bae3aececf0c2917"
+    },
+    {
+      "file": "public/assets/variants/sketch-ana-768x768.webp",
+      "master": "sketch-ana",
+      "masterSha256": "93e7a4e1f48e36ff35834fe99ba8524d19999f4d3a803159cfcbbcf257e01b7d",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 162384,
+      "sha256": "eaf37f94b2b736de1769f023e969ea0b27e1956a61f542c4ce441810a7a4722d"
+    },
+    {
+      "file": "public/assets/variants/sketch-costel-768x768.webp",
+      "master": "sketch-costel",
+      "masterSha256": "463f443e884bc01d20291ec229a5601611209684477eea259c6dade76513e706",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 259196,
+      "sha256": "68420cc951b2bced4863d6a23745b9751277766df70cb8778cf15c8d78eb4610"
+    },
+    {
+      "file": "public/assets/variants/sketch-sanziana-768x768.webp",
+      "master": "sketch-sanziana",
+      "masterSha256": "70f931327c44446ae5e36d45c248a177d9c51feffc1744320ca59a1580f7023e",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 187048,
+      "sha256": "e7a74ee28799f779ea1bcf09e90b6cf170e18179c7c01fa242d3b11148643525"
+    },
+    {
+      "file": "public/assets/variants/sketch-dorian-768x768.webp",
+      "master": "sketch-dorian",
+      "masterSha256": "b1d48ad63833c54efeaf4531f4ab54caf946b0b2f25b6ef2ca821071fe491a73",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 187408,
+      "sha256": "99c7d43fc2dbbf19c1baf8afbd0a0e473b074f5b624ce19c806e9bfa34375948"
+    },
+    {
+      "file": "public/assets/variants/sketch-ileana-768x768.webp",
+      "master": "sketch-ileana",
+      "masterSha256": "1eae53007a01550f7ec82c939095d954b2c9b372d8bb90181c5a3f9d96ec0f03",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 328060,
+      "sha256": "50b7b3a251490f3fc7035041c363c45bfe6ab9e1e27ecf70f2bce40f7bf4354d"
+    },
+    {
+      "file": "public/assets/variants/sketch-cezar-768x768.webp",
+      "master": "sketch-cezar",
+      "masterSha256": "a81a6be755edb3ca75271aee4cbeb4fe43951cb8adff19478710d5f65496a99d",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 144218,
+      "sha256": "0eb46d9e483ea81b6b1715afca9b3068f6ab3dd6901a2359e5a7262187398475"
+    },
+    {
+      "file": "public/assets/variants/sketch-catalina-768x768.webp",
+      "master": "sketch-catalina",
+      "masterSha256": "e10c6cfce18a2d847ac4920559de7aee7bcb9aced26de0c19405bbe861834c45",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 300156,
+      "sha256": "556d5267e2908fa0ad1a102c0577c9f07fa48924a99997d15b4d4466e91a784a"
+    },
+    {
+      "file": "public/assets/variants/sketch-bran-768x768.webp",
+      "master": "sketch-bran",
+      "masterSha256": "00b6c73882e626be9e2b777792c71169f2d16c4afb10d62b9261cbe8bbcf26b6",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 398742,
+      "sha256": "e8e73beb96c682287c39443539523205d15bdfed1bc336b804062517944c83dd"
+    },
+    {
+      "file": "public/assets/variants/scene-cathedral-1-1024x683.webp",
+      "master": "scene-cathedral-1",
+      "masterSha256": "583f60cd8d7611d9bba8b3aeca106c02d383b975c54a200a2ac458a51806eb34",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 249354,
+      "sha256": "1b99f47419c94e30102ad622377e4d3d2017b5fbaf4b1e3d11c083e9b1f479c5"
+    },
+    {
+      "file": "public/assets/variants/scene-cathedral-2-1024x683.webp",
+      "master": "scene-cathedral-2",
+      "masterSha256": "2a4e0a9c799113c3c723007c267c51efad2c24537454a4daf69560e8cefdbe28",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 309046,
+      "sha256": "6b53804371d99ee219d4b83b601088e5a4295774095889d7630b64609ecbf3dc"
+    },
+    {
+      "file": "public/assets/variants/scene-cathedral-3-1024x683.webp",
+      "master": "scene-cathedral-3",
+      "masterSha256": "44a4687e70ea78859f541d922a63fef8fa9b2fba15908ccfe8f67f8698b84be6",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 271096,
+      "sha256": "1d91b5034a5cf3d2cee991353046a9fc982b6eaa31001d17d28a639304474382"
+    },
+    {
+      "file": "public/assets/variants/scene-cathedral-4-1024x683.webp",
+      "master": "scene-cathedral-4",
+      "masterSha256": "cbe2bdeb49731b53ae210449e49d22add846390821445431d22a85ae1e00dbd3",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 285312,
+      "sha256": "68b6f67657562f2f483a19469d126baca9ea98c06b8536a3ef538ebbf6ee19e9"
+    },
+    {
+      "file": "public/assets/variants/scene-cathedral-5-1024x683.webp",
+      "master": "scene-cathedral-5",
+      "masterSha256": "c6081c0be3fcc3c818ff51fa030b71f2436b1d93cbf24f5dff679f832d81a007",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 349778,
+      "sha256": "e760c7b67281f97a2cf72f5488281380b5dcab37f7383218e1e5bd04f8aab6a0"
+    },
+    {
+      "file": "public/assets/variants/scene-cathedral-6-1024x683.webp",
+      "master": "scene-cathedral-6",
+      "masterSha256": "26fd562441e0f06fd24437b42f857e4690f3a6828682e7b51cf16e5caee51a7f",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 510296,
+      "sha256": "874356c95daff6666096c5224d0160a0e5bdac6af5daccc03c40dc6cf1e32f51"
+    },
+    {
+      "file": "public/assets/variants/scene-cathedral-7-1024x683.webp",
+      "master": "scene-cathedral-7",
+      "masterSha256": "177727e958e86b30d9849c23e3dc3026bcb14e9295532a88dd558f276dfee155",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 257980,
+      "sha256": "807ac91067ddbb44a9f0f9f409ad644f971cf1c312950a24f4dd4a532bf0d45f"
+    },
+    {
+      "file": "public/assets/variants/scene-cathedral-8-1024x683.webp",
+      "master": "scene-cathedral-8",
+      "masterSha256": "070e761146cfae23abb86c0a489a01464fa525f35a831e86e4e899234397bbe6",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 298136,
+      "sha256": "53f82ffa40fdbf6a18f19849f150d73b323c6ddc4e51de5991d0e6a9b2af96e7"
+    },
+    {
+      "file": "public/assets/variants/scene-cathedral-9-1024x683.webp",
+      "master": "scene-cathedral-9",
+      "masterSha256": "c5d8eeeb353e33867ec671300b5dba19e9aaeaca6baf4a76fa4f71970b0f8892",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 440210,
+      "sha256": "019a12ff92ed7362c965fbac17987d724b26fc1b7ae7402ca445fa50436ce82d"
+    },
+    {
+      "file": "public/assets/variants/scene-ionatan-dinner-1024x683.webp",
+      "master": "scene-ionatan-dinner",
+      "masterSha256": "ef8584383f1d7207f19d0d3b2505696718524470c3dfdf4e30b574eed539e4d7",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 268270,
+      "sha256": "997bb6b6eeb6709e30a496795b196c50fab4253acd82b963273f807276dfd994"
+    },
+    {
+      "file": "public/assets/variants/scene-mina-avram-meal-1024x683.webp",
+      "master": "scene-mina-avram-meal",
+      "masterSha256": "828d554d9b08f2424041614a20f1e58befc95d54baca6ed75389b461e68b3133",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 360740,
+      "sha256": "ad3d3562d4dd2063c328c20a54d4d28b0edd4c37e50d1992a0145e4a23b2d1e6"
     }
   ]
 }

@@ -44,9 +44,9 @@ It requires multiples of 16 and an aspect ratio of 1:3 to 3:1.
 It requires an edge of at most 3840 pixels and 655,360 to 8,294,400 pixels in total.
 It also requires the shape of the asset:
 
-- Square for the food, core portrait, regular portrait, and mascot atlases, and the timber.
+- Square for the food, core portrait, regular portrait, and mascot atlases, the timber, and the character sketches.
 - 3:1 for the runner.
-- 3:2 for the board-clutter atlas.
+- 3:2 for the board-clutter atlas and the quest scenes.
 - 3:4 for a room state and a decoration painting.
 
 The size must divide into equal grid cells.
@@ -120,6 +120,33 @@ A room state after the base is a masked edit of the previous accepted state.
    A ramp widens the region by the feather first, so the fade starts at full strength.
    `composite.json` then records `"ramp": true`.
 
+## Convert a pencil drawing
+
+A sketch or a quest scene is pencil on transparency.
+A transparent background from the provider cuts the drawing out like an object, and keeps the paper inside closed shapes as a fill.
+Thus ask for the drawing on plain pure white paper, with no paper texture and no fills.
+Then make the paper transparent:
+
+```powershell
+node .github/skills/generate-game-art-openai/scripts/art-composite.ts ink `
+  --candidate analysis/art-generation/<task>/<run>/candidate.png --out analysis/art-generation/<task>/<run>-ink
+```
+
+The command finds the paper colour and makes the paper clear.
+Each pencil mark keeps the colour that it shows over the paper, and faint red chalk stays red.
+`ink.json` records the hashes of the candidate and the result, the paper colour, and the alpha floor.
+Measure the transparent result with `inspect --processed`:
+
+```powershell
+node .github/skills/generate-game-art-openai/scripts/art-image.ts inspect `
+  --asset sketch-bran --input analysis/art-generation/<task>/<run>-ink/ink.png --processed
+```
+
+Use `--processed` only with `inspect`, for a character sketch or a quest scene.
+The option requires transparency in the result, including a patch.
+Without the option, the measurement requires the opaque paper that the request specifies.
+Review `ink.png` on the parchment and on a dark background. A tinted area on the paper shows as a visible patch.
+
 ## Send the request
 
 Remove `--dry-run` only for an authorized request:
@@ -192,6 +219,7 @@ Add these route details:
 
 - In `docs/asset-provenance.json`, set `generation` to `OpenAI Images API, gpt-image-2.5-flare, high quality`.
   For an edit, add a clause after a semicolon. The clause names the kind of edit and the composite.
+  For a pencil drawing, add a clause that names the `ink` conversion.
 - In `docs/asset-prompts.json`, copy the text of `prompt.txt` unchanged into the new entry.
   Add a `generation` field to that entry with the keys `model`, `quality`, `size`, and `run`. The `run` value is the run folder name.
   If the run used a reference or a mask, add the keys `reference` and `mask` with their descriptions.

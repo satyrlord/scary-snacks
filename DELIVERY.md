@@ -26,11 +26,13 @@ The site is public. The [release notes](docs/release-notes.md) give the release 
 
 ## Assets
 
-40 Portable Network Graphics (PNG) masters in `public/assets/original/` are the source of the game art. The game ships variants of the masters in AV1 Image File Format (AVIF) and WebP. The sizes of the variants fit the screens. The variants come only from these masters. The local folders `private/` and `analysis/` are not release inputs.
+74 Portable Network Graphics (PNG) masters in `public/assets/original/` are the source of the game art. The game ships variants of the masters in AV1 Image File Format (AVIF) and WebP. The sizes of the variants fit the screens. The variants come only from these masters. The local folders `private/` and `analysis/` are not release inputs.
 
 The transparent board-clutter atlas has six open-center overlays in square cells. The preparation-clutter atlas has 12 contextual overlays with transparent centers, in a four-by-three grid of 1448 by 1086 pixels. The chat image generator made the preparation-clutter atlas. The atlas ships as one WebP variant at its original size. The core, visitor, guest, and three regulars portrait atlases and the mascot atlas each ship one 640-by-640 WebP variant. Red wine (`drinks_5`) uses its own transparent picture instead of its cell in the menu atlas.
 
 After a master changes, run `npm run assets:build`. [Asset variants](docs/asset-variants.json) records the files, the sizes, and the hashes.
+
+The built-in chat image generator made the parchment and the first versions of the 22 character sketches and 11 quest scenes. The OpenAI Images API revised the sketches of Sorin, Cătălina, Mina, Bran, and Victor, and four quest scenes. Bran's sketch and the four scenes are drawn on white paper, and a fixed conversion makes the paper transparent. Victor's added mouth uses the same conversion. The parchment is 1254px square. Character masters are square and at least 1024px; scene masters are 1536 by 1024px. The parchment ships as one native-size WebP. Characters ship as transparent 768px square WebP, and scenes ship as transparent 1024 by 683px WebP. Introductions use individual sketches. Quest openings, replies, and replays prefer their registered scene illustration and otherwise use the owner's sketch. All installed masters have explicit user acceptance.
 
 [Asset provenance](docs/asset-provenance.json) records the masters and their hashes. [Prompts](docs/asset-prompts.json) records the generation instructions. The repository skill `generate-game-art` (repository only) gives the procedure to add or replace a master. The procedure covers a room painting.
 

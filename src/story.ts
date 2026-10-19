@@ -2,7 +2,7 @@
 import { arrivalScene, deliveriesSince, journalCharacters, resolveChapters, resolveNeighbours, resolveQuests, sceneSource, taskEligibility } from './model.ts';
 import type { Character, ChapterView, SceneLine, Task } from './model.ts';
 import { $, button, coinText, count, element, names } from './dom.ts';
-import { coinMark, portrait } from './art.ts';
+import { coinMark, portrait, questSketch } from './art.ts';
 import { modal, showModal } from './dialog.ts';
 import { holdChange, miezSprite, preloadRoom, toggleCat } from './room.ts';
 import { apply, changeGame, character, data, keep, saveFailed, saveMessage, state } from './session.ts';
@@ -128,7 +128,7 @@ function storyScene(id: string) {
   const more=(dialogue: SceneLine[])=>`${character(dialogue[0].speaker).name} has more to say.`,source=sceneSource(id,data);
   switch(source?.kind){
     case 'task':{const {task}=source;return {title:task.title,dialogue:task.dialogue,completion:data.rooms.find(room=>room.after===id)!.text,prompt:more(task.dialogue)};}
-    case 'quest':{const {quest}=source,who=names.format([quest.character,...quest.companions??[]].map(person=>character(person).name));return {title:quest.title,dialogue:quest.completion,completion:'',prompt:`${who} replied to “${quest.title}”.`};}
+    case 'quest':{const {quest}=source,who=names.format([quest.character,...quest.companions??[]].map(person=>character(person).name));return {title:quest.title,dialogue:quest.completion,questCharacter:quest.character,questId:quest.id,completion:'',prompt:`${who} replied to “${quest.title}”.`};}
     case 'chapter':{const {chapter,number}=source;return {title:`Chapter ${number} complete: ${chapter.title}`,dialogue:chapter.closing,completion:chapter.payoff,prompt:`Chapter ${number} is complete.`};}
     case 'finale':{const {finale}=source;return {title:finale.title,dialogue:finale.dialogue,completion:finale.ending,prompt:'The supper can begin.'};}
     case 'arrival':{const {person}=source;return {title:`${person.name} arrives`,dialogue:person.arrival!,completion:`${person.name} is now a regular. Read more about ${person.name} in the story journal.`,prompt:'A new neighbour has arrived.'};}
@@ -179,12 +179,12 @@ function recordLine(id: string, line: number, warn: () => void) {
   });
 }
 /** A conversation. A waiting scene starts at its saved line and records each change of line. */
-function showStory(task: { title: string; dialogue: SceneLine[] }, paid = false, completion = '', backTo?: () => void, end?: { id: string; label: string; finish: () => void; skip: () => void }) {
+function showStory(task: { title: string; dialogue: SceneLine[]; questCharacter?: string; questId?: string }, paid = false, completion = '', backTo?: () => void, end?: { id: string; label: string; finish: () => void; skip: () => void }) {
   const last=task.dialogue.length-1,saved=end?state.sceneLines?.[end.id]??0:0;
   // A release can remove lines, so a saved line past the end starts the scene again.
   let cursor=saved>last?0:saved;
   // The stage is built once and only its words change: the live region stays in place, so each new line is announced, and focus stays on the button pressed.
-  const content=element('div'),stage=element('div','story-stage'),words=element('div','story-dialogue'),speaker=element('h3'),said=element('p');
+  const content=element('div',task.questCharacter?'quest-page-content':''),stage=element('div','story-stage'),words=element('div','story-dialogue'),speaker=element('h3'),said=element('p');
   words.id='story-line';words.setAttribute('aria-live','polite');words.setAttribute('aria-atomic','true');words.append(speaker,said);
   const counter=element('span'),controls=element('div','story-controls'),unsaved=element('p');unsaved.setAttribute('role','status');
   const warn=()=>{unsaved.className='save-error scene-unsaved';unsaved.textContent='This session is not saved. You can keep reading. Use Retry save in Options before you leave.';};
@@ -193,7 +193,10 @@ function showStory(task: { title: string; dialogue: SceneLine[] }, paid = false,
   const forward=button('Continue','primary-button',()=>{if(cursor<last)move(1);else if(end)end.finish();else if(backTo)backTo();else modal.close();});
   forward.setAttribute('aria-describedby','story-line');
   if(saved>last)content.append(element('p','modal-copy','Someone lost the thread. The conversation starts again from the beginning.'));
-  stage.append(portrait(task.dialogue[cursor].speaker),words);controls.append(back,counter,forward);content.append(stage,controls);
+  stage.append(portrait(task.dialogue[cursor].speaker),words);controls.append(back,counter,forward);
+  const reading=element('div','quest-reading');
+  if(task.questCharacter)reading.append(questSketch(task.questCharacter,task.questId));
+  reading.append(stage);content.append(reading,controls);
   if (end) content.append(button('Skip scene','text-button skip-scene',end.skip));
   if (completion) content.append(element('p','completion-message',completion));
   if (end) content.append(unsaved);
@@ -209,7 +212,7 @@ function journal(focusEntry?: string) {
   content.append(element('p','modal-copy','Meet your neighbours and read your saved conversations. Reading never gives another reward.'));
   content.append(element('h3','','Neighbours'));
   const people=journalCharacters(state,data);
-  const meet=(person: Character)=>showStory({title:`Meet ${person.name}`,dialogue:[{speaker:person.id,text:person.introduction}]},false,'',()=>journal(person.id));
+  const meet=(person: Character)=>showStory({title:`Meet ${person.name}`,dialogue:[{speaker:person.id,text:person.introduction}],questCharacter:person.id},false,'',()=>journal(person.id));
   // A neighbour who has not arrived is a dashed outline without a name, so the page does not spoil later chapters.
   for(const {person,arrived,delivered} of resolveNeighbours(state,data)){
     if(!arrived){const slot=element('div','journal-entry neighbour-entry not-yet');slot.append(element('span','portrait-outline'),element('span','','Not yet'));content.append(slot);continue;}
@@ -231,7 +234,7 @@ function journal(focusEntry?: string) {
   if(completed.length)content.append(element('h3','','Neighbour quests'));
   for(const {quest} of completed){
     const section=element('section','quest-journal');section.append(element('h4','',quest.title));
-    const opening=button('Read quest','text-button',()=>showStory({title:quest.title,dialogue:quest.opening},false,'',()=>journal(quest.id)));
+    const opening=button('Read quest','text-button',()=>showStory({title:quest.title,dialogue:quest.opening,questCharacter:quest.character,questId:quest.id},false,'',()=>journal(quest.id)));
     opening.setAttribute('aria-label',`Read quest: ${quest.title}`);
     const waiting=state.pendingScenes.includes(quest.id),replay=button('Read completion','journal-entry',()=>showScene(quest.id,()=>journal(quest.id)));
     replay.dataset.journal=quest.id;replay.setAttribute('aria-label',`${waiting?'Read':'Replay'} ${quest.title}`);replay.append(element('span','',waiting?'New scene':character(quest.character).name));section.append(opening,replay);content.append(section);

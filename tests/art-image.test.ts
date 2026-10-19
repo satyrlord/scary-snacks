@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 import { crc32, deflateSync } from 'node:zlib';
 import sharp from 'sharp';
 import { checkMask, planAsset, verifyReferenceHash } from '../.github/skills/generate-game-art-openai/scripts/art-image.ts';
-import { compositeRegion, makeMask } from '../.github/skills/generate-game-art-openai/scripts/art-composite.ts';
+import { compositeRegion, inkPatch, makeMask, paperCopy, paperToAlpha } from '../.github/skills/generate-game-art-openai/scripts/art-composite.ts';
 import { buildImageRequest } from '../.github/skills/generate-game-art-openai/scripts/openai-api.ts';
 import { inspectPng } from '../.github/skills/generate-game-art-openai/scripts/png-facts.ts';
 
@@ -87,6 +88,35 @@ test('image references require the recorded hash and reject changed candidate or
     assert.throws(() => verifyReferenceHash(original, missing), /recorded image hash/u);
 });
 
+test('processed sketch and scene inspection checks transparency while raw inspection still requires paper', () => {
+  const inspect = (asset: string, input: string, processed: boolean) => spawnSync(process.execPath, [
+    '.github/skills/generate-game-art-openai/scripts/art-image.ts', 'inspect', '--asset', asset,
+    '--input', `public/assets/original/${input}.png`, ...(processed ? ['--processed'] : []),
+  ], { encoding: 'utf8' });
+  for (const asset of ['sketch-bran', 'scene-cathedral-4']) {
+    const processed = inspect(asset, asset, true);
+    assert.equal(processed.status, 0, processed.stderr || processed.stdout);
+    assert.equal(JSON.parse(processed.stdout).background, 'transparent');
+    const raw = inspect(asset, asset, false);
+    assert.equal(raw.status, 1);
+    assert.deepEqual(JSON.parse(raw.stdout).issues, ['An opaque painting must be fully opaque.']);
+  }
+  const missingAlpha = inspect('sketch-bran', 'parchment-page', true);
+  assert.equal(missingAlpha.status, 1);
+  assert.equal(JSON.parse(missingAlpha.stdout).hasAlphaChannel, false);
+  assert.equal(JSON.parse(missingAlpha.stdout).valid, false);
+  const rawPaper = inspect('sketch-bran', 'parchment-page', false);
+  assert.equal(rawPaper.status, 0, rawPaper.stderr || rawPaper.stdout);
+  const wrongAsset = inspect('portraits', 'portraits', true);
+  assert.equal(wrongAsset.status, 1);
+  assert.match(wrongAsset.stderr, /only for a character sketch or a quest scene/u);
+  const wrongCommand = spawnSync(process.execPath, [
+    '.github/skills/generate-game-art-openai/scripts/art-image.ts', 'plan', '--asset', 'sketch-bran', '--processed',
+  ], { encoding: 'utf8' });
+  assert.equal(wrongCommand.status, 1);
+  assert.match(wrongCommand.stderr, /documented helper command/u);
+});
+
 test('room states are opaque 3:4 portrait paintings, one for each room state of the game data', () => {
   const plan = planAsset('front-room-00');
   assert.equal(plan.size, '1536x2048');
@@ -139,6 +169,26 @@ test('a region composite keeps every pixel outside the feathered mask and takes 
   await assert.rejects(makeMask(64, 48, [{ left: 60, top: 0, width: 8, height: 8 }]), /inside the image/u);
 });
 
+test('a feathered transparent composite fades ink without changing its colour or the pixels outside the edge', async () => {
+  const solid = (rgba: number[]) => {
+    const pixels = Buffer.alloc(64 * 64 * 4);
+    for (let offset = 0; offset < pixels.length; offset += 4) pixels.set(rgba, offset);
+    return sharp(pixels, { raw: { width: 64, height: 64, channels: 4 } }).png().toBuffer();
+  };
+  const clear = [12, 34, 56, 0], ink = [180, 60, 20, 192];
+  const [empty, drawing] = await Promise.all([solid(clear), solid(ink)]);
+  const mask = await makeMask(64, 64, [{ left: 24, top: 24, width: 16, height: 16 }]);
+  for (const adding of [true, false]) {
+    const result = await sharp(await compositeRegion(adding ? empty : drawing, adding ? drawing : empty, mask, 8)).raw().toBuffer();
+    const at = (x: number, y: number) => [...result.subarray((y * 64 + x) * 4, (y * 64 + x) * 4 + 4)];
+    const edge = at(23, 32);
+    assert.deepEqual(edge.slice(0, 3), ink.slice(0, 3), 'The fading ink keeps its colour.');
+    assert.ok(edge[3] > 0 && edge[3] < ink[3], 'Only its opacity fades.');
+    assert.deepEqual(at(0, 0), adding ? clear : ink, 'Pixels outside the feather stay exact.');
+    assert.deepEqual(at(32, 32), adding ? ink : clear, 'Pixels inside the mask stay exact.');
+  }
+});
+
 test('a ramped composite fades from full strength at the region edge with no step', async () => {
   const solid = (value: number) => sharp({ create: { width: 96, height: 48, channels: 3, background: { r: value, g: value, b: value } } }).png().toBuffer();
   const [base, candidate] = await Promise.all([solid(10), solid(210)]);
@@ -175,4 +225,46 @@ test('a polygon mask repaints a slanted region and leaves the pixels outside its
   assert.equal(alpha(34, 14), 255, 'above the sloping top edge');
   assert.equal(alpha(6, 26), 255, 'below the sloping bottom edge');
   await assert.rejects(makeMask(40, 40, [], [], [[[0, 0], [50, 0], [0, 10]]]), /three points inside the image/u);
+});
+
+test('ink conversion makes the paper clear, gives back each pencil colour over the paper, and leaves no paper fill inside a closed shape', async () => {
+  // White paper with a closed brown square outline. Its inside is paper, which a cut-out background would keep as a fill.
+  const paper = { r: 250, g: 248, b: 244 }, ink = [110, 50, 15];
+  const pixels = Buffer.alloc(40 * 40 * 3);
+  for (let index = 0; index < 40 * 40; index++) {
+    const x = index % 40, y = Math.floor(index / 40), line = (x === 10 || x === 29 || y === 10 || y === 29) && x >= 10 && x <= 29 && y >= 10 && y <= 29;
+    pixels.set(line ? ink : [paper.r, paper.g, paper.b], index * 3);
+  }
+  const { bytes, paper: found } = await paperToAlpha(await sharp(pixels, { raw: { width: 40, height: 40, channels: 3 } }).png().toBuffer());
+  const result = await sharp(bytes).raw().toBuffer();
+  const at = (x: number, y: number) => [...result.subarray((y * 40 + x) * 4, (y * 40 + x) * 4 + 4)];
+  assert.deepEqual(found, [paper.r, paper.g, paper.b]);
+  assert.equal(at(20, 20)[3], 0, 'the inside of the closed shape is clear');
+  assert.equal(at(0, 0)[3], 0, 'the paper is clear');
+  const line = at(10, 20), share = line[3] / 255;
+  assert.ok(share > .9, 'the line is nearly opaque');
+  // Laid over the same paper, the line gives back its drawn colour.
+  for (const [channel, value] of ink.entries()) assert.ok(Math.abs(line[channel] * share + found[channel] * (1 - share) - value) <= 2, `channel ${channel}`);
+  await assert.rejects(paperToAlpha(await sharp({ create: { width: 8, height: 8, channels: 3, background: { r: 40, g: 40, b: 40 } } }).png().toBuffer()), /light paper/u);
+});
+
+test('a paper copy pads a drawing to multiples of 16, and a patch takes back only the masked marks of its edit', async () => {
+  // A 30 by 20 transparent drawing with one brown mark.
+  const drawing = Buffer.alloc(30 * 20 * 4);
+  drawing.set([110, 50, 15, 255], (5 * 30 + 5) * 4);
+  const png = await sharp(drawing, { raw: { width: 30, height: 20, channels: 4 } }).png().toBuffer();
+  const { bytes, left, top } = await paperCopy(png);
+  const copy = await sharp(bytes).metadata();
+  assert.deepEqual([copy.width, copy.height, left, top], [32, 32, 1, 6]);
+  // The edit is white paper with a new mark inside the mask and a stray mark outside it.
+  const edit = Buffer.alloc(32 * 32 * 3, 255);
+  edit.set([110, 50, 15], ((top + 10) * 32 + left + 20) * 3);
+  edit.set([110, 50, 15], ((top + 15) * 32 + left + 2) * 3);
+  const mask = await makeMask(32, 32, [{ left: left + 16, top: top + 6, width: 8, height: 8 }]);
+  const patched = await sharp(await inkPatch(png, await sharp(edit, { raw: { width: 32, height: 32, channels: 3 } }).png().toBuffer(), mask, left, top, 0)).raw().toBuffer();
+  const alpha = (x: number, y: number) => patched[(y * 30 + x) * 4 + 3];
+  assert.ok(alpha(20, 10) > 230, 'the new mark inside the mask arrives');
+  assert.equal(alpha(2, 15), 0, 'the stray mark outside the mask stays out');
+  assert.equal(alpha(5, 5), 255, 'the drawing keeps its own marks');
+  assert.equal(alpha(25, 12), 0, 'the paper inside the mask is clear');
 });

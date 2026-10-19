@@ -1,6 +1,6 @@
 ---
 name: generate-game-art-openai
-description: Plan, send, and measure OpenAI Images API requests for Scary Snacks bitmap candidates. Use only when the user tells you to use the OpenAI Images API, the paid image route, or this skill. Use for the asset identifiers in this skill, including room states, decoration paintings, and the board-clutter atlas. For built-in chat generation or a prompt handoff to the user, use generate-game-art.
+description: Plan, send, and measure OpenAI Images API requests for Scary Snacks bitmap candidates. Use only when the user tells you to use the OpenAI Images API, the paid image route, or this skill. Use for the asset identifiers in this skill, including room states, decoration paintings, the board-clutter atlas, character sketches, and quest scenes. For built-in chat generation or a prompt handoff to the user, use generate-game-art.
 ---
 
 # Generate game art through the OpenAI Images API
@@ -78,8 +78,10 @@ It reads each other value from the asset:
 | Each room state in `public/data/game.json` | `1536x2048` | `opaque` | One image, 3:4 portrait, a painted room state |
 | `decoration-front`, `decoration-courtyard` | `1536x2048` | `opaque` | One image, 3:4 portrait, a decoration edit of a room state |
 | `board-clutter` | `1536x1024` | `transparent` | 3 columns by 2 rows, six blockers with open centres |
+| `sketch-<character>` for each character in `public/data/game.json` | `1024x1024` | `opaque`, then `ink` | One image, square, a pencil sketch |
+| `scene-cathedral-1` to `scene-cathedral-9`, `scene-ionatan-dinner`, `scene-mina-avram-meal` | `1536x1024` | `opaque`, then `ink` | One image, 3:2 landscape, a pencil quest scene |
 
-The helper does not accept `visitor-portraits`, `guests`, `red-wine`, or `preparation-clutter`.
+The helper does not accept `visitor-portraits`, `guests`, `red-wine`, `preparation-clutter`, or `parchment-page`.
 Use the chat route for these assets unless the approved scope includes an API contract change.
 
 To print the contract of one asset, run `plan --asset <identifier>`, as [API generation](references/api-generation.md) tells you.

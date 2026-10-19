@@ -86,6 +86,8 @@ The quest dialog shows who asks and why, each dish with its board count, the rew
 - The player repeats the delivery.
 - The coin total cannot hold the reward.
 
+Character introductions, quest dialogs, quest replies, and quest replays use parchment pages. All 22 characters have individual pencil sketches. A quest shows its owner's sketch, except that the nine cathedral supply quests, Ionatan's dinner, and Mina and Avram's meal show their own scene illustrations. The illustration stays with the quest through speaker changes and journal replays. Introductions show the individual character sketch. Other story scenes keep their existing presentation. Victor draws these sketches while he waits for his meal. As an anatomy student, he studies anatomy, proportions, and perspective. He draws light but present facial features, including open eyes for awake people and closed eyelids for sleepers. He has a secret crush on Mara, so hers is the most carefully drawn face.
+
 The dishes fly to the ticket. A temporary notice reports the delivery and the reward. While the completion scene waits, the notice also offers "Read [Name]’s reply", which opens that scene. The next open quest takes the ticket. If no quest is open, the counter shows "No quests wait now. Pay for the next preparation." After the last quest, it shows "Every quest is delivered. The bistro is yours."
 
 A waiting scene is a scene that the player has not finished or skipped.
@@ -106,7 +108,7 @@ The delivery records his quest identifier (ID) once and ends his visit. His fare
 
 The neighbourhood has 16 neighbours: the four core characters and 12 regulars. The six visitors are not neighbours. Each regular has a name, a trade, a portrait, an introduction, and two favourite chains. Each quest of a regular asks for at least one dish from those chains. Each regular refers to a horror novel, a horror film, local folklore, or a historical figure. The reference is in the name, the trade, or one habit. Vlad refers to Vlad III Dracula. Elisabeta refers to Elizabeth Báthory (Báthory Erzsébet).
 
-Dochia, Victor, Ana, and Costel are present from the start. Sânziana and Dorian arrive with preparation 4. Vlad, Elisabeta, Ileana, and Cezar arrive with preparation 8, and their arrival scenes queue in that order. Cătălina and Bran arrive with preparation 12.
+Dochia, Victor, Ana, and Costel are present from the start. Sânziana and Dorian arrive with preparation 4. Vlad, Elisabeta, Ileana, and Cezar arrive with preparation 8, and their arrival scenes queue in that order. Cătălina and Bran arrive with preparation 12. Dorian is a wealthy gentleman of leisure. He sits for portraits and attends social meals.
 
 A regular arrives only when a preparation is complete. Each regular who arrives later has a short arrival scene. In the scene, a core character introduces the regular, and the regular answers. The payment that brings a regular queues the arrival scene. The arrival scene follows the preparation scene, the closing scene, and the finale that the payment earns. The arrival scene follows the rules of the story for waiting scenes.
 
@@ -225,11 +227,12 @@ The art plan `docs/specs/001-visible-renovation-art-plan.md` defines the 25 pain
 
 ## Identity
 
-The game has 40 generated Portable Network Graphics (PNG) masters. They provide these items:
+The game has 74 generated Portable Network Graphics (PNG) masters. They provide these items:
 
 - food
 - a separate red wine picture for its menu item
 - portraits, including three atlases for the regulars
+- parchment paper, 22 character sketches, nine cathedral scenes, and two visitor meal scenes
 - 25 painted room states
 - two decoration edit paintings, sampled only within their authored regions
 - the timber tabletop
@@ -244,7 +247,7 @@ The [release notes](docs/release-notes.md) give the release limits, including th
 
 ## Access and persistence
 
-The game supports pointer, keyboard, and touch controls. It supports Light, Dark, and System appearance, visible focus, and reduced motion. Sound is off until the player turns it on in Options.
+The game supports pointer, keyboard, and touch controls. It supports Light, Dark, and System appearance, visible focus, and reduced motion. Dark is the appearance until the player chooses another one in Options. Sound is off until the player turns it on in Options.
 
 The Motion choice in Options has three choices. System is the default. System follows the reduced-motion setting of the device. Reduced removes the motion on all devices. Full plays all the motion, also when the device asks for reduced motion. In this document, "reduced motion" means Reduced, or System on a device that asks for reduced motion. In forced colours mode (Windows high contrast), the board spaces and the selection stay visible.
 
