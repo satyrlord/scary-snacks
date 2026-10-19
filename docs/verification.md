@@ -67,8 +67,7 @@ Story checks cover every chapter boundary and one finale.
 A complete campaign can retain all earned preparation, quest, and chapter scenes in its queue, and its coins pay for the supper. The recurring quest checks cover a short purse.
 Line checks cover unique scene identifiers, queue order, saved positions, stale positions, and invalid line records.
 Save checks cover scenes with and without saved lines.
-Completed current saves without `supperPayment` retain their finale, coins, and saved finale line through load, export, and import.
-Checks reject malformed payment markers and a marker before preparation 24.
+A save with all preparations complete and no supper payment opens the supper quest and rejects a waiting finale.
 
 ## Browser coverage
 

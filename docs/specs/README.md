@@ -70,9 +70,6 @@ Import rejects earlier formats.
 
 The optional preparation obstacle baseline and placement history use this format. A missing record receives no past preparation batches. It starts at the next paid preparation. `PRODUCT.md` owns the queue and placement rules.
 
-The optional `supperPayment` field also uses this format. A completed current save without the field retains its earned finale.
-An unfinished current save receives the field when preparation 24 is paid. `PRODUCT.md` owns the supper compatibility rule.
-
 Validate the full envelope and state before import. Adopt the candidate only after its write succeeds. If a write fails or the input is invalid, keep the previous save and offer recovery. Test fresh, partial, and completed current saves, malformed records, unsupported versions, oversized imports, and failed writes.
 
 Later features must coordinate their state versions and envelope versions. Individual specs do not reserve version numbers. Any future conversion needs explicit approval and a contract. Preserve current progress through reload, export, and import. Never repeat a preparation payment or a reward.

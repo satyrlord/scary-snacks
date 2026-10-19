@@ -103,13 +103,6 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`a f
   expect(await saved(page)).toEqual(initial);await page.reload();await opened(page);expect(await saved(page)).toEqual(initial);
 });
 
-test('a completed campaign without the supper payment marker keeps its ending and finale replay',async({page})=>{
-  const state=checkpoint(data.tasks.length);delete state.supperPayment;await start(page,state);
-  await expect(page.locator('#story')).toContainText('The table is ready.');await noMoreQuests(page);
-  await journal(page);await page.getByRole('button',{name:`Replay ${data.finale.title}`,exact:true}).click();
-  await readTo(page,'See the supper');await supperPainting(page);expect(await saved(page)).toEqual(state);
-});
-
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`the supper quest replay restores journal focus after Return, Escape, and Close at ${viewport.width}`,async({page})=>{
   const paid=act(checkpoint(data.tasks.length,{coins:supper.cost!}),{type:'deliverQuest',id:supper.id});
   await page.setViewportSize(viewport);await start(page,paid);await journal(page);

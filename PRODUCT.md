@@ -272,7 +272,7 @@ An import validates the envelope and the state of the save. The envelope is the 
 
 A current save has game state version 12 in envelope version 11 at the key `scary-snacks-save-v11`. The game supports only this format. Load reads only this key. If no current save exists, the game starts a new campaign.
 
-The optional `supperPayment` field has the value `true` when preparation 24 earns the supper quest. The supper then requires payment, and its completed quest ID records that payment. A current save with all preparations complete and no field retains its earned finale without another payment. Its waiting finale, saved line, journal replay, coins, and completed quests stay valid. A current save with unfinished preparations receives the field when preparation 24 is paid. This rule uses the current save format and does not convert earlier formats.
+The completed quest ID of the supper quest records the supper payment. A current save with all preparations complete and no supper payment shows the supper quest. It earns the finale only when the player pays for the supper.
 
 Saves in an earlier format stay unchanged. The game does not read them or convert them. Import rejects earlier formats. A new game uses the authored blocked layout. A save records the ID of the layout and the IDs of the cleared blockers. A layout ID must stay the same after release.
 

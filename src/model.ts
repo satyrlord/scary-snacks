@@ -89,8 +89,6 @@ export type GameState = {
   outputChoices: Record<string, string>;
   /** The delivered quests, in the order of delivery. */
   completedQuests: string[];
-  /** The last preparation requires the supper payment. A completed save without this marker keeps its earned finale. */
-  supperPayment?: true;
   layoutId: string; resolvedObstacles: string[];
   /** Completed preparations at adoption, and permanent placement history. Missing records do not add past batches. */
   preparationObstacles?: { start: number; placed: { id: string; position: number }[] };
@@ -195,9 +193,9 @@ export function resolveQuests(state: GameState, data: GameData): QuestView[] {
 }
 /** The quest whose payment earns the finale. */
 export const supperQuest = (data: GameData) => data.quests.find(quest => quest.cost !== undefined);
-/** A completed save without the payment marker keeps the finale that its last preparation earned. */
-export function supperComplete(state: Pick<GameState, 'taskIndex' | 'completedQuests' | 'supperPayment'>, data: GameData): boolean {
-  return state.completedQuests.includes(supperQuest(data)?.id ?? '') || (state.taskIndex === data.tasks.length && state.supperPayment === undefined);
+/** The supper is paid when its quest is delivered. */
+export function supperComplete(state: Pick<GameState, 'completedQuests'>, data: GameData): boolean {
+  return state.completedQuests.includes(supperQuest(data)?.id ?? '');
 }
 /** The quests that the preparation at this index needs: every quest that opens before it, except the supper and the recurring quests. */
 export function requiredQuests(taskIndex: number, data: GameData): Quest[] {
@@ -289,7 +287,7 @@ export function deliveriesSince(state: Pick<GameState, 'completedQuests'>, id: s
   return at === -1 ? -1 : state.completedQuests.length - 1 - at;
 }
 /** The scenes that the completed preparations and quests have earned. A save can hold only these as pending scenes. */
-export function earnedScenes(state: Pick<GameState, 'taskIndex' | 'completedQuests' | 'decorations' | 'supperPayment'>, data: GameData): string[] {
+export function earnedScenes(state: Pick<GameState, 'taskIndex' | 'completedQuests' | 'decorations'>, data: GameData): string[] {
   return [...data.tasks.slice(0, state.taskIndex).map(task => task.id),
     ...state.completedQuests.filter(id => data.quests.some(quest => quest.id === id && quest.completion.length > 0)),
     ...resolveChapters(state, data).filter(view => view.status === 'complete').map(view => view.chapter.id),

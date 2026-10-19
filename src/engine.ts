@@ -59,7 +59,6 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
     if (!Array.isArray(state.board) || state.board.length !== data.board.columns * data.board.rows) return false;
     if (!integer(state.coins)) return false;
     if (!integer(state.taskIndex, 0, data.tasks.length)) return false;
-    if (state.supperPayment !== undefined && (state.supperPayment !== true || state.taskIndex !== data.tasks.length)) return false;
     const chains = availableChains(state, data);
     {
       // Pending scenes are unique and earned, and story scenes keep story order, so an imported save cannot open a later scene.
@@ -245,7 +244,6 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       }
       next.coins -= task.cost;
       next.taskIndex++;
-      if (next.taskIndex === data.tasks.length) next.supperPayment = true;
       next.decorations.push(task.id);
       // The payment queues the preparation scene, then the closing scene of a completed chapter, in the same change.
       next.pendingScenes.push(task.id);

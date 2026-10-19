@@ -121,8 +121,6 @@ test('the last preparation queues its scene and the chapter scene once, with no 
   const before = ready(checkpoint(23));
   const after = act(before, { type: 'task' });
   assert.deepEqual(after.pendingScenes.slice(-2), [data.tasks[23].id, 'chapter-6']);
-  assert.equal(before.supperPayment, undefined);
-  assert.equal(after.supperPayment, true);
   assert.equal(supperComplete(after, data), false);
   assert.equal(after.coins, before.coins - data.tasks[23].cost);
   assert.match(rejected(after, { type: 'task' }).message, /community supper is ready/);

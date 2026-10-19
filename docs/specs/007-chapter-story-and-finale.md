@@ -90,9 +90,7 @@ Spec 008 owns the saved line of a scene and the rules for reading preparation sc
 
 Validation accepts the closing scene of each complete chapter.
 After the payment of the supper quest, validation also accepts the finale.
-The optional `supperPayment` field follows the compatibility rule in `PRODUCT.md`.
-A completed current save without that field retains its earned finale without another payment.
-An unfinished current save receives the field when preparation 24 is paid.
+The completed quest ID of the supper quest records that payment.
 Each ID occurs once, and story scenes keep story order.
 Validation rejects unknown IDs and scenes that the saved progress did not earn.
 The same list holds the preparation scenes and the quest scenes of spec 008.

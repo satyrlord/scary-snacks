@@ -237,41 +237,20 @@ test('pending story scenes survive export, import, and reload', () => {
   }
 });
 
-test('completed saves without the supper payment marker keep their finale, coins, and saved scene line', () => {
-  const supper = supperQuest(data)!;
-  for (const pending of [false, true]) {
-    const complete = { ...checkpoint(24), coins: 0, pendingScenes: pending ? [data.finale.id] : [] };
-    delete complete.supperPayment;
-    if (pending) complete.sceneLines = { [data.finale.id]: 1 };
-    const bytes = envelope(complete), storage = memoryStorage([[SAVE_KEY, bytes]]);
-    const loaded = loadSave<GameState>(storage, validate);
-    assert.equal(loaded.status, 'loaded');
-    assert.deepEqual(loaded.state, complete);
-    assert.equal(storage.writes.length, 0);
-    assert.equal(supperComplete(loaded.state!, data), true);
-    assert.equal(resolveQuests(loaded.state!, data).find(view => view.quest.id === supper.id)!.status, 'complete');
-    assert.ok(resolveQuests(loaded.state!, data).every(view => view.status === 'complete' || (view.quest.repeat && view.status === 'locked')));
-    rejected(loaded.state!, { type: 'deliverQuest', id: supper.id });
-    const source = complete.board.findIndex(cell => cell?.code === 'generator_bakery');
-    const played = act(loaded.state!, { type: 'spawn', index: source });
-    assert.equal(played.coins, 0);
-    assert.equal(supperComplete(played, data), true);
-    assert.deepEqual(played.completedQuests, complete.completedQuests);
-    assert.equal(saveGame(storage, played, validate).ok, true);
-    assert.deepEqual(importSave(exportSave(played, validate), validate), played);
-    assert.deepEqual(loadSave(storage, validate).state, played);
-  }
-});
-
-test('the supper payment marker rejects malformed values and cannot occur before the last preparation', () => {
-  const complete = checkpoint(24);
-  assert.equal(complete.supperPayment, true);
-  assert.equal(supperComplete(complete, data), false);
-  for (const supperPayment of [false, null, 1, 'true', {}]) {
-    assert.equal(validate({ ...complete, supperPayment }), false);
-    assert.throws(() => importSave(envelope({ ...complete, supperPayment }), validate));
-  }
-  for (const count of [0, 23]) assert.equal(validate({ ...checkpoint(count), supperPayment: true }), false);
+test('a save with every preparation done and the supper unpaid loads with the supper quest open and no finale', () => {
+  const supper = supperQuest(data)!, complete = { ...checkpoint(24), coins: supper.cost! };
+  const storage = memoryStorage([[SAVE_KEY, envelope(complete)]]);
+  const loaded = loadSave<GameState>(storage, validate).state!;
+  assert.deepEqual(loaded, complete);
+  assert.equal(supperComplete(loaded, data), false);
+  assert.equal(resolveQuests(loaded, data).find(view => view.quest.id === supper.id)!.status, 'active');
+  assert.equal(validate({ ...complete, pendingScenes: [...complete.pendingScenes, data.finale.id] }), false);
+  const paid = act(loaded, { type: 'deliverQuest', id: supper.id });
+  assert.equal(paid.coins, 0);
+  assert.equal(supperComplete(paid, data), true);
+  assert.deepEqual(paid.pendingScenes.slice(-1), [data.finale.id]);
+  assert.equal(saveGame(storage, paid, validate).ok, true);
+  assert.deepEqual(loadSave(storage, validate).state, paid);
 });
 
 test('a current save with fields that the format does not define still loads and plays, and the next save keeps only the state field', () => {

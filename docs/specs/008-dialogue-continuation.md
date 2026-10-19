@@ -78,8 +78,7 @@ A save without a waiting entry for a scene treats that scene as read.
 - the ID of earned local news;
 - the arrival scene of an arrived regular;
 - the ID of a complete chapter;
-- the finale ID after the payment of the supper quest;
-- the finale ID in a completed current save without `supperPayment`, under the compatibility rule in `PRODUCT.md`.
+- the finale ID after the payment of the supper quest.
 
 Preparation scenes, chapter scenes, and the finale keep one story order.
 In that order, each chapter scene follows the four preparations of its chapter.
