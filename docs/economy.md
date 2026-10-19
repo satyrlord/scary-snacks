@@ -185,7 +185,7 @@ The campaign fixture is the play code in `tools/campaign-balance.ts`.
 The fixture plays a fresh game with one repeatable policy.
 The fixture pays each preparation when payment becomes available.
 Otherwise, the fixture delivers the first quest that has a ticket.
-The fixture makes each required dish from the highest available source output.
+The fixture makes each required dish from stage-one ingredients and merges.
 If the board is full, the fixture merges spare food: a pair, or a match for a blocked ingredient. A full board without such a merge is a deadlock, and the fixture fails.
 
 This check measures actions under that policy. This check does not establish a satisfactory human play experience.

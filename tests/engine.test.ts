@@ -1,15 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { currentTask, firstFreeBoardCell, questDeliveryCells, requiredQuests, resolveRooms, latestArea, roomPaintings, generatorOutputs, nextOutput } from '../src/model.ts';
+import { currentTask, firstFreeBoardCell, questDeliveryCells, requiredQuests, resolveRooms, latestArea, roomPaintings, generatorOutputs } from '../src/model.ts';
 import { createGame, validateGame, reduceGame } from '../src/engine.ts';
 import { dataProblems, roomProblems, generatorTierProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import { imageVariants } from '../tools/build-image-variants.ts';
 import type { Action, GameData, GameState, Quest } from '../src/model.ts';
-import { act, addOpenLayout, data, openGame, rejected, validate } from './support.ts';
+import { act, addOpenLayout, data, openGame, player, rejected, validate } from './support.ts';
 addOpenLayout();
-// Large funds and quests marked delivered isolate tiers, placement, and room art from the campaign effort.
+// Large funds and quests marked delivered isolate production, placement, and room art from the campaign effort.
 const funded = () => ({ ...openGame(), coins: 100000 });
 function withQuests(state: GameState, content = data) {
   const next = structuredClone(state);
@@ -80,7 +80,7 @@ test('generators have unlimited free output with no clock state', () => {
   assert.equal(state.coins, coins);
 });
 
-test('production tiers validate their chain, stage, unlock, and preparation order', () => {
+test('saved-choice milestones validate their chain, stage, unlock, and preparation order', () => {
   assert.deepEqual(generatorTierProblems(data), []);
   for (const tiers of [
     [{ chain: 'absent', stage: 2, after: 'task_12' }],
@@ -95,115 +95,67 @@ test('production tiers validate their chain, stage, unlock, and preparation orde
   assert.ok(generatorTierProblems(broken).length > 0);
 });
 
-test('paid production tiers change no items and keep the chosen outputs empty', () => {
+test('every source keeps its stage-one output through all preparations', () => {
   let state = funded();
-  for (let count = 1; count <= 20; count++) {
+  for (let count = 1; count <= 24; count++) {
     const before = withQuests(state);
     const result = reduceGame(before, { type: 'task' }, data);
     state = act(before, { type: 'task' });
-    const tier = count < 12 ? 1 : count < 20 ? 2 : 3;
-    assert.deepEqual(generatorOutputs(state, 'generator_bakery', data), Array.from({ length: tier }, (_, index) => `bakery_${index + 1}`));
+    for (const chain of data.chains) {
+      const source = `generator_${chain.id}`;
+      assert.deepEqual(generatorOutputs(state, source, data), state.board.some(cell => cell?.code === source) ? [`${chain.id}_1`] : []);
+    }
     assert.deepEqual(state.outputChoices, {});
-    if (count === 12 || count === 20) {
-      assert.deepEqual(state.board, before.board);
-      for (const chain of data.chains) assert.ok(result.message.includes(`The ${data.items[`generator_${chain.id}`].name} can now make ${data.items[`${chain.id}_${tier}`].name}.`));
-    } else assert.ok(!result.message.includes('can now make'));
+    assert.ok(!result.message.includes('can now make'));
+    if (count === 12 || count === 20) assert.deepEqual(state.board, before.board);
   }
+});
+
+test('a saved higher-output choice never changes production', () => {
+  let state = pay(funded(), 20);
+  state.outputChoices = { bakery: 'bakery_3' };
+  assert.equal(validateGame(state, data), true);
   const index = state.board.findIndex(cell => cell?.code === 'generator_bakery');
-  for (const output of ['bakery_3', 'bakery_2', 'bakery_1']) {
+  for (let count = 0; count < 2; count++) {
     const empty = firstFreeBoardCell(state, data);
-    state = act(state, { type: 'spawn', index, output });
-    assert.equal(state.board[empty]?.code, output);
-    assert.equal(state.outputChoices.bakery, output === 'bakery_1' ? undefined : output);
-    const repeated = firstFreeBoardCell(state, data);
     state = act(state, { type: 'spawn', index });
-    assert.equal(state.board[repeated]?.code, output);
+    assert.equal(state.board[empty]?.code, 'bakery_1');
+    assert.deepEqual(state.outputChoices, { bakery: 'bakery_3' });
   }
-});
-
-test('output choices survive moves and later upgrades while failed takes change nothing', () => {
-  let state = pay(funded(), 12);
-  state = act(state, { type: 'spawn', index: 1, output: 'bakery_2' });
-  state = act(state, { type: 'move', from: 1, to: firstFreeBoardCell(state, data) });
-  state = pay(state, 8);
-  assert.deepEqual(state.outputChoices, { bakery: 'bakery_2' });
-  const index = state.board.findIndex(cell => cell?.code === 'generator_bakery');
-  const empty = firstFreeBoardCell(state, data);
-  state = act(state, { type: 'spawn', index });
-  assert.equal(state.board[empty]?.code, 'bakery_2');
-  for (const output of ['bakery_4', 'warm_2', 'absent', '__proto__', null, 2]) {
-    // Some outputs are values that the Action type does not admit.
+  for (const output of ['bakery_1', 'bakery_2', 'bakery_3', 'warm_2', null, 2]) {
     const result = rejected(state, { type: 'spawn', index, output } as Action);
-    assert.equal(result.message, 'Choose an available output from this source.');
+    assert.equal(result.message, 'This source takes only its first ingredient.');
   }
-  rejected(state, { type: 'spawn', index: empty, output: 'bakery_3' });
   state = fillBoard(state);
-  rejected(state, { type: 'spawn', index, output: 'bakery_3' });
-  assert.deepEqual(state.outputChoices, { bakery: 'bakery_2' });
-  for (const count of [11, 19]) rejected(pay(funded(), count), { type: 'spawn', index: 1, output: `bakery_${count === 11 ? 2 : 3}` });
+  rejected(state, { type: 'spawn', index });
 });
 
-test('chosen outputs reject unknown, locked, cross-chain, base-stage, and unearned values', () => {
+test('saved output choices keep their former validation bounds', () => {
   for (const outputs of [null, [], 'bakery_2', { bakery: 'bakery_1' }, { bakery: 'bakery_2' }, { sweet: 'sweet_2' }, { absent: 'bakery_2' }, { bakery: '__proto__' }, { bakery: 'generator_bakery' }, { bakery: 'warm_2' }]) {
     assert.equal(validateGame({ ...openGame(), outputChoices: outputs }, data), false, JSON.stringify(outputs));
   }
   const { outputChoices: _choices, ...missing } = openGame();
   assert.equal(validateGame(missing, data), false);
+  assert.equal(validateGame({ ...pay(funded(), 11), outputChoices: { bakery: 'bakery_2' } }, data), false);
+  assert.equal(validateGame({ ...pay(funded(), 12), outputChoices: { bakery: 'bakery_2' } }, data), true);
+  assert.equal(validateGame({ ...pay(funded(), 19), outputChoices: { bakery: 'bakery_3' } }, data), false);
+  assert.equal(validateGame({ ...pay(funded(), 20), outputChoices: { bakery: 'bakery_3' } }, data), true);
 });
 
-test('lower-stage outputs stay available after upgrades and fill a duplicate requirement', () => {
-  for (const [count, stages] of [[12, 1], [20, 2]]) {
-    const upgraded = pay(funded(), count);
-    for (const chain of data.chains) for (let stage = 1; stage <= stages; stage++) {
-      let state = upgraded;
-      const code = `${chain.id}_${stage}`;
-      const index = state.board.findIndex(cell => cell?.code === `generator_${chain.id}`);
-      state = act(state, { type: 'spawn', index, output: code });
-      state = act(state, { type: 'spawn', index, output: code });
-      assert.ok(questDeliveryCells(state, questWith([{ item: code, quantity: 2 }]), data).every(cell => cell >= 0), code);
-    }
-  }
+test('higher-stage dishes still come from merges after late preparations', () => {
+  const game = player(pay(funded(), 20));
+  const item = game.produce('bakery_3');
+  assert.equal(game.state.board[item]?.code, 'bakery_3');
+  assert.deepEqual(game.state.outputChoices, {});
 });
 
-test('production upgrades need no board space', () => {
-  for (const count of [11, 19]) {
-    const state = fillBoard(pay(funded(), count));
-    const upgraded = pay(state);
-    assert.deepEqual(upgraded.board, state.board);
-    assert.equal(generatorOutputs(upgraded, 'generator_bakery', data).length, count === 11 ? 2 : 3);
-  }
-});
-
-test('a newly unlocked source uses the earned tier and starts with stage one selected', () => {
-  const early = structuredClone(data);
-  early.generatorTiers.find(tier => tier.chain === 'sweet' && tier.stage === 2)!.after = 'task_3';
-  assert.deepEqual(dataProblems(early), []);
-  const state = pay({ ...createGame(early), coins: 100000 }, 3, early);
-  assert.deepEqual(generatorOutputs(state, 'generator_sweet', early), ['sweet_1', 'sweet_2']);
-  const empty = firstFreeBoardCell(state, early);
-  const result = reduceGame(state, { type: 'spawn', index: state.board.findIndex(cell => cell?.code === 'generator_sweet') }, early);
+test('a newly unlocked source starts with stage one after its preparation', () => {
+  const state = pay({ ...createGame(data), coins: 100000 }, 6);
+  assert.deepEqual(generatorOutputs(state, 'generator_sweet', data), ['sweet_1']);
+  const empty = firstFreeBoardCell(state, data);
+  const result = reduceGame(state, { type: 'spawn', index: state.board.findIndex(cell => cell?.code === 'generator_sweet') }, data);
   assert.ok(result.ok);
   assert.equal(result.state.board[empty]?.code, 'sweet_1');
-  assert.deepEqual(result.state.outputChoices, {});
-});
-
-test('the next output that the interface names is the output that one tap takes', () => {
-  let state = pay(funded(), 18);
-  const index = () => state.board.findIndex(cell => cell?.code === 'generator_bakery');
-  const taps = (count: number) => {
-    for (let tap = 0; tap < count; tap++) {
-      const named = nextOutput(state, 'generator_bakery', data);
-      const empty = firstFreeBoardCell(state, data);
-      state = act(state, { type: 'spawn', index: index() });
-      assert.equal(state.board[empty]?.code, named);
-    }
-  };
-  taps(2);
-  assert.equal(nextOutput(state, 'generator_bakery', data), 'bakery_1');
-  state = act(state, { type: 'spawn', index: index(), output: 'bakery_2' });
-  taps(2);
-  assert.equal(nextOutput(state, 'generator_bakery', data), 'bakery_2');
-  assert.equal(nextOutput(state, 'bakery_1', data), null);
 });
 
 test('matching ingredients merge and discover the next stage, and final dishes do not merge', () => {

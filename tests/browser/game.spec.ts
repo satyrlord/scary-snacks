@@ -12,7 +12,7 @@ function beforeFirstPreparation(){
   let state=createGame(data);
   const produce=(code: string): number=>{
     const item=data.items[code],source=`generator_${item.chain}`;
-    if(generatorOutputs(state,source,data).includes(code)){const empty=firstFreeBoardCell(state,data);expect(empty).toBeGreaterThanOrEqual(0);state=act(state,{type:'spawn',index:state.board.findIndex(cell=>cell?.code===source),output:code});return empty;}
+    if(generatorOutputs(state,source,data).includes(code)){const empty=firstFreeBoardCell(state,data);expect(empty).toBeGreaterThanOrEqual(0);state=act(state,{type:'spawn',index:state.board.findIndex(cell=>cell?.code===source)});return empty;}
     const lower=Object.values(data.items).find(candidate=>candidate.next===code)!;const first=produce(lower.id),second=produce(lower.id);state=act(state,{type:'move',from:first,to:second});return second;
   };
   for(;;){

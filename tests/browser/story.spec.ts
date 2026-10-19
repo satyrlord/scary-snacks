@@ -103,6 +103,22 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`a f
   expect(await saved(page)).toEqual(initial);await page.reload();await opened(page);expect(await saved(page)).toEqual(initial);
 });
 
+for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`after the supper payment the courtyard shows the supper painting without finishes, also after a reload, at ${viewport.width}`,async({page},testInfo)=>{
+  await page.setViewportSize(viewport);await start(page,{...checkpoint(data.tasks.length,{coins:supper.cost!}),decorationChoices:{textiles:'blue'}});
+  await expect.poll(()=>painting(page)).toMatch(/^front-room-24-/);
+  await page.locator(`#tickets .ticket[data-quest="${supper.id}"] .deliver-button`).click();
+  await expect(scene(page,data.finale.title)).toBeVisible();await page.keyboard.press('Escape');
+  const supperRoom=async()=>{
+    await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','finale-supper');await expect.poll(()=>painting(page)).toMatch(/^finale-supper-/);
+    await expect(page.getByRole('button',{name:'Courtyard',exact:true})).toHaveAttribute('aria-pressed','true');await expect(page.locator('#room-pin')).toBeHidden();
+    await expect(page.locator('#room-finishes .room-finish')).toHaveCount(0);await expect(page.locator('#room-decorations .decoration-layer')).toHaveCount(0);
+  };
+  await supperRoom();await page.screenshot({path:testInfo.outputPath('supper-room.png')});
+  await page.reload();await opened(page);await supperRoom();
+  if(viewport.width<1024)await page.locator('#drawer-handle').click();
+  await page.getByRole('button',{name:'Front room',exact:true}).click();await expect.poll(()=>painting(page)).toMatch(/^front-room-24-/);
+});
+
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`the supper quest replay restores journal focus after Return, Escape, and Close at ${viewport.width}`,async({page})=>{
   const paid=act(checkpoint(data.tasks.length,{coins:supper.cost!}),{type:'deliverQuest',id:supper.id});
   await page.setViewportSize(viewport);await start(page,paid);await journal(page);

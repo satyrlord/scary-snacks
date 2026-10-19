@@ -1,9 +1,8 @@
 // The dishes: the recipe book, and the item dialog that tells how to get a dish and points at the next step on the board.
-import { generatorOutputs } from './model.ts';
 import { $, button, element, pulse, status, svg } from './dom.ts';
 import { coveredDish, food } from './art.ts';
 import { modal, showModal } from './dialog.ts';
-import { chosenOutput, data, definition, itemName, matchingBlocker, onReplace, redraw, select, sourceOf, state } from './session.ts';
+import { data, definition, itemName, matchingBlocker, onReplace, redraw, select, sourceOf, state } from './session.ts';
 
 // The dishes discovered since the recipe book was last opened.
 let freshDishes = 0;
@@ -34,8 +33,7 @@ function detailContent(code: string) {
   const onBoard = state.board.filter(cell => cell?.code === code).length;
   const unlocked = state.board.some(cell => cell?.code === source.id);
   const content = document.createDocumentFragment();
-  const direct = generatorOutputs(state,source.id,data).includes(code) && (def.stage > 1 || chosenOutput(source.id) !== code);
-  content.append(food(code), element('p','item-how', direct ? `Select the ${source.name}, then choose Take ${name}.` : def.stage > 1 ? `Merge two ${itemName(`${def.chain}_${def.stage - 1}`)} to make ${name}.` : `Tap the ${source.name} to take ${name}.`));
+  content.append(food(code), element('p','item-how', def.stage > 1 ? `Merge two ${itemName(`${def.chain}_${def.stage - 1}`)} to make ${name}.` : `Tap the ${source.name} to take ${name}.`));
   if (!unlocked) {
     const task = data.tasks.find(value => value.unlock === def.chain);
     content.append(element('p','',`The ${source.name} arrives with ${task ? `the preparation “${task.title}”` : 'a later preparation'}.`), chainOf(code));
@@ -60,8 +58,7 @@ function showWay(code: string) {
     if (pair.length && blocker) return point([pair[0], blocker.position], `Tap the blocked ${itemName(id)} to merge and clear it.`);
   }
   const source = sourceOf(def.chain), at = cells(source.id);
-  const output = generatorOutputs(state,source.id,data).filter(id => definition(id).stage <= def.stage).at(-1)!;
-  if (at.length) point(at, `Use Take ${itemName(output)} on the ${source.name}.`);
+  if (at.length) point(at, `Use Take ${itemName(source.generator!.outputs[0])} on the ${source.name}.`);
 }
 export function showItem(code: string, back?: () => void) { const content=element('div','item-detail');content.append(detailContent(code));showModal(itemName(code),content,undefined,back); }
 /** Undiscovered dishes stay covered, so the book never spoils what the kitchen has not made yet. */

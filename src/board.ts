@@ -1,10 +1,10 @@
 // The merge board: its spaces and blockers, the selected item and its actions under the board, and tap, drag, and keyboard play.
-import { freeBoardCells, generatorOutputs, pendingPreparationObstacles, unresolvedObstacle } from './model.ts';
+import { freeBoardCells, pendingPreparationObstacles, unresolvedObstacle } from './model.ts';
 import { $, button, element, names, pulse, status } from './dom.ts';
 import { blockerMark, clutterArt, crossMark, food, sourceMark } from './art.ts';
 import { activeQuests } from './tickets.ts';
 import { fitPin } from './room.ts';
-import { act, character, chosenOutput, data, definition, itemName, matchingBlocker, onReplace, redraw, select, selected, sourceOutput, state } from './session.ts';
+import { act, character, data, definition, itemName, matchingBlocker, onReplace, redraw, select, selected, sourceOutput, state } from './session.ts';
 import { onMotionResume, phone } from './preferences.ts';
 
 // Mara's note when nothing is selected: the move gesture, in the same words as the other board guidance.
@@ -17,7 +17,7 @@ onMotionResume(() => { for(const cell of document.querySelectorAll('.cell'))cell
 /** Mara's note for a selected item, which the status region announces. On phones the note leaves out the name, which the selection strip shows. */
 function selectionLine(code: string) {
   const def = definition(code), name = phone.matches ? '' : `${itemName(code)}: `;
-  const line = def.generator ? `tap it to take more ${itemName(chosenOutput(code))}.` : def.next ? 'tap another to merge, or an empty space to move it.' : 'a final dish. Deliver it, or tap an empty space to move it.';
+  const line = def.generator ? `tap it to take more ${sourceOutput(code)}.` : def.next ? 'tap another to merge, or an empty space to move it.' : 'a final dish. Deliver it, or tap an empty space to move it.';
   return name ? name + line : line[0].toUpperCase() + line.slice(1);
 }
 /** Mark movable matches for the selected blocked ingredient. */
@@ -117,8 +117,6 @@ export function renderDetail() {
   container.classList.toggle('blocker-help', !!obstacle);
   container.setAttribute('aria-label', obstacle ? 'Selected blocker' : 'Selected item');
   const cell = selected !== null ? state.board[selected] : null;
-  const outputs = cell && definition(cell.code).generator ? generatorOutputs(state,cell.code,data) : [];
-  container.classList.toggle('multiple-outputs', outputs.length > 1);
   if (obstacle) {
     const copy = element('div','blocker-copy'), rule = element('p','blocker-rule',
       `Merge another ${itemName(obstacle.ingredient)} into this blocked space.`);
@@ -133,18 +131,17 @@ export function renderDetail() {
   head.append(food(cell.code), words);
   const actions = element('div','item-actions');
   const takes = element('div','take-actions');
-  for (const output of outputs) {
-    const take = button('', 'primary-button take-button', () => act({type:'spawn',index:at,output}));
+  if (def.generator) {
+    const output = def.generator.outputs[0];
+    const take = button('', 'primary-button take-button', () => act({type:'spawn',index:at}));
     // Phones show only the output name in a compact row; the accessible name keeps the verb.
     const label = element('span','take-label'); label.append(element('span','take-word','Take '), itemName(output));
     take.append(food(output), label); take.setAttribute('aria-label', `Take ${itemName(output)}`);
-    take.setAttribute('aria-pressed', String(output === chosenOutput(cell.code)));
     takes.append(take);
   }
-  if (outputs.length === 1) actions.append(takes);
+  if (def.generator) actions.append(takes);
   actions.append(clearSelectionButton());
   container.append(head, actions);
-  if (outputs.length > 1) container.append(takes);
   const title = words.firstElementChild as HTMLElement;
   words.classList.toggle('long-name', phone.matches && title.offsetHeight > parseFloat(getComputedStyle(title).lineHeight) * 1.5);
   fitPin();
@@ -159,7 +156,7 @@ function findMatch() {
     if(to>=0){select(from);redraw();pulse([to]);status(`Tap the other ${itemName(cell.code)} to merge them.`);return;}
   }
   const index=state.board.findIndex(cell=>cell&&definition(cell.code).generator);
-  if(index>=0){const code=state.board[index]!.code;select(index);redraw();status(`No matches yet. Tap the ${itemName(code)} to take ${itemName(chosenOutput(code))}.`);return;}
+  if(index>=0){const code=state.board[index]!.code;select(index);redraw();status(`No matches yet. Tap the ${itemName(code)} to take ${sourceOutput(code)}.`);return;}
   status('No matches yet.');
 }
 function cancelDrag() { dragging?.ghost?.remove();dragging=null; }

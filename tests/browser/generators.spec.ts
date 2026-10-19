@@ -4,151 +4,132 @@ import { unresolvedObstacle } from '../../src/model.ts';
 import type { GameState } from '../../src/model.ts';
 import { appearance, checkpoint, data, saved, start } from './support.ts';
 
-/** The game after count preparations, ready to pay the next one. Every open quest is delivered, so no ticket offers a dish. */
-const afterPreparations=(count: number)=>checkpoint(count,{ready:true});
-const take=(page: Page,code: string)=>page.getByRole('button',{name:`Take ${data.items[code].name}`,exact:true});
-const source=(page: Page,state: GameState,chain='bakery')=>page.locator(`[data-cell="${state.board.findIndex(cell=>cell?.code===`generator_${chain}`)}"]`);
+const afterPreparations = (count: number) => checkpoint(count, { ready: true });
+const source = (page: Page, state: GameState, chain = 'bakery') =>
+  page.locator(`[data-cell="${state.board.findIndex(cell => cell?.code === `generator_${chain}`)}"]`);
+const take = (page: Page, chain = 'bakery') =>
+  page.getByRole('button', { name: `Take ${data.items[`${chain}_1`].name}`, exact: true });
 
-for(const [preparations,stage] of [[12,2],[20,3]])test(`preparation ${preparations} names the new outputs only after payment`,async({page})=>{
-  await page.emulateMedia({reducedMotion:'reduce'});
-  const initial=afterPreparations(preparations-1);await start(page,initial);await source(page,initial).click();
-  await expect(page.locator('#item-detail .take-button')).toHaveCount(stage-1);
-  const covered=page.locator('#story,#status,#item-detail');
-  for(const chain of data.chains){
-    const name=data.items[`${chain.id}_${stage}`].name;
-    await expect(take(page,`${chain.id}_${stage}`)).toHaveCount(0);
-    expect((await covered.allTextContents()).join(' ')).not.toContain(name);
+for (const count of [0, 12, 20, 24]) test(`sources give only stage-one ingredients after ${count} preparations`, async ({ page }) => {
+  const initial = afterPreparations(count);
+  await start(page, initial);
+  await source(page, initial).click();
+  await expect(page.locator('#item-detail .take-button')).toHaveCount(1);
+  await expect(take(page)).toBeVisible();
+  await expect(page.locator('#item-detail')).not.toContainText(data.items.bakery_2.name);
+  const before = await saved(page);
+  await take(page).click();
+  const after = await saved(page);
+  expect(after.board.filter(cell => cell?.code === 'bakery_1')).toHaveLength(before.board.filter(cell => cell?.code === 'bakery_1').length + 1);
+  expect(after.board.filter(cell => cell?.code === 'bakery_2')).toHaveLength(before.board.filter(cell => cell?.code === 'bakery_2').length);
+  expect(after.outputChoices).toEqual(before.outputChoices);
+});
+
+for (const count of [12, 20]) test(`preparation ${count} does not announce a new source output`, async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const initial = afterPreparations(count - 1);
+  await start(page, initial);
+  await page.locator('#story').getByRole('button', { name: /^Pay / }).click();
+  await expect(page.locator('.completion-message')).not.toContainText('can now make');
+  expect((await saved(page)).taskIndex).toBe(count);
+});
+
+test('keyboard Take produces stage one repeatedly and keeps focus', async ({ page }) => {
+  const initial = afterPreparations(20);
+  await start(page, initial);
+  await appearance(page, 'light');
+  await source(page, initial).click();
+  const button = take(page);
+  const before = await saved(page);
+  await button.focus();
+  for (const key of ['Enter', 'Space']) {
+    await page.keyboard.press(key);
+    await expect(button).toBeFocused();
+    await expect(button).toHaveCSS('outline-width', '3px');
   }
-  const before=await saved(page);await page.locator('#story').getByRole('button',{name:/^Pay /}).click();
-  for(const chain of data.chains){
-    await expect(page.locator('.completion-message')).toContainText(`The ${data.items[`generator_${chain.id}`].name} can now make ${data.items[`${chain.id}_${stage}`].name}.`);
-  }
-  const paid=await saved(page);expect(paid.taskIndex).toBe(preparations);
-  expect(paid.board).toEqual(before.board);expect(paid.outputChoices).toEqual(before.outputChoices);
-  await page.keyboard.press('Escape');await expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done');
-  // Both preparations end a chapter, so its closing scene follows the reveal.
-  await expect(page.getByRole('dialog',{name:/^Chapter \d complete: /})).toBeVisible();await page.keyboard.press('Escape');
-  await source(page,paid).click();await expect(page.locator('#item-detail .take-button')).toHaveCount(stage);
-  await expect(take(page,`bakery_${stage}`)).toBeVisible();
-  for(let lower=1;lower<=stage;lower++)await expect(take(page,`bakery_${lower}`).locator('.food')).toBeVisible();
+  const after = await saved(page);
+  expect(after.board.filter(cell => cell?.code === 'bakery_1')).toHaveLength(before.board.filter(cell => cell?.code === 'bakery_1').length + 2);
+  expect(after.outputChoices).toEqual({});
 });
 
-test('keyboard takes keep focus and can return to a lower output',async({page})=>{
-  const initial=afterPreparations(20);await start(page,initial);await appearance(page,'light');await source(page,initial).click();
-  const before=await saved(page);const button=take(page,'bakery_3');await button.focus();
-  for(const key of ['Enter','Space']){
-    await page.keyboard.press(key);await expect(button).toBeFocused();await expect(button).toHaveAttribute('aria-pressed','true');
-    await expect(button).toHaveCSS('outline-width','3px');await expect(button).toHaveCSS('outline-offset','3px');
-    await expect(button).toHaveCSS('outline-color','rgb(39, 109, 108)');
-    // The chosen ring stays visible under the focus ring.
-    await expect(button).toHaveCSS('box-shadow',/4px inset$/);
-  }
-  const higher=await saved(page);expect(higher.outputChoices).toEqual({bakery:'bakery_3'});
-  expect(higher.board.filter(cell=>cell?.code==='bakery_3')).toHaveLength(before.board.filter(cell=>cell?.code==='bakery_3').length+2);
-  await take(page,'bakery_1').focus();await page.keyboard.press('Enter');await expect(take(page,'bakery_1')).toBeFocused();
-  expect((await saved(page)).outputChoices).toEqual({});await expect(take(page,'bakery_3')).toHaveAttribute('aria-pressed','false');
-  await expect(take(page,'bakery_3')).toHaveCSS('box-shadow','none');
-});
-
-for(const viewport of [{width:360,height:740},{width:390,height:844},{width:412,height:915}])test(`a second tap on an upgraded source takes again at ${viewport.width} by ${viewport.height} because the board stays still`,async({page})=>{
-  await page.setViewportSize(viewport);await page.emulateMedia({reducedMotion:'reduce'});
-  const initial=afterPreparations(20);await start(page,initial);
-  const cell=source(page,initial,'produce'),before=(await cell.boundingBox())!,x=before.x+before.width/2,y=before.y+before.height/2;
-  await page.mouse.click(x,y);await expect(page.locator('#item-detail .take-button')).toHaveCount(3);
-  expect(await cell.boundingBox()).toEqual(before);
-  await page.mouse.click(x,y);const after=await saved(page);
-  expect(after.board.findIndex(value=>value?.code==='generator_produce')).toBe(initial.board.findIndex(value=>value?.code==='generator_produce'));
-  expect(after.board.filter(Boolean)).toHaveLength(initial.board.filter(Boolean).length+2);
-});
-
-test('a pointer choice survives reload',async({page})=>{
-  const initial=afterPreparations(20);await start(page,initial);await source(page,initial).click();await take(page,'bakery_2').click();
-  const chosen=await saved(page);expect(chosen.outputChoices).toEqual({bakery:'bakery_2'});
-  await page.reload();const count=chosen.board.filter(cell=>cell?.code==='bakery_2').length;await source(page,chosen).click();
-  const taken=await saved(page);expect(taken.board.filter(cell=>cell?.code==='bakery_2')).toHaveLength(count+1);
-  await expect(take(page,'bakery_2')).toHaveAttribute('aria-pressed','true');expect(taken.outputChoices).toEqual(chosen.outputChoices);
-  await page.reload();expect(await saved(page)).toEqual(taken);
-});
-
-test('a full board rejects another output without changing the saved choice',async({page})=>{
-  const initial=afterPreparations(20);initial.outputChoices={bakery:'bakery_2'};
-  initial.board=initial.board.map((cell,index)=>cell??(unresolvedObstacle(initial,index,data)?null:{code:'bakery_1'}));await start(page,initial);await source(page,initial).click();
-  await take(page,'bakery_3').click();await expect(page.locator('#status')).toContainText('The board is full.');
-  expect(await saved(page)).toEqual(initial);await expect(take(page,'bakery_2')).toHaveAttribute('aria-pressed','true');
-  await expect(take(page,'bakery_3')).toHaveAttribute('aria-pressed','false');
-});
-
-
-test('touch takes the chosen output with reduced motion',async({browser,baseURL})=>{
-  const context=await browser.newContext({baseURL,viewport:{width:390,height:844},hasTouch:true,isMobile:true,reducedMotion:'reduce'});
-  try{
-    const page=await context.newPage();const initial=afterPreparations(20);await start(page,initial);
-    await source(page,initial).tap();await take(page,'bakery_3').tap();const before=await saved(page);await source(page,before).tap();
-    const after=await saved(page);expect(after.board.filter(cell=>cell?.code==='bakery_3')).toHaveLength(before.board.filter(cell=>cell?.code==='bakery_3').length+1);
-    await expect(take(page,'bakery_3')).toHaveAttribute('aria-pressed','true');
-    expect(await page.locator('#board').evaluate(board=>board.getAnimations({subtree:true}).length)).toBe(0);
-  }finally{await context.close();}
-});
-
-for(const mode of ['Light','Dark'])for(const viewport of [{width:360,height:740},{width:390,height:800},{width:390,height:844},{width:1440,height:900}]){
-  test(`three output controls fit every source in ${mode} at ${viewport.width} by ${viewport.height}`,async({page},testInfo)=>{
-    await page.setViewportSize(viewport);await page.emulateMedia({reducedMotion:'reduce'});
-    const initial=afterPreparations(20);await start(page,initial);await appearance(page,mode);
-    for(const chain of data.chains){
-      await page.locator('[data-cell="0"]').focus();await page.keyboard.press('Escape');await source(page,initial,chain.id).click();
-      const buttons=page.locator('#item-detail .take-button');await expect(buttons).toHaveCount(3);
-      if(viewport.width===360||chain.id===data.chains[0].id)await page.screenshot({path:testInfo.outputPath(`${chain.id}-${mode.toLowerCase()}-${viewport.width}x${viewport.height}.png`)});
-      const detail=(await page.locator('#item-detail').boundingBox())!;
-      const board=(await page.locator('#board').boundingBox())!;expect(detail.y).toBeGreaterThanOrEqual(board.y+board.height-1);
-      if(await page.locator('#room-pin').isVisible()){
-        const pin=(await page.locator('#room-pin').boundingBox())!,areas=(await page.locator('#area-switch').boundingBox())!;
-        expect(pin.x<areas.x+areas.width&&areas.x<pin.x+pin.width&&pin.y<areas.y+areas.height&&areas.y<pin.y+pin.height,JSON.stringify({pin,areas})).toBe(false);
-      }
-      const boxes=[];
-      for(let stage=1;stage<=3;stage++){
-        const button=take(page,`${chain.id}_${stage}`);await expect(button).toBeVisible();await expect(button.locator('.food')).toBeVisible();
-        const box=(await button.boundingBox())!;boxes.push(box);
-        expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);
-        expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(viewport.width);
-        expect(box.x+box.width).toBeLessThanOrEqual(detail.x+detail.width+1);
-        expect(box.y+box.height).toBeLessThanOrEqual(detail.y+detail.height+1);
-        const label=button.locator('.take-label'),name=data.items[`${chain.id}_${stage}`].name;
-        expect(await label.innerText()).toBe(viewport.width<1024?name:`Take ${name}`);
-        expect(await label.evaluate(element=>element.scrollWidth<=element.clientWidth+1&&element.scrollHeight<=element.clientHeight+1)).toBe(true);
-        // The label stays inside the 4px chosen ring.
-        const inner=(await label.boundingBox())!;expect(inner.y).toBeGreaterThanOrEqual(box.y+4);expect(inner.y+inner.height).toBeLessThanOrEqual(box.y+box.height-4);
-      }
-      for(let index=1;index<boxes.length;index++)expect(boxes[index].x).toBeGreaterThanOrEqual(boxes[index-1].x+boxes[index-1].width);
-      // Phones keep the outputs and Clear in one row; wider screens put the outputs in a second row.
-      for(const action of await page.locator('#item-detail .item-actions button').all()){
-        const box=(await action.boundingBox())!;
-        if(viewport.width<1024){expect(box.x).toBeGreaterThanOrEqual(boxes[2].x+boxes[2].width);expect(box.y).toBeLessThan(boxes[0].y+boxes[0].height);expect(box.y+box.height).toBeGreaterThan(boxes[0].y);}
-        else expect(box.y+box.height).toBeLessThanOrEqual(boxes[0].y+1);
-      }
-      if(viewport.width<1024){
-        const bar=(await page.locator('.phone-bar').boundingBox())!;expect(detail.y+detail.height).toBeLessThanOrEqual(bar.y+1);
-        expect((await page.locator('[data-cell="0"]').boundingBox())!.width).toBeGreaterThanOrEqual(43.5);
-      }
-      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&document.documentElement.scrollHeight<=innerHeight)).toBe(true);
-    }
+for (const viewport of [{ width: 360, height: 740 }, { width: 390, height: 844 }, { width: 412, height: 915 }]) {
+  test(`repeated source taps keep the board still at ${viewport.width} by ${viewport.height}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const initial = afterPreparations(20);
+    await start(page, initial);
+    const cell = source(page, initial, 'produce');
+    const before = (await cell.boundingBox())!;
+    const x = before.x + before.width / 2, y = before.y + before.height / 2;
+    await page.mouse.click(x, y);
+    await expect(page.locator('#item-detail .take-button')).toHaveCount(1);
+    expect(await cell.boundingBox()).toEqual(before);
+    await page.mouse.click(x, y);
+    const after = await saved(page);
+    expect(after.board.filter(cell => cell?.code === 'produce_1')).toHaveLength(initial.board.filter(cell => cell?.code === 'produce_1').length + 2);
   });
 }
 
-for(const width of [320,360,390])test(`stage one source names and controls fit at ${width}px`,async({page},testInfo)=>{
-  await page.setViewportSize({width,height:740});await page.emulateMedia({reducedMotion:'reduce'});
-  const initial=afterPreparations(6);await start(page,initial);
-  for(const chain of data.chains){
-    await page.locator('[data-cell="0"]').focus();await page.keyboard.press('Escape');await source(page,initial,chain.id).click();
-    await page.screenshot({path:testInfo.outputPath(`${chain.id}-stage-one-${width}.png`)});
-    const name=page.locator('#item-detail h3');await expect(name).toHaveText(data.items[`generator_${chain.id}`].name);
-    expect(await name.evaluate(element=>element.scrollWidth<=element.clientWidth+1&&element.scrollHeight<=element.clientHeight+1)).toBe(true);
-    await expect(page.locator('#item-detail .take-button')).toHaveCount(1);
-    const detail=(await page.locator('#item-detail').boundingBox())!;
-    for(const action of await page.locator('#item-detail button').all()){
-      const box=(await action.boundingBox())!;expect(box.x).toBeGreaterThanOrEqual(detail.x-1);
-      expect(box.x+box.width).toBeLessThanOrEqual(detail.x+detail.width+1);
-      expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);
-    }
-    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-  }
+test('a saved higher-output choice stays valid but taps take stage one', async ({ page }) => {
+  const initial = afterPreparations(20);
+  initial.outputChoices = { bakery: 'bakery_3' };
+  await start(page, initial);
+  await source(page, initial).click();
+  await take(page).click();
+  const after = await saved(page);
+  expect(after.outputChoices).toEqual(initial.outputChoices);
+  expect(after.board.filter(cell => cell?.code === 'bakery_1')).toHaveLength(initial.board.filter(cell => cell?.code === 'bakery_1').length + 2);
+  await page.reload();
+  await source(page, after).click();
+  expect((await saved(page)).board.filter(cell => cell?.code === 'bakery_1')).toHaveLength(after.board.filter(cell => cell?.code === 'bakery_1').length + 1);
 });
+
+test('a full board cannot take another ingredient or change a saved choice', async ({ page }) => {
+  const initial = afterPreparations(20);
+  initial.outputChoices = { bakery: 'bakery_2' };
+  initial.board = initial.board.map((cell, index) => cell ?? (unresolvedObstacle(initial, index, data) ? null : { code: 'bakery_1' }));
+  await start(page, initial);
+  await source(page, initial).click();
+  await take(page).click();
+  await expect(page.locator('#status')).toContainText('The board is full.');
+  expect(await saved(page)).toEqual(initial);
+});
+
+test('touch takes stage one with reduced motion', async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ baseURL, viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
+  try {
+    const page = await context.newPage();
+    const initial = afterPreparations(20);
+    await start(page, initial);
+    await source(page, initial).tap();
+    const before = await saved(page);
+    await source(page, before).tap();
+    const after = await saved(page);
+    expect(after.board.filter(cell => cell?.code === 'bakery_1')).toHaveLength(before.board.filter(cell => cell?.code === 'bakery_1').length + 1);
+    expect(await page.locator('#board').evaluate(board => board.getAnimations({ subtree: true }).length)).toBe(0);
+  } finally { await context.close(); }
+});
+
+for (const mode of ['Light', 'Dark']) for (const viewport of [{ width: 360, height: 740 }, { width: 390, height: 844 }, { width: 1440, height: 900 }]) {
+  test(`one Take control fits every source in ${mode} at ${viewport.width} by ${viewport.height}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    const initial = afterPreparations(20);
+    await start(page, initial);
+    await appearance(page, mode);
+    for (const chain of data.chains) {
+      await page.locator('[data-cell="0"]').focus();
+      await page.keyboard.press('Escape');
+      await source(page, initial, chain.id).click();
+      const buttons = page.locator('#item-detail .take-button');
+      await expect(buttons).toHaveCount(1);
+      await expect(take(page, chain.id)).toBeVisible();
+      const detail = (await page.locator('#item-detail').boundingBox())!;
+      const button = (await buttons.boundingBox())!;
+      expect(button.width).toBeGreaterThanOrEqual(44);
+      expect(button.height).toBeGreaterThanOrEqual(44);
+      expect(button.x).toBeGreaterThanOrEqual(detail.x - 1);
+      expect(button.x + button.width).toBeLessThanOrEqual(detail.x + detail.width + 1);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight)).toBe(true);
+    }
+  });
+}

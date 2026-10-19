@@ -42,7 +42,7 @@ The book covers dishes only. It does not hide a source instruction or a merge in
 Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
 Use the `discovered` set. Do not save a mark or a count.
 Keep valid discoveries through save and reload.
-Generator tiers from [003](003-generator-progression.md) do not erase discoveries.
+Sources from [003](003-generator-progression.md) do not erase discoveries. Higher-stage dishes remain discovered after a merge.
 
 Validation accepts a discovery only for a known item of an open chain.
 Each movable item on the board must be discovered.

@@ -1,7 +1,7 @@
 // The room: the painting of an area as the completed preparations leave it, the reveal of a paid change, the area switch,
 // the decoration finishes, the kitchen drawer over the room, and the cats.
-import { decorationUnlocked, latestArea, resolveDecorations, resolveRooms } from './model.ts';
-import type { DecorationSlot, DecorationVariant, RoomView, Task } from './model.ts';
+import { decorationUnlocked, latestArea, resolveDecorations, resolveRooms, supperComplete } from './model.ts';
+import type { DecorationSlot, DecorationVariant, RoomState, RoomView, Task } from './model.ts';
 import { $, button, element, status, svg } from './dom.ts';
 import { swapMark } from './art.ts';
 import { apply, changeGame, data, onReplace, state } from './session.ts';
@@ -16,10 +16,16 @@ const ROOM_SIZES = '(max-width: 1023px) 100vw, max(50vw, 75vh)';
 let viewArea = '', held: { task: Task; scene: string | null } | null = null, revealToken = 0, paintingToken = 0, preloaded: HTMLPictureElement | null = null, swipe = 0;
 export let lowered = false;
 let catAsleep = false;
+/** The text alternative of the supper painting, which names each guest. */
+export const SUPPER_PICTURE='The supper in the courtyard under the string lights. Mara stands at the long table with a steaming pot. Ilie, Costel, Sorin and Victor sit on one bench, and Eszter, Ana, Ileana and Bran on the other. Cătălina and Cezar share the small table by the lantern, and two black cats wait for scraps.';
+// After the supper, the courtyard shows the supper painting with no finishes, because the guests sit where the finishes would go.
+const SUPPER: RoomState = { id: 'finale-supper', area: 'courtyard', after: null, focus: { x: 50, y: 55 }, mark: { x: 50, y: 55 }, label: 'the supper', text: SUPPER_PICTURE };
 // The room opens on the player's chosen area while it is open, and otherwise on the area of the latest change.
 try{viewArea=storage?.getItem(AREA_KEY)??'';}catch{/* Follow the latest change. */}
+/** The area of the latest change: the supper's courtyard once the supper is paid. */
+const latestView = () => supperComplete(state, data) ? SUPPER.area : latestArea(roomCompleted(), data);
 onReplace(() => {
-  held = null; revealToken++; preloaded = null; viewArea = latestArea(state.decorations, data);
+  held = null; revealToken++; preloaded = null; viewArea = latestView();
   $('.game-layout').classList.remove('revealing'); $('#room-stage').removeAttribute('data-reveal'); setLowered(false);
 });
 
@@ -65,9 +71,11 @@ async function showPainting(id: string, fade: number) {
 }
 /** The area the room shows: the player's open choice, or the area of the latest change. */
 function currentView() {
-  const views=resolveRooms(roomCompleted(),data);
-  return {views,view:views.find(view=>view.id===viewArea&&view.open)??views.find(view=>view.id===latestArea(roomCompleted(),data))!};
+  const supper=supperComplete(state,data),views=resolveRooms(roomCompleted(),data).map(view=>supper&&view.id===SUPPER.area?{...view,states:[...view.states,SUPPER],current:SUPPER,painting:SUPPER}:view);
+  return {views,view:views.find(view=>view.id===viewArea&&view.open)??views.find(view=>view.id===latestView())!};
 }
+/** The payment of the supper turns the room to the supper. */
+export function showSupperRoom() { viewArea=SUPPER.area;try{storage?.setItem(AREA_KEY,viewArea);}catch{/* The room still shows the supper. */}renderRoom(); }
 export function renderRoom() { const {views,view}=currentView();viewArea=view.id;renderAreaSwitch(views,view);void drawRoom(view); }
 /**
  * Draws one area as it stands: its painting framed on the latest change, the New pin on that change, the cats in the front room,
@@ -90,8 +98,8 @@ function drawRoom(view: RoomView, fade = 0) {
     const words=element('span','','New');words.append(element('span','pin-label',`: ${current.label}`));
     pin.replaceChildren(dot,words);pin.setAttribute('aria-label',`New: ${current.text}`);
   }
-  const decorations=resolveDecorations(roomCompleted(),state.decorationChoices,data).filter(slot=>slot.unlocked&&slot.area===view.id);
-  drawDecorations($('#room-decorations'),view.id,roomCompleted(),state.decorationChoices);renderFinishes(view);
+  const area=painting===SUPPER?'':view.id,decorations=resolveDecorations(roomCompleted(),state.decorationChoices,data).filter(slot=>slot.unlocked&&slot.area===area);
+  drawDecorations($('#room-decorations'),area,roomCompleted(),state.decorationChoices);renderFinishes(area);
   const caption=$('#room-caption'),key=`${view.id}:${view.states.map(room=>room.id).join()}:${decorations.map(slot=>slot.selected.id).join()}`;
   if(caption.dataset.key!==key){
     caption.dataset.key=key;const list=element('ol','room-changes');
@@ -229,9 +237,9 @@ function drawDecorations(holder: HTMLElement,area: string,completed: string[],ch
  * Each finish that a quest has unlocked has a switch on its place in the room. A tap moves to the next finish of the slot. The choice
  * goes through the same lock and durable write as a preparation, so a failed write keeps the earlier finish.
  */
-function renderFinishes(view: RoomView) {
+function renderFinishes(area: string) {
   const holder=$('#room-finishes');
-  const slots=resolveDecorations(roomCompleted(),state.decorationChoices,data).filter(slot=>slot.unlocked&&slot.area===view.id
+  const slots=resolveDecorations(roomCompleted(),state.decorationChoices,data).filter(slot=>slot.unlocked&&slot.area===area
     &&slot.variants.filter(variant=>decorationUnlocked(state,slot,variant.id,data)).length>1);
   const key=slots.map(slot=>`${slot.id}:${slot.selected.id}`).join();if(holder.dataset.key===key)return;
   holder.dataset.key=key;holder.replaceChildren(...slots.map(slot=>{

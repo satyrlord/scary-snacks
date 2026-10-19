@@ -49,7 +49,7 @@ test('the legal quest campaign reaches the supper and accounts for every action 
     assert.equal(preparation.cost, authored.work.materials + authored.work.labour);
     assert.ok(preparation.balance >= 0);
   }
-  for (const chain of data.chains) assert.ok(generatorOutputs(finalState, `generator_${chain.id}`, data).includes(`${chain.id}_3`));
+  for (const chain of data.chains) assert.deepEqual(generatorOutputs(finalState, `generator_${chain.id}`, data), [`${chain.id}_1`]);
   t.diagnostic(`${totals.actions} actions, ${totals.spawns} spawns, ${totals.merges} merges; ${totals.questCoins} quest coins; ${totals.preparationCoins} spent; ${finalState.coins} remain.`);
 });
 

@@ -4,7 +4,7 @@ import type { GameState } from './model.ts';
 import { exportSave, importSave, loadSave, resetSave, saveGame, MAX_SAVE_BYTES } from './storage.ts';
 import { $, button, coinText, count, element, reason, status } from './dom.ts';
 import { modal, showModal } from './dialog.ts';
-import { adopt, changeGame, data, onRecovery, persist, recoveryRequired, saveFailed, saveMessage, state, validate } from './session.ts';
+import { adopt, changeGame, data, onRecovery, persist, recoveryRequired, repair, saveFailed, saveMessage, state, validate } from './session.ts';
 import { MOTIONS, THEMES, motion, motionNote, setMotion, setTheme, soundToggle, storage, theme } from './preferences.ts';
 
 function downloadSave() {
@@ -25,7 +25,7 @@ function segmented(name: string, legend: string, note: string, values: string[][
 export function options() {
   const content=element('div');content.append(element('p','modal-copy save-status',saveMessage));
   // Writes never replace an unreadable save, so only a new game (an explicit reset) lets this browser save again.
-  if(saveFailed&&recoveryRequired)content.append(element('p','save-error',['invalid','unsupported'].includes(loadSave(storage,validate).status)?`${saveMessage} To save in this browser again, start a new game below. That replaces the unreadable save.`:saveMessage));
+  if(saveFailed&&recoveryRequired)content.append(element('p','save-error',['invalid','unsupported'].includes(loadSave(storage,validate,repair).status)?`${saveMessage} To save in this browser again, start a new game below. That replaces the unreadable save.`:saveMessage));
   if(recoveryRequired)content.append(button('Retry saved game','primary-button',()=>location.reload()));
   else if(saveFailed&&storage)content.append(button('Retry save','secondary-button',()=>changeGame(()=>{persist();options();status(saveFailed?`This session is not saved. ${saveMessage}`:'Your progress is saved in this browser.');})));
   content.append(segmented('appearance','Appearance','System follows your device’s light or dark setting.',THEMES,theme,value=>setTheme(value,true)),
@@ -38,7 +38,7 @@ export function options() {
     const selectedFile=file.files?.[0];if(!selectedFile)return;
     try {
       if(selectedFile.size>MAX_SAVE_BYTES)throw new Error('Select a saved game smaller than 2 MiB.');
-      const candidate=importSave<GameState>(await selectedFile.text(),validate);
+      const candidate=importSave<GameState>(await selectedFile.text(),validate,repair);
       const review=element('div');review.append(element('p','modal-copy',`Replace the current game with this saved game: ${coinText(candidate.coins)} and ${count.format(candidate.taskIndex)} of ${data.tasks.length} preparations done? Export the current game first if you want to keep it.`));
       const keep=button('Keep the current game','secondary-button',options),choice=element('div','settings-actions');
       choice.append(button('Import this saved game','primary-button',()=>changeGame(()=>{

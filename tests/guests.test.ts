@@ -16,8 +16,8 @@ function untilSearch(state: GameState): GameState {
   return state;
 }
 
-// Vlad asks before the second source tier opens, so his dinner comes from first-stage outputs.
-test(`Vlad's dinner after dark is deliverable by merging red wine and cabbage rolls from first-stage outputs`, () => {
+// Vlad's dinner can be made from stage-one ingredients and merges.
+test(`Vlad's dinner after dark is deliverable by merging red wine and cabbage rolls from stage-one ingredients`, () => {
   const play = player(opened(8));
   assert.equal(data.items.drinks_5.name, 'Red wine');
   assert.equal(data.items.drinks_4.next, 'drinks_5');

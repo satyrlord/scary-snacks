@@ -1,7 +1,7 @@
 // The game in this tab: its data, its state, the selected space, and the saves that keep them. The other modules read these
 // bindings; only the functions here change them, and each change asks the interface to draw the game again.
-import { boardObstacles, generatorOutputs, getItem, nextOutput } from './model.ts';
-import { createGame, reduceGame, validateGame } from './engine.ts';
+import { boardObstacles, getItem } from './model.ts';
+import { createGame, reduceGame, repairSave, validateGame } from './engine.ts';
 import type { Action, GameData, GameState, Result } from './model.ts';
 import { loadSave, saveGame, savedText, SAVE_KEY } from './storage.ts';
 import type { LoadResult, WriteResult } from './storage.ts';
@@ -15,13 +15,13 @@ export let saveMessage = '', saveFailed = false, recoveryRequired = false;
 let observedSave: string | null = null, gameVersion = 0;
 const BLOCKED_STORAGE = 'Not saved: this browser blocks storage, so this game lasts only for this visit.';
 export const validate = (candidate: unknown) => validateGame(candidate, data);
+export const repair = (candidate: unknown) => repairSave(candidate, data);
 export const definition = (code: string) => getItem(code,data)!;
 export const itemName = (code: string) => definition(code).name;
 export const character = (id: string) => data.characters.find(value => value.id === id)!;
 // Players meet generators as ingredient sources: the Flour bin, the Copper pot, and so on. They take ingredients from them.
 export const sourceOf = (chain: string) => definition(`generator_${chain}`);
-export const chosenOutput = (code: string) => nextOutput(state,code,data)!;
-export const sourceOutput = (code: string) => generatorOutputs(state,code,data).map(itemName).join(' or ');
+export const sourceOutput = (code: string) => itemName(definition(code).generator!.outputs[0]);
 export const matchingBlocker = (code: string) => boardObstacles(state,data).find(obstacle =>
   obstacle.ingredient === code && !state.resolvedObstacles.includes(obstacle.id));
 
@@ -42,7 +42,7 @@ export const select = (index: number | null) => { selected = index; };
 /** Reads the save of this browser under the game lock and adopts it, or a new game. The data must pass its checks first. */
 export async function open(value: GameData): Promise<LoadResult<GameState>> {
   data = value;
-  const load = () => loadSave<GameState>(storage, validate);
+  const load = () => loadSave<GameState>(storage, validate, repair);
   const saved = storage&&navigator.locks?await navigator.locks.request(SAVE_KEY,load):load();
   state = saved.state ?? createGame(data);
   // A reload cannot open blocked storage, so that game plays for this visit without the recovery block.
@@ -80,7 +80,7 @@ export function adopt(next: GameState, result: WriteResult) {
 export function syncSavedGame() {
   if (!recoveryRequired && savedText(storage) === observedSave) return false;
   // A read that fails, or a save that cannot open, leaves the observed text alone, so this tab never takes its own save for a newer one.
-  const saved = loadSave<GameState>(storage, validate);
+  const saved = loadSave<GameState>(storage, validate, repair);
   if (saved.status === 'invalid' || saved.status === 'unsupported') {
     const wasRecovering = recoveryRequired;
     recoveryRequired = true;

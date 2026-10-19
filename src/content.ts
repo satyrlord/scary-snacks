@@ -182,7 +182,7 @@ export function economyProblems(data: GameData): string[] {
   } catch { problems.push('The economy records are malformed.'); }
   return problems;
 }
-/** Check each production tier before the content generator writes its data. */
+/** Check milestones that validate output choices in existing saves. They do not change source production. */
 export function generatorTierProblems(data: GameData): string[] {
   const problems: string[] = [];
   const starting = availableChains({ taskIndex: 0 }, data);
@@ -192,8 +192,8 @@ export function generatorTierProblems(data: GameData): string[] {
     const after = data.tasks.findIndex(task => task.id === tier.after);
     const unlock = starting.includes(tier.chain) ? -1 : data.tasks.findIndex(task => task.unlock === tier.chain);
     if (!data.chains.some(chain => chain.id === tier.chain) || !source?.generator || !item || item.generator
-      || item.chain !== tier.chain || item.stage !== tier.stage || !integer(tier.stage, 2, 3)) problems.push(`${tier.chain}: invalid production stage.`);
-    if (after < 0 || (!starting.includes(tier.chain) && unlock < 0) || after < unlock) problems.push(`${tier.chain}: invalid production preparation.`);
+      || item.chain !== tier.chain || item.stage !== tier.stage || !integer(tier.stage, 2, 3)) problems.push(`${tier.chain}: invalid saved-choice stage.`);
+    if (after < 0 || (!starting.includes(tier.chain) && unlock < 0) || after < unlock) problems.push(`${tier.chain}: invalid saved-choice preparation.`);
   }
   for (const chain of data.chains) {
     const tiers = data.generatorTiers.filter(tier => tier.chain === chain.id)
@@ -202,7 +202,7 @@ export function generatorTierProblems(data: GameData): string[] {
     let previousPreparation = -1;
     for (const tier of tiers) {
       const preparation = data.tasks.findIndex(task => task.id === tier.after);
-      if (tier.stage !== previousStage + 1 || preparation <= previousPreparation) problems.push(`${chain.id}: production stages must increase in preparation order.`);
+      if (tier.stage !== previousStage + 1 || preparation <= previousPreparation) problems.push(`${chain.id}: saved-choice stages must increase in preparation order.`);
       previousStage = tier.stage;
       previousPreparation = preparation;
     }

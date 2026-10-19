@@ -33,7 +33,7 @@ All specifications in this register are implemented. The status of a specificati
 | --- | --- | --- | --- |
 | 001 | [Visible renovation and areas](001-visible-renovation.md), with its [room states art plan](001-visible-renovation-art-plan.md) | Implemented | None |
 | 002 | [Decoration choices](002-decoration-choices.md) | Implemented | 001 |
-| 003 | [Generator progression](003-generator-progression.md) | Implemented | None |
+| 003 | [Ingredient sources](003-generator-progression.md) | Implemented | None |
 | 004 | [Character quests and introductions](004-character-quests.md) | Implemented | 008 for scene continuation |
 | 005 | [Campaign goals and economy](005-campaign-goals-and-economy.md) | Implemented | None |
 | 006 | [Board clearing](006-board-clearing.md) | Implemented | None |

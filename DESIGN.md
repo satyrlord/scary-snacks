@@ -362,7 +362,7 @@ The palette is warm and has low saturation. Each theme has one action colour. Th
 ### Named Rules
 **The Shop Sign Rule.** Grenze Gotisch appears once per screen, as the wordmark. Every other heading is Inter at weight 600.
 
-**Text sizes.** General interface text is at least 12px. Ticket count badges use 10px. Source output labels use 11px on phones.
+**Text sizes.** General interface text is at least 12px. Ticket count badges use 10px. The Take button label is 12px on phones.
 
 ## Layout
 
@@ -533,14 +533,9 @@ These three parts share one place under the board. The place is at least 62px ta
 - **Offer:** the offer shows the preparation name, "Ready when you are.", and a primary Pay button. `PRODUCT.md` gives when the offer shows.
 - **Selected item:** the item picture, its name, and its rule line ("Source of …", "Two make …", or "Final dish"). The item picture is 44px (40px below 1024px). Below 411px, the item picture is 34px. At 360px and below, the item picture and the rule line do not show.
 
-  At 720px and below, if the name takes two lines, the rule line does not show. The actions follow. A source has one primary Take button for each earned output. Each button has the output picture and its name, such as "Take Dough".
+  At 720px and below, if the name takes two lines, the rule line does not show. The actions follow. A source has one primary Take button with the stage-1 ingredient picture and name, such as "Take Flour".
 
-  The chosen output has an inset On-Action ring and a pressed state. Keyboard focus uses the Teal Focus ring, and the inset ring stays visible with it. The 44px clear button follows. A dish has only the clear button.
-- **Upgraded source:** above 1023px, the source name and Clear occupy the first row. Two or three equal-width Take buttons occupy a second row. Each Take button is at least 64px tall and has a 24px output picture. The rule line does not show.
-
-  At 1023px and below, the selection does not change the height of the strip. The board then does not move under the finger. The name row does not show. The equal-width Take buttons and Clear share one row. Each Take button is at least 44px tall.
-
-  Each Take button shows a 22px output picture above the output name in 11px type. Its accessible name stays "Take" and the output name. The controls fit at 360px without horizontal scroll.
+  Keyboard focus uses the Teal Focus ring. The 44px clear button follows. A dish has only the clear button. Selecting a source does not move the board under the finger. The Take button and Clear fit at 360px without horizontal scroll.
 
 ### Story and recipe book
 - **Wider screens:** the story and the recipe book are sections of the docked panel between hairlines. They are not cards. The story section starts with the chapter title, the objective, and the steps. A waiting scene follows, if one exists. A waiting scene is a story scene that the player has earned and not yet read.
@@ -554,11 +549,11 @@ These three parts share one place under the board. The place is at least 62px ta
 
 **The Covered Dish Rule.** The game does not preview unearned dishes or room changes. An unmade dish shows only as a "Not yet" covered dish. Each room change shows only after the player pays for its preparation. A locked area shows only its name and the preparation that opens it. Tickets and the quest dialog show their required food pictures and names, so that the player can plan a delivery. A blocked ingredient shows on the board. Its recipe book entry stays covered until the player takes or makes that dish. Waiting quests do not show until they take a ticket.
 
-Generator upgrades have no preview. `PRODUCT.md` gives what the interface names before and after the payment. The Take buttons show every earned output, also an output that the player has not taken.
+Each source shows only its stage-1 ingredient. Higher-stage dishes stay covered until the player makes them by merging, apart from quest requirements.
 
 Cost details opens the existing dialog or phone sheet. It names the current preparation and its work scope. Materials and supplies, Labour, and Total have separate coin rows. Estimated person-hours describe the work scale, with an explicit explanation that there is no timer.
 
-This text can describe the planned work. It does not show an unearned painting or source upgrade. Close and Escape return to the cost control. On phones, they restore the Story sheet first. The details add no extra row to the story section on wider screens.
+This text can describe the planned work. It does not show an unearned painting. Close and Escape return to the cost control. On phones, they restore the Story sheet first. The details add no extra row to the story section on wider screens.
 
 ### The reveal (signature motion)
 - **Order:** the reveal starts after the story of a paid preparation. Where the drawer moves, it lowers by itself over 0.6s before the repaint. On a short screen, the repaint starts at once.
@@ -666,6 +661,8 @@ These parts have no animation.
 ### Supper painting
 
 The supper painting follows the finale. The dialog title is "The supper". The 3:4 painting is centred, with the card radius, at most min(62dvh, 680px) tall. The finale ending line follows in the completion style, 14px above and 16px below. One primary button ends the dialog: "Back to the kitchen", or "Continue" when the journal or another waiting scene follows. The image has a text alternative that names each guest. The painting is the same in both themes.
+
+After the supper payment, the courtyard shows the supper painting in place of its latest state. The payment turns the room to the courtyard, and the room opens there after a reload. The courtyard then has no finish layers, no finish switches, and no New pin, because the guests sit where the finishes go. The frame centres the long table, 50% across and 55% down. The room caption adds the text alternative of the painting.
 
 ### Delivery notices
 

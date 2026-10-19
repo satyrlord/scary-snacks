@@ -4,7 +4,7 @@ import type { Character, ChapterView, SceneLine, Task } from './model.ts';
 import { $, button, coinText, count, element, names } from './dom.ts';
 import { coinMark, portrait, questSketch } from './art.ts';
 import { modal, showModal } from './dialog.ts';
-import { holdChange, miezSprite, preloadRoom, roomPicture, toggleCat } from './room.ts';
+import { holdChange, miezSprite, preloadRoom, roomPicture, SUPPER_PICTURE, toggleCat } from './room.ts';
 import { apply, changeGame, character, data, keep, saveFailed, saveMessage, state } from './session.ts';
 
 // A scene that leads on to the next waiting scene, so that focus can return to the story when the last one closes.
@@ -223,7 +223,6 @@ function showSupper(after?: () => void) {
   content.append(picture,element('p','completion-message',data.finale.ending),done);
   showModal('The supper',content,done,after);
 }
-const SUPPER_PICTURE='The supper in the courtyard under the string lights. Mara stands at the long table with a steaming pot. Ilie, Costel, Sorin and Victor sit on one bench, and Eszter, Ana, Ileana and Bran on the other. Cătălina and Cezar share the small table by the lantern, and two black cats wait for scraps.';
 function journal(focusEntry?: string) {
   const content=element('div','journal-list');
   content.append(element('p','modal-copy','Meet your neighbours and read your saved conversations. Reading never gives another reward.'));

@@ -5,7 +5,7 @@ import { $, button, coinText, count, element, names } from './dom.ts';
 import { coinMark, food, portrait, questSketch } from './art.ts';
 import { modal, showModal } from './dialog.ts';
 import { showItem } from './dishes.ts';
-import { batFlight } from './room.ts';
+import { batFlight, showSupperRoom } from './room.ts';
 import { apply, changeGame, character, data, itemName, onReplace, saveFailed, state } from './session.ts';
 import { onMotionResume, still } from './preferences.ts';
 import { showScene } from './story.ts';
@@ -118,7 +118,7 @@ function deliver(quest: Quest) { return changeGame(() => {
   const reply = state.pendingScenes.includes(quest.id) ? { label: `Read ${who}’s reply`, read: () => showScene(quest.id) } : undefined;
   const token = deliveryToken;
   const notify = () => { if (token === deliveryToken) toast(message, reply); };
-  if (quest.cost) { notify(); showScene(data.finale.id); }
+  if (quest.cost) { showSupperRoom(); notify(); showScene(data.finale.id); }
   else if (still() || !into) notify(); else void fly(codes, from, into).then(notify);
 }); }
 /** Delivered dishes lift off their tiles, arc over the board and land on the neighbour's ticket, visible all the way. */

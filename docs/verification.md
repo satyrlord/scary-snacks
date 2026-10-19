@@ -30,8 +30,8 @@ The files in `tests/` check these areas.
 
 | Test files | Coverage |
 | --- | --- |
-| `engine.test.ts` | Production, merges, swaps, the next source output, preparation payment, room states, and game data validation. |
-| `storage.test.ts` | Save validation, size limits, export, import, reset, failed writes, recovery, invalid data, unsupported versions that stay unchanged, and saved output choices. |
+| `engine.test.ts` | Stage-one production, merges, swaps, preparation payment, room states, and game data validation. |
+| `storage.test.ts` | Save validation, size limits, export, import, reset, failed writes, recovery, invalid data, unsupported versions that stay unchanged, and stored choices in existing saves. |
 | `decorations.test.ts` | Decoration slots, quest unlocks, finish choices, rejected choices, and saved choices. |
 | `economy.test.ts` | Menu prices, quest rewards, and work budgets. |
 | `campaign-goals.test.ts` | Required quests, coins, source space, failed payments, quest order, and sufficient campaign rewards. |
@@ -49,7 +49,7 @@ The files in `tests/` check these areas.
 | `source-export.test.ts` | Product test coverage in the export, exported imports, document links, local folder exclusions, ignore rules, and the dead-code command of the export. |
 | `art-image.test.ts` | Art generation request fields, image dimensions, masks, composites, file formats, and rejected inputs. |
 
-Generator checks cover both tier boundaries, lower outputs, chosen outputs, rejected takes, and upgrades on a full board.
+Generator checks cover stage-one production at campaign milestones, stored choices in existing saves, rejected output requests, and a full board.
 The campaign fixture completes all 24 preparations and all 81 campaign quests without injected coins or items.
 It leaves the supper unpaid and checks that the remaining coins cover its cost. The recurring quest stays closed.
 The fixture reports actions, takes, merges, deliveries, and income for each preparation and chapter.
@@ -67,7 +67,7 @@ Story checks cover every chapter boundary and one finale.
 A complete campaign can retain all earned preparation, quest, and chapter scenes in its queue, and its coins pay for the supper. The recurring quest checks cover a short purse.
 Line checks cover unique scene identifiers, queue order, saved positions, stale positions, and invalid line records.
 Save checks cover scenes with and without saved lines.
-A save with all preparations complete and no supper payment opens the supper quest and rejects a waiting finale.
+A save with all preparations complete and no supper payment opens the supper quest. Load and import remove its waiting finale and the saved line of the finale.
 
 ## Browser coverage
 
@@ -78,7 +78,7 @@ The files in `tests/browser/` check these areas.
 | `game.spec.ts` | Core play, ticket rewards, the first paid preparation, themes, layout, input, focus, recipes, saves, load recovery, asset paths, and concurrent tabs. |
 | `renovation.spec.ts` | Room checkpoints, room crops, area changes, and pins. |
 | `decorations.spec.ts` | Finish switches, visible targets, keyboard focus, saved choices, failed writes, and concurrent tabs. |
-| `generators.spec.ts` | Upgrades, chosen outputs, Take controls, full boards, keyboard input, touch emulation, and geometry. |
+| `generators.spec.ts` | Stage-one production, stored choices in existing saves, Take controls, full boards, keyboard input, touch emulation, and geometry. |
 | `campaign-goals.spec.ts` | Work details, required quests, payment controls, and layout. |
 | `quests.spec.ts` | Tickets, quest dialogs, dish help, deliveries, scenes, saves, focus, input, and concurrent tabs. |
 | `visitors.spec.ts` | Supply quests, visitor portraits, introductions, Ionatan's dinner, departure, and save failures. |
@@ -95,8 +95,8 @@ Layout checks include the desktop and phone screens, the drawer, the phone bar, 
 Checks on a narrow screen that is 600px high or less require a drawer that stays in place, a reveal that does not wait for it, and an active drawer body.
 Theme checks include Light, Dark, System, and 4.5:1 contrast for main and muted text.
 
-Generator geometry checks cover three outputs at 360×740, 390×800, 390×844, and 1440×900 in both themes.
-Tier-one names and controls also fit at widths of 320px, 360px, and 390px.
+Generator geometry checks cover one Take control at 360×740, 390×844, and 1440×900 in both themes.
+Repeated source taps keep the board in place at widths of 360px, 390px, and 412px.
 Ticket and story geometry checks cover 1440×900, 390×844, and 390×800 in both themes.
 Quest dialog checks cover 1440×900 and 390×844 in both themes.
 Visitor and shared guest quests have checks at 1366×900 and 390×844 in both themes.

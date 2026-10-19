@@ -64,8 +64,8 @@ A failed write keeps the current save. The player can recover.
 Run `node tools/campaign-balance.ts`. `tests/campaign-balance.test.ts` runs the same checks in the full gate.
 
 The fixture starts a new game. It pays each preparation as soon as it is ready.
-Otherwise it delivers the first quest that has a ticket. It makes each item that the quest needs from the highest output
-that its source has earned, and merges up from there. When the board is full, it merges spare food: a pair,
+Otherwise it delivers the first quest that has a ticket. It makes each item that the quest needs from stage-one ingredients
+and merges up from there. When the board is full, it merges spare food: a pair,
 or a match for a blocked ingredient. A full board without such a merge is a deadlock, and the fixture fails.
 
 Each preparation and chapter reports successful actions, takes, merges, deliveries,

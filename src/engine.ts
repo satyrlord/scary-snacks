@@ -1,5 +1,5 @@
 // The deterministic rules of the bistro game: the new game, the actions, and the acceptance of an untrusted save.
-import { arrivalScene, availableChains, boardObstacles, canDeliverQuest, decorationUnlocked, deliveriesSince, earnedScenes, firstFreeBoardCell, freeBoardCells, generatorOutputs, getItem, integer, nextOutput, own, pendingPreparationObstacles, present, questDeliveryCells, questPredecessors, requiredQuests, resolveChapters, sceneDialogue, sceneSource, storyOrder, taskEligibility, unresolvedObstacle } from './model.ts';
+import { arrivalScene, availableChains, boardObstacles, canDeliverQuest, decorationUnlocked, deliveriesSince, earnedScenes, firstFreeBoardCell, freeBoardCells, getItem, integer, own, pendingPreparationObstacles, present, questDeliveryCells, questPredecessors, requiredQuests, resolveChapters, sceneDialogue, sceneSource, storyOrder, supperComplete, taskEligibility, unresolvedObstacle } from './model.ts';
 import type { Action, Cell, GameData, GameState, Result } from './model.ts';
 
 /** At most this many preparation blockers wait on the board at one time. */
@@ -50,6 +50,17 @@ function validateQuestProgress(state: GameState, data: GameData): boolean {
     done.add(id);
   }
   return !state.taskIndex || requiredQuests(state.taskIndex - 1, data).every(quest => done.has(quest.id));
+}
+/** A save that waits for the finale before the supper payment drops the finale and its saved line, so the payment earns it. Other saves stay as they are. */
+export function repairSave(candidate: unknown, data: GameData): unknown {
+  const state = candidate as GameState, id = data.finale.id;
+  if (!state || typeof state !== 'object' || !Array.isArray(state.pendingScenes) || !Array.isArray(state.completedQuests)
+    || !state.pendingScenes.includes(id) || supperComplete(state, data)) return candidate;
+  const repaired = { ...state, pendingScenes: state.pendingScenes.filter(scene => scene !== id) };
+  if (state.sceneLines && typeof state.sceneLines === 'object' && Object.hasOwn(state.sceneLines, id)) {
+    repaired.sceneLines = Object.fromEntries(Object.entries(state.sceneLines).filter(([scene]) => scene !== id));
+  }
+  return repaired;
 }
 /** Accepts an untrusted save: a parsed save is checked field by field before it is treated as a game state. The data must pass dataProblems. */
 export function validateGame(candidate: unknown, data: GameData): candidate is GameState {
@@ -119,10 +130,11 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
     const outputs = state.outputChoices;
     if (!outputs || typeof outputs !== 'object' || Array.isArray(outputs)
       || ![Object.prototype, null].includes(Object.getPrototypeOf(outputs)) || Object.keys(outputs).length > chains.length) return false;
+    const completed = new Set(data.tasks.slice(0, state.taskIndex).map(task => task.id));
     for (const [chain, code] of Object.entries(outputs)) {
       if (!chains.includes(chain) || !own(data.items, code) || data.items[code].generator
         || data.items[code].chain !== chain || data.items[code].stage < 2
-        || !generatorOutputs(state, `generator_${chain}`, data).includes(code)) return false;
+        || !data.generatorTiers.some(tier => tier.chain === chain && tier.stage === data.items[code].stage && completed.has(tier.after))) return false;
     }
     return true;
   } catch {
@@ -218,13 +230,11 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const cell = itemAt(next, action.index);
       const item = cell && getItem(cell.code, data);
       if (!item?.generator) return fail('Choose an ingredient source, such as the Flour bin.');
-      const code = action.output === undefined ? nextOutput(next, item.id, data)! : action.output;
-      if (!generatorOutputs(next, item.id, data).includes(code)) return fail('Choose an available output from this source.');
+      const code = item.generator.outputs[0];
+      if (Object.hasOwn(action, 'output')) return fail('This source takes only its first ingredient.');
       const empty = firstFreeBoardCell(next, data);
       if (empty === -1) return fail('The board is full. Merge a pair or deliver a quest.');
       next.board[empty] = { code };
-      if (data.items[code].stage === 1) delete next.outputChoices[item.chain];
-      else next.outputChoices[item.chain] = code;
       const name = getItem(code, data)!.name;
       message = made(next, code, name, `Took ${name}.`);
       break;
@@ -250,13 +260,6 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       if (resolveChapters(next, data)[task.chapter - 1].status === 'complete') next.pendingScenes.push(data.chapters[task.chapter - 1].id);
       // The preparation that brings a regular queues their arrival after the story scenes that it earned.
       for (const person of data.characters) if (person.arrival && person.arrivesAfter === task.id) next.pendingScenes.push(arrivalScene(person));
-      for (const chain of availableChains(next, data)) {
-        const code = `generator_${chain}`;
-        const before = generatorOutputs(state, code, data);
-        for (const output of generatorOutputs(next, code, data)) {
-          if (data.items[output].stage > 1 && !before.includes(output)) message += ` The ${data.items[code].name} can now make ${data.items[output].name}.`;
-        }
-      }
       break;
     }
     default: return fail('This action is not available.');

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SAVE_KEY, MAX_SAVE_BYTES, loadSave, saveGame, exportSave, importSave, resetSave, savedText } from '../src/storage.ts';
 import { taskEligibility, firstFreeBoardCell, resolveQuests, supperComplete, supperQuest } from '../src/model.ts';
-import { createGame, reduceGame } from '../src/engine.ts';
+import { createGame, reduceGame, repairSave } from '../src/engine.ts';
 import type { GameState } from '../src/model.ts';
 import { act, checkpoint, data, memoryStorage, rejected, supply, validate } from './support.ts';
 
@@ -237,6 +237,27 @@ test('pending story scenes survive export, import, and reload', () => {
   }
 });
 
+test('a save that waits for the finale before the supper payment loads and imports without the finale and its line', () => {
+  const supper = supperQuest(data)!, unpaid = { ...checkpoint(24), coins: supper.cost! };
+  const waiting = { ...unpaid, pendingScenes: [...unpaid.pendingScenes, data.finale.id], sceneLines: { [data.finale.id]: 2 } };
+  const repair = (candidate: unknown) => repairSave(candidate, data);
+  assert.equal(validate(waiting), false);
+  const storage = memoryStorage([[SAVE_KEY, envelope(waiting)]]);
+  const loaded = loadSave<GameState>(storage, validate, repair);
+  assert.equal(loaded.status, 'loaded');
+  assert.deepEqual(loaded.state, { ...unpaid, sceneLines: {} });
+  assert.equal(storage.writes.length, 0);
+  assert.deepEqual(importSave(envelope(waiting), validate, repair), loaded.state);
+  assert.equal(resolveQuests(loaded.state!, data).find(view => view.quest.id === supper.id)!.status, 'active');
+  const paid = act(loaded.state!, { type: 'deliverQuest', id: supper.id });
+  assert.deepEqual(paid.pendingScenes.slice(-1), [data.finale.id]);
+  assert.equal(saveGame(storage, paid, validate).ok, true);
+  assert.deepEqual(loadSave(storage, validate, repair).state, paid);
+  // A paid supper keeps its waiting finale and its line.
+  const read = { ...paid, sceneLines: { [data.finale.id]: 2 } };
+  assert.equal(repairSave(read, data), read);
+});
+
 test('a save with every preparation done and the supper unpaid loads with the supper quest open and no finale', () => {
   const supper = supperQuest(data)!, complete = { ...checkpoint(24), coins: supper.cost! };
   const storage = memoryStorage([[SAVE_KEY, envelope(complete)]]);
@@ -300,12 +321,12 @@ test('a failed scene line write keeps the previous save, and a later write recor
   assert.deepEqual(loadSave<GameState>(storage, validate).state!.sceneLines, { [scene]: 2 });
 });
 
-test('a saved output choice survives export and import after its source moves, and a corrupt choice never replaces progress', () => {
+test('an existing saved output choice survives export and import, and a corrupt choice never replaces progress', () => {
   let current = checkpoint(24);
   const sourceIndex = current.board.findIndex(cell => cell && data.items[cell.code].generator);
   const source = data.items[current.board[sourceIndex]!.code];
   const stage = (value: number) => Object.values(data.items).find(item => item.chain === source.chain && item.stage === value && !item.generator)!;
-  current = act(current, { type: 'spawn', index: sourceIndex, output: stage(2).id });
+  current = { ...current, outputChoices: { [source.chain]: stage(2).id } };
   current = act(current, { type: 'move', from: sourceIndex, to: firstFreeBoardCell(current, data) });
   assert.equal(current.outputChoices[source.chain], stage(2).id);
   const text = exportSave(current, validate);

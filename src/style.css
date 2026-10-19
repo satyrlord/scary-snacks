@@ -243,13 +243,6 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 .take-button span { min-width: 0; overflow-wrap: anywhere; }
 .take-button .food { width: 24px; height: 24px; flex-shrink: 0; }
 .item-actions .take-button { max-width: 120px; }
-/* A shadow, so the focus outline does not hide the chosen output. */
-.take-button[aria-pressed='true'] { box-shadow: inset 0 0 0 2px var(--action), inset 0 0 0 4px var(--on-action); }
-#item-detail.multiple-outputs { flex-wrap: wrap; gap: 6px; }
-.multiple-outputs .detail-head { flex: 1; }
-.multiple-outputs .detail-next,.multiple-outputs .detail-description { display: none; }
-.multiple-outputs>.take-actions { flex-basis: 100%; }
-.multiple-outputs .take-button { flex: 1; min-width: 0; min-height: 64px; }
 .completion-message { margin-top: 16px; font-size: 13px; line-height: 1.5; }
 /* The supper: the painting of the neighbours at the courtyard tables, the ending, and the way on. */
 .supper-view { text-align: center; }
@@ -539,13 +532,6 @@ dialog:has(.quest-page-content) {
   .long-name .detail-next,.detail-description { display: none; }
   #item-detail { flex-wrap: nowrap; }
   .item-actions { flex-shrink: 0; gap: 6px; }.item-actions button { padding: 9px 11px; }
-  /* An upgraded source keeps the strip's height, so the board stays under the finger: its outputs and Clear share one row. */
-  #item-detail.multiple-outputs { flex-wrap: nowrap; gap: 4px; }
-  .multiple-outputs .detail-head,.multiple-outputs .take-word { display: none; }
-  .multiple-outputs>.take-actions { order: -1; flex: 1 1 0; gap: 4px; }
-  .multiple-outputs .take-button { flex-direction: column; gap: 0; min-height: 44px; padding: 5px 4px; font-size: 11px; line-height: 1.1; }
-  .multiple-outputs .take-button .food { width: 22px; height: 22px; }
-  .multiple-outputs .item-actions { margin-left: 0; }.multiple-outputs .item-actions button { padding-inline: 8px; }
   .side { display: none; }
   .phone-bar { display: flex; position: fixed; z-index: 16; inset: auto 0 0; gap: 4px; height: calc(var(--bar-h) + var(--safe)); padding: 4px max(8px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(8px, env(safe-area-inset-left)); background: var(--panel); border-top: 1px solid var(--line); }
   .phone-bar button { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 2px; border: 0; border-radius: var(--control-radius); background: transparent; color: var(--ink); font-size: 13px; line-height: 1.2; white-space: nowrap; }
@@ -597,7 +583,7 @@ dialog:has(.quest-page-content) {
   .cell.obstacle { border: 2px dashed ButtonText; }
   .cell.selected,.cell:hover { outline: 3px solid Highlight; outline-offset: -3px; }
   .ticket-item.ready::after,#recipes-button[data-fresh]::after,#story-button[data-ready]::after,.pin-dot { forced-color-adjust: none; background: Highlight; }
-  .choice:has(input:checked),.area-choice[aria-pressed='true'],.take-button[aria-pressed='true']:not(:focus-visible) { outline: 2px solid Highlight; outline-offset: -2px; }
+  .choice:has(input:checked),.area-choice[aria-pressed='true'] { outline: 2px solid Highlight; outline-offset: -2px; }
 }
 /* The Motion choice in Options: Reduced always stills the page; System stills it when the device asks; Full never does. */
 :root[data-motion='reduced'] *,:root[data-motion='reduced'] *::before,:root[data-motion='reduced'] *::after { animation: none!important; transition: none!important; scroll-behavior: auto!important; }

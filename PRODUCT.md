@@ -154,7 +154,7 @@ A replay of a read scene starts at the first line. It keeps its position only in
 
 The journal lists each chapter that is current or complete. A current chapter shows its opening context, its goal, and the state of each preparation. It also shows its neighbour help after that quest opens. A complete chapter shows its payoff and its neighbour help. It also shows its preparations, each with the name of its room change, and its closing scene. After the supper, the journal also holds the finale.
 
-In the finale, the four core characters speak, and the finale names the result of each chapter. Its last button, "See the supper", opens the supper painting. The painting shows 11 neighbours in the courtyard: Mara stands at the long table with a steaming pot. Ilie, Costel, Sorin, and Victor sit on one bench, and Eszter, Ana, Ileana, and Bran sit on the other. Cătălina and Cezar share the small table. Miez and the second black cat wait for scraps. The finale ending line is under the painting, and its button returns to the kitchen. A replay of the finale from the journal also ends with the painting. No quests remain after the supper. While the supper needs payment, the supper card names the supper quest on the counter. When the supper is complete, the card says "The community supper is open, and every quest is delivered. The board and the recipe book stay yours."
+In the finale, the four core characters speak, and the finale names the result of each chapter. Its last button, "See the supper", opens the supper painting. The painting shows 11 neighbours in the courtyard: Mara stands at the long table with a steaming pot. Ilie, Costel, Sorin, and Victor sit on one bench, and Eszter, Ana, Ileana, and Bran sit on the other. Cătălina and Cezar share the small table. Miez and the second black cat wait for scraps. The finale ending line is under the painting, and its button returns to the kitchen. A replay of the finale from the journal also ends with the painting. After the supper payment, the courtyard of the room shows the supper painting and no finishes. No quests remain after the supper. While the supper needs payment, the supper card names the supper quest on the counter. When the supper is complete, the card says "The community supper is open, and every quest is delivered. The board and the recipe book stay yours."
 
 The kitchen is the board with the tickets and Mara's line. Mara's line is the line of text under the board. Mara says what the player can do next. The room is the home of the game and its reward. On a narrow screen, the kitchen is a drawer over the room. On a wider screen, the kitchen is a panel beside the room. The room shows one painted area of the bistro. The area shows the state that the completed preparations leave. The bistro has two areas:
 
@@ -191,11 +191,7 @@ At most three preparation blockers can be uncleared at the same time. This limit
 
 A placement never replaces an item and never moves an item. A blocked cell can receive another blocker only after the earlier blocker is cleared and the cell is empty. Each blocker appears once. Its name and its explanation give its context. The label of the board gives the number of blockers that wait.
 
-Each chain has one source. When preparation 12 is complete, all sources also give stage 2 items. When preparation 20 is complete, all sources also give stage 3 items. Lower outputs stay available. A selected source has one Take button for each earned output, with its picture and name.
-
-A successful Take sets the output for later taps on that source. A new source starts with stage 1. An upgrade or a move keeps the chosen output. Sources cannot merge.
-
-An upgrade needs no board space. Open quests keep their requirements and rewards. Before the payment, the interface does not name a future tier or a future output. It also does not name the preparation that upgrades a source. After the payment, the completion message of the preparation scene names each new output. A failed take changes no state and no chosen output. It does not show an output that the player has not earned.
+Each chain has one source. A tap on a source or its Take button gives one stage-1 ingredient, at any point in the campaign. Higher-stage dishes come only from merges. A selected source shows one Take button with its ingredient picture and name. Sources cannot merge. A failed take changes nothing.
 
 The screen shows one Pay control at a time. If the story card is on the screen, only the story card has Pay. If Story is a sheet, Mara's line has Pay. Mara's line offers the next preparation by name with a Pay button.
 
@@ -272,7 +268,9 @@ An import validates the envelope and the state of the save. The envelope is the 
 
 A current save has game state version 12 in envelope version 11 at the key `scary-snacks-save-v11`. The game supports only this format. Load reads only this key. If no current save exists, the game starts a new campaign.
 
-The completed quest ID of the supper quest records the supper payment. A current save with all preparations complete and no supper payment shows the supper quest. It earns the finale only when the player pays for the supper.
+The save format keeps the `outputChoices` field so current saves remain valid. A saved stage-2 or stage-3 choice is checked against the preparation that made it available when the save was made. The choice does not affect production. New games have an empty field, and taking an ingredient does not change it.
+
+The completed quest ID of the supper quest records the supper payment. A current save with all preparations complete and no supper payment shows the supper quest. It earns the finale only when the player pays for the supper. If such a save holds the finale as a waiting scene, load and import remove the finale and its saved line before the check.
 
 Saves in an earlier format stay unchanged. The game does not read them or convert them. Import rejects earlier formats. A new game uses the authored blocked layout. A save records the ID of the layout and the IDs of the cleared blockers. A layout ID must stay the same after release.
 

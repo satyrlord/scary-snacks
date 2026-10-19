@@ -18,10 +18,10 @@ const emptyTotals = (): CampaignTotals => ({ actions: 0, spawns: 0, merges: 0, q
 
 /**
  * Deterministic reducer play. Pay each preparation as soon as it is ready, and otherwise deliver the first active ticket.
- * Make each quest item from the highest output that its source has earned, and merge up from there.
+ * Make each quest item from a stage-one ingredient, and merge up from there.
  * A full board makes room only by a merge of spare food: a pair, or a match for a blocked ingredient.
  * A full board without such a merge is a deadlock, and the fixture fails.
- * Every quest that opens before a preparation is required for it, and the source tiers change only with a payment, so the order
+ * Every quest that opens before a preparation is required for it, so the order
  * of the tickets in one window does not change the totals. Actions are game actions, not pointer presses.
  * This fixture does not measure human play time or difficulty.
  */
@@ -68,7 +68,7 @@ export function runCampaignBalance(data: GameData): CampaignBalance {
     if (generatorOutputs(state, source, data).includes(code)) {
       if (firstFreeBoardCell(state, data) === -1) makeRoom();
       const empty = firstFreeBoardCell(state, data);
-      act({ type: 'spawn', index: state.board.findIndex(cell => cell?.code === source), output: code });
+      act({ type: 'spawn', index: state.board.findIndex(cell => cell?.code === source) });
       assert.equal(state.board[empty]?.code, code);
       return empty;
     }

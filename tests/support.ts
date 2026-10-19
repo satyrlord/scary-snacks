@@ -71,7 +71,7 @@ export function player(initial = createGame(data), content = data) {
     if (generatorOutputs(state, source, content).includes(code)) {
       const empty = firstFreeBoardCell(state, content);
       assert.ok(empty >= 0, 'Normal production fits the board.');
-      state = act(state, { type: 'spawn', index: state.board.findIndex(cell => cell?.code === source), output: code }, content);
+      state = act(state, { type: 'spawn', index: state.board.findIndex(cell => cell?.code === source) }, content);
       assert.equal(state.board[empty]?.code, code);
       return empty;
     }

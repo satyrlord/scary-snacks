@@ -73,6 +73,7 @@ export type GameData = {
   board: { columns: number; rows: number; initial: (string | null)[]; defaultLayout: string; layouts: BoardLayout[]; preparations: PreparationObstacleBatch[] };
   chains: { id: string; name: string }[]; items: Record<string, Item>; characters: Character[]; chapters: Chapter[]; finale: Finale; tasks: Task[];
   areas: Area[]; rooms: RoomState[]; decorationSlots: DecorationSlot[];
+  /** These milestones validate output choices in existing version-11 saves. They no longer change production. */
   generatorTiers: { chain: string; stage: number; after: string }[];
   quests: Quest[];
 };
@@ -102,7 +103,7 @@ export type GameState = {
 };
 export type Action =
   | { type: 'move'; from: number; to: number }
-  | { type: 'spawn'; index: number; output?: string }
+  | { type: 'spawn'; index: number }
   | { type: 'deliverQuest'; id: string }
   | { type: 'decorate'; slot: string; variant: string }
   | { type: 'readScene'; id: string }
@@ -319,19 +320,11 @@ export function taskEligibility(state: GameState, data: GameData): TaskEligibili
   }
   return { task, ready: blockers.length === 0, requirements, blockers };
 }
-/** Every output earned by this source. Completed preparations are the only tier input. */
+/** A source makes only the first item of its chain while its chain is available. */
 export function generatorOutputs(state: Pick<GameState, 'taskIndex'>, generatorCode: string, data: GameData): string[] {
   const item = getItem(generatorCode, data);
   if (!item?.generator || !availableChains(state, data).includes(item.chain)) return [];
-  const completed = data.tasks.slice(0, state.taskIndex).map(task => task.id);
-  return [...item.generator.outputs, ...data.generatorTiers.filter(tier => tier.chain === item.chain && completed.includes(tier.after))
-    .sort((a, b) => a.stage - b.stage).map(tier => `${tier.chain}_${tier.stage}`)];
-}
-/** The output that one tap on this source takes: the output that the player last took. Null for an item that is not a source. */
-export function nextOutput(state: Pick<GameState, 'outputChoices'>, generatorCode: string, data: GameData): string | null {
-  const item = getItem(generatorCode, data);
-  if (!item?.generator) return null;
-  return state.outputChoices[item.chain] ?? item.generator.outputs[0];
+  return item.generator.outputs;
 }
 /** The place of a state's preparation in the campaign: 0 for the new game, then the preparation's number. */
 export const stateNumber = (state: RoomState, data: GameData) => state.after === null ? 0 : data.tasks.findIndex(task => task.id === state.after) + 1;

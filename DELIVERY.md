@@ -45,7 +45,7 @@ The game makes its sounds as tones that code generates in the browser. The inter
 The generator refuses to write the game data in these conditions:
 
 - An identifier (ID) in `roomPaintings` in `src/model.ts` has no approved master.
-- `dataProblems` in `src/content.ts` reports a problem. It checks the board, preparation blocker batches, room states, decoration slots, and production tiers. It also checks the cast, quests, campaign funds, story, and menu prices. Every preparation needs two or three blockers with stable IDs, valid art cells, context, and ingredients from an available chain. The starting board must make a new game that passes the save validation.
+- `dataProblems` in `src/content.ts` reports a problem. It checks the board, preparation blocker batches, room states, decoration slots, and saved-choice milestones. It also checks the cast, quests, campaign funds, story, and menu prices. Every preparation needs two or three blockers with stable IDs, valid art cells, context, and ingredients from an available chain. The starting board must make a new game that passes the save validation.
 
 The data checks require a complete six-stage merge path for each chain and one source unlock for each later chain. Initial blockers must use valid atlas cells. A regular's quest must open after the regular arrives and ask for a dish from a favourite chain.
 
