@@ -10,7 +10,7 @@ test('every portrait crop stays inside its own cell at ticket and story sizes',a
   const portraits: {name:string;className:string;size:string;position:string}[]=[];
   for(const state of [null,onTicket(quest('ionatan-castle-dinner')),onTicket(quest('mina-avram-search'))]){
     if(state)await replaceSave(page,state);
-    await journal(page);
+    await journal(page,['chapters','conversations','neighbours']);
     const visible=await page.locator('#modal .portrait').evaluateAll(elements=>elements.map(element=>({
       name:element.getAttribute('aria-label')!,className:element.className,size:getComputedStyle(element).backgroundSize,position:getComputedStyle(element).backgroundPosition,
     })));

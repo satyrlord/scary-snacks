@@ -19,7 +19,6 @@ export function checkpointState(data: GameData, count: number, start: GameState 
     state.coins = currentTask(state, data)?.cost ?? supperQuest(data)?.cost ?? 0;
     if (state.taskIndex < data.tasks.length) {
       state.pendingScenes = [];
-      delete state.sceneLines;
     }
     if (state.taskIndex >= count) return state;
     const result = reduceGame(state, { type: 'task' }, data);

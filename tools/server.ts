@@ -3,7 +3,7 @@ import type { AddressInfo } from 'node:net';
 import { realpathSync } from 'node:fs';
 import { readFile, stat, realpath } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
-import { runtimeFiles, fontFiles, variantTypes, publishedPath, compile } from './build.ts';
+import { runtimeFiles, fontFiles, variantTypes, publishedPath, compile, appVersion } from './build.ts';
 
 // Windows may report the drive letter in either case; the real path matches the case that the confinement check below compares against.
 const project = realpathSync.native(resolve(import.meta.dirname, '..'));
@@ -17,6 +17,7 @@ const mime: Record<string, string> = { '.html':'text/html; charset=utf-8', '.js'
 const csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
 // Requests use published names. Development compiles the source of a runtime file for each request.
 const runtimeSources = new Map(runtimeFiles.map(path => [publishedPath(path), path]));
+const version = built ? undefined : appVersion();
 const server = http.createServer(async (request, response) => {
   response.setHeader('Content-Security-Policy', csp);
   response.setHeader('X-Content-Type-Options', 'nosniff');
@@ -45,7 +46,7 @@ const server = http.createServer(async (request, response) => {
     const bytes = await readFile(path);
     // Compile before the headers go out: a source that does not compile gets an error answer, and the server keeps running.
     let body: Buffer;
-    try { body = built ? bytes : compile(file, bytes); }
+    try { body = built ? bytes : compile(file, bytes, version); }
     catch (error) { console.error(error); response.writeHead(500).end(`${file} does not compile. The server console gives the error.`); return; }
     response.setHeader('Content-Type', type);
     response.writeHead(200).end(request.method === 'HEAD' ? undefined : body);

@@ -94,12 +94,10 @@ export type GameState = {
   /** Completed preparations at adoption, and permanent placement history. Missing records do not add past batches. */
   preparationObstacles?: { start: number; placed: { id: string; position: number }[] };
   /**
-   * The earned scenes that the player has not finished or skipped: preparation scenes, quest completion scenes, regular arrival
+   * The earned scenes that the player has not finished: preparation scenes, quest completion scenes, regular arrival
    * scenes, local news, chapter closing scenes, and the finale. Preparation scenes, chapter scenes, and the finale keep story order.
    */
   pendingScenes: string[];
-  /** The line that the player sees in a waiting scene, after its first line. A missing record starts the scene at its first line. */
-  sceneLines?: Record<string, number>;
 };
 export type Action =
   | { type: 'move'; from: number; to: number }
@@ -107,7 +105,6 @@ export type Action =
   | { type: 'deliverQuest'; id: string }
   | { type: 'decorate'; slot: string; variant: string }
   | { type: 'readScene'; id: string }
-  | { type: 'sceneLine'; id: string; line: number }
   | { type: 'task' };
 export type Result = { state: GameState; ok: boolean; message: string; event: string | null };
 export const own = (object: object, key: unknown): key is string => typeof key === 'string' && Object.hasOwn(object, key);
@@ -261,17 +258,6 @@ export function sceneSource(id: string, data: GameData): SceneSource | null {
   if (person) return { kind: 'arrival', person };
   const news = data.quests.find(value => value.followUp?.id === id)?.followUp;
   return news ? { kind: 'news', news } : null;
-}
-/** The lines of a scene. */
-export function sceneDialogue(source: SceneSource): SceneLine[] {
-  switch (source.kind) {
-    case 'task': return source.task.dialogue;
-    case 'quest': return source.quest.completion;
-    case 'chapter': return source.chapter.closing;
-    case 'finale': return source.finale.dialogue;
-    case 'arrival': return source.person.arrival!;
-    case 'news': return source.news.dialogue;
-  }
 }
 /** Completed preparations are the only input. A chapter is complete when its last preparation is complete. */
 export function resolveChapters(state: Pick<GameState, 'taskIndex'>, data: GameData): ChapterView[] {

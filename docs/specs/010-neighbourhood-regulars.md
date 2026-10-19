@@ -44,16 +44,16 @@ The player can find who lives nearby and what they like.
    A core character introduces the regular. The regular answers.
    The payment queues the arrival scene after the preparation scene and the closing scene that it earned.
    The scene follows the continuation rules of 008.
-   Reading or skipping the scene does not change the arrival.
-8. The neighbours list in the journal shows the core characters, then the regulars in order of arrival.
+   Reading the scene does not change the arrival.
+8. The Neighbours group in the journal starts collapsed. It shows the core characters, then the regulars in order of arrival.
    Each arrived neighbour shows the portrait, the name, and the trade.
    A regular also shows the favourite chains.
    Each arrived neighbour shows the count of delivered quests.
    A neighbour who has not arrived is a "Not yet" outline without a name or a portrait.
    Thus the list does not spoil later chapters.
-   A waiting arrival scene opens from the entry of its regular.
-   The entry shows "New scene" instead of the count.
-   After the scene, the entry opens the introduction.
+   A waiting arrival scene has one entry under Unread scenes, above the chapter.
+   The neighbour entry always shows the count and opens the introduction.
+   Reading the arrival opens Neighbours and focuses that regular.
 9. Vlad and Elisabeta do not join the community supper scene.
 
 ## Roster

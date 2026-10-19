@@ -41,7 +41,7 @@ The files in `tests/` check these areas.
 | `regulars.test.ts` | Arrival pairs, arrival scenes, quest timing, favourite chains, the neighbours list, and cast validation. |
 | `board-clearing.test.ts` | Initial blockers, matching merges, blocked actions, placement space, discoveries, and saved progress. |
 | `preparation-blockers.test.ts` | Preparation batches, deferred placement, free space, source priority, saved history, failed writes, and retry. |
-| `story.test.ts` | Chapters, scenes, the supper payment, the finale, queues, saved lines, failed payments, and play after the finale. |
+| `story.test.ts` | Chapters, scenes, the supper payment, the finale, queues, failed payments, and play after the finale. |
 | `checkpoint-saves.test.ts` | Manual checkpoint saves, the next payment, and the final scenes. |
 | `assets.test.ts` | Masters, variants, hashes, portrait cells, blocker cells, references, asset paths, fonts, and license texts. |
 | `build.test.ts` | The build file list, type removal, executable asset rejection, and linked directory rejection. |
@@ -65,9 +65,8 @@ Save checks cover export, import, reload, invalid blocker history, and the kept 
 
 Story checks cover every chapter boundary and one finale.
 A complete campaign can retain all earned preparation, quest, and chapter scenes in its queue, and its coins pay for the supper. The recurring quest checks cover a short purse.
-Line checks cover unique scene identifiers, queue order, saved positions, stale positions, and invalid line records.
-Save checks cover scenes with and without saved lines.
-A save with all preparations complete and no supper payment opens the supper quest. Load and import remove its waiting finale and the saved line of the finale.
+Scene checks cover unique scene identifiers and queue order.
+A save with all preparations complete and no supper payment opens the supper quest. Load and import remove its waiting finale.
 
 ## Browser coverage
 
@@ -75,18 +74,19 @@ The files in `tests/browser/` check these areas.
 
 | Test files | Coverage |
 | --- | --- |
-| `game.spec.ts` | Core play, ticket rewards, the first paid preparation, themes, layout, input, focus, recipes, saves, load recovery, asset paths, and concurrent tabs. |
+| `game.spec.ts` | Core play, ticket rewards, the first paid preparation, themes, layout, input, focus, recipes with book return and temporary guidance, saves, load recovery, asset paths, and concurrent tabs. |
+| `full-board-guidance.spec.ts` | Temporary guidance on a full board: ready delivery, ordinary merge, blocker merge, no available space-making action, and unchanged saves. |
 | `renovation.spec.ts` | Room checkpoints, room crops, area changes, and pins. |
 | `decorations.spec.ts` | Finish switches, visible targets, keyboard focus, saved choices, failed writes, and concurrent tabs. |
-| `generators.spec.ts` | Stage-one production, stored choices in existing saves, Take controls, full boards, keyboard input, touch emulation, and geometry. |
-| `campaign-goals.spec.ts` | Work details, required quests, payment controls, and layout. |
-| `quests.spec.ts` | Tickets, quest dialogs, dish help, deliveries, scenes, saves, focus, input, and concurrent tabs. |
+| `generators.spec.ts` | Stage-one production, stored choices in existing saves, source tile activation, full boards, keyboard input, touch emulation, and geometry. |
+| `campaign-goals.spec.ts` | Unmet requirements, compact readiness, inline cost disclosure, keyboard toggling, payment with details open, phone scrolling, exact totals and payment descriptions, source space, guide Stop when a delivery makes Pay ready, and layout. |
+| `quests.spec.ts` | Tickets, quest dialogs, direct missing-dish guidance, dish help, deliveries, scenes, saves, focus, input, and concurrent tabs. |
 | `visitors.spec.ts` | Supply quests, visitor portraits, introductions, Ionatan's dinner, departure, and save failures. |
 | `guests.spec.ts` | Shared quests, both portraits, vegetarian requirements, local news, departure, and red wine. |
-| `board-clearing.spec.ts` | Blocked cells, labels, help, input, reload, and web removal at preparation 1. |
+| `board-clearing.spec.ts` | Blocked cells, legal merge targets, labels, help, input, reload, and web removal at preparation 1. |
 | `preparation-blockers.spec.ts` | Payment, failed payment saves, artwork, matching merges, deferred placement, reload, and layout. |
-| `blocker-help.spec.ts` | Rule marks, matching ingredients, eligible targets, dismissed help, unchanged saves, contrast, and layout. |
-| `story.spec.ts` | Chapter goals, steps, scenes, reveals, saved lines, the supper ticket, the finale, the supper painting, journal entries, focus, and layout. |
+| `blocker-help.spec.ts` | Rule marks, both tap orders for clearing, matching ingredients, eligible targets, dismissed help, unchanged saves, contrast, and layout. |
+| `story.spec.ts` | Chapter goals, steps, scenes, reveals, the supper ticket, the finale, the supper painting, journal entries, focus, and layout. |
 | `portrait-framing.spec.ts` | Each portrait crop at ticket and dialogue sizes in both themes. |
 
 Play checks include pointer drag, keyboard input, selection, and delivery.
@@ -95,13 +95,15 @@ Layout checks include the desktop and phone screens, the drawer, the phone bar, 
 Checks on a narrow screen that is 600px high or less require a drawer that stays in place, a reveal that does not wait for it, and an active drawer body.
 Theme checks include Light, Dark, System, and 4.5:1 contrast for main and muted text.
 
-Generator geometry checks cover one Take control at 360×740, 390×844, and 1440×900 in both themes.
+Generator geometry checks cover the source tile, selected-source line, and Clear selection at 360×740, 390×844, and 1440×900 in both themes.
 Repeated source taps keep the board in place at widths of 360px, 390px, and 412px.
 Ticket and story geometry checks cover 1440×900, 390×844, and 390×800 in both themes.
 Quest dialog checks cover 1440×900 and 390×844 in both themes.
 Visitor and shared guest quests have checks at 1366×900 and 390×844 in both themes.
 
-Quest checks include delivery from the board, delivery notices, the next ticket, journal replay, export, import, and failed writes.
+Quest checks include delivery from the board, delivery notices, the next ticket, combined journal conversations, export, import, and failed writes.
+A completed quest has one journal entry with the exact request and reply, one illustration, and one Return action.
+Unread conversations keep their reply pending through Close and Escape. Completion marks only the reply as read. A replay gives no reward.
 The campaign quest tests require delivery to leave its completion scene waiting without opening a dialog.
 The supper payment opens the finale. A recurring delivery queues no scene.
 They also check the unsaved warning in the delivery notice.
@@ -113,12 +115,11 @@ A failed delivery write retains the departure for the session. Reload restores o
 
 Story checks make every payment, read every chapter scene, pay for the supper, and read the finale and the supper painting, from a new game. Before each payment, the check writes the quests and the coins that the payment needs.
 Checks compare the displayed goals, neighbour help, and chapter outcomes.
-Escape, Close, reload, export, and import preserve saved scene positions.
-Skip starts the room reveal after a paid scene, then opens the next earned scene.
-A replay does not change the saved line of a scene that waits.
-A saved line past the last line restarts the scene with a notice.
-A failed line write warns once. Reload restores the last saved line.
-A failed supper save warns inside the finale before the player changes lines. Chromium exposes this warning to assistive technology.
+Each scene, including the finale, shows its complete text and speakers with one completion action.
+Escape, Close, and reload leave a scene unread and reopen its transcript at the top.
+The paid transcript completion starts the room reveal, then opens the next earned scene.
+A replay does not change a scene that waits.
+A failed supper save warns inside the finale. Chromium exposes this warning to assistive technology.
 Three successive recurring deliveries check the bat cadence with full motion. The first two deliveries show no bat.
 A quest completion scene waits through reload and finishes once from Read now.
 

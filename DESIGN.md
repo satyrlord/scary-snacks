@@ -190,7 +190,7 @@ components:
     backgroundColor: "{colors.light-panel}"
     textColor: "{colors.light-ink}"
     rounded: "18px 18px 0 0"
-    height: "calc(var(--cell) * 7 + 18px + 156px)"
+    height: "calc(var(--cell) * 7 + 18px + 152px)"
   drawer-handle:
     backgroundColor: "{colors.light-control-line}"
     rounded: "2px"
@@ -321,7 +321,7 @@ The palette is warm and has low saturation. Each theme has one action colour. Th
 - **Dark Gold** (dark-gold): the dark-mode coin figures and coin face. Dark Coin Rim (dark-coin-rim) colours the rim and the moon.
 
 ### Tertiary
-- **Teal Focus** (light-focus / dark-focus): the focus ring, the hint pulse, and the outline of blocker help. No other part uses it. It is the only cool hue in the system.
+- **Teal Focus** (light-focus / dark-focus): the focus ring and the hint pulse. No other part uses it. It is the only cool hue in the system.
 - **Ready Green** (light-ready / dark-ready): the small dot on a ticket dish when the board already holds every portion of it. It also colours the check of a complete chain.
 - **Selected Clay** (light-selected): the selected-cell outline and the tile hover in light mode. In dark mode, Candle Amber does this job.
 
@@ -362,7 +362,7 @@ The palette is warm and has low saturation. Each theme has one action colour. Th
 ### Named Rules
 **The Shop Sign Rule.** Grenze Gotisch appears once per screen, as the wordmark. Every other heading is Inter at weight 600.
 
-**Text sizes.** General interface text is at least 12px. Ticket count badges use 10px. The Take button label is 12px on phones.
+**Text sizes.** General interface text is at least 12px. Ticket count badges use 10px.
 
 ## Layout
 
@@ -395,7 +395,7 @@ The bar is 56px tall plus the safe area. The safe area is the space that the dev
 
 **The height budget.** The cell size and the visible room share one budget:
 - Wider screens: `--cell: clamp(44px, min(calc((var(--panel-w) - var(--side-w) - 116px) / 6), calc((100dvh - 432px) / 7)), 96px)`, with 4px gaps.
-- Phones: `--cell: clamp(44px, min(calc((100vw - 40px) / 6), calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7)), 60px)`, with 3px gaps. The value of `--drawer-chrome` is 156px. The room shows at least 29.5dvh above the drawer when the cell size allows it. The unit dvh is one percent of the dynamic viewport height.
+- Phones: `--cell: clamp(44px, min(calc((100vw - 40px) / 6), calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7)), 60px)`, with 3px gaps. The value of `--drawer-chrome` is 152px. The room shows at least 29.5dvh above the drawer when the cell size allows it. The unit dvh is one percent of the dynamic viewport height.
 
 **Short screens.** On a short screen, the room, the drawer, and the bar are not fixed. They follow each other in the page, and the page scrolls. The room is 240px tall. The grip does not show. A change to this layout clears the lowered drawer state, so the kitchen accepts input after rotation.
 
@@ -464,12 +464,12 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 - **Unavailable:** if the kitchen cannot open, three parts have 50% opacity and do not accept input. They are the Options button, the recipe book, and the bar items. The game dims no other button.
 - **Secondary:** the fill is Flour Dust, the text is ink, and the border is a 1px Control Line. Hover brightens it like Primary.
 - **Danger:** a transparent fill with an accent outline and accent text. Only the reset actions use this style. A confirmation always follows.
-- **Pay:** the story shows the current coins and the required coins. It also shows the quests delivered out of the quests that the preparation needs. Each row says "Complete" or "Need N". If a source needs board space, a row states the space needed. Pay stays disabled, with the dashed not-yet style, until the player meets every requirement.
+- **Pay:** Story shows only unmet requirements: the extra coins to earn, the quests to deliver, or the board space to free for a source. Completed requirements have no row. When all are met, one line says "Ready to prepare." Pay stays disabled, with the dashed not-yet style, until the player meets every requirement.
 
-  The button reads "Pay · N" with the 16px coin mark. Its accessible name is "Pay N coins: [preparation]", and its description is the requirement list. Pay and the Cost details text button share one 44px row with a 10px gap. Pay fills the remaining width.
+  The button reads "Pay · N" with the 16px coin mark. Its accessible name is "Pay N coins: [preparation]". Its description includes the visible requirement note and the exact coin and quest totals, with source space when needed. Cost details also shows those totals. Pay and the Cost details text button share one 44px row with a 10px gap. Pay fills the remaining width.
 
-  Cost details has the accessible name "Work and cost".
-- **Text button:** an underlined accent link at 13px with a 44px target. Find a match, Journal, and Read quest use this style. Skip scene, Read now, the reply in a delivery notice, and Try again also use this style.
+  Cost details has the accessible name "Work and cost" and reports its expanded state. Its small chevron points down when the details are closed and up when they are open. The control opens and closes its region and keeps focus.
+- **Text button:** an underlined accent link at 13px with a 44px target. Find a match, Journal, and the supper quest opening use this style. Read now, the reply in a delivery notice, and Try again also use this style.
 - **Focus:** a 3px Teal Focus ring, offset by 3px. Inside a tile, an area choice, the grip, or a bar item, the offset is -3px. In a segmented choice, the offset is 2px. A finish switch has its own focus outline (see Finish switches).
 
 ### The room (signature)
@@ -519,10 +519,10 @@ Buttons are solid and warm. Every button target is at least 44px tall.
   A frame near a cell edge keeps a small offset. The offset keeps the full silhouette and stays out of the next cell. The transparent opening stays clear, and the ingredient keeps 70% of the ordinary food box. Do not shrink the ingredient to compensate for excess outer padding.
 - **Blocker help:** every initial blocker and every preparation blocker has a 16px question mark in its lower-right corner. The vector uses the panel fill, ink, and Control Line. The whole tile is the touch target. Hover gives the clearing rule.
 
-  When the player selects a blocker, the strip under the board shows the name of the blocker, the exact clearing instruction, and Clear selection. Help marks the movable matching ingredients with a steady Teal Focus inset outline. All blockers say "Merge another [ingredient] into this blocked space."
+  When the player selects a blocker, the strip under the board shows the name of the blocker, the exact clearing instruction, and Clear selection. Help marks the movable matching ingredients with a 2px dotted Smoke outline at 50% opacity inside each tile. All blockers say "Tap a marked [ingredient] to merge here." A tap on a marked item clears the blocker. Its accessible label names that action.
 
   The accessible labels describe the marked cells. The selected tile refers to the visible instruction. Help adds no dialog, no vertical row, and no motion. `PRODUCT.md` gives the ways to leave the help.
-- **States:** hover draws a 2px inset outline in Selected Clay (Candle Amber in dark mode). Selection draws a 3px inset outline. A hint pulses a 4px Teal Focus inset outline three times.
+- **States:** hover draws a 2px inset outline in Selected Clay (Candle Amber in dark mode). Selection draws a 3px inset outline. A selected mergeable dish marks every matching movable dish and blocked destination with a 2px dotted Smoke outline at 50% opacity inside each tile. A source and a final dish mark no target. A hint pulses a 4px Teal Focus inset outline three times. In forced colours, matching targets have an opaque dotted Highlight outline. Keyboard focus stays a solid outline.
 - **Ingredient sources:** a 17px badge in the corner. The badge has an action-coloured disc, a tile-coloured rim, and a plus in the On-Action colour.
 - **Keyboard:** the board is one Tab stop. Arrow keys move between spaces. Home and End go to the ends of the row. With Control, they go to the first and the last space. Escape clears the selection.
 - **Motion:** a merged item settles over 180ms from 82% scale. The first of each dish arrives over 700ms with a small tilt.
@@ -530,20 +530,23 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 ### Mara's line, the offer, and the selected item
 These three parts share one place under the board. The place is at least 62px tall on wider screens.
 - **Mara's line:** the 38px portrait of Mara (28px below 1024px), the live status line, and "Find a match". At 720px and below, the first line is shorter, and the note for a selected item does not name the item.
-- **Offer:** the offer shows the preparation name, "Ready when you are.", and a primary Pay button. `PRODUCT.md` gives when the offer shows.
-- **Selected item:** the item picture, its name, and its rule line ("Source of …", "Two make …", or "Final dish"). The item picture is 44px (40px below 1024px). Below 411px, the item picture is 34px. At 360px and below, the item picture and the rule line do not show.
+- **Guide cancellation:** when a guide is active with no selected cell, Mara's line shows a short next-step note and "Stop guide" takes the place of "Find a match". When a cell is selected, the same Stop action takes the place of Clear selection in the item strip. Escape works from the board and either Stop control. Tapping the selected dish or blocker again also ends the guide. A tap on a selected source takes another ingredient.
+- **Full board guidance:** a legal merge toward the goal keeps its board cue. Otherwise, a ready delivery that frees space has the 50%-opacity dotted Smoke outline on its ticket button. Starting the guide focuses that Deliver button. If no such delivery is ready, another legal pair or blocker merge uses the board cue. If no action can make room, Mara names the limit and Stop stays visible. The guide never marks a source for a take that cannot fit.
+- **Offer:** the offer shows the preparation name, "Ready when you are.", and a primary Pay button. An active guide keeps its Stop control visible in Mara's line instead of the offer. The Story button still marks a ready payment, and Pay stays in the Story sheet. The offer returns when the guide ends. `PRODUCT.md` gives when the offer shows.
+- **Selected item:** the item picture, its name, and its rule line ("Two make …" or "Final dish"). A selected source shows its name and a short line that says to tap it again for its ingredient. While a dish guide is active, the rule line gives the requested dish and next action. A visible Stop control takes the place of Clear selection. The board marks the next useful cells with the same dotted outline as matching items. The guide adds no row, and the selected board cell keeps its focus. The item picture is 44px (40px below 1024px). Below 411px, the item picture is 34px. At 360px and below, the item picture does not show.
 
-  At 720px and below, if the name takes two lines, the rule line does not show. The actions follow. A source has one primary Take button with the stage-1 ingredient picture and name, such as "Take Flour".
+  At 720px and below, if the name takes two lines, the ordinary rule line does not show. The guide's goal line stays visible. Clear selection or Stop follows the name or rule. A source tile takes an ingredient when the player taps it or presses Enter or Space on it.
 
-  Keyboard focus uses the Teal Focus ring. The 44px clear button follows. A dish has only the clear button. Selecting a source does not move the board under the finger. The Take button and Clear fit at 360px without horizontal scroll.
+  Keyboard focus uses the Teal Focus ring. The 44px Clear or Stop control follows. Selecting a source does not move the board under the finger. The selected item and its control fit at 360px without horizontal scroll. On phone screens taller than 600px, the shared line is 52px high and keeps blocker help and the offer visible.
 
 ### Story and recipe book
 - **Wider screens:** the story and the recipe book are sections of the docked panel between hairlines. They are not cards. The story section starts with the chapter title, the objective, and the steps. A waiting scene follows, if one exists. A waiting scene is a story scene that the player has earned and not yet read.
 
-  The preparation, the requirement list, and the Pay button complete the section. The Story sheet keeps the title "Our little bistro" and shows "Chapter N · [title]" in its first line. Requirement rows use 13px Inter, tabular figures, ink for totals, and muted text for status. The rows wrap within the column.
+  The preparation, the unmet requirement list or ready line, and the Pay button complete the section. The Story sheet keeps the title "Our little bistro" and shows "Chapter N · [title]" in its first line. Requirement rows use 13px Inter and ink text. The ready line uses weight 600. Exact totals in Cost details use tabular figures. The rows wrap within the column.
 
   The rows add no motion and no colour code. Journal has the accessible name "Open the story journal". The save state and the progress count follow. The recipe book is an accent link with the bat sprite and the "N of 30 dishes discovered" line.
 - **Phones:** the story and the recipe book each open as a sheet from the bar.
+- **Recipe book navigation:** on every screen size, Close or Escape from an item opened in the book returns to the same book position with focus on that dish. "Show me on the board" closes the dialog, raises a lowered kitchen drawer, and focuses the board step.
 - **Complete chain:** when the player discovers all six dishes of a chain, the book heading of the chain shows a 14px check. The word "Complete" follows the chain name. The mark uses the Label size at weight 600 in Ready Green. Screen readers hear the heading as "[Chain], complete". The mark gives no notice and no reward. No other place shows it.
 - **Covered dish:** an unmade dish is a transparent slot with a dashed Control Line border. The slot shows a Smoke covered dish and "Not yet". The covered dish is a plate under a dashed dome cover with a knob, at the 1.7 stroke.
 
@@ -551,9 +554,9 @@ These three parts share one place under the board. The place is at least 62px ta
 
 Each source shows only its stage-1 ingredient. Higher-stage dishes stay covered until the player makes them by merging, apart from quest requirements.
 
-Cost details opens the existing dialog or phone sheet. It names the current preparation and its work scope. Materials and supplies, Labour, and Total have separate coin rows. Estimated person-hours describe the work scale, with an explicit explanation that there is no timer.
+Cost details expands under the Pay row inside Story, after a hairline. It shows the work scope, coin rows for Materials and supplies, Labour, and Total, and the estimated person-hours with a note that there is no timer. The exact requirements follow. The region uses the 13px story copy and tabular figures, with no card and no motion. Pay stays above it and works while it is open.
 
-This text can describe the planned work. It does not show an unearned painting. Close and Escape return to the cost control. On phones, they restore the Story sheet first. The details add no extra row to the story section on wider screens.
+The details do not show an unearned painting. They start closed for each new preparation and stay open through redraws of that preparation. Both Story views share this state. Opening the details does not change the size or the position of the board.
 
 ### The reveal (signature motion)
 - **Order:** the reveal starts after the story of a paid preparation. Where the drawer moves, it lowers by itself over 0.6s before the repaint. On a short screen, the repaint starts at once.
@@ -569,8 +572,8 @@ This text can describe the planned work. It does not show an unearned painting. 
 ### Dialogs
 - **Style:** dialogs are Parchment with an 18px radius and 26px padding. A dialog is at most 560px wide. It has a headline title and a 44px close button.
 - **Bottom sheets (720px and below):** a bottom sheet has full width and is up to 88% of the viewport height. It has 20px padding plus the safe area and a top border only.
-- **Focus:** a dialog opens on its close button. The story dialog opens on Continue. Each confirmation dialog opens on its safe choice. When an open dialog changes, focus moves to the new title, without a ring.
-- **Story:** a 120px portrait and the line at 16px. At 720px and below, the portrait is 82px, and the line is 14px. Back, the line count, and Continue follow. After a payment, the last line reads "See what changed". The sheet then closes, and the reveal runs.
+- **Focus:** a dialog opens on its close button. A scene opens on its title at the top. Each confirmation dialog opens on its safe choice. When an open dialog changes, focus moves to the new title, without a ring.
+- **Story:** each scene shows the full transcript. Each turn has a 44px portrait, a 12px gap, and a text column. The speaker name is 13px at weight 600, with 4px below it. Body text is 16px with a 1.75 line height, or 14px at 720px and below. Turns have 18px between them. One completion action follows the transcript, aligned right after 24px. After a payment, "See what changed" closes the sheet and starts the reveal.
 - **Item help:** the dish picture (100px, or 120px at 720px and below), one line that says how to get the dish, and the count on the board. The six dishes of the chain follow, three to a row. Each dish shows its name or "Not yet". If the source is on the board, the button "Show me on the board" closes the dialog. The board then points at the next step.
 
 ### Chapter story
@@ -599,25 +602,19 @@ The title of a scene dialog depends on the scene:
 - An arrival scene: "[Name] arrives".
 - A news scene: the title of the news.
 
-Each waiting scene uses the story portrait, dialogue, Back, line count, and Continue. A "Skip scene" text button with a 44px target follows the controls.
+A scene shows the complete ordered transcript with a portrait and speaker name for each turn, and one completion action. The dialog can scroll. Focus starts on the title and the scroll starts at the top. Close and Escape leave a waiting scene unread; reopening starts at the top.
 
-The completion message shows the payoff, the room change of the preparation, the arrival, or the news. The finale ending appears below the supper painting. A quest completion scene has no completion message. A waiting scene opens at its saved line. If the saved line is past the end of the scene, a muted 14px notice shows above the portrait. The notice says "Someone lost the thread. The conversation starts again from the beginning." If a line save fails, a bordered error box shows under the completion message.
+The completion message shows the payoff, the room change of the preparation, the arrival, or the news. It comes before the completion action. The finale ending appears below the supper painting. A quest completion scene has no completion message. If a waiting scene opens while the session is not saved, a bordered error box shows under the completion message. It states that the session is not saved and that the player can continue to read. The box does not take focus.
 
-The box states that the session is not saved and that the player can continue to read. The box shows once for each scene and does not take focus. The last line reads "Next scene" when another scene waits, and "Back to the kitchen" otherwise. From the journal, the last line reads "Return". The finale uses "See the supper" in each case.
+The completion action reads "Next scene" when another scene waits, and "Back to the kitchen" otherwise. From the journal, it reads "Return". The finale uses "See the supper" in each case.
 
-If a scene opens while the session is not saved, the same box appears immediately inside the dialog.
-
-After the reveal of the payment that earned the scene, the scene opens and focus moves to Continue. Close and Escape leave the scene waiting. When the scene dialog closes, focus returns to the control that opened it. If Read now is not present, focus returns to the Journal link on wider screens. On phones, focus returns to the Story button.
+After the reveal of the payment that earned the scene, the next earned scene opens. Close and Escape leave the scene waiting. When the scene dialog closes, focus returns to the control that opened it. If Read now is not present, focus returns to the Journal link on wider screens. On phones, focus returns to the Story button.
 
 The same focus rule applies when the player closes a later scene in the same queue.
 
-The journal has a Chapters section after the finished quests and the local news. Each open or complete chapter is a section between hairlines with the heading "Chapter N · [title]". A running chapter shows its opening context and its goal in muted text. It also shows its later preparations as a muted list with "Next" or "Not yet". A complete chapter shows its payoff.
+The journal shows its current or latest chapter after Unread scenes. Other complete chapters sit in Earlier chapters. Each chapter is a section between hairlines with the heading "Chapter N · [title]". A running chapter shows its opening context and its goal in muted text. It also shows its later preparations as a muted list with "Next" or "Not yet". A complete chapter shows its payoff.
 
-The neighbour help line is muted. A done preparation is a journal entry with the name of its room change, for example "New: lamps lit". A done preparation whose scene waits says "New scene" instead. The closing scene and the finale are journal entries that say "New scene" or "Replay".
-
-Each news scene that the player has earned has a section with the heading "Local news" and one entry. The entry says "New scene" while the scene waits, and "Replay" after that.
-
-A completed quest has a "Read completion" entry. It says "New scene" while its scene waits, and the name of the neighbour after that. These parts have no animation.
+The neighbour help line is muted. Each waiting scene has its entry under Unread scenes. After the player reads it, a preparation entry names its room change, for example "New: lamps lit". A closing scene and the finale say "Replay". A news scene has a Local news section in Earlier conversations. A quest reply moves to Earlier conversations with the quest title and the name of the neighbour. These parts have no animation.
 
 ### Quests
 
@@ -629,7 +626,7 @@ Each character introduction shows its individual transparent pencil sketch. Ques
 
 Victor draws the sketches while he waits for his meal. Keep light, steady pencil lines drawn by a practised hand, and accurate anatomy, proportions, and perspective. Facial features are lightly drawn but present: awake people have visible open eyes when the view permits, and sleepers have indicated closed eyelids. Victor's secret crush explains Mara's more detailed face. Match the accepted sketches without adding dense fabric or surface detail.
 
-If more than one character speaks, the lines form an exchange. Each line is a paragraph, 12px from the next. At each change of speaker, the name of the speaker (13px, 600) stands on its own line above the words. Screen readers hear "[Name]:" before the words. The food rows show the exact quantity and the count on the board. Each row opens ingredient help, which returns to the quest. The coin reward follows in gold. Then come Deliver ("Deliver · N" with the coin mark) and one muted line: "Delivery uses dishes on the board. There is no deadline." The supper quest has no food rows. Its line "Cost: N coins. In the purse: N coins." replaces the reward, then come "Pay · N" and the muted line "The payment uses coins, not dishes. There is no deadline."
+If more than one character speaks, the lines form an exchange. Each line is a paragraph, 12px from the next. At each change of speaker, the name of the speaker (13px, 600) stands on its own line above the words. Screen readers hear "[Name]:" before the words. The food rows show the exact quantity and the count on the board. Each row opens ingredient help, which returns to the quest. An unmet row also has a 44px Find text button. Its accessible name gives the dish. Find closes the dialog and points to the next board step for another portion. The coin reward follows in gold. Then come Deliver ("Deliver · N" with the coin mark) and one muted line: "Delivery uses dishes on the board. There is no deadline." The supper quest has no food rows. Its line "Cost: N coins. In the purse: N coins." replaces the reward, then come "Pay · N" and the muted line "The payment uses coins, not dishes. There is no deadline."
 
 Deliver has the dashed disabled style until the board holds every portion. Deliver closes the dialog and starts the delivery motion.
 
@@ -645,16 +642,22 @@ The portraits keep their colours in both themes.
 
 Paint Adrian and Monica with Romanian village headwear and embroidered shirts. Adrian also wears his steel plate cuirass and burgundy cloak. Monica also wears her brown leather scout armour and green cloak. Paint Janos in Hungarian Roma village dress, with his felt hat, indigo waistcoat, plum neckerchief, and a staff. Paint natural adult faces. Do not draw a caricature.
 
-The journal starts with Neighbours: the core characters, then the regulars in order of arrival. A neighbour row has a 44px portrait, a text column, and a muted count on the right. The gaps are 12px. The text column holds the name (600). The trade and the favourite chains follow in 12px muted text ("Favourites: Warm kitchen and Bread counter"). The count says "N quests", or "New scene" while an arrival scene waits.
+The journal starts with Unread scenes in saved waiting order. Each waiting scene has one row with its title and "New scene". Keep "New scene" on one line. If none wait, one muted line says "No unread scenes." The current chapter follows, or the latest chapter after all preparations. Earlier chapters, Earlier conversations, and Neighbours follow as native expandable groups that start closed. Their summaries have a 44px minimum height, 14px vertical padding, and 16px text at weight 600. The groups use the existing line, ink, muted text, and focus ring, with no cards and no animation.
 
-A row opens the waiting arrival scene, or else the introduction. A regular who has not arrived is a row with these parts:
+Earlier chapters runs newest first. Earlier conversations keeps one entry for each completed quest, most recently delivered first. Earned news and the read finale stay here too. Waiting scenes appear only under Unread scenes.
+
+Neighbours shows the core characters, then the regulars in order of arrival. A neighbour row has a 44px portrait, a text column, and a muted count on the right. The gaps are 12px. The text column holds the name (600). The trade and the favourite chains follow in 12px muted text ("Favourites: Warm kitchen and Bread counter"). The count says "N quests".
+
+A neighbour row opens the introduction. Waiting arrival scenes open above, under Unread scenes. A regular who has not arrived is a row with these parts:
 - a dashed border and a transparent background
 - a 44px dashed circle
 - the muted words "Not yet"
 
 Traveller rows follow. A traveller row has a 44px portrait and two equal text columns. The names align left, and the roles align right. Long names and roles wrap within their columns.
 
-Finished quests sit under the heading "Neighbour quests". Each has a "Read quest" text button for the opening, with the accessible name "Read quest: [title]". A quest with a completion scene also has a "Read completion" entry. The supper quest has only its opening entry. The recurring quest has no entry. These controls come before the chapters. Quest scenes and introductions use the existing portrait, dialogue, Back, and Continue controls. Return, Close, and Escape restore focus to the quest heading or the journal entry. When the player closes the quest sheet, focus returns to the visible Story link or to the phone Story button.
+Finished quests sit in Earlier conversations. Each quest with a reply has one entry with its title and the name of the neighbour. Its accessible name is "Replay [title]", or "Read [title]" while the reply waits. The page shows Request then Reply in one transcript. Each part has a 16px heading, and speaker names use level-four headings in the 13px speaker style. The Reply part starts after a 24px gap, an 18px inset, and the 1px line. One sketch or scene illustration and one Return action serve both parts. Return marks only a waiting reply as read. The supper quest has only its opening entry. The recurring quest has no entry.
+
+Return, Close, and Escape keep the open groups and the reading position, and focus the journal entry. If reading moved the entry into a group, that group opens. A read arrival focuses its neighbour. A read single-visit farewell focuses the Unread scenes heading. When the player closes the quest sheet, focus returns to the visible Story link or to the phone Story button.
 
 These parts have no animation.
 
@@ -693,7 +696,7 @@ The text is 14px with a line height of 1.4.
 
 A quest can unlock a finish for a detail of the room. The player switches the finish where the detail stands in the room. The switch is a transparent button over the crop of the detail, at least 44px each way. A 26px badge sits on its upper-right corner. The badge is a Fresh Linen disc with a Coin Rim ring and two ink arrows that show a switch.
 
-Hover and keyboard focus draw a 2px dashed Coin Face outline around the detail. The accessible name is "[Detail]: [current finish]. Switch to [next finish]". A tap applies the next finish after the save succeeds, and the status line names the new finish. Focus stays on the switch.
+Hover and focus draw a 2px dashed Coin Face outline around the detail. The accessible name is "[Detail]: [current finish]. Switch to [next finish]". A tap applies the next finish after the save succeeds, and the status line names the new finish. Focus stays on the switch.
 
 The switch shows only in the area that the room shows, and only while its detail is in the room. If the painting fails, the switch stays hidden and cannot take focus. The switch also needs a visible 44px square target inside the room crop and above the drawer. When the player lowers the drawer, the switches whose targets become visible return.
 
@@ -701,7 +704,7 @@ The switch adds no motion.
 
 ### Options
 
-Options shows the save state. It also shows the Retry saved game control or the Retry save control when the state needs one. Its other sections are Appearance, Motion, Kitchen sounds, Your saved game, About Scary Snacks, and A fresh start. The sections use the existing dialog, section, button, ink, muted, and focus styles.
+Options shows the save state. It also shows the Retry saved game control or the Retry save control when the state needs one. Its other sections are Appearance, Motion, Kitchen sounds, Your saved game, About Scary Snacks, and A fresh start. The sections use the existing dialog, section, button, ink, muted, and focus styles. Below the last section, one small centered muted line shows the version, for example "Version 1.1.30".
 
 ### Inputs / Fields
 - **Segmented choice:** the Appearance setting and the Motion setting each use a segmented choice. The track is Flour Dust with a Control Line border. The options are 44px tall. The checked option takes the chosen fill, weight 600, a 2px inset accent ring, and the pressed choice shadow.

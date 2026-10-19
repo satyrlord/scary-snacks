@@ -15,9 +15,73 @@ test('new board explains blocked spaces and counts only usable empty cells', asy
   await page.keyboard.press('ArrowDown');
   await expect(tile(page, 6)).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(page.locator('#status')).toContainText('merge a movable Dough');
+  await expect(page.locator('#status')).toContainText('tap a marked Dough to merge here');
   await expect(page.locator('.cell.clutter')).toHaveCount(4);
   await expect(page.locator('.cell.anchored')).toHaveCount(4);
+});
+
+test('selected ingredients mark matching food and update targets after a move and merge', async ({ page }) => {
+  await start(page, createGame(data));
+  await tile(page, 13).click();
+  await expect(tile(page, 13)).toHaveClass(/selected/);
+  await expect(tile(page, 14)).toHaveClass(/merge-target/);
+  await expect(tile(page, 14)).toHaveAttribute('aria-label', /Tap to merge the selected Flour here$/);
+  await expect(page.locator('#board .merge-target')).toHaveCount(1);
+  await tile(page, 20).click();
+  await expect(tile(page, 20)).toHaveClass(/selected/);
+  await expect(tile(page, 14)).toHaveClass(/merge-target/);
+  await expect(tile(page, 13)).not.toHaveClass(/merge-target/);
+  await tile(page, 14).click();
+  await expect(tile(page, 14)).toHaveClass(/selected/);
+  for (const index of [6, 41]) await expect(tile(page, index)).toHaveClass(/merge-target/);
+  expect((await saved(page)).board[14]).toEqual({ code: 'bakery_2' });
+});
+
+test('a selected dish marks movable matches and matching blockers only', async ({ page }) => {
+  const state = createGame(data);
+  state.board[18] = { code: 'bakery_2' };
+  state.board[19] = { code: 'bakery_2' };
+  state.discovered.push('bakery_2');
+  await start(page, state);
+  await tile(page, 18).click();
+  const marked = await page.locator('#board .merge-target').evaluateAll(elements => elements.map(element => Number((element as HTMLElement).dataset.cell)));
+  expect(marked).toEqual([6, 19, 41]);
+  await expect(tile(page, 19)).toHaveAttribute('aria-label', /Tap to merge the selected Dough here$/);
+  await expect(tile(page, 6)).toHaveAttribute('aria-label', /Tap to merge the selected Dough here and clear this blocker$/);
+  await expect(tile(page, 19)).toHaveCSS('outline-style', 'dotted');
+  await expect(tile(page, 19)).toHaveCSS('outline-color', /0\.5\)$/);
+  await tile(page, 19).hover();
+  await expect(tile(page, 19)).toHaveCSS('outline-style', 'dotted');
+  await expect(tile(page, 13)).not.toHaveClass(/merge-target/);
+  await tile(page, 6).click();
+  await expect(tile(page, 0)).toHaveClass(/merge-target/);
+  await expect(tile(page, 19)).not.toHaveClass(/merge-target/);
+  expect((await saved(page)).board[6]).toEqual({ code: 'bakery_3' });
+});
+
+test('forced colours distinguish the selected dish from its matching targets', async ({ page }) => {
+  await page.emulateMedia({ forcedColors: 'active' });
+  await start(page, createGame(data));
+  await tile(page, 13).click();
+  await expect(tile(page, 13)).toHaveCSS('outline-style', 'solid');
+  await expect(tile(page, 14)).toHaveCSS('outline-style', 'dotted');
+  await expect(tile(page, 14)).toHaveClass(/merge-target/);
+});
+
+test('sources, final dishes, and cleared selections show no merge targets', async ({ page }) => {
+  const state = createGame(data);
+  state.board[18] = { code: 'bakery_6' };
+  state.discovered.push('bakery_6');
+  await start(page, state);
+  await tile(page, 1).click();
+  await expect(page.locator('#board .merge-target')).toHaveCount(0);
+  await tile(page, 18).click();
+  await expect(page.locator('#board .merge-target')).toHaveCount(0);
+  await tile(page, 13).click();
+  await expect(tile(page, 14)).toHaveClass(/merge-target/);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#board .merge-target')).toHaveCount(0);
+  await expect(page.locator('#board .blocker-target')).toHaveCount(0);
 });
 
 test('a pointer merge clears only its destination and can then clear the adjacent blocker', async ({ page }) => {

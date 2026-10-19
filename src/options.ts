@@ -1,4 +1,4 @@
-// Options: appearance, motion, sound, the saved game with its export, import, and recovery, and a fresh start.
+// Options: appearance, motion, sound, the saved game with its export, import, and recovery, a fresh start, and the version.
 import { createGame } from './engine.ts';
 import type { GameState } from './model.ts';
 import { exportSave, importSave, loadSave, resetSave, saveGame, MAX_SAVE_BYTES } from './storage.ts';
@@ -21,7 +21,7 @@ function segmented(name: string, legend: string, note: string, values: string[][
   const description=element('p','',note);description.id=`${name}-note`;
   choices.append(element('legend','',legend),description,group);section.append(choices);return section;
 }
-/** Options: appearance, motion, sound, the saved game, About Scary Snacks, and a fresh start. */
+/** Options: appearance, motion, sound, the saved game, About Scary Snacks, a fresh start, and the version. */
 export function options() {
   const content=element('div');content.append(element('p','modal-copy save-status',saveMessage));
   // Writes never replace an unreadable save, so only a new game (an explicit reset) lets this browser save again.
@@ -57,7 +57,10 @@ export function options() {
       adopt(fresh,result);modal.close();status('The kitchen is ready for a fresh start.');
     },true)),keep);
     const confirm=element('div');confirm.append(element('p','modal-copy','This erases the dishes, coins, story progress, discoveries, and decoration finishes saved in this browser. Export a copy first if you want to keep this game.'),choice);showModal('Start a new game?',confirm,keep);
-  }));content.append(reset);showModal('Options',content,modal.open?undefined:$('#close-modal'));
+  }));content.append(reset);
+  // The build writes the version into the page.
+  const version=$<HTMLMetaElement>('meta[name="app-version"]').content;if(version)content.append(element('p','app-version',`Version ${version}`));
+  showModal('Options',content,modal.open?undefined:$('#close-modal'));
 }
 onRecovery(()=>{if(modal.open&&$('#modal-title').textContent==='Options')options();});
 for(const opener of document.querySelectorAll('[data-options]'))opener.addEventListener('click',()=>data&&options());

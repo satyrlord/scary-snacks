@@ -61,7 +61,7 @@ The closing scene of chapter 1 names the one friendly spider that stays under th
    Its last control, "See the supper", opens the supper painting with the ending line of the finale.
    The painting ends with "Back to the kitchen" if no other scene waits. No quests remain.
 7. The journal replays the closing scene of each complete chapter and, after the supper, the finale with the supper painting.
-   Replay, Skip, Back, and closing a dialog have no economic effect.
+   Replay and closing a dialog have no economic effect.
 8. A failed payment, missing coins, a missing required quest, and a full board for a new source change nothing.
    They complete no chapter, queue no scene, and open no finale.
 9. `storyProblems` rejects missing or blank scenes, unknown speakers, and duplicate or unstable IDs.
@@ -74,17 +74,17 @@ The closing scene of chapter 1 names the one friendly spider that stays under th
 
 ## Scene order and reading
 
-A waiting scene is an earned scene that the player has not finished or skipped.
+A waiting scene is an earned scene that the player has not finished.
 The state holds `pendingScenes`: the IDs of the waiting scenes.
 Preparation scenes, closing scenes, and the finale keep story order in this list.
 The paid preparation scene opens before the room reveal.
 After the reveal, the next scene that the payment earned opens, unless another dialog is open.
-Finish and Skip send `readScene`, which removes only that scene. Then the next waiting scene opens.
+The completion action sends `readScene`, which removes only that scene. Then the next waiting scene opens.
 A repeated, stale, or unknown `readScene` changes nothing.
 Close and Escape leave the scene waiting.
 Story shows the first waiting scene with Read now.
 After a reload, Mara's line says that a scene is waiting.
-Spec 008 owns the saved line of a scene and the rules for reading preparation scenes and quest scenes.
+Spec 008 owns the transcript presentation and the reading rules.
 
 ## State and save compatibility
 
@@ -103,7 +103,7 @@ Follow [Shared save compatibility](README.md#shared-save-compatibility) in the s
 - `tests/storage.test.ts` covers failed writes, malformed saves, and save and load of valid scene lists.
 - `tests/campaign-balance.test.ts` shows that a legal fresh campaign ends with each chapter scene waiting, in story order, and the coins for the supper.
 - `tests/browser/story.spec.ts` covers the objective, the preparation steps, the chapter changes, and Escape and reload with a waiting scene.
-  It covers the supper payment, the finale with Skip and replay, the supper painting, and the board after the finale.
+  It covers the supper payment, the finale with reading and replay, the supper painting, and the board after the finale.
   It checks the layout at 1440×900, 390×844, and 390×800 in both themes.
 
 The playthrough in `tests/browser/story.spec.ts` starts from a fresh save in the built game.

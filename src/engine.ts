@@ -1,5 +1,5 @@
 // The deterministic rules of the bistro game: the new game, the actions, and the acceptance of an untrusted save.
-import { arrivalScene, availableChains, boardObstacles, canDeliverQuest, decorationUnlocked, deliveriesSince, earnedScenes, firstFreeBoardCell, freeBoardCells, getItem, integer, own, pendingPreparationObstacles, present, questDeliveryCells, questPredecessors, requiredQuests, resolveChapters, sceneDialogue, sceneSource, storyOrder, supperComplete, taskEligibility, unresolvedObstacle } from './model.ts';
+import { arrivalScene, availableChains, boardObstacles, canDeliverQuest, decorationUnlocked, deliveriesSince, earnedScenes, firstFreeBoardCell, freeBoardCells, getItem, integer, own, pendingPreparationObstacles, present, questDeliveryCells, questPredecessors, requiredQuests, resolveChapters, storyOrder, supperComplete, taskEligibility, unresolvedObstacle } from './model.ts';
 import type { Action, Cell, GameData, GameState, Result } from './model.ts';
 
 /** At most this many preparation blockers wait on the board at one time. */
@@ -51,16 +51,12 @@ function validateQuestProgress(state: GameState, data: GameData): boolean {
   }
   return !state.taskIndex || requiredQuests(state.taskIndex - 1, data).every(quest => done.has(quest.id));
 }
-/** A save that waits for the finale before the supper payment drops the finale and its saved line, so the payment earns it. Other saves stay as they are. */
+/** A save that waits for the finale before the supper payment drops the finale, so the payment earns it. Other saves stay as they are. */
 export function repairSave(candidate: unknown, data: GameData): unknown {
   const state = candidate as GameState, id = data.finale.id;
   if (!state || typeof state !== 'object' || !Array.isArray(state.pendingScenes) || !Array.isArray(state.completedQuests)
     || !state.pendingScenes.includes(id) || supperComplete(state, data)) return candidate;
-  const repaired = { ...state, pendingScenes: state.pendingScenes.filter(scene => scene !== id) };
-  if (state.sceneLines && typeof state.sceneLines === 'object' && Object.hasOwn(state.sceneLines, id)) {
-    repaired.sceneLines = Object.fromEntries(Object.entries(state.sceneLines).filter(([scene]) => scene !== id));
-  }
-  return repaired;
+  return { ...state, pendingScenes: state.pendingScenes.filter(scene => scene !== id) };
 }
 /** Accepts an untrusted save: a parsed save is checked field by field before it is treated as a game state. The data must pass dataProblems. */
 export function validateGame(candidate: unknown, data: GameData): candidate is GameState {
@@ -77,10 +73,6 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
       if (!Array.isArray(pending) || new Set(pending).size !== pending.length || !pending.every(id => earned.includes(id))) return false;
       const ordered = pending.filter(id => scenes.includes(id));
       if (!ordered.every((id, at) => at === 0 || scenes.indexOf(ordered[at - 1]) < scenes.indexOf(id))) return false;
-      // A line gives no reward, so a line past the end of its scene stays valid: the scene then starts again.
-      const lines = state.sceneLines;
-      if (lines !== undefined && (!lines || typeof lines !== 'object' || Array.isArray(lines) || ![Object.prototype, null].includes(Object.getPrototypeOf(lines))
-        || !Object.entries(lines).every(([id, line]) => pending.includes(id) && integer(line, 1, Number.MAX_SAFE_INTEGER)))) return false;
     }
     if (!validateQuestProgress(state, data)) return false;
     const validItem = (cell: Cell | null) => cell && typeof cell === 'object' && !Array.isArray(cell)
@@ -141,11 +133,6 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
     return false;
   }
 }
-function forgetLine(state: GameState, id: string) {
-  if (!state.sceneLines) return;
-  delete state.sceneLines[id];
-  if (!Object.keys(state.sceneLines).length) delete state.sceneLines;
-}
 export function reduceGame(state: GameState, action: Action, data: GameData): Result {
   const fail = (message: string): Result => ({ state, ok: false, message, event: null });
   if (!action || typeof action !== 'object') return fail('Choose an action.');
@@ -184,22 +171,13 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       break;
     }
     case 'readScene': {
-      // Finish and Skip both end a waiting scene and its saved line. A stale or repeated event changes nothing.
+      // The completion action ends a waiting scene. A stale or repeated event changes nothing.
       const at = next.pendingScenes.indexOf(action.id);
       if (at === -1) return fail('This story scene is already in the journal.');
       next.pendingScenes.splice(at, 1);
-      forgetLine(next, action.id);
       // A guest who visits once has no journal replay after the visit.
       const guest = data.characters.find(person => person.id === data.quests.find(quest => quest.id === action.id)?.character);
       message = guest?.singleVisit ? 'The scene is finished.' : 'The scene is in the story journal.';
-      break;
-    }
-    case 'sceneLine': {
-      // Only a waiting scene keeps its line, and the first line needs no record.
-      const source = next.pendingScenes.includes(action.id) ? sceneSource(action.id, data) : null, dialogue = source && sceneDialogue(source);
-      if (!dialogue || !integer(action.line, 0, dialogue.length - 1)) return fail('This scene line is not available.');
-      if (action.line) (next.sceneLines ??= {})[action.id] = action.line;
-      else forgetLine(next, action.id);
       break;
     }
     case 'move': {

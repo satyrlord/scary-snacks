@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { requiredQuests, supperQuest } from '../../src/model.ts';
 import type { GameState, SceneLine } from '../../src/model.ts';
-import { KEY, act, checkpoint, data, exportText, failWrites, journal, opened, options, painting, payAndRead, readTo, saved, serialize, start, story, supplies, supply } from './support.ts';
+import { KEY, act, checkpoint, data, deliverable, deliverButton, exportText, failWrites, journal, opened, options, painting, payAndRead, readTo, saved, serialize, start, startAgainAndImport, story, supplies, supply } from './support.ts';
 
 const closing=(index: number)=>`Chapter ${index+1} complete: ${data.chapters[index].title}`;
 /** The regulars whose arrival scenes the payment of a preparation queues. */
@@ -43,7 +43,7 @@ test('the last preparation of a chapter opens its closing scene after the reveal
   await readWithArrivals(page,3);await expect(page.locator('#modal')).toBeHidden();
   const read=await saved(page);expect(read.pendingScenes).toEqual([]);expect({...read,pendingScenes:paid.pendingScenes}).toEqual(paid);
   await expect(page.locator('#story .chapter-title')).toHaveText(data.chapters[1].title);await expect(page.locator('#story .chapter-steps li').first()).toHaveText(`${data.tasks[4].title}: now`);
-  await journal(page);const section=page.locator('[data-chapter="chapter-1"]');await expect(section).toContainText(data.chapters[0].payoff);
+  await journal(page,['chapters','conversations','neighbours']);const section=page.locator('[data-chapter="chapter-1"]');await expect(section).toContainText(data.chapters[0].payoff);
   await expect(section.getByRole('button',{name:`Replay ${closing(0)}`,exact:true})).toBeVisible();
   await expect(page.locator('[data-chapter="chapter-2"]')).toContainText(`Goal: ${data.chapters[1].objective}`);await expect(page.locator('[data-chapter="chapter-3"]')).toHaveCount(0);
   // The new regulars now have journal entries.
@@ -58,14 +58,14 @@ test('closing a chapter scene leaves it waiting through reload, and cooking neve
   expect((await saved(page)).board.filter(Boolean).length).toBe(before.board.filter(Boolean).length+1);
   await page.reload();await opened(page);await expect(page.locator('#status')).toContainText('A story scene is waiting in Story.');
   const waiting=page.locator('#story .story-waiting');await expect(waiting).toContainText('Chapter 2 is complete.');
-  await waiting.getByRole('button',{name:`Read now: ${closing(1)}`,exact:true}).click();await expect(page.locator('.story-controls .primary-button')).toBeFocused();
+  await waiting.getByRole('button',{name:`Read now: ${closing(1)}`,exact:true}).click();await expect(page.locator('#modal-title')).toBeFocused();
   await readWithArrivals(page,7);expect((await saved(page)).pendingScenes).toEqual([]);await expect(page.locator('#story .story-waiting')).toHaveCount(0);
 });
 
-for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const finish of ['Finish','Skip'] as const)test(`${finish} from Read now returns keyboard focus to Story at ${viewport.width}`,async({page})=>{
+for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`completing a transcript from Read now returns keyboard focus to Story at ${viewport.width}`,async({page})=>{
   await page.setViewportSize(viewport);const state=ready(4);state.pendingScenes=['chapter-1'];await start(page,state);
   await story(page);await page.getByRole('button',{name:`Read now: ${closing(0)}`,exact:true}).click();
-  if(finish==='Skip')await page.getByRole('button',{name:'Skip scene',exact:true}).click();else await readTo(page,'Back to the kitchen');
+  await transcript(page,data.chapters[0].closing);await readTo(page,'Back to the kitchen');
   await expect(page.locator('#modal')).toBeHidden();expect((await saved(page)).pendingScenes).toEqual([]);
   const target=viewport.width>1023?page.locator('#story').getByRole('button',{name:'Open the story journal',exact:true}):page.locator('#story-button');
   await expect(target).toBeFocused();await page.keyboard.press('Enter');
@@ -74,7 +74,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
 
 for(const dismiss of ['Escape','Close'] as const)test(`${dismiss} on the next waiting scene keeps a visible keyboard focus target`,async({page})=>{
   const state=ready(8);state.pendingScenes=['chapter-1','chapter-2'];await start(page,state);
-  await page.getByRole('button',{name:`Read now: ${closing(0)}`,exact:true}).click();await page.getByRole('button',{name:'Skip scene',exact:true}).click();
+  await page.getByRole('button',{name:`Read now: ${closing(0)}`,exact:true}).click();await readTo(page,'Next scene');
   await expect(scene(page,closing(1))).toBeVisible();
   if(dismiss==='Escape')await page.keyboard.press('Escape');else await page.locator('#close-modal').click();
   await expect(page.locator('#modal')).toBeHidden();expect((await saved(page)).pendingScenes).toEqual(['chapter-2']);
@@ -83,11 +83,11 @@ for(const dismiss of ['Escape','Close'] as const)test(`${dismiss} on the next wa
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`the finale stays out of the journal until the supper payment at ${viewport.width}`,async({page})=>{
   await page.setViewportSize(viewport);await start(page,checkpoint(data.tasks.length,{coins:supper.cost!}));
-  await journal(page);await expect(page.locator(`[data-journal="${data.finale.id}"]`)).toHaveCount(0);
+  await journal(page,['chapters','conversations','neighbours']);await expect(page.locator(`[data-journal="${data.finale.id}"]`)).toHaveCount(0);
   await expect(page.getByRole('heading',{name:'The finale',exact:true})).toHaveCount(0);
   await page.keyboard.press('Escape');await page.locator(`#tickets .ticket[data-quest="${supper.id}"] .deliver-button`).click();
   await expect(scene(page,data.finale.title)).toBeVisible();await page.keyboard.press('Escape');
-  await journal(page);await expect(page.getByRole('button',{name:`Read ${data.finale.title}`,exact:true})).toBeVisible();
+  await journal(page,['chapters','conversations','neighbours']);await expect(page.getByRole('button',{name:`Read ${data.finale.title}`,exact:true})).toBeVisible();
 });
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`a failed supper save warns inside the finale before reading at ${viewport.width}`,async({page,context})=>{
@@ -121,7 +121,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`aft
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`the supper quest replay restores journal focus after Return, Escape, and Close at ${viewport.width}`,async({page})=>{
   const paid=act(checkpoint(data.tasks.length,{coins:supper.cost!}),{type:'deliverQuest',id:supper.id});
-  await page.setViewportSize(viewport);await start(page,paid);await journal(page);
+  await page.setViewportSize(viewport);await start(page,paid);await journal(page,['chapters','conversations','neighbours']);
   const opening=page.getByRole('button',{name:`Read quest: ${supper.title}`,exact:true});
   for(const dismiss of ['Return','Escape','Close']){
     await opening.click();await expect(scene(page,supper.title)).toBeVisible();
@@ -130,7 +130,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`the
   }
 });
 
-test('the supper quest takes its cost and opens the finale and the supper painting; Skip and replay change nothing else, and no quest waits',async({page})=>{
+test('the supper quest takes its cost and opens the finale and the supper painting; reading and replay change nothing else, and no quest waits',async({page})=>{
   const initial=ready(23);initial.coins+=supper.cost!;await start(page,initial);await payAndRead(page);await expect(scene(page,closing(5))).toBeVisible({timeout:8000});
   const paid=await saved(page);expect(paid.pendingScenes).toEqual(['chapter-6']);expect(paid.coins).toBe(supper.cost);
   await readTo(page,'Back to the kitchen');await expect(page.locator('#modal')).toBeHidden();
@@ -139,19 +139,18 @@ test('the supper quest takes its cost and opens the finale and the supper painti
   await expect(pay).toBeEnabled();await pay.click();
   await expect(scene(page,data.finale.title)).toBeVisible();await expect(page.locator('#story-line')).toContainText(data.finale.dialogue[0].text);
   const supped=await saved(page);expect(supped.coins).toBe(0);expect(supped.pendingScenes).toEqual(['finale']);expect(supped.completedQuests.at(-1)).toBe(supper.id);
-  await page.getByRole('button',{name:'Skip scene',exact:true}).click();
+  await page.getByRole('button',{name:'See the supper',exact:true}).click();
   await (await supperPainting(page)).getByRole('button',{name:'Back to the kitchen',exact:true}).click();await expect(page.locator('#modal')).toBeHidden();
-  const skipped=await saved(page);expect(skipped.pendingScenes).toEqual([]);expect({...skipped,pendingScenes:supped.pendingScenes}).toEqual(supped);
+  const read=await saved(page);expect(read.pendingScenes).toEqual([]);expect({...read,pendingScenes:supped.pendingScenes}).toEqual(supped);
   await expect(page.locator('#story')).toContainText('The table is ready.');await expect(page.getByRole('button',{name:/^Pay /})).toHaveCount(0);
   // The supper has no completion scene of its own: the journal keeps its quest and replays the finale instead.
-  await journal(page);await expect(page.getByRole('button',{name:`Read quest: ${supper.title}`,exact:true})).toBeVisible();
+  await journal(page,['chapters','conversations','neighbours']);await expect(page.getByRole('button',{name:`Read quest: ${supper.title}`,exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:`Replay ${supper.title}`,exact:true})).toHaveCount(0);
   await page.getByRole('button',{name:`Replay ${data.finale.title}`,exact:true}).click();
-  for(const line of data.finale.dialogue){await expect(page.locator('#story-line')).toContainText(line.text);if(line!==data.finale.dialogue.at(-1))await page.locator('.story-controls .primary-button').click();}
-  await expect(page.getByRole('button',{name:'Skip scene'})).toHaveCount(0);await page.getByRole('button',{name:'See the supper',exact:true}).click();
+  await transcript(page,data.finale.dialogue);await page.getByRole('button',{name:'See the supper',exact:true}).click();
   await (await supperPainting(page)).getByRole('button',{name:'Continue',exact:true}).click();
-  await expect(page.getByRole('button',{name:`Replay ${data.finale.title}`,exact:true})).toBeFocused();expect(await saved(page)).toEqual(skipped);
-  await page.keyboard.press('Escape');await page.reload();await opened(page);expect(await saved(page)).toEqual(skipped);
+  await expect(page.getByRole('button',{name:`Replay ${data.finale.title}`,exact:true})).toBeFocused();expect(await saved(page)).toEqual(read);
+  await page.keyboard.press('Escape');await page.reload();await opened(page);expect(await saved(page)).toEqual(read);
   await expect(page.locator('#modal')).toBeHidden();await noMoreQuests(page);
 });
 
@@ -197,16 +196,17 @@ test('a fresh save plays through every payment, chapter scene, the supper, and t
     const chapter=data.chapters[task.chapter-1];
     await expect(page.locator('#story .chapter-title')).toHaveText(chapter.title);await expect(page.locator('#story .chapter-objective')).toHaveText(chapter.objective);
     await expect(page.locator('#story .chapter-steps li').nth(index%4)).toHaveText(`${task.title}: now`);
-    await expect(page.locator('#story [data-requirement="quests"] span').first()).toHaveText(`Quests delivered: ${requiredQuests(index,data).length} / ${requiredQuests(index,data).length}`);
+    await expect(page.locator('#story .task-ready')).toHaveText('Ready to prepare.');
+    await expect(page.locator('#story .pay-button')).toHaveAccessibleDescription(new RegExp(`Quests delivered: ${requiredQuests(index,data).length} / ${requiredQuests(index,data).length}`));
     await payAndRead(page);await expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done');
     await expect(page.locator('#status')).toHaveText(data.rooms.find(room=>room.after===task.id)!.text);
     if(index%4===3){
       await expect(scene(page,closing(task.chapter-1))).toBeVisible();await expect(page.locator('.completion-message')).toHaveText(chapter.payoff);
-      for(const line of chapter.closing){await expect(page.locator('#story-line')).toContainText(line.text);if(line!==chapter.closing.at(-1))await page.locator('.story-controls .primary-button').click();}
+      await transcript(page,chapter.closing);
       await readWithArrivals(page,index);await expect(page.locator('#modal')).toBeHidden();
       // The neighbour who helps this chapter has delivered, and the journal says so beside the payoff.
       const help=data.quests.find(value=>value.id===chapter.contribution)!;
-      await journal(page);const section=page.locator(`[data-chapter="${chapter.id}"]`);await expect(section).toContainText(chapter.payoff);
+      await journal(page,['chapters','conversations','neighbours']);const section=page.locator(`[data-chapter="${chapter.id}"]`);await expect(section).toContainText(chapter.payoff);
       await expect(section).toContainText(`${data.characters.find(person=>person.id===help.character)!.name} helps: ${help.title} · Delivered`);
       await page.keyboard.press('Escape');
     }else if(arrivals(index).length){
@@ -221,11 +221,10 @@ test('a fresh save plays through every payment, chapter scene, the supper, and t
   // The purse holds the cost of the supper, as after every quest of the campaign.
   state.coins=supper.cost!;await page.evaluate(([key,value])=>localStorage.setItem(key,value),[KEY,serialize(state)]);await page.reload();await opened(page);
   await page.locator(`#tickets .ticket[data-quest="${supper.id}"] .deliver-button`).click();await expect(scene(page,data.finale.title)).toBeVisible();
-  for(const line of data.finale.dialogue){await expect(page.locator('#story-line')).toContainText(line.text);if(line!==data.finale.dialogue.at(-1))await page.locator('.story-controls .primary-button').click();}
-  await page.locator('.story-controls .primary-button',{hasText:'See the supper'}).click();
+  await transcript(page,data.finale.dialogue);await page.locator('.story-controls .primary-button',{hasText:'See the supper'}).click();
   await (await supperPainting(page)).getByRole('button',{name:'Back to the kitchen',exact:true}).click();await expect(page.locator('#modal')).toBeHidden();
   await expect(page.locator('#story')).toContainText('The table is ready.');await noMoreQuests(page);
-  await journal(page);await expect(page.getByRole('button',{name:`Replay ${data.finale.title}`,exact:true})).toBeVisible();
+  await journal(page,['chapters','conversations','neighbours']);await expect(page.getByRole('button',{name:`Replay ${data.finale.title}`,exact:true})).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -242,6 +241,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:390
   });expect(Math.min(...contrast)).toBeGreaterThanOrEqual(4.5);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:testInfo.outputPath('story-card.png')});
   await page.getByRole('button',{name:'Open the story journal',exact:true}).click();
+  for(const summary of await page.locator('.journal-group>summary').all())await summary.click();
   const arrived=data.characters.filter(person=>!person.singleVisit&&(!person.arrivesAfter||data.tasks.findIndex(task=>task.id===person.arrivesAfter)<13));
   const entries=page.locator('.neighbour-entry:not(.not-yet)'),neighbours=page.locator('.neighbour-introduction');
   await expect(entries).toHaveCount(arrived.filter(person=>!person.visitor).length);await expect(neighbours).toHaveCount(arrived.filter(person=>person.visitor).length);
@@ -268,84 +268,68 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:390
   await neighbours.first().evaluate(entry=>{entry.querySelector('strong')!.textContent='Alexandru-Mihai Popescu';entry.querySelector(':scope > span:not(.portrait)')!.textContent='Community supper coordinator';});
   await entries.first().evaluate(entry=>{entry.querySelector('strong')!.textContent='Alexandru-Mihai Popescu-Ionescu';});
   await checkNeighbourAlignment();await checkEntryAlignment();expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
-  await page.getByRole('button',{name:`Read ${closing(0)}`,exact:true}).click();await expect(page.getByRole('button',{name:'Skip scene',exact:true})).toBeInViewport();
-  const skip=(await page.getByRole('button',{name:'Skip scene',exact:true}).boundingBox())!;expect(skip.height).toBeGreaterThanOrEqual(44);
+  await page.getByRole('button',{name:`Read ${closing(0)}`,exact:true}).click();await transcript(page,data.chapters[0].closing);
+  await forward(page).scrollIntoViewIfNeeded();await expect(forward(page)).toBeInViewport();
+  const done=(await forward(page).boundingBox())!;expect(done.height).toBeGreaterThanOrEqual(44);
   await page.screenshot({path:testInfo.outputPath('story-scene.png')});
 });
 
-const counter=(page: Page)=>page.locator('.story-controls > span');
 const forward=(page: Page)=>page.locator('.story-controls .primary-button');
 async function readNow(page: Page,title: string){await story(page);await page.locator('.story-waiting').getByRole('button',{name:`Read now: ${title}`,exact:true}).click();await expect(scene(page,title)).toBeVisible();}
-async function line(page: Page,dialogue: SceneLine[],at: number){await expect(counter(page)).toHaveText(`${at+1} / ${dialogue.length}`);await expect(page.locator('#story-line')).toContainText(dialogue[at].text);}
 
-test('a paid preparation scene resumes at its saved line after Escape, Close, and reload, without another payment',async({page})=>{
+async function transcript(page: Page,dialogue: SceneLine[]){
+  const turns=page.locator('#story-line.story-transcript .story-turn');await expect(turns).toHaveCount(dialogue.length);
+  for(const [at,value] of dialogue.entries()){
+    const turn=turns.nth(at);await expect(turn.locator('.portrait')).toHaveCount(1);
+    await expect(turn.locator('h3')).toHaveText(data.characters.find(person=>person.id===value.speaker)!.name);
+    await expect(turn.locator('p')).toHaveText(value.text);
+  }
+  await expect(page.locator('.story-controls button')).toHaveCount(1);
+}
+const paidSupper=()=>act(checkpoint(data.tasks.length,{coins:supper.cost!}),{type:'deliverQuest',id:supper.id});
+
+for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`a paid preparation opens its whole conversation and needs one completion at ${viewport.width}`,async({page})=>{
+  await page.setViewportSize(viewport);await page.emulateMedia({reducedMotion:'reduce'});const task=data.tasks[1];await start(page,ready(1));
+  await story(page);await page.getByRole('button',{name:/^Pay /}).first().click();await transcript(page,task.dialogue);
+  await expect(page.locator('#modal-title')).toBeFocused();expect(await page.locator('#modal').evaluate(element=>element.scrollTop)).toBe(0);
+  await expect(forward(page)).toHaveText('See what changed');const paid=await saved(page);expect(paid.pendingScenes).toEqual([task.id]);
+  await forward(page).click();await expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done');await expect(page.locator('#modal')).toBeHidden();
+  expect(await saved(page)).toEqual(act(paid,{type:'readScene',id:task.id}));
+});
+
+for(const dismiss of ['Escape','Close'] as const)test(`${dismiss} leaves a conversation unread, and reopening starts at the top`,async({page})=>{
+  await page.setViewportSize({width:390,height:600});const task=data.tasks[1],state=ready(2);state.pendingScenes=[task.id];await start(page,state);
+  await readNow(page,task.title);await transcript(page,task.dialogue);await expect(page.locator('#modal-title')).toBeFocused();
+  expect(await page.locator('#modal').evaluate(element=>element.scrollTop)).toBe(0);await forward(page).scrollIntoViewIfNeeded();
+  if(dismiss==='Escape')await page.keyboard.press('Escape');else await page.locator('#close-modal').click();
+  await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(state);
+  await page.reload();await opened(page);await readNow(page,task.title);await transcript(page,task.dialogue);
+  await expect(page.locator('#modal-title')).toBeFocused();expect(await page.locator('#modal').evaluate(element=>element.scrollTop)).toBe(0);expect(await saved(page)).toEqual(state);
+  await expect(forward(page)).toHaveText('Back to the kitchen');await forward(page).click();await expect(page.locator('#modal')).toBeHidden();
+  expect(await saved(page)).toEqual(act(state,{type:'readScene',id:task.id}));
+});
+
+test('Escape on a paid transcript starts its room change but leaves the conversation unread',async({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'});const task=data.tasks[1];await start(page,ready(1));
-  await story(page);await page.getByRole('button',{name:/^Pay /}).first().click();await line(page,task.dialogue,0);
-  await forward(page).click();await line(page,task.dialogue,1);
-  await expect.poll(async()=>(await saved(page)).sceneLines).toEqual({[task.id]:1});const paid=await saved(page);expect(paid.pendingScenes).toEqual([task.id]);
-  // Escape starts the room change and leaves the scene waiting at its line.
-  await page.keyboard.press('Escape');await expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done');await expect(page.locator('#modal')).toBeHidden();
-  expect(await saved(page)).toEqual(paid);
-  await readNow(page,task.title);await line(page,task.dialogue,1);
-  await page.getByRole('button',{name:'Back',exact:true}).click();await line(page,task.dialogue,0);
-  await expect.poll(async()=>Object.hasOwn(await saved(page),'sceneLines')).toBe(false);
-  await forward(page).click();await forward(page).click();await line(page,task.dialogue,2);
-  await expect.poll(async()=>(await saved(page)).sceneLines).toEqual({[task.id]:2});
-  await page.locator('#close-modal').click();await expect(page.locator('#modal')).toBeHidden();
-  await page.reload();await opened(page);await expect(page.locator('#status')).toContainText('A story scene is waiting in Story.');
-  await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-02');
-  // After the reload, the room change is done, so the scene ends with the usual label.
-  await readNow(page,task.title);await line(page,task.dialogue,2);await expect(forward(page)).toHaveText('Back to the kitchen');
-  await forward(page).click();await expect(page.locator('#modal')).toBeHidden();
-  const read=await saved(page);expect(read.pendingScenes).toEqual([]);expect(Object.hasOwn(read,'sceneLines')).toBe(false);
-  const {sceneLines:_line,...rest}=paid;expect({...read,pendingScenes:paid.pendingScenes}).toEqual(rest);await expect(page.locator('#story .story-waiting')).toHaveCount(0);
+  await story(page);await page.getByRole('button',{name:/^Pay /}).first().click();await transcript(page,task.dialogue);const paid=await saved(page);
+  await page.keyboard.press('Escape');await expect(page.locator('#modal')).toBeHidden();await expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done');
+  expect(await saved(page)).toEqual(paid);await readNow(page,task.title);await transcript(page,task.dialogue);await expect(forward(page)).toHaveText('Back to the kitchen');
+  await forward(page).click();await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(act(paid,{type:'readScene',id:task.id}));
 });
 
-test('Skip on a paid scene reads it and starts the room change, and then the chapter scene opens',async({page})=>{
+test('completing a paid transcript starts the room change before the next chapter conversation',async({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'});await start(page,ready(3));
-  await story(page);await page.getByRole('button',{name:/^Pay /}).first().click();await expect(scene(page,data.tasks[3].title)).toBeVisible();
-  await page.getByRole('button',{name:'Skip scene',exact:true}).click();
-  await expect(scene(page,closing(0))).toBeVisible();await expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done');
-  await line(page,data.chapters[0].closing,0);expect((await saved(page)).pendingScenes).toEqual(['chapter-1',...arrivals(3).map(person=>`arrival-${person.id}`)]);
+  await story(page);await page.getByRole('button',{name:/^Pay /}).first().click();await expect(scene(page,data.tasks[3].title)).toBeVisible();await transcript(page,data.tasks[3].dialogue);
+  await forward(page).click();await expect(scene(page,closing(0))).toBeVisible();await expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done');
+  await transcript(page,data.chapters[0].closing);expect((await saved(page)).pendingScenes).toEqual(['chapter-1',...arrivals(3).map(person=>`arrival-${person.id}`)]);
 });
 
-test('a chapter scene resumes at its saved line after export and import, and a replay keeps that line',async({page})=>{
-  const closingLines=data.chapters[0].closing,state=ready(4);state.pendingScenes=['chapter-1'];await start(page,state);
-  await readNow(page,closing(0));await forward(page).click();await forward(page).click();await line(page,closingLines,2);
-  await expect.poll(async()=>(await saved(page)).sceneLines).toEqual({'chapter-1':2});await page.keyboard.press('Escape');await expect(page.locator('#modal')).toBeHidden();
-  // A replay of a read scene starts at its first line and changes no saved line.
-  await journal(page);const replay=page.locator('[data-journal="task_2"]');await expect(replay).toContainText(`New: ${data.rooms.find(room=>room.after==='task_2')!.label}`);
-  await replay.click();await line(page,data.tasks[1].dialogue,0);await forward(page).click();await line(page,data.tasks[1].dialogue,1);
-  await page.keyboard.press('Escape');await expect(page.getByRole('dialog',{name:'Story journal',exact:true})).toBeVisible();
-  const waiting=page.getByRole('button',{name:`Read ${closing(0)}`,exact:true});await expect(waiting).toContainText('New scene');
-  await waiting.click();await line(page,closingLines,2);await page.keyboard.press('Escape');await page.keyboard.press('Escape');await expect(page.locator('#modal')).toBeHidden();
-  const lined=await saved(page);expect(lined.sceneLines).toEqual({'chapter-1':2});
-  await options(page);const text=await exportText(page);expect(JSON.parse(text).state).toEqual(lined);
-  await page.getByRole('button',{name:'Start a new game',exact:true}).click();await page.getByRole('button',{name:'Erase and start again'}).click();
-  expect((await saved(page)).pendingScenes).toEqual([]);expect(Object.hasOwn(await saved(page),'sceneLines')).toBe(false);
-  await options(page);await page.locator('input[type="file"]').setInputFiles({name:'story.json',mimeType:'application/json',buffer:Buffer.from(text)});
-  await page.getByRole('button',{name:'Import this saved game'}).click();expect(await saved(page)).toEqual(lined);
-  await readNow(page,closing(0));await line(page,closingLines,2);
-  await page.getByRole('button',{name:'Back',exact:true}).click();await line(page,closingLines,1);
-  await page.reload();await opened(page);await readNow(page,closing(0));await line(page,closingLines,1);
-});
-
-test('a saved line past the end of its scene starts the scene again with a notice',async({page})=>{
-  const state=ready(4);state.pendingScenes=['chapter-1'];state.sceneLines={'chapter-1':99};await start(page,state);
-  await readNow(page,closing(0));await expect(scene(page,closing(0))).toContainText('Someone lost the thread. The conversation starts again from the beginning.');
-  await line(page,data.chapters[0].closing,0);await forward(page).click();await expect.poll(async()=>(await saved(page)).sceneLines).toEqual({'chapter-1':1});
-});
-
-test('a failed line write warns once in the scene, the player reads on, and reload resumes at the last saved line',async({page})=>{
-  const closingLines=data.chapters[0].closing,state=ready(4);state.pendingScenes=['chapter-1'];await start(page,state);
-  await readNow(page,closing(0));await forward(page).click();await expect.poll(async()=>(await saved(page)).sceneLines).toEqual({'chapter-1':1});
-  await page.evaluate(()=>{Storage.prototype.setItem=()=>{throw new Error('Quota exceeded');};});
-  const warning=page.locator('.scene-unsaved');await expect(warning).toHaveCount(0);
-  await forward(page).click();await line(page,closingLines,2);
-  await expect(warning).toHaveText('This session is not saved. You can keep reading. Use Retry save in Options before you leave.');
-  await forward(page).click();await line(page,closingLines,3);await expect(warning).toHaveCount(1);await expect(page.locator('#modal .save-error')).toHaveCount(1);
-  expect((await saved(page)).sceneLines).toEqual({'chapter-1':1});
-  await page.reload();await opened(page);await readNow(page,closing(0));await line(page,closingLines,1);
+test('the finale opens as one transcript, Escape and reload leave it waiting, and its action opens the supper',async({page})=>{
+  const state=paidSupper();await start(page,state);await readNow(page,data.finale.title);await transcript(page,data.finale.dialogue);
+  await expect(page.locator('#modal-title')).toBeFocused();await page.keyboard.press('Escape');await expect(page.locator('#modal')).toBeHidden();
+  await page.reload();await opened(page);expect(await saved(page)).toEqual(state);await readNow(page,data.finale.title);await transcript(page,data.finale.dialogue);
+  await page.getByRole('button',{name:'See the supper',exact:true}).click();await supperPainting(page);
+  expect(await saved(page)).toEqual(act(state,{type:'readScene',id:data.finale.id}));
 });
 
 test('a regular’s arrival scene waits in Story after a reload and then opens their journal entry',async({page})=>{
@@ -355,7 +339,7 @@ test('a regular’s arrival scene waits in Story after a reload and then opens t
   await expect(scene(page,closing(1))).toBeVisible({timeout:8000});await readTo(page,'Next scene');
   await expect(scene(page,`${people[0].name} arrives`)).toBeVisible();await expect(page.locator('.completion-message')).toHaveText(`${people[0].name} is now a regular. Read more about ${people[0].name} in the story journal.`);
   await page.keyboard.press('Escape');expect((await saved(page)).pendingScenes).toEqual(people.map(person=>`arrival-${person.id}`));
-  await page.reload();await opened(page);await journal(page);
+  await page.reload();await opened(page);await journal(page,['chapters','conversations','neighbours']);
   const entry=page.getByRole('button',{name:`Read ${people[0].name} arrives`,exact:true});await expect(entry).toContainText('New scene');await entry.click();
   await expect(scene(page,`${people[0].name} arrives`)).toBeVisible();await readTo(page,'Return');
   await expect(page.getByRole('button',{name:`Meet ${people[0].name}`,exact:true})).toBeFocused();
@@ -369,11 +353,37 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   await expect(card).toBeInViewport();await expect(pay).toBeEnabled();await expect(card.locator('.ticket-items .coin')).toHaveCount(1);
   const box=(await pay.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(36);
   await page.screenshot({path:testInfo.outputPath('supper-ticket.png')});
-  await pay.click();await page.getByRole('button',{name:'Skip scene',exact:true}).click();
+  await pay.click();await page.getByRole('button',{name:'See the supper',exact:true}).click();
   const dialog=await supperPainting(page),done=dialog.getByRole('button',{name:'Back to the kitchen',exact:true});
   // The painting, the ending line, and the button fit the screen without a scroll.
   await expect(dialog.locator('img')).toBeInViewport({ratio:1});await expect(done).toBeInViewport({ratio:1});await expect(done).toBeFocused();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   expect(await dialog.evaluate(e=>e.scrollHeight<=e.clientHeight)).toBe(true);
   await page.screenshot({path:testInfo.outputPath('supper-painting.png')});
+});
+
+
+test('a conversation survives export and import while waiting and writes nothing until completion',async({page})=>{
+  await page.setViewportSize({width:390,height:600});const task=data.tasks[1],state=ready(2);state.pendingScenes=[task.id];await start(page,state);
+  await options(page);const text=await exportText(page);expect(JSON.parse(text).state).toEqual(state);
+  await startAgainAndImport(page,text);expect(await saved(page)).toEqual(state);
+  await page.evaluate(key=>{
+    const original=Storage.prototype.setItem;document.documentElement.dataset.storyWrites='0';
+    Storage.prototype.setItem=function(name,value){if(name===key)document.documentElement.dataset.storyWrites=String(Number(document.documentElement.dataset.storyWrites)+1);original.call(this,name,value);};
+  },KEY);
+  await readNow(page,task.title);await transcript(page,task.dialogue);await forward(page).scrollIntoViewIfNeeded();await page.locator('#close-modal').click();
+  await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(state);await expect(page.locator('html')).toHaveAttribute('data-story-writes','0');
+  await readNow(page,task.title);await transcript(page,task.dialogue);await forward(page).click();await expect(page.locator('#modal')).toBeHidden();
+  expect(await saved(page)).toEqual(act(state,{type:'readScene',id:task.id}));
+});
+
+test('a reply transcript keeps the failed delivery save warning after Close and reads only in the session',async({page})=>{
+  const value=data.quests.find(quest=>quest.id==='mara-welcome')!,initial=deliverable(value),delivered=act(initial,{type:'deliverQuest',id:value.id});
+  await start(page,initial);await failWrites(page);await deliverButton(page,value).click();
+  await page.getByRole('button',{name:'Read Mara’s reply',exact:true}).click();await transcript(page,value.completion);
+  const warning=page.locator('#modal .scene-unsaved');await expect(warning).toHaveText('This session is not saved. You can keep reading. Use Retry save in Options before you leave.');await expect(warning).toBeVisible();
+  expect(await saved(page)).toEqual(initial);await page.locator('#close-modal').click();await expect(page.locator('#modal')).toBeHidden();
+  await readNow(page,value.title);await transcript(page,value.completion);await expect(warning).toBeVisible();
+  await forward(page).click();await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(initial);
+  await options(page);const text=await exportText(page);expect(JSON.parse(text).state).toEqual(act(delivered,{type:'readScene',id:value.id}));
 });

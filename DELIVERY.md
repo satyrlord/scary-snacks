@@ -10,11 +10,15 @@ Playwright, TypeScript, Sharp (for image variants), Fallow (for dead code), and 
 
 `npm run preview` serves `dist/` at http://127.0.0.1:4178. `npm run dev` serves the source. To serve at a subdirectory, set `BASE_PATH` to `/scary-snacks/` before you start the server. The address then becomes http://127.0.0.1:4178/scary-snacks/.
 
+## Version
+
+The version has the form major.minor.build. The `version` field in `package.json` gives the major and minor versions. Change them manually. The build ignores the third part of that field. The build number is the count of commits in `HEAD` (`git rev-list --count HEAD`). Each new commit thus increases the build number by one. The build and `npm run dev` write the version into the `app-version` meta element of the page. Options shows the version. A copy without Git history, for example the source export, has build number 0. The build stops in a shallow clone, because a shallow clone does not have the full count.
+
 ## GitHub Pages
 
 The game has no backend and no runtime dependency. Relative Uniform Resource Locators (URLs) support a repository subdirectory. The deployment address is https://satyrlord.github.io/scary-snacks/.
 
-The workflow in `.github/workflows/pages.yml` runs on every push to `main`. A person can also start the workflow manually. The workflow runs the type check and the Node.js tests, builds the game, and uploads only `dist/`. The workflow does not run the dead-code check or the browser tests.
+The workflow in `.github/workflows/pages.yml` runs on every push to `main`. A person can also start the workflow manually. The workflow gets the full Git history for the build number. The workflow runs the type check and the Node.js tests, builds the game, and uploads only `dist/`. The workflow does not run the dead-code check or the browser tests.
 
 The Pages source of the repository must stay set to GitHub Actions. A branch deployment serves the source tree, and the source tree cannot run.
 

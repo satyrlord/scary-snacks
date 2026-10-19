@@ -9,7 +9,7 @@ import { SAVE_KEY } from './storage.ts';
 import { drawerLayout, onMotionResume, phone, playTone } from './preferences.ts';
 import { renderBoard, renderDetail } from './board.ts';
 import { renderTickets } from './tickets.ts';
-import { markRecipeBook, noteNewDishes } from './dishes.ts';
+import { guidanceStep, markRecipeBook, noteNewDishes, updateGuidance } from './dishes.ts';
 import { endSceneFlow, renderOffer, showScene, storyContent } from './story.ts';
 import { lowered, renderRoom, reveal, setLowered, syncRoomControls, takeHeldChange } from './room.ts';
 import { options } from './options.ts';
@@ -60,6 +60,7 @@ function render() {
 }
 // After an action: the drawing, its tone, the coins it earned, the dishes it made, and Mara's line about it.
 onDraw(change => {
+  const nextStep=updateGuidance(change);
   render();
   if (!change) return;
   const { result, before } = change;
@@ -72,7 +73,10 @@ onDraw(change => {
     const first = state.discovered.filter(code => !known.has(code) && !definition(code).generator);
     if (first.length) noteNewDishes(first.length);
   }
-  status(result.message);
+  if (!nextStep) status(result.message);
+  else if (!result.ok) status(nextStep);
+  else if (selected === null) status(guidanceStep()?.short ?? nextStep);
+  else status(`${result.message} ${nextStep}`);
 });
 // The end of a paid preparation's story reveals its change, and then opens the scene that the payment earned.
 modal.addEventListener('close',()=>{
@@ -106,7 +110,7 @@ try {
   requestAnimationFrame(()=>requestAnimationFrame(()=>{$('#room-frame').classList.add('settled');syncRoomControls();}));
   if(saved.status==='empty')await changeGame(persist);
   // Phones get a shorter opening line, so that it fits the line under the board.
-  status(saved.status==='loaded'?`Welcome back. The stove is still warm.${state.pendingScenes.length?' A story scene is waiting in Story.':''}`:phone.matches?'Merge the two Flours. Merge onto matching blocked food.':'Tap one Flour, then the other, to merge. Merge onto matching blocked food to clear it.');
+  status(saved.status==='loaded'?`Welcome back. The stove is still warm.${state.pendingScenes.length?' A story scene is waiting in Story.':''}`:phone.matches?'Merge the two Flours. Match blocked food to clear it.':'Tap one Flour, then the other, to merge. Merge onto matching blocked food to clear it.');
   if(saveFailed)options();
 }catch(error){
   status(`The kitchen could not open. ${reason(error)}`);console.error(error);

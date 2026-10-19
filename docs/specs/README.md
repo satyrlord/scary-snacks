@@ -38,7 +38,7 @@ All specifications in this register are implemented. The status of a specificati
 | 005 | [Campaign goals and economy](005-campaign-goals-and-economy.md) | Implemented | None |
 | 006 | [Board clearing](006-board-clearing.md) | Implemented | None |
 | 007 | [Chapter objectives, story payoffs, and finale](007-chapter-story-and-finale.md) | Implemented | 001, 004, 008 |
-| 008 | [Dialogue continuation and reading state](008-dialogue-continuation.md) | Implemented | None |
+| 008 | [Scene transcripts and reading state](008-dialogue-continuation.md) | Implemented | None |
 | 009 | [Discovery and recipe book](009-discovery-and-recipe-book.md) | Implemented | None |
 | 010 | [Neighbourhood regulars](010-neighbourhood-regulars.md) | Implemented | 008 for arrival scenes |
 | 011 | [Motion choice](011-motion-choice.md) | Implemented | None |

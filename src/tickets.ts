@@ -1,10 +1,10 @@
 // The quest tickets on the drawer: who asks for which dishes, the delivery and its flight, and the quest dialog.
 import { canDeliverQuest, questDeliveryCells, resolveQuests, unresolvedObstacle } from './model.ts';
+import { guidanceGoal, guidanceStep, showItem, showMissingStep } from './dishes.ts';
 import type { Quest } from './model.ts';
 import { $, button, coinText, count, element, names } from './dom.ts';
 import { coinMark, food, portrait, questSketch } from './art.ts';
 import { modal, showModal } from './dialog.ts';
-import { showItem } from './dishes.ts';
 import { batFlight, showSupperRoom } from './room.ts';
 import { apply, changeGame, character, data, itemName, onReplace, saveFailed, state } from './session.ts';
 import { onMotionResume, still } from './preferences.ts';
@@ -63,6 +63,7 @@ const onBoard = (code: string, quantity: number) => Math.min(quantity, state.boa
 /** Each quest on the counter is a paper ticket on the drawer: who asks, the quest title, the dishes with their counts, and Deliver. */
 export function renderTickets() {
   const container = $('#tickets'); container.replaceChildren();
+  const guided = guidanceStep(), goal = guidanceGoal();
   activeQuests().forEach((quest, slot) => {
     const person = character(quest.character), ready = canDeliverQuest(state, quest, data);
     const card = element('article', 'ticket');
@@ -89,9 +90,11 @@ export function renderTickets() {
     face.append(picture, words, dishes);
     // Phones show the reward alone until the quest can be delivered, and then the word alone, so three tickets fit the drawer's handle.
     const deliverButton = button('', 'primary-button deliver-button', () => deliver(quest));
+    if (guided?.ticket === quest.id) deliverButton.classList.add('guide-target');
     deliverButton.append(element('span', 'deliver-word', quest.cost ? 'Pay' : 'Deliver'), element('span', 'deliver-dot', ' · '), element('span', 'deliver-reward', count.format(quest.cost ?? quest.reward)), coinMark());
     deliverButton.disabled = !ready;
     deliverButton.setAttribute('aria-label', quest.cost ? `Pay ${coinText(quest.cost)} for ${quest.title}` : `Deliver ${quest.title} to ${person.name} for ${coinText(quest.reward)}`);
+    if (guided?.ticket === quest.id) deliverButton.setAttribute('aria-label', `${deliverButton.getAttribute('aria-label')}. Next step toward ${goal}`);
     card.append(face, deliverButton); container.append(card);
   });
   if (!container.childElementCount) container.append(element('p', 'tickets-empty', state.taskIndex === data.tasks.length ? 'Every quest is delivered. The bistro is yours.' : 'No quests wait now. Pay for the next preparation.'));
@@ -156,7 +159,9 @@ function showQuest(quest: Quest) {
   for(const {item,quantity} of quest.requirements){
     const have=onBoard(item,quantity),row=element('li'),inspect=button('','quest-item',()=>showItem(item,()=>showQuest(quest)));
     inspect.setAttribute('aria-label',`${quantity} ${itemName(item)}: ${have} of ${quantity} on the board`);
-    inspect.append(food(item),element('span','',`${quantity} ${itemName(item)}`),element('span','quest-count',`${have} / ${quantity} on board`));row.append(inspect);requirements.append(row);
+    inspect.append(food(item),element('span','',`${quantity} ${itemName(item)}`),element('span','quest-count',`${have} / ${quantity} on board`));row.append(inspect);
+    if(have<quantity){const find=button('Find','text-button quest-find',()=>showMissingStep(item));find.setAttribute('aria-label',`Find the next step for ${itemName(item)} on the board`);row.append(find);}
+    requirements.append(row);
   }
   const deliverButton=button(`${quest.cost?'Pay':'Deliver'} · ${count.format(quest.cost??quest.reward)}`,'primary-button quest-deliver',()=>{modal.close();void deliver(quest);});
   deliverButton.append(coinMark());deliverButton.setAttribute('aria-label',quest.cost?`Pay ${coinText(quest.cost)} for ${quest.title}`:`Deliver ${quest.title} for ${coinText(quest.reward)}`);deliverButton.disabled=!canDeliverQuest(state,quest,data);

@@ -126,10 +126,3 @@ export function apply(action: Action, choose?: number | null): Result {
   return result;
 }
 export const act = (action: Action, choose?: number | null) => changeGame(() => { apply(action, choose); });
-/** Applies and saves an action that the interface already shows, such as the line of a scene. Returns whether it applied. */
-export function keep(action: Action) {
-  const result = reduceGame(state, action, data);
-  if (!result.ok) return false;
-  state = result.state; persist();
-  return true;
-}

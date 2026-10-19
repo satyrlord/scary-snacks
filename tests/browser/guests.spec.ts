@@ -8,16 +8,13 @@ const dinner=quest('ionatan-castle-dinner');
 const search=quest('mina-avram-search');
 const companions=['mina','avram'];
 async function scene(page: Page,lines: SceneLine[]){
-  for(const [index,line] of lines.entries()){
-    await expect(page.locator('#story-line h3')).toHaveText(person(line.speaker).name);
-    await expect(page.locator('#story-line p')).toHaveText(line.text);
-    if(index<lines.length-1)await page.getByRole('button',{name:'Continue',exact:true}).click();
-  }
+  await expect(page.locator('#story-line h3')).toHaveText(lines.map(line=>person(line.speaker).name));
+  await expect(page.locator('#story-line p')).toHaveText(lines.map(line=>line.text));
   await page.locator('.story-controls .primary-button').click();
 }
 /** Mina and Avram have journal introductions only while their shared quest is open. */
 async function guests(page: Page,present: boolean){
-  await journal(page);
+  await journal(page,['chapters','conversations','neighbours']);
   for(const id of companions)await expect(page.getByRole('button',{name:`Meet ${person(id).name}`,exact:true})).toHaveCount(present?1:0);
   await expect(page.getByRole('button',{name:`Replay ${search.title}`,exact:true})).toHaveCount(0);await page.keyboard.press('Escape');
   await expect(ticket(page,search)).toHaveCount(present?1:0);
@@ -77,7 +74,7 @@ test('local news from the road arrives with the third delivery after the shared 
   await expect(page.getByRole('dialog',{name:third.title,exact:true})).toBeVisible();
   await readTo(page,'Next scene');await expect(page.getByRole('dialog',{name:search.followUp!.title,exact:true})).toBeVisible();
   await scene(page,search.followUp!.dialogue);expect((await saved(page)).pendingScenes).toEqual([]);
-  await journal(page);await expect(page.getByRole('button',{name:`Replay ${search.followUp!.title}`,exact:true})).toBeVisible();await page.keyboard.press('Escape');await guests(page,false);
+  await journal(page,['chapters','conversations','neighbours']);await expect(page.getByRole('button',{name:`Replay ${search.followUp!.title}`,exact:true})).toBeVisible();await page.keyboard.press('Escape');await guests(page,false);
 });
 
 test('a failed shared delivery save removes both guests in the session, and reload restores the shared visit',async({page})=>{
@@ -88,10 +85,10 @@ test('a failed shared delivery save removes both guests in the session, and relo
 });
 
 for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`all four portraits in the guests atlas and the shared meal fit ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
-  await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});await start(page,deliverable(search));await journal(page);
+  await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});await start(page,deliverable(search));await journal(page,['chapters','conversations','neighbours']);
   for(const guest of data.characters.filter(value=>value.portraitAtlas==='guest')){
     const entry=page.getByRole('button',{name:`Meet ${guest.name}`,exact:true});await entry.scrollIntoViewIfNeeded();await portrait(entry.locator('.portrait'),guest.sprite);await expect(entry).toContainText(guest.role);
-    expect(await entry.evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);await entry.click();await portrait(page.locator('.story-stage .portrait'),guest.sprite);
+    expect(await entry.evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);await entry.click();await portrait(page.locator('.story-turn .portrait'),guest.sprite);
     await expect(page.locator('#story-line')).toContainText(guest.introduction);
     await expect(page.locator('.quest-sketch')).toHaveAttribute('src',new RegExp(`sketch-${guest.id}-768x768\\.webp$`));
     const returnButton=page.getByRole('button',{name:'Return',exact:true});await returnButton.scrollIntoViewIfNeeded();await expect(returnButton).toBeInViewport();
@@ -126,7 +123,7 @@ async function makeDish(page: Page,code: string): Promise<number>{
       if((await saved(page)).board[empty]?.code===code)return empty;
     }
     const empty=firstFreeBoardCell(await saved(page),data);expect(empty).toBeGreaterThanOrEqual(0);
-    await page.getByRole('button',{name:`Take ${item.name}`,exact:true}).click();await dismissDialogs(page);
+    await tile.click();await dismissDialogs(page);
     expect((await saved(page)).board[empty]?.code).toBe(code);return empty;
   }
   const lower=Object.values(data.items).find(candidate=>candidate.next===code)!;

@@ -222,9 +222,6 @@ test('the current envelope accepts state version 12 and rejects state version 11
   assert.equal(storage.writes.length, 0);
 });
 
-/** The game right after the payment of the fourth preparation, with its scene waiting. */
-const paidFourth = () => act(checkpoint(3), { type: 'task' });
-
 test('pending story scenes survive export, import, and reload', () => {
   const finished = { ...checkpoint(24), completedQuests: [...checkpoint(24).completedQuests, supperQuest(data)!.id], coins: 0 };
   for (const pendingScenes of [[], ['chapter-6'], ['finale'], ['chapter-6', 'finale'], ['chapter-1', 'chapter-4', 'finale']]) {
@@ -237,15 +234,15 @@ test('pending story scenes survive export, import, and reload', () => {
   }
 });
 
-test('a save that waits for the finale before the supper payment loads and imports without the finale and its line', () => {
+test('a save that waits for the finale before the supper payment loads and imports without the finale', () => {
   const supper = supperQuest(data)!, unpaid = { ...checkpoint(24), coins: supper.cost! };
-  const waiting = { ...unpaid, pendingScenes: [...unpaid.pendingScenes, data.finale.id], sceneLines: { [data.finale.id]: 2 } };
+  const waiting = { ...unpaid, pendingScenes: [...unpaid.pendingScenes, data.finale.id] };
   const repair = (candidate: unknown) => repairSave(candidate, data);
   assert.equal(validate(waiting), false);
   const storage = memoryStorage([[SAVE_KEY, envelope(waiting)]]);
   const loaded = loadSave<GameState>(storage, validate, repair);
   assert.equal(loaded.status, 'loaded');
-  assert.deepEqual(loaded.state, { ...unpaid, sceneLines: {} });
+  assert.deepEqual(loaded.state, unpaid);
   assert.equal(storage.writes.length, 0);
   assert.deepEqual(importSave(envelope(waiting), validate, repair), loaded.state);
   assert.equal(resolveQuests(loaded.state!, data).find(view => view.quest.id === supper.id)!.status, 'active');
@@ -253,9 +250,8 @@ test('a save that waits for the finale before the supper payment loads and impor
   assert.deepEqual(paid.pendingScenes.slice(-1), [data.finale.id]);
   assert.equal(saveGame(storage, paid, validate).ok, true);
   assert.deepEqual(loadSave(storage, validate, repair).state, paid);
-  // A paid supper keeps its waiting finale and its line.
-  const read = { ...paid, sceneLines: { [data.finale.id]: 2 } };
-  assert.equal(repairSave(read, data), read);
+  // A paid supper keeps its waiting finale.
+  assert.equal(repairSave(paid, data), paid);
 });
 
 test('a save with every preparation done and the supper unpaid loads with the supper quest open and no finale', () => {
@@ -288,37 +284,6 @@ test('a current save with fields that the format does not define still loads and
   const written = JSON.parse(storage.values.get(SAVE_KEY)!);
   assert.deepEqual(Object.keys(written), ['format', 'version', 'state']);
   assert.equal(written.state.unknownField, 'kept');
-});
-
-test('each saved scene line survives a round trip, and a save without lines starts at the first line', () => {
-  const paid = paidFourth(), scene = data.tasks[3].id;
-  assert.equal(Object.hasOwn(paid, 'sceneLines'), false, 'A save without lines starts each waiting scene at the first line.');
-  assert.deepEqual(importSave(exportSave(paid, validate), validate), paid);
-  for (let line = 1; line < data.tasks[3].dialogue.length; line++) {
-    const result = reduceGame(paid, { type: 'sceneLine', id: scene, line }, data);
-    assert.equal(result.ok, true, result.message);
-    const storage = memoryStorage();
-    assert.equal(saveGame(storage, result.state, validate).ok, true);
-    const loaded = loadSave<GameState>(storage, validate).state!;
-    assert.deepEqual(loaded.sceneLines, { [scene]: line });
-    assert.deepEqual(importSave(exportSave(loaded, validate), validate), result.state);
-  }
-});
-
-test('a failed scene line write keeps the previous save, and a later write records the line', () => {
-  const paid = paidFourth(), scene = data.tasks[3].id;
-  const storage = memoryStorage([[SAVE_KEY, exportSave(paid, validate)]]);
-  const previous = storage.values.get(SAVE_KEY);
-  const line = reduceGame(paid, { type: 'sceneLine', id: scene, line: 1 }, data).state;
-  const write = storage.setItem;
-  storage.setItem = () => { throw new Error('Quota exceeded'); };
-  assert.equal(saveGame(storage, line, validate).ok, false);
-  assert.equal(storage.values.get(SAVE_KEY), previous);
-  assert.equal(Object.hasOwn(loadSave<GameState>(storage, validate).state!, 'sceneLines'), false);
-  storage.setItem = write;
-  const later = reduceGame(line, { type: 'sceneLine', id: scene, line: 2 }, data).state;
-  assert.equal(saveGame(storage, later, validate).ok, true);
-  assert.deepEqual(loadSave<GameState>(storage, validate).state!.sceneLines, { [scene]: 2 });
 });
 
 test('an existing saved output choice survives export and import, and a corrupt choice never replaces progress', () => {

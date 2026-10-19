@@ -25,14 +25,12 @@ test('the finished manual checkpoint retains the last preparation and chapter sc
   assert.deepEqual(state.pendingScenes, [data.tasks.at(-1)!.id, data.chapters.at(-1)!.id]);
 });
 
-test('a checkpoint from a partially read save clears the earlier scene and its line without changing the input', () => {
+test('a checkpoint from a partially read save clears the earlier scene without changing the input', () => {
   const paid = reduceGame(checkpointState(data, 0), { type: 'task' }, data).state;
-  paid.sceneLines = { [data.tasks[0].id]: 1 };
   assert.ok(validateGame(paid, data));
   const before = structuredClone(paid);
   const state = checkpointState(data, 1, paid);
   assert.deepEqual(paid, before);
   assert.deepEqual(state.pendingScenes, []);
-  assert.equal(state.sceneLines, undefined);
   assert.ok(validateGame(state, data));
 });

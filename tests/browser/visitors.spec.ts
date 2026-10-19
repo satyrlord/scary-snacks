@@ -30,24 +30,24 @@ for(const value of firstQuests)test(`${value.character} shows the exact expediti
   expect(delivered.completedQuests).toEqual([...before.completedQuests,value.id]);expect(delivered.coins).toBe(before.coins+value.reward);
   expect(delivered.board.filter(Boolean).length).toBe(before.board.filter(Boolean).length-supplies(value).length);
   await expect(ticket(page,value)).toHaveCount(0);
-  await journal(page);await page.getByRole('button',{name:`Read ${value.title}`,exact:true}).click();
+  await journal(page,['chapters','conversations','neighbours']);await page.getByRole('button',{name:`Read ${value.title}`,exact:true}).click();
   await expect(page.locator('#story-line')).toContainText(value.completion[0].text);await finishScene(page);
   const after={...delivered,pendingScenes:before.pendingScenes};expect(await saved(page)).toEqual(after);
   await page.reload();await opened(page);expect(await saved(page)).toEqual(after);await expect(ticket(page,value)).toHaveCount(0);
-  await journal(page);await page.getByRole('button',{name:`Replay ${value.title}`,exact:true}).click();await finishScene(page);expect(await saved(page)).toEqual(after);
+  await journal(page,['chapters','conversations','neighbours']);await page.getByRole('button',{name:`Replay ${value.title}`,exact:true}).click();await finishScene(page);expect(await saved(page)).toEqual(after);
   await page.keyboard.press('Escape');await options(page);const text=await exportText(page);expect(JSON.parse(text).state).toEqual(after);
   await startAgainAndImport(page,text);expect(await saved(page)).toEqual(after);await expect(ticket(page,value)).toHaveCount(0);
 });
 
 for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`visitor portraits and introductions fit ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
-  await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});await start(page,createGame(data));await journal(page);
+  await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});await start(page,createGame(data));await journal(page,['chapters','conversations','neighbours']);
   const before=await saved(page);
   for(const visitor of visitors){
     const entry=page.getByRole('button',{name:`Meet ${visitor.name}`,exact:true});await entry.scrollIntoViewIfNeeded();
     await checkPortrait(entry.locator('.portrait'),visitor.sprite);await expect(entry).toContainText(visitor.role);
     expect(await entry.evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
     await entry.click();await expect(page.locator('#story-line')).toContainText(visitor.introduction);
-    const portrait=page.locator('.story-stage .portrait');await checkPortrait(portrait,visitor.sprite);
+    const portrait=page.locator('.story-turn .portrait');await checkPortrait(portrait,visitor.sprite);
     const box=(await portrait.boundingBox())!;expect(box.width).toBe(44);expect(box.height).toBe(box.width);
     await expect(page.locator('.quest-sketch')).toHaveAttribute('src',new RegExp(`sketch-${visitor.id}-768x768\\.webp$`));
     const returnButton=page.getByRole('button',{name:'Return',exact:true});await returnButton.scrollIntoViewIfNeeded();await expect(returnButton).toBeInViewport();
@@ -59,7 +59,7 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const
 });
 
 async function guestAbsent(page: Page){
-  await expect(ticket(page,dinner)).toHaveCount(0);await expect(page.locator('#tickets')).not.toContainText(guest.name);await journal(page);
+  await expect(ticket(page,dinner)).toHaveCount(0);await expect(page.locator('#tickets')).not.toContainText(guest.name);await journal(page,['chapters','conversations','neighbours']);
   await expect(page.getByRole('button',{name:`Meet ${guest.name}`,exact:true})).toHaveCount(0);
   await expect(page.getByRole('button',{name:`Read quest: ${dinner.title}`,exact:true})).toHaveCount(0);
   await expect(page.getByRole('button',{name:`Replay ${dinner.title}`,exact:true})).toHaveCount(0);
@@ -77,7 +77,7 @@ test('the castle guest asks on a ticket, pays once, and leaves the journal after
   await checkPortrait(ticket(page,dinner).locator('.portrait'),guest.sprite);
   // The Deliver buttons group the thousands as the reward line does.
   await expect(deliverButton(page,dinner)).toHaveText(`Deliver · ${dinner.reward.toLocaleString('en')}`);
-  await journal(page);const introduction=page.getByRole('button',{name:`Meet ${guest.name}`,exact:true});
+  await journal(page,['chapters','conversations','neighbours']);const introduction=page.getByRole('button',{name:`Meet ${guest.name}`,exact:true});
   await introduction.click();await expect(page.locator('#story-line')).toContainText(guest.introduction);await finishScene(page);expect(await saved(page)).toEqual(before);
   await page.keyboard.press('Escape');await openQuest(page,dinner);const dialog=page.getByRole('dialog',{name:dinner.title,exact:true});
   await expect(dialog).toContainText(dinner.opening[0].text);await checkPortrait(dialog.locator('.portrait'),guest.sprite);
@@ -111,10 +111,10 @@ test('a failed castle dinner save keeps the guest gone for the session and resto
 });
 
 for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`the castle guest and dinner fit ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
-  await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});await start(page,deliverable(dinner));await journal(page);
+  await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});await start(page,deliverable(dinner));await journal(page,['chapters','conversations','neighbours']);
   const before=await saved(page),entry=page.getByRole('button',{name:`Meet ${guest.name}`,exact:true});
   await entry.scrollIntoViewIfNeeded();await checkPortrait(entry.locator('.portrait'),guest.sprite);await entry.click();
-  await expect(page.locator('#story-line')).toContainText(guest.introduction);await checkPortrait(page.locator('.story-stage .portrait'),guest.sprite);
+  await expect(page.locator('#story-line')).toContainText(guest.introduction);await checkPortrait(page.locator('.story-turn .portrait'),guest.sprite);
   await expect(page.locator('.quest-sketch')).toHaveAttribute('src',/sketch-ionatan-768x768\.webp$/);
   const returnButton=page.getByRole('button',{name:'Return',exact:true});await returnButton.scrollIntoViewIfNeeded();await expect(returnButton).toBeInViewport();
   expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);

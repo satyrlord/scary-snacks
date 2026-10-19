@@ -109,7 +109,7 @@ They never meet Ionatan at the bistro. A new game permits another visit.
 
 The third delivery after their meal makes the local news scene `mina-avram-news` ("News from the road") a waiting scene.
 Sorin and Mara say that Mina and Avram found Ionatan gravely ill. They say that all three left for Britain.
-The scene has only local speakers and gives no reward. After its delivery gate, the journal shows it under Local news.
+The scene has only local speakers and gives no reward. After its delivery gate, the journal shows it under Unread scenes while it waits, then under Local news in Earlier conversations.
 
 ## Quest rules
 
@@ -124,8 +124,8 @@ The recurring quest pays each valid delivery but records no completion and queue
 4. Repeated requirement entries count separately. A missing item, a quest without a ticket, a stale ID, a completed ID, or a reward overflow change nothing.
 5. Success records completion in delivery order, pays once, and queues the completion scene in the same change.
 6. Every required chain is available before the quest opens. The combined quest and preparation graph must have no cycle.
-7. Reading, skipping, replaying, reloading, and repeated clicks give no second reward.
-8. Quest scenes use the same dialogue controls as the other scenes. The completion scene waits until the player finishes or skips it, as spec 008 gives.
+7. Reading, replaying, reloading, and repeated clicks give no second reward.
+8. Quest scenes use the transcript. The completion scene waits until the player completes it, as spec 008 gives.
 
 `questProblems` checks IDs, scenes, quantities, rewards, required items, and chain availability.
 It also checks companions, finishes, news scenes, authored order, the combined prerequisite graph, and the campaign funds.
@@ -140,7 +140,7 @@ Deliver is unavailable until the board holds every required item.
 A tap on the face of the ticket (the portrait, name, title, and dishes) opens the quest dialog.
 The dialog explains who asks and why.
 It shows each dish with its count on the board, the reward, and Deliver.
-Each dish row opens ingredient help.
+Each dish row opens ingredient help. If the board lacks a portion, Find beside that row closes the dialog and starts a temporary guide for another portion. The guide updates its next step while the player acts and ends when that portion is made or the player stops it.
 
 Deliver takes the dishes from the board. The dishes fly to the ticket, and a temporary notice reports the delivery and reward. The notice offers the reply of the character. The completion scene waits in Story. The next open quest takes the ticket.
 
@@ -149,10 +149,10 @@ After a failed save, the notice includes the unsaved warning.
 Options offers Retry save.
 A failed save keeps the current session.
 
-The journal starts with the neighbours list and the optional introductions. Completed campaign quests keep both scenes, except the quests of single-visit guests.
+The journal starts with waiting scenes in saved order, then the current or latest chapter. Each waiting scene appears once. This includes the farewells of single-visit guests until they are read. Earlier chapters, Earlier conversations, and Neighbours are collapsed groups. Completed campaign quests have one conversation entry with Request then Reply, except the quests of single-visit guests. Each page keeps all text, speakers, and the accepted illustration, with one Return action. A combined page uses one transcript. A quest with an unread reply has its whole conversation only under Unread scenes; it has no separate archived opening. The most recently delivered quest comes first in Earlier conversations. The neighbour rows open optional introductions.
 The paid supper quest keeps only its opening. The finale has its own entry. The recurring quest has no entry.
-Local news shows an earned news scene. It reads as a new scene while it waits, and as a replay after that.
-Close, Escape, and Return from a quest scene restore the journal focus.
+An earned news scene appears once under Unread scenes while it waits. After reading, Local news in Earlier conversations offers its replay.
+Close, Escape, and Return from a quest scene keep the open groups and reading position, and restore the journal entry focus. Completing a combined conversation marks only its pending reply as read, moves the same entry to Earlier conversations, and opens that group. Close and Escape keep the reply unread. A read replay changes no game state. Story and delivery notices keep reply-only reading. A read single-visit farewell returns to the Unread scenes heading.
 
 ## Save compatibility
 

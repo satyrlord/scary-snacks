@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { firstFreeBoardCell, generatorOutputs, requiredQuests, resolveQuests } from '../../src/model.ts';
+import { firstFreeBoardCell, generatorOutputs, requiredQuests, resolveQuests, unresolvedObstacle } from '../../src/model.ts';
 import { createGame } from '../../src/engine.ts';
+import { appVersion } from '../../tools/build.ts';
 import type { GameState } from '../../src/model.ts';
 import { KEY, act, appearance, checkpoint, data, deliverButton, journal, onTicket, opened, options, painting, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, stateText, supply, tile, ticket, toast, unselect } from './support.ts';
 
@@ -67,7 +68,7 @@ test('a ticket opens its quest, a dish row says how to get the dish, Show me poi
   await expect(page.locator('#modal-title')).toHaveText(data.items.drinks_2.name);await expect(page.locator('#modal .item-how')).toHaveText(/^(Tap the .+ to take .+|Merge two .+ to make .+)\.$/);
   await expect(page.locator('#modal .chain [aria-current="step"]')).toHaveCount(1);await expect(page.locator('#modal .chain li')).toHaveCount(6);
   await page.getByRole('button',{name:'Show me on the board'}).click();await expect(page.locator('#modal')).toBeHidden();
-  await expect(page.locator('#board [aria-pressed="true"]')).toHaveCount(1);await expect(page.locator('#status')).toHaveText(/ready on the board|Tap the other .+ to merge them|Tap the blocked .+ to merge and clear it|Use Take .+ on the .+/);
+  await expect(page.locator('#board [aria-pressed="true"]')).toHaveCount(1);await expect(page.locator('#status')).toHaveText(/ready on the board|Merge .+ to make .+|Tap the .+ to take .+/);
   // The story card spends coins with Pay; Continue belongs to the dialogue.
   await expect(page.locator('#story').getByRole('button',{name:`Pay ${data.tasks[0].cost} coins: ${data.tasks[0].title}`})).toBeDisabled();await expect(page.locator('#story')).not.toContainText('Continue');
 });
@@ -94,27 +95,27 @@ test('after the last preparation the room is ready for the supper, with the slee
 test('the last required quest enables Pay, and the preparation paid with earned coins is revealed in the room once its story ends, and survives reload',async({page})=>{
   const initial=beforeFirstPreparation(),last=resolveQuests(initial,data).find(view=>view.status==='active')!.quest;
   const needed=requiredQuests(0,data).length,next=requiredQuests(1,data),cost=data.tasks[0].cost;
-  const goal=(kind: string)=>page.locator(`#story [data-requirement="${kind}"]`),pay=page.locator('#story').getByRole('button',{name:/^Pay /});
+  const goal=(kind: string)=>page.locator(`#story .preparation-requirements [data-requirement="${kind}"]`),pay=page.locator('#story').getByRole('button',{name:/^Pay /});
   await start(page,initial);
-  await expect(goal('quests')).toHaveText(`Quests delivered: ${needed-1} / ${needed}Need 1`);
-  await expect(goal('coins')).toHaveText(`Coins: ${initial.coins} / ${cost}Need ${cost-initial.coins}`);await expect(pay).toBeDisabled();
+  await expect(goal('quests')).toHaveText('Deliver 1 more quest.');
+  await expect(goal('coins')).toHaveText(`Earn ${cost-initial.coins} more coins.`);await expect(pay).toBeDisabled();
   await deliverButton(page,last).click();await expect(toast(page)).toHaveText(`${last.title}: delivered. Earned ${last.reward} coins.`);
   await expect(page.locator('#story .story-waiting button')).toBeFocused();
-  await expect(goal('quests')).toHaveText(`Quests delivered: ${needed} / ${needed}Complete`);
-  await expect(goal('coins')).toHaveText(`Coins: ${initial.coins+last.reward} / ${cost}Complete`);
+  await expect(goal('quests')).toHaveCount(0);await expect(goal('coins')).toHaveCount(0);
+  await expect(page.locator('#story .task-ready')).toHaveText('Ready to prepare.');
   const before=await saved(page);
-  await pay.click();await expect(page.locator('.story-controls .primary-button')).toBeFocused();
+  await pay.click();await expect(page.locator('#modal-title')).toBeFocused();
   // The game was saved before the story opens, while the room still shows the room before the change.
   const paid=await saved(page);expect(paid.taskIndex).toBe(1);expect(paid.decorations).toEqual(['task_1']);expect(paid.coins).toBe(before.coins-data.tasks[0].cost);expect(paid.pendingScenes).toEqual([last.id,'task_1']);
   // The last line of the story reads its scene. The quest's own completion still waits in Story.
   const after={...paid,pendingScenes:[last.id]};
   await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-00');
-  for(const label of ['Continue','Continue','See what changed'])await page.locator('.story-controls .primary-button',{hasText:label}).click();
+  await page.getByRole('button',{name:'See what changed',exact:true}).click();
   await revealed(page);await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-01');
   const pin=page.locator('#room-pin');await expect(pin).toBeFocused();await expect(pin).toHaveAccessibleName(`New: ${stateText('front-room-01')}`);
   await expect(page.locator('#status')).toHaveText(stateText('front-room-01'));
   // The next preparation counts its own quests, and the tickets carry the quests that the first preparation opened.
-  await expect(goal('quests')).toHaveText(`Quests delivered: ${needed} / ${next.length}Need ${next.length-needed}`);await expect(pay).toBeDisabled();
+  await expect(goal('quests')).toHaveText(`Deliver ${next.length-needed} more quests.`);await expect(pay).toBeDisabled();
   for(const value of next.slice(needed))await expect(deliverButton(page,value)).toBeVisible();
   // The reveal neither pays nor earns again.
   expect(await saved(page)).toEqual(after);await expect(page.locator('#coins')).toHaveText(String(after.coins));
@@ -209,7 +210,7 @@ test('with reduced motion the change shows at once, and nothing animates',async(
   await expect(page.locator('#room-paintings .room-painting')).toHaveCount(1);await expect.poll(()=>painting(page)).toMatch(/^front-room-24-/);
   expect(await page.locator('#room-stage').evaluate(stage=>stage.getAnimations({subtree:true}).length)).toBe(0);
   // The chapter scene that the payment earned follows the reveal. Escape leaves it waiting and returns focus to the pin.
-  await expect(page.getByRole('dialog',{name:'Chapter 6 complete: The first community supper'})).toBeVisible();await expect(page.locator('.story-controls .primary-button')).toBeFocused();
+  await expect(page.getByRole('dialog',{name:'Chapter 6 complete: The first community supper'})).toBeVisible();await expect(page.locator('#modal-title')).toBeFocused();
   await page.keyboard.press('Escape');await expect(page.locator('.counter-cat')).toBeVisible();await expect(page.locator('#room-pin')).toBeFocused();await expect(page.locator('#status')).toHaveText(stateText('front-room-24'));
 });
 
@@ -301,6 +302,12 @@ function beforeNewDish(){
   return {state,dish,first,second};
 }
 const dishCount=()=>({known:createGame(data).discovered.filter(code=>!data.items[code].generator).length,total:Object.values(data.items).filter(item=>!item.generator).length});
+function lastBookDish() {
+  const state=checkpoint(6),code=`${data.chains.at(-1)!.id}_2`;
+  state.board[firstFreeBoardCell(state,data)]={code};
+  for(const discovered of [`${data.chains.at(-1)!.id}_1`,code])if(!state.discovered.includes(discovered))state.discovered.push(discovered);
+  return {state,code};
+}
 
 test('the recipe book keeps undiscovered dishes covered and marks new ones until it is opened',async({page})=>{
   const {state,dish,first,second}=beforeNewDish(),{known,total}=dishCount();
@@ -311,6 +318,52 @@ test('the recipe book keeps undiscovered dishes covered and marks new ones until
   await expect(page.locator('#collection-button')).toHaveAttribute('data-fresh','');await expect(page.locator('#discovery-count')).toHaveText(`${known+1} of ${total} dishes discovered, 1 new`);
   await page.getByRole('button',{name:/The recipe book/}).click();await expect(page.locator('.recipe-item.not-yet')).toHaveCount(total-known-1);await expect(page.locator('#modal')).toContainText(dish.name);
   await page.getByRole('button',{name:'Close dialog'}).click();await expect(page.locator('#collection-button')).not.toHaveAttribute('data-fresh','');
+});
+
+for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const){
+  test(`recipe details return to the same book item and scroll at ${viewport.width}px in ${theme}`,async({page})=>{
+    const {state,code}=lastBookDish();await page.setViewportSize(viewport);await start(page,state,theme);
+    const opener=page.locator(viewport.width<1024?'#recipes-button':'#collection-button');
+    await opener.click();const modal=page.locator('#modal'),entry=modal.getByRole('button',{name:data.items[code].name,exact:true});
+    await entry.scrollIntoViewIfNeeded();const before=await modal.evaluate(element=>element.scrollTop);
+    expect(before).toBeGreaterThan(0);
+    await entry.click();await expect(page.locator('#modal-title')).toHaveText(data.items[code].name);
+    if(theme==='light')await page.getByRole('button',{name:'Close dialog'}).click();else await page.keyboard.press('Escape');
+    await expect(page.locator('#modal-title')).toHaveText('The recipe book');
+    await expect(entry).toBeFocused();
+    expect(Math.abs((await modal.evaluate(element=>element.scrollTop))-before)).toBeLessThanOrEqual(2);
+    expect(await saved(page)).toEqual(state);
+  });
+}
+
+test('Show me from a recipe closes the book and focuses the board',async({page})=>{
+  const {state,code}=lastBookDish();await page.setViewportSize({width:390,height:844});await start(page,state);
+  await page.locator('#recipes-button').click();
+  await page.locator('#modal').getByRole('button',{name:data.items[code].name,exact:true}).click();
+  await page.getByRole('button',{name:'Show me on the board'}).click();
+  await expect(page.locator('#modal')).toBeHidden();
+  await expect(page.locator('#board .selected')).toHaveAttribute('aria-label',new RegExp(data.items[code].name));
+  await expect(page.locator('#board .selected')).toBeFocused();
+  expect(await saved(page)).toEqual(state);
+});
+
+for(const route of ['ready recipe','recipe guide','quest Find'])for(const theme of ['light','dark'])test(`board help raises a lowered phone drawer from ${route} in ${theme}`,async({page})=>{
+  const state=createGame(data);state.discovered.push('bakery_2');
+  await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'reduce'});await start(page,state,theme);
+  await page.locator('#drawer-handle').click();await expect(page.locator('#drawer-body')).toHaveAttribute('inert','');
+  if(route==='quest Find'){
+    await ticket(page,welcome).locator('.ticket-face').click();
+    await page.getByRole('button',{name:`Find the next step for ${data.items.drinks_2.name} on the board`,exact:true}).click();
+  }else{
+    await page.locator('#recipes-button').click();
+    await page.getByRole('button',{name:data.items[route==='ready recipe'?'bakery_1':'bakery_2'].name,exact:true}).click();
+    await page.getByRole('button',{name:'Show me on the board'}).click();
+  }
+  await expect(page.locator('#modal')).toBeHidden();await expect(page.locator('#drawer-handle')).toHaveAttribute('aria-expanded','true');
+  await expect(page.locator('#drawer-body')).not.toHaveAttribute('inert');
+  await expect(page.locator('#board .selected')).toBeFocused();await expect(page.locator('#board .selected')).toBeInViewport();
+  if(route!=='ready recipe')await expect(page.locator('#item-detail .guide-stop')).toBeInViewport();
+  expect(await saved(page)).toEqual(state);
 });
 
 test('a chain with all six dishes discovered shows its completion mark across reload, and earns nothing',async({page})=>{
@@ -440,14 +493,16 @@ test('Reduced motion stills the delivery on a device that allows motion, and Sys
 test('delivering the selected item clears the selection',async({page})=>{
   const initial=supply(createGame(data),['drinks_2']),index=initial.board.findIndex(cell=>cell?.code==='drinks_2');
   await start(page,initial);await tile(page,index).click();await expect(tile(page,index)).toHaveAttribute('aria-pressed','true');
+  await expect(tile(page,36)).toHaveClass(/merge-target/);
   await expect(page.locator('#item-detail .detail-description')).toHaveText(`Mara and Sorin are waiting for one.`);
   await deliverButton(page,welcome).click();expect((await saved(page)).board[index]).toBeNull();
   await expect(page.locator('#board [aria-pressed="true"]')).toHaveCount(0);await expect(page.locator('#board .selected')).toHaveCount(0);
+  await expect(page.locator('#board .merge-target')).toHaveCount(0);
 });
 
-test('keyboard focus stays with the item actions and returns to the board',async({page})=>{
-  await start(page);await tile(page,1).click();const take=page.getByRole('button',{name:'Take Flour',exact:true});await take.focus();await page.keyboard.press('Enter');
-  expect((await saved(page)).board[2]?.code).toBe('bakery_1');await expect(take).toBeFocused();
+test('keyboard source activation keeps focus, and Clear returns focus to the board',async({page})=>{
+  await start(page);const source=tile(page,1);await source.focus();await page.keyboard.press('Enter');
+  expect((await saved(page)).board[2]?.code).toBe('bakery_1');await expect(source).toBeFocused();
   await tile(page,13).click();await page.getByRole('button',{name:'Clear selection',exact:true}).focus();await page.keyboard.press('Enter');
   expect((await saved(page)).board[13]?.code).toBe('bakery_1');await expect(tile(page,13)).toBeFocused();await expect(tile(page,13)).toHaveAttribute('aria-pressed','false');
 });
@@ -455,7 +510,7 @@ test('keyboard focus stays with the item actions and returns to the board',async
 test('one tap on an ingredient source takes one ingredient and selects the source; a drag only moves it',async({page})=>{
   await start(page);const items=async()=>(await saved(page)).board.filter(Boolean).length,before=await items();
   const source=tile(page,1);await expect(source).toHaveAttribute('aria-label',/Flour bin, source of Flour: tap to take an ingredient$/);
-  await tile(page,1).click();expect(await items()).toBe(before+1);await expect(source).toHaveAttribute('aria-pressed','true');await expect(page.getByRole('button',{name:'Take Flour',exact:true})).toBeVisible();
+  await tile(page,1).click();expect(await items()).toBe(before+1);await expect(source).toHaveAttribute('aria-pressed','true');await expect(page.locator('#item-detail.source-detail')).toContainText('Tap again for Flour.');
   await tile(page,1).click();expect(await items()).toBe(before+2);
   // Enter on the focused source takes one too.
   await source.focus();await page.keyboard.press('Enter');expect(await items()).toBe(before+3);
@@ -523,7 +578,7 @@ test('Mara offers an affordable preparation with Pay on a phone; it pays once an
   await tile(page,13).click();await expect(offer).toBeHidden();await expect(page.locator('#item-detail')).toBeVisible();await unselect(page);await expect(offer).toBeVisible();
   await pay.click();const paid=await saved(page);expect(paid.decorations).toEqual(['task_1']);expect(paid.coins).toBe(0);expect(paid.pendingScenes).toEqual(['task_1']);
   const after={...paid,pendingScenes:[]};
-  for(const label of ['Continue','Continue','See what changed'])await page.locator('.story-controls .primary-button',{hasText:label}).click();
+  await page.getByRole('button',{name:'See what changed',exact:true}).click();
   await revealed(page);await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-01');
   expect(await saved(page)).toEqual(after);await expect(offer).toBeHidden();await expect(story).not.toHaveAttribute('data-ready');await expect(story).toHaveAccessibleName('Story');
 });
@@ -575,12 +630,13 @@ test('export, import, and reset keep portable new-game progress',async({page})=>
   await options(page);await page.locator('input[type=file]').setInputFiles(path);await page.getByRole('button',{name:'Import this saved game'}).click();expect(await saved(page)).toEqual(before);
 });
 
-test('Options holds only the save, appearance, motion, sounds, the saved game, about, and a fresh start',async({page})=>{
+test('Options holds only the save, appearance, motion, sounds, the saved game, about, a fresh start, and the version',async({page})=>{
   await start(page,checkpoint(12));await options(page);const dialog=page.getByRole('dialog',{name:'Options',exact:true});
   await expect(page.locator('[data-options]:visible')).toHaveAccessibleName('Options');await expect(page.locator('[data-options]:visible')).toContainText('Options');
   await expect(dialog.locator('.save-status').first()).toHaveText('Saved in this browser');
   await expect(dialog.locator('legend, h3')).toHaveText(['Appearance','Motion','Kitchen sounds','Your saved game','About Scary Snacks','A fresh start']);
   await expect(dialog.getByRole('button')).toHaveText(['','Turn sound on','Export saved game','Import saved game','Start a new game']);
+  await expect(dialog.locator('p').last()).toHaveText(`Version ${appVersion()}`);
   for(const name of ['Retry saved game','Retry save'])await expect(page.getByRole('button',{name,exact:true})).toHaveCount(0);
   await page.setViewportSize({width:390,height:844});await page.keyboard.press('Escape');
   await expect(page.locator('.phone-bar [data-options]')).toHaveAccessibleName('Options');await page.locator('.phone-bar [data-options]').click();await expect(dialog).toBeVisible();
@@ -619,7 +675,8 @@ test('corrupt saves remain intact and report recovery',async({page})=>{
 });
 
 for(const writer of ['this tab','another tab'] as const)test(`a corrupt live save from ${writer} blocks changes and offers saved-game recovery`,async({page,context})=>{
-  await start(page,createGame(data));await mergeStart(page);
+  // Replacing the game clears the selection, so the snapshot is taken with no selection.
+  await start(page,createGame(data));await mergeStart(page);await tile(page,14).click();
   const original=await page.evaluate(key=>localStorage.getItem(key)!,KEY);
   const before=await page.locator('#board button').evaluateAll(cells=>cells.map(cell=>cell.getAttribute('aria-label')));
   const other=writer==='another tab'?await context.newPage():null;
@@ -835,12 +892,12 @@ test('dialogs hold focus on the safe choice, on the title, and on the story butt
   const sound=page.getByRole('button',{name:'Turn sound on'});await sound.focus();await page.keyboard.press('Enter');await expect(page.getByRole('button',{name:'Turn sound off'})).toBeFocused();
   await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toBeHidden();
   await replaceSave(page,checkpoint(0,{ready:true}));
-  await page.locator('#story').getByRole('button',{name:/^Pay /}).click();const forward=page.locator('.story-controls .primary-button');await expect(forward).toBeFocused();
-  // The line lives in one polite live region that stays in place, so screen readers announce each new line.
-  const line=page.locator('#story-line');await expect(line).toHaveAttribute('aria-live','polite');await line.evaluate(e=>{(e as HTMLElement).dataset.kept='yes';});const first=await line.textContent();
-  await page.keyboard.press('Enter');await expect(page.locator('.story-controls>span')).toHaveText(/^2 \//);await expect(forward).toBeFocused();
-  await expect(line).toHaveAttribute('data-kept','yes');await expect(line).not.toHaveText(first!);
-  await page.locator('.story-controls .secondary-button').click();await expect(page.locator('.story-controls>span')).toHaveText(/^1 \//);await expect(forward).toBeFocused();
+  await page.locator('#story').getByRole('button',{name:/^Pay /}).click();const forward=page.locator('.story-controls .primary-button');await expect(page.locator('#modal-title')).toBeFocused();
+  // The complete text is static. Focus starts above it, so keyboard users read before choosing the one completion action.
+  const transcript=page.locator('#story-line');await expect(transcript).not.toHaveAttribute('aria-live','polite');
+  await expect(transcript.locator('p')).toHaveText(data.tasks[0].dialogue.map(line=>line.text));
+  await expect(page.locator('.story-controls button')).toHaveCount(1);await page.keyboard.press('Tab');await expect(page.locator('#close-modal')).toBeFocused();
+  await page.keyboard.press('Tab');await expect(forward).toBeFocused();
   // Closing the story early still reveals the change once, in the room.
   await page.keyboard.press('Escape');await revealed(page);await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-01');
 });
@@ -943,7 +1000,7 @@ test('forced colours keep the spaces, the selection, the tickets and the area sw
   for(const selector of ['[data-cell="20"]','#tickets .ticket','.area-choice'])expect(await page.locator(selector).first().evaluate(e=>getComputedStyle(e).borderTopStyle),selector).toBe('solid');
 });
 
-test('the checked appearance carries a 3:1 ring in both themes, and a story has no Back on its first line',async({page})=>{
+test('the checked appearance carries a 3:1 ring in both themes, and a transcript has one completion action',async({page})=>{
   await start(page);
   for(const mode of ['light','dark']){
     await appearance(page,mode);await options(page);
@@ -952,7 +1009,7 @@ test('the checked appearance carries a 3:1 ring in both themes, and a story has 
   }
   await replaceSave(page,checkpoint(0,{ready:true}));
   await page.locator('#story').getByRole('button',{name:/^Pay /}).click();await expect(page.locator('.story-controls .secondary-button')).toBeHidden();
-  await page.keyboard.press('Enter');await expect(page.locator('.story-controls .secondary-button')).toBeVisible();
+  await expect(page.locator('.story-controls button')).toHaveCount(1);await expect(page.locator('#modal-title')).toBeFocused();
 });
 
 test('the skip link lands on the board without scrolling the header away',async({page})=>{
@@ -975,6 +1032,59 @@ test('phone recipe guidance selects a dish on the board while another item is se
   await page.getByRole('button',{name:'Show me on the board'}).click();
   await expect(page.locator('#status')).toContainText('Dough is ready on the board');await expect(page.locator('#modal')).toBeHidden();
   await expect(page.locator('#board .selected')).toHaveAttribute('aria-label',/Dough/);
+});
+
+test('a recipe guide can be stopped with Escape and does not survive a replaced game',async({page})=>{
+  const initial=createGame(data);initial.discovered.push('bakery_2');
+  await page.setViewportSize({width:390,height:844});await start(page,initial);
+  const guide=async()=>{await page.locator('#recipes-button').click();await page.getByRole('button',{name:'Dough',exact:true}).click();await page.getByRole('button',{name:'Show me on the board'}).click();};
+  await guide();await expect(page.getByRole('button',{name:'Stop guide for Dough'})).toBeVisible();
+  await page.getByRole('button',{name:'Stop guide for Dough'}).focus();await page.keyboard.press('Escape');
+  await expect(page.getByRole('button',{name:'Stop guide for Dough'})).toHaveCount(0);
+  await guide();
+  await tile(page,13).focus();await page.keyboard.press('Escape');
+  await expect(page.getByRole('button',{name:'Stop guide for Dough'})).toHaveCount(0);
+  expect(await saved(page)).toEqual(initial);
+  await guide();await replaceSave(page,initial);
+  await expect(page.locator('#board .guide-target')).toHaveCount(0);
+  await guide();await options(page);
+  await page.locator('input[type=file]').setInputFiles({name:'save.json',mimeType:'application/json',buffer:Buffer.from(serialize(initial))});
+  await page.getByRole('button',{name:'Import this saved game'}).click();
+  await expect(page.locator('#board .guide-target')).toHaveCount(0);
+  expect(await saved(page)).toEqual(initial);
+});
+
+test('a full board rejects a guided take without ending the dish guide',async({page})=>{
+  const initial=createGame(data);
+  initial.board=initial.board.map((cell,index)=>unresolvedObstacle(initial,index,data)?null:cell&&data.items[cell.code].generator?cell:{code:'bakery_6'});
+  initial.discovered.push('bakery_6');
+  await start(page,initial);await ticket(page,quest('sorin-first-ride')).locator('.ticket-face').click();
+  await page.getByRole('button',{name:'Find the next step for Dough on the board'}).click();
+  const source=initial.board.findIndex(cell=>cell?.code==='generator_bakery');
+  await tile(page,source).click();
+  await expect(page.locator('#status')).toHaveText('The board is full. No delivery or merge can free space for Dough.');
+  await expect(page.getByRole('button',{name:'Stop guide for Dough'})).toBeVisible();
+  expect(await saved(page)).toEqual(initial);
+});
+
+test('a guide keeps a visible Stop action when delivery removes its selected cell',async({page})=>{
+  const initial=supply(createGame(data),['bakery_2','bakery_2','drinks_2']),target='bakery_4';
+  initial.discovered.push(target);
+  await page.setViewportSize({width:390,height:844});await start(page,initial);
+  await page.locator('#recipes-button').click();
+  await page.getByRole('button',{name:data.items[target].name,exact:true}).click();
+  await page.getByRole('button',{name:'Show me on the board'}).click();
+  await expect(page.locator('#board .selected')).toHaveAttribute('aria-label',/Dough/);
+  await deliverButton(page,quest('sorin-first-ride')).click();
+  await expect(page.locator('#board .selected')).toHaveCount(0);
+  const before=await saved(page);
+  const stop=page.getByRole('button',{name:`Stop guide for ${data.items[target].name}`});
+  await expect(stop).toBeVisible();
+  await expect(page.locator('#status')).toHaveText(`For ${data.items[target].name}: merge Flour`);
+  await stop.click();
+  await expect(page.locator('#hint-button')).toHaveAccessibleName('Find a match');
+  await expect(page.locator('#board .guide-target')).toHaveCount(0);
+  expect(await saved(page)).toEqual(before);
 });
 
 test('starting a new game clears the previous game discovery notification',async({page})=>{
@@ -1026,7 +1136,7 @@ test('two queued Pay activations cannot pay for a preparation that was not shown
 });
 
 test('the journal lists the regulars who have arrived and keeps later ones as outlines',async({page})=>{
-  await start(page,checkpoint(8));await journal(page);
+  await start(page,checkpoint(8));await journal(page,['chapters','conversations','neighbours']);
   const arrived=data.characters.filter(person=>person.regular&&(!person.arrivesAfter||data.tasks.findIndex(task=>task.id===person.arrivesAfter)<8));
   for(const person of arrived)await expect(page.getByRole('button',{name:`Meet ${person.name}`,exact:true})).toBeVisible();
   await expect(page.locator('.neighbour-entry.not-yet')).toHaveCount(data.characters.filter(person=>person.regular).length-arrived.length);

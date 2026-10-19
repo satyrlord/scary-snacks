@@ -43,7 +43,7 @@ button, input { font: inherit; color: inherit; }
 button { cursor: pointer; touch-action: manipulation; transition: transform .15s; }
 button:disabled { cursor: default; }
 button:not(:disabled):active { transform: translateY(1px); }
-button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 a { color: var(--accent); text-underline-offset: 4px; }
 ::selection { background: var(--action); color: var(--on-action); }
 h1,h2,h3,p { margin: 0; }
@@ -98,7 +98,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 /* A finish that a quest unlocked switches where it stands in the room. The badge marks it; hover and focus outline its place. */
 .room-finishes { position: absolute; inset: 0; pointer-events: none; }
 .room-finish { position: absolute; z-index: 2; min-width: 44px; min-height: 44px; padding: 0; border: 0; border-radius: 8px; background: transparent; pointer-events: auto; cursor: pointer; }
-.room-finish:hover,.room-finish:focus-visible { outline: 2px dashed var(--coin-face); outline-offset: 2px; }
+.room-finish:hover,.room-finish:focus { outline: 2px dashed var(--coin-face); outline-offset: 2px; }
 .swap-mark { position: absolute; top: -10px; right: -10px; width: 26px; height: 26px; }
 .swap-mark circle { fill: var(--surface); stroke: var(--coin-rim); stroke-width: 1.5; }.swap-mark path { stroke: var(--ink); stroke-width: 1.8; }
 .room-finish[inert] { visibility: hidden; }
@@ -170,6 +170,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .tickets-empty { grid-column: 1 / -1; margin: 0; padding: 12px; color: var(--muted); font-size: 13px; text-align: center; }
 .deliver-button { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 44px; padding: 6px; font-size: 13px; white-space: nowrap; }
 .deliver-button .coin { width: 16px; height: 16px; }
+.deliver-button.guide-target { outline: 2px dotted color-mix(in srgb, var(--muted) 50%, transparent); outline-offset: -4px; }
+.deliver-button.guide-target:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
 .ticket.arriving { animation: ticket-in .45s cubic-bezier(.16,1,.3,1) var(--rise-delay) both; }
 @keyframes ticket-in { from { opacity: 0; visibility: hidden; translate: 0 10px; } }
 .deliver-flight { position: fixed; z-index: 100; pointer-events: none; filter: drop-shadow(0 7px 5px #17101a65); }
@@ -195,9 +197,10 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .preparation-art { background-image: url('../assets/variants/preparation-clutter-1448x1086.webp'); }
 .cell.empty::after { content: ''; width: 4px; height: 4px; background: var(--muted); opacity: .3; border-radius: 50%; }
 .cell.selected { box-shadow: inset 0 0 0 3px var(--selected), var(--tile-lift); }
-.cell.blocker-target { box-shadow: inset 0 0 0 3px var(--focus), var(--tile-lift); }
 .cell:focus-visible { outline-offset: -3px; }
 .cell:not(.selected):hover { box-shadow: inset 0 0 0 2px var(--selected), var(--tile-lift); }
+.cell:is(.blocker-target,.merge-target,.guide-target) { outline: 2px dotted color-mix(in srgb, var(--muted) 50%, transparent); outline-offset: -4px; }
+.cell:is(.blocker-target,.merge-target,.guide-target):focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
 .source-mark { position: absolute; right: 3px; bottom: 3px; width: 17px; height: 17px; pointer-events: none; }
 .source-mark circle { fill: var(--action); stroke: var(--tile-a); stroke-width: 1.5; }.source-mark path { stroke: var(--on-action); stroke-width: 2.6; }
 .cell.hint { animation: hint-pulse .75s ease-in-out 3; }
@@ -238,11 +241,7 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 .item-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
 .item-actions button { font-size: 13px; padding: 10px 12px; }
 .item-actions .clear-selection { padding: 9px; }
-.take-actions { display: flex; gap: 6px; min-width: 0; }
-.take-actions .take-button { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 12px; padding: 6px; }
-.take-button span { min-width: 0; overflow-wrap: anywhere; }
-.take-button .food { width: 24px; height: 24px; flex-shrink: 0; }
-.item-actions .take-button { max-width: 120px; }
+.guide-stop { min-width: 44px; font-weight: 600; }
 .completion-message { margin-top: 16px; font-size: 13px; line-height: 1.5; }
 /* The supper: the painting of the neighbours at the courtyard tables, the ending, and the way on. */
 .supper-view { text-align: center; }
@@ -262,7 +261,6 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 /* The 44px target of Read now reaches into the space above and below the row, so the row adds only one line to the story. */
 .story-waiting { display: flex; align-items: center; flex-wrap: wrap; column-gap: 12px; margin-top: 4px; font-size: 13px; line-height: 1.5; }
 .story-waiting .text-button { margin-block: -12px; }
-.skip-scene { display: block; margin: 8px 0 0 auto; }
 .scene-unsaved { margin: 16px 0 0; }
 .task-content { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
 .task-content h3 { margin-bottom: 5px; }
@@ -272,7 +270,12 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 .task-payment .text-button { flex-shrink: 0; }
 .task-requirements { list-style: none; padding: 0; margin: 8px 0; font-size: 13px; line-height: 1.55; font-variant-numeric: tabular-nums; }
 .task-requirements li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 10px; }
-.requirement-status { color: var(--muted); }
+.task-content .task-ready { margin: 8px 0; color: var(--ink); font-weight: 600; }
+.cost-toggle { display: inline-flex; align-items: center; gap: 4px; }
+.cost-toggle svg { width: 14px; height: 14px; }
+.cost-toggle[aria-expanded='true'] svg { rotate: 180deg; }
+.task-cost { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.cost-requirements-title { margin: 20px 0 4px; font-size: 14px; font-weight: 600; }
 .story-links { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 20px; margin-top: 2px; }
 .story-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); line-height: 1.5; }
 /* The Story sheet keeps Miez's card; the story card leaves the cat on the windowsill. */
@@ -329,9 +332,6 @@ dialog:has(.quest-page-content) {
 }
 .quest-reading { display: flow-root; }
 .quest-sketch { display: block; float: right; width: 42%; max-width: 210px; height: auto; margin: 0 0 12px 16px; }
-.quest-page-content .story-stage { display: block; min-height: 170px; }
-.quest-page-content .story-stage .portrait { float: left; width: 44px; height: 44px; margin: 0 12px 8px 0; }
-.quest-page-content .story-dialogue h3 { min-height: 44px; display: flex; align-items: center; margin-bottom: 12px; }
 .quest-page-content .quest-lines { display: block; line-height: 1.75; }
 .quest-page-content .quest-line + .quest-line { margin-top: 12px; }
 @media (max-width: 540px) {
@@ -348,6 +348,7 @@ dialog:has(.quest-page-content) {
 #modal-title:focus { outline: none; }
 .settings-section { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line); }
 .settings-section p { font-size: 13px; line-height: 1.7; color: var(--muted); margin: 9px 0 14px; }
+.app-version { margin: 24px 0 0; font-size: 12px; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
 .choice-fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
 .choice-fieldset legend { padding: 0; font-size: 19px; font-weight: 600; line-height: 1.4; letter-spacing: -.025em; }
 .choice-group { display: inline-flex; padding: 3px; border: 1px solid var(--control-line); border-radius: var(--control-radius); background: var(--inset); }
@@ -358,12 +359,18 @@ dialog:has(.quest-page-content) {
 .choice:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
 .danger-button { padding: 11px 15px; border-radius: var(--control-radius); border: 1px solid var(--accent); background: transparent; color: var(--accent); min-height: 44px; font-size: 14px; font-weight: 600; }
 .save-error { border: 1px solid var(--accent); border-radius: var(--control-radius); padding: 12px; font-size: 13px; line-height: 1.6; margin-bottom: 15px; }
-.story-stage { display: flex; align-items: center; gap: 20px; min-height: 170px; }
-.story-stage .portrait { width: 120px; height: 120px; flex-shrink: 0; }
-.story-dialogue h3 { margin-bottom: 12px; }.story-dialogue p { font-size: 16px; line-height: 1.75; }
-.story-controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 24px; }
-.story-controls>span { font-size: 12px; color: var(--muted); }
-.story-controls .secondary-button:disabled { visibility: hidden; }
+.story-controls { display: flex; justify-content: flex-end; margin-top: 24px; }
+.story-turn { display: flow-root; }
+.story-turn + .story-turn { margin-top: 18px; }
+.story-turn .portrait { float: left; width: 44px; height: 44px; margin-right: 12px; }
+.turn-words { margin-left: 56px; }
+.story-turn :is(h3,h4) { font-size: 13px; font-weight: 600; line-height: 1.4; margin: 0 0 4px; }
+.story-turn p { font-size: 16px; line-height: 1.75; }
+.conversation-part>h3 { font-size: 16px; margin-bottom: 12px; }
+.conversation-part + .conversation-part { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); }
+@media (max-width: 720px) {
+  .story-turn p { font-size: 14px; }
+}
 .journal-list { display: flex; flex-direction: column; gap: 8px; }
 .journal-entry { display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left; border: 1px solid var(--control-line); background: var(--surface); padding: 13px; border-radius: var(--control-radius); min-height: 44px; }
 .journal-entry>span { font-size: 12px; color: var(--muted); }
@@ -385,9 +392,11 @@ dialog:has(.quest-page-content) {
 /* In an exchange, each turn starts with its speaker's name on its own line. */
 .quest-speaker { display: block; font-size: 13px; font-weight: 600; line-height: 1.4; }
 .quest-requirements { list-style: none; margin: 0; padding: 0; }
-.quest-item { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 6px 0; text-align: left; border: 0; background: transparent; }
+.quest-requirements li { display: flex; align-items: center; gap: 8px; }
+.quest-item { display: flex; flex: 1; align-items: center; gap: 10px; min-width: 0; min-height: 52px; padding: 6px 0; text-align: left; border: 0; background: transparent; }
 .quest-item .food { width: 40px; height: 40px; flex-shrink: 0; }
-.quest-item>span:not(.quest-count) { flex: 1; font-size: 14px; }
+.quest-item>span:not(.quest-count) { flex: 1; min-width: 0; font-size: 14px; }
+.quest-find { flex: none; min-width: 44px; min-height: 44px; padding-inline: 2px; }
 .quest-count { text-align: right; font-variant-numeric: tabular-nums; }
 .quest-reward { margin: 12px 0 8px; color: var(--gold); font-weight: 600; font-size: 14px; }
 .quest-actions { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -398,7 +407,15 @@ dialog:has(.quest-page-content) {
 .chapter-journal>p:not(.small-copy) { font-size: 14px; line-height: 1.65; }
 .chapter-journal .small-copy { margin: 0; }
 .journal-steps { margin: 0; padding-left: 20px; font-size: 13px; line-height: 1.7; color: var(--muted); }
-.journal-list>h3 { margin-top: 18px; }
+.journal-unread { display: flex; flex-direction: column; gap: 8px; }
+.journal-unread .small-copy { margin: 0; }
+.journal-unread .journal-entry>span { flex-shrink: 0; }
+.journal-group { border-top: 1px solid var(--line); }
+.journal-group>summary { padding: 14px 0; min-height: 44px; cursor: pointer; font-size: 16px; font-weight: 600; }
+.journal-group[open]>summary { margin-bottom: 8px; }
+.journal-group .neighbour-entry,.journal-group .neighbour-introduction { margin-bottom: 8px; }
+.journal-group .neighbour-introduction { width: 100%; }
+.journal-group .quest-journal:first-of-type,.journal-group .chapter-journal:first-of-type { border-top: 0; }
 .recipe-chain { border-top: 1px solid var(--line); padding: 16px 0; }
 .recipe-chain h3 { margin-bottom: 12px; }
 /* A complete chain: a check and the word, so the mark does not depend on color. */
@@ -478,7 +495,7 @@ dialog:has(.quest-page-content) {
   .tagline,.masthead .options-button,.recipe-book { display: none; }
   .coin-count { gap: 5px; padding-right: 0; border-right: 0; }.coin { width: 20px; height: 20px; }#coins { font-size: 21px; }.coin-label { font-size: 12px; }
   .game-layout {
-    --gap: 3px; --runner-h: 8px; --drawer-chrome: 156px; --frame-w: 100cqw;
+    --gap: 3px; --runner-h: 8px; --drawer-chrome: 152px; --frame-w: 100cqw;
     --cell: clamp(44px, min(calc((100vw - 40px) / 6), calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7)), 60px);
     --drawer-h: calc(var(--cell) * 7 + 18px + var(--drawer-chrome));
     --view-base: calc(100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-h));
@@ -523,7 +540,7 @@ dialog:has(.quest-page-content) {
   .kitchen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   .table { flex: none; margin-top: 4px; border-radius: var(--card-radius); background-image: url('../assets/variants/timber-tabletop-1024x1024.webp'); background-image: image-set(url('../assets/variants/timber-tabletop-1024x1024.avif') type('image/avif'), url('../assets/variants/timber-tabletop-1024x1024.webp') type('image/webp')); }
   .board { padding: 6px 0; }.cell { padding: 3px; }
-  .line-slot { flex: 1; display: flex; align-items: center; min-height: 0; padding: 4px 10px; }
+  .line-slot { flex: 1; display: flex; align-items: center; min-height: 0; padding: 0 10px; }
   .mara-line,.offer { gap: 8px; }.mara-line .portrait,.offer .portrait { width: 28px; height: 28px; }.offer strong { font-size: 13px; }.mara-line p { font-size: 13px; line-height: 1.35; }
   .detail-head { flex: 1 1 0; gap: 8px; }.detail-head .food { width: 40px; height: 40px; }
   .detail-words h3 { line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
@@ -541,7 +558,7 @@ dialog:has(.quest-page-content) {
 @media (max-width: 720px) {
   /* Sheets rise from the bottom edge, within thumb reach. */
   dialog { width: 100%; max-width: 100%; margin: auto 0 0; max-height: 88dvh; padding: 20px 20px calc(20px + env(safe-area-inset-bottom)); border-width: 1px 0 0; border-radius: var(--dialog-radius) var(--dialog-radius) 0 0; }
-  .story-stage { gap: 13px; }.story-stage .portrait { width: 82px; height: 82px; }.story-dialogue p { font-size: 14px; }.story-controls .primary-button,.story-controls .secondary-button { padding: 10px 14px; }.recipe-item .food { width: 58px; height: 58px; }
+  .story-controls .primary-button { padding: 10px 14px; }.recipe-item .food { width: 58px; height: 58px; }
   .item-detail>.food { width: 120px; height: 120px; }
 }
 /* Narrow phones drop the word once the figure grows; the coin mark carries the unit and screen readers hear the exact total. */
@@ -549,6 +566,8 @@ dialog:has(.quest-page-content) {
 /* Narrow phones give the strip's words the room: a smaller dish, and below 361px no dish at all. */
 @media (max-width: 410px) { .detail-head .food { width: 34px; height: 34px; } }
 @media (max-width: 360px) { .detail-head .food,.detail-next { display: none; }.item-actions button { padding-inline: 9px; } }
+.guided .detail-next { display: block; }
+.source-detail .detail-description { display: block; }
 /* The narrowest tickets give Deliver every spare pixel, so each target on a ticket stays 44px wide. */
 @media (max-width: 360px) { .ticket { padding-inline: 2px; }.deliver-button { padding-inline: 1px; }.ticket-items .ticket-item,.ticket-items .food { width: 22px; }.ticket-items .food { height: 22px; } }
 /* Landscape phones and 200% zoom leave too little height for a fixed drawer over the room, so the room, the drawer and the bar return to the page flow. */
@@ -582,6 +601,8 @@ dialog:has(.quest-page-content) {
   .cell,.primary-button,.secondary-button,.ticket-item,.ticket,.area-choice,.room-pin { border: 1px solid ButtonBorder; }
   .cell.obstacle { border: 2px dashed ButtonText; }
   .cell.selected,.cell:hover { outline: 3px solid Highlight; outline-offset: -3px; }
+  .cell:is(.blocker-target,.merge-target,.guide-target),.deliver-button.guide-target { outline: 3px dotted Highlight; outline-offset: -3px; }
+  .cell:is(.blocker-target,.merge-target,.guide-target):focus-visible,.deliver-button.guide-target:focus-visible { outline: 3px solid Highlight; }
   .ticket-item.ready::after,#recipes-button[data-fresh]::after,#story-button[data-ready]::after,.pin-dot { forced-color-adjust: none; background: Highlight; }
   .choice:has(input:checked),.area-choice[aria-pressed='true'] { outline: 2px solid Highlight; outline-offset: -2px; }
 }

@@ -14,6 +14,12 @@ Thus one action discovers at most one dish.
 
 The `recipeBook` function in [`src/dishes.ts`](../../src/dishes.ts) shows each chain as a list of six dishes in a fixed order.
 A discovered dish shows its art and name and opens its item dialog.
+Close or Escape from that dialog returns to the same scroll position in the book and focuses its dish entry.
+"Show me on the board" closes the dialog and focuses the next board step.
+Board guidance raises a lowered kitchen drawer before it focuses the next step.
+If the dish is not yet on the board, a temporary guide names the requested dish and updates its next step after actions. A dish that is already on the board needs only the one-time pointer. The guide marks useful board cells and never takes, moves, merges, or delivers for the player. A successful take or merge that makes another requested dish ends the guide. Stop, Escape from the board or a guide control, or another tap on the selected dish or blocker cancels it. A tap on a selected source takes another ingredient. The guide is not saved and ends when the game is replaced. On a narrow screen, a ready preparation leaves the guide's Stop control visible. Pay stays available in Story until the guide ends.
+When the board is full, the guide points to a legal merge toward the dish, a ready delivery that removes dishes, or another legal pair or blocker merge, in that order. The ready Deliver button gets the same dotted cue as a board target. Blocked items do not count as movable matches. If none can make space, the guide explains this and keeps Stop available. It does not recommend a source take while the board is full.
+An item opened from a quest returns to the quest instead.
 An undiscovered dish shows a "Not yet" covered dish: a plate under a dome cover. The player cannot use it.
 `DESIGN.md` controls the covered dish.
 
@@ -61,6 +67,9 @@ Text from a save never becomes HyperText Markup Language (HTML).
 - Saves: discoveries survive a save and a load. The game rejects unknown item IDs without a change to the original save.
 - Browser: a dish that a quest needs and the player has not made stays covered.
   Make the dish with legal actions, deliver it, and reload. The book entry must stay revealed.
+- Browser: open a discovered dish near the end of the book. Close and Escape return to that dish and restore the book's scroll position. "Show me on the board" goes straight to the board. Quest help still returns to its quest.
+- Browser: a temporary guide updates after takes, merges, moves, blocker clearing, and delivery. It ends when one requested dish is made, when the player stops it, or when another game replaces this one. It changes no saved field and does not move or merge an item on its own.
+- Browser: on a full board, guide a ready delivery, an ordinary merge, and a blocker merge. If no action can make room, give an accurate note. A blocked pair is not a legal merge, and no full-board guide suggests a source take.
 - Browser: a chain with six discovered dishes shows the mark. A chain with five dishes does not.
   Reload keeps the mark, and the save does not change.
   Examine both themes at the desktop size and the phone size.

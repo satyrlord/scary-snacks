@@ -24,7 +24,7 @@ function deliverRequired(state: GameState,index: number){for(const value of requ
 export function checkpoint(count: number,{ready=false,coins=0}: {ready?: boolean; coins?: number}={}){
   let state=createGame(data);
   for(let index=0;index<count;index++){deliverRequired(state,index);state.coins=data.tasks[index].cost;state=act(state,{type:'task'});}
-  state.pendingScenes=[];delete state.sceneLines;state.coins=coins;
+  state.pendingScenes=[];state.coins=coins;
   if(ready&&count<data.tasks.length){deliverRequired(state,count);state.coins=data.tasks[count].cost;}
   expect(validate(state)).toBe(true);return state;
 }
@@ -84,28 +84,28 @@ export async function openQuest(page: Page,value: Quest){
   await ticket(page,value).locator('.ticket-face').click();await expect(page.getByRole('dialog',{name:value.title,exact:true})).toBeVisible();
 }
 export async function story(page: Page){if(!await page.locator('#story').isVisible())await page.locator('#story-button').click();}
-export async function journal(page: Page){
+/** Opens the journal, and optionally opens named groups for archive or character checks. */
+export async function journal(page: Page,groups: string[] = []){
   if(!await page.getByRole('button',{name:'Open the story journal',exact:true}).isVisible())await page.locator('#story-button').click();
   await page.getByRole('button',{name:'Open the story journal',exact:true}).click();
+  for(const id of groups){const group=page.locator(`.journal-group[data-group="${id}"]`);if(await group.count())await group.locator('summary').click();}
 }
 export async function options(page: Page){await page.locator('[data-options]:visible').first().click();await expect(page.locator('#modal-title')).toHaveText('Options');}
 export async function appearance(page: Page,mode: string){
   await options(page);await page.getByRole('group',{name:'Appearance'}).getByRole('radio',{name:mode[0].toUpperCase()+mode.slice(1),exact:true}).check();await page.getByRole('button',{name:'Close dialog'}).click();
 }
-/** Reads the open scene to its end and presses the end control, which has this label. */
+/** Presses the completion action of the open scene, which has this label. */
 export async function readTo(page: Page,label: string){
-  const forward=page.locator('.story-controls .primary-button');
-  while(await forward.textContent()==='Continue')await forward.click();
-  await expect(forward).toHaveText(label);await forward.click();
+  const done=page.locator('.story-controls .primary-button');
+  await expect(done).toHaveText(label);await done.click();
 }
-/** Reads a journal scene to its end and presses Return. */
+/** Presses Return in a journal scene. */
 export async function finishScene(page: Page){
-  while(await page.locator('.story-controls .primary-button').textContent()==='Continue')await page.locator('.story-controls .primary-button').click();
   await page.getByRole('button',{name:'Return',exact:true}).click();
 }
 export async function payAndRead(page: Page){
   await story(page);await page.getByRole('button',{name:/^Pay /}).first().click();
-  for(const label of ['Continue','Continue','See what changed'])await page.locator('.story-controls .primary-button',{hasText:label}).click();
+  await page.getByRole('button',{name:'See what changed',exact:true}).click();
 }
 export const revealed=(page: Page)=>expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done',{timeout:8000});
 /** The room's painting once it has loaded, by file name. */
@@ -127,7 +127,6 @@ export async function startAgainAndImport(page: Page,text: string){
   await options(page);await page.locator('input[type="file"]').setInputFiles({name:'save.json',mimeType:'application/json',buffer:Buffer.from(text)});
   await page.getByRole('button',{name:'Import this saved game'}).click();
 }
-/** The WCAG contrast ratio of two computed colours. */
 /** A portrait shows its own cell of a 640px atlas variant: an unfiltered square crop that stays inside the cell. */
 export async function portraitCell(target: Locator,atlas: string,sprite: number){
   const style=await target.evaluate(element=>{const style=getComputedStyle(element);return {image:style.backgroundImage,position:style.backgroundPosition,size:style.backgroundSize,filter:style.filter};});
@@ -139,6 +138,7 @@ export async function portraitCell(target: Locator,atlas: string,sprite: number)
   expect(left+side).toBeLessThanOrEqual(1.00001);expect(top+side).toBeLessThanOrEqual(1.00001);expect(style.filter).toBe('none');
   expect(await target.evaluate(async element=>{const image=new Image();image.src=getComputedStyle(element).backgroundImage.slice(5,-2);await image.decode();return [image.naturalWidth,image.naturalHeight];})).toEqual([640,640]);
 }
+/** The WCAG contrast ratio of two computed colours. */
 export function ratio(a: string,b: string){
   const luminance=(value: string)=>value.match(/\d+(?:\.\d+)?/g)!.slice(0,3).map(Number).map(n=>n/255).map(n=>n<=.04045?n/12.92:((n+.055)/1.055)**2.4).reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);
   const x=luminance(a),y=luminance(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05);

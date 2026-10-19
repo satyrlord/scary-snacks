@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, readFile, rm, readdir, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
-import { build, compile, runtimeFiles, fontFiles, publishedPath } from '../tools/build.ts';
+import { execFileSync } from 'node:child_process';
+import { build, compile, appVersion, runtimeFiles, fontFiles, publishedPath } from '../tools/build.ts';
 
 async function fixture(t: TestContext) {
   const root = await mkdtemp(join(tmpdir(), 'scary-snacks-build-'));
@@ -13,7 +14,12 @@ async function fixture(t: TestContext) {
     await mkdir(dirname(join(root, file)), { recursive: true });
     await writeFile(join(root, file), file);
   }
+  await writeFile(join(root, 'package.json'), '{"version":"2.4.9"}');
   return root;
+}
+
+function git(root: string, ...args: string[]) {
+  return execFileSync('git', ['-c', 'user.name=Build test', '-c', 'user.email=build-test@example.invalid', '-c', 'commit.gpgSign=false', '-c', `core.hooksPath=${join(root, 'unused-hooks')}`, ...args], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 }
 
 test('build publishes only explicit runtime and image variants, never the PNG masters; stale output is removed', async t => {
@@ -44,6 +50,44 @@ test('runtime sources are published as scripts with types removed and module nam
   await build(root);
   assert.equal(await readFile(join(root, 'dist/src/app.js'), 'utf8'), 'export const coins         = 1;\n');
   assert.ok(!(await readdir(join(root, 'dist/src'))).some(name => name.endsWith('.ts')));
+});
+
+test('the version is the major and minor of package.json with the commit count as the build number', async t => {
+  const root = await fixture(t);
+  assert.equal(appVersion(root), '2.4.0', 'A copy without Git history has build number 0.');
+  git(root, 'init');
+  git(root, 'add', 'package.json');
+  git(root, 'commit', '-m', 'Add package metadata');
+  git(root, 'commit', '--allow-empty', '-m', 'Add a second commit');
+  assert.equal(appVersion(root), '2.4.2');
+  const linked = join(root, 'linked-worktree');
+  git(root, 'worktree', 'add', '--detach', linked);
+  assert.equal(appVersion(linked), '2.4.2', 'A linked worktree uses its own Git metadata.');
+  const exported = join(root, 'source-export');
+  await mkdir(exported);
+  await writeFile(join(exported, 'package.json'), '{"version":"3.5.9"}');
+  assert.equal(appVersion(exported), '3.5.0', 'An export inside a checkout does not use the parent history.');
+});
+
+test('a shallow clone cannot supply the build number', async t => {
+  const root = await fixture(t);
+  git(root, 'init');
+  git(root, 'add', 'package.json');
+  git(root, 'commit', '-m', 'Add package metadata');
+  git(root, 'commit', '--allow-empty', '-m', 'Add a second commit');
+  const shallow = join(root, 'shallow-clone');
+  git(root, 'clone', '--depth=1', '--no-local', root, shallow);
+  assert.throws(() => appVersion(shallow), /A shallow clone cannot count the commits/);
+});
+
+test('build uses the selected project version unless an explicit version is supplied', async t => {
+  assert.equal(compile('index.html', Buffer.from('<meta name="app-version" content="">'), '1.1.30').toString(), '<meta name="app-version" content="1.1.30">');
+  const root = await fixture(t);
+  await writeFile(join(root, 'index.html'), '<meta name="app-version" content="">');
+  await build(root);
+  assert.equal(await readFile(join(root, 'dist/index.html'), 'utf8'), '<meta name="app-version" content="2.4.0">');
+  await build(root, '2.4.7');
+  assert.equal(await readFile(join(root, 'dist/index.html'), 'utf8'), '<meta name="app-version" content="2.4.7">');
 });
 
 test('build rejects executable assets before replacing the last build', async t => {

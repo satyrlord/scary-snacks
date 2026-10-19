@@ -80,6 +80,9 @@ Put a helper that more than one test file uses in the shared helper file of its 
 Give each test a name that tells its behavior.
 Add a regression test for each defect.
 The game supports only Chromium-based browsers. The full browser suite runs on Chromium under `/scary-snacks/`, the GitHub Pages path. The asset and path test also runs at the root path.
+Run each browser test in headless mode when the tool allows it.
+This rule applies to the Playwright suite, to the browser checks in `npm run quality:full`, and to one-time browser checks that you run from the chat.
+Use a headed browser only when a check cannot run headless. Tell the user why.
 Examine both themes at the desktop size and the phone size.
 A test that passes does not show visual quality. Examine the changed interface.
 

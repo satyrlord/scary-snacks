@@ -35,15 +35,18 @@ The [economy record](../economy.md) gives the portions, the work scopes, the pri
 
 ## Feedback
 
-Story shows the current coins and the required coins. It also shows how many of the necessary quests the player delivered.
-Each row says "Complete" or gives the missing amount, for example "Need 2". A row names a placement blocker.
+Story shows only the requirements still unmet: the extra coins to earn, quests to deliver, or board space to free for a source.
+Completed requirements have no row. When every requirement is met, one line says "Ready to prepare."
+The accessible description of Pay keeps the exact current and required totals.
 Pay and Mara's offer use the same engine eligibility result.
 
 Cost details sits beside Pay.
-The control opens a dialog or phone sheet with the work scope, material and labour costs, and total price.
-The dialog also shows estimated person-hours.
+The disclosure expands below that row inside Story. It shows the work scope, material and labour costs, and total price.
+It also shows estimated person-hours and the exact current and required coins, delivered quests, and source space.
 The text states that there is no timer.
-Close and Escape return focus to the cost control. On phones, they first restore the Story sheet.
+The control exposes its expanded state and its region. Enter, Space, or a tap toggles it and keeps focus on the control. Pay stays available above the expanded region.
+Expansion lasts through redraws of the same preparation. A new preparation starts collapsed. A reload or game replacement clears expansion. Both Story views share the state.
+An expanded phone sheet can scroll. Reading or toggling the details changes no game state.
 No future source output or unearned room painting appears in this explanation.
 
 ## Authored data and save compatibility
@@ -81,7 +84,7 @@ The report measures gameplay effort under one stated policy. It does not measure
   The checks cover complete work budgets and relative costs for signs, menus, and repairs.
   They also cover the funding check and invalid authored data.
 - Saves: current saves, export and import, failed writes, and malformed data.
-- Browser: text requirements, readiness, payment, keyboard focus, cost details, return focus, reload, imports, themes,
+- Browser: text requirements, readiness, payment from expanded details, keyboard toggling and focus, inline cost details, phone scrolling, reload, imports, themes,
   and desktop and phone geometry.
 - Synthetic reveal saves: `npm run saves:checkpoints` supplies the necessary quests and the exact coins for the next preparation.
   These supplied resources are not balance evidence.

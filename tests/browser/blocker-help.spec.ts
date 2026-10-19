@@ -29,14 +29,14 @@ test('every opening blocker has a rule mark and selecting clutter replaces sourc
     await expect(tile(page, obstacle.position).locator('.food')).toBeVisible();
     await expect(tile(page, obstacle.position)).toHaveAttribute('title', /Merge/i);
   }
-  await tile(page, 1).click(); await expect(page.locator('#item-detail .take-button')).toBeVisible();
+  await tile(page, 1).click(); await expect(page.locator('#item-detail.source-detail')).toContainText('Tap again for Flour.');
   const before = await saved(page);
   await tile(page, 0).click();
   await expect(help(page)).toBeVisible(); await expect(help(page).locator('.blocker-title')).toHaveText('Old crate');
-  await expect(page.locator('#blocker-rule')).toHaveText('Merge another Pogăcele into this blocked space.');
+  await expect(page.locator('#blocker-rule')).toHaveText('Tap a marked Pogăcele to merge here.');
   await expect(tile(page, 0)).toHaveAttribute('aria-pressed', 'true');
   expect(await targets(page)).toEqual([]);
-  await expect(page.locator('#item-detail .take-button')).toHaveCount(0);
+  await expect(page.locator('#item-detail.source-detail')).toHaveCount(0);
   expect(await saved(page)).toEqual(before);
   await page.getByRole('button', { name: 'Clear selection', exact: true }).click();
   await expect(help(page)).toHaveCount(0); expect(await targets(page)).toEqual([]);
@@ -49,8 +49,74 @@ test('blocker help marks matching movable ingredients anywhere on the board', as
   if (!state.discovered.includes('bakery_3')) state.discovered.push('bakery_3');
   await start(page, state); await tile(page, 0).click();
   expect(await targets(page)).toEqual([18]);
-  await expect(page.locator('#blocker-rule')).toHaveText('Merge another Pogăcele into this blocked space.');
+  await expect(page.locator('#blocker-rule')).toHaveText('Tap a marked Pogăcele to merge here.');
+  await expect(tile(page, 18)).toHaveAttribute('aria-label', /Tap to merge into the selected blocked space$/);
   expect(await saved(page)).toEqual(state);
+});
+
+for (const [first, second] of [[0, 18], [18, 0]] as const) {
+  test(`matching food clears a blocker in two taps, starting at cell ${first}`, async ({ page }) => {
+    const initial = createGame(data);
+    initial.board[18] = { code: 'bakery_3' };
+    initial.discovered.push('bakery_3');
+    await start(page, initial);
+    await tile(page, first).click();
+    expect(await saved(page)).toEqual(initial);
+    if (first === 0) expect(await targets(page)).toEqual([18]);
+    await tile(page, second).click();
+    const expected = reduceGame(initial, { type: 'move', from: 18, to: 0 }, data);
+    expect(expected.ok).toBe(true);
+    expect(await saved(page)).toEqual(expected.state);
+    await expect(tile(page, 0)).not.toHaveClass(/obstacle/);
+    await page.reload();
+    expect(await saved(page)).toEqual(expected.state);
+  });
+}
+
+test('a nonmatching item leaves blocker help without using an ingredient', async ({ page }) => {
+  const initial = createGame(data);
+  await start(page, initial);
+  await tile(page, 0).click();
+  await tile(page, 13).click();
+  await expect(help(page)).toHaveCount(0);
+  await expect(tile(page, 13)).toHaveAttribute('aria-pressed', 'true');
+  await expect(tile(page, 0)).toHaveClass(/obstacle/);
+  expect(await saved(page)).toEqual(initial);
+});
+
+test('keyboard navigation clears a selected blocker with a matching ingredient', async ({ page }) => {
+  const initial = createGame(data);
+  initial.board[13] = null;
+  initial.board[14] = { code: 'bakery_2' };
+  initial.discovered.push('bakery_2');
+  await start(page, initial);
+  await tile(page, 6).focus();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowRight');
+  await expect(tile(page, 14)).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(tile(page, 6)).toBeFocused();
+  expect((await saved(page)).board[6]).toEqual({ code: 'bakery_3' });
+  expect((await saved(page)).board[14]).toBeNull();
+  expect((await saved(page)).resolvedObstacles).toEqual(['tied-dough']);
+});
+
+test('touch clears a selected blocker with the second tap', async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ baseURL, viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
+  try {
+    const page = await context.newPage();
+    const initial = createGame(data);
+    initial.board[13] = null;
+    initial.board[14] = { code: 'bakery_2' };
+    initial.discovered.push('bakery_2');
+    await start(page, initial);
+    await tile(page, 6).tap();
+    await tile(page, 14).tap();
+    expect((await saved(page)).board[6]).toEqual({ code: 'bakery_3' });
+    expect((await saved(page)).resolvedObstacles).toEqual(['tied-dough']);
+  } finally { await context.close(); }
 });
 
 test('keyboard selection opens clutter help and Escape clears it without changing the board', async ({ page }) => {
@@ -78,32 +144,36 @@ test('new preparation blocker identifies matching movable ingredients', async ({
   expect(obstacle.position).toBe(2);
   await start(page, state); await tile(page, obstacle.position).click();
   await expect(help(page)).toBeVisible(); await expect(help(page).locator('.blocker-title')).toHaveText(obstacle.name);
-  await expect(page.locator('#blocker-rule')).toHaveText(`Merge another ${data.items[obstacle.ingredient].name} into this blocked space.`);
+  await expect(page.locator('#blocker-rule')).toHaveText(`Tap a marked ${data.items[obstacle.ingredient].name} to merge here.`);
   expect(await targets(page)).toEqual([13, 14]);
   expect(await saved(page)).toEqual(state);
   await tile(page, 13).click();
   await expect(help(page)).toHaveCount(0); expect(await targets(page)).toEqual([]);
-  await expect(page.locator('#item-detail h3')).toHaveText('Flour');
+  await expect(page.locator('#item-detail h3')).toHaveText('Dough');
+  const after = await saved(page);
+  expect(after.board[obstacle.position]).toEqual({ code: 'bakery_2' });
+  expect(after.board[13]).toBeNull();
+  expect(after.board[14]).toEqual({ code: 'bakery_1' });
+  expect(after.resolvedObstacles).toContain(obstacle.id);
 });
 
 test('blocker guidance excludes sources, final dishes, mismatches and blocked ingredients', async ({ page }) => {
   const state = createGame(data); state.board[18] = { code: 'bakery_6' }; state.discovered.push('bakery_6');
   await start(page, state); await tile(page, 41).click();
   await expect(help(page)).toBeVisible();
-  await expect(page.locator('#blocker-rule')).toHaveText('Merge another Dough into this blocked space.');
+  await expect(page.locator('#blocker-rule')).toHaveText('Tap a marked Dough to merge here.');
   expect(await targets(page)).toEqual([]);
   await expect(tile(page, 6)).not.toHaveClass(/blocker-target/);
   expect(await saved(page)).toEqual(state);
 });
 
-test('anchor help marks matching movable food and preserves one-tap release', async ({ page }) => {
+test('anchor help marks matching movable food and clears with the second tap', async ({ page }) => {
   const state = createGame(data); state.board[13] = null; state.board[14] = { code: 'bakery_2' }; state.discovered.push('bakery_2');
   await start(page, state); await tile(page, 6).click();
   await expect(help(page)).toBeVisible(); await expect(help(page).locator('.blocker-title')).toHaveText('Tied dough');
-  await expect(page.locator('#blocker-rule')).toHaveText('Merge another Dough into this blocked space.');
+  await expect(page.locator('#blocker-rule')).toHaveText('Tap a marked Dough to merge here.');
   expect(await targets(page)).toEqual([14]); expect(await saved(page)).toEqual(state);
   await tile(page, 14).click(); await expect(help(page)).toHaveCount(0);
-  await tile(page, 6).click();
   await expect(tile(page, 6)).not.toHaveClass(/anchored/);
   await expect(tile(page, 6)).toHaveAttribute('aria-label', /Pogăcele/);
   const after = await saved(page);

@@ -3,6 +3,7 @@ import { freeBoardCells, pendingPreparationObstacles, unresolvedObstacle } from 
 import { $, button, element, names, pulse, status } from './dom.ts';
 import { blockerMark, clutterArt, crossMark, food, sourceMark } from './art.ts';
 import { activeQuests } from './tickets.ts';
+import { guidanceGoal, guidanceStep, stopGuidance } from './dishes.ts';
 import { fitPin } from './room.ts';
 import { act, character, data, definition, itemName, matchingBlocker, onReplace, redraw, select, selected, sourceOutput, state } from './session.ts';
 import { onMotionResume, phone } from './preferences.ts';
@@ -29,7 +30,23 @@ function blockerTargets(index: number): number[] {
     return !other && cell?.code === obstacle.ingredient ? [at] : [];
   });
 }
+/** Mark every legal merge destination for a selected movable dish. */
+function dishTargets(index: number): number[] {
+  const cell = state.board[index];
+  if (!cell || !definition(cell.code).next) return [];
+  return state.board.flatMap((other, at) => {
+    if (at === index) return [];
+    const obstacle = unresolvedObstacle(state,at,data);
+    return obstacle ? obstacle.ingredient === cell.code ? [at] : [] : other?.code === cell.code ? [at] : [];
+  });
+}
 function clearSelectionButton() {
+  const goal = guidanceGoal();
+  if (goal) {
+    const stop = button('Stop', 'text-button guide-stop clear-selection', () => { stopGuidance(); select(null); redraw(); status('Guide stopped.'); });
+    stop.setAttribute('aria-label', `Stop guide for ${goal}`);
+    return stop;
+  }
   const clear = button('', 'icon-button clear-selection', () => { select(null); redraw(); status(MOVE_HINT); });
   clear.setAttribute('aria-label', 'Clear selection');
   clear.append(crossMark());
@@ -43,19 +60,27 @@ function chooseCell(index: number) {
     if (held?.code === obstacle.ingredient) {
       act({ type:'move', from:selected!, to:index }, index);
     } else if (selected === index) {
-      select(null); redraw(); status(MOVE_HINT);
+      stopGuidance(); select(null); redraw(); status(MOVE_HINT);
     } else {
       select(index);
       redraw();
-      const rule = `${obstacle.name}: merge a movable ${itemName(obstacle.ingredient)} into this space to clear it.`;
+      const rule = `${obstacle.name}: tap a marked ${itemName(obstacle.ingredient)} to merge here.`;
       status(obstacle.context ? `${rule} ${obstacle.context}` : rule);
     }
     return;
   }
   const cell = state.board[index];
+  const selectedObstacle = selected === null ? null : unresolvedObstacle(state,selected,data);
+  if (selectedObstacle && cell?.code === selectedObstacle.ingredient) {
+    const destination = selected!;
+    void Promise.resolve(act({ type:'move', from:index, to:destination }, destination)).then(() => {
+      if (selected === destination && state.board[destination] && !state.board[index]) $(`[data-cell="${destination}"]`).focus({ preventScroll:true });
+    });
+    return;
+  }
   // One tap on an ingredient source takes an ingredient and selects the source, so its actions stay in view. A drag only moves it.
   if (cell && definition(cell.code).generator) { select(index); act({ type:'spawn', index }); return; }
-  if (selected === index) { select(null); redraw(); status(MOVE_HINT); return; }
+  if (selected === index) { stopGuidance(); select(null); redraw(); status(MOVE_HINT); return; }
   const held = selected !== null ? state.board[selected] : null;
   // A click moves into an empty space or merges a matching pair. Any other item is selected instead; swapping needs a drag.
   if (selected !== null && held && (!cell || (cell.code === held.code && definition(cell.code).next))) {
@@ -64,23 +89,28 @@ function chooseCell(index: number) {
   }
   select(cell ? index : null);
   redraw();
-  status(cell ? selectionLine(cell.code) : 'Tap an item first, then this space to move it here.');
+  status(cell ? selectionLine(cell.code) : guidanceStep()?.short ?? 'Tap an item first, then this space to move it here.');
 }
 export function renderBoard() {
   const free = freeBoardCells(state,data);
   const pending = pendingPreparationObstacles(state,data).length;
   const targets = selected === null ? [] : blockerTargets(selected);
+  const matches = selected === null ? [] : dishTargets(selected);
+  const guided = guidanceStep(), goal = guidanceGoal();
   const board = $('#board'); board.replaceChildren();
   board.setAttribute('aria-label', `Merge board, ${data.board.columns} columns and ${data.board.rows} rows, ${free} free ${free === 1 ? 'space' : 'spaces'}${pending ? `, ${pending} preparation blockers waiting` : ''}`);
   state.board.forEach((cell, index) => {
     const obstacle = unresolvedObstacle(state,index,data);
-    const value = button('', `cell ${obstacle ? `obstacle ${obstacle.type}` : cell ? '' : 'empty'} ${selected === index ? 'selected' : ''} ${targets.includes(index) ? 'blocker-target' : ''}`, () => chooseCell(index));
+    const recommended = guided?.at.includes(index) && selected !== index;
+    const value = button('', `cell ${obstacle ? `obstacle ${obstacle.type}` : cell ? '' : 'empty'} ${selected === index ? 'selected' : ''} ${targets.includes(index) ? 'blocker-target' : ''} ${matches.includes(index) ? 'merge-target' : ''} ${recommended ? 'guide-target' : ''}`, () => chooseCell(index));
     value.dataset.cell = String(index);
     const what = obstacle
       ? `${obstacle.name}, blocked ${itemName(obstacle.ingredient)}. Merge a matching movable ingredient into this space to clear it`
       : !cell ? 'empty' : definition(cell.code).generator ? `${itemName(cell.code)}, source of ${sourceOutput(cell.code)}: tap to take an ingredient` : itemName(cell.code);
     value.setAttribute('aria-label', `Row ${Math.floor(index / data.board.columns) + 1}, column ${index % data.board.columns + 1}: ${what}${obstacle?.context ? `. ${obstacle.context}` : ''}`);
-    if (targets.includes(index)) value.setAttribute('aria-label', `${value.getAttribute('aria-label')}. Matching item for the selected blocked ingredient`);
+    if (targets.includes(index)) value.setAttribute('aria-label', `${value.getAttribute('aria-label')}. Tap to merge into the selected blocked space`);
+    if (matches.includes(index)) value.setAttribute('aria-label', `${value.getAttribute('aria-label')}. Tap to merge the selected ${itemName(state.board[selected!]!.code)}${obstacle ? ' here and clear this blocker' : ' here'}`);
+    if (recommended) value.setAttribute('aria-label', `${value.getAttribute('aria-label')}. Next step toward ${goal}`);
     if (selected === index && obstacle) value.setAttribute('aria-describedby','blocker-rule');
     // One tab stop for the whole board; the arrow keys move between spaces.
     value.tabIndex = index === (selected ?? boardFocus) ? 0 : -1;
@@ -106,40 +136,41 @@ export function renderBoard() {
 }
 /** The selection strip's note: how a source works, or which neighbours on the tickets want the item. */
 function detailNote(code: string) {
-  if (definition(code).generator) return 'Tap it on the board, or use Take. It never runs out.';
+  if (definition(code).generator) return `Tap again for ${sourceOutput(code)}. No limit.`;
   const waiting = [...new Set(activeQuests().filter(quest => quest.requirements.some(requirement => requirement.item === code)).map(quest => character(quest.character).name))];
   return waiting.length ? `${names.format(waiting)} ${waiting.length === 1 ? 'is' : 'are'} waiting for one.` : 'No quest on the counter needs it now.';
 }
 /** The selected item and its actions take the place of Mara's line under the board, so the player acts without leaving the board. */
 export function renderDetail() {
   const container = $('#item-detail'); container.replaceChildren();
+  const goal=guidanceGoal(), hint=$('#hint-button');
+  hint.textContent=goal?'Stop guide':'Find a match';
+  hint.setAttribute('aria-label',goal?`Stop guide for ${goal}`:'Find a match');
   const obstacle = selected === null ? null : unresolvedObstacle(state,selected,data);
   container.classList.toggle('blocker-help', !!obstacle);
+  const guided=guidanceStep();
+  container.classList.toggle('guided', !!guided);
   container.setAttribute('aria-label', obstacle ? 'Selected blocker' : 'Selected item');
   const cell = selected !== null ? state.board[selected] : null;
+  container.classList.toggle('source-detail', !!cell && !!definition(cell.code).generator);
   if (obstacle) {
     const copy = element('div','blocker-copy'), rule = element('p','blocker-rule',
-      `Merge another ${itemName(obstacle.ingredient)} into this blocked space.`);
+      `Tap a marked ${itemName(obstacle.ingredient)} to merge here.`);
     rule.id = 'blocker-rule';
     copy.append(element('strong','blocker-title',obstacle.name),rule);
     container.append(copy,clearSelectionButton()); fitPin(); return;
   }
   if (!cell) { fitPin(); return; }
-  const def = definition(cell.code); const at = selected!;
+  const def = definition(cell.code);
   const head = element('div','detail-head'); const words = element('div','detail-words');
-  words.append(element('h3','',def.name), element('p','detail-next', def.generator ? `Source of ${sourceOutput(cell.code)}` : def.next ? `Two make ${state.discovered.includes(def.next) ? itemName(def.next) : 'a new dish'}` : 'Final dish'), element('p','detail-description',detailNote(cell.code)));
+  words.append(element('h3','',def.name));
+  if (guided) words.append(element('p','detail-next',guided.short));
+  else {
+    if (!def.generator) words.append(element('p','detail-next',def.next ? `Two make ${state.discovered.includes(def.next) ? itemName(def.next) : 'a new dish'}` : 'Final dish'));
+    words.append(element('p','detail-description',detailNote(cell.code)));
+  }
   head.append(food(cell.code), words);
   const actions = element('div','item-actions');
-  const takes = element('div','take-actions');
-  if (def.generator) {
-    const output = def.generator.outputs[0];
-    const take = button('', 'primary-button take-button', () => act({type:'spawn',index:at}));
-    // Phones show only the output name in a compact row; the accessible name keeps the verb.
-    const label = element('span','take-label'); label.append(element('span','take-word','Take '), itemName(output));
-    take.append(food(output), label); take.setAttribute('aria-label', `Take ${itemName(output)}`);
-    takes.append(take);
-  }
-  if (def.generator) actions.append(takes);
   actions.append(clearSelectionButton());
   container.append(head, actions);
   const title = words.firstElementChild as HTMLElement;
@@ -182,13 +213,26 @@ $('#board').addEventListener('keydown',event=>{
   const target=(event.target as Element).closest<HTMLElement>('[data-cell]');if(!target)return;const index=Number(target.dataset.cell);let next=index;const {columns}=data.board;const row=index-index%columns;
   if(event.key==='ArrowLeft'&&index%columns>0)next--;else if(event.key==='ArrowRight'&&index%columns<columns-1)next++;else if(event.key==='ArrowUp'&&index>=columns)next-=columns;else if(event.key==='ArrowDown'&&index<state.board.length-columns)next+=columns;
   else if(event.key==='Home')next=event.ctrlKey?0:row;else if(event.key==='End')next=event.ctrlKey?state.board.length-1:row+columns-1;
-  else if(event.key==='Escape'){if(selected!==null){select(null);redraw();status(MOVE_HINT);}return;}else return;
+  else if(event.key==='Escape'){if(selected!==null||guidanceGoal()){stopGuidance();select(null);redraw();status(MOVE_HINT);}return;}else return;
   event.preventDefault();$(`[data-cell="${next}"]`).focus();
 });
+function cancelGuideFromControl(event: KeyboardEvent) {
+  if(event.key!=='Escape'||!guidanceGoal())return;
+  event.preventDefault();event.stopPropagation();
+  const index=selected;
+  stopGuidance();select(null);redraw();status(MOVE_HINT);
+  if(index!==null)$(`[data-cell="${index}"]`).focus({preventScroll:true});
+}
+$('#item-detail').addEventListener('keydown',cancelGuideFromControl);
+$('#hint-button').addEventListener('keydown',cancelGuideFromControl);
 // The board keeps a single tab stop where focus last was; the skip link lands on it too.
 $('#board').addEventListener('focusin',event=>{
   const target=(event.target as Element).closest<HTMLElement>('[data-cell]');if(!target)return;boardFocus=Number(target.dataset.cell);
   for(const cell of $('#board').querySelectorAll<HTMLElement>('[data-cell]'))cell.tabIndex=cell===target?0:-1;
 });
 $('#board').addEventListener('focus',()=>$('#board').querySelector<HTMLElement>('[tabindex="0"]')?.focus());
-$('#hint-button').addEventListener('click',()=>state&&findMatch());
+$('#hint-button').addEventListener('click',()=>{
+  if(!state)return;
+  if(guidanceGoal()){stopGuidance();redraw();status('Guide stopped.');return;}
+  findMatch();
+});

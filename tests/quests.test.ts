@@ -211,8 +211,6 @@ test('delivery queues the quest completion scene in the same change, and a faile
   play.state.coins += data.tasks[0].cost;
   play.act({ type: 'task' });
   assert.deepEqual(play.state.pendingScenes, ['mara-welcome', data.tasks[0].id]);
-  const lines = data.quests.find(quest => quest.id === 'mara-welcome')!.completion.length;
-  rejected(play.state, { type: 'sceneLine', id: 'mara-welcome', line: lines });
   const coins = play.state.coins;
   assert.equal(reduceGame(play.state, { type: 'readScene', id: 'mara-welcome' }, data).message, 'The scene is in the story journal.');
   // A guest who visits once has no journal replay, so reading the scene does not point to the journal.

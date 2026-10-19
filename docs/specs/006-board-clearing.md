@@ -49,9 +49,12 @@ Every blocked tile stays in the keyboard path. Its label names the ingredient
 and the matching-merge rule. A small help mark and hover text show the rule.
 A tap selects the blocker. It shows the name of the blocker, the exact ingredient to merge,
 and Clear selection below the board. Movable matches get a steady focus outline.
-Help replaces item actions and preparation offers. It changes no game state.
-Escape, Clear selection, another item, or a second tap dismisses it.
-A selected matching ingredient merges directly into the blocked cell.
+Tapping a marked ingredient merges it into the blocker and clears it in one action.
+Help replaces item actions and preparation offers. It changes no game state until a merge.
+Escape, Clear selection, a nonmatching item, or a second tap dismisses it.
+A selected matching ingredient also merges directly into the blocked cell.
+Selecting a movable dish marks each matching movable dish and blocked destination.
+Sources and final dishes mark no merge target.
 Board hints can show any matching blocked ingredient.
 
 ## Data and saves

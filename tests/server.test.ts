@@ -15,7 +15,7 @@ async function fixture(t: TestContext) {
   t.after(() => rm(root, { recursive: true, force: true }));
   for (const file of [...runtimeFiles, ...fontFiles.map(path => `public/${path}`), 'public/assets/fonts/unapproved.woff2', 'public/assets/fonts/unapproved.txt', 'public/data/game.json', 'public/data/other.json', 'public/assets/variants/items-640x640.avif', 'public/assets/original/items.png', 'public/assets/unlisted/old.png', 'src/unlisted.ts', 'analysis/private.json', 'private/index.html', 'package.json']) {
     await mkdir(dirname(join(root, file)), { recursive: true });
-    await writeFile(join(root, file), file === 'package.json' ? '{"type":"module"}' : file);
+    await writeFile(join(root, file), file === 'package.json' ? '{"type":"module","version":"1.1.0"}' : file);
   }
   await mkdir(join(root, 'tools'));
   for (const file of ['build.ts', 'server.ts']) await copyFile(new URL(`../tools/${file}`, import.meta.url), join(root, 'tools', file));

@@ -1,12 +1,24 @@
 import { test, expect } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { firstFreeBoardCell, getItem } from '../../src/model.ts';
 import { createGame } from '../../src/engine.ts';
 import type { GameState, Quest } from '../../src/model.ts';
-import { checkpoint, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readTo, replaceSave, restoreWrites, saved, serialize, start, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate } from './support.ts';
+import { act, checkpoint, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readTo, replaceSave, restoreWrites, saved, serialize, start, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate } from './support.ts';
 
 /** The first quest of each neighbour who lives in the village. */
 const firstQuests=data.characters.filter(character=>!character.visitor&&data.quests.some(value=>value.character===character.id)).map(character=>data.quests.find(value=>value.character===character.id)!);
 const itemName=(code: string)=>getItem(code,data)!.name;
+
+async function combinedConversation(page: Page,value: Quest){
+  await expect(page.getByRole('heading',{name:'Request',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Reply',exact:true})).toBeVisible();
+  const lines=[...value.opening,...value.completion];
+  await expect(page.locator('#story-line .story-turn h4')).toHaveText(lines.map(line=>person(line.speaker).name));
+  await expect(page.locator('#story-line .story-turn p')).toHaveText(lines.map(line=>line.text));
+  await expect(page.locator('.story-controls button')).toHaveCount(1);
+  await expect(page.locator('.story-controls')).toHaveText('Return');
+  await expect(page.getByRole('button',{name:'Return',exact:true})).toBeVisible();
+}
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'])test(`Mara's parchment page shows her sketch and returns from item help at ${viewport.width}px in ${theme}`,async({page},testInfo)=>{
   await page.setViewportSize(viewport);const value=quest('mara-welcome');await start(page,deliverable(value),theme);await openQuest(page,value);
@@ -22,19 +34,20 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   await page.keyboard.press('Escape');await expect(modal).toBeHidden();await expect(ticket(page,value).locator('.ticket-face')).toBeFocused();
 });
 
-test('Mara keeps her sketch through reply speaker changes and both journal replays',async({page})=>{
+test('Mara keeps her sketch with the complete reply and the combined journal replay',async({page})=>{
   const value=quest('mara-welcome');await start(page,deliverable(value),'dark');await deliverButton(page,value).click();
   await page.getByRole('button',{name:'Read Mara’s reply',exact:true}).click();
   const sketch=page.locator('#modal .quest-sketch');await expect(sketch).toBeVisible();
-  for(let line=1;line<value.completion.length;line++){
-    await page.getByRole('button',{name:'Continue',exact:true}).click();await expect(sketch).toBeVisible();await expect(sketch).toHaveAttribute('src',/sketch-mara-/);
-  }
-  const back=page.getByRole('button',{name:'Back',exact:true});await expect(back).toBeEnabled();
-  const backColors=await back.evaluate(node=>{const style=getComputedStyle(node);return {background:style.backgroundColor,ink:style.color};});
-  expect(ratio(backColors.background,backColors.ink)).toBeGreaterThanOrEqual(4.5);
-  await page.getByRole('button',{name:'Back to the kitchen',exact:true}).click();await journal(page);
-  await page.getByRole('button',{name:`Read quest: ${value.title}`,exact:true}).click();await expect(sketch).toBeVisible();
-  await page.keyboard.press('Escape');await page.getByRole('button',{name:`Replay ${value.title}`,exact:true}).click();await expect(sketch).toBeVisible();
+  await expect(page.locator('#story-line h3')).toHaveText(value.completion.map(line=>person(line.speaker).name));
+  await expect(page.locator('#story-line p')).toHaveText(value.completion.map(line=>line.text));
+  await expect(sketch).toHaveAttribute('src',/sketch-mara-/);
+  const done=page.locator('.story-controls .primary-button');
+  const colors=await done.evaluate(node=>{const style=getComputedStyle(node);return {background:style.backgroundColor,ink:style.color};});
+  expect(ratio(colors.background,colors.ink)).toBeGreaterThanOrEqual(4.5);
+  await page.getByRole('button',{name:'Back to the kitchen',exact:true}).click();await journal(page,['chapters','conversations','neighbours']);
+  await expect(page.getByRole('button',{name:`Read quest: ${value.title}`,exact:true})).toHaveCount(0);
+  await page.getByRole('button',{name:`Replay ${value.title}`,exact:true}).click();await expect(sketch).toBeVisible();
+  await combinedConversation(page,value);
 });
 
 test('a failed Mara sketch leaves quest words and delivery usable',async({page})=>{
@@ -78,21 +91,19 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
     expect(await modal.evaluate(node=>node.scrollWidth<=node.clientWidth)).toBe(true);
     await page.screenshot({path:testInfo.outputPath(`${asset}-${theme}-${viewport.width}.png`)});
     await dialogDeliver(page,value).click();await story(page);await page.getByRole('button',{name:`Read now: ${value.title}`,exact:true}).click();
-    for(let line=0;line<value.completion.length;line++){
-      await expect(sketch).toHaveAttribute('src',new RegExp(`${asset}-1024x683\\.webp$`));
-      await expect(page.locator('#story-line h3')).toHaveText(person(value.completion[line].speaker).name);
-      if(line<value.completion.length-1)await page.getByRole('button',{name:'Continue',exact:true}).click();
-    }
-    await page.getByRole('button',{name:'Back to the kitchen',exact:true}).click();await journal(page);
+    await expect(page.locator('#story-line h3')).toHaveText(value.completion.map(line=>person(line.speaker).name));
+    await expect(page.locator('#story-line p')).toHaveText(value.completion.map(line=>line.text));
+    await expect(sketch).toHaveAttribute('src',new RegExp(`${asset}-1024x683\\.webp$`));
+    await page.getByRole('button',{name:'Back to the kitchen',exact:true}).click();await journal(page,['chapters','conversations','neighbours']);
     if(person(value.character).singleVisit){
       for(const id of [value.character,...value.companions??[]])await expect(page.getByRole('button',{name:`Meet ${person(id).name}`,exact:true})).toHaveCount(0);
       await expect(page.getByRole('button',{name:`Read quest: ${value.title}`,exact:true})).toHaveCount(0);
       await expect(page.getByRole('button',{name:`Replay ${value.title}`,exact:true})).toHaveCount(0);
     }else{
-      await page.getByRole('button',{name:`Read quest: ${value.title}`,exact:true}).click();
+      await expect(page.getByRole('button',{name:`Read quest: ${value.title}`,exact:true})).toHaveCount(0);
+      await page.getByRole('button',{name:`Replay ${value.title}`,exact:true}).click();
       await expect(sketch).toHaveAttribute('src',new RegExp(`${asset}-1024x683\\.webp$`));
-      await page.keyboard.press('Escape');await page.getByRole('button',{name:`Replay ${value.title}`,exact:true}).click();
-      await expect(sketch).toHaveAttribute('src',new RegExp(`${asset}-1024x683\\.webp$`));
+      await combinedConversation(page,value);
       await page.keyboard.press('Escape');
     }
     await page.keyboard.press('Escape');
@@ -107,14 +118,14 @@ test('a missing quest scene leaves its words and delivery usable',async({page})=
 });
 
 test('the road news uses its existing dialogue without an unapproved scene',async({page})=>{
-  await start(page,checkpoint(24));await journal(page);await page.getByRole('button',{name:'Replay News from the road',exact:true}).click();
+  await start(page,checkpoint(24));await journal(page,['chapters','conversations','neighbours']);await page.getByRole('button',{name:'Replay News from the road',exact:true}).click();
   await expect(page.locator('#story-line')).toContainText('Mina and Doctor Avram found Ionatan');
   await expect(page.locator('.quest-sketch')).toHaveCount(0);await expect(page.locator('.quest-page-content')).toHaveCount(0);
 });
 
 for(const visitor of data.characters.filter(person=>person.visitor))test(`${visitor.id}'s introduction shows the individual sketch outside quest scenes`,async({page})=>{
   const visit=data.quests.find(value=>value.character===visitor.id||value.companions?.includes(visitor.id))!;
-  await start(page,visitor.singleVisit?onTicket(visit):checkpoint(24),'dark');await journal(page);
+  await start(page,visitor.singleVisit?onTicket(visit):checkpoint(24),'dark');await journal(page,['chapters','conversations','neighbours']);
   await page.getByRole('button',{name:`Meet ${visitor.name}`,exact:true}).click();
   const sketch=page.locator('#modal .quest-sketch');await expect(sketch).toHaveAttribute('src',new RegExp(`sketch-${visitor.id}-768x768\\.webp$`));
   expect(await sketch.evaluate(async node=>{const image=node as HTMLImageElement;await image.decode();return [image.naturalWidth,image.naturalHeight];})).toEqual([768,768]);
@@ -127,7 +138,7 @@ for(const value of firstQuests)test(`${value.character} asks on a ticket, the qu
   const initial=deliverable(value);await start(page,initial);const before=await saved(page),name=person(value.character).name;
   const card=ticket(page,value);await expect(card).toHaveAccessibleName(`${name}’s quest: ${value.title}`);await expect(card.locator('.ticket-name')).toHaveText(name);
   await expect(card.locator('.ticket-item.ready')).toHaveCount(value.requirements.length);await expect(deliverButton(page,value)).toBeEnabled();
-  await journal(page);await page.getByRole('button',{name:`Meet ${name}`,exact:true}).click();
+  await journal(page,['chapters','conversations','neighbours']);await page.getByRole('button',{name:`Meet ${name}`,exact:true}).click();
   await expect(page.locator('#modal .quest-sketch')).toHaveAttribute('src',new RegExp(`sketch-${value.character}-768x768\\.webp$`));
   await expect(page.locator('.quest-page-content')).toBeVisible();await page.keyboard.press('Escape');await page.keyboard.press('Escape');
   await openQuest(page,value);const dialog=page.getByRole('dialog',{name:value.title,exact:true});
@@ -205,16 +216,35 @@ test('after delivering, the completion scene waits in Story and the journal acro
   const delivered=await saved(page);expect(delivered.pendingScenes).toEqual([...before.pendingScenes,value.id]);
   await page.reload();await opened(page);await expect(page.locator('#status')).toContainText('A story scene is waiting in Story.');
   expect(await saved(page)).toEqual(delivered);
-  await journal(page);await expect(page.getByRole('button',{name:`Read ${value.title}`,exact:true})).toContainText('New scene');await page.keyboard.press('Escape');
+  await journal(page,['chapters','conversations','neighbours']);await expect(page.getByRole('button',{name:`Read ${value.title}`,exact:true})).toContainText('New scene');await page.keyboard.press('Escape');
   await story(page);
   await page.getByRole('button',{name:`Read now: ${value.title}`,exact:true}).click();await expect(page.locator('#story-line')).toContainText(value.completion[0].text);
   await readTo(page,'Back to the kitchen');await expect(page.locator('#modal')).toBeHidden();
   const read=await saved(page);expect(read).toEqual({...delivered,pendingScenes:before.pendingScenes});expect(read.coins).toBe(before.coins+value.reward);
-  await journal(page);await expect(page.getByRole('button',{name:`Replay ${value.title}`,exact:true})).toBeVisible();
+  await journal(page,['chapters','conversations','neighbours']);await expect(page.getByRole('button',{name:`Replay ${value.title}`,exact:true})).toBeVisible();
+});
+
+for(const width of [1440,390])test(`a waiting quest has one complete journal conversation with safe return at ${width}px`,async({page})=>{
+  await page.setViewportSize({width,height:844});const value=quest('eszter-table');
+  expect(value.opening.length+value.completion.length).toBeGreaterThan(4);
+  await start(page,deliverable(value));await deliverButton(page,value).click();const delivered=await saved(page);
+  await journal(page,['chapters','conversations','neighbours']);
+  const unread=page.getByRole('button',{name:`Read ${value.title}`,exact:true}),replay=page.getByRole('button',{name:`Replay ${value.title}`,exact:true});
+  await expect(unread).toHaveCount(1);await expect(replay).toHaveCount(0);
+  await expect(page.getByRole('button',{name:`Read quest: ${value.title}`,exact:true})).toHaveCount(0);
+  for(const close of ['Escape','Close dialog']){
+    await unread.click();await combinedConversation(page,value);
+    if(close==='Escape')await page.keyboard.press('Escape');else await page.getByRole('button',{name:close,exact:true}).click();
+    await expect(unread).toBeFocused();expect(await saved(page)).toEqual(delivered);
+  }
+  await unread.click();await combinedConversation(page,value);await finishScene(page);
+  const read={...delivered,pendingScenes:delivered.pendingScenes.filter(id=>id!==value.id)};
+  expect(await saved(page)).toEqual(read);await expect(unread).toHaveCount(0);await expect(replay).toHaveCount(1);await expect(replay).toBeFocused();
+  await replay.click();await combinedConversation(page,value);await finishScene(page);await expect(replay).toBeFocused();expect(await saved(page)).toEqual(read);
 });
 
 test('quest rewards survive export and import, while introductions and journal replay give no reward',async({page})=>{
-  const value=firstQuests[0];await start(page,deliverable(value));await journal(page);const initial=await saved(page);
+  const value=firstQuests[0];await start(page,deliverable(value));await journal(page,['chapters','conversations','neighbours']);const initial=await saved(page);
   // Only the neighbours present in a new game have entries; later regulars are "Not yet" outlines.
   for(const character of data.characters.filter(character=>!character.singleVisit&&!character.arrivesAfter)){
     await page.getByRole('button',{name:`Meet ${character.name}`,exact:true}).click();await expect(page.locator('#story-line')).toContainText(character.introduction);
@@ -223,10 +253,10 @@ test('quest rewards survive export and import, while introductions and journal r
   await page.keyboard.press('Escape');await deliverButton(page,value).click();
   await expect(toast(page)).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);
   await story(page);await page.getByRole('button',{name:`Read now: ${value.title}`,exact:true}).click();await readTo(page,'Back to the kitchen');
-  const committed=await saved(page);await journal(page);
-  for(const name of [`Read quest: ${value.title}`,`Replay ${value.title}`]){
-    await page.getByRole('button',{name,exact:true}).click();await finishScene(page);await expect(page.getByRole('button',{name:`Replay ${value.title}`,exact:true})).toBeFocused();expect(await saved(page)).toEqual(committed);
-  }
+  const committed=await saved(page);await journal(page,['chapters','conversations','neighbours']);
+  const replay=page.getByRole('button',{name:`Replay ${value.title}`,exact:true});
+  await expect(replay).toHaveCount(1);await replay.click();await combinedConversation(page,value);await finishScene(page);
+  await expect(replay).toBeFocused();expect(await saved(page)).toEqual(committed);
   await page.keyboard.press('Escape');await options(page);const text=await exportText(page);expect(JSON.parse(text).state).toEqual(committed);
   await startAgainAndImport(page,text);expect(await saved(page)).toEqual(committed);
   await page.reload();await opened(page);await expect(ticket(page,value)).toHaveCount(0);expect(await saved(page)).toEqual(committed);
@@ -256,6 +286,120 @@ test('quest dish help keeps focus on the next blocked merge on desktop and phone
     await page.keyboard.press('ArrowRight');await expect(page.locator('#board :focus')).toHaveCount(1);
   }
 });
+
+test('Find on a missing quest dish goes straight to the next board step',async({page})=>{
+  const initial=createGame(data),value=quest('mara-welcome');
+  await page.setViewportSize({width:390,height:844});await start(page,initial);await openQuest(page,value);
+  await page.getByRole('button',{name:'Find the next step for Socată on the board'}).click();
+  await expect(page.locator('#modal')).toBeHidden();
+  await expect(page.locator('#board .selected')).toHaveAttribute('aria-label',/Elderflowers/);
+  await expect(page.locator('#board .selected')).toBeFocused();
+  await expect(tile(page,37)).toHaveClass(/hint/);
+  expect(await saved(page)).toEqual(initial);
+});
+
+test('Find seeks another portion when one required dish is already on the board',async({page})=>{
+  const initial=createGame(data),value=quest('sorin-first-ride');
+  initial.board[18]={code:'bakery_2'};initial.discovered.push('bakery_2');
+  await start(page,initial);await openQuest(page,value);
+  const find=page.getByRole('button',{name:'Find the next step for Dough on the board'});
+  await expect(find).toBeVisible();await find.click();
+  await expect(page.locator('#modal')).toBeHidden();
+  await expect(tile(page,13)).toHaveClass(/selected/);
+  await expect(tile(page,14)).toHaveClass(/hint/);
+  await expect(tile(page,18)).not.toHaveClass(/selected/);
+  expect(await saved(page)).toEqual(initial);
+  await tile(page,14).click();
+  await expect(page.getByRole('button',{name:'Stop guide for Dough'})).toHaveCount(0);
+  expect((await saved(page)).board.filter(cell=>cell?.code==='bakery_2')).toHaveLength(2);
+});
+
+test('a dish guide updates after takes and ends when its dish is made',async({page})=>{
+  const initial=createGame(data);initial.board[13]=null;initial.board[14]=null;
+  await page.setViewportSize({width:390,height:844});await start(page,initial);await openQuest(page,quest('sorin-first-ride'));
+  await page.getByRole('button',{name:'Find the next step for Dough on the board'}).click();
+  await expect(page.locator('#item-detail.guided')).toContainText('For Dough: take Flour');
+  await expect(page.getByRole('button',{name:'Stop guide for Dough'})).toBeVisible();
+  expect(await saved(page)).toEqual(initial);
+  const source=initial.board.findIndex(cell=>cell?.code==='generator_bakery');
+  const first=firstFreeBoardCell(initial,data);
+  await tile(page,source).click();
+  const afterFirst=act(initial,{type:'spawn',index:source});expect(await saved(page)).toEqual(afterFirst);
+  await expect(page.locator('#item-detail.guided')).toContainText('For Dough: take Flour');
+  const second=firstFreeBoardCell(afterFirst,data);
+  await tile(page,source).click();
+  const afterSecond=act(afterFirst,{type:'spawn',index:source});expect(await saved(page)).toEqual(afterSecond);
+  await expect(tile(page,source)).toHaveAttribute('aria-pressed','true');
+  for(const index of [first,second])await expect(tile(page,index)).toHaveClass(/guide-target/);
+  await expect(page.locator('#item-detail.guided')).toContainText('For Dough: merge Flour');
+  await tile(page,first).click();await tile(page,second).click();
+  expect(await saved(page)).toEqual(act(afterSecond,{type:'move',from:first,to:second}));
+  await expect(page.locator('#item-detail.guided')).toHaveCount(0);
+  await expect(page.locator('#board .guide-target')).toHaveCount(0);
+});
+
+test('a dish guide updates after a move and blocker clearing',async({page})=>{
+  const initial=createGame(data),value=quest('dochia-sheepskin');
+  await start(page,initial);await openQuest(page,value);
+  await page.getByRole('button',{name:`Find the next step for ${itemName('bakery_3')} on the board`}).click();
+  await tile(page,20).click();
+  await expect(tile(page,20)).toHaveClass(/selected/);
+  await expect(tile(page,14)).toHaveClass(/guide-target/);
+  await tile(page,14).click();
+  await expect(page.locator('#item-detail.guided')).toContainText(`For ${itemName('bakery_3')}: clear blocked Dough`);
+  for(const index of [6,41])await expect(tile(page,index)).toHaveClass(/merge-target/);
+  const target=await page.locator('#board .guide-target').evaluateAll(elements=>elements.map(element=>Number((element as HTMLElement).dataset.cell)));
+  expect(target.filter(index=>[6,41].includes(index))).toHaveLength(1);
+  await tile(page,target[0]).click();
+  await expect(page.getByRole('button',{name:`Stop guide for ${itemName('bakery_3')}`})).toHaveCount(0);
+  expect((await saved(page)).board[target[0]]).toEqual({code:'bakery_3'});
+});
+
+test('delivery keeps a dish guide, Stop cancels it, and reload clears it',async({page})=>{
+  const initial=supply(createGame(data),['drinks_2']);
+  await start(page,initial);await openQuest(page,quest('sorin-first-ride'));
+  await page.getByRole('button',{name:'Find the next step for Dough on the board'}).click();
+  await deliverButton(page,quest('mara-welcome')).click();
+  const delivered=await saved(page);
+  await expect(page.getByRole('button',{name:'Stop guide for Dough'})).toBeVisible();
+  await expect(page.locator('#board .guide-target')).not.toHaveCount(0);
+  await page.getByRole('button',{name:'Stop guide for Dough'}).click();
+  await expect(page.locator('#board .guide-target')).toHaveCount(0);
+  expect(await saved(page)).toEqual(delivered);
+  await openQuest(page,quest('sorin-first-ride'));
+  await page.getByRole('button',{name:'Find the next step for Dough on the board'}).click();
+  await page.reload();await opened(page);
+  await expect(page.locator('#board .guide-target')).toHaveCount(0);
+  expect(await saved(page)).toEqual(delivered);
+});
+
+test('a quest row with enough portions keeps dish help and has no Find control',async({page})=>{
+  const value=quest('sorin-first-ride'),initial=supply(createGame(data),['bakery_2','bakery_2']);
+  await start(page,initial);await openQuest(page,value);
+  await expect(page.getByRole('button',{name:'Find the next step for Dough on the board'})).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'Find the next step for Socată on the board'})).toBeVisible();
+  await page.getByRole('button',{name:/^2 Dough:/}).click();
+  await expect(page.locator('#modal-title')).toHaveText('Dough');
+  await page.getByRole('button',{name:'Close dialog'}).click();
+  await expect(page.locator('#modal-title')).toHaveText(value.title);
+});
+
+for(const viewport of [{width:320,height:740},{width:390,height:844}])for(const theme of ['light','dark'] as const){
+  test(`missing dish controls fit a four-dish quest at ${viewport.width}px in ${theme}`,async({page})=>{
+    const value=quest('mina-avram-search'),initial=onTicket(value);
+    await page.setViewportSize(viewport);await start(page,initial,theme);await openQuest(page,value);
+    const missing=value.requirements.filter(({item,quantity})=>initial.board.filter(cell=>cell?.code===item).length<quantity);
+    await expect(page.locator('.quest-find')).toHaveCount(missing.length);
+    expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth+1)).toBe(true);
+    for(const row of await page.locator('.quest-requirements li').all()){
+      const inspect=(await row.locator('.quest-item').boundingBox())!;
+      const find=await row.locator('.quest-find').boundingBox();
+      expect(inspect.width).toBeGreaterThanOrEqual(44);expect(inspect.height).toBeGreaterThanOrEqual(44);
+      if(find){expect(find.width).toBeGreaterThanOrEqual(44);expect(find.height).toBeGreaterThanOrEqual(44);expect(find.x).toBeGreaterThanOrEqual(inspect.x+inspect.width-1);}
+      expect(await row.evaluate(element=>element.scrollWidth<=element.clientWidth+1)).toBe(true);
+    }
+  });
+}
 
 test('a failed delivery write says so, and a reload restores only durable progress',async({page})=>{
   const value=firstQuests[0];await start(page,deliverable(value));const before=await saved(page);

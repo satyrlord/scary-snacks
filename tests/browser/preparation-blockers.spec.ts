@@ -108,7 +108,7 @@ test('paying a preparation adds its contextual batch once and retains it after r
   }
   await tile(page, active(paid)[0].position).click();
   await expect(page.locator('#status')).toContainText(batch.context);
-  await expect(page.locator('#status')).toContainText('into this space to clear it');
+  await expect(page.locator('#status')).toContainText('tap a marked Flour to merge here');
   await page.reload(); expect(await saved(page)).toEqual(paid);
   expect(active(await saved(page))).toHaveLength(batch.obstacles.length);
 });
@@ -155,7 +155,6 @@ test('blocker guidance finds a preparation ingredient and the keyboard releases 
   await start(page, initial); await tile(page, anchor.position).click();
   await expect(tile(page, source)).toHaveClass(/blocker-target/);
   await tile(page, source).focus(); await page.keyboard.press('Enter');
-  await tile(page, anchor.position).focus(); await page.keyboard.press('Enter');
   await expect(tile(page, anchor.position)).not.toHaveClass(/anchored/);
   const after = await saved(page);
   expect(after.resolvedObstacles).toContain(anchor.id); expect(after.board[anchor.position]).toEqual({ code: wanted });

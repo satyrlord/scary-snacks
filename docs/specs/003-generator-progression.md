@@ -9,9 +9,9 @@ Each unlocked chain has one source. A source gives only its stage-1 ingredient. 
 ## Rules
 
 1. Three sources start on the board. Preparations 3 and 6 unlock the other two.
-2. Tapping a source or its Take button gives one stage-1 ingredient. A take is free, immediate, and predictable.
+2. Tapping a source or pressing Enter or Space on its focused tile gives one stage-1 ingredient. A take is free, immediate, and predictable.
 3. A source never changes its output. Preparations 12 and 20 do not change production.
-4. Each source shows one Take button with its ingredient picture and name. A source cannot merge.
+4. The selected-source line names the source and its ingredient. It shows Clear selection. A source cannot merge.
 5. A take fails if the selected cell has no source or the board has no free space. Failure changes nothing.
 6. Open quests keep their authored requirements and rewards. Higher-stage dishes require merges at every point in the campaign.
 
@@ -32,4 +32,4 @@ The campaign fixture makes each required item from stage-1 ingredients and merge
 
 - Engine: check production before and after preparations 12 and 20, blocked takes, merge paths, and strict validation of saved choices.
 - Save: check current-format loads, export, import, failed writes, and a saved higher-stage choice that does not affect later takes.
-- Browser: check taps, keyboard Take, touch emulation, full boards, reduced motion, and one Take button on phones and desktops in both themes.
+- Browser: check repeated taps, keyboard activation, touch emulation, full boards, reduced motion, source help, and the shared line on phones and desktops in both themes.
