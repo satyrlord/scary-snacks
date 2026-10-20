@@ -2,7 +2,7 @@
 // Each save has its preparations paid, the quests that the next preparation needs delivered, and the exact coins for the next reveal.
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { currentTask, dishWork, requiredQuests, supperQuest } from '../src/model.ts';
-import { createGame, reduceGame, validateGame } from '../src/engine.ts';
+import { createGame, reduceGame, revealTickets, validateGame } from '../src/engine.ts';
 import type { GameData, GameState } from '../src/model.ts';
 import { exportSave } from '../src/storage.ts';
 
@@ -20,6 +20,8 @@ export function checkpointState(data: GameData, count: number, start: GameState 
     if (state.taskIndex < data.tasks.length) {
       state.pendingScenes = [];
     }
+    // Marking quests delivered moves the tickets on; the quests that now hold one put their dishes in the recipe book.
+    revealTickets(state, data);
     if (state.taskIndex >= count) return state;
     const result = reduceGame(state, { type: 'task' }, data);
     if (!result.ok) throw new Error(`${data.tasks[state.taskIndex].title}: ${result.message}`);

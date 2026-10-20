@@ -48,11 +48,14 @@ export const motionNote = () => deviceStill.matches ? 'System follows your devic
 // Effects that reduced motion suppressed must not replay when motion returns, so each part of the interface ends its own.
 const resumes: (() => void)[] = [];
 export const onMotionResume = (listener: () => void) => { resumes.push(listener); };
+const reductions: (() => void)[] = [];
+export const onMotionReduce = (listener: () => void) => { reductions.push(listener); };
 let motionReduced = still();
 function syncMotion() {
   const note = document.querySelector('#motion-note');
   if(note)note.textContent=motionNote();
   if(motionReduced&&!still())for(const listener of resumes)listener();
+  if(!motionReduced&&still())for(const listener of reductions)listener();
   motionReduced=still();
   // CSS stops its own effects. Finish script animations so their cleanup and delivery notices still run.
   if(still())for(const animation of document.getAnimations()) {

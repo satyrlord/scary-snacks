@@ -4,7 +4,7 @@ import { availableChains, firstFreeBoardCell, requiredQuests, resolveChapters, r
 import { createGame, validateGame } from '../src/engine.ts';
 import { dataProblems, storyProblems } from '../src/content.ts';
 import type { GameData } from '../src/model.ts';
-import { act, data, payNext, ready, rejected, supply } from './support.ts';
+import { act, data, payNext, ready, rejected, supply, withTickets } from './support.ts';
 
 const titles = ['Open the shutters', 'A kitchen for everyone', 'Around one table', 'The courtyard', 'Recipes to share', 'The first community supper'];
 const boundaries = [4, 8, 12, 16, 20, 24];
@@ -21,6 +21,26 @@ const arrivals = (index: number) => data.characters.filter(person => person.arri
  * then the arrivals of the regulars that the preparation brings.
  */
 const queued = (count: number) => data.tasks.slice(0, count).flatMap((task, index) => [task.id, ...((index + 1) % 4 ? [] : [data.chapters[index / 4 | 0].id]), ...arrivals(index)]);
+
+for (const [id, food] of [
+  ['mara-supper', /\bbread\b/i], ['sorin-welcome', /\btea\b/i], ['eszter-cups', /\btea\b/i], ['dochia-lunch', /\bcheese\b/i],
+] as const) {
+  test(`${id} does not request or report food absent from its delivery`, () => {
+    const quest = data.quests.find(quest => quest.id === id)!;
+    const supplied = quest.requirements.some(({ item }) => food.test(data.items[item].name));
+    if (!supplied) assert.doesNotMatch([...quest.opening, ...quest.completion].map(line => line.text).join(' '), food);
+  });
+}
+
+test('Janos reports the archbishop eating a dish from Monica’s preceding delivery', () => {
+  const previous = data.quests.find(quest => quest.id === 'monica-third-pack')!;
+  const next = data.quests.find(quest => quest.id === 'janos-third-pack')!;
+  const report = next.opening[0].text.toLowerCase();
+  const named = Object.values(data.items).filter(item => !item.generator && report.includes(item.name.toLowerCase()));
+  const mentioned = named.filter(item => !named.some(other => other !== item && other.name.toLowerCase().includes(item.name.toLowerCase())));
+  assert.ok(mentioned.length, 'The report names the dish that the archbishop ate.');
+  for (const item of mentioned) assert.ok(previous.requirements.some(requirement => requirement.item === item.id), `${item.name} was in the preceding pack.`);
+});
 
 test('six chapters keep their titles and cover all 24 preparations, each with a painted result', () => {
   assert.deepEqual(storyProblems(data), []);
@@ -102,20 +122,18 @@ test('a chapter opens at its first preparation and completes only with its last 
 test('a failed payment, a missing required quest, or a full destination completes no chapter and queues no scene', () => {
   const before = ready(checkpoint(3));
   rejected({ ...before, coins: before.coins - 1 }, { type: 'task' });
-  const missing = { ...before, completedQuests: before.completedQuests.slice(0, -1) };
+  const missing = withTickets({ ...before, completedQuests: before.completedQuests.slice(0, -1), discovered: [...before.discovered] });
   assert.equal(validateGame(missing, data), true);
   assert.match(rejected(missing, { type: 'task' }).message, /Deliver 1 more quest for this preparation\./);
-  // The last preparation of the chapter brings a source here, so it needs a board space.
-  const placed = structuredClone(data);
-  delete placed.tasks[2].unlock;
-  placed.tasks[3].unlock = 'dairy';
-  let full = checkpoint(3, placed);
+  // The last preparation of chapter 2 brings the Butcher’s hook, so it needs a board space.
+  assert.equal(data.tasks[7].unlock, 'pork');
+  let full = checkpoint(7);
   // The Herb basket is free, so an empty purse can still fill the board.
   const source = full.board.findIndex(cell => cell?.code === 'generator_herbs');
-  while (firstFreeBoardCell(full, placed) !== -1) full = act(full, { type: 'spawn', index: source }, placed);
-  full = ready(full, placed);
-  assert.match(rejected(full, { type: 'task' }, placed).message, /Free a space/);
-  assert.equal(resolveChapters(full, placed)[0].status, 'current');
+  while (firstFreeBoardCell(full, data) !== -1) full = act(full, { type: 'spawn', index: source });
+  full = ready(full);
+  assert.match(rejected(full, { type: 'task' }).message, /Free a space/);
+  assert.equal(resolveChapters(full, data)[1].status, 'current');
 });
 
 test('the last preparation queues its scene and the chapter scene once, with no second charge or reward', () => {
@@ -176,7 +194,7 @@ test('saved scene queues hold only earned scenes, once each, in story order', ()
   }
   const { pendingScenes: _scenes, ...missing } = middle;
   assert.equal(validateGame(missing, data), false);
-  const finished = checkpoint(24), supped = { ...finished, completedQuests: [...finished.completedQuests, supperQuest(data)!.id] };
+  const finished = checkpoint(24), supped = { ...finished, completedQuests: [...finished.completedQuests, supperQuest(data)!.id], act1: { days: 1, purse: finished.coins } };
   assert.equal(validateGame({ ...finished, pendingScenes: ['finale'] }, data), false, 'The finale waits for the supper.');
   assert.equal(validateGame({ ...supped, pendingScenes: ['finale'] }, data), true);
   assert.equal(validateGame({ ...supped, pendingScenes: ['finale', 'chapter-6'] }, data), false);

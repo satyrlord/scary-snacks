@@ -1,5 +1,5 @@
 {
-  "mode": "The built-in chat image generator supplies references for the mascots and two decoration paintings. The generator also supplies visitor portraits, guest portraits, both clutter atlases, the parchment texture, and the first versions of the pencil sketches and quest scenes. The OpenAI Images application programming interface (API) uses gpt-image-2.5-flare at high quality. The API supplies the 16 food atlases, mascots, core portraits, three regulars atlases, timber-tabletop, and embroidered-runner. The API also supplies counter-band, courtyard, the room states, the two decoration paintings, and the supper painting. The API revises five pencil sketches and four quest scenes. The prompt records preserve the exact requests and their processing evidence.",
+  "mode": "The built-in chat image generator supplies references for the mascots and two decoration paintings. The generator also supplies visitor portraits, guest portraits, both clutter atlases, the parchment texture, and the first versions of the pencil sketches and quest scenes. The OpenAI Images application programming interface (API) uses gpt-image-2.5-flare at high quality. The API supplies the 16 food atlases, mascots, core portraits, three regulars atlases, timber-tabletop, and embroidered-runner. The API also supplies counter-band, courtyard, the room states, the two decoration paintings, the supper painting, the two rat sheets with their identity references, the rat hole, and the night sky. The API revises five pencil sketches and four quest scenes. The prompt records preserve the exact requests and their processing evidence.",
   "originalGameImageReferences": false,
   "prompts": [
     {
@@ -1338,7 +1338,7 @@
         "run": "012-food/food-fruits-2",
         "reference": "style references: the accepted candidates of food-grain-3 and food-herbs-2"
       },
-      "disposition": "The fruit stand in cell 1 of the shipped master. The user accepted the atlas. A user-approved alpha clear makes each unused cell fully transparent. Every used cell stays pixel-identical."
+      "disposition": "The fruit stand in cell 1 of an earlier master. The cornucopia replaced it because the stand was not clear at small sizes."
     },
     {
       "id": "food-pork",
@@ -1471,6 +1471,102 @@
         "reference": "style references: the accepted candidates of food-grain-3 and food-herbs-2; the candidate of food-breads-1 for the pie"
       },
       "disposition": "The cheese pie in cell 1 of the shipped master. The user accepted the atlas."
+    },
+    {
+      "id": "rat-thief-reference",
+      "prompt": "The two provided images are approved art from the same game. Use them ONLY as the style reference: match their hand-painted gouache and coloured-pencil rendering, their warm palette, their gentle expressive animal anatomy (the black cats and the bat in the first image), their lighting, their level of detail, and their clean edges. Do NOT copy their subjects.\n\nUse case: production sprite art for an original, cosy, slightly eerie Transylvanian bistro merge game. The tone is comical mischief, never frightening, never gory.\n\nEdges: the subject has hard, clean, cut-out edges. No glow, no halo, no rim light, no haze, no soft fringe, no motion lines, no dust clouds, no sparkles, no floating particles. No text, numbers, letters, labels, logos, or watermark anywhere.\n\nONE square image, 1024 by 1024 pixels, with a truly TRANSPARENT background (alpha zero everywhere except the subject). One single animal, centred, standing on all four paws in a three-quarter side view that faces RIGHT, with the whole body and the whole tail inside the central 70% of the image. No ground, no floor, no cast shadow, no props.\n\nSubject: the thief rat, an original character. A scruffy, comical rat with patchy grey fur in two or three uneven greys, one torn ear (a notch out of the left ear), crooked yellowish front teeth that show, narrow sly eyes, a long thin bare pink tail, and a lean body. It looks like a cheeky pickpocket, not a monster: no red eyes, no blood, no bared fangs. No clothes, no hat, no apron, no accessories of any kind.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1024x1024",
+        "run": "013-day-and-night/rat-thief-reference-1",
+        "reference": "style references: the masters mascots and food-grain"
+      },
+      "disposition": "Its output is the reference rat-thief-reference. The user accepted the identity of the thief rat."
+    },
+    {
+      "id": "rat-thief-sheet",
+      "prompt": "The FIRST provided image is the accepted identity of this character, the thief rat. Keep its body, its proportions, its patchy grey fur colours and markings, its notched ear, its crooked yellow front teeth, its sly eyes, and its bare pink tail EXACTLY the same in every cell. Change only the pose. It wears no clothes and no accessories in any cell.\n\nThe SECOND provided image is approved art from the same game. Use it ONLY as the style reference: hand-painted gouache and coloured-pencil rendering, warm palette, gentle expressive animal anatomy, clean edges. Do NOT copy its subjects.\n\nUse case: production sprite sheet for an original, cosy, slightly eerie Transylvanian bistro merge game. The tone is comical mischief, never frightening, never gory.\n\nEdges: every pose has hard, clean, cut-out edges. No glow, no halo, no rim light, no haze, no soft fringe, no motion lines, no dust clouds, no sparkles, no floating particles. No text, numbers, letters, labels, logos, or watermark anywhere.\n\nCreate ONE landscape bitmap, 2048 by 1024 pixels, a precisely regular grid of 4 columns by 2 rows of equal square cells, 512 by 512 pixels each. Each cell holds exactly one pose of the same single rat. The background is truly TRANSPARENT everywhere: alpha zero right up to the edge of the rat. No backdrop, no grey panel, no checkerboard, no coloured matte, no grid lines, no frames, no cast shadow on a floor.\n\nEvery pose fits inside the central 76% width and 76% height of its own cell, with a fully transparent margin on all four sides. Nothing crosses into a neighbouring cell. Keep the tail curled or tucked so that it stays inside its cell. The rat is the SAME SIZE in all eight cells, and every standing pose has its paws on the same invisible ground line at 82% of the cell height. Every pose faces RIGHT, except where a pose says it looks back.\n\nExact order, left to right, then top to bottom:\n\nROW 1\n1. BREAKS UP: only the head and the two front paws of the thief rat push up out of a small, dark, ragged round hole with splintered wooden edges, seen from slightly above. The hole is drawn; the rest of the body is hidden in it.\n2. CLIMBS OUT: the thief rat is half out of the same splintered hole, front paws on the rim, shoulders and chest out, hind legs still inside.\n3. LOOKS AROUND: the thief rat stands on its hind legs, front paws held up close to its chest, head turned toward the viewer with a sly, sideways glance and its crooked teeth showing.\n4. GRABS: the thief rat leans forward and down with both front paws reaching down and open, ready to seize something on the ground in front of it. Its paws are empty.\n\nROW 2\n5. DRAGS: the thief rat walks backward to the LEFT, leaning back, both front paws held forward and down as if pulling something heavy. Its paws are empty.\n6. LOOKS BACK: the thief rat stands on all fours facing right, its head turned back over its shoulder to the left, with a smug, sly grin.\n7. SCURRY A: the thief rat runs to the right in side view, all four legs stretched out, tail straight behind but short enough to stay inside the cell.\n8. SCURRY B: the thief rat runs to the right in side view, legs gathered under the body, back arched, tail curved up.\n\nNo other animals, no food, no props except the hole in cells 1 and 2. One 2:1 landscape image, high resolution, crisp silhouettes, true alpha transparency.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "2048x1024",
+        "run": "013-day-and-night/rat-thief-1",
+        "reference": "identity reference: rat-thief-reference; style reference: the master mascots"
+      },
+      "disposition": "Superseded to correct a faint alpha haze along the top of the sheet and poses that crossed into the lower row."
+    },
+    {
+      "id": "rat-thief-fix",
+      "prompt": "The FIRST provided image is a sprite sheet of the thief rat: 4 columns by 2 rows of equal square cells. Keep its painting, its rat, its fur, its colours, its rendering, and its order of poses. Redraw it with ONLY these corrections:\n\n1. The rat must be the SAME SIZE in all eight cells. Make the rats in row 1, cells 3 and 4, smaller, so that their feet stay well above the middle line of the image. Nothing may cross from one cell into another cell.\n2. Every pose fits inside the central 76% width and 76% height of its own square cell, with a fully transparent margin on all four sides. Every standing pose has its paws on the same invisible ground line at 82% of the cell height.\n3. Cell 6 (row 2, second from the left) LOOKS BACK: the rat stands on all fours with its body facing RIGHT, and its head turned back over its shoulder so that its face points to the LEFT, with a smug, sly grin.\n4. Cell 4 (row 1, fourth) GRABS: the rat leans forward and down, both open front paws reaching down toward the ground in front of it, its eyes on that spot.\n5. The background is truly TRANSPARENT: alpha exactly zero everywhere outside the rat and the hole. No haze, no faint tint, no smudge, no vignette, no glow, no halo, no soft fringe, especially along the top of the image.\n\nThe SECOND provided image is the accepted identity of the thief rat. Keep its patchy grey fur, its notched ear, its crooked yellow front teeth, its sly eyes, and its bare pink tail in every cell. No clothes, no accessories.\n\nHard, clean, cut-out edges. No text, numbers, letters, labels, grid lines, frames, motion lines, dust, shadows, or other props than the hole in cells 1 and 2. One 2048 by 1024 landscape image with true alpha transparency.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "2048x1024",
+        "run": "013-day-and-night/rat-thief-2",
+        "reference": "the candidate of rat-thief-1 (generated by this project) as the sheet to keep; identity reference: rat-thief-reference"
+      },
+      "disposition": "The thief rat sheet. The user accepted it with the cell trim."
+    },
+    {
+      "id": "rat-soricescu-reference",
+      "prompt": "The two provided images are approved art from the same game. Use them ONLY as the style reference: match their hand-painted gouache and coloured-pencil rendering, their warm palette, their gentle expressive animal anatomy (the black cats and the bat in the first image), their lighting, their level of detail, and their clean edges. Do NOT copy their subjects.\n\nUse case: production sprite art for an original, cosy, slightly eerie Transylvanian bistro merge game. The tone is comical and warm, never frightening.\n\nEdges: the subject has hard, clean, cut-out edges. No glow, no halo, no rim light, no haze, no soft fringe, no motion lines, no dust clouds, no sparkles, no floating particles. No text, numbers, letters, labels, logos, or watermark anywhere.\n\nONE square image, 1024 by 1024 pixels, with a truly TRANSPARENT background (alpha zero everywhere except the subject). One single animal, centred, standing on all four paws in a three-quarter side view that faces RIGHT, with the whole body, the whole tail, the hat, and the bag inside the central 70% of the image. No ground, no floor, no cast shadow, no props except the hat and the bag.\n\nSubject: Șoricescu, an original character, a kind and polite old-fashioned country gentleman rat. A small, round, cute brown rat with warm chestnut-brown fur, a cream belly, big bright dark eyes with a white catch-light, small round pink ears, a short soft pink tail, and a gentle, friendly smile. He wears a clop: a small, narrow-brimmed straw hat from Maramureș, with a low rounded crown and a red, black, and white embroidered band. A small woven shoulder bag, a traistă, in red and black wool stripes with a short fringe, hangs across his body on a strap. No other clothes: no chef's hat, no apron, no kitchen clothes. He must look clearly different from a scruffy grey rat: round, tidy, brown, and kind.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1024x1024",
+        "run": "013-day-and-night/rat-soricescu-reference-1",
+        "reference": "style references: the masters mascots and food-grain"
+      },
+      "disposition": "Its output is the reference rat-soricescu-reference. The user accepted the identity of Șoricescu."
+    },
+    {
+      "id": "rat-soricescu",
+      "prompt": "The FIRST provided image is the accepted identity of this character, Șoricescu. Keep his body, his proportions, his chestnut-brown fur, his cream belly, his big dark eyes with white catch-lights, his round pink ears, his kind smile, his pink tail, his straw clop hat with its red, black, and white embroidered band, and his red and black striped traistă bag with its fringe and strap EXACTLY the same in every cell. Change only the pose. No other clothes.\n\nThe SECOND provided image is approved art from the same game. Use it ONLY as the style reference: hand-painted gouache and coloured-pencil rendering, warm palette, gentle expressive animal anatomy, clean edges. Do NOT copy its subjects.\n\nUse case: production sprite sheet for an original, cosy, slightly eerie Transylvanian bistro merge game. The tone is warm and comical, never frightening.\n\nEdges: every pose has hard, clean, cut-out edges. No glow, no halo, no rim light, no haze, no soft fringe, no motion lines, no dust clouds, no sparkles, no floating particles. No text, numbers, letters, labels, logos, or watermark anywhere.\n\nCreate ONE landscape bitmap, 2048 by 1024 pixels, a precisely regular grid of 4 columns by 2 rows of equal square cells, 512 by 512 pixels each. Each cell holds exactly one pose of the same single rat. The background is truly TRANSPARENT everywhere: alpha exactly zero right up to the edge of the rat. No backdrop, no grey panel, no checkerboard, no coloured matte, no faint tint, no grid lines, no frames, no cast shadow on a floor.\n\nDraw the rat SMALL in each cell: every pose, with its hat, its bag, its tail, and the hole, fits inside the central 70% width and 70% height of its own cell, with a wide, fully transparent margin on all four sides. Nothing crosses the middle line of the image, and nothing crosses into a neighbouring cell. Keep the tail curled close to the body. The rat is the SAME SIZE in all eight cells, and every standing pose has its paws on the same invisible ground line at 80% of the cell height. Every pose faces RIGHT.\n\nExact order, left to right, then top to bottom:\n\nROW 1\n1. CLIMBS OUT, LOW: only the head with its straw hat and the two front paws of Șoricescu peek up out of a small, dark, round hole with splintered wooden edges, seen from slightly above. The hole is drawn small; the rest of the body is hidden in it.\n2. CLIMBS OUT, HIGH: Șoricescu is half out of the same small hole, front paws on the rim, his bag at his side, hind legs still inside.\n3. OPENS THE BAG: Șoricescu stands on his hind legs and lifts the flap of his woven shoulder bag with one paw, looking down into it happily.\n4. PUTS DOWN: Șoricescu bends forward with both front paws held low and open in front of him, as if setting something down gently on the ground. His paws are empty.\n\nROW 2\n5. LIFTS HIS HAT: Șoricescu stands on his hind legs and raises his straw hat high above his head with one paw in a polite greeting, a warm smile. The raised hat stays inside the cell.\n6. WAVES: Șoricescu stands on his hind legs, hat back on his head, and waves goodbye with one paw raised.\n7. SCURRY A: Șoricescu runs to the right in side view, all four legs stretched out, one front paw holding his hat on his head.\n8. SCURRY B: Șoricescu runs to the right in side view, legs gathered under the body, back arched, his bag bouncing.\n\nNo other animals, no food, no props except the hole in cells 1 and 2. One 2:1 landscape image, high resolution, crisp silhouettes, true alpha transparency.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "2048x1024",
+        "run": "013-day-and-night/rat-soricescu-1",
+        "reference": "identity reference: rat-soricescu-reference; style reference: the master mascots"
+      },
+      "disposition": "The Șoricescu sheet. The user accepted it."
+    },
+    {
+      "id": "rat-hole",
+      "prompt": "The two provided images are approved art from the same game. The first is a sheet of board blockers that sit on the same wooden game board; the second is a sheet of food icons. Use them ONLY as the style reference: match their hand-painted gouache and coloured-pencil rendering, their warm palette, their lighting from the upper left, their level of detail, and their clean edges. Do NOT copy their subjects.\n\nUse case: production sprite art for an original, cosy, slightly eerie Transylvanian bistro merge game. The tone is comical mischief, never frightening.\n\nEdges: the subject has hard, clean, cut-out edges. No glow, no halo, no rim light, no haze, no soft fringe, no faint specks, no sparkles, no floating particles. No text, numbers, letters, labels, logos, or watermark anywhere.\n\nONE square image, 1024 by 1024 pixels, with a truly TRANSPARENT background outside the subject: alpha exactly zero everywhere outside the splintered rim.\n\nSubject: a rat hole, seen straight from above. A ragged, roughly round hole gnawed through a dark oak plank, with splintered, broken wood edges pointing inward and a few small gnaw marks on the rim. The inside of the hole is a deep, warm, near-black brown, darkest at the centre, plain and smooth, with no detail in the middle. The hole and its splinters fill the central 80% of the image. The plank around the hole is NOT drawn, so everything outside the splintered rim is fully transparent. No rat, no food, no eyes in the dark, no shadow outside the rim.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1024x1024",
+        "run": "013-day-and-night/rat-hole-1",
+        "reference": "style references: the masters board-clutter and food-grain"
+      },
+      "disposition": "The rat hole. The user accepted it."
+    },
+    {
+      "id": "night-sky",
+      "prompt": "The provided image is an approved room painting from the same game. Use it ONLY as the style reference: match its hand-painted gouache and coloured-pencil rendering, its brush texture, and its level of detail. Do NOT copy its subject, its room, its furniture, or its window.\n\nUse case: production background art for an original, cosy, slightly eerie Transylvanian bistro merge game. The tone is calm and cosy.\n\nONE landscape image, 2048 by 1024 pixels, 2:1, fully OPAQUE, no transparency. A calm night sky over the Transylvanian hills, seen through a window, but only the sky is drawn: deep indigo at the top fading to a softer blue-violet near the bottom edge. A thin crescent moon in the upper right third, well inside the image, at least 15% away from the right edge. A scattering of small, crisp, warm-white stars of different sizes across the whole sky, none of them within 10% of the left or right edge brighter than the rest. Soft, painterly gouache clouds, very thin and few, lit faintly by the moon.\n\nNo hills, no land, no horizon line, no buildings, no trees, no birds, no bats, no window frame, no glass reflections, no text, no numbers, no letters, no logos, no watermark. No lens flare, no glow bloom around the moon larger than a thin soft ring. The sky must stay dark enough that a small dark bat silhouette still reads against it.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "2048x1024",
+        "run": "013-day-and-night/night-sky-1",
+        "reference": "style reference: the master front-room-01"
+      },
+      "disposition": "The night sky. The user accepted it."
+    },
+    {
+      "id": "food-fruits-cornucopia",
+      "prompt": "The two provided images are approved food atlases from the same game. Use them ONLY as the style reference: match their hand-painted gouache and coloured-pencil rendering, their slightly top-down three-quarter view, their warm palette, their lighting, their level of detail, their clean edges, and the size of their icons within their cells. Do NOT copy any of their subjects.\n\nCreate ONE landscape bitmap atlas, 2:1, a precisely regular grid of 4 columns by 2 rows of equal square cells. Only ONE cell holds an icon: cell 1, the top-left cell. The centre of the icon is at 12.5% of the image width and 25% of the image height. The other seven cells stay completely empty and fully transparent, with nothing in them at all.\n\nCell 1, FRUIT CORNUCOPIA (the source, where the bistro gets its fruit): a big woven wicker horn of plenty lying on its side, its wide mouth toward the lower right, overflowing with large, bold fruit that spills out of it: dark-blue plums, shiny red apples, a bunch of purple grapes, a yellow pear, and a few red cherries. The fruit is large relative to the horn, with strong, simple shapes and clear colours, so that it reads as fruit at a small size. The curled tip of the horn points up at the upper left. Compact and charming, a game icon, not a scene: no table, no cloth, no ground, no leaves except two or three small green leaves on the fruit.\n\nEdges: the icon has hard, clean, cut-out edges. No glow, no halo, no rim light, no haze, no vignette, no light outline and no soft fringe. No floating particles. The background is truly TRANSPARENT everywhere: alpha zero right up to the edge of the icon and in all seven empty cells. No backdrop, no checkerboard, no coloured matte, no grid lines, no frames, no cast shadow on a floor.\n\nLayout rules: the whole cornucopia, with all of its fruit, fits inside the central 70% width and 70% height of cell 1, with a wide fully transparent margin on all four sides. Fill that central area well: the icon is as large as the other icons of the reference atlases. Nothing crosses into a neighbouring cell. No text, numbers, letters, labels, signs or logos. One 2:1 landscape image.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "2048x1024",
+        "run": "cornucopia/food-fruits-1",
+        "reference": "style references: the masters food-fruits and food-vegetables"
+      },
+      "disposition": "The cornucopia in cell 1 of the shipped master, scaled and centred in its cell. The user accepted it."
     }
   ]
 }

@@ -35,8 +35,10 @@ The files in `tests/` check these areas.
 | `decorations.test.ts` | Decoration slots, quest unlocks, finish choices, rejected choices, and saved choices. |
 | `economy.test.ts` | Formula prices, quest rewards, paid and free takes, a take without the coins, the blocker coin, the recovery quest and its fourth ticket, one Linden tea in four free cells, and work budgets. |
 | `campaign-goals.test.ts` | Required quests, coins, source space, failed payments, quest order, the supper and recovery quest records, and sufficient campaign work. |
-| `campaign-balance.test.ts` | A complete campaign through valid actions, with accounts for actions and coins, the balance band after the supper, free cells at each preparation, and the recovery quest before each preparation. |
-| `quests.test.ts` | Quest data, three tickets and the recovery ticket, authored order, delivery requirements, failed deliveries, the coin limit on delivery, visitor order, cathedral sizes, diets, favourites, and the supper plates. |
+| `campaign-balance.test.ts` | A complete campaign through valid actions, with accounts for actions, coins, and upkeep, the efficient strategy for 20 seeds (days, a purse never below zero, no merges only to move the clock, the balance band after the supper), free cells at each preparation, and the recovery quest before each preparation. |
+| `campaign-strategies.test.ts` | For 20 seeds, a strategy that misses each booking once finishes act 1, and a strategy that starts each preparation window with a debt of 20 coins reaches each preparation through the recovery quest. |
+| `day.test.ts` | The clock, the closing order, the thief rat and its seed, rat holes, Șoricescu's gift, the gift space and the recovery quest, debt, the evening guest, booked tickets, the lantern control, the result of act 1, the day levers and the booked quests, and saves of the day fields. |
+| `quests.test.ts` | Quest data, three tickets and the recovery ticket, authored order, delivery requirements, failed deliveries, the coin limit on delivery, visitor order, cathedral sizes, one-meal sizes, the one-merge rule for quest dishes, diets, favourites, and the supper plates. |
 | `guests.test.ts` | Red wine quests, Ionatan's dinner and journal entry, the shared vegetarian meal, guest departure, and later local news. |
 | `regulars.test.ts` | Arrival pairs, arrival scenes, quest timing, favourite dishes, diets, the neighbours list, and cast validation. |
 | `board-clearing.test.ts` | Initial blockers, matching merges, recipe partners, the blocker coin, blocked actions, placement space, discoveries, and saved progress. |
@@ -51,11 +53,11 @@ The files in `tests/` check these areas.
 
 Generator checks cover stage-one production, paid and free takes, rejected output requests, and a full board.
 The campaign fixture completes all 24 preparations and all 81 campaign quests without injected coins or items, and then serves the supper.
-The purse after the supper is inside the balance band: 0 to 10% of the coins spent on preparations and takes.
+The purse after the supper is inside the balance band: 0 to 10% of the coins spent on preparations, takes, and upkeep.
+The efficient fixture is never robbed, so its 20 seeds give the same run. The day tests check the thief rat with given seeds.
 The fixture reports actions, takes, merges, deliveries, recovery deliveries, income, and free cells for each preparation and chapter.
 Before each preparation, a check buys one spare staple so that the purse cannot pay, and reaches the preparation through the recovery quest.
-The fixture can merge into a blocked dish on a full board, but the complete campaign clears no blocker.
-This includes the initial blockers and the preparation blockers.
+The fixture clears blockers while fewer than 24 cells are free.
 
 Delivery checks require all portions at once. A failed delivery changes no game state.
 Visitor checks include Ionatan after Vlad's quest and the shared meal after Ionatan's dinner.
@@ -90,6 +92,7 @@ The files in `tests/browser/` check these areas.
 | `story.spec.ts` | Chapter goals, steps, scenes, reveals, the supper ticket and its plates, Serve, the recovery quest and its delivery flight beside an empty counter, the finale, the supper painting, journal entries, favourites, focus, and layout. |
 | `journal.spec.ts` | Journal groups, priorities, scene coverage, focus, open groups, scroll, delivery order, combined quests, and the favourite dishes of each regular. |
 | `portrait-framing.spec.ts` | Each portrait crop at ticket and dialogue sizes in both themes. |
+| `day.spec.ts` | The clock, a debt in the purse, booked tickets, the lantern control, the night of a theft and of a gift, a stop by tap and by key, reduced motion, a hidden page, the notice after a reload, and the result of act 1 on the supper card. |
 
 Play checks include pointer drag, keyboard input, selection, and delivery.
 Room checks include reduced motion, failed image loads, and text that is available after an image failure.

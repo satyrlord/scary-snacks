@@ -5,7 +5,7 @@ import { KEEP_FREE, reduceGame } from '../src/engine.ts';
 import { dataProblems } from '../src/content.ts';
 import { exportSave, importSave, loadSave, saveGame } from '../src/storage.ts';
 import type { GameData, GameState } from '../src/model.ts';
-import { act, addOpenLayout, data, openGame, rejected, validate } from './support.ts';
+import { act, addOpenLayout, data, openGame, rejected, validate, know, withTickets } from './support.ts';
 
 addOpenLayout();
 // Isolate blocker rules from earning the required quests.
@@ -136,6 +136,7 @@ test('a merge that makes a new dish and places a waiting blocker keeps both noti
   let state = act(full(ready()), { type: 'task' });
   for (let count = 1; count <= KEEP_FREE; count++) state = mergeOne(state);
   state.discovered = state.discovered.filter(code => data.items[code].generator || state.board.some(cell => cell?.code === code));
+  withTickets(state);
   const known = [...state.discovered];
   const [from, to] = state.board.flatMap((cell, index) => cell?.code === 'grain_2' ? [index] : []);
   const result = reduceGame(state, { type: 'move', from, to }, data);
@@ -162,7 +163,7 @@ test('preparation blockers clear only with a merge partner on their own cell, an
   assert.equal(state.coins, coins + 1);
   state.board[10] = { code: 'grain_1' };
   assert.match(rejected(state, { type: 'move', from: 10, to: anchor.position }).message, /recipe partner/);
-  state.board[10] = { code: 'dairy_1' }; state.discovered.push('dairy_1');
+  state.board[10] = { code: 'dairy_1' }; know(state, 'dairy_1');
   state = act(state, { type: 'move', from: 10, to: anchor.position });
   assert.equal(state.board[anchor.position]?.code, 'dairy_2');
   assert.ok(state.resolvedObstacles.includes(anchor.id));

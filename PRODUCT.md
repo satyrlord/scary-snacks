@@ -24,7 +24,7 @@ This campaign is act 1 of a larger game. The owner will extend the game after ac
 
 The player takes ingredients, merges dishes, delivers quests, and pays for preparations in a Chromium-based browser. Pointer, keyboard, and touch controls support phone and desktop play. The board and the story progress stay in the browser save between visits. Export and import let the player move a supported save.
 
-Quests have no deadline. A take is immediate. A take from a paid source costs coins, and herbs are free. The player can read or replay story scenes under the rules in Play. The rules in Access and persistence control saves, recovery, and more than one tab.
+Quests have no deadline. A take is immediate. A take from a paid source costs coins, and herbs are free. The bistro day counts merges, never seconds, and nothing changes while the game is closed. The player can read or replay story scenes under the rules in Play. The rules in Access and persistence control saves, recovery, and more than one tab.
 
 ## Evidence on Hand
 
@@ -63,7 +63,7 @@ A campaign quest earns coins. Some preparations unlock a source. Each preparatio
 
 Each chain follows one staple food family. Its source gives the raw staple, and its dishes use only foods of that family. Three chains are open in a new game: Grain, Corn, and Herbs. Preparations 3, 5, 6, 7, 8, 11, 13, 16, and 20 open Dairy, Poultry, Vegetables, Fruits, Pork, Beans, Lamb, Veal, and Fish. The scene of each of these preparations names its new source. A mixed dish opens when each of its chains is open.
 
-The economy has four levers: the take cost (1 coin), the blocker coin (1 coin), the work rate (1 coin), and the recovery floor (10 coins). A take from a paid source spends the take cost. A take from the Herb basket is free. Each cleared blocker gives the blocker coin. A formula gives the menu price of each dish: the stage-1 staples that it uses times the take cost, plus its merges times the work rate. A Herbs staple counts as zero. So Flour costs 1 coin, Elderflowers cost nothing, Linden tea costs 7 coins, and Bulz costs 31 coins.
+The economy has four levers: the take cost (1 coin), the blocker coin (1 coin), the work rate (2 coins), and the recovery floor (10 coins). A take from a paid source spends the take cost. A take from the Herb basket is free. Each cleared blocker gives the blocker coin. A formula gives the menu price of each dish: the stage-1 staples that it uses times the take cost, plus its merges times the work rate. A Herbs staple counts as zero. So Flour costs 1 coin, Elderflowers cost nothing, Linden tea costs 14 coins, and Bulz costs 46 coins.
 
 The menu value of a quest is the sum of the prices of its portions. Every quest except the supper pays its menu value, so a delivery pays back its staples and earns the work rate for each merge. Quests and cleared blockers are the only income.
 
@@ -71,17 +71,23 @@ Each preparation has a work scope, a material cost, a labour cost, and an estima
 
 A campaign quest opens after a named preparation, or in a new game. A campaign quest that opens after preparation N is necessary for preparation N + 1. Each preparation needs every campaign quest that opens before it. The player delivers all 81 campaign quests before the supper quest. The quests that open before a preparation pay for it.
 
+A quest asks only for dishes that the player can place. Each dish is one merge beyond the dishes that the player surely knows when the quest takes its ticket: its parts, or the dish one stage below it, are in the recipe book, or its source is on the board. The player surely knows the dishes of a new game and the dishes of every quest that surely held a ticket before. When a quest takes a ticket, its dishes go into the recipe book. The data check enforces this rule for every quest, the supper included.
+
+A quest is one meal at one sitting: at most three portions for each eater, and at most two portions of one dish. A shared quest counts each of its characters. Only the characters who order provisions ask for more: Adrian, Monica, and Janos pack food for days under the cathedral, Dochia packs food for her days on the hill, and Sânziana buys for her sisters. The supper has one plate for each guest. The data check enforces these limits.
+
 The supper quest is Mara's last quest, "The community supper". It opens after preparation 24. It asks for one plate for each of the 11 guests: Mara, Ilie, Eszter, Sorin, Costel, Victor, Ana, Ileana, Bran, Cătălina, and Cezar. Each plate suits the diet of its guest, each regular gets a favourite dish, and the plates use all 12 chains. The quest pays nothing. Its ticket and its dialog show Serve, and its dialog names the guest of each plate. Serve takes the plates once, records the quest, and queues the finale in place of a completion scene. The finale opens immediately.
 
-The recovery quest is Ana's "Tea for the night ward". It asks for one Linden tea and pays its menu value. It is open in two cases: a campaign quest is open and the purse holds less than the recovery floor, or no campaign quest is open and the purse cannot pay the next preparation. It has its own ticket after the three quest tickets, so it never moves a quest to waiting. A delivery pays the reward, records nothing, and queues no scene. The quest closes when neither case is true, and it opens again each time a case becomes true. It stands outside the order of Ana's quests. Its dialog says "Ana returns while the purse runs low. Herbs from the Herb basket are free." So a player who spends coins on spare food is never stuck: the herbs are free, and one Linden tea needs four free cells.
+The recovery quest is Ana's "Tea for the night ward". It asks for one Linden tea and pays its menu value. It is open in two cases: a campaign quest is open and the purse holds less than the recovery floor, or no campaign quest is open and the purse cannot pay the next preparation. It has its own ticket after the three quest tickets, so it never moves a quest to waiting. A delivery pays the reward, records nothing, and queues no scene. The quest closes when neither case is true, and it opens again each time a case becomes true. It stands outside the order of Ana's quests. Its dialog says "Ana returns while the purse runs low. Herbs from the Herb basket are free." So a player who spends coins on spare food is never stuck: the herbs are free, and one Linden tea needs four free cells. One tea lifts an empty purse above the floor. A Socată waits by the Herb basket in a new game, so the tea is one merge away from the first day.
 
-The data check adds the work value of the quests that open before each preparation: the merges of their dishes times the work rate. It adds the costs of the preparations up to that one. The work value must cover the costs. So a player who delivers every open quest and buys only its staples always has the coins for the next preparation. The coins that remain after the last preparation must buy the staples of the supper. Only the supper quest opens after the last preparation, and the data has exactly one supper quest and one recovery quest. The campaign balance test plays the campaign and serves the supper: the purse after the supper holds 0 to 10% of the coins that the run spent on preparations and takes.
+The data check adds the work value of the quests that open before each preparation: the merges of their dishes times the work rate. It adds the costs of the preparations up to that one. The work value must cover the costs. So a player who delivers every open quest and buys only its staples always has the coins for the next preparation. The coins that remain after the last preparation must buy the staples of the supper. Only the supper quest opens after the last preparation, and the data has exactly one supper quest and one recovery quest. The data check also counts the merges of each quest: each quest fits in one day.
+
+The campaign balance test plays the campaign with 20 fixed seeds. An efficient strategy cooks only for quests and lights the lanterns for each booking. For each seed, its purse never goes below zero, act 1 lasts from 18 to 30 days, and the purse after the supper holds 0 to 10% of the coins that the run spent on preparations, takes, and upkeep. A strategy that misses each booking once also finishes act 1. A strategy that starts each preparation window with a debt of 20 coins reaches each preparation through the recovery quest.
 
 Story is a card on a wide screen and a sheet on a narrow screen. A narrow screen is 1023px wide or less. Story shows the current chapter and the next preparation. Its requirement list shows only the coins, quests, or source space still needed. When all requirements are met, one line says "Ready to prepare." Cost details expands below Pay inside Story. It shows the work, the budget, and the exact current and required totals. The player can pay while the details are open. Opening or closing the details changes no game state.
 
 The game checks the coins, the necessary quests, and the space for an unlocked source at the same time. A failed check changes nothing. A payment spends the coins once and completes one preparation. A quest prerequisite that is unknown or cyclic is not valid. The authored quests are in the order in which they open. Every campaign quest opens before the last preparation.
 
-Three quest tickets sit on the counter. The first three open quests, in authored order, take the tickets. The other open quests wait without a ticket. The next open quest takes the first free ticket. A character has at most one open campaign quest, because each quest waits for the earlier quests of its character. While the recovery quest is open, it has a fourth ticket with a dashed edge.
+Three quest tickets sit on the counter. The first three open quests, in authored order, take the tickets. The other open quests wait without a ticket. The next open quest takes the first free ticket. A character has at most one open campaign quest, because each quest waits for the earlier quests of its character. A booked guest comes last among the quests that open after the same preparation, so the quests before the evening bring the dishes of the dinner into the recipe book. While the recovery quest is open, it has a fourth ticket with a dashed edge.
 
 A ticket shows the portrait and the name of the character, the dishes, and Deliver with its reward. A ticket with more than four dishes shows the first three and the count of the others. On a wider screen, the ticket also shows the quest title. The quest dialog and the accessible name of the ticket face give the board count of each dish. On a wider screen, a dish that needs several portions also shows that count on the ticket. Deliver is available when the board holds every portion. The face of the ticket is the portrait, the name, the title, and the dishes. A tap on the face opens the quest dialog. The label of the ticket section is "Neighbour quests".
 
@@ -92,6 +98,7 @@ The quest dialog shows who asks and why, each dish with its board count, the rew
 - The quest is out of date.
 - The player repeats the delivery.
 - The coin total cannot hold the reward.
+- The quest is booked, and it is not the evening of its guest from 20:00.
 
 Character introductions, quest dialogs, quest replies, and quest replays use parchment pages. All 22 characters have individual pencil sketches. A quest shows its owner's sketch, except that the nine cathedral supply quests, Ionatan's dinner, and Mina and Avram's meal show their own scene illustrations. The illustration stays with the quest through speaker changes and journal replays. Introductions show the individual character sketch. Other story scenes keep their existing presentation. Victor draws these sketches while he waits for his meal. As an anatomy student, he studies anatomy, proportions, and perspective. He draws light but present facial features, including open eyes for awake people and closed eyelids for sleepers. He has a secret crush on Mara, so hers is the most carefully drawn face.
 
@@ -107,9 +114,9 @@ Each supply quest also waits for the delivery of the previous supply quest. So o
 
 A cathedral supply quest asks for supplies for a stay under the cathedral. The visitors explore the passages under the cathedral, one level deeper on each visit. In each opening, a visitor tells a core character what the visitors found, and the core character answers. Each later visit follows from the finding of the visit before. The mystery stays open at the end of act 1. A quest has one of two sizes: provisions of 12 to 16 portions of chain dishes from stage 3, or meals of 4 to 6 portions of mixed dishes. The story journal (the journal) is a dialog that Story opens. The journal holds the introduction of each returning visitor and each completed quest.
 
-Ionatan is a foreign real estate agent who visits once in each save. His quest opens after preparation 9 and after Vlad's quest "A guest at the castle". It needs two plum brandies, two sharing boards, two tochitură, two chimney cakes, and one roast pork. He stops for dinner on his way to a nearby castle. At the castle, he plans to close a property deal with a local noble.
+Ionatan is a foreign real estate agent who visits once in each save. His quest opens after preparation 9 and after Vlad's quest "A guest at the castle". It needs a plum brandy, a sharing board, and a tochitură. He stops for dinner on his way to a nearby castle. At the castle, he plans to close a property deal with a local noble.
 
-The dinner pays its menu value of 343 coins. His quest does not depend on the cathedral supply quests. It can be open at the same time as one of them. He never joins the finale.
+The dinner pays its menu value. His quest does not depend on the cathedral supply quests. It can be open at the same time as one of them. He never joins the finale.
 
 The delivery records his quest identifier (ID) once and ends his visit. His farewell scene waits in Story. A reload, an export, and an import keep the record of his departure. A new game allows a new visit.
 
@@ -119,7 +126,7 @@ Dochia, Victor, Ana, and Costel are present from the start. Sânziana and Dorian
 
 A regular arrives only when a preparation is complete. Each regular who arrives later has a short arrival scene. In the scene, a core character introduces the regular, and the regular answers. The payment that brings a regular queues the arrival scene. The arrival scene follows the preparation scene and the closing scene that the payment earns. The arrival scene follows the rules of the story for waiting scenes.
 
-Vlad is a local baron who calls himself a count and lives in a castle in the countryside. Elisabeta is an Austro-Hungarian countess who sometimes visits her land nearby. Each of their quests asks for red wine and a meat dish, and no dish of theirs has garlic. Vlad and Elisabeta do not join the finale.
+Vlad is a local baron who calls himself a count and lives in a castle in the countryside. Elisabeta is an Austro-Hungarian countess who sometimes visits her land nearby. Each of their quests asks for red wine and a meat dish, and no dish of theirs has garlic. Vlad and Elisabeta do not join the finale. They book a table for the evening, and they never dine on the same evening: Vlad keeps moving the fence between their lands. Bookings, under Day and night, gives their delivery rules.
 
 Some characters have a diet. The game does not show a diet. The data check enforces it with the content tags of each dish: meat, pork, dairy, egg, fish, alcohol, and garlic. A mixed dish has every tag of its parts. Mina eats no meat or fish. Cătălina keeps an Orthodox fast: no meat, dairy, or egg, and fish is allowed. Avram eats no pork, and no quest of his has both meat and dairy. In a shared quest, each character of the quest accepts each dish.
 
@@ -127,7 +134,7 @@ Mina and Doctor Avram share one visit in each save. Mina is a young British midd
 
 Their quest opens after the player delivers Ionatan's dinner and completes preparation 10. Mina and Avram arrive together and leave together. They never join the finale. They cannot meet Ionatan at the bistro.
 
-Their shared quest is a vegetarian meal for two: two zacuscă toasts, two roasted vegetable plates, one smoked cheese, and two fruit teas. The meal can contain eggs and dairy. It contains no meat and no fish. The meal pays its menu value of 149 coins. The delivery ends the visit and sends them to find Ionatan.
+Their shared quest is a vegetarian meal for two: two portions of zacuscă, two roasted vegetable plates, one smoked cheese, and one fruit tea. The meal can contain eggs and dairy. It contains no meat and no fish. The meal pays its menu value of 190 coins. The delivery ends the visit and sends them to find Ionatan.
 
 The third delivery after theirs earns local news. The news says that they found him gravely ill and that all three left for Britain. They do not visit the bistro on the return journey. Only local speakers tell the news, and it gives no reward. The player can read it later in the journal.
 
@@ -161,7 +168,7 @@ The journal starts with Unread scenes, in their saved waiting order. Each waitin
 
 The journal lists each chapter that is current or complete. A current chapter shows its opening context, its goal, and the state of each preparation. It also shows its neighbour help after that quest opens. A complete chapter shows its payoff and its neighbour help. It also shows its preparations, each with the name of its room change, and its closing scene. After the supper, the journal also holds the finale.
 
-In the finale, the four core characters speak, and the finale names the result of each chapter. Its last button, "See the supper", opens the supper painting. The painting shows 11 neighbours in the courtyard: Mara stands at the long table with a steaming pot. Ilie, Costel, Sorin, and Victor sit on one bench, and Eszter, Ana, Ileana, and Bran sit on the other. Cătălina and Cezar share the small table. Miez and the second black cat wait for scraps. The finale ending line is under the painting, and its button returns to the kitchen. A replay of the finale from the journal also ends with the painting. After the supper is served, the courtyard of the room shows the supper painting and no finishes. No quests remain after the supper. While the supper waits, the supper card names the supper quest on the counter. When the supper is complete, the card says "The community supper is open, and every quest is delivered. The board and the recipe book stay yours."
+In the finale, the four core characters speak, and the finale names the result of each chapter. Its last button, "See the supper", opens the supper painting. The painting shows 11 neighbours in the courtyard: Mara stands at the long table with a steaming pot. Ilie, Costel, Sorin, and Victor sit on one bench, and Eszter, Ana, Ileana, and Bran sit on the other. Cătălina and Cezar share the small table. Miez and the second black cat wait for scraps. The finale ending line is under the painting, and its button returns to the kitchen. A replay of the finale from the journal also ends with the painting. After the supper is served, the courtyard of the room shows the supper painting and no finishes. No quests remain after the supper. While the supper waits, the supper card names the supper quest on the counter. When the supper is complete, the card says "The community supper is open, and every quest is delivered. The board and the recipe book stay yours." Then it gives the result of act 1, for example "The bistro worked for 22 days. The purse holds 312 coins." A debt shows as "The shop notebook holds a debt of 40 coins."
 
 The kitchen is the board with the tickets and Mara's line. Mara's line is the line of text under the board. Mara says what the player can do next. The room is the home of the game and its reward. On a narrow screen, the kitchen is a drawer over the room. On a wider screen, the kitchen is a panel beside the room. The room shows one painted area of the bistro. The area shows the state that the completed preparations leave. The bistro has two areas:
 
@@ -176,9 +183,9 @@ To merge, the player taps an item and then a matching item. Two matching dishes 
 
 One tap on a source takes one ingredient and selects the source. Each further tap takes another ingredient. A take from a paid source spends the take cost, and a paid source shows that cost on its tile. A drag moves the source and takes nothing. If the board is full or the purse cannot pay, the source takes nothing and Mara says why.
 
-A dish leaves the board only when the player merges it or delivers it. If the board is full of dishes that cannot merge and that no quest needs, only a new game clears the board. The board-full notice says "The board is full. Merge a pair or deliver a quest."
+A dish leaves the board when the player merges it, delivers it, or the thief rat takes it at closing. If the board is full of dishes that cannot merge and that no quest needs, only a new game clears the board. The board-full notice says "The board is full. Merge a pair or deliver a quest."
 
-The recipe book lists the dishes of each chain, then the mixed dishes. A new game discovers the items on its initial board. After that, only a take or a merge discovers a dish. A dish that the player has not discovered shows as a covered dish with the label "Not yet". A discovered dish shows its picture and its name and opens its item dialog. Close or Escape from an item opened in the book returns to the same book position and focuses that dish. "Show me on the board" leaves the book and goes to the board. Quest dish help returns to its quest. Board guidance raises a lowered kitchen drawer before it focuses the next step. If the requested dish is not on the board, this guidance keeps its target while the player acts. Find on a quest always guides toward another needed portion. The board marks the next useful cells, and the selected-item line names the goal and next step. A successful take or merge that makes another requested dish ends the guide. Stop, Escape from the board or a guide control, or a second tap on the selected dish or blocker cancels it. A tap on a selected source takes another ingredient. A reload, import, reset, or update from another tab also clears it. Guidance changes no game state and performs no action for the player. The first take or merge of a dish shows the notice "[Dish] is a new dish! It is in the recipe book now." A section whose dishes are all discovered shows "Complete" in its heading. The item dialog of a mixed dish shows its recipe, and the item dialog of a part names the mixed dishes that it makes. "Show me on the board" for a mixed dish guides toward the missing part with the fewest steps. The recipe book button shows how many dishes the player has discovered. These marks give no reward.
+The recipe book lists the dishes of each chain, then the mixed dishes. A new game discovers the items on its initial board. After that, a take, a merge, a gift of Șoricescu, or a quest ticket discovers a dish: a quest that takes a ticket puts its dishes in the recipe book. A dish that the player has not discovered shows as a covered dish with the label "Not yet". A discovered dish shows its picture and its name and opens its item dialog. Close or Escape from an item opened in the book returns to the same book position and focuses that dish. "Show me on the board" leaves the book and goes to the board. Quest dish help returns to its quest. Board guidance raises a lowered kitchen drawer before it focuses the next step. If the requested dish is not on the board, this guidance keeps its target while the player acts. Find on a quest always guides toward another needed portion. The board marks the next useful cells, and the selected-item line names the goal and next step. A successful take or merge that makes another requested dish ends the guide. Stop, Escape from the board or a guide control, or a second tap on the selected dish or blocker cancels it. A tap on a selected source takes another ingredient. A reload, import, reset, or update from another tab also clears it. Guidance changes no game state and performs no action for the player. The first take or merge of a dish that is not in the recipe book shows the notice "[Dish] is a new dish! It is in the recipe book now." A section whose dishes are all discovered shows "Complete" in its heading. The item dialog of a mixed dish shows its recipe, and the item dialog of a part names the mixed dishes that it makes. "Show me on the board" for a mixed dish guides toward the missing part with the fewest steps. The recipe book button shows how many dishes the player has discovered. These marks give no reward.
 
 When the board is full, the guide first points to a legal merge toward its dish. If that is not available, it points to a ready quest delivery that removes a dish, then to another legal pair or blocker merge. A ready delivery gets the same dotted cue on its ticket button. Blocked ingredients are not counted as movable matches. The guide does not suggest taking from a source without a free space. If no delivery or merge can make room, it says so and keeps Stop available. The guide does not change the board or deliver a quest for the player.
 
@@ -196,7 +203,7 @@ The same clearing rules apply. Payments earn batches, and quest deliveries do no
 
 A blocker takes an empty cell only. A new source from the payment takes its space first. Placement follows board order and keeps at least four usable cells empty, so the recovery quest always has room for one Linden tea. Blockers can touch each other.
 
-At most three preparation blockers can be uncleared at the same time. This limit does not count the eight blockers of a new game. The other blockers wait in preparation order. A successful move, take, delivery, or payment tries placement again. A failed action places nothing.
+At most three preparation blockers can be uncleared at the same time. This limit does not count the eight blockers of a new game or the rat holes. The other blockers wait in preparation order. A successful move, take, delivery, or payment tries placement again. A failed action places nothing.
 
 A placement never replaces an item and never moves an item. A blocked cell can receive another blocker only after the earlier blocker is cleared and the cell is empty. Each blocker appears once. Its name and its explanation give its context. The label of the board gives the number of blockers that wait.
 
@@ -218,7 +225,43 @@ Recovery deliveries count towards this motion only during the current tab visit.
 
 A caption stays available if a painting cannot load. If a state has no accepted painting, the room shows the latest earlier painting of its area. It shows the caption of the new state. Authored lamps and lanterns light the room at story milestones.
 
-The game has no time-of-day clock, no energy limit, no timers, no purchases, no ads, and no accounts.
+The game has no energy limit, no timers, no purchases, no ads, and no accounts.
+
+### Day and night
+
+The bistro has a working day. Each merge is kitchen work, and kitchen work moves the clock. Each successful merge adds 6 minutes: a chain merge, a mixed merge, and a blocker merge. A failed merge, a move, a take, a delivery, a payment, and a scene do not move the clock. A new game starts on day 1 at 07:00. A day holds 150 merges, from 07:00 to 22:00. The masthead shows the day and the time, for example "Day 3 · 14:24". At 720px and below, day numbers of 10,000 or more use short form. The accessible name gives the exact day and time.
+
+The merge that reaches 22:00 closes the day in the same change, in this order:
+
+1. The merge applies with all its usual effects, including the placement of preparation blockers.
+2. The purse pays the upkeep of 10 coins.
+3. The thief rat or Șoricescu visits the board.
+4. The next day starts at 07:00.
+5. The game fixes the evening guest of the new day.
+6. The state records the night report.
+
+A loose raw ingredient is a stage-1 dish of a chain other than Herbs, on a cell without a blocker. Cooked dishes and herbs are safe overnight. If the board has a loose raw ingredient at closing, the thief rat comes. It picks up to three loose raw ingredients at random, by the random seed of the save. The game gives no warning, and the player cannot protect a cell. If fewer than three rat holes are open, the first pick stays in its cell, blocked in a new rat hole. The other picks leave the board. A rat hole is a blocker under the usual blocker rules: a merge of a matching dish clears it, the dish stays in the cell, and the purse gains the blocker coin. A rat hole replaces the pick in its cell, so it does not reduce the free cells.
+
+If the board has no loose raw ingredient, Șoricescu, the good rat of the neighbourhood, comes. A tidy kitchen earns his gift: the stage-4 dish of an open chain. The open chains take turns in their data order, by the number of earlier gifts. The gift goes into the free cell nearest to the bottom left of the board. It is not blocked. He leaves a gift only if the board has at least five free cells, so four free cells stay free for the recovery quest.
+
+The upkeep can take the purse below zero. A purse below zero is a debt: Mara writes it "pe caiet", in the notebook of the village shop. The purse shows a debt with a minus sign, for example "−12". A paid take and a payment need the coins. A free take, a delivery, and a cleared blocker work with a debt. The recovery quest stays open while the purse is short. The game has no defeat.
+
+After the closing, the interface plays a night of about three seconds. The room dims, and the rat of the night runs across its floor. On the board, the thief rat takes its picks and leaves its rat hole, or Șoricescu puts down his gift and lifts his hat. While the front room shows a mended window, its glass shows a night sky. A tap or a key ends the night at once, and that input does nothing else. The night does not play while the page is hidden or with reduced motion. Then a notice reports the upkeep, what the rat did, and the purse or the debt, and the notice marks the report as seen. If the page reloads before the notice shows, the notice shows after the load, without the night.
+
+#### Bookings
+
+Each quest of Vlad and Elisabeta is a booked quest. A booked ticket is a booked quest on a ticket. Each day has one evening guest at most:
+
+- At 07:00, if a booked ticket is on the counter, the game fixes the evening guest.
+- If no evening guest is fixed, the change that brings a booked ticket to the counter fixes the evening guest.
+- If only one guest has a booked ticket, that guest has the evening. If both have one, the guest who did not have the last evening has it. If neither had an evening, the guest whose quest is first in authored order has it.
+- The evening guest does not change until the next closing. An evening counts for its guest whether or not the player delivers the meal.
+
+The ticket of the evening guest shows "Booked for 20:00", and each other booked ticket shows "Booked for another evening". Each day admits one booked delivery, to the evening guest, from 20:00 to the closing. Before 20:00, the lantern control "Light the lanterns" takes the place of Deliver on the ticket of the evening guest. It works when the board holds every portion, and it moves the clock to 20:00 in one change. It spends no coins, and the closing comes sooner. So the player never has to cook food that no quest needs to wait for a guest. The opening of each booked quest names the booking time. A booked guest who does not get the meal books again for a later evening.
+
+#### End of act 1
+
+The supper delivery stops the clock. After the supper, merges do not move the clock, and no night comes. The supper records the result of act 1: the number of days and the purse at that moment. The result does not change after the supper, although the purse can change.
 
 Three quests offer a second finish for a detail of the bistro:
 
@@ -240,7 +283,7 @@ The art plan `docs/specs/001-visible-renovation-art-plan.md` defines the 25 pain
 
 ## Identity
 
-The game has 89 generated Portable Network Graphics (PNG) masters. They provide these items:
+The game has 93 generated Portable Network Graphics (PNG) masters. They provide these items:
 
 - 16 food atlases: one for each chain, with its source and its dishes, and four for the mixed dishes
 - portraits, including three atlases for the regulars
@@ -253,6 +296,7 @@ The game has 89 generated Portable Network Graphics (PNG) masters. They provide 
 - cat sprites and bat sprites
 - board clutter, with a web overlay and a twine overlay
 - 12 contextual preparation clutter pictures
+- two rat sprite sheets, the rat hole, and the night sky
 
 [`DELIVERY.md`](DELIVERY.md) gives the shipped image variants and the fonts.
 
@@ -274,7 +318,7 @@ If the game data cannot load or does not pass its checks, the kitchen says so an
 
 An import validates the envelope and the state of the save. The envelope is the outer record with the format and the version. A load and an import accept a top-level state field that the save format does not define. Play, the next save, and an export keep that field. A load ignores an envelope field that the format does not define, and the next save drops it. A board cell with an undefined field makes the save not valid. An import rejects damaged saved data and keeps the current save. An import enforces a size limit of 2 mebibytes (MiB). Load, save, import, and reset use only the save key of this game. They do not change other browser data.
 
-A current save has game state version 13 in envelope version 12 at the key `scary-snacks-save-v12`. The game supports only this format. Load reads only this key. If no current save exists, the game starts a new campaign.
+A current save has game state version 14 in envelope version 13 at the key `scary-snacks-save-v13`. The game supports only this format. Load reads only this key. If no current save exists, the game starts a new campaign.
 
 The completed quest ID of the supper quest records the served supper. A current save with all preparations complete and no served supper shows the supper quest. It earns the finale only when the player serves the supper. If such a save holds the finale as a waiting scene, load and import remove the finale before the check.
 
@@ -291,6 +335,8 @@ An arrival scene has the ID `arrival-` followed by the ID of its regular. Each s
 The completed preparations decide which chapters are complete. The completed quests and their delivery order decide the local news. A scene ID must stay the same after release. If a save has no waiting entry for a scene, the game treats that scene as read.
 
 A reset clears the waiting scenes with the rest of the state. An import replaces them only after full validation and confirmation.
+
+The state records the day and the merges of that day, the random seed, the cell and the ingredient of each open rat hole, the number of gifts, the evening guest, the guest of the last evening, and whether the day had its booked delivery. It records the last night report and whether the player saw its notice, and the result of act 1 after the supper. The purse can hold a whole number below zero. A reload, an export, and an import keep all of these. Only a closing with the thief rat uses and advances the seed. A failed action does not change it.
 
 The state records the completed quest IDs in delivery order. Each ID occurs once. Each completed quest has its prerequisites earlier in the list. Every completed preparation has its necessary quests in the list. Saved finish choices name only unlocked finishes. Export and import include the quest progress and the board layout.
 

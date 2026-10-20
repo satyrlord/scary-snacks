@@ -75,6 +75,13 @@ export const imageVariants = {
   'regulars-2': { widths: [640], formats: ['webp'] },
   'regulars-3': { widths: [640], formats: ['webp'] },
   mascots: { widths: [640], formats: ['webp'] },
+  // The rat sheets have 512px cells. The 1024px width gives 256px cells for a rat of at most one board cell.
+  'rat-thief': { widths: [1024], formats: ['webp'] },
+  'rat-soricescu': { widths: [1024], formats: ['webp'] },
+  // A rat hole fills one board cell.
+  'rat-hole': { widths: [256], formats: ['webp'] },
+  // The night sky shows only through the two upper panes of the front-room window.
+  'night-sky': { widths: [1024], formats: ['webp'] },
   // The painted room states fill a 3:4 room view; phones take the half-size painting.
   'front-room-00': { widths: [768, 1536], formats: ['avif', 'webp'] },
   'front-room-01': { widths: [768, 1536], formats: ['avif', 'webp'] },

@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { boardObstacles, mergePartners, requiredQuests, unresolvedObstacle } from '../../src/model.ts';
 import { createGame, reduceGame } from '../../src/engine.ts';
 import type { GameState } from '../../src/model.ts';
-import { checkpoint, data, saved, start as open, tile, validate } from './support.ts';
+import { checkpoint, data, saved, start as open, tile, validate, know, madeLine } from './support.ts';
 
 const help = (page: Page) => page.locator('#item-detail.blocker-help');
 /** The rule of a blocked dish: the matching dish, and each recipe partner that the player has made. */
@@ -24,7 +24,7 @@ function checkpointReady() {
   const state = checkpoint(5, { coins: 20 });
   for (const [index, cell] of state.board.entries()) if (cell && !data.items[cell.code].generator) state.board[index] = null;
   state.board[state.board.findIndex((cell, index) => !cell && !unresolvedObstacle(state, index, data))] = { code: 'poultry_1' };
-  state.discovered.push('poultry_1');
+  know(state,'poultry_1');
   return state;
 }
 async function start(page: Page, state = createGame(data), theme = 'light') {
@@ -61,7 +61,7 @@ test('every opening blocker has a rule mark and selecting clutter replaces sourc
 
 test('blocker help marks matching movable ingredients anywhere on the board', async ({ page }) => {
   const state = createGame(data); state.board[18] = { code: 'grain_3' };
-  if (!state.discovered.includes('grain_3')) state.discovered.push('grain_3');
+  if (!state.discovered.includes('grain_3')) know(state,'grain_3');
   await start(page, state); await tile(page, 0).click();
   expect(await targets(page)).toEqual([18]);
   await expect(page.locator('#blocker-rule')).toHaveText(rule('grain_3', state));
@@ -73,7 +73,7 @@ for (const [first, second] of [[0, 18], [18, 0]] as const) {
   test(`matching food clears a blocker in two taps, starting at cell ${first}`, async ({ page }) => {
     const initial = createGame(data);
     initial.board[18] = { code: 'grain_3' };
-    initial.discovered.push('grain_3');
+    know(initial,'grain_3');
     await start(page, initial);
     await tile(page, first).click();
     expect(await saved(page)).toEqual(initial);
@@ -103,7 +103,7 @@ test('keyboard navigation clears a selected blocker with a matching ingredient',
   const initial = createGame(data);
   initial.board[13] = null;
   initial.board[14] = { code: 'grain_2' };
-  initial.discovered.push('grain_2');
+  know(initial,'grain_2');
   await start(page, initial);
   await tile(page, 6).focus();
   await page.keyboard.press('Enter');
@@ -118,7 +118,7 @@ test('keyboard navigation clears a selected blocker with a matching ingredient',
   expect((await saved(page)).resolvedObstacles).toEqual(['tied-dough']);
   // A cleared blocker gives the blocker coin, and the notice and the purse say so.
   expect((await saved(page)).coins).toBe(data.economy.blockerCoin);
-  await expect(page.locator('#status')).toHaveText(`${data.items.grain_3.name} is a new dish! It is in the recipe book now. The blocker is cleared: +1 coin.`);
+  await expect(page.locator('#status')).toHaveText(`${madeLine(initial, 'grain_3')} The blocker is cleared: +1 coin.`);
   await expect(page.locator('#coins')).toHaveText(String(data.economy.blockerCoin));
 });
 
@@ -129,7 +129,7 @@ test('touch clears a selected blocker with the second tap', async ({ browser, ba
     const initial = createGame(data);
     initial.board[13] = null;
     initial.board[14] = { code: 'grain_2' };
-    initial.discovered.push('grain_2');
+    know(initial,'grain_2');
     await start(page, initial);
     await tile(page, 6).tap();
     await tile(page, 14).tap();
@@ -177,7 +177,7 @@ test('new preparation blocker identifies matching movable ingredients', async ({
 });
 
 test('blocker guidance excludes sources, final dishes, mismatches and blocked ingredients', async ({ page }) => {
-  const state = createGame(data); state.board[18] = { code: 'grain_6' }; state.discovered.push('grain_6');
+  const state = createGame(data); state.board[18] = { code: 'grain_6' }; know(state,'grain_6');
   await start(page, state); await tile(page, 41).click();
   await expect(help(page)).toBeVisible();
   await expect(page.locator('#blocker-rule')).toHaveText(rule('grain_2', state));
@@ -187,7 +187,7 @@ test('blocker guidance excludes sources, final dishes, mismatches and blocked in
 });
 
 test('anchor help marks matching movable food and clears with the second tap', async ({ page }) => {
-  const state = createGame(data); state.board[13] = null; state.board[14] = { code: 'grain_2' }; state.discovered.push('grain_2');
+  const state = createGame(data); state.board[13] = null; state.board[14] = { code: 'grain_2' }; know(state,'grain_2');
   await start(page, state); await tile(page, 6).click();
   await expect(help(page)).toBeVisible(); await expect(help(page).locator('.blocker-title')).toHaveText('Tied dough');
   await expect(page.locator('#blocker-rule')).toHaveText(rule('grain_2', state));
@@ -279,6 +279,6 @@ test('a recipe partner clears a blocker: the mixed dish stays in the blocked cel
   const after = await saved(page), sweet = data.items['mixed_sweet-dough'];
   expect(after.board[dough.position]).toEqual({ code: sweet.id }); expect(after.board[eggs]).toBeNull();
   expect(after.resolvedObstacles).toContain(dough.id); expect(after.coins).toBe(state.coins + data.economy.blockerCoin);
-  await expect(page.locator('#status')).toHaveText(`${sweet.name} is a new dish! It is in the recipe book now. The blocker is cleared: +1 coin.`);
+  await expect(page.locator('#status')).toHaveText(`${madeLine(state, sweet.id)} The blocker is cleared: +1 coin.`);
   await expect(tile(page, dough.position)).not.toHaveClass(/obstacle/);
 });

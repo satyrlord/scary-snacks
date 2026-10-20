@@ -29,6 +29,12 @@ export type AssetId =
   | 'decoration-courtyard'
   | 'finale-supper'
   | 'board-clutter'
+  | 'rat-thief-reference'
+  | 'rat-soricescu-reference'
+  | 'rat-thief'
+  | 'rat-soricescu'
+  | 'rat-hole'
+  | 'night-sky'
   | RoomStateId
   | SketchId
   | SceneId;
@@ -92,6 +98,14 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   'regulars-2': portraitAtlas,
   'regulars-3': { ...portraitAtlas, blankCells: [2, 3] },
   mascots: portraitAtlas,
+  // The two rats of the night (spec 013): one reference pose of each, then a sheet of eight poses with that pose as its identity reference.
+  'rat-thief-reference': { background: 'transparent', shape: 'square', columns: 1, rows: 1, defaultSize: '1024x1024' },
+  'rat-soricescu-reference': { background: 'transparent', shape: 'square', columns: 1, rows: 1, defaultSize: '1024x1024' },
+  'rat-thief': { background: 'transparent', shape: 'landscape-2x1', columns: 4, rows: 2, defaultSize: '2048x1024' },
+  'rat-soricescu': { background: 'transparent', shape: 'landscape-2x1', columns: 4, rows: 2, defaultSize: '2048x1024' },
+  // The rat hole blocker, and the night sky behind the upper panes of the front-room window.
+  'rat-hole': { background: 'transparent', shape: 'square', columns: 1, rows: 1, defaultSize: '1024x1024' },
+  'night-sky': { background: 'opaque', shape: 'landscape-2x1', columns: 1, rows: 1, defaultSize: '2048x1024' },
   'timber-tabletop': {
     background: 'opaque',
     shape: 'square',

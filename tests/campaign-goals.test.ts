@@ -111,9 +111,9 @@ test('the funding check rejects a preparation that the work of the quests before
   costly.tasks[0].cost = earned + 1;
   assert.match(questProblems(costly).join(' '), new RegExp(`^task_1: the quests before it earn ${earned} coins of work, less than the ${earned + 1} that the preparations cost\\.`));
   assert.ok(dataProblems(costly).length);
-  // A quest with less work earns less, even when its reward matches its menu value.
+  // Quests with less work earn less, even when their rewards match their menu values.
   const cheap = structuredClone(data);
-  Object.assign(cheap.quests.find(quest => quest.id === 'mara-cellar')!, { requirements: [{ item: 'herbs_2', quantity: 1 }], reward: data.items.herbs_2.price });
+  for (const id of ['mara-cellar', 'ilie-stove']) Object.assign(cheap.quests.find(quest => quest.id === id)!, { requirements: [{ item: 'herbs_2', quantity: 1 }], reward: data.items.herbs_2.price });
   assert.match(questProblems(cheap).join(' '), /^task_1: the quests before it earn \d+ coins of work, less than the 400/);
   // The shortfall carries forward: the totals are cumulative.
   const surplus = requiredQuests(data.tasks.length, data).reduce((sum, quest) => sum + work(quest), 0) - data.tasks.reduce((sum, task) => sum + task.cost, 0);

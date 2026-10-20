@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { requiredQuests, unresolvedObstacle } from '../../src/model.ts';
 import { createGame } from '../../src/engine.ts';
 import type { GameState } from '../../src/model.ts';
-import { act, checkpoint, data, deliverButton, opened, options, saved, serialize, start, supplies, supply, tile, toast, validate } from './support.ts';
+import { act, checkpoint, data, deliverButton, newGame, opened, options, saved, serialize, start, supplies, supply, tile, toast, validate, know } from './support.ts';
 
 const first = data.tasks[0];
 const pay = (page: Page) => page.locator('#story').getByRole('button', { name: /^Pay / });
@@ -42,7 +42,7 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 800 
     await page.keyboard.press('Space');await expect(details()).toBeFocused();
     await expect(details()).toHaveAttribute('aria-expanded','false');await expect(costs).toBeHidden();
     await details().click();await expect(costs).toBeVisible();await details().click();await expect(costs).toBeHidden();
-    expect(await saved(page)).toEqual(createGame(data));
+    expect(await saved(page)).toEqual(await newGame(page));
     if (phone) { await page.keyboard.press('Escape'); await expect(page.locator('#story-button')).toBeFocused(); }
   });
 }
@@ -130,7 +130,7 @@ test('source placement is the only visible requirement until a merge frees a spa
   const index=data.tasks.findIndex(task=>task.unlock),task=data.tasks[index];
   const state=checkpoint(index,{ready:true});
   state.board.forEach((cell,at)=>{if(!cell&&!unresolvedObstacle(state,at,data))state.board[at]={code:'grain_6'};});
-  state.discovered.push('grain_6');expect(validate(state)).toBe(true);
+  know(state,'grain_6');expect(validate(state)).toBe(true);
   await start(page,state);
   const source=data.items[`generator_${task.unlock}`].name;
   await expect(page.locator('#story .preparation-requirements li')).toHaveText([`Free a board space for the ${source}.`]);
@@ -167,10 +167,10 @@ test('delivering the last required quest makes the phone offer ready', async ({ 
 test('a ready preparation keeps guide Stop visible after delivery clears the selected dish', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  // The last quest of the ninth preparation takes the Smoked cheese that the guide to the Sharing board selects: it is Smoked cheese and Sausages.
-  const fixture = lastQuestReady(8, ['pork_3']), state = fixture.state, sharing = data.items['mixed_sharing-board'];
+  // The last quest of the eleventh preparation takes the Smoked cheese that the guide to the Sharing board selects: it is Smoked cheese and Sausages.
+  const fixture = lastQuestReady(10, ['pork_3']), state = fixture.state, sharing = data.items['mixed_sharing-board'];
   expect(sharing.recipe).toEqual(['dairy_5', 'pork_3']); expect(supplies(fixture.last)).toContain('dairy_5'); expect(supplies(fixture.last)).not.toContain(sharing.id);
-  state.discovered.push(sharing.id);
+  know(state,sharing.id);
   await start(page, state);
   await page.locator('#recipes-button').click();
   await page.getByRole('button', { name: sharing.name, exact: true }).click();

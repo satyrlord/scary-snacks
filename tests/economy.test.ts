@@ -4,7 +4,7 @@ import { canDeliverQuest, freeBoardCells, menuPrice, pendingPreparationObstacles
 import { dataProblems, economyProblems } from '../src/content.ts';
 import { KEEP_FREE } from '../src/engine.ts';
 import type { GameData, GameState } from '../src/model.ts';
-import { act, addOpenLayout, checkpoint, data, deliver, opened, openGame, player, rejected, supply } from './support.ts';
+import { act, addOpenLayout, checkpoint, data, deliver, opened, openGame, player, rejected, supply, know } from './support.ts';
 
 addOpenLayout();
 
@@ -32,8 +32,8 @@ test('renovation cost follows its materials and labour, with less work and money
   }
 });
 
-test('the starting levers are one coin a take, one coin a blocker, one coin a merge, and a recovery floor of ten', () => {
-  assert.deepEqual(data.economy, { takeCost: 1, blockerCoin: 1, workRate: 1, recoveryFloor: 10 });
+test('the starting levers are one coin a take, one coin a blocker, two coins a merge, and a recovery floor of ten', () => {
+  assert.deepEqual(data.economy, { takeCost: 1, blockerCoin: 1, workRate: 2, recoveryFloor: 10 });
   assert.deepEqual(Object.values(data.items).filter(item => item.generator?.free).map(item => item.id), ['generator_herbs']);
 });
 
@@ -46,10 +46,10 @@ test('every menu price equals staples times the take cost plus merges times the 
   }
   // Bulz: Mămăligă (8 Corn staples, 7 merges) and Telemea (8 Dairy staples, 7 merges), and one recipe merge.
   assert.deepEqual(formula('mixed_bulz'), { staples: 16, merges: 15 });
-  assert.equal(data.items.mixed_bulz.price, 31);
+  assert.equal(data.items.mixed_bulz.price, 46);
   assert.equal(data.items.herbs_1.price, 0, 'Elderflowers are free.');
-  assert.equal(data.items.herbs_4.price, 7, 'One Linden tea pays its seven merges.');
-  assert.equal(data.items['mixed_cozonac'].price, 9);
+  assert.equal(data.items.herbs_4.price, 14, 'One Linden tea pays its seven merges at two coins each.');
+  assert.equal(data.items['mixed_cozonac'].price, 13);
 });
 
 test('every quest except the supper pays exactly the menu value of its dishes, and the supper pays nothing', () => {
@@ -135,11 +135,12 @@ test('a recovery delivery pays its menu value and records nothing, so the quest 
   assert.equal(delivered.coins, recovery.reward);
   assert.deepEqual(delivered.completedQuests, state.completedQuests);
   assert.deepEqual(delivered.pendingScenes, state.pendingScenes);
-  assert.equal(status(delivered, recovery.id), 'active', 'Seven coins stay below the floor.');
-  const again = deliver(delivered, recovery.id);
-  assert.equal(again.coins, 2 * recovery.reward);
-  assert.equal(status(again, recovery.id), 'locked');
-  rejected(again, { type: 'deliverQuest', id: recovery.id });
+  // One tea lifts an empty purse above the floor, so the quest closes, and it opens again when the purse runs low.
+  assert.equal(status(delivered, recovery.id), 'locked', 'Fourteen coins reach the floor.');
+  rejected(delivered, { type: 'deliverQuest', id: recovery.id });
+  const low = { ...delivered, coins: data.economy.recoveryFloor - 1 };
+  assert.equal(status(low, recovery.id), 'active');
+  assert.equal(deliver(low, recovery.id).coins, low.coins + recovery.reward);
 });
 
 test('with exactly four free cells and queued blockers, one Linden tea is made from scratch and delivered', () => {
@@ -149,7 +150,7 @@ test('with exactly four free cells and queued blockers, one Linden tea is made f
   assert.ok(queued > 0, 'Blockers wait for space.');
   // Fill the board with Bread baskets, which merge with nothing, until four cells stay free.
   while (freeBoardCells(start, data) > KEEP_FREE) start.board[start.board.findIndex((cell, index) => !cell && !unresolvedObstacle(start, index, data))] = { code: 'grain_6' };
-  start.discovered.push('grain_6');
+  know(start, 'grain_6');
   start.coins = data.tasks[2].cost - data.economy.takeCost;
   assert.equal(status(start, recovery.id), 'active');
   const play = player(start);

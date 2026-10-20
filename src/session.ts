@@ -15,6 +15,8 @@ export let saveMessage = '', saveFailed = false, recoveryRequired = false;
 let observedSave: string | null = null, gameVersion = 0;
 const BLOCKED_STORAGE = 'Not saved: this browser blocks storage, so this game lasts only for this visit.';
 export const validate = (candidate: unknown) => validateGame(candidate, data);
+/** A new game with a random seed for the thief rat. */
+export const newGame = () => createGame(data, crypto.getRandomValues(new Uint32Array(1))[0]);
 export const repair = (candidate: unknown) => repairSave(candidate, data);
 export const definition = (code: string) => getItem(code,data)!;
 export const itemName = (code: string) => definition(code).name;
@@ -47,7 +49,7 @@ export async function open(value: GameData): Promise<LoadResult<GameState>> {
   data = value;
   const load = () => loadSave<GameState>(storage, validate, repair);
   const saved = storage&&navigator.locks?await navigator.locks.request(SAVE_KEY,load):load();
-  state = saved.state ?? createGame(data);
+  state = saved.state ?? newGame();
   // A reload cannot open blocked storage, so that game plays for this visit without the recovery block.
   recoveryRequired = Boolean(storage) && !['loaded','empty'].includes(saved.status);
   observedSave = saved.text;

@@ -5,12 +5,13 @@ Status: Implemented.
 ## Behavior
 
 [`src/engine.ts`](../../src/engine.ts) records the item codes that the player discovers in the permanent `discovered` set.
-A new game discovers only the items on its initial board.
-After that, only a successful take or merge discovers a dish.
+A new game discovers the items on its initial board and the dishes of the quests that hold a ticket.
+After that, a successful take or merge discovers its dish, and a gift of Șoricescu discovers the gift.
+A quest that takes a ticket discovers its dishes, so a ticket never shows a dish that the recipe book hides.
 A blocker shows its blocked dish on the board, but it does not discover that dish.
-A delivery, a blocker placement, and a dialog do not discover a dish.
+A blocker placement and a dialog do not discover a dish.
+A delivery can reveal a new ticket and discover its dishes.
 A preparation payment discovers the source that it unlocks. A source is not a dish.
-Thus one action discovers at most one dish.
 
 The `recipeBook` function in [`src/dishes.ts`](../../src/dishes.ts) shows one section for each of the 12 chains, with its dishes in stage order.
 A last section, Mixed dishes, lists the 24 mixed dishes of spec 012 in a fixed order.
@@ -63,14 +64,16 @@ Text from a save never becomes HyperText Markup Language (HTML).
 
 ## Acceptance and evidence
 
-- Engine: a new game discovers only its initial board items.
-  A take and a merge discover a dish once.
-  A visible blocker, a delivery, a failed action, and a dialog add no dish discovery.
+- Engine: a new game discovers its initial board items and the dishes of its tickets.
+  A take, a merge, and a gift discover a dish once.
+  A new ticket discovers its dishes, including when a delivery makes that ticket available.
+  A visible blocker, a failed action, and a dialog add no dish discovery.
   A delivered dish stays discovered.
 - Engine: a merge that makes a new dish and places a waiting blocker keeps both parts of the message.
 - Saves: discoveries survive a save and a load. The game rejects unknown item IDs without a change to the original save.
-- Browser: a dish that a quest needs and the player has not made stays covered.
-  Make the dish with legal actions, deliver it, and reload. The book entry must stay revealed.
+- Browser: a dish that a ticket needs is revealed before the player makes it.
+  A dish with no discovery stays covered.
+  Make a dish with legal actions, deliver it, and reload. The book entry must stay revealed.
 - Browser: open a discovered dish near the end of the book. Close and Escape return to that dish and restore the book's scroll position. "Show me on the board" goes straight to the board. Quest help still returns to its quest.
 - Browser: a temporary guide updates after takes, merges, moves, blocker clearing, and delivery. It ends when one requested dish is made, when the player stops it, or when another game replaces this one. It changes no saved field and does not move or merge an item on its own.
 - Browser: on a full board, guide a ready delivery, an ordinary merge, and a blocker merge. If no action can make room, give an accurate note. A blocked pair is not a legal merge, and no full-board guide suggests a source take.

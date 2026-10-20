@@ -49,7 +49,8 @@ Give the file evidence for each problem.
 - Locality: code and contracts that change together must have one owner.
 - Dependencies: the engine must not use the Document Object Model (DOM), storage, sound, or rendering.
   The storage module must not use the DOM. The storage module receives the browser storage from `src/session.ts`.
-- Determinism: the engine must have no random values and no clock values.
+- Determinism: the engine must have no random source and no wall-clock values.
+  The session gives a new game its random seed, and only the seed in the state drives a random outcome.
   The same state and the same actions must give the same result.
 - One value, one owner: one function must give a value that the interface shows and the engine applies.
 

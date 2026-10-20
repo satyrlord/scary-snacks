@@ -119,7 +119,7 @@ function nextStep(code: string, includeReady = false, goalName = itemName(code),
 function roomStep(name: string): Step {
   // A campaign quest comes before the recovery quest, which only refills a short purse.
   const delivery = resolveQuests(state,data).sort((a, b) => Number(!!a.quest.recovery) - Number(!!b.quest.recovery)).find(({quest}) => canDeliverQuest(state,quest,data)
-    && questDeliveryCells(state,quest,data).length > 0 && integer(state.coins + quest.reward));
+    && questDeliveryCells(state,quest,data).length > 0 && integer(state.coins + quest.reward, -1_000_000_000));
   if (delivery) return { at:[], ticket:delivery.quest.id,
     line:`The board is full. Deliver ${delivery.quest.title} to make space for ${name}.`,
     short:`For ${name}: deliver ${delivery.quest.title}` };

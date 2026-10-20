@@ -130,6 +130,28 @@ export function swapMark() {
   const arrows=svg('path');arrows.setAttribute('d','M7.5 10a5 5 0 0 1 8.6-2.2M16.5 5.5v2.8h-2.8M16.5 14a5 5 0 0 1-8.6 2.2M7.5 18.5v-2.8h2.8');
   value.append(face,arrows);return value;
 }
+/** A hanging lantern: the control that brings tonight's booked guest. */
+export function lanternMark() {
+  const value=svg('svg');value.setAttribute('class','lantern-mark');value.setAttribute('viewBox','0 0 24 24');value.setAttribute('aria-hidden','true');
+  const ring=svg('path');ring.setAttribute('d','M12 2.5v2M9.5 4.5h5');
+  const body=svg('path');body.setAttribute('d','M8.5 7h7l1 3v6.5l-1 2h-7l-1-2V10z');
+  const flame=svg('path');flame.setAttribute('d','M12 10.5c1.3 1.4 1.3 3 0 4-1.3-1-1.3-2.6 0-4z');
+  value.append(ring,body,flame);return value;
+}
+/** A crescent moon: a booked table for another evening. */
+export function moonMark() {
+  const value=svg('svg');value.setAttribute('class','moon-mark');value.setAttribute('viewBox','0 0 24 24');value.setAttribute('aria-hidden','true');
+  const moon=svg('path');moon.setAttribute('d','M15.5 4.5a8 8 0 1 0 4 12.8A7 7 0 0 1 15.5 4.5z');
+  value.append(moon);return value;
+}
+/** One pose of a rat of the night, from its sheet of eight poses: four columns and two rows. */
+export function ratSprite(rat: 'thief' | 'soricescu', className: string) {
+  const value=element('span',`rat-sprite rat-${rat} ${className}`);value.setAttribute('aria-hidden','true');return value;
+}
+/** Shows a pose of a rat sprite: 0 and 1 come out of the board, 2 to 5 act, and 6 and 7 scurry. */
+export function ratPose(sprite: HTMLElement, pose: number) {
+  sprite.style.backgroundPosition=`${pose%4*100/3}% ${Math.floor(pose/4)*100}%`;
+}
 /** A plate under a dashed dome cover: the "not yet" mark for a dish nobody has made. */
 export function coveredDish() {
   const value=svg('svg');value.setAttribute('class','covered-dish');value.setAttribute('viewBox','0 0 48 48');value.setAttribute('aria-hidden','true');

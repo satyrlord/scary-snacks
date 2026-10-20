@@ -15,13 +15,13 @@ The [economy record](../economy.md) gives the price table, the work scopes, the 
 ## Economy rules
 
 1. Each dish has a menu price from the formula of spec 012: the paid staples times the take cost, plus the merges times the work rate.
-   A source has no price. Flour costs 1 coin. Elderflowers cost nothing. Linden tea costs 7 coins.
+   A source has no price. Flour costs 1 coin. Elderflowers cost nothing. Linden tea costs 14 coins.
    The menu value of a quest is the sum of the prices of its portions.
 2. The economy record gives the price of each dish.
 3. Every quest except the supper pays its menu value. The supper pays nothing. No quest has a reward multiplier.
 4. A take from a paid source spends the take cost. A take from the Herb basket is free. Each cleared blocker gives the blocker coin.
 5. A window is the group of quests that open after one preparation. The quests in each window make their work value cover the preparation costs.
-6. A dish leaves the board only by a merge or a delivery.
+6. A dish leaves the board by a merge, a delivery, or a theft at closing (spec 013).
 7. Each preparation defines its work scope, material or stock allowance, labour allowance,
    and estimated active person-hours. Its cost is materials plus labour. The order of the preparations does not change the cost.
 8. The reference scale is one coin for about one Romanian leu. The model uses supplier and service
@@ -72,17 +72,22 @@ A failed write keeps the current save. The player can recover.
 Run `node tools/campaign-balance.ts`. `tests/campaign-balance.test.ts` runs the same checks in the full gate.
 
 The fixture starts a new game. It pays each preparation as soon as it is ready.
-Otherwise it delivers the ticket whose staples cost the least.
-It delivers the recovery quest only while the purse cannot buy a staple.
+Otherwise it delivers the booked quest of the evening first.
+It lights the lanterns when that meal is ready before 20:00.
+Then it delivers the unbooked ticket whose staples cost the least.
+It cooks booked meals for later evenings when no other quest remains.
+It delivers recovery tea before a quest if the purse cannot buy its staples.
+Within 30 merges of closing, it also makes recovery tea if the purse cannot pay the upkeep.
+Between quests, it clears the cheapest blocker while fewer than 24 cells are free.
 It makes each required dish from spare food on the board, or from stage-one staples, merges, and recipes.
 When the board is full, it merges spare food: a pair, a recipe, or a match for a blocked dish.
 A full board without such a merge is a deadlock, and the fixture fails.
 After the last preparation, the fixture serves the supper.
 
 Each preparation and chapter reports successful actions, takes, merges, deliveries, recovery deliveries,
-quest income, blocker income, preparation expense, take expense, and balance.
+quest income, blocker income, preparation expense, take expense, upkeep, and balance.
 Preparation records also include work scope, material and labour budgets, and free cells.
-The report gives the purse after the supper and the coins spent on preparations and takes.
+The report gives the purse after the supper and the coins spent on preparations, takes, and upkeep.
 The purse after the supper must be inside the balance band of spec 012: 0 to 10% of those coins.
 The fixture checks state validity and every coin after each action.
 

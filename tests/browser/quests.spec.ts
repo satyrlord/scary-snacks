@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { firstFreeBoardCell, getItem } from '../../src/model.ts';
 import { createGame } from '../../src/engine.ts';
 import type { GameState, Quest } from '../../src/model.ts';
-import { act, checkpoint, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readTo, replaceSave, restoreWrites, saved, serialize, start, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate } from './support.ts';
+import { act, checkpoint, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readTo, replaceSave, restoreWrites, saved, serialize, start, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate, know } from './support.ts';
 
 /** The first campaign quest of each neighbour who lives in the village. The recovery quest stands outside the order of quests. */
 const campaign=data.quests.filter(value=>!value.recovery);
@@ -294,7 +294,7 @@ test('quest dish help keeps focus on the next blocked merge on desktop and phone
 test('Find on a missing quest dish goes straight to the next board step',async({page})=>{
   const initial=createGame(data),value=quest('mara-welcome');
   await page.setViewportSize({width:390,height:844});await start(page,initial);await openQuest(page,value);
-  await page.getByRole('button',{name:'Find the next step for Socată on the board'}).click();
+  await page.getByRole('button',{name:'Find the next step for Herb bunch on the board'}).click();
   await expect(page.locator('#modal')).toBeHidden();
   await expect(page.locator('#board .selected')).toHaveAttribute('aria-label',/Elderflowers/);
   await expect(page.locator('#board .selected')).toBeFocused();
@@ -304,7 +304,7 @@ test('Find on a missing quest dish goes straight to the next board step',async({
 
 test('Find seeks another portion when one required dish is already on the board',async({page})=>{
   const initial=createGame(data),value=quest('sorin-first-ride');
-  initial.board[18]={code:'grain_2'};initial.discovered.push('grain_2');
+  initial.board[18]={code:'grain_2'};know(initial,'grain_2');
   await start(page,initial);await openQuest(page,value);
   const find=page.getByRole('button',{name:'Find the next step for Dough on the board'});
   await expect(find).toBeVisible();await find.click();
@@ -379,7 +379,8 @@ test('delivery keeps a dish guide, Stop cancels it, and reload clears it',async(
 });
 
 test('a quest row with enough portions keeps dish help and has no Find control',async({page})=>{
-  const value=quest('sorin-first-ride'),initial=supply(createGame(data),['grain_2','grain_2']);
+  // The Socată by the Herb basket goes, so the Socată row misses its portion.
+  const value=quest('sorin-first-ride'),initial=supply(createGame(data),['grain_2','grain_2']);initial.board[32]=null;
   await start(page,initial);await openQuest(page,value);
   await expect(page.getByRole('button',{name:'Find the next step for Dough on the board'})).toHaveCount(0);
   await expect(page.getByRole('button',{name:'Find the next step for Socată on the board'})).toBeVisible();
@@ -455,7 +456,7 @@ test('keyboard and emulated touch can open a quest and deliver it with focus ret
 function almost(state: GameState,value: Quest){
   const next=structuredClone(state),item=value.requirements[0].item,lower=Object.values(data.items).find(candidate=>candidate.next===item)!.id;
   const first=next.board.findIndex(cell=>cell?.code===item);next.board[first]={code:lower};
-  const second=firstFreeBoardCell(next,data);next.board[second]={code:lower};if(!next.discovered.includes(lower))next.discovered.push(lower);
+  const second=firstFreeBoardCell(next,data);next.board[second]={code:lower};if(!next.discovered.includes(lower))know(next,lower);
   expect(validate(next)).toBe(true);return {state:next,first,second};
 }
 

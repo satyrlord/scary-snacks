@@ -9,7 +9,7 @@ import type { GameData } from '../src/model.ts';
 
 test('the PNG masters match their provenance records',async()=>{
   const record=JSON.parse(await readFile('docs/asset-provenance.json','utf8'));
-  assert.equal(record.assets.length,89);
+  assert.equal(record.assets.length,93);
   const names=await readdir('public/assets/original');
   assert.deepEqual(names.sort(),record.assets.map((a: { file: string })=>a.file.split('/').at(-1)).sort());
   for(const asset of record.assets){assert.equal(asset.sourceGameImageInput,false);const bytes=await readFile(asset.file);assert.equal(createHash('sha256').update(bytes).digest('hex'),asset.sha256,asset.id);assert.ok(asset.width>1000);}

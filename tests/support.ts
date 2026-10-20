@@ -1,8 +1,8 @@
 // Shared fixtures for the Node tests: the game data, checked actions, checkpoint saves, quest deliveries, and a storage in memory.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { firstFreeBoardCell, generatorOutputs, getItem, requiredQuests } from '../src/model.ts';
-import { createGame, reduceGame, validateGame } from '../src/engine.ts';
+import { canLightLanterns, firstFreeBoardCell, generatorOutputs, getItem, requiredQuests } from '../src/model.ts';
+import { createGame, reduceGame, revealTickets, validateGame } from '../src/engine.ts';
 import { dataProblems } from '../src/content.ts';
 import type { Action, GameData, GameState } from '../src/model.ts';
 import { checkpointState } from '../tools/create-checkpoint-saves.ts';
@@ -12,7 +12,9 @@ export const validate = (candidate: unknown) => validateGame(candidate, data);
 
 /** Adds a board layout without obstacles to the shared data. openGame starts a new game on it. */
 export const addOpenLayout = () => { data.board.layouts.push({ id: 'test-open', obstacles: [] }); };
-export const openGame = (): GameState => ({ ...createGame(data), layoutId: 'test-open' });
+/** A new game with a fixed seed, so that two new games are equal. */
+const newGame = (content = data) => createGame(content, 1);
+export const openGame = (): GameState => ({ ...newGame(), layoutId: 'test-open' });
 
 /** Applies a legal action: it succeeds, leaves its input unchanged, and gives a valid state. */
 export function act(state: GameState, action: Action, content = data): GameState {
@@ -40,7 +42,17 @@ export function ready(state: GameState, content = data): GameState {
   const next = structuredClone(state);
   for (const quest of requiredQuests(next.taskIndex, content)) if (!next.completedQuests.includes(quest.id)) next.completedQuests.push(quest.id);
   next.coins = content.tasks[next.taskIndex].cost;
+  revealTickets(next, content);
   return next;
+}
+/** Puts dishes in the recipe book of a hand-made state. A ticket may have put a dish there already. */
+export function know(state: GameState, ...codes: string[]) {
+  for (const code of codes) if (!state.discovered.includes(code)) state.discovered.push(code);
+}
+/** A hand-made state with the dishes of its ticketed quests in the recipe book, as the engine keeps them after each action. */
+export function withTickets(state: GameState, content = data): GameState {
+  revealTickets(state, content);
+  return state;
 }
 export const payNext = (state: GameState, content = data) => act(ready(state, content), { type: 'task' }, content);
 
@@ -60,7 +72,20 @@ export function supply(state: GameState, id: string): GameState {
   }
   return supplied;
 }
-export const deliver = (state: GameState, id: string) => act(supply(state, id), { type: 'deliverQuest', id });
+/**
+ * A copy in which a booked quest has this evening. Checkpoint saves skip the actions that fix the evening guest, so the quest
+ * tests set it here; tests/day.test.ts covers the choice of the evening guest.
+ */
+export function tonight(state: GameState, id: string): GameState {
+  const quest = data.quests.find(quest => quest.id === id)!;
+  return quest.booked ? { ...state, evening: { ...state.evening, guest: quest.character, delivered: false } } : state;
+}
+/** Delivers a quest from supplied items. A booked quest gets this evening, and the lanterns bring its guest. */
+export function deliver(state: GameState, id: string) {
+  let next = tonight(supply(state, id), id);
+  if (canLightLanterns(next, data.quests.find(quest => quest.id === id)!, data)) next = act(next, { type: 'lantern', id });
+  return act(next, { type: 'deliverQuest', id });
+}
 
 /**
  * A player who takes only legal actions, and who makes each dish from its source, merges, and recipes. A recipe merges its second

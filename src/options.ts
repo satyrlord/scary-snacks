@@ -1,10 +1,9 @@
 // Options: appearance, motion, sound, the saved game with its export, import, and recovery, a fresh start, and the version.
-import { createGame } from './engine.ts';
 import type { GameState } from './model.ts';
 import { exportSave, importSave, loadSave, resetSave, saveGame, MAX_SAVE_BYTES } from './storage.ts';
 import { $, button, coinText, count, element, reason, status } from './dom.ts';
 import { modal, showModal } from './dialog.ts';
-import { adopt, changeGame, data, onRecovery, persist, recoveryRequired, repair, saveFailed, saveMessage, state, validate } from './session.ts';
+import { adopt, changeGame, data, newGame, onRecovery, persist, recoveryRequired, repair, saveFailed, saveMessage, state, validate } from './session.ts';
 import { MOTIONS, THEMES, motion, motionNote, setMotion, setTheme, soundToggle, storage, theme } from './preferences.ts';
 
 function downloadSave() {
@@ -53,7 +52,7 @@ export function options() {
     // The safe choice holds focus, so a stray Enter keeps the game.
     const keep=button('Keep this game','secondary-button',options),choice=element('div','settings-actions');
     choice.append(button('Erase and start again','danger-button',()=>changeGame(()=>{
-      const fresh=createGame(data),result=resetSave(storage,fresh,validate);if(!result.ok){showModal('Reset failed',element('p','save-error',result.error ?? ''));return;}
+      const fresh=newGame(),result=resetSave(storage,fresh,validate);if(!result.ok){showModal('Reset failed',element('p','save-error',result.error ?? ''));return;}
       adopt(fresh,result);modal.close();status('The kitchen is ready for a fresh start.');
     },true)),keep);
     const confirm=element('div');confirm.append(element('p','modal-copy','This erases the dishes, coins, story progress, discoveries, and decoration finishes saved in this browser. Export a copy first if you want to keep this game.'),choice);showModal('Start a new game?',confirm,keep);

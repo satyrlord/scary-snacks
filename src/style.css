@@ -59,11 +59,14 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .masthead { display: flex; gap: 20px; align-items: baseline; }
 .brand { display: flex; align-items: baseline; gap: 24px; min-width: 0; }
 /* The cat is an empty box, so its bottom edge sits on the wordmark baseline. */
-.wordmark { display: flex; align-items: baseline; gap: 8px; font: 600 48px/1 'Grenze Gotisch', serif; letter-spacing: 0; color: var(--ink); white-space: nowrap; }
+.wordmark { display: flex; flex-shrink: 0; align-items: baseline; gap: 8px; font: 600 48px/1 'Grenze Gotisch', serif; letter-spacing: 0; color: var(--ink); white-space: nowrap; }
 /* Cropped to the sitting cat's alpha bounds (252,119)–(638,753) in the 1536px mascot atlas. */
 .wordmark .mascot { height: 1.2em; aspect-ratio: 386/634; flex-shrink: 0; background-size: 397.93% 242.27%; background-position: 21.913% 13.193%; filter: var(--cat-glow); }
-.tagline { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.tagline { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-size: 13px; white-space: nowrap; }
 .header-controls { margin-left: auto; flex-shrink: 0; display: flex; align-items: center; gap: 16px; }
+/* The day and the time beside the purse. */
+.day-clock { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.2; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.clock-day { color: var(--ink); font-weight: 600; }
 .coin-count { position: relative; display: flex; align-items: baseline; gap: 8px; padding-right: 16px; border-right: 1px solid var(--line); color: var(--gold); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .coin { align-self: center; width: 22px; height: 22px; flex-shrink: 0; }
 .coin-face { fill: var(--coin-face); stroke: var(--coin-rim); stroke-width: 1.5; }
@@ -114,6 +117,19 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .window-sky { position: absolute; left: 71%; top: 24.5%; width: 19.4%; height: 21%; overflow: hidden; pointer-events: none; }
 .window-sky .bat { position: absolute; left: 0; top: 0; width: 34%; aspect-ratio: 1; animation: flap .16s ease-in-out infinite alternate; }
 @keyframes flap { to { scale: 1 .62; } }
+/* The night over the room: a tint that keeps the painting readable, the same in both themes, and a night sky behind the two upper
+   panes of the mended window, measured on the window of states 01 on. The rat of the night runs above the tint, on the floor. */
+.night-tint { position: absolute; inset: 0; z-index: 4; background: #1b2150; mix-blend-mode: multiply; opacity: 0; pointer-events: none; transition: opacity .4s ease; }
+.room-frame.night .night-tint { opacity: .62; }
+.night-sky { position: absolute; left: 1.3%; top: .7%; width: 97.4%; height: 29.3%; background: url('../assets/variants/night-sky-1024x512.webp') center / cover; clip-path: polygon(0 0, 41.8% 0, 41.8% 100%, 57.6% 100%, 57.6% 0, 100% 0, 100% 100%, 0 100%); opacity: 0; transition: opacity .4s ease; }
+.room-frame.night .night-sky { opacity: 1; }
+/* The paws of a rat pose stand 82% down its cell, so the room rat rises by 82% of its width to stand on the floor line. */
+.room-rat { position: absolute; z-index: 5; width: 7%; aspect-ratio: 1; margin-top: -5.74%; pointer-events: none; }
+.rat-sprite { display: block; background-repeat: no-repeat; background-size: 400% 200%; }
+.rat-thief { background-image: url('../assets/variants/rat-thief-1024x512.webp'); }
+.rat-soricescu { background-image: url('../assets/variants/rat-soricescu-1024x512.webp'); }
+.scurrying { animation: scurry .18s ease-in-out infinite alternate; }
+@keyframes scurry { to { translate: 0 -8%; } }
 .room-frame:not([data-area='front-room']) :is(.sill-cat,.window-sky,.counter-cat),
 .room-frame[data-painting='front-room-00'] .window-sky,
 .room-frame:not([data-current='front-room-24']) .counter-cat { display: none; }
@@ -129,7 +145,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .room-pin[hidden] { display: none; }
 .pin-dot { position: relative; width: 9px; height: 9px; border-radius: 50%; background: var(--coin-face); box-shadow: 0 0 0 2px var(--panel), 0 0 8px 3px #e8b58eb3; }
 /* The area switch sits in the room's lower corner, on the side away from the change. A locked area has the dashed "not yet" edge. */
-.area-switch { position: absolute; z-index: 4; top: calc(var(--view-h) - 64px); display: flex; gap: 2px; padding: 3px; background: var(--panel); border: 1px solid var(--control-line); border-radius: var(--control-radius); box-shadow: 0 6px 16px #1009122e; }
+.area-switch { position: absolute; z-index: 6; top: calc(var(--view-h) - 64px); display: flex; gap: 2px; padding: 3px; background: var(--panel); border: 1px solid var(--control-line); border-radius: var(--control-radius); box-shadow: 0 6px 16px #1009122e; }
 .area-switch[data-side='left'] { left: 12px; }
 .area-switch:not([data-side='left']) { right: 12px; }
 .area-switch:empty { display: none; }
@@ -176,6 +192,11 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .deliver-button { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 44px; padding: 6px; font-size: 13px; white-space: nowrap; }
 .deliver-button .coin { width: 16px; height: 16px; }
 .deliver-button.guide-target { outline: 2px dotted color-mix(in srgb, var(--muted) 50%, transparent); outline-offset: -4px; }
+/* A booked ticket gives its evening in the place of the title. Before the booking time, the lanterns take the place of Deliver. */
+.ticket-booking { color: var(--muted); }
+.lantern-mark,.moon-mark { width: 16px; height: 16px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.booking-time { display: none; }
+.quest-booking { font-weight: 600; }
 .deliver-button.guide-target:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
 .ticket.arriving { animation: ticket-in .45s cubic-bezier(.16,1,.3,1) var(--rise-delay) both; }
 @keyframes ticket-in { from { opacity: 0; visibility: hidden; translate: 0 10px; } }
@@ -199,6 +220,18 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .clutter-art { background-image: url('../assets/variants/board-clutter-1536x1024.webp'); }
 .clutter-object { z-index: 1; }
 .clutter-overlay { z-index: 2; }
+/* The thief rat's hole lies under the ingredient that it dropped. */
+.rat-hole-art { position: absolute; inset: 4%; background: url('../assets/variants/rat-hole-256x256.webp') center / contain no-repeat; pointer-events: none; }
+.cell.rat-hole .food { position: relative; z-index: 1; }
+/* The night on the board: the rats and the dishes that they take sit in a layer over the page, and a changed cell shows its earlier
+   look until its moment in the night. */
+.night-layer { position: fixed; inset: 0; z-index: 150; }
+.night-rat { position: fixed; left: 0; top: 0; pointer-events: none; }
+.night-flip,.night-pose { width: 100%; height: 100%; }
+.night-ghost { position: fixed; pointer-events: none; }
+.cell.night-hidden > * { visibility: hidden; }
+.cell.night-hidden::before { display: none; }
+.cell.night-hidden.obstacle { box-shadow: var(--tile-lift); }
 .preparation-art { background-image: url('../assets/variants/preparation-clutter-1448x1086.webp'); }
 .cell.empty::after { content: ''; width: 4px; height: 4px; background: var(--muted); opacity: .3; border-radius: 50%; }
 .cell.selected { box-shadow: inset 0 0 0 3px var(--selected), var(--tile-lift); }
@@ -484,8 +517,17 @@ dialog:has(.quest-page-content) {
   .recipe-book strong { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
 }
 @media (min-width: 1024px) and (max-width: 1599px) { .tagline { display: none; } }
+/* Large saved totals use two rows, so the exact figures do not reach the wordmark. */
+@media (min-width: 1024px) {
+  .header-controls:has(.long) { display: grid; grid-template-columns: auto auto; gap: 2px 12px; }
+  .header-controls:has(.long) .day-clock { grid-column: 1; display: block; text-align: right; }
+  .header-controls:has(.long) .clock-dot { display: inline; }
+  .header-controls:has(.long) .coin-count { grid-column: 1; justify-content: end; padding-right: 0; border-right: 0; }
+  .header-controls:has(.long) .options-button { grid-column: 2; grid-row: 1 / 3; }
+}
 @media (min-width: 1024px) and (max-width: 1365px) {
-  .options-button { padding: 0 12px; }.header-controls { gap: 12px; }.coin-count { padding-right: 12px; }
+  .options-button { padding: 0 10px; }.options-button span { display: none; }.header-controls { gap: 8px; }.coin-count { padding-right: 8px; }
+  .day-clock { display: grid; justify-items: end; }.clock-dot { display: none; }
   .detail-description { display: none; }
   /* Narrower panels use tighter sections. */
   .drawer .side>*+* { margin-top: 10px; padding-top: 10px; }.side>.recipe-book { padding-top: 6px; }
@@ -503,6 +545,8 @@ dialog:has(.quest-page-content) {
   .wordmark { font-size: clamp(28px, 9.4vw, 38px); gap: 5px; }
   .tagline,.masthead .options-button,.recipe-book { display: none; }
   .coin-count { gap: 5px; padding-right: 0; border-right: 0; }.coin { width: 20px; height: 20px; }#coins { font-size: 21px; }.coin-label { font-size: 12px; }
+  /* Phones stack the day over the time, so the masthead keeps room for the coins. */
+  .day-clock { display: grid; justify-items: end; font-size: 12px; }.clock-dot { display: none; }
   .game-layout {
     --gap: 3px; --runner-h: 8px; --drawer-chrome: 152px; --frame-w: 100cqw;
     --cell: clamp(44px, min(calc((100vw - 40px) / 6), calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7)), 60px);
@@ -548,6 +592,10 @@ dialog:has(.quest-page-content) {
   /* A ready Deliver keeps its whole word; the fanned dishes give way. */
   .deliver-button:enabled { flex: 1 0 auto; }
   .deliver-button:disabled .coin { display: block; width: 14px; height: 14px; }
+  /* A phone ticket shows the booking time on the lanterns, and a later evening as "Later" with the moon. */
+  .lantern-button .deliver-word { display: none; }.lantern-button .booking-time { display: inline; }
+  .later-button:disabled .deliver-word { display: inline; }
+  .lantern-mark,.moon-mark { width: 14px; height: 14px; }
   /* Four tickets do not fit two 44px targets each, so the recovery ticket shows its face alone. Its dialog delivers. */
   .ticket-row:has(.recovery-ticket) { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; }
   .recovery-ticket .deliver-button { display: none; }
@@ -582,8 +630,10 @@ dialog:has(.quest-page-content) {
   .story-controls .primary-button { padding: 10px 14px; }.recipe-item .food { width: 58px; height: 58px; }
   .item-detail>.food { width: 120px; height: 120px; }
 }
-/* Narrow phones drop the word once the figure grows; the coin mark carries the unit and screen readers hear the exact total. */
-@media (max-width: 410px) { .masthead { padding-inline: 12px; gap: 8px; }.coin-count.long .coin-label { display: none; } }
+/* Narrow phones keep room for the clock; the coin mark carries the unit and screen readers hear the exact total. */
+@media (max-width: 480px) { .wordmark { font-size: 32px; }.header-controls { gap: 8px; }.coin-label { display: none; } }
+@media (max-width: 410px) { .masthead { padding-inline: 12px; gap: 8px; }.wordmark { font-size: 28px; } }
+@media (max-width: 359px) { .header-controls { flex-direction: column; align-items: end; gap: 0; }.day-clock { display: block; }.clock-dot { display: inline; } }
 @media (max-width: 410px) { .tickets:has(.recovery-ticket) { padding-inline: 4px; }.ticket-row:has(.recovery-ticket) { gap: 4px; } }
 /* Narrow phones give the strip's words the room: a smaller dish, and below 361px no dish at all. */
 @media (max-width: 410px) { .detail-head .food { width: 34px; height: 34px; } }

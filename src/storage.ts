@@ -1,7 +1,7 @@
 /** Local-only persistence. */
 const FORMAT = 'scary-snacks';
 /** Only the current save format is supported. */
-const VERSION = 12;
+const VERSION = 13;
 export const SAVE_KEY = `scary-snacks-save-v${VERSION}`;
 export const MAX_SAVE_BYTES = 2 * 1024 * 1024;
 

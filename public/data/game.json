@@ -35,7 +35,7 @@
       null,
       null,
       "generator_herbs",
-      null,
+      "herbs_3",
       null,
       null,
       null,
@@ -788,7 +788,7 @@
         "atlas": "grain",
         "cell": 2
       },
-      "price": 3,
+      "price": 4,
       "tags": []
     },
     "grain_3": {
@@ -801,7 +801,7 @@
         "atlas": "grain",
         "cell": 3
       },
-      "price": 7,
+      "price": 10,
       "tags": []
     },
     "grain_4": {
@@ -814,7 +814,7 @@
         "atlas": "grain",
         "cell": 4
       },
-      "price": 15,
+      "price": 22,
       "tags": []
     },
     "grain_5": {
@@ -827,7 +827,7 @@
         "atlas": "grain",
         "cell": 5
       },
-      "price": 31,
+      "price": 46,
       "tags": []
     },
     "grain_6": {
@@ -840,7 +840,7 @@
         "atlas": "grain",
         "cell": 6
       },
-      "price": 63,
+      "price": 94,
       "tags": []
     },
     "generator_corn": {
@@ -884,7 +884,7 @@
         "atlas": "corn",
         "cell": 2
       },
-      "price": 3,
+      "price": 4,
       "tags": []
     },
     "corn_3": {
@@ -897,7 +897,7 @@
         "atlas": "corn",
         "cell": 3
       },
-      "price": 7,
+      "price": 10,
       "tags": []
     },
     "corn_4": {
@@ -910,7 +910,7 @@
         "atlas": "corn",
         "cell": 4
       },
-      "price": 15,
+      "price": 22,
       "tags": []
     },
     "generator_herbs": {
@@ -955,7 +955,7 @@
         "atlas": "herbs",
         "cell": 2
       },
-      "price": 1,
+      "price": 2,
       "tags": []
     },
     "herbs_3": {
@@ -968,7 +968,7 @@
         "atlas": "herbs",
         "cell": 3
       },
-      "price": 3,
+      "price": 6,
       "tags": []
     },
     "herbs_4": {
@@ -981,7 +981,7 @@
         "atlas": "herbs",
         "cell": 4
       },
-      "price": 7,
+      "price": 14,
       "tags": []
     },
     "generator_dairy": {
@@ -1027,7 +1027,7 @@
         "atlas": "dairy",
         "cell": 2
       },
-      "price": 3,
+      "price": 4,
       "tags": [
         "dairy"
       ]
@@ -1042,7 +1042,7 @@
         "atlas": "dairy",
         "cell": 3
       },
-      "price": 7,
+      "price": 10,
       "tags": [
         "dairy"
       ]
@@ -1057,7 +1057,7 @@
         "atlas": "dairy",
         "cell": 4
       },
-      "price": 15,
+      "price": 22,
       "tags": [
         "dairy"
       ]
@@ -1072,7 +1072,7 @@
         "atlas": "dairy",
         "cell": 5
       },
-      "price": 31,
+      "price": 46,
       "tags": [
         "dairy"
       ]
@@ -1087,7 +1087,7 @@
         "atlas": "dairy",
         "cell": 6
       },
-      "price": 63,
+      "price": 94,
       "tags": [
         "dairy"
       ]
@@ -1135,7 +1135,7 @@
         "atlas": "poultry",
         "cell": 2
       },
-      "price": 3,
+      "price": 4,
       "tags": [
         "meat"
       ]
@@ -1150,7 +1150,7 @@
         "atlas": "poultry",
         "cell": 3
       },
-      "price": 7,
+      "price": 10,
       "tags": [
         "meat"
       ]
@@ -1165,7 +1165,7 @@
         "atlas": "poultry",
         "cell": 4
       },
-      "price": 15,
+      "price": 22,
       "tags": [
         "meat"
       ]
@@ -1211,7 +1211,7 @@
         "atlas": "vegetables",
         "cell": 2
       },
-      "price": 3,
+      "price": 4,
       "tags": []
     },
     "vegetables_3": {
@@ -1224,7 +1224,7 @@
         "atlas": "vegetables",
         "cell": 3
       },
-      "price": 7,
+      "price": 10,
       "tags": []
     },
     "vegetables_4": {
@@ -1237,7 +1237,7 @@
         "atlas": "vegetables",
         "cell": 4
       },
-      "price": 15,
+      "price": 22,
       "tags": []
     },
     "vegetables_5": {
@@ -1250,7 +1250,7 @@
         "atlas": "vegetables",
         "cell": 5
       },
-      "price": 31,
+      "price": 46,
       "tags": []
     },
     "vegetables_6": {
@@ -1263,12 +1263,12 @@
         "atlas": "vegetables",
         "cell": 6
       },
-      "price": 63,
+      "price": 94,
       "tags": []
     },
     "generator_fruits": {
       "id": "generator_fruits",
-      "name": "Fruit stand",
+      "name": "Cornucopia",
       "chain": "fruits",
       "stage": 0,
       "next": null,
@@ -1307,7 +1307,7 @@
         "atlas": "fruits",
         "cell": 2
       },
-      "price": 3,
+      "price": 4,
       "tags": []
     },
     "fruits_3": {
@@ -1320,7 +1320,7 @@
         "atlas": "fruits",
         "cell": 3
       },
-      "price": 7,
+      "price": 10,
       "tags": []
     },
     "fruits_4": {
@@ -1333,7 +1333,7 @@
         "atlas": "fruits",
         "cell": 4
       },
-      "price": 15,
+      "price": 22,
       "tags": []
     },
     "fruits_5": {
@@ -1346,7 +1346,7 @@
         "atlas": "fruits",
         "cell": 5
       },
-      "price": 31,
+      "price": 46,
       "tags": [
         "alcohol"
       ]
@@ -1361,7 +1361,7 @@
         "atlas": "fruits",
         "cell": 6
       },
-      "price": 63,
+      "price": 94,
       "tags": [
         "alcohol"
       ]
@@ -1410,7 +1410,7 @@
         "atlas": "pork",
         "cell": 2
       },
-      "price": 3,
+      "price": 4,
       "tags": [
         "meat",
         "pork"
@@ -1426,7 +1426,7 @@
         "atlas": "pork",
         "cell": 3
       },
-      "price": 7,
+      "price": 10,
       "tags": [
         "meat",
         "pork",
@@ -1443,7 +1443,7 @@
         "atlas": "pork",
         "cell": 4
       },
-      "price": 15,
+      "price": 22,
       "tags": [
         "meat",
         "pork"
@@ -1459,7 +1459,7 @@
         "atlas": "pork",
         "cell": 5
       },
-      "price": 31,
+      "price": 46,
       "tags": [
         "meat",
         "pork"
@@ -1506,7 +1506,7 @@
         "atlas": "beans",
         "cell": 2
       },
-      "price": 3,
+      "price": 4,
       "tags": []
     },
     "beans_3": {
@@ -1519,7 +1519,7 @@
         "atlas": "beans",
         "cell": 3
       },
-      "price": 7,
+      "price": 10,
       "tags": []
     },
     "beans_4": {
@@ -1532,7 +1532,7 @@
         "atlas": "beans",
         "cell": 4
       },
-      "price": 15,
+      "price": 22,
       "tags": [
         "garlic"
       ]
@@ -1547,7 +1547,7 @@
         "atlas": "beans",
         "cell": 5
       },
-      "price": 31,
+      "price": 46,
       "tags": []
     },
     "generator_lamb": {
@@ -1593,7 +1593,7 @@
         "atlas": "lamb",
         "cell": 2
       },
-      "price": 3,
+      "price": 4,
       "tags": [
         "meat"
       ]
@@ -1608,7 +1608,7 @@
         "atlas": "lamb",
         "cell": 3
       },
-      "price": 7,
+      "price": 10,
       "tags": [
         "meat"
       ]
@@ -1623,7 +1623,7 @@
         "atlas": "lamb",
         "cell": 4
       },
-      "price": 15,
+      "price": 22,
       "tags": [
         "meat",
         "garlic"
@@ -1639,7 +1639,7 @@
         "atlas": "lamb",
         "cell": 5
       },
-      "price": 31,
+      "price": 46,
       "tags": [
         "meat"
       ]
@@ -1687,7 +1687,7 @@
         "atlas": "veal",
         "cell": 2
       },
-      "price": 3,
+      "price": 4,
       "tags": [
         "meat"
       ]
@@ -1702,7 +1702,7 @@
         "atlas": "veal",
         "cell": 3
       },
-      "price": 7,
+      "price": 10,
       "tags": [
         "meat"
       ]
@@ -1717,7 +1717,7 @@
         "atlas": "veal",
         "cell": 4
       },
-      "price": 15,
+      "price": 22,
       "tags": [
         "meat"
       ]
@@ -1732,7 +1732,7 @@
         "atlas": "veal",
         "cell": 5
       },
-      "price": 31,
+      "price": 46,
       "tags": [
         "meat"
       ]
@@ -1747,7 +1747,7 @@
         "atlas": "veal",
         "cell": 6
       },
-      "price": 63,
+      "price": 94,
       "tags": [
         "meat"
       ]
@@ -1795,7 +1795,7 @@
         "atlas": "fish",
         "cell": 2
       },
-      "price": 3,
+      "price": 4,
       "tags": [
         "fish"
       ]
@@ -1810,7 +1810,7 @@
         "atlas": "fish",
         "cell": 3
       },
-      "price": 7,
+      "price": 10,
       "tags": [
         "fish"
       ]
@@ -1825,7 +1825,7 @@
         "atlas": "fish",
         "cell": 4
       },
-      "price": 15,
+      "price": 22,
       "tags": [
         "fish",
         "garlic"
@@ -1841,7 +1841,7 @@
         "atlas": "mains",
         "cell": 0
       },
-      "price": 31,
+      "price": 46,
       "tags": [
         "dairy"
       ],
@@ -1860,7 +1860,7 @@
         "atlas": "sweets",
         "cell": 3
       },
-      "price": 11,
+      "price": 16,
       "tags": [
         "dairy"
       ],
@@ -1879,7 +1879,7 @@
         "atlas": "breads",
         "cell": 0
       },
-      "price": 19,
+      "price": 28,
       "tags": [
         "dairy"
       ],
@@ -1898,7 +1898,7 @@
         "atlas": "sweets",
         "cell": 0
       },
-      "price": 5,
+      "price": 7,
       "tags": [
         "egg"
       ],
@@ -1917,7 +1917,7 @@
         "atlas": "soups",
         "cell": 1
       },
-      "price": 11,
+      "price": 16,
       "tags": [
         "meat"
       ],
@@ -1936,7 +1936,7 @@
         "atlas": "breads",
         "cell": 1
       },
-      "price": 39,
+      "price": 58,
       "tags": [],
       "recipe": [
         "grain_3",
@@ -1953,7 +1953,7 @@
         "atlas": "sweets",
         "cell": 4
       },
-      "price": 3,
+      "price": 4,
       "tags": [],
       "recipe": [
         "vegetables_1",
@@ -1970,7 +1970,7 @@
         "atlas": "breads",
         "cell": 3
       },
-      "price": 5,
+      "price": 8,
       "tags": [],
       "recipe": [
         "herbs_2",
@@ -1987,7 +1987,7 @@
         "atlas": "mains",
         "cell": 1
       },
-      "price": 11,
+      "price": 16,
       "tags": [
         "meat",
         "pork"
@@ -2007,7 +2007,7 @@
         "atlas": "mains",
         "cell": 3
       },
-      "price": 7,
+      "price": 10,
       "tags": [
         "meat",
         "pork"
@@ -2027,7 +2027,7 @@
         "atlas": "soups",
         "cell": 7
       },
-      "price": 47,
+      "price": 70,
       "tags": [
         "meat",
         "pork"
@@ -2047,7 +2047,7 @@
         "atlas": "breads",
         "cell": 2
       },
-      "price": 39,
+      "price": 58,
       "tags": [
         "dairy",
         "meat",
@@ -2069,7 +2069,7 @@
         "atlas": "soups",
         "cell": 3
       },
-      "price": 17,
+      "price": 25,
       "tags": [
         "meat",
         "pork"
@@ -2089,7 +2089,7 @@
         "atlas": "soups",
         "cell": 6
       },
-      "price": 39,
+      "price": 58,
       "tags": [
         "meat",
         "pork",
@@ -2110,7 +2110,7 @@
         "atlas": "mains",
         "cell": 5
       },
-      "price": 5,
+      "price": 7,
       "tags": [
         "meat",
         "egg",
@@ -2131,7 +2131,7 @@
         "atlas": "soups",
         "cell": 5
       },
-      "price": 7,
+      "price": 10,
       "tags": [
         "meat"
       ],
@@ -2150,7 +2150,7 @@
         "atlas": "soups",
         "cell": 0
       },
-      "price": 17,
+      "price": 26,
       "tags": [
         "meat"
       ],
@@ -2169,7 +2169,7 @@
         "atlas": "mains",
         "cell": 4
       },
-      "price": 11,
+      "price": 16,
       "tags": [
         "meat",
         "pork",
@@ -2190,7 +2190,7 @@
         "atlas": "soups",
         "cell": 2
       },
-      "price": 5,
+      "price": 7,
       "tags": [
         "fish"
       ],
@@ -2209,7 +2209,7 @@
         "atlas": "mains",
         "cell": 2
       },
-      "price": 27,
+      "price": 40,
       "tags": [
         "meat",
         "pork"
@@ -2229,7 +2229,7 @@
         "atlas": "soups",
         "cell": 4
       },
-      "price": 25,
+      "price": 37,
       "tags": [
         "meat",
         "pork"
@@ -2249,7 +2249,7 @@
         "atlas": "mains",
         "cell": 6
       },
-      "price": 31,
+      "price": 46,
       "tags": [
         "fish",
         "garlic"
@@ -2269,7 +2269,7 @@
         "atlas": "sweets",
         "cell": 1
       },
-      "price": 9,
+      "price": 13,
       "tags": [
         "egg"
       ],
@@ -2288,7 +2288,7 @@
         "atlas": "sweets",
         "cell": 2
       },
-      "price": 7,
+      "price": 10,
       "tags": [
         "egg",
         "dairy"
@@ -2333,6 +2333,7 @@
       "name": "Adrian",
       "role": "Travelling guard",
       "visitor": true,
+      "provisions": true,
       "sprite": 0,
       "introduction": "I am Adrian. I travel with Monica and Janos. We are checking a few reports from the cathedral beyond the village. We may need provisions for several days at a time."
     },
@@ -2341,6 +2342,7 @@
       "name": "Monica",
       "role": "Pathfinder",
       "visitor": true,
+      "provisions": true,
       "sprite": 1,
       "introduction": "I am Monica. I check the paths while Adrian and Janos compare their notes. The old cathedral has more entrances than our map shows. A supply pack lets us stay a few days to look."
     },
@@ -2349,6 +2351,7 @@
       "name": "Janos",
       "role": "Travelling scholar",
       "visitor": true,
+      "provisions": true,
       "sprite": 2,
       "introduction": "I am Janos. I study the marks in old stonework. Adrian and Monica help me examine the nearby cathedral. Its records leave a few questions, and a long visit needs proper meals."
     },
@@ -2480,7 +2483,8 @@
         "corn_4",
         "mixed_bulz",
         "mixed_drob"
-      ]
+      ],
+      "provisions": true
     },
     {
       "id": "victor",
@@ -2537,6 +2541,7 @@
         "mixed_plum-dumplings",
         "mixed_fruit-tea"
       ],
+      "provisions": true,
       "arrivesAfter": "task_4",
       "arrival": [
         {
@@ -3046,7 +3051,7 @@
         },
         {
           "speaker": "ilie",
-          "text": "An empty space on a shelf is an invitation to cook. The fruit stand at the market will fill it with plums."
+          "text": "An empty space on a shelf is an invitation to cook. The cornucopia will fill it with plums."
         }
       ],
       "unlock": "fruits"
@@ -3969,8 +3974,19 @@
   "economy": {
     "takeCost": 1,
     "blockerCoin": 1,
-    "workRate": 1,
+    "workRate": 2,
     "recoveryFloor": 10
+  },
+  "day": {
+    "opening": 420,
+    "closing": 1320,
+    "booking": 1200,
+    "mergeMinutes": 6,
+    "upkeep": 10,
+    "ratTake": 3,
+    "ratHoles": 3,
+    "giftStage": 4,
+    "giftSpace": 5
   },
   "quests": [
     {
@@ -3985,7 +4001,7 @@
           "quantity": 1
         }
       ],
-      "reward": 7,
+      "reward": 14,
       "opening": [
         {
           "speaker": "ana",
@@ -4013,7 +4029,7 @@
       "afterTask": null,
       "requirements": [
         {
-          "item": "herbs_3",
+          "item": "herbs_2",
           "quantity": 2
         },
         {
@@ -4021,7 +4037,7 @@
           "quantity": 1
         }
       ],
-      "reward": 13,
+      "reward": 18,
       "opening": [
         {
           "speaker": "mara",
@@ -4029,7 +4045,7 @@
         },
         {
           "speaker": "mara",
-          "text": "The herbs from the basket cost us nothing. A glass of socată would do, or a linden tea. Cold or warm, and ready before they sit down."
+          "text": "The herbs from the basket cost us nothing. A herb bunch for the water jug, and a linden tea. Cold or warm, ready before they sit down."
         }
       ],
       "completion": [
@@ -4056,13 +4072,9 @@
         {
           "item": "herbs_3",
           "quantity": 1
-        },
-        {
-          "item": "grain_5",
-          "quantity": 1
         }
       ],
-      "reward": 40,
+      "reward": 14,
       "opening": [
         {
           "speaker": "sorin",
@@ -4070,7 +4082,7 @@
         },
         {
           "speaker": "sorin",
-          "text": "I promised her two pieces of ours to start from. And a socată and a langoș for me, because the hill is steep."
+          "text": "I promised her two pieces of ours to start from. And a socată for me, because the hill is steep."
         }
       ],
       "completion": [
@@ -4085,66 +4097,29 @@
       ]
     },
     {
-      "id": "dochia-sheepskin",
-      "character": "dochia",
-      "title": "One sheepskin fewer",
-      "afterTask": null,
-      "requirements": [
-        {
-          "item": "corn_4",
-          "quantity": 2
-        },
-        {
-          "item": "grain_4",
-          "quantity": 1
-        },
-        {
-          "item": "grain_5",
-          "quantity": 1
-        },
-        {
-          "item": "herbs_4",
-          "quantity": 1
-        }
-      ],
-      "reward": 83,
-      "opening": [
-        {
-          "speaker": "dochia",
-          "text": "The wind on the hill is still cold, so I am wearing all nine sheepskins. Mămăligă, bread, and a hot linden tea would warm me enough to take one off."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "dochia",
-          "text": "There. One sheepskin fewer. Eight to go before summer, and the weather is watching me."
-        }
-      ]
-    },
-    {
       "id": "victor-exam",
       "character": "victor",
       "title": "Food for the nerves",
       "afterTask": null,
       "requirements": [
         {
-          "item": "corn_4",
-          "quantity": 2
-        },
-        {
-          "item": "herbs_4",
+          "item": "corn_2",
           "quantity": 1
         },
         {
           "item": "grain_3",
-          "quantity": 2
+          "quantity": 1
+        },
+        {
+          "item": "herbs_4",
+          "quantity": 1
         }
       ],
-      "reward": 51,
+      "reward": 28,
       "opening": [
         {
           "speaker": "victor",
-          "text": "I have an exam on the nervous system tomorrow, and mine is not cooperating. Two bowls of mămăligă, some bread, and a linden tea, please."
+          "text": "I have an exam on the nervous system tomorrow, and mine is not cooperating. Shelled corn to crunch while I study, some bread, and a linden tea, please."
         }
       ],
       "completion": [
@@ -4166,10 +4141,10 @@
         },
         {
           "item": "herbs_4",
-          "quantity": 2
+          "quantity": 1
         }
       ],
-      "reward": 44,
+      "reward": 58,
       "opening": [
         {
           "speaker": "ana",
@@ -4190,27 +4165,15 @@
       "afterTask": null,
       "requirements": [
         {
-          "item": "grain_6",
+          "item": "grain_5",
           "quantity": 2
         },
         {
-          "item": "grain_4",
-          "quantity": 2
-        },
-        {
-          "item": "corn_4",
+          "item": "corn_3",
           "quantity": 1
-        },
-        {
-          "item": "grain_3",
-          "quantity": 1
-        },
-        {
-          "item": "herbs_4",
-          "quantity": 2
         }
       ],
-      "reward": 192,
+      "reward": 102,
       "opening": [
         {
           "speaker": "ilie",
@@ -4237,13 +4200,13 @@
       ]
     },
     {
-      "id": "eszter-cups",
-      "character": "eszter",
-      "title": "Cups for the counter",
+      "id": "dochia-sheepskin",
+      "character": "dochia",
+      "title": "One sheepskin fewer",
       "afterTask": null,
       "requirements": [
         {
-          "item": "herbs_4",
+          "item": "corn_4",
           "quantity": 2
         },
         {
@@ -4252,14 +4215,43 @@
         },
         {
           "item": "grain_5",
-          "quantity": 2
+          "quantity": 1
         },
         {
-          "item": "herbs_3",
+          "item": "herbs_4",
+          "quantity": 1
+        }
+      ],
+      "reward": 148,
+      "opening": [
+        {
+          "speaker": "dochia",
+          "text": "The wind on the hill is still cold, so I am wearing all nine sheepskins. Mămăligă, bread, and a hot linden tea would warm me enough to take one off."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "dochia",
+          "text": "There. One sheepskin fewer. Eight to go before summer, and the weather is watching me."
+        }
+      ]
+    },
+    {
+      "id": "eszter-cups",
+      "character": "eszter",
+      "title": "Cups for the counter",
+      "afterTask": null,
+      "requirements": [
+        {
+          "item": "grain_4",
+          "quantity": 1
+        },
+        {
+          "item": "grain_5",
           "quantity": 2
         }
       ],
-      "reward": 112,
+      "reward": 114,
       "opening": [
         {
           "speaker": "eszter",
@@ -4271,7 +4263,7 @@
         },
         {
           "speaker": "eszter",
-          "text": "That one has character. Fill two with tea, and we will see who complains."
+          "text": "That one has character. Fill two with water, and we will see who complains."
         }
       ],
       "completion": [
@@ -4293,11 +4285,7 @@
       "requirements": [
         {
           "item": "herbs_3",
-          "quantity": 3
-        },
-        {
-          "item": "corn_4",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "grain_5",
@@ -4306,17 +4294,13 @@
         {
           "item": "grain_6",
           "quantity": 1
-        },
-        {
-          "item": "herbs_4",
-          "quantity": 2
         }
       ],
-      "reward": 147,
+      "reward": 146,
       "opening": [
         {
           "speaker": "costel",
-          "text": "Something in your wall ticks, and it is not one of my clocks. Socată, linden tea, two bowls of mămăligă, and plenty of bread, and I will listen to it properly."
+          "text": "Something in your wall ticks, and it is not one of my clocks. Socată, a langoș, and a whole bread basket, and I will listen to it properly."
         }
       ],
       "completion": [
@@ -4341,15 +4325,11 @@
           "quantity": 1
         },
         {
-          "item": "herbs_4",
-          "quantity": 2
-        },
-        {
           "item": "corn_4",
           "quantity": 1
         }
       ],
-      "reward": 123,
+      "reward": 162,
       "opening": [
         {
           "speaker": "mara",
@@ -4387,10 +4367,10 @@
         },
         {
           "item": "herbs_3",
-          "quantity": 2
+          "quantity": 1
         }
       ],
-      "reward": 36,
+      "reward": 50,
       "opening": [
         {
           "speaker": "ilie",
@@ -4424,7 +4404,7 @@
       "requirements": [
         {
           "item": "corn_4",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "grain_4",
@@ -4435,7 +4415,7 @@
           "quantity": 1
         }
       ],
-      "reward": 52,
+      "reward": 58,
       "opening": [
         {
           "speaker": "eszter",
@@ -4465,22 +4445,22 @@
       "requirements": [
         {
           "item": "grain_5",
-          "quantity": 2
-        },
-        {
-          "item": "herbs_4",
-          "quantity": 3
+          "quantity": 1
         },
         {
           "item": "corn_4",
-          "quantity": 2
+          "quantity": 1
+        },
+        {
+          "item": "herbs_4",
+          "quantity": 1
         }
       ],
-      "reward": 113,
+      "reward": 82,
       "opening": [
         {
           "speaker": "victor",
-          "text": "The university lent me a skeleton to study at home. I set a place for him out of habit. Two of everything, please: langoș, mămăligă, and linden tea. He will not eat his share."
+          "text": "The university lent me a skeleton to study at home. I set a place for him out of habit. Langoș, mămăligă, and linden tea, please. He will not eat his share."
         }
       ],
       "completion": [
@@ -4498,22 +4478,18 @@
       "requirements": [
         {
           "item": "grain_4",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "herbs_3",
-          "quantity": 3
-        },
-        {
-          "item": "grain_3",
           "quantity": 1
         },
         {
           "item": "herbs_4",
-          "quantity": 2
+          "quantity": 1
         }
       ],
-      "reward": 60,
+      "reward": 42,
       "opening": [
         {
           "speaker": "costel",
@@ -4534,27 +4510,23 @@
       "afterTask": "task_2",
       "requirements": [
         {
-          "item": "corn_4",
-          "quantity": 2
-        },
-        {
           "item": "grain_4",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "herbs_4",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "grain_5",
           "quantity": 1
         }
       ],
-      "reward": 105,
+      "reward": 82,
       "opening": [
         {
           "speaker": "ana",
-          "text": "It is my turn to hang garlic on every door of the ward. That is a lot of doors. Mămăligă, pogăcele, and a linden tea, please, before I start."
+          "text": "It is my turn to hang garlic on every door of the ward. That is a lot of doors. Langoș, pogăcele, and a linden tea, please, before I start."
         }
       ],
       "completion": [
@@ -4571,19 +4543,15 @@
       "afterTask": "task_3",
       "requirements": [
         {
-          "item": "mixed_bulz",
+          "item": "dairy_1",
           "quantity": 2
         },
         {
           "item": "herbs_4",
-          "quantity": 3
-        },
-        {
-          "item": "grain_3",
           "quantity": 1
         }
       ],
-      "reward": 90,
+      "reward": 16,
       "opening": [
         {
           "speaker": "mara",
@@ -4616,16 +4584,12 @@
       "afterTask": "task_3",
       "requirements": [
         {
-          "item": "dairy_5",
-          "quantity": 1
-        },
-        {
-          "item": "mixed_bulz",
-          "quantity": 1
+          "item": "dairy_2",
+          "quantity": 4
         },
         {
           "item": "grain_4",
-          "quantity": 2
+          "quantity": 4
         },
         {
           "item": "corn_4",
@@ -4636,17 +4600,17 @@
           "quantity": 1
         }
       ],
-      "reward": 114,
+      "reward": 140,
       "opening": [
         {
           "speaker": "dochia",
-          "text": "The sheep eat grass all day and never complain. I eat cheese, and I complain about the grass. Pack me smoked cheese, a bulz, and pogăcele."
+          "text": "The sheep eat grass all day and never complain. I eat sour cream, and I complain about the grass. Pack me sour cream, pogăcele, and a mămăligă."
         }
       ],
       "completion": [
         {
           "speaker": "dochia",
-          "text": "The sheep will smell the cheese and follow me home. That saves me a walk."
+          "text": "The sheep will smell the sour cream and follow me home. That saves me a walk."
         }
       ]
     },
@@ -4658,22 +4622,14 @@
       "requirements": [
         {
           "item": "grain_5",
-          "quantity": 2
+          "quantity": 1
         },
         {
-          "item": "mixed_papanasi",
-          "quantity": 2
-        },
-        {
-          "item": "herbs_4",
-          "quantity": 3
-        },
-        {
-          "item": "mixed_cheese-pie",
+          "item": "dairy_3",
           "quantity": 2
         }
       ],
-      "reward": 143,
+      "reward": 66,
       "opening": [
         {
           "speaker": "sorin",
@@ -4706,8 +4662,8 @@
       "afterTask": "task_3",
       "requirements": [
         {
-          "item": "dairy_5",
-          "quantity": 2
+          "item": "dairy_4",
+          "quantity": 4
         },
         {
           "item": "grain_4",
@@ -4715,10 +4671,6 @@
         },
         {
           "item": "herbs_3",
-          "quantity": 1
-        },
-        {
-          "item": "mixed_bulz",
           "quantity": 1
         },
         {
@@ -4734,11 +4686,11 @@
           "quantity": 2
         }
       ],
-      "reward": 169,
+      "reward": 208,
       "opening": [
         {
           "speaker": "dochia",
-          "text": "Today I shear the sheep, and the sheep have opinions. Smoked cheese, pogăcele, a bulz, and a socată, please. I need my strength."
+          "text": "Today I shear the sheep, and the sheep have opinions. Telemea, pogăcele, a mămăligă, and a socată, please. I need my strength."
         }
       ],
       "completion": [
@@ -4760,14 +4712,10 @@
         },
         {
           "item": "dairy_2",
-          "quantity": 2
-        },
-        {
-          "item": "herbs_4",
           "quantity": 1
         }
       ],
-      "reward": 43,
+      "reward": 48,
       "opening": [
         {
           "speaker": "eszter",
@@ -4808,11 +4756,11 @@
           "quantity": 4
         },
         {
-          "item": "dairy_4",
+          "item": "dairy_5",
           "quantity": 1
         }
       ],
-      "reward": 60,
+      "reward": 118,
       "opening": [
         {
           "speaker": "sanziana",
@@ -4838,14 +4786,14 @@
         },
         {
           "item": "mixed_papanasi",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "herbs_4",
-          "quantity": 2
+          "quantity": 1
         }
       ],
-      "reward": 99,
+      "reward": 124,
       "opening": [
         {
           "speaker": "dorian",
@@ -4871,22 +4819,10 @@
         },
         {
           "item": "mixed_cheese-pie",
-          "quantity": 2
-        },
-        {
-          "item": "grain_5",
-          "quantity": 2
-        },
-        {
-          "item": "dairy_3",
-          "quantity": 1
-        },
-        {
-          "item": "herbs_4",
           "quantity": 1
         }
       ],
-      "reward": 176,
+      "reward": 120,
       "opening": [
         {
           "speaker": "ilie",
@@ -4920,26 +4856,22 @@
       "requirements": [
         {
           "item": "mixed_papanasi",
-          "quantity": 2
-        },
-        {
-          "item": "herbs_3",
-          "quantity": 3
+          "quantity": 1
         },
         {
           "item": "dairy_5",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "mixed_cheese-pie",
-          "quantity": 2
+          "quantity": 1
         }
       ],
-      "reward": 131,
+      "reward": 90,
       "opening": [
         {
           "speaker": "costel",
-          "text": "I found an old key under the counter, and it hums near the cellar door. Papanași, smoked cheese, cheese pie, and socată, and I will find out what it wants."
+          "text": "I found an old key under the counter, and it hums near the cellar door. Papanași, smoked cheese, and cheese pie, and I will find out what it wants."
         }
       ],
       "completion": [
@@ -4956,31 +4888,19 @@
       "afterTask": "task_5",
       "requirements": [
         {
-          "item": "mixed_chicken-noodle-soup",
-          "quantity": 2
-        },
-        {
-          "item": "poultry_4",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_bulz",
+          "item": "poultry_1",
           "quantity": 2
         },
         {
           "item": "herbs_4",
-          "quantity": 4
-        },
-        {
-          "item": "poultry_3",
           "quantity": 1
         }
       ],
-      "reward": 149,
+      "reward": 16,
       "opening": [
         {
           "speaker": "victor",
-          "text": "My professor wants proof that I can keep something alive all night. Chicken soup, two bulz, and linden tea should keep me alive, at least."
+          "text": "My professor wants proof that I can keep something alive all night. Two eggs and a linden tea should keep me alive, at least."
         }
       ],
       "completion": [
@@ -4997,35 +4917,15 @@
       "afterTask": "task_5",
       "requirements": [
         {
-          "item": "mixed_papanasi",
-          "quantity": 1
-        },
-        {
-          "item": "grain_4",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_chimney-cake",
-          "quantity": 2
-        },
-        {
-          "item": "poultry_4",
-          "quantity": 2
-        },
-        {
           "item": "mixed_sweet-dough",
-          "quantity": 1
+          "quantity": 2
         },
         {
-          "item": "herbs_4",
-          "quantity": 3
-        },
-        {
-          "item": "herbs_3",
+          "item": "poultry_2",
           "quantity": 1
         }
       ],
-      "reward": 114,
+      "reward": 18,
       "opening": [
         {
           "speaker": "eszter",
@@ -5058,15 +4958,15 @@
           "quantity": 1
         },
         {
-          "item": "herbs_3",
+          "item": "vegetables_1",
           "quantity": 1
         },
         {
-          "item": "vegetables_4",
+          "item": "herbs_3",
           "quantity": 1
         }
       ],
-      "reward": 33,
+      "reward": 29,
       "opening": [
         {
           "speaker": "sorin",
@@ -5080,7 +4980,7 @@
       "completion": [
         {
           "speaker": "sorin",
-          "text": "Now I can tell them. Bread that is still warm, vegetables from the oven, and socată that is cold."
+          "text": "Now I can tell them. Bread that is still warm, potatoes from the new crate, and socată that is cold."
         },
         {
           "speaker": "mara",
@@ -5096,22 +4996,18 @@
       "requirements": [
         {
           "item": "grain_5",
-          "quantity": 6
-        },
-        {
-          "item": "dairy_5",
           "quantity": 4
         },
         {
-          "item": "vegetables_4",
+          "item": "dairy_5",
           "quantity": 2
         },
         {
           "item": "grain_4",
-          "quantity": 4
+          "quantity": 6
         }
       ],
-      "reward": 400,
+      "reward": 408,
       "opening": [
         {
           "speaker": "adrian",
@@ -5144,27 +5040,15 @@
           "quantity": 2
         },
         {
-          "item": "mixed_cozonac",
-          "quantity": 2
-        },
-        {
-          "item": "herbs_3",
-          "quantity": 2
-        },
-        {
-          "item": "fruits_4",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_cheese-pie",
-          "quantity": 2
+          "item": "fruits_1",
+          "quantity": 1
         }
       ],
-      "reward": 114,
+      "reward": 33,
       "opening": [
         {
           "speaker": "costel",
-          "text": "The church clock stopped at half past three. Until I mend it, it is always teatime. Two of every sweet thing, please, and two socată. A clock likes things in pairs."
+          "text": "The church clock stopped at half past three. Until I mend it, it is always teatime. Two papanași, please, and a plum for the pendulum. A clock likes things in pairs."
         }
       ],
       "completion": [
@@ -5181,19 +5065,19 @@
       "afterTask": "task_8",
       "requirements": [
         {
-          "item": "mixed_bulz",
+          "item": "fruits_2",
           "quantity": 1
         },
         {
-          "item": "mixed_cheese-pie",
+          "item": "pork_1",
           "quantity": 1
         },
         {
-          "item": "mixed_stuffed-peppers",
+          "item": "vegetables_2",
           "quantity": 1
         }
       ],
-      "reward": 57,
+      "reward": 9,
       "opening": [
         {
           "speaker": "mara",
@@ -5205,7 +5089,7 @@
         },
         {
           "speaker": "mara",
-          "text": "A bulz, then, and a few plates beside it. Something that everyone has to pass."
+          "text": "A fruit bowl, then, and a few plates beside it. Something that everyone has to pass."
         }
       ],
       "completion": [
@@ -5226,27 +5110,23 @@
       "afterTask": "task_8",
       "requirements": [
         {
-          "item": "vegetables_4",
-          "quantity": 1
-        },
-        {
-          "item": "mixed_zacusca-toast",
-          "quantity": 1
-        },
-        {
-          "item": "mixed_stuffed-peppers",
-          "quantity": 2
-        },
-        {
           "item": "mixed_fruit-tea",
-          "quantity": 2
+          "quantity": 1
+        },
+        {
+          "item": "fruits_3",
+          "quantity": 1
+        },
+        {
+          "item": "pork_2",
+          "quantity": 1
         }
       ],
-      "reward": 78,
+      "reward": 22,
       "opening": [
         {
           "speaker": "ileana",
-          "text": "I have three wedding dresses to finish before Thursday. Roasted vegetables, zacuscă toast, stuffed peppers, and fruit tea, please, before I sew a sleeve shut by mistake."
+          "text": "I have three wedding dresses to finish before Thursday. Fruit tea, cherry compote, and whatever the butcher and the market sent, please, before I sew a sleeve shut by mistake."
         }
       ],
       "completion": [
@@ -5257,136 +5137,25 @@
       ]
     },
     {
-      "id": "vlad-after-dark",
-      "character": "vlad",
-      "title": "Dinner after dark",
-      "afterTask": "task_8",
-      "requirements": [
-        {
-          "item": "pork_5",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_cabbage-rolls",
-          "quantity": 2
-        },
-        {
-          "item": "fruits_5",
-          "quantity": 2
-        }
-      ],
-      "reward": 146,
-      "opening": [
-        {
-          "speaker": "vlad",
-          "text": "I dine only after sunset. An old family habit. Roast pork, cabbage rolls, and two carafes of red wine, if you please. No garlic, naturally."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "vlad",
-          "text": "Excellent. The wine is exactly the right shade of red. I am very particular about red."
-        }
-      ]
-    },
-    {
-      "id": "elisabeta-papers",
-      "character": "elisabeta",
-      "title": "The estate papers",
-      "afterTask": "task_8",
-      "requirements": [
-        {
-          "item": "mixed_tochitura",
-          "quantity": 1
-        },
-        {
-          "item": "mixed_cabbage-rolls",
-          "quantity": 2
-        },
-        {
-          "item": "fruits_5",
-          "quantity": 2
-        },
-        {
-          "item": "poultry_4",
-          "quantity": 1
-        }
-      ],
-      "reward": 146,
-      "opening": [
-        {
-          "speaker": "elisabeta",
-          "text": "I have estate papers to read tonight. Tochitură, cabbage rolls, and red wine, please. Red helps me concentrate."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "elisabeta",
-          "text": "The papers are in order. My neighbour’s boundary has moved a little toward my land. How odd."
-        }
-      ]
-    },
-    {
-      "id": "vlad-guest",
-      "character": "vlad",
-      "title": "A guest at the castle",
-      "afterTask": "task_8",
-      "requirements": [
-        {
-          "item": "pork_5",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_tochitura",
-          "quantity": 2
-        },
-        {
-          "item": "fruits_5",
-          "quantity": 3
-        }
-      ],
-      "reward": 249,
-      "opening": [
-        {
-          "speaker": "vlad",
-          "text": "A guest from abroad comes to my castle soon, on a matter of property. I must give him roast pork, tochitură, and plenty of red wine. First impressions matter."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "vlad",
-          "text": "Splendid. My guest will feel very welcome. Nobody ever wants to leave my castle. Nobody ever does."
-        }
-      ]
-    },
-    {
       "id": "mara-candles",
       "character": "mara",
       "title": "Candles in the window",
       "afterTask": "task_8",
       "requirements": [
         {
-          "item": "mixed_sharing-board",
+          "item": "vegetables_3",
           "quantity": 1
         },
         {
-          "item": "vegetables_4",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_cabbage-rolls",
-          "quantity": 2
+          "item": "pork_3",
+          "quantity": 1
         },
         {
           "item": "herbs_3",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_cheese-pie",
           "quantity": 1
         }
       ],
-      "reward": 116,
+      "reward": 26,
       "opening": [
         {
           "speaker": "mara",
@@ -5420,19 +5189,19 @@
       "afterQuest": "adrian-first-pack",
       "requirements": [
         {
-          "item": "vegetables_5",
+          "item": "fruits_4",
+          "quantity": 4
+        },
+        {
+          "item": "pork_3",
           "quantity": 4
         },
         {
           "item": "dairy_5",
           "quantity": 4
-        },
-        {
-          "item": "pork_5",
-          "quantity": 4
         }
       ],
-      "reward": 372,
+      "reward": 312,
       "opening": [
         {
           "speaker": "monica",
@@ -5454,9 +5223,107 @@
       "completion": [
         {
           "speaker": "monica",
-          "text": "We will leave the roast pork on the stairs for him. A cook that busy never gets a hot meal."
+          "text": "We will leave the sausages on the stairs for him. A cook that busy never gets a hot meal."
         }
       ]
+    },
+    {
+      "id": "vlad-after-dark",
+      "character": "vlad",
+      "title": "Dinner after dark",
+      "afterTask": "task_8",
+      "requirements": [
+        {
+          "item": "fruits_5",
+          "quantity": 2
+        },
+        {
+          "item": "pork_4",
+          "quantity": 1
+        }
+      ],
+      "reward": 114,
+      "opening": [
+        {
+          "speaker": "vlad",
+          "text": "Book my table for eight in the evening. I dine only after sunset, an old family habit. Smoked bacon and two carafes of red wine, if you please. No garlic, naturally."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "vlad",
+          "text": "Excellent. The wine is exactly the right shade of red. I am very particular about red."
+        }
+      ],
+      "booked": true
+    },
+    {
+      "id": "elisabeta-papers",
+      "character": "elisabeta",
+      "title": "The estate papers",
+      "afterTask": "task_8",
+      "requirements": [
+        {
+          "item": "fruits_5",
+          "quantity": 1
+        },
+        {
+          "item": "pork_5",
+          "quantity": 1
+        },
+        {
+          "item": "poultry_3",
+          "quantity": 1
+        }
+      ],
+      "reward": 102,
+      "opening": [
+        {
+          "speaker": "elisabeta",
+          "text": "A table at eight in the evening, please, and not on the same evening as my neighbour. He has moved the fence between our lands again. Roast pork, chicken broth, and red wine. Red helps me read estate papers."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "elisabeta",
+          "text": "The papers are in order. My neighbour’s boundary has moved a little toward my land. How odd."
+        }
+      ],
+      "booked": true
+    },
+    {
+      "id": "vlad-guest",
+      "character": "vlad",
+      "title": "A guest at the castle",
+      "afterTask": "task_8",
+      "requirements": [
+        {
+          "item": "fruits_5",
+          "quantity": 1
+        },
+        {
+          "item": "pork_5",
+          "quantity": 1
+        },
+        {
+          "item": "mixed_tochitura",
+          "quantity": 1
+        }
+      ],
+      "reward": 162,
+      "opening": [
+        {
+          "speaker": "vlad",
+          "text": "A guest from abroad comes to my castle soon, on a matter of property. Book my table for eight in the evening, on a night when the countess is not here. I must give him roast pork, tochitură, and plenty of red wine. First impressions matter."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "vlad",
+          "text": "Splendid. My guest will feel very welcome. Nobody ever wants to leave my castle. Nobody ever does."
+        }
+      ],
+      "booked": true
     },
     {
       "id": "eszter-table",
@@ -5465,19 +5332,15 @@
       "afterTask": "task_9",
       "requirements": [
         {
-          "item": "mixed_papanasi",
-          "quantity": 2
-        },
-        {
           "item": "mixed_cozonac",
           "quantity": 2
         },
         {
           "item": "mixed_chimney-cake",
-          "quantity": 2
+          "quantity": 1
         }
       ],
-      "reward": 54,
+      "reward": 36,
       "opening": [
         {
           "speaker": "eszter",
@@ -5515,22 +5378,14 @@
       "requirements": [
         {
           "item": "mixed_bulz",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_cabbage-rolls-mamaliga",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_papanasi",
-          "quantity": 2
-        },
-        {
-          "item": "fruits_4",
           "quantity": 1
+        },
+        {
+          "item": "vegetables_3",
+          "quantity": 2
         }
       ],
-      "reward": 153,
+      "reward": 66,
       "opening": [
         {
           "speaker": "eszter",
@@ -5568,30 +5423,22 @@
       "requirements": [
         {
           "item": "herbs_4",
-          "quantity": 3
+          "quantity": 1
         },
         {
           "item": "mixed_chicken-noodle-soup",
           "quantity": 1
         },
         {
-          "item": "grain_4",
-          "quantity": 2
-        },
-        {
           "item": "poultry_4",
           "quantity": 1
-        },
-        {
-          "item": "herbs_2",
-          "quantity": 2
         }
       ],
-      "reward": 79,
+      "reward": 52,
       "opening": [
         {
           "speaker": "ana",
-          "text": "The night patients cannot sleep. Three linden teas for them, please, and a proper supper for the porter."
+          "text": "The night patients cannot sleep. A linden tea for them, please, and a proper supper for the porter."
         }
       ],
       "completion": [
@@ -5613,14 +5460,14 @@
         },
         {
           "item": "vegetables_4",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "herbs_3",
           "quantity": 1
         }
       ],
-      "reward": 80,
+      "reward": 98,
       "opening": [
         {
           "speaker": "cezar",
@@ -5646,22 +5493,10 @@
         },
         {
           "item": "grain_5",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_fruit-tea",
-          "quantity": 2
-        },
-        {
-          "item": "pork_3",
-          "quantity": 2
-        },
-        {
-          "item": "fruits_3",
           "quantity": 1
         }
       ],
-      "reward": 123,
+      "reward": 90,
       "opening": [
         {
           "speaker": "sorin",
@@ -5700,15 +5535,11 @@
       "requirements": [
         {
           "item": "grain_5",
-          "quantity": 6
+          "quantity": 3
         },
         {
           "item": "grain_6",
-          "quantity": 2
-        },
-        {
-          "item": "dairy_5",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "fruits_5",
@@ -5716,14 +5547,14 @@
         },
         {
           "item": "grain_4",
-          "quantity": 2
+          "quantity": 6
         }
       ],
-      "reward": 466,
+      "reward": 456,
       "opening": [
         {
           "speaker": "janos",
-          "text": "The cook ate all the roast pork and fell asleep on his cleaver. We walked straight past him."
+          "text": "The cook ate all the sausages and fell asleep on his cleaver. We walked straight past him."
         },
         {
           "speaker": "janos",
@@ -5754,26 +5585,18 @@
       "requirements": [
         {
           "item": "fruits_6",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "mixed_sharing-board",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "mixed_tochitura",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_chimney-cake",
-          "quantity": 2
-        },
-        {
-          "item": "pork_5",
           "quantity": 1
         }
       ],
-      "reward": 343,
+      "reward": 222,
       "opening": [
         {
           "speaker": "ionatan",
@@ -5806,7 +5629,7 @@
           "quantity": 2
         }
       ],
-      "reward": 49,
+      "reward": 72,
       "opening": [
         {
           "speaker": "sanziana",
@@ -5831,7 +5654,7 @@
       "afterQuest": "ionatan-castle-dinner",
       "requirements": [
         {
-          "item": "mixed_zacusca-toast",
+          "item": "vegetables_5",
           "quantity": 2
         },
         {
@@ -5844,10 +5667,10 @@
         },
         {
           "item": "mixed_fruit-tea",
-          "quantity": 2
+          "quantity": 1
         }
       ],
-      "reward": 149,
+      "reward": 190,
       "opening": [
         {
           "speaker": "mina",
@@ -5908,18 +5731,18 @@
         },
         {
           "item": "grain_5",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "dairy_5",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "mixed_fruit-tea",
           "quantity": 2
         }
       ],
-      "reward": 196,
+      "reward": 200,
       "opening": [
         {
           "speaker": "dochia",
@@ -5948,7 +5771,7 @@
           "quantity": 1
         }
       ],
-      "reward": 34,
+      "reward": 52,
       "opening": [
         {
           "speaker": "ilie",
@@ -5981,27 +5804,19 @@
       "afterTask": "task_12",
       "requirements": [
         {
-          "item": "fruits_3",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_plum-dumplings",
-          "quantity": 2
-        },
-        {
           "item": "dairy_6",
           "quantity": 2
         },
         {
           "item": "mixed_cozonac",
-          "quantity": 2
+          "quantity": 1
         }
       ],
-      "reward": 164,
+      "reward": 201,
       "opening": [
         {
           "speaker": "dorian",
-          "text": "A gallery is showing my portrait on Friday. I have invited a few friends to admire it. Cherry compote, plum dumplings, cozonac, and a cheese board for the guests, please."
+          "text": "A gallery is showing my portrait on Friday. I have invited a few friends to admire it. Two cheese boards and a cozonac for the guests, please."
         }
       ],
       "completion": [
@@ -6018,23 +5833,19 @@
       "afterTask": "task_12",
       "requirements": [
         {
-          "item": "beans_5",
+          "item": "mixed_zacusca-toast",
           "quantity": 2
         },
         {
-          "item": "mixed_zacusca-toast",
-          "quantity": 1
-        },
-        {
           "item": "mixed_plum-dumplings",
-          "quantity": 3
+          "quantity": 1
         }
       ],
-      "reward": 110,
+      "reward": 120,
       "opening": [
         {
           "speaker": "catalina",
-          "text": "A hail cloud came over the hill this morning. I rang it away, and now my arms are hungry. Bean stew, zacuscă toast, and plum dumplings, please. It is a fasting day."
+          "text": "A hail cloud came over the hill this morning. I rang it away, and now my arms are hungry. Zacuscă toast and plum dumplings, please. It is a fasting day."
         }
       ],
       "completion": [
@@ -6059,7 +5870,7 @@
           "quantity": 1
         }
       ],
-      "reward": 33,
+      "reward": 50,
       "opening": [
         {
           "speaker": "sorin",
@@ -6104,7 +5915,7 @@
           "quantity": 1
         }
       ],
-      "reward": 62,
+      "reward": 92,
       "opening": [
         {
           "speaker": "bran",
@@ -6127,27 +5938,15 @@
       "requirements": [
         {
           "item": "grain_6",
-          "quantity": 2
-        },
-        {
-          "item": "lamb_5",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "grain_3",
-          "quantity": 2
+          "quantity": 5
         },
         {
           "item": "grain_4",
-          "quantity": 2
-        },
-        {
-          "item": "lamb_3",
-          "quantity": 2
-        },
-        {
-          "item": "lamb_4",
-          "quantity": 2
+          "quantity": 6
         }
       ],
       "reward": 276,
@@ -6172,7 +5971,7 @@
       "completion": [
         {
           "speaker": "adrian",
-          "text": "The roast lamb is for us. One bread basket is for the goblin. Perhaps he will give us a better rock."
+          "text": "Most of the bread is for us. One bread basket is for the goblin. Perhaps he will give us a better rock."
         }
       ]
     },
@@ -6183,35 +5982,19 @@
       "afterTask": "task_14",
       "requirements": [
         {
-          "item": "vegetables_5",
-          "quantity": 2
-        },
-        {
           "item": "mixed_zacusca-toast",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_fruit-tea",
           "quantity": 2
         },
         {
           "item": "grain_5",
           "quantity": 1
-        },
-        {
-          "item": "grain_4",
-          "quantity": 1
-        },
-        {
-          "item": "herbs_4",
-          "quantity": 2
         }
       ],
-      "reward": 210,
+      "reward": 162,
       "opening": [
         {
           "speaker": "ileana",
-          "text": "Thursday is close, and my brother has not touched his spindle. I am taking him zacuscă, bread, and fruit tea, so that he has no excuse."
+          "text": "Thursday is close, and my brother has not touched his spindle. I am taking him zacuscă toast and a langoș, so that he has no excuse."
         }
       ],
       "completion": [
@@ -6228,35 +6011,15 @@
       "afterTask": "task_14",
       "requirements": [
         {
-          "item": "lamb_5",
-          "quantity": 2
-        },
-        {
           "item": "mixed_cabbage-rolls",
           "quantity": 2
         },
         {
-          "item": "mixed_chicken-noodle-soup",
-          "quantity": 2
-        },
-        {
-          "item": "fruits_3",
-          "quantity": 2
-        },
-        {
-          "item": "fruits_6",
-          "quantity": 1
-        },
-        {
-          "item": "mixed_bulz",
-          "quantity": 1
-        },
-        {
           "item": "herbs_4",
-          "quantity": 2
+          "quantity": 1
         }
       ],
-      "reward": 228,
+      "reward": 46,
       "opening": [
         {
           "speaker": "victor",
@@ -6278,7 +6041,7 @@
       "requirements": [
         {
           "item": "dairy_6",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "mixed_zacusca-toast",
@@ -6289,19 +6052,19 @@
           "quantity": 2
         },
         {
-          "item": "mixed_drob",
-          "quantity": 2
-        },
-        {
-          "item": "lamb_5",
-          "quantity": 2
+          "item": "lamb_1",
+          "quantity": 4
         },
         {
           "item": "corn_4",
           "quantity": 1
+        },
+        {
+          "item": "beans_1",
+          "quantity": 2
         }
       ],
-      "reward": 353,
+      "reward": 330,
       "opening": [
         {
           "speaker": "dochia",
@@ -6323,30 +6086,22 @@
       "requirements": [
         {
           "item": "mixed_cozonac",
-          "quantity": 2
-        },
-        {
-          "item": "fruits_5",
-          "quantity": 2
-        },
-        {
-          "item": "dairy_6",
-          "quantity": 2
-        },
-        {
-          "item": "fruits_6",
           "quantity": 1
         },
         {
-          "item": "fruits_3",
-          "quantity": 2
+          "item": "dairy_6",
+          "quantity": 1
+        },
+        {
+          "item": "fruits_5",
+          "quantity": 1
         }
       ],
-      "reward": 283,
+      "reward": 153,
       "opening": [
         {
           "speaker": "dorian",
-          "text": "A gentleman from the castle has invited me to a candlelit supper. Cozonac, a cheese board, cherry compote, and red wine, please. His evenings tend to last until dawn."
+          "text": "A gentleman from the castle has invited me to a candlelit supper. Cozonac, a cheese board, and red wine, please. His evenings tend to last until dawn."
         }
       ],
       "completion": [
@@ -6364,34 +6119,22 @@
       "requirements": [
         {
           "item": "mixed_tochitura",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "mixed_bean-soup",
-          "quantity": 2
-        },
-        {
-          "item": "vegetables_5",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "mixed_sharing-board",
-          "quantity": 2
-        },
-        {
-          "item": "pork_5",
-          "quantity": 1
-        },
-        {
-          "item": "beans_5",
           "quantity": 1
         }
       ],
-      "reward": 330,
+      "reward": 153,
       "opening": [
         {
           "speaker": "cezar",
-          "text": "Tonight is the longest night of the year, and I walk all of it. Tochitură, bean soup, zacuscă, and a sharing board, please. One bite for every hour."
+          "text": "Tonight is the longest night of the year, and I walk all of it. Tochitură, bean soup, and a sharing board, please. One bite for every hour."
         }
       ],
       "completion": [
@@ -6409,42 +6152,18 @@
       "requirements": [
         {
           "item": "mixed_plum-dumplings",
-          "quantity": 2
+          "quantity": 1
         },
         {
-          "item": "vegetables_5",
-          "quantity": 2
+          "item": "lamb_2",
+          "quantity": 1
         },
         {
           "item": "mixed_fruit-tea",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_beans-with-sausages",
-          "quantity": 2
-        },
-        {
-          "item": "lamb_5",
-          "quantity": 2
-        },
-        {
-          "item": "dairy_6",
           "quantity": 1
-        },
-        {
-          "item": "grain_5",
-          "quantity": 1
-        },
-        {
-          "item": "fruits_4",
-          "quantity": 1
-        },
-        {
-          "item": "herbs_4",
-          "quantity": 2
         }
       ],
-      "reward": 341,
+      "reward": 16,
       "opening": [
         {
           "speaker": "eszter",
@@ -6481,27 +6200,15 @@
       "afterTask": "task_14",
       "requirements": [
         {
-          "item": "grain_6",
+          "item": "mixed_bean-soup",
           "quantity": 2
         },
         {
-          "item": "mixed_bean-soup-bread-bowl",
-          "quantity": 2
-        },
-        {
-          "item": "lamb_5",
-          "quantity": 2
-        },
-        {
-          "item": "lamb_4",
+          "item": "lamb_3",
           "quantity": 1
-        },
-        {
-          "item": "herbs_4",
-          "quantity": 2
         }
       ],
-      "reward": 267,
+      "reward": 60,
       "opening": [
         {
           "speaker": "ilie",
@@ -6535,19 +6242,19 @@
       "afterQuest": "adrian-second-pack",
       "requirements": [
         {
-          "item": "fruits_3",
-          "quantity": 4
-        },
-        {
           "item": "grain_6",
-          "quantity": 4
+          "quantity": 1
         },
         {
-          "item": "lamb_5",
-          "quantity": 4
+          "item": "fruits_3",
+          "quantity": 6
+        },
+        {
+          "item": "lamb_4",
+          "quantity": 7
         }
       ],
-      "reward": 404,
+      "reward": 308,
       "opening": [
         {
           "speaker": "monica",
@@ -6581,22 +6288,22 @@
       "requirements": [
         {
           "item": "lamb_5",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "mixed_tochitura",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "fruits_5",
-          "quantity": 2
+          "quantity": 1
         }
       ],
-      "reward": 218,
+      "reward": 162,
       "opening": [
         {
           "speaker": "elisabeta",
-          "text": "I am taking the evening off for a long bath at my manor. Afterwards, roast lamb, tochitură, and two carafes of red wine. Do not ask what is in the bath. Rose petals. Only rose petals."
+          "text": "I am taking the evening off for a long bath at my manor. Afterwards, a table at eight, please: roast lamb, tochitură, and a carafe of red wine. Do not ask what is in the bath. Rose petals. Only rose petals."
         }
       ],
       "completion": [
@@ -6604,7 +6311,8 @@
           "speaker": "elisabeta",
           "text": "Wonderful. My maids say that I look younger every year. I tell them that it is the tochitură."
         }
-      ]
+      ],
+      "booked": true
     },
     {
       "id": "ilie-family",
@@ -6615,9 +6323,13 @@
         {
           "item": "dairy_6",
           "quantity": 1
+        },
+        {
+          "item": "beans_2",
+          "quantity": 1
         }
       ],
-      "reward": 63,
+      "reward": 98,
       "opening": [
         {
           "speaker": "ilie",
@@ -6650,15 +6362,7 @@
       "afterTask": "task_16",
       "requirements": [
         {
-          "item": "mixed_mici",
-          "quantity": 2
-        },
-        {
-          "item": "dairy_5",
-          "quantity": 2
-        },
-        {
-          "item": "vegetables_4",
+          "item": "veal_1",
           "quantity": 2
         },
         {
@@ -6666,11 +6370,11 @@
           "quantity": 1
         }
       ],
-      "reward": 131,
+      "reward": 27,
       "opening": [
         {
           "speaker": "cezar",
-          "text": "Somebody keeps lighting candles in the castle on the hill. It is not my district, but I like to watch with a warm plate. Mici, smoked cheese, and roasted vegetables, please."
+          "text": "Somebody keeps lighting candles in the castle on the hill. It is not my district, but I like to watch with a warm plate. Veal from the new butcher’s block and a bean soup, please."
         }
       ],
       "completion": [
@@ -6692,7 +6396,7 @@
         },
         {
           "item": "mixed_cozonac",
-          "quantity": 3
+          "quantity": 2
         }
       ],
       "reward": 30,
@@ -6733,18 +6437,18 @@
         },
         {
           "item": "grain_5",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "herbs_4",
           "quantity": 1
         }
       ],
-      "reward": 100,
+      "reward": 106,
       "opening": [
         {
           "speaker": "ana",
-          "text": "Tonight is Saint Andrew’s Eve. I will hang the garlic early, and then I want a proper supper: smoked cheese, two langoș, and a linden tea."
+          "text": "Tonight is Saint Andrew’s Eve. I will hang the garlic early, and then I want a proper supper: smoked cheese, a langoș, and a linden tea."
         }
       ],
       "completion": [
@@ -6767,14 +6471,14 @@
         },
         {
           "item": "mixed_tochitura",
-          "quantity": 3
+          "quantity": 2
         },
         {
           "item": "mixed_sharing-board",
-          "quantity": 2
+          "quantity": 1
         }
       ],
-      "reward": 226,
+      "reward": 208,
       "opening": [
         {
           "speaker": "janos",
@@ -6808,11 +6512,7 @@
       "requirements": [
         {
           "item": "mixed_cozonac",
-          "quantity": 2
-        },
-        {
-          "item": "fruits_3",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "fruits_6",
@@ -6821,17 +6521,13 @@
         {
           "item": "mixed_papanasi",
           "quantity": 1
-        },
-        {
-          "item": "herbs_3",
-          "quantity": 3
         }
       ],
-      "reward": 115,
+      "reward": 123,
       "opening": [
         {
           "speaker": "costel",
-          "text": "I have finished a dancing doll for the village fair. She dances very well, but she stares a little. Cozonac, cherry compote, and a plum brandy to celebrate?"
+          "text": "I have finished a dancing doll for the village fair. She dances very well, but she stares a little. Cozonac, papanași, and a plum brandy to celebrate?"
         }
       ],
       "completion": [
@@ -6856,19 +6552,15 @@
           "quantity": 1
         },
         {
-          "item": "grain_4",
-          "quantity": 2
-        },
-        {
           "item": "grain_5",
-          "quantity": 2
+          "quantity": 1
         }
       ],
-      "reward": 162,
+      "reward": 150,
       "opening": [
         {
           "speaker": "bran",
-          "text": "On my day off, I ride through the woods. The horse wants apples. I want zacuscă toast, smoked cheese, pogăcele, and langoș."
+          "text": "On my day off, I ride through the woods. The horse wants apples. I want zacuscă toast, smoked cheese, and langoș."
         }
       ],
       "completion": [
@@ -6885,35 +6577,19 @@
       "afterTask": "task_18",
       "requirements": [
         {
-          "item": "beans_5",
+          "item": "beans_3",
           "quantity": 2
         },
         {
           "item": "mixed_plum-dumplings",
-          "quantity": 2
-        },
-        {
-          "item": "vegetables_5",
-          "quantity": 1
-        },
-        {
-          "item": "mixed_zacusca-toast",
-          "quantity": 1
-        },
-        {
-          "item": "vegetables_4",
-          "quantity": 1
-        },
-        {
-          "item": "fruits_4",
           "quantity": 1
         }
       ],
-      "reward": 168,
+      "reward": 24,
       "opening": [
         {
           "speaker": "catalina",
-          "text": "A stranger with a long beard and a book is asking about the weather. I do not like it. Bean stew and plum dumplings, so that I can keep watch from the tower."
+          "text": "A stranger with a long beard and a book is asking about the weather. I do not like it. Green beans and plum dumplings, so that I can keep watch from the tower."
         }
       ],
       "completion": [
@@ -6940,9 +6616,13 @@
         {
           "item": "herbs_3",
           "quantity": 2
+        },
+        {
+          "item": "beans_4",
+          "quantity": 2
         }
       ],
-      "reward": 74,
+      "reward": 156,
       "opening": [
         {
           "speaker": "sanziana",
@@ -6965,22 +6645,18 @@
       "requirements": [
         {
           "item": "grain_5",
-          "quantity": 6
-        },
-        {
-          "item": "dairy_5",
-          "quantity": 4
-        },
-        {
-          "item": "herbs_3",
           "quantity": 2
         },
         {
-          "item": "veal_5",
-          "quantity": 1
+          "item": "herbs_3",
+          "quantity": 4
+        },
+        {
+          "item": "grain_3",
+          "quantity": 6
         }
       ],
-      "reward": 347,
+      "reward": 176,
       "opening": [
         {
           "speaker": "adrian",
@@ -7009,27 +6685,23 @@
       "afterTask": "task_20",
       "requirements": [
         {
-          "item": "mixed_zacusca-toast",
-          "quantity": 2
-        },
-        {
           "item": "dairy_6",
           "quantity": 1
         },
         {
-          "item": "mixed_cheese-pie",
-          "quantity": 1
+          "item": "fish_1",
+          "quantity": 2
         }
       ],
-      "reward": 160,
+      "reward": 96,
       "opening": [
         {
           "speaker": "mara",
-          "text": "I have a bad dream about the supper. The bread comes out cold while the cheese waits."
+          "text": "I have a bad dream about the supper. The fish reaches the table while the cheese waits."
         },
         {
           "speaker": "ilie",
-          "text": "In my family, the bread always went first."
+          "text": "In my family, the cheese always went first."
         },
         {
           "speaker": "mara",
@@ -7039,11 +6711,11 @@
       "completion": [
         {
           "speaker": "mara",
-          "text": "Together, and warm. Now I can watch the guests, not the kitchen door."
+          "text": "Together, at last. Now I can watch the guests, not the kitchen door."
         },
         {
           "speaker": "ilie",
-          "text": "The bread still went first. By one step."
+          "text": "The cheese still went first. By one step."
         }
       ]
     },
@@ -7054,27 +6726,15 @@
       "afterTask": "task_20",
       "requirements": [
         {
-          "item": "mixed_fruit-tea",
-          "quantity": 2
-        },
-        {
-          "item": "herbs_4",
-          "quantity": 2
-        },
-        {
-          "item": "vegetables_4",
-          "quantity": 2
-        },
-        {
           "item": "vegetables_5",
           "quantity": 1
         },
         {
-          "item": "mixed_meatball-soup",
-          "quantity": 1
+          "item": "veal_2",
+          "quantity": 2
         }
       ],
-      "reward": 102,
+      "reward": 54,
       "opening": [
         {
           "speaker": "sorin",
@@ -7082,13 +6742,13 @@
         },
         {
           "speaker": "sorin",
-          "text": "Tea and a plate, ready for the first guests who arrive tired from the hill."
+          "text": "A meal ready for the first guests who arrive tired from the hill."
         }
       ],
       "completion": [
         {
           "speaker": "sorin",
-          "text": "For years, people on my round asked me in for tea. Tonight, I give each of them one back."
+          "text": "For years, people on my round asked me in for a meal. Tonight, I give each of them one back."
         },
         {
           "speaker": "mara",
@@ -7108,10 +6768,6 @@
       "requirements": [
         {
           "item": "mixed_cozonac",
-          "quantity": 2
-        },
-        {
-          "item": "fruits_5",
           "quantity": 1
         },
         {
@@ -7119,15 +6775,15 @@
           "quantity": 1
         },
         {
-          "item": "fruits_6",
+          "item": "fruits_5",
           "quantity": 1
         }
       ],
-      "reward": 175,
+      "reward": 153,
       "opening": [
         {
           "speaker": "dorian",
-          "text": "It is my birthday. I will not say which one. Cozonac, a cheese board, a glass of red wine, and a plum brandy, please, and no candles. There are never enough."
+          "text": "It is my birthday. I will not say which one. Cozonac, a cheese board, and a glass of red wine, please, and no candles. There are never enough."
         }
       ],
       "completion": [
@@ -7148,23 +6804,15 @@
           "quantity": 2
         },
         {
-          "item": "fruits_3",
-          "quantity": 1
-        },
-        {
-          "item": "vegetables_5",
-          "quantity": 1
-        },
-        {
-          "item": "grain_5",
+          "item": "fish_2",
           "quantity": 1
         }
       ],
-      "reward": 83,
+      "reward": 24,
       "opening": [
         {
           "speaker": "ileana",
-          "text": "I am embroidering the towels for the supper gate. Bring stuffed peppers, a cherry compote, zacuscă, and a langoș, and I will finish the last corner."
+          "text": "I am embroidering the towels for the supper gate. Bring stuffed peppers and a fried trout, and I will finish the last corner."
         }
       ],
       "completion": [
@@ -7181,29 +6829,29 @@
       "afterTask": "task_21",
       "requirements": [
         {
-          "item": "grain_6",
+          "item": "grain_5",
           "quantity": 1
         },
         {
-          "item": "mixed_mici",
-          "quantity": 2
+          "item": "veal_3",
+          "quantity": 1
         },
         {
           "item": "mixed_cabbage-rolls",
           "quantity": 1
         }
       ],
-      "reward": 96,
+      "reward": 72,
       "opening": [
         {
           "speaker": "bran",
-          "text": "The town has a pumpkin fair this weekend. Last year I carved the best pumpkin head. People said that I understand heads very well. A bread basket, mici, and cabbage rolls, please."
+          "text": "The town has a pumpkin fair this weekend. Last year I carved the best pumpkin head. People said that I understand heads very well. A langoș, minced veal, and cabbage rolls, please."
         }
       ],
       "completion": [
         {
           "speaker": "bran",
-          "text": "The bread basket is for the bus. The rest is for me. The pumpkin head is for anyone who needs one."
+          "text": "The langoș is for the bus. The rest is for me. The pumpkin head is for anyone who needs one."
         }
       ]
     },
@@ -7215,23 +6863,23 @@
       "afterQuest": "adrian-third-pack",
       "requirements": [
         {
-          "item": "grain_6",
-          "quantity": 2
+          "item": "grain_3",
+          "quantity": 1
         },
         {
-          "item": "veal_5",
-          "quantity": 2
+          "item": "veal_4",
+          "quantity": 4
         },
         {
-          "item": "veal_6",
-          "quantity": 2
+          "item": "fish_3",
+          "quantity": 4
         },
         {
-          "item": "vegetables_4",
-          "quantity": 6
+          "item": "vegetables_3",
+          "quantity": 3
         }
       ],
-      "reward": 404,
+      "reward": 168,
       "opening": [
         {
           "speaker": "monica",
@@ -7253,7 +6901,7 @@
       "completion": [
         {
           "speaker": "monica",
-          "text": "One veal stew is for the archbishop. A man who preaches that long must be hungry, and a full man preaches less."
+          "text": "The meatballs are for the archbishop. A man who preaches that long must be hungry, and a full man preaches less."
         }
       ]
     },
@@ -7269,18 +6917,14 @@
         },
         {
           "item": "mixed_mici",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "mixed_cabbage-rolls",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_fish-soup",
           "quantity": 1
         }
       ],
-      "reward": 96,
+      "reward": 102,
       "opening": [
         {
           "speaker": "cezar",
@@ -7309,7 +6953,7 @@
           "quantity": 1
         }
       ],
-      "reward": 70,
+      "reward": 104,
       "opening": [
         {
           "speaker": "ileana",
@@ -7335,27 +6979,27 @@
       "afterQuest": "monica-third-pack",
       "requirements": [
         {
-          "item": "vegetables_5",
-          "quantity": 2
-        },
-        {
-          "item": "veal_6",
-          "quantity": 2
-        },
-        {
           "item": "fish_4",
           "quantity": 4
         },
         {
-          "item": "fruits_4",
+          "item": "veal_5",
+          "quantity": 1
+        },
+        {
+          "item": "fruits_3",
           "quantity": 4
+        },
+        {
+          "item": "vegetables_3",
+          "quantity": 3
         }
       ],
-      "reward": 308,
+      "reward": 204,
       "opening": [
         {
           "speaker": "janos",
-          "text": "The archbishop ate the veal stew and fell asleep in the middle of a sermon. I borrowed his loose pages."
+          "text": "The archbishop ate the meatballs and fell asleep in the middle of a sermon. I borrowed his loose pages."
         },
         {
           "speaker": "janos",
@@ -7389,30 +7033,18 @@
       "requirements": [
         {
           "item": "mixed_saramura-mamaliga",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "beans_5",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_fish-soup",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_zacusca-toast",
           "quantity": 1
         },
         {
           "item": "mixed_plum-dumplings",
-          "quantity": 2
-        },
-        {
-          "item": "fruits_4",
           "quantity": 1
         }
       ],
-      "reward": 194,
+      "reward": 96,
       "opening": [
         {
           "speaker": "catalina",
@@ -7453,7 +7085,7 @@
           "quantity": 2
         }
       ],
-      "reward": 91,
+      "reward": 134,
       "opening": [
         {
           "speaker": "sanziana",

@@ -43,7 +43,7 @@ The status column gives the state of each specification. The status of a specifi
 | 010 | [Neighbourhood regulars](010-neighbourhood-regulars.md) | Implemented | 008 for arrival scenes |
 | 011 | [Motion choice](011-motion-choice.md) | Implemented | None |
 | 012 | [Staple chains and mixed dishes](012-staple-chains.md) | Implemented | None |
-| 013 | [Bistro day and night](013-day-and-night.md) | Proposed | 012 |
+| 013 | [Bistro day and night](013-day-and-night.md) | Implemented | 012 |
 
 A dependency is a specification that the complete feature needs. A reference to another specification is not always a dependency. Only this register lists the dependencies.
 
@@ -57,13 +57,13 @@ A dependency is a specification that the complete feature needs. A reference to 
   Obey the source-input limits in [AGENTS.md](../../AGENTS.md).
   Use the current source and these independently authored requirements.
 - Put the rules in `src/model.ts`, `src/engine.ts`, and `src/content.ts`, the persistence in `src/storage.ts`, and the interaction in the interface modules. [`AGENTS.md`](../../AGENTS.md) gives the owner of each module. Do not use the Document Object Model (DOM) in the rules or the persistence. Author data through `tools/create-original-data.ts`.
-- The game state has no random seed. A feature with random outcomes adds a seed to the state. A failed action does not use resources, advance progress, change a seed, or grant part of a reward.
+- The game state has one random seed (013). Only a closing with the thief rat uses and advances it. A feature with other random outcomes coordinates its use of the seed. A failed action does not use resources, advance progress, change a seed, or grant part of a reward.
 - Give every objective and reward a stable identifier (ID). Claim each one-time reward once. Journal replay, scene viewing, repeated input, and reload must not claim the reward again.
 - Show a reachable next goal. A mandatory task must not require a reward, area, item, or quest that the same task unlocks. Validate the combined prerequisite graph before release.
 
 ## Shared save compatibility
 
-Current saves use game state version 13 in envelope version 12 at `scary-snacks-save-v12`.
+Current saves use game state version 14 in envelope version 13 at `scary-snacks-save-v13`.
 The game supports only this format.
 Load reads only this key.
 If no current save exists, the game starts a new campaign.

@@ -4,7 +4,7 @@ import { boardObstacles, firstFreeBoardCell, generatorOutputs, mergePartners, re
 import { createGame } from '../../src/engine.ts';
 import { appVersion } from '../../tools/build.ts';
 import type { GameState } from '../../src/model.ts';
-import { KEY, act, appearance, checkpoint, data, deliverButton, journal, onTicket, opened, options, painting, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, stateText, supplies, supply, tile, ticket, toast, unselect } from './support.ts';
+import { KEY, act, appearance, checkpoint, data, deliverButton, journal, newGame, onTicket, opened, options, painting, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, stateText, supplies, supply, tile, ticket, toast, unselect, know, madeLine } from './support.ts';
 
 async function mergeStart(page: Page){await tile(page,13).click();await tile(page,14).click();expect((await saved(page)).board[14]?.code).toBe('grain_2');}
 const welcome=quest('mara-welcome'),ready=()=>supply(createGame(data),supplies(welcome)),recovery=data.quests.find(value=>value.recovery)!,supper=data.quests.find(value=>value.finale)!;
@@ -27,19 +27,20 @@ function beforeFirstPreparation(){
     state=act(state,{type:'deliverQuest',id:open[0].quest.id});
   }
   for(const id of [...state.pendingScenes])state=act(state,{type:'readScene',id});
-  return state;
+  // The kitchen work of this fixture passes a closing. The player has seen that night.
+  return state.night?{...state,night:{...state.night,seen:true}}:state;
 }
 
 test('the bistro produces, merges, delivers a quest, and survives reload',async({page})=>{
   const errors: string[]=[];page.on('pageerror',error=>errors.push(error.message));
-  // Mara's welcome waits for one more Socată.
-  await start(page,supply(createGame(data),['herbs_3','herbs_4']));await mergeStart(page);
-  // Three free takes from the Herb basket and the Elderflowers on the board merge into Herb bunches, and the two bunches make the Socată.
+  // Mara's welcome waits for one more Herb bunch.
+  await start(page,supply(createGame(data),['herbs_2','herbs_4']));await mergeStart(page);
+  // A free take from the Herb basket and the Elderflowers on the board merge into the second Herb bunch.
   const herbs=(await saved(page)).board.findIndex(cell=>cell?.code==='generator_herbs');
-  for(let take=0;take<3;take++)await tile(page,herbs).click();
-  const flowers=(await saved(page)).board.flatMap((cell,index)=>cell?.code==='herbs_1'?[index]:[]);expect(flowers).toHaveLength(4);expect((await saved(page)).coins).toBe(0);
-  for(const index of [flowers[0],flowers[1],flowers[2],flowers[3],flowers[1]])await tile(page,index).click();
-  expect((await saved(page)).board[flowers[1]]?.code).toBe('herbs_3');
+  await tile(page,herbs).click();
+  const flowers=(await saved(page)).board.flatMap((cell,index)=>cell?.code==='herbs_1'?[index]:[]);expect(flowers).toHaveLength(2);expect((await saved(page)).coins).toBe(0);
+  for(const index of flowers)await tile(page,index).click();
+  expect((await saved(page)).board[flowers[1]]?.code).toBe('herbs_2');
   const deliver=deliverButton(page,welcome);await expect(deliver).toBeEnabled();await expect(deliver).toHaveAccessibleName(`Deliver ${welcome.title} to Mara for ${welcome.reward} coins`);await deliver.click();
   await expect(toast(page)).toHaveText(`${welcome.title}: delivered. Earned ${welcome.reward} coins.`);
   const after=await saved(page);expect(after.completedQuests).toEqual([welcome.id]);expect(after.coins).toBe(welcome.reward);expect(after.board[flowers[1]]).toBeNull();expect(after.pendingScenes).toEqual([welcome.id]);
@@ -70,7 +71,7 @@ test('a mixed merge cooks its dish by tap, by drag, and by keyboard, from either
   await start(page,state);
   // Tap: Dough onto Eggs. The two parts leave, and the mixed dish takes the cell of the target.
   await tile(page,dough[0]).click();await expect(tile(page,eggs[0])).toHaveClass(/merge-target/);await tile(page,eggs[0]).click();
-  await expect(page.locator('#status')).toHaveText(`${sweetDough.name} is a new dish! It is in the recipe book now.`);
+  await expect(page.locator('#status')).toHaveText(madeLine(state,sweetDough.id));
   let after=await saved(page);expect(after.board[eggs[0]]?.code).toBe(sweetDough.id);expect(after.board[dough[0]]).toBeNull();expect(after.discovered).toContain(sweetDough.id);
   // Drag: Eggs onto Dough, the other order.
   await unselect(page);const from=(await tile(page,eggs[1]).boundingBox())!,to=(await tile(page,dough[1]).boundingBox())!;
@@ -94,7 +95,7 @@ test('selection marks each recipe partner and match, and Find a match points at 
   // With the blockers cleared and only one recipe pair on the board, Find a match selects one part and names the dish that the other cooks.
   const single=supply(checkpoint(5,{coins:100}),['grain_2','poultry_1']);
   for(const [index,cell] of single.board.entries())if(cell&&!data.items[cell.code].generator&&!['grain_2','poultry_1'].includes(cell.code))single.board[index]=null;
-  for(const obstacle of boardObstacles(single,data)){single.resolvedObstacles.push(obstacle.id);if(!single.discovered.includes(obstacle.ingredient))single.discovered.push(obstacle.ingredient);}
+  for(const obstacle of boardObstacles(single,data)){single.resolvedObstacles.push(obstacle.id);if(!single.discovered.includes(obstacle.ingredient))know(single,obstacle.ingredient);}
   await replaceSave(page,single);await page.locator('#hint-button').click();
   const [part,partner]=single.board.flatMap((cell,index)=>cell&&!data.items[cell.code].generator?[index]:[]);
   await expect(tile(page,part)).toHaveAttribute('aria-pressed','true');await expect(tile(page,partner)).toHaveClass(/hint/);
@@ -429,7 +430,7 @@ test('Show me from a recipe closes the book and focuses the board',async({page})
 });
 
 for(const route of ['ready recipe','recipe guide','quest Find'])for(const theme of ['light','dark'])test(`board help raises a lowered phone drawer from ${route} in ${theme}`,async({page})=>{
-  const state=createGame(data);state.discovered.push('grain_2');
+  const state=createGame(data);know(state,'grain_2');
   await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'reduce'});await start(page,state,theme);
   await page.locator('#drawer-handle').click();await expect(page.locator('#drawer-body')).toHaveAttribute('inert','');
   if(route==='quest Find'){
@@ -448,14 +449,16 @@ for(const route of ['ready recipe','recipe guide','quest Find'])for(const theme 
 });
 
 test('a chain with all its dishes discovered shows its completion mark across reload, and earns nothing',async({page})=>{
-  const state=createGame(data);for(const code of [1,2,3,4,5,6].map(stage=>`grain_${stage}`).concat([1,2,3].map(stage=>`corn_${stage}`)))if(!state.discovered.includes(code))state.discovered.push(code);
-  const bakery=data.chains.find(chain=>chain.id==='grain')!.name,warm=data.chains.find(chain=>chain.id==='corn')!.name;
+  const state=createGame(data);for(const code of [1,2,3,4,5,6].map(stage=>`grain_${stage}`).concat([1,2,3].map(stage=>`corn_${stage}`)))if(!state.discovered.includes(code))know(state,code);
+  const bakery=data.chains.find(chain=>chain.id==='grain')!.name,warm=data.chains.find(chain=>chain.id==='corn')!.name,herbs=data.chains.find(chain=>chain.id==='herbs')!.name;
   await start(page,state);
   for(let round=0;round<2;round++){
     await page.getByRole('button',{name:/The recipe book/}).click();const book=page.getByRole('dialog');
     await expect(book.getByRole('heading',{name:`${bakery}, complete`,exact:true})).toContainText('Complete');
     await expect(book.getByRole('heading',{name:warm,exact:true})).not.toContainText('Complete');
-    await expect(book.locator('.chain-complete')).toHaveCount(1);
+    // A new game knows every Herbs dish: the board and the first tickets hold them.
+    await expect(book.getByRole('heading',{name:`${herbs}, complete`,exact:true})).toContainText('Complete');
+    await expect(book.locator('.chain-complete')).toHaveCount(2);
     await page.getByRole('button',{name:'Close dialog'}).click();
     if(!round){await page.reload();await opened(page);}
   }
@@ -466,15 +469,16 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   // Sweet dough is known but not on the board. Eggs are one take away, and Dough is three steps away, because no Flour is on the board.
   const state=checkpoint(5,{coins:100});
   for(const [index,cell] of state.board.entries())if(cell&&!data.items[cell.code].generator)state.board[index]=null;
-  for(const code of ['grain_2','poultry_1',sweetDough.id])if(!state.discovered.includes(code))state.discovered.push(code);
+  for(const code of ['grain_2','poultry_1',sweetDough.id])if(!state.discovered.includes(code))know(state,code);
   await page.setViewportSize(viewport);await start(page,state,theme);
   await page.locator(viewport.width<1024?'#recipes-button':'#collection-button').click();
   const book=page.getByRole('dialog',{name:'The recipe book'}),sections=book.locator('.recipe-chain');
   const mixed=Object.values(data.items).filter(item=>item.recipe);
-  await expect(sections.locator('h3')).toHaveText([...data.chains.map(chain=>chain.name),'Mixed dishes']);
+  await expect(sections.locator('h3')).toHaveText([...data.chains.map(chain=>new RegExp(`^${chain.name}`)),'Mixed dishes']);
   for(const [at,chain] of data.chains.entries())await expect(sections.nth(at).locator('.recipe-grid > *')).toHaveCount(Object.values(data.items).filter(item=>item.chain===chain.id&&!item.generator).length);
   await expect(sections.last().locator('.recipe-grid > *')).toHaveCount(mixed.length);
-  await expect(sections.last().locator('.recipe-item:not(.not-yet)')).toHaveText([sweetDough.name]);
+  // The tickets have put their mixed dishes in the book too.
+  await expect(sections.last().locator('.recipe-item:not(.not-yet)')).toHaveText(mixed.filter(item=>state.discovered.includes(item.id)).map(item=>item.name));
   expect(await page.locator('#modal').evaluate(e=>e.scrollWidth<=e.clientWidth)).toBe(true);
   await sections.last().getByRole('button',{name:sweetDough.name,exact:true}).scrollIntoViewIfNeeded();
   await page.screenshot({path:testInfo.outputPath(`recipe-book-mixed-${viewport.width}-${theme}.png`)});
@@ -490,8 +494,8 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   // A part names the mixed dishes that it makes: the discovered ones by name.
   await page.getByRole('button',{name:'Close dialog'}).click();await expect(book).toBeVisible();
   await sections.first().getByRole('button',{name:data.items.grain_2.name,exact:true}).click();
-  const uses=mixed.filter(item=>item.recipe!.includes('grain_2'));
-  await expect(page.getByRole('dialog',{name:data.items.grain_2.name,exact:true})).toContainText(`It is a part of ${uses.length} mixed dishes: ${sweetDough.name}, and ${uses.length-1} not yet discovered.`);
+  const uses=mixed.filter(item=>item.recipe!.includes('grain_2')),known=uses.filter(item=>state.discovered.includes(item.id)).map(item=>item.name);
+  await expect(page.getByRole('dialog',{name:data.items.grain_2.name,exact:true})).toContainText(`It is a part of ${uses.length} mixed dishes: ${known.join(', ')}, and ${uses.length-known.length} not yet discovered.`);
   await page.getByRole('button',{name:'Close dialog'}).click();await sections.last().getByRole('button',{name:sweetDough.name,exact:true}).click();
   // Show me on the board follows the part with the fewest steps: one take of Eggs, not three steps to Dough.
   await page.getByRole('button',{name:'Show me on the board'}).click();await expect(page.locator('#modal')).toBeHidden();
@@ -507,9 +511,9 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   for(const [index,cell] of state.board.entries())if(cell&&!data.items[cell.code].generator)state.board[index]=null;
   for(const obstacle of boardObstacles(state,data)){
     if(!state.resolvedObstacles.includes(obstacle.id))state.resolvedObstacles.push(obstacle.id);
-    if(!state.discovered.includes(obstacle.ingredient))state.discovered.push(obstacle.ingredient);
+    if(!state.discovered.includes(obstacle.ingredient))know(state,obstacle.ingredient);
   }
-  const initial=supply(state,['poultry_2']);initial.discovered.push(soup.id);
+  const initial=supply(state,['poultry_2']);know(initial,soup.id);
   // Chicken broth needs a second Chicken: two takes and two merges. Dough needs only two takes and one merge.
   await page.setViewportSize(viewport);await page.emulateMedia({reducedMotion:'reduce'});await start(page,initial,theme);
   await page.locator(viewport.width<1024?'#recipes-button':'#collection-button').click();
@@ -524,12 +528,13 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   await page.screenshot({path:testInfo.outputPath('nearest-missing-part.png')});
 });
 
-test('a quest dish stays covered in the book until it is made, and stays revealed after delivery and reload',async({page})=>{
+test('a quest on a ticket puts its dishes in the recipe book before they are made, and they stay after delivery and reload',async({page})=>{
   const dish=data.items[welcome.requirements[0].item],part=`${dish.chain}_${dish.stage-1}`,state=supply(createGame(data),[part,part,part,part,welcome.requirements[1].item]);
   const [first,second,third,fourth]=state.board.flatMap((cell,index)=>cell?.code===part?[index]:[]);
-  expect(state.discovered).not.toContain(dish.id);await start(page,state);await expect(ticket(page,welcome).locator('.ticket-face')).toHaveAccessibleName(new RegExp(dish.name));
-  await page.getByRole('button',{name:/The recipe book/}).click();await expect(page.locator('#modal')).not.toContainText(dish.name);await page.getByRole('button',{name:'Close dialog'}).click();
-  await tile(page,first).click();await tile(page,second).click();await expect(page.locator('#status')).toHaveText(`${dish.name} is a new dish! It is in the recipe book now.`);
+  expect(state.discovered).toContain(dish.id);await start(page,state);await expect(ticket(page,welcome).locator('.ticket-face')).toHaveAccessibleName(new RegExp(dish.name));
+  await page.getByRole('button',{name:/The recipe book/}).click();await expect(page.locator('#modal').getByRole('button',{name:dish.name,exact:true})).toBeVisible();await page.getByRole('button',{name:'Close dialog'}).click();
+  // The ticket made the dish known, so its first merge gives the usual line.
+  await tile(page,first).click();await tile(page,second).click();await expect(page.locator('#status')).toHaveText(`Made ${dish.name}.`);
   await tile(page,third).click();await tile(page,fourth).click();await expect(page.locator('#status')).toHaveText(`Made ${dish.name}.`);
   await deliverButton(page,welcome).click();await expect(ticket(page,welcome)).toHaveCount(0);
   await page.reload();await opened(page);expect((await saved(page)).discovered).toContain(dish.id);
@@ -638,7 +643,7 @@ test('delivering the selected item clears the selection',async({page})=>{
   const initial=ready(),[index,other]=initial.board.flatMap((cell,at)=>cell?.code===welcome.requirements[0].item?[at]:[]);
   await start(page,initial);await tile(page,index).click();await expect(tile(page,index)).toHaveAttribute('aria-pressed','true');
   await expect(tile(page,other)).toHaveClass(/merge-target/);
-  await expect(page.locator('#item-detail .detail-description')).toHaveText(`Mara and Sorin are waiting for one.`);
+  await expect(page.locator('#item-detail .detail-description')).toHaveText(`Mara is waiting for one.`);
   await deliverButton(page,welcome).click();expect((await saved(page)).board[index]).toBeNull();
   await expect(page.locator('#board [aria-pressed="true"]')).toHaveCount(0);await expect(page.locator('#board .selected')).toHaveCount(0);
   await expect(page.locator('#board .merge-target')).toHaveCount(0);
@@ -800,7 +805,7 @@ test('a first visit is dark on a light device, and light, dark, and system theme
 test('export, import, and reset keep portable new-game progress',async({page})=>{
   await start(page);await mergeStart(page);const before=await saved(page);await options(page);
   const pending=page.waitForEvent('download');await page.getByRole('button',{name:'Export saved game'}).click();const download=await pending;const path=await download.path();expect(download.suggestedFilename()).toBe('scary-snacks-save.json');
-  await page.getByRole('button',{name:'Start a new game',exact:true}).click();await page.getByRole('button',{name:'Erase and start again'}).click();expect(await saved(page)).toEqual(createGame(data));
+  await page.getByRole('button',{name:'Start a new game',exact:true}).click();await page.getByRole('button',{name:'Erase and start again'}).click();expect(await saved(page)).toEqual(await newGame(page));
   await options(page);await page.locator('input[type=file]').setInputFiles(path);await page.getByRole('button',{name:'Import this saved game'}).click();expect(await saved(page)).toEqual(before);
 });
 
@@ -881,7 +886,7 @@ for(const writer of ['this tab','another tab'] as const)test(`a corrupt live sav
     }else{
       await page.getByRole('button',{name:'Start a new game',exact:true}).click();
       await page.getByRole('button',{name:'Erase and start again',exact:true}).click();
-      await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(createGame(data));
+      await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(await newGame(page));
     }
     const recovered=await saved(page);await tile(page,31).click();
     expect((await saved(page)).board.filter(Boolean)).toHaveLength(recovered.board.filter(Boolean).length+1);
@@ -890,16 +895,17 @@ for(const writer of ['this tab','another tab'] as const)test(`a corrupt live sav
 });
 
 for(const preparations of [1,9,19,24])test(`a previous-format campaign at preparation ${preparations} stays untouched beside a new campaign`,async({page})=>{
-  // The previous format: its own key and envelope, state version 12, and the output choices that the current format drops.
-  const oldKey='scary-snacks-save-v11';expect(KEY).toBe('scary-snacks-save-v12');
-  const old=JSON.stringify({format:'scary-snacks',version:11,state:{...checkpoint(preparations),version:12,outputChoices:{}}});
+  // The previous format: its own key and envelope, and state version 13 without the day.
+  const oldKey='scary-snacks-save-v12';expect(KEY).toBe('scary-snacks-save-v13');
+  const {clock:_clock,seed:_seed,ratHoles:_holes,gifts:_gifts,evening:_evening,night:_night,act1:_act1,...earlier}=checkpoint(preparations);
+  const old=JSON.stringify({format:'scary-snacks',version:12,state:{...earlier,version:13}});
   await page.addInitScript(({key,value})=>{
     if(!sessionStorage.getItem('previous-save-seeded')){
       localStorage.setItem(key,value);sessionStorage.setItem('previous-save-seeded','true');
     }
   },{key:oldKey,value:old});
   await start(page);
-  expect(await saved(page)).toEqual(createGame(data));
+  expect(await saved(page)).toEqual(await newGame(page));
   const previous=()=>page.evaluate(key=>localStorage.getItem(key),oldKey);
   expect(await previous()).toBe(old);
   await mergeStart(page);const progressed=await saved(page);
@@ -912,7 +918,7 @@ for(const preparations of [1,9,19,24])test(`a previous-format campaign at prepar
   await page.getByRole('button',{name:'Close dialog'}).click();await options(page);
   await page.getByRole('button',{name:'Start a new game',exact:true}).click();
   await page.getByRole('button',{name:'Erase and start again'}).click();
-  expect(await saved(page)).toEqual(createGame(data));expect(await previous()).toBe(old);
+  expect(await saved(page)).toEqual(await newGame(page));expect(await previous()).toBe(old);
 });
 
 test('only approved assets load from the active root or Pages prefix, and only the current room state downloads',async({page,request,baseURL})=>{
@@ -1139,7 +1145,7 @@ test('blocked browser storage keeps the game playable for the visit and says tha
 test('narrow phones keep the whole dish name in the strip, and short screens keep the board clear of the bar',async({page})=>{
   // Every chain is open, so the longest dish name can stand on the board.
   const state=checkpoint(data.tasks.length,{coins:data.economy.recoveryFloor});
-  const longest=Object.keys(data.items).filter(code=>!data.items[code].generator).sort((a,b)=>data.items[b].name.length-data.items[a].name.length)[0];const at=firstFreeBoardCell(state,data);state.board[at]={code:longest};state.discovered.push(longest);
+  const longest=Object.keys(data.items).filter(code=>!data.items[code].generator).sort((a,b)=>data.items[b].name.length-data.items[a].name.length)[0];const at=firstFreeBoardCell(state,data);state.board[at]={code:longest};know(state,longest);
   const line=mergePartners(longest,data).length?'Tap a marked dish to merge, or an empty space to move it.':'A final dish. Deliver it, or tap an empty space to move it.';
   await page.addInitScript(([key,save])=>localStorage.setItem(key,save),[KEY,serialize(state)]);
   for(const width of [320,360,390]){
@@ -1213,7 +1219,7 @@ test('phone recipe guidance selects a dish on the board while another item is se
 });
 
 test('a recipe guide can be stopped with Escape and does not survive a replaced game',async({page})=>{
-  const initial=createGame(data);initial.discovered.push('grain_2');
+  const initial=createGame(data);know(initial,'grain_2');
   await page.setViewportSize({width:390,height:844});await start(page,initial);
   const guide=async()=>{await page.locator('#recipes-button').click();await page.getByRole('button',{name:'Dough',exact:true}).click();await page.getByRole('button',{name:'Show me on the board'}).click();};
   await guide();await expect(page.getByRole('button',{name:'Stop guide for Dough'})).toBeVisible();
@@ -1235,7 +1241,7 @@ test('a recipe guide can be stopped with Escape and does not survive a replaced 
 test('a full board rejects a guided take without ending the dish guide',async({page})=>{
   const initial=createGame(data);
   initial.board=initial.board.map((cell,index)=>unresolvedObstacle(initial,index,data)?null:cell&&data.items[cell.code].generator?cell:{code:'grain_6'});
-  initial.discovered.push('grain_6');
+  know(initial,'grain_6');
   await start(page,initial);await ticket(page,quest('sorin-first-ride')).locator('.ticket-face').click();
   await page.getByRole('button',{name:'Find the next step for Dough on the board'}).click();
   const source=initial.board.findIndex(cell=>cell?.code==='generator_grain');
@@ -1247,7 +1253,7 @@ test('a full board rejects a guided take without ending the dish guide',async({p
 
 test('a guide keeps a visible Stop action when delivery removes its selected cell',async({page})=>{
   const sorin=quest('sorin-first-ride'),initial=supply(createGame(data),supplies(sorin)),target='grain_4';
-  initial.discovered.push(target);
+  know(initial,target);
   await page.setViewportSize({width:390,height:844});await start(page,initial);
   await page.locator('#recipes-button').click();
   await page.getByRole('button',{name:data.items[target].name,exact:true}).click();

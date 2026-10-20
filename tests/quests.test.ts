@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { canDeliverQuest, dishChains, journalCharacters, menuPrice, QUEST_TICKETS, questDeliveryCells, questPredecessors, requiredQuests, resolveQuests, supperQuest } from '../src/model.ts';
 import { createGame, reduceGame, validateGame } from '../src/engine.ts';
-import { dataProblems, dietBreaks, questProblems } from '../src/content.ts';
+import { dataProblems, dietBreaks, discoveryProblems, questProblems } from '../src/content.ts';
 import type { GameData, GameState, Quest } from '../src/model.ts';
-import { act, checkpoint, data, deliver, opened, player, rejected, supply } from './support.ts';
+import { act, checkpoint, data, deliver, opened, player, rejected, supply, know } from './support.ts';
 
 const recovery = data.quests.find(quest => quest.recovery)!;
 /** The campaign quests with a status. The recovery quest has its own ticket, so the tests of the tickets leave it out. */
@@ -233,20 +233,20 @@ test('Ionatan dinner delivery pays once, keeps failed visits open, and records h
 test('atomic delivery accounts for repeated quantities, then pays only once', () => {
   const content = structuredClone(data);
   const quest = content.quests.find(quest => quest.id === 'mara-welcome')!;
-  // The same dishes and reward, with the Socată split over two rows.
-  quest.requirements = [{ item: 'herbs_3', quantity: 1 }, { item: 'herbs_4', quantity: 1 }, { item: 'herbs_3', quantity: 1 }];
+  // The same dishes and reward, with the Herb bunches split over two rows.
+  quest.requirements = [{ item: 'herbs_2', quantity: 1 }, { item: 'herbs_4', quantity: 1 }, { item: 'herbs_2', quantity: 1 }];
   const play = player(createGame(content), content);
-  play.produce('herbs_3');
+  play.produce('herbs_2');
   play.produce('herbs_4');
   rejected(play.state, { type: 'deliverQuest', id: quest.id }, content);
-  play.produce('herbs_3');
+  play.produce('herbs_2');
   const before = structuredClone(play.state);
   assert.equal(canDeliverQuest(play.state, quest.id, content), true);
   play.act({ type: 'deliverQuest', id: quest.id });
   assert.equal(play.state.coins, before.coins + quest.reward);
   assert.equal(play.state.taskIndex, before.taskIndex);
   assert.deepEqual(play.state.completedQuests, [quest.id]);
-  assert.equal(play.state.board.filter(cell => cell?.code === 'herbs_3' || cell?.code === 'herbs_4').length, 0);
+  assert.equal(play.state.board.filter(cell => cell?.code === 'herbs_2' || cell?.code === 'herbs_4').length, 0);
   const reloaded: GameState = JSON.parse(JSON.stringify(play.state));
   rejected(reloaded, { type: 'deliverQuest', id: quest.id }, content);
   rejected(reloaded, { type: 'deliverQuest', id: 'absent' }, content);
@@ -306,7 +306,7 @@ test('quest saves reject a wrong version, unknown, duplicate, early, and out-of-
     ['the recovery quest', state => { state.completedQuests.push(recovery.id); }],
     ['the recovery quest first', state => { state.completedQuests.unshift(recovery.id); }],
     ['a paid preparation without its quests', state => { state.completedQuests = checkpoint(16).completedQuests; }],
-    ['unknown board item', state => { state.board[state.board.indexOf(null)] = { code: 'absent' }; state.discovered.push('absent'); }],
+    ['unknown board item', state => { state.board[state.board.indexOf(null)] = { code: 'absent' }; know(state, 'absent'); }],
   ];
   assert.equal(validateGame(good, data), true);
   for (const [label, mutate] of cases) { const broken = structuredClone(good); mutate(broken); assert.equal(validateGame(broken, data), false, label); }
@@ -437,5 +437,56 @@ test("Ana's campaign quests open and close in order whether the recovery quest i
       state = deliver(state, ids(state, 'active')[0]);
     }
     assert.equal(status(state, ana[at].id), 'complete');
+  }
+});
+
+test('every quest is one meal for each eater, unless its character orders provisions', () => {
+  const provisions = data.characters.filter(person => person.provisions).map(person => person.id);
+  assert.deepEqual(provisions.sort(), ['adrian', 'dochia', 'janos', 'monica', 'sanziana']);
+  for (const quest of data.quests.filter(quest => !quest.finale && !provisions.includes(quest.character))) {
+    const portions = quest.requirements.reduce((sum, { quantity }) => sum + quantity, 0);
+    assert.ok(portions <= 3 * (1 + (quest.companions?.length ?? 0)), `${quest.id} asks for ${portions} portions.`);
+    assert.ok(quest.requirements.every(({ quantity }) => quantity <= 2), `${quest.id} asks for more than two of one dish.`);
+  }
+  // A fourth portion, or a third portion of one dish, is more than one meal. A shared quest counts each of its eaters.
+  const sized = (id: string, requirements: Quest['requirements']) => {
+    const copy = structuredClone(data), quest = copy.quests.find(value => value.id === id)!;
+    Object.assign(quest, { requirements, reward: requirements.reduce((sum, { item, quantity }) => sum + copy.items[item].price * quantity, 0) });
+    return questProblems(copy).filter(problem => problem.includes('more than one meal'));
+  };
+  assert.deepEqual(sized('mara-welcome', [{ item: 'herbs_2', quantity: 3 }, { item: 'herbs_4', quantity: 1 }]), ['mara-welcome: asks for more than one meal for each eater.']);
+  assert.deepEqual(sized('mara-welcome', [{ item: 'herbs_2', quantity: 3 }]), ['mara-welcome: asks for more than one meal for each eater.']);
+  assert.deepEqual(sized('mina-avram-search', [{ item: 'vegetables_5', quantity: 2 }, { item: 'vegetables_4', quantity: 2 }, { item: 'dairy_5', quantity: 2 }]), []);
+  assert.deepEqual(sized('dochia-sheepskin', [{ item: 'corn_4', quantity: 6 }]), []);
+});
+
+test('each quest dish is one merge beyond the dishes that the player surely knows when the quest takes its ticket', () => {
+  assert.deepEqual(discoveryProblems(data), []);
+  const asking = (id: string, item: string) => {
+    const copy = structuredClone(data);
+    copy.quests.find(value => value.id === id)!.requirements = [{ item, quantity: 1 }];
+    // Later quests may lose a step that this quest taught; only this quest counts here.
+    return discoveryProblems(copy).filter(problem => problem.startsWith(`${id}:`));
+  };
+  // A new game knows Flour and the Socată by the Herb basket: Dough and Linden tea are one merge away, Loaf is two.
+  assert.deepEqual(asking('mara-welcome', 'grain_2'), []);
+  assert.deepEqual(asking('mara-welcome', 'herbs_4'), []);
+  assert.deepEqual(asking('mara-welcome', 'grain_3'), ['mara-welcome: Loaf is more than one merge beyond the dishes that the player knows when the quest opens.']);
+  // The quest before it on the counter puts Dough in the recipe book, so the next quest may ask for Loaf.
+  assert.equal(data.quests[data.quests.findIndex(quest => quest.id === 'victor-exam') - 1].id, 'sorin-first-ride');
+  assert.deepEqual(asking('victor-exam', 'grain_3'), []);
+});
+
+test('a quest that takes a ticket puts its dishes in the recipe book, and a save without them is not valid', () => {
+  const start = createGame(data);
+  const tickets = resolveQuests(start, data).filter(view => view.status === 'active');
+  assert.ok(tickets.length > 1);
+  for (const { quest } of tickets) for (const { item } of quest.requirements) assert.ok(start.discovered.includes(item), item);
+  const hidden = tickets.flatMap(({ quest }) => quest.requirements.map(({ item }) => item)).find(item => !data.board.initial.includes(item))!;
+  assert.equal(validateGame({ ...start, discovered: start.discovered.filter(code => code !== hidden) }, data), false);
+  // A payment opens new quests, and their tickets show only dishes from the recipe book.
+  const paid = act({ ...checkpoint(0) }, { type: 'task' });
+  for (const view of resolveQuests(paid, data).filter(view => view.status === 'active')) {
+    for (const { item } of view.quest.requirements) assert.ok(paid.discovered.includes(item), `${view.quest.id}: ${item}`);
   }
 });

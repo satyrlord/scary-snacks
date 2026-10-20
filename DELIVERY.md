@@ -30,11 +30,13 @@ The site is public. The [release notes](docs/release-notes.md) give the release 
 
 ## Assets
 
-89 Portable Network Graphics (PNG) masters in `public/assets/original/` are the source of the game art. The game ships variants of the masters in AV1 Image File Format (AVIF) and WebP. The sizes of the variants fit the screens. The variants come only from these masters. The local folders `private/` and `analysis/` are not release inputs.
+93 Portable Network Graphics (PNG) masters in `public/assets/original/` are the source of the game art. The game ships variants of the masters in AV1 Image File Format (AVIF) and WebP. The sizes of the variants fit the screens. The variants come only from these masters. The local folders `private/` and `analysis/` are not release inputs.
 
 The transparent board-clutter atlas has six open-center overlays in square cells. The preparation-clutter atlas has 12 contextual overlays with transparent centers, in a four-by-three grid of 1448 by 1086 pixels. The chat image generator made the preparation-clutter atlas. The atlas ships as one WebP variant at its original size. The core, visitor, guest, and three regulars portrait atlases and the mascot atlas each ship one 640-by-640 WebP variant.
 
 The OpenAI Images API made the 16 food atlases: one for each chain and four for the mixed dishes. Each is a transparent grid of 4 by 2 cells, 2048 by 1024 pixels, and ships one 1024 by 512 WebP variant. Alpha cuts, moves, box clears, and cell copies between candidates correct them. No pixel is painted.
+
+The OpenAI Images API made the two rat sheets, the rat hole, and the night sky. Each rat sheet is a transparent grid of 4 by 2 cells, 2048 by 1024 pixels, from an accepted identity reference of its rat, and ships one 1024 by 512 WebP variant. A cell trim clears the parts of the thief rat poses that crossed a cell line. No pixel is painted. The rat hole is a transparent 1024px square and ships one 256px WebP variant. The night sky is opaque, 2048 by 1024 pixels, and ships one 1024 by 512 WebP variant.
 
 After a master changes, run `npm run assets:build`. [Asset variants](docs/asset-variants.json) records the files, the sizes, and the hashes.
 

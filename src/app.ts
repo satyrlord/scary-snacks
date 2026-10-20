@@ -1,5 +1,5 @@
 // The game page: it opens the game, draws every part of the interface after each change, and plays the effects of a change.
-import { unresolvedObstacle } from './model.ts';
+import { clockMinutes, clockText, unresolvedObstacle } from './model.ts';
 import { dataProblems } from './content.ts';
 import { $, coinText, coinWord, compact, count, element, reason, status } from './dom.ts';
 import { portrait } from './art.ts';
@@ -13,18 +13,32 @@ import { guidanceStep, markRecipeBook, noteNewDishes, updateGuidance } from './d
 import { endSceneFlow, renderOffer, showScene, storyContent } from './story.ts';
 import { lowered, renderRoom, reveal, setLowered, syncRoomControls, takeHeldChange } from './room.ts';
 import { options } from './options.ts';
+import { nightNotice, playNight } from './night.ts';
 
 // Rendering replaces the controls in these regions, so focus is restored by region and position.
 const FOCUS_REGIONS = '#board,#tickets,#story,#item-detail,#offer';
 const TONE_EVENTS = ['merge', 'deliverQuest', 'task'];
 
-/** Phones abbreviate large totals so the coins never reach the wordmark; screen readers always hear the exact amount. */
+/**
+ * Phones abbreviate large totals so the coins never reach the wordmark; screen readers always hear the exact amount.
+ * A purse below zero is a debt, with a minus sign.
+ */
 function renderCoins() {
-  const short = phone.matches && state.coins >= 10000;
-  $('#coins').textContent = short ? compact.format(state.coins) : count.format(state.coins);
-  $('#coin-label').textContent = coinWord(state.coins);
-  $('#coin-total').textContent = coinText(state.coins);
-  $('#coin-count').classList.toggle('long', state.coins >= 1000);
+  const amount = Math.abs(state.coins), short = phone.matches && amount >= 10000, debt = state.coins < 0;
+  $('#coins').textContent = `${debt ? '−' : ''}${short ? compact.format(amount) : count.format(amount)}`;
+  $('#coin-label').textContent = coinWord(amount);
+  $('#coin-total').textContent = debt ? `A debt of ${coinText(amount)}` : coinText(amount);
+  $('#coin-count').classList.toggle('long', amount >= 1000);
+  $('#coin-count').classList.toggle('debt', debt);
+}
+/** The day and the time. Phones stack them, so the masthead keeps room for the coins. */
+function renderClock() {
+  const day = `Day ${phone.matches && state.clock.day >= 10000 ? compact.format(state.clock.day) : count.format(state.clock.day)}`, time = clockText(clockMinutes(state, data)), clock = $('#day-clock');
+  clock.setAttribute('aria-label', `Day ${count.format(state.clock.day)}, ${time}`);
+  clock.classList.toggle('long', state.clock.day >= 1000);
+  if (clock.textContent === `${day} · ${time}`) return;
+  const dot = element('span', 'clock-dot', ' · ');
+  clock.replaceChildren(element('span', 'clock-day', day), dot, element('span', 'clock-time', time));
 }
 function celebrateCoins(gain: number) {
   const purse = $('#coin-count');
@@ -45,7 +59,7 @@ function render() {
   // While an item is selected, its actions take the place of Mara's line.
   $('.game-layout').toggleAttribute('data-selected', selected !== null);
   renderRoom();
-  renderCoins();
+  renderCoins(); renderClock();
   renderBoard();
   renderTickets(); $('#story').replaceChildren(storyContent(false)); renderDetail(); renderOffer();
   markRecipeBook();
@@ -64,19 +78,24 @@ onDraw(change => {
   render();
   if (!change) return;
   const { result, before } = change;
+  // Seeing the night report changes nothing on the screen, so Mara's line stays.
+  if (result.event === 'seeNight') return;
   if (result.ok && result.event && TONE_EVENTS.includes(result.event)) playTone(result.event);
   if (state.coins > before.coins) celebrateCoins(state.coins - before.coins);
+  const known = new Set(before.discovered);
   if (result.ok && (result.event === 'merge' || result.event === 'spawn')) {
     // A new dish settles onto its tile; the first one of its kind arrives with a little flourish and goes into the recipe book.
-    const known = new Set(before.discovered);
     state.board.forEach((cell, index) => { if (cell && cell.code !== before.board[index]?.code) $(`[data-cell="${index}"]`).classList.add(known.has(cell.code) ? 'settle' : 'first'); });
-    const first = state.discovered.filter(code => !known.has(code) && !definition(code).generator);
-    if (first.length) noteNewDishes(first.length);
   }
+  // A dish goes into the recipe book when the player first makes it, or when a quest that asks for it takes a ticket.
+  const first = state.discovered.filter(code => !known.has(code) && !definition(code).generator);
+  if (result.ok && first.length) noteNewDishes(first.length);
   if (!nextStep) status(result.message);
   else if (!result.ok) status(nextStep);
   else if (selected === null) status(guidanceStep()?.short ?? nextStep);
   else status(`${result.message} ${nextStep}`);
+  // The merge that reaches the closing brings the night.
+  if (result.ok && state.clock.day !== before.clock.day) void playNight();
 });
 // The end of a paid preparation's story reveals its change, and then opens the scene that the payment earned.
 modal.addEventListener('close',()=>{
@@ -91,7 +110,7 @@ $('.skip-link').addEventListener('click',event=>{
   if(lowered)setLowered(false);
   event.preventDefault();stop.focus({preventScroll:true});stop.scrollIntoView({block:'nearest'});
 });
-phone.addEventListener('change',()=>{if(state){renderCoins();renderDetail();}});
+phone.addEventListener('change',()=>{if(state){renderCoins();renderClock();renderDetail();}});
 drawerLayout.addEventListener('change',()=>{setLowered(false);if(state){renderOffer();renderTickets();}});
 window.addEventListener('storage',event=>{
   if(!state||event.key!==SAVE_KEY||event.newValue===null)return;
@@ -112,6 +131,8 @@ try {
   // Phones get a shorter opening line, so that it fits the line under the board.
   status(saved.status==='loaded'?`Welcome back. The stove is still warm.${state.pendingScenes.length?' A story scene is waiting in Story.':''}`:phone.matches?'Merge the two Flours. Match blocked food to clear it.':'Tap one Flour, then the other, to merge. Merge onto matching blocked food to clear it.');
   if(saveFailed)options();
+  // A night that the player did not see before the page closed shows its notice now, without the sequence.
+  nightNotice();
 }catch(error){
   status(`The kitchen could not open. ${reason(error)}`);console.error(error);
   const hint=$('#hint-button');hint.textContent='Try again';hint.addEventListener('click',()=>location.reload());

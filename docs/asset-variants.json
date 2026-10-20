@@ -1618,12 +1618,12 @@
     {
       "file": "public/assets/variants/food-fruits-1024x512.webp",
       "master": "food-fruits",
-      "masterSha256": "b92c77e78b79bf2f8439a3e2e25c4c8cfde4d1cd03ef1af17b7fe0cc3869efce",
+      "masterSha256": "b662517c405ca30a8e10e0e5c81d85d9019a0518e2bbe4fd67940ad7931b6def",
       "width": 1024,
       "height": 512,
       "format": "webp",
-      "bytes": 147764,
-      "sha256": "f39bcf4704624ed133283bf2ea728b9ed1821b73ab9caab65e976705a657cb6b"
+      "bytes": 144700,
+      "sha256": "12032b08d57d5f69491c28360c3f5067acc135e9969488f6522ec8bcf3be3fd4"
     },
     {
       "file": "public/assets/variants/food-pork-1024x512.webp",
@@ -1714,6 +1714,46 @@
       "format": "webp",
       "bytes": 103040,
       "sha256": "87fc3368ef06ee979d33497983151e40c306d7c2226f8b76cab211f358aacc33"
+    },
+    {
+      "file": "public/assets/variants/rat-thief-1024x512.webp",
+      "master": "rat-thief",
+      "masterSha256": "31e467d648e3938b5081f3f6de4fcf1ef634762aceb430a69f8ec7ee1856419a",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 160238,
+      "sha256": "23c1b8d3b7c8868d0dc3072328c1378aef33cbc566a9b9d9e9a4288a12f970a9"
+    },
+    {
+      "file": "public/assets/variants/rat-soricescu-1024x512.webp",
+      "master": "rat-soricescu",
+      "masterSha256": "ef5cc0cc42ca1b29d7c715a29eb32f383ea6f468e461d035f144d46497a0a65b",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 152954,
+      "sha256": "5c64ea46019d5a409c8fb9eb9e027e2db9f2e1b675dd39651872ab0d6c1e17eb"
+    },
+    {
+      "file": "public/assets/variants/rat-hole-256x256.webp",
+      "master": "rat-hole",
+      "masterSha256": "b7ca1f2b4199893ac6147044555045620ec9f2a62f3f158357473ad006c2f2ad",
+      "width": 256,
+      "height": 256,
+      "format": "webp",
+      "bytes": 21962,
+      "sha256": "5001c1d9bc1186444dbb8f84365813c25d7ee36a58279d4c8aed830a6bfeeb18"
+    },
+    {
+      "file": "public/assets/variants/night-sky-1024x512.webp",
+      "master": "night-sky",
+      "masterSha256": "66d329ff8515cdf2ded0fe72431357c0da85d624017653e804e862db069c1d98",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 56854,
+      "sha256": "60e7d45281488ee01a21e711d93d86781652d16833502f1911210aa5ff628afa"
     }
   ]
 }

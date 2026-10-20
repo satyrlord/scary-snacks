@@ -3,7 +3,7 @@ import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { firstFreeBoardCell, requiredQuests, resolveQuests } from '../../src/model.ts';
-import { createGame, reduceGame, validateGame } from '../../src/engine.ts';
+import { createGame, reduceGame, revealTickets, validateGame } from '../../src/engine.ts';
 import type { Action, GameData, GameState, Quest } from '../../src/model.ts';
 import { SAVE_KEY, exportSave } from '../../src/storage.ts';
 
@@ -26,6 +26,8 @@ export function checkpoint(count: number,{ready=false,coins=0}: {ready?: boolean
   for(let index=0;index<count;index++){deliverRequired(state,index);state.coins=data.tasks[index].cost;state=act(state,{type:'task'});}
   state.pendingScenes=[];state.coins=coins;
   if(ready&&count<data.tasks.length){deliverRequired(state,count);state.coins=data.tasks[count].cost;}
+  // Marking quests delivered moves the tickets on; the quests that now hold one put their dishes in the recipe book.
+  revealTickets(state,data);
   expect(validate(state)).toBe(true);return state;
 }
 /** The earliest checkpoint at which this quest is on a ticket: the open quests before it are delivered. */
@@ -37,11 +39,23 @@ export function onTicket(target: Quest){
       const view=resolveQuests(state,data).find(value=>value.quest.id===earlier.id)!;
       if(view.status==='active'||view.status==='waiting')state.completedQuests.push(earlier.id);
     }
+    revealTickets(state,data);
     if(resolveQuests(state,data).find(value=>value.quest.id===target.id)!.status==='active'){expect(validate(state)).toBe(true);return state;}
   }
   throw new Error(`${target.id} never reaches a ticket.`);
 }
 export const supplies=(value: Quest)=>value.requirements.flatMap(({item,quantity})=>Array<string>(quantity).fill(item));
+/** A copy in which a booked quest has this evening at the booking time, so Deliver serves it. The day tests cover the choice of the evening. */
+export function atBookingTime(state: GameState,value: Quest): GameState{
+  if(!value.booked)return state;
+  return {...state,evening:{...state.evening,guest:value.character,delivered:false},clock:{...state.clock,merges:(data.day.booking-data.day.opening)/data.day.mergeMinutes}};
+}
+/** The new game that the page saved: a new game with the seed that the page drew. */
+export async function newGame(page: Page){return createGame(data,(await saved(page)).seed);}
+/** The line of a take or merge that makes this dish: a dish that a ticket already put in the recipe book is not new. */
+export const madeLine=(state: GameState,code: string)=>state.discovered.includes(code)?`Made ${data.items[code].name}.`:`${data.items[code].name} is a new dish! It is in the recipe book now.`;
+/** Puts dishes in the recipe book of a hand-made state. A ticket may have put a dish there already. */
+export function know(state: GameState,...codes: string[]){for(const code of codes)if(!state.discovered.includes(code))state.discovered.push(code);}
 /** Adds known dishes to the first free spaces. The rules tests cover how the player makes them. */
 export function supply(state: GameState,codes: string[]){
   const next=structuredClone(state);
@@ -52,7 +66,7 @@ export function supply(state: GameState,codes: string[]){
   expect(validate(next)).toBe(true);return next;
 }
 /** The quest on its ticket with every dish on the board. */
-export const deliverable=(value: Quest)=>supply(onTicket(value),supplies(value));
+export const deliverable=(value: Quest)=>atBookingTime(supply(onTicket(value),supplies(value)),value);
 
 export async function opened(page: Page){await expect(page.locator('#board button')).toHaveCount(42);}
 /** Opens the game. Only the first load gets the save, so a reload shows what the game itself saved. */

@@ -1552,20 +1552,17 @@
     {
       "id": "food-fruits",
       "file": "public/assets/original/food-fruits.png",
-      "sha256": "b92c77e78b79bf2f8439a3e2e25c4c8cfde4d1cd03ef1af17b7fe0cc3869efce",
-      "bytes": 4623393,
+      "sha256": "b662517c405ca30a8e10e0e5c81d85d9019a0518e2bbe4fd67940ad7931b6def",
+      "bytes": 4197975,
       "width": 2048,
       "height": 1024,
       "mode": "RGBA",
       "hasTransparency": true,
-      "promptId": "food-fruits-stand",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; cell 1 takes the fruit stand of a second request, centred by a move of -64,-71 (box copy 0,0,512,512); no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts; a user-approved alpha clear makes unused cells 8 fully transparent and preserves every used pixel",
+      "promptId": "food-fruits-cornucopia",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; cells 2 to 7 come from the 012-food runs: cell 1 of an earlier request held the fruit stand, centred by a move of -64,-71 (box copy 0,0,512,512), and a user-approved alpha clear makes unused cell 8 fully transparent and preserves every used pixel; cell 1 now takes the cornucopia of a later request (cornucopia/food-fruits-1): its visible box (alpha above 32) is cut, scaled by 0.827 with Lanczos to 440 by 433 pixels, and centred in the cleared cell; no pixel is painted; with tools in .github/skills/generate-game-art-openai/scripts",
       "sourceGameImageInput": false,
-      "review": "The food atlas of the Fruits chain for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Fruit stand, Plums, Fruit bowl, Cherry compote, Plum jam, Red wine, and Plum brandy, in stage order. The agent measured the soft-alpha fringe (0.018 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it. Decoded pixel comparison confirms that the unused-cell clear preserves every used cell exactly.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
+      "review": "The food atlas of the Fruits chain for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Cornucopia, Plums, Fruit bowl, Cherry compote, Plum jam, Red wine, and Plum brandy, in stage order. The agent confirmed that no solid pixel touches a cell line and that the unused cell is clear, and examined the atlas on light and dark backgrounds. The cornucopia in cell 1 has the size of the fruit stand that it replaces and reads as fruit at 64 pixels. Cells 2 to 8 are pixel-identical to the previous master.",
+      "visualAcceptance": "The user accepted the atlas, and then the cornucopia in cell 1 in place of the fruit stand."
     },
     {
       "id": "food-pork",
@@ -1728,9 +1725,69 @@
         "status": "accepted",
         "by": "user"
       }
+    },
+    {
+      "id": "rat-thief",
+      "file": "public/assets/original/rat-thief.png",
+      "sha256": "31e467d648e3938b5081f3f6de4fcf1ef634762aceb430a69f8ec7ee1856419a",
+      "bytes": 4311244,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "rat-thief-fix",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a sheet from the identity reference rat-thief-reference, then a corrective edit of that candidate; then a cell trim: each visible part (alpha above 16) is cleared outside the cell that holds most of it, and faint pixels within 4 pixels of a cleared pixel are cleared, without painted pixels; with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "review": "Eight poses in a 4 by 2 grid of 512-pixel cells. The agent compared each pose with rat-thief-reference on light and dark tiles and at 64 pixels: the fur, the notched ear, the teeth, and the tail are unchanged, and the rat has no clothes. After the trim, no visible pixel crosses a cell line. Pose 4 crouches and pose 6 faces right; the user accepted these poses.",
+      "visualAcceptance": "The user accepted the sheet with the cell trim."
+    },
+    {
+      "id": "rat-soricescu",
+      "file": "public/assets/original/rat-soricescu.png",
+      "sha256": "ef5cc0cc42ca1b29d7c715a29eb32f383ea6f468e461d035f144d46497a0a65b",
+      "bytes": 3113930,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "rat-soricescu",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a sheet from the identity reference rat-soricescu-reference; the candidate ships whole; with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "review": "Eight poses in a 4 by 2 grid of 512-pixel cells. The agent compared each pose with rat-soricescu-reference on light and dark tiles and at 64 pixels: the fur, the clop, and the traistă are unchanged. No visible pixel crosses a cell line. The standing poses share one ground line.",
+      "visualAcceptance": "The user accepted the sheet."
+    },
+    {
+      "id": "rat-hole",
+      "file": "public/assets/original/rat-hole.png",
+      "sha256": "b7ca1f2b4199893ac6147044555045620ec9f2a62f3f158357473ad006c2f2ad",
+      "bytes": 1576797,
+      "width": 1024,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "rat-hole",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; the candidate ships whole; with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "review": "The agent examined the hole on light and dark tiles, at 64 pixels, and on the timber board beside the blocker atlas: the centre is plain and dark, the outside of the rim is transparent, and an ingredient at 70% of the cell reads over it.",
+      "visualAcceptance": "The user accepted the rat hole."
+    },
+    {
+      "id": "night-sky",
+      "file": "public/assets/original/night-sky.png",
+      "sha256": "66d329ff8515cdf2ded0fe72431357c0da85d624017653e804e862db069c1d98",
+      "bytes": 3766712,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "night-sky",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; the candidate ships whole; with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "review": "The agent examined the sky at full size and at 300 by 130 pixels: it is opaque, it has no land or bats, and it stays dark enough for a small dark bat silhouette. The moon is about 16% from the right edge.",
+      "visualAcceptance": "The user accepted the night sky."
     }
   ],
-  "note": "The game uses only project-generated images. The mascots use a generated chat atlas from the references list. The core portraits use a revision of a generated candidate. front-room-00 and courtyard-13 use generated room references. The decoration paintings use generated design references. Each later room state edits the previous state of its area. Each composite retains only the changed region. The board-clutter atlas uses chat generation and cell corrections. Five pencil sketches, four quest scenes, and the second regulars atlas revise their previous versions, and the references list keeps each previous version. The 16 food atlases use alpha cuts, moves, box clears, and cell copies between candidates, without painted pixels. This record preserves the source and review evidence of the current assets. This record does not give legal clearance.",
+  "note": "The game uses only project-generated images. The mascots use a generated chat atlas from the references list. The core portraits use a revision of a generated candidate. front-room-00 and courtyard-13 use generated room references. The decoration paintings use generated design references. Each later room state edits the previous state of its area. Each composite retains only the changed region. The board-clutter atlas uses chat generation and cell corrections. Five pencil sketches, four quest scenes, and the second regulars atlas revise their previous versions, and the references list keeps each previous version. The 16 food atlases use alpha cuts, moves, box clears, and cell copies between candidates, without painted pixels. The two rat sheets use generated identity references from the references list. The thief rat sheet uses a cell trim, without painted pixels. This record preserves the source and review evidence of the current assets. This record does not give legal clearance.",
   "references": [
     {
       "id": "counter-band",
@@ -1987,6 +2044,32 @@
       "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
       "sourceGameImageInput": false,
       "use": "The previous Victor sketch, which sketch-victor keeps outside the mouth region. The game does not ship it."
+    },
+    {
+      "id": "rat-thief-reference",
+      "sha256": "b793d131b122b594c1d1409c92ddd41923e5da20dcbbe30b6d65ee601d9418a5",
+      "bytes": 1485792,
+      "width": 1024,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "rat-thief-reference",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality",
+      "sourceGameImageInput": false,
+      "use": "The identity reference of rat-thief. The game does not ship it."
+    },
+    {
+      "id": "rat-soricescu-reference",
+      "sha256": "781d4cee604465770856c91a97c18408f015f6bd52d6948d26185ea65b7a1a81",
+      "bytes": 1492462,
+      "width": 1024,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "rat-soricescu-reference",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality",
+      "sourceGameImageInput": false,
+      "use": "The identity reference of rat-soricescu. The game does not ship it."
     }
   ]
 }

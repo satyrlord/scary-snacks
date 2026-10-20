@@ -132,6 +132,8 @@ export function renderBoard() {
         if (cost) { const price = element('span', 'take-cost', String(cost)); price.prepend(coinMark()); price.setAttribute('aria-hidden', 'true'); value.append(price); }
       }
     }
+    // The thief rat's hole lies under the ingredient that it dropped.
+    if (obstacle?.type === 'rat-hole') { const hole = element('span', 'rat-hole-art'); hole.setAttribute('aria-hidden', 'true'); value.append(hole); }
     if (obstacle) value.append(food(obstacle.ingredient));
     if (obstacle?.type === 'clutter') {
       value.append(clutterArt(obstacle.sprite!, 'clutter-object', obstacle.atlas === 'preparation'));

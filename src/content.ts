@@ -1,7 +1,7 @@
 // The checks of the authored game data. The content generator refuses to write data with a problem, and the game refuses to start on it.
-import { availableChains, dishChains, dishTags, dishWork, foodAtlases, getItem, integer, isRegular, menuPrice, mergePartners, MIXED, own, portraitAtlases, present, questOpening, questPredecessors, roomPaintings, scene, spoken, stable, stateNumber, storyScenes } from './model.ts';
+import { availableChains, dayMerges, dishChains, dishTags, dishWork, foodAtlases, getItem, integer, isRegular, menuPrice, mergePartners, MIXED, own, portraitAtlases, present, questOpening, questPredecessors, roomPaintings, scene, spoken, stable, stateNumber, storyScenes } from './model.ts';
 import type { BoardObstacle, Character, GameData, Item, Quest } from './model.ts';
-import { createGame, validateGame } from './engine.ts';
+import { createGame, KEEP_FREE, validateGame } from './engine.ts';
 
 /** A known dish that is not a source. */
 const isDish = (code: unknown, data: GameData): code is string => typeof code === 'string' && own(data.items, code) && !data.items[code].generator;
@@ -37,6 +37,7 @@ export function characterProblems(data: GameData): string[] {
       if (!integer(person.sprite, 0, 3) || portraits.has(`${atlas}:${person.sprite}`)) problems.push(`${person.id}: needs its own portrait cell.`);
       portraits.add(`${atlas}:${person.sprite}`);
       if (person.regular !== undefined && (person.regular !== true || person.visitor)) problems.push(`${person.id}: invalid regular flag.`);
+      if (person.provisions !== undefined && (person.provisions !== true || person.singleVisit)) problems.push(`${person.id}: invalid provisions flag.`);
       if (person.arrivesAfter !== undefined && (!isRegular(person) || !data.tasks.some(task => task.id === person.arrivesAfter))) problems.push(`${person.id}: unknown arrival preparation.`);
       if (person.favourites !== undefined && (!person.regular || !Array.isArray(person.favourites) || person.favourites.length < 2 || person.favourites.length > 3
         || new Set(person.favourites).size !== person.favourites.length || !person.favourites.every(code => isDish(code, data)))) problems.push(`${person.id}: a regular likes two or three different known dishes.`);
@@ -50,6 +51,8 @@ export function characterProblems(data: GameData): string[] {
 }
 /** The returning cathedral visitors. Their supply quests come in two sizes: provisions and meals. */
 const cathedral = (person: Character | undefined) => !!person?.visitor && !person.singleVisit;
+/** One meal at one sitting: the portions for each eater, and the portions of one dish. */
+const MEAL = { portions: 3, same: 2 };
 /** The work value of a quest: the merges that its dishes need, at the work rate. A delivery pays this over the cost of its staples. */
 const workValue = (quest: Quest, data: GameData) => quest.requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).merges * data.economy.workRate * quantity, 0);
 /**
@@ -152,6 +155,13 @@ export function questProblems(data: GameData): string[] {
       if (person.arrivesAfter && !quest.recovery && !before.has(`task:${person.arrivesAfter}`)) problems.push(`${quest.id}: the character must arrive before the quest opens.`);
       const dishes = quest.requirements.map(requirement => requirement.item);
       if (person.regular && !quest.finale && !dishes.some(code => person.favourites?.includes(code))) problems.push(`${quest.id}: a regular needs a favourite dish.`);
+      // A quest without provisions is one meal for each eater. The supper has one plate for each guest.
+      if (!quest.finale && !person.provisions) {
+        const counts = new Map<string, number>();
+        for (const { item, quantity } of quest.requirements) counts.set(item, (counts.get(item) ?? 0) + quantity);
+        const portions = [...counts.values()].reduce((sum, count) => sum + count, 0), eaters = 1 + (quest.companions?.length ?? 0);
+        if (portions > MEAL.portions * eaters || [...counts.values()].some(count => count > MEAL.same)) problems.push(`${quest.id}: asks for more than one meal for each eater.`);
+      }
       if (!quest.finale && [person, ...(quest.companions ?? []).map(id => data.characters.find(value => value.id === id)!)].some(eater => dietBreaks(eater, dishes, data))) problems.push(`${quest.id}: breaks a diet.`);
       if (cathedral(person)) {
         const portions = quest.requirements.reduce((sum, requirement) => sum + requirement.quantity, 0);
@@ -240,6 +250,33 @@ export function economyProblems(data: GameData): string[] {
   } catch { problems.push('The economy records are malformed.'); }
   return problems;
 }
+/**
+ * Check the levers of the day and the quests that it touches. Times fall on the merge grid, the booking is inside the day, a gift
+ * leaves the free cells of the recovery quest, every chain has a gift dish, each quest fits in one day, and two guests share the bookings.
+ */
+export function dayProblems(data: GameData): string[] {
+  const problems: string[] = [];
+  try {
+    const { opening, closing, booking, mergeMinutes, upkeep, ratTake, ratHoles, giftStage, giftSpace } = data.day;
+    if (![opening, closing, booking, upkeep, ratHoles].every(value => integer(value)) || ![mergeMinutes, ratTake, giftStage].every(value => integer(value, 1))
+      || !(opening < booking && booking < closing && closing <= 24 * 60) || (closing - opening) % mergeMinutes || (booking - opening) % mergeMinutes) {
+      return ['The day needs whole levers, and the booking time between opening and closing, on the merge grid.'];
+    }
+    if (!integer(giftSpace, KEEP_FREE + 1)) problems.push(`A gift needs at least ${KEEP_FREE + 1} free cells, so the recovery quest keeps its space.`);
+    for (const chain of data.chains) if (!own(data.items, `${chain.id}_${giftStage}`)) problems.push(`${chain.id}: needs a stage-${giftStage} dish for a gift.`);
+    const merges = dayMerges(data);
+    for (const quest of data.quests) {
+      const work = quest.requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).merges * quantity, 0);
+      if (work > merges) problems.push(`${quest.id}: needs ${work} merges, more than the ${merges} of one day.`);
+      if (quest.booked !== undefined && (quest.booked !== true || quest.finale || quest.recovery)) problems.push(`${quest.id}: invalid booking.`);
+    }
+    // Two guests book the evenings, and they never share one. Every quest of a booked guest is booked.
+    const guests = new Set(data.quests.filter(quest => quest.booked).map(quest => quest.character));
+    if (guests.size !== 2) problems.push('Exactly two guests book the evenings.');
+    for (const quest of data.quests) if (guests.has(quest.character) && !quest.booked) problems.push(`${quest.id}: every quest of a booked guest is booked.`);
+  } catch { problems.push('The day records are malformed.'); }
+  return problems;
+}
 /** Check authored choices before packaging their data and approved images. Without knownImages, the image names are not checked. */
 export function decorationProblems(data: GameData, knownImages?: readonly string[]): string[] {
   const problems: string[] = [];
@@ -306,11 +343,44 @@ export function dataProblems(data: GameData, knownImages?: readonly string[]): s
     const items = itemProblems(data);
     if (items.length) return items;
     const problems = [...characterProblems(data), ...boardLayoutProblems(data), ...roomProblems(data), ...decorationProblems(data, knownImages),
-      ...questProblems(data), ...storyProblems(data), ...economyProblems(data)];
+      ...questProblems(data), ...discoveryProblems(data), ...storyProblems(data), ...economyProblems(data), ...dayProblems(data)];
     // The save validation relies on the other checks, so it judges the new game only after they pass.
     if (!problems.length && !validateGame(createGame(data), data)) problems.push('The starting board does not make a valid new game.');
     return problems;
   } catch { return ['The game data is malformed.']; }
+}
+/**
+ * A quest asks only for dishes one merge beyond what the player surely knows when its ticket shows, so no quest asks for a dish
+ * that the player cannot place. The player knows the dishes of a new game, the sources of the open chains, and the dishes of the
+ * quests that surely held a ticket before: a ticket puts its dishes in the recipe book. Those quests are the ones that this quest
+ * waits for, and the open quests before it in the data order, which take the tickets first.
+ */
+export function discoveryProblems(data: GameData): string[] {
+  const problems: string[] = [], openings = new Map<Quest, number>(), opening = (quest: Quest) => questOpening(quest, data, openings);
+  const byId = new Map(data.quests.map(quest => [quest.id, quest]));
+  // The starting board, without the dishes that the first tickets put in the recipe book.
+  const start = data.board.initial.filter(present);
+  /** The quests that are delivered before this one opens: those that the preparations before it need, and its predecessors. */
+  const delivered = (quest: Quest, found = new Set<Quest>()): Set<Quest> => {
+    for (const other of data.quests) if (!other.finale && !other.recovery && opening(other) < opening(quest)) found.add(other);
+    for (const id of questPredecessors(quest, data)) {
+      const previous = byId.get(id);
+      if (previous && !found.has(previous)) { found.add(previous); delivered(previous, found); }
+    }
+    return found;
+  };
+  const parts = (item: Item) => item.recipe ?? [item.stage > 1 ? `${item.chain}_${item.stage - 1}` : `generator_${item.chain}`];
+  for (const [at, quest] of data.quests.entries()) {
+    const done = delivered(quest), known = new Set(start);
+    for (const chain of availableChains({ taskIndex: opening(quest) + 1 }, data)) known.add(`generator_${chain}`);
+    const shown = data.quests.slice(0, at).filter(other => !other.recovery && opening(other) <= opening(quest)
+      && questPredecessors(other, data).every(id => done.has(byId.get(id)!)));
+    for (const other of [...done, ...shown]) for (const { item } of other.requirements) known.add(item);
+    for (const { item } of quest.requirements) {
+      if (!parts(data.items[item]).every(part => known.has(part))) problems.push(`${quest.id}: ${data.items[item].name} is more than one merge beyond the dishes that the player knows when the quest opens.`);
+    }
+  }
+  return problems;
 }
 /**
  * Validate the chains, the mixed dishes, and the sources before any check or action follows their references. A chain has four to six

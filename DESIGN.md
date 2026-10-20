@@ -340,7 +340,7 @@ The palette is warm and has low saturation. Each theme has one action colour. Th
 ### Named Rules
 **The One Accent Rule.** Each theme has exactly one action colour: Plum Brandy in light mode and Candle Amber in dark mode. Coins are copper and gold. Focus is teal. No other colour marks something that the player can press.
 
-**The Untouched Plate Rule.** Keep food, portraits, and timber in their original colours. Blocked board tiles have the specified 20% red overlay. Dark mode changes the interface colours only.
+**The Untouched Plate Rule.** Keep food, portraits, and timber in their original colours. Blocked board tiles have the specified 20% red overlay. Dark mode changes the interface colours only. Only the night tint of the room (see The night) darkens a painting, and it never covers the board, the tickets, or a portrait.
 
 ## Typography
 
@@ -399,7 +399,13 @@ The bar is 56px tall plus the safe area. The safe area is the space that the dev
 
 **Short screens.** On a short screen, the room, the drawer, and the bar are not fixed. They follow each other in the page, and the page scrolls. The room is 240px tall. The grip does not show. A change to this layout clears the lowered drawer state, so the kitchen accepts input after rotation.
 
-**The masthead.** The cat, the wordmark, the tagline, and the coin figures share one baseline. The wordmark and the coins never touch. Below 411px, the word "coins" does not show when the total is 1,000 or more. At 720px and below, a total of 10,000 or more shows in short form, for example "12.3K".
+**The masthead.** The cat and the wordmark share one baseline. The wordmark, clock, and purse never overlap. The tagline uses the available space and ends with an ellipsis when necessary. The day clock sits before the coins: "Day N · hh:mm" in 13px tabular figures. The day uses ink at weight 600, and the time uses Smoke.
+
+Below 1024px, the day stands over the time in 12px, right-aligned. From 1024px to 1365px, the day also stands over the time, and Options shows only its icon. On wider screens, a day or absolute coin total of 1,000 or more puts the clock above the purse. Options stays beside both rows. Below 360px, the clock also sits above the purse, with day and time on one line.
+
+At 480px and below, the wordmark is 32px and the gap between header controls is 8px. The coin unit word does not show. At 410px and below, the wordmark is 28px, the masthead gutters are 12px, and its gap is 8px. The coin mark and the exact accessible total stay available.
+
+A purse below zero shows a minus sign (−), for example "−12". Screen readers hear "A debt of 12 coins". At 720px and below, an absolute coin total or day number of 10,000 or more uses short form. For example, 12,300 shows as "12.3K". The accessible clock name always gives the exact day and time.
 
 The short form follows the page language. It rounds down, so it never shows more coins than the player has. Screen readers always get the exact total. When the total grows, the coin mark turns over for 0.7s, and a "+N" figure rises over 0.9s.
 
@@ -450,7 +456,7 @@ Corners grow with the size of the surface. A nested shape has a smaller radius t
 
 Borders are 1px. Hairlines separate content. Control Line outlines what the player can press. A dashed outline means "empty" or "not yet". It marks an unaffordable action, a locked area, or an unmade dish. A dashed panel in place of the room means that the painting did not load.
 
-Portraits are circles. Food and mascots keep their own transparent outlines. The room clips only to rectangles: the window glass and each decoration region. A bat flies behind the glass.
+Portraits are circles. Food and mascots keep their own transparent outlines. The room clips only to rectangles: the window glass, its two upper panes, and each decoration region. A bat flies behind the glass, and the night sky shows behind the upper panes.
 
 ## Components
 
@@ -477,6 +483,15 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 - **Sleeping cat:** in the finished front room (front-room-24), a second cat sleeps on the free left end of the counter. The cat is decorative.
 - **Bats:** a rectangular clip on the mended window glass holds the dusk. A bat crosses the clip from right to left over 2.6s, and its wings flap. `PRODUCT.md` gives when a bat crosses.
 
+### The night
+- **Order:** the closing applies at once. Then the night plays for about three seconds. The tint comes over 400ms. The rat of the room runs across the floor over 2.2s. The rats on the board act at the same time. When both rats leave, the tint goes over 400ms, and the night notice follows.
+- **Tint:** a Night Indigo layer (`#1b2150`, multiply, 62% opacity) covers the whole room painting, its decorations, and its cats. The tint is the same in both themes. The painting and its decorations stay readable.
+- **Night sky:** the night-sky painting fills the two upper panes of the front-room window, behind the glass, and fades in with the tint. The clip is a polygon of the two pane rectangles, measured on the window of states 01 and later. The courtyard and the broken window of front-room-00 show no night sky.
+- **Rat of the room:** the scurry poses of the rat of the night, 7% of the painting wide, run from left to right on the floor line of the area (77% down the front room, 93% down the courtyard). The two poses take turns every 100ms, and the sprite bounces. The rat is above the tint. A painting that did not load shows no rat.
+- **Rats on the board:** a layer over the page holds a rat at the size of one tile. The thief rat breaks up through the board at its first pick, looks around, scurries to each pick, and grabs it: the dish shrinks and fades over 220ms. It drags its first pick into the rat hole, which then shows in its cell, looks back, and scurries off the nearest side of the board. Șoricescu climbs out at the gift cell, opens his traistă, puts down the gift, which fades in over 300ms, lifts his hat, waves, and scurries off. Without a gift, he climbs out at the bottom-left cell, looks both ways, and goes back down. Two scurry poses take turns every 90ms with a small bounce. A rat that lands squashes for 220ms. The code gives the path and the motion; the poses give only the shapes.
+- **Stop:** a tap anywhere or any key ends the night at once. The layer takes that tap until its click ends, and the key does not reach the page, so the input does nothing else.
+- **Reduced motion and a hidden page:** the night does not play. The notice shows at once.
+
 ### "New" pin (signature)
 - **Style:** a Parchment capsule with a copper-glow dot. The word "New" has weight 600. The change label has weight 400 ("New: the painted dresser"). The tail of the pin touches the edge of the change, so the pin never covers the change. The touch target of the pin is 44px tall.
 - **Fit:** the pin uses the side of its mark that fits without covering the area switch. On short screens, the frame can move enough to keep the mark visible, within the edges of the painting. At a side edge, the pin slides sideways, and the tail stays on the mark. If the pin has no room, it hides its label.
@@ -496,6 +511,7 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 - **Narrowest tickets:** at 360px and below, the ticket padding is 2px, and Deliver has 1px side padding. Each target on a ticket stays at least 44px wide down to 320px.
 - **Deliver:** "Deliver · N" with the 16px coin mark. On phones, a ready Deliver shows only the word "Deliver", at its full width. The fanned dishes of the face give way. If the board does not hold every portion, the button shows the dashed "not yet" style. On phones, the not-yet style shows only the reward and a 14px coin mark. The accessible name is "Deliver [quest] to [name] for N coins".
 - **Supper ticket:** the supper quest shows its first three plates and a "+8" count in 12px muted figures, and "Serve" in the place of Deliver, with no coin mark. Serve has the dashed "not yet" style until the board holds every plate. The accessible name is "Serve [quest]". Serve opens the finale at once, without the delivery motion.
+- **Booked ticket:** on wider screens, a booked ticket gives its evening in Smoke in the place of the title: "Booked for 20:00" for the evening guest, and "Booked for another evening" for each other booked ticket. The line ends with an ellipsis if it does not fit, as the title does. The accessible name of the face also gives it. Before 20:00, the ticket of the evening guest has the lantern control in the place of Deliver: a 16px lantern vector and "Light the lanterns", with the primary style, or the dashed "not yet" style until the board holds every portion. On phones, the lantern control shows the lantern and the time "20:00". Each other booked ticket has a disabled control in the "not yet" style with a crescent moon and "Later". Its accessible name is "[quest]: booked for another evening". The accessible name of the lantern control is "Light the lanterns: [Name] is booked for 20:00". From 20:00, the evening guest's ticket has Deliver.
 - **Recovery ticket:** while the recovery quest is open, the last column of the ticket row holds that quest. Its edge is dashed, because it is an offer and not a campaign quest. The other tickets keep their places. On wider screens, the row has four equal columns. On phones, the recovery ticket shows only its face, and its quest dialog delivers. The three quest tickets share the rest of the row. At 410px and below, the row has 4px gaps and 4px side padding while the recovery ticket shows. Each target on a ticket stays at least 44px wide down to 360px.
 - **Delivery motion:** the dishes fly to the ticket over 600ms. Each dish starts 60ms after the one before. The sixth and later dishes start together. The delivery notice appears after all dishes arrive. The next quest arrives on the same ticket over 450ms, 700ms after the delivery. With reduced motion, the notice shows at once, and the next ticket appears without motion.
 
@@ -513,6 +529,7 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 - **Preparation blockers:** each paid preparation adds two or three contextual blockers. The space and queue rules in `PRODUCT.md` limit this. The preparation-clutter atlas supplies 12 pictures. They show window offcuts, paint supplies, lamp packing, pottery pieces, leaves, seedlings, shingles, recipe papers, wrapped plates, menus, invitations, and flower cuttings. Each batch combines a new picture with familiar clutter or tied food. The new pictures use the same gouache style, camera angle, clear margins, and inset tile boundary.
 
   A tap opens blocker help. The name, the accessible label, and the status message give the work context. The board label also gives the number of blockers that wait. These parts add no new control and no motion.
+- **Rat holes:** a rat hole is a blocker. The rat-hole picture lies under the blocked ingredient, inset 4% in its tile, with the red overlay and the help mark of every blocker. Its name is "Rat hole".
 - **Blocker framing:** each sprite uses its own square source crop around its visible outer frame. The frame fills the tile near its edge, with a 2px layer inset. The crop keeps its original proportions and stays inside its own atlas cell. Preparation frames are centred on their painted bounds.
 
   A frame near a cell edge keeps a small offset. The offset keeps the full silhouette and stays out of the next cell. The transparent opening stays clear, and the ingredient keeps 70% of the ordinary food box. Do not shrink the ingredient to compensate for excess outer padding.
@@ -681,6 +698,8 @@ Its entrance is a 300ms fade and a scale from 92%.
 With reduced motion, the notice has no animation and leaves after the same time.
 Several notices form a vertical stack with 8px gaps.
 
+The night notice uses the same style. It gives the upkeep, what the rat did, and the purse or the debt. It stays for 9 seconds.
+
 At 1024px and above, the stack sits 20px from the right edge and the bottom edge.
 Each notice has a maximum width of 340px.
 Below 1024px, the stack sits 10px below the masthead and has centred text.
@@ -711,14 +730,15 @@ Options shows the save state. It also shows the Retry saved game control or the 
 ## Design instructions
 
 ### Required actions
-- Use only the 89 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
+- Use only the 93 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
   - The 25 room masters are front-room-00 to front-room-12, front-room-17, front-room-24, courtyard-13 to courtyard-16, and courtyard-18 to courtyard-23.
   - The supper master is finale-supper, an edit of courtyard-23 with the guests of the supper.
   - The two decoration masters are decoration-front and decoration-courtyard.
   - The 45 other masters are board-clutter, preparation-clutter, portraits, visitor-portraits, guests, regulars-1, regulars-2, regulars-3, mascots, timber-tabletop, embroidered-runner, parchment-page, 22 character sketches, nine cathedral scenes, and two visitor meal scenes.
+  - The four night masters are rat-thief and rat-soricescu, each a grid of four columns and two rows of 512px cells, rat-hole, 1024px square, and night-sky, 2048 by 1024px and opaque.
   - The 16 food atlas masters are food-grain, food-corn, food-herbs, food-dairy, food-poultry, food-vegetables, food-fruits, food-pork, food-beans, food-lamb, food-veal, food-fish, food-soups, food-mains, food-sweets, and food-breads. Each is a grid of four columns and two rows. A dish shows its whole cell, with no measured bounds. A chain atlas holds the source in cell 0 and the dishes in stage order.
 - Paint each room state as a complete 3:4 painting, 1536 by 2048, opaque. Keep every pixel outside the change the same as the state before it.
-- Ship room states and the supper painting as AVIF and WebP at 768 and 1536px wide, AVIF first. Ship the timber as AVIF and WebP at 1024 and 1536px wide. Ship the decoration paintings as WebP at 1536px wide. Ship the transparent atlases and the runner as WebP.
+- Ship room states and the supper painting as AVIF and WebP at 768 and 1536px wide, AVIF first. Ship the timber as AVIF and WebP at 1024 and 1536px wide. Ship the decoration paintings as WebP at 1536px wide. Ship the transparent atlases and the runner as WebP. Ship the rat sheets and the night sky as WebP at 1024px wide and the rat hole as WebP at 256px square.
 - Ship the parchment as a WebP at its native 1254px square size. Ship the 22 character sketches as transparent WebP at 768px square and the 11 landscape scenes as transparent WebP at 1024px wide.
 - Keep the neighbours in working village dress: Mara, Ilie, and Sorin in Romanian dress, and Eszter in Székely dress.
 - Draw every control icon as a vector with a 1.7 stroke and round caps and joins.
@@ -731,8 +751,8 @@ Options shows the save state. It also shows the Retry saved game control or the 
 
 ### Prohibited actions
 - Do not preview unearned dishes or room changes (The Covered Dish Rule).
-- Do not darken, tint, or filter food, portraits, or timber. Keep the specified 20% red overlay on blocked board tiles.
-- Do not paste room objects onto a room painting as sprites. Paint a new state instead. The cats and the bat are the only sprites over the room.
+- Do not darken, tint, or filter food, portraits, or timber. Keep the specified 20% red overlay on blocked board tiles. Only the night tint covers the room painting.
+- Do not paste room objects onto a room painting as sprites. Paint a new state instead. The cats, the bat, and the rat of the night are the only sprites over the room.
 - Do not cover the room with interface on wider screens (The Open Room Rule).
 - Do not let the pin cover the change that it marks.
 - Do not use a visual identity, art, audio, fonts, or geometry that this project did not make or license.

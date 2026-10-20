@@ -46,7 +46,7 @@ For each changed contract, find the evidence.
 Examine each applicable area:
 
 - Confirm that `src/model.ts`, `src/engine.ts`, and `src/content.ts` are deterministic.
-  Confirm that it has no Document Object Model (DOM) access, no storage access, and no clock values.
+  Confirm that it has no Document Object Model (DOM) access, no storage access, no random source, and no wall-clock values.
 - Confirm that an action that is not correct or not available does not change the state.
 - Compare the rules for merges, generators, quests, rewards, and preparations with `PRODUCT.md`.
   Confirm that a value that the interface shows agrees with the value that the engine applies.

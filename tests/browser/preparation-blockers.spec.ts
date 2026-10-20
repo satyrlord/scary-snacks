@@ -3,7 +3,7 @@ import type { Locator, Page } from '@playwright/test';
 import { boardObstacles, firstFreeBoardCell, freeBoardCells, requiredQuests, pendingPreparationObstacles, unresolvedObstacle } from '../../src/model.ts';
 import { createGame, reduceGame, validateGame } from '../../src/engine.ts';
 import type { GameState } from '../../src/model.ts';
-import { data, failWrites, replaceSave, saved, start as open, tile } from './support.ts';
+import { data, failWrites, replaceSave, saved, start as open, tile, know } from './support.ts';
 
 function checkpoint(count = 0) {
   let state = createGame(data);
@@ -150,7 +150,7 @@ test('a full board defers the batch and merges place it while keeping four free 
 test('blocker guidance finds a preparation ingredient and the keyboard releases it', async ({ page }) => {
   const initial = paidCheckpoint(2), anchor = active(initial).find(value => value.type === 'anchored')!;
   const source = firstFreeBoardCell(initial, data); initial.board[source] = { code: anchor.ingredient };
-  if (!initial.discovered.includes(anchor.ingredient)) initial.discovered.push(anchor.ingredient);
+  if (!initial.discovered.includes(anchor.ingredient)) know(initial,anchor.ingredient);
   const wanted = data.items[anchor.ingredient].next!;
   await start(page, initial); await tile(page, anchor.position).click();
   await expect(tile(page, source)).toHaveClass(/blocker-target/);

@@ -79,6 +79,10 @@ It reads each other value from the asset:
 | `decoration-front`, `decoration-courtyard` | `1536x2048` | `opaque` | One image, 3:4 portrait, a decoration edit of a room state |
 | `finale-supper` | `1536x2048` | `opaque` | One image, 3:4 portrait, the supper painting: an edit of `courtyard-23` with the guests |
 | `board-clutter` | `1536x1024` | `transparent` | 3 columns by 2 rows, six blockers with open centres |
+| `rat-thief-reference`, `rat-soricescu-reference` | `1024x1024` | `transparent` | One image, square, one reference pose of a rat of the night (spec 013) |
+| `rat-thief`, `rat-soricescu` | `2048x1024` | `transparent` | 4 columns by 2 rows, eight poses of one rat |
+| `rat-hole` | `1024x1024` | `transparent` | One image, square, the rat hole blocker |
+| `night-sky` | `2048x1024` | `opaque` | One image, 2:1, the night sky behind the window glass |
 | `sketch-<character>` for each character in `public/data/game.json` | `1024x1024` | `opaque`, then `ink` | One image, square, a pencil sketch |
 | `scene-cathedral-1` to `scene-cathedral-9`, `scene-ionatan-dinner`, `scene-mina-avram-meal` | `1536x1024` | `opaque`, then `ink` | One image, 3:2 landscape, a pencil quest scene |
 

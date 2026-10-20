@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { requiredQuests } from '../../src/model.ts';
 import { createGame, reduceGame } from '../../src/engine.ts';
-import { data, saved, start, tile } from './support.ts';
+import { data, saved, start, tile, know } from './support.ts';
 
 test('new board explains blocked spaces and counts only usable empty cells', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await start(page);
-  await expect(page.locator('#board')).toHaveAttribute('aria-label', /27 free spaces/);
+  await expect(page.locator('#board')).toHaveAttribute('aria-label', /26 free spaces/);
   await expect(tile(page, 0)).toHaveAttribute('aria-label', /Old crate, blocked Loaf/);
   await expect(tile(page, 0).locator('.clutter-overlay')).toHaveCount(1);
   await expect(tile(page, 0).locator('.food')).toBeVisible();
@@ -41,7 +41,7 @@ test('a selected dish marks movable matches and matching blockers only', async (
   const state = createGame(data);
   state.board[18] = { code: 'grain_2' };
   state.board[19] = { code: 'grain_2' };
-  state.discovered.push('grain_2');
+  know(state,'grain_2');
   await start(page, state);
   await tile(page, 18).click();
   const marked = await page.locator('#board .merge-target').evaluateAll(elements => elements.map(element => Number((element as HTMLElement).dataset.cell)));
@@ -71,7 +71,7 @@ test('forced colours distinguish the selected dish from its matching targets', a
 test('sources, final dishes, and cleared selections show no merge targets', async ({ page }) => {
   const state = createGame(data);
   state.board[18] = { code: 'grain_6' };
-  state.discovered.push('grain_6');
+  know(state,'grain_6');
   await start(page, state);
   await tile(page, 1).click();
   await expect(page.locator('#board .merge-target')).toHaveCount(0);
@@ -151,7 +151,7 @@ test('Find a match selects movable food and points to matching clutter', async (
   const state = createGame(data);
   state.board = state.board.map(cell => cell && data.items[cell.code].generator ? cell : null);
   state.board[13] = { code: 'grain_3' };
-  if (!state.discovered.includes('grain_3')) state.discovered.push('grain_3');
+  if (!state.discovered.includes('grain_3')) know(state,'grain_3');
   await start(page, state); await page.getByRole('button', { name: 'Find a match', exact: true }).click();
   await expect(tile(page, 13)).toHaveAttribute('aria-pressed', 'true');
   await expect(tile(page, 0)).toHaveClass(/hint/);

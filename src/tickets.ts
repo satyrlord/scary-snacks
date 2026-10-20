@@ -1,12 +1,12 @@
 // The quest tickets on the drawer: who asks for which dishes, the delivery and its flight, and the quest dialog.
-import { canDeliverQuest, QUEST_TICKETS, questDeliveryCells, resolveQuests, unresolvedObstacle } from './model.ts';
+import { awaitsLanterns, bookedTicket, bookedTonight, canDeliverQuest, canLightLanterns, clockText, QUEST_TICKETS, questDeliveryCells, resolveQuests, unresolvedObstacle } from './model.ts';
 import { guidanceGoal, guidanceStep, showItem, showMissingStep } from './dishes.ts';
 import type { Quest } from './model.ts';
 import { $, button, coinText, count, element, names } from './dom.ts';
-import { coinMark, food, portrait, questSketch } from './art.ts';
+import { coinMark, food, lanternMark, moonMark, portrait, questSketch } from './art.ts';
 import { modal, showModal } from './dialog.ts';
 import { batFlight, showSupperRoom } from './room.ts';
-import { apply, changeGame, character, data, itemName, onReplace, saveFailed, state } from './session.ts';
+import { act, apply, changeGame, character, data, itemName, onReplace, saveFailed, state } from './session.ts';
 import { onMotionResume, still } from './preferences.ts';
 import { showScene } from './story.ts';
 
@@ -38,7 +38,7 @@ onMotionResume(() => {
  * A short notice that reports itself and clears on its own: used where the game should not stop for a tap.
  * A notice with a reply to read stays longer, and it waits while the pointer or focus is on it.
  */
-function toast(text: string, reply?: { label: string; read: () => void }) {
+export function toast(text: string, reply?: { label: string; read: () => void }, duration = reply ? REPLY_MS : TOAST_MS) {
   const note = element('div', still() ? 'toast' : 'toast entering'); note.setAttribute('aria-atomic', 'true');
   note.append(element('p', 'toast-text', text));
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -50,7 +50,7 @@ function toast(text: string, reply?: { label: string; read: () => void }) {
     note.addEventListener('pointerenter', hold); note.addEventListener('focusin', hold);
     note.addEventListener('pointerleave', resume); note.addEventListener('focusout', () => setTimeout(resume));
   }
-  toastStack.append(note); wait(reply ? REPLY_MS : TOAST_MS);
+  toastStack.append(note); wait(duration);
 }
 export const activeQuests = () => {
   const active = resolveQuests(state, data).filter(view => view.status === 'active').map(view => view.quest);
@@ -80,7 +80,10 @@ export function renderTickets() {
     // The face of the ticket is one target that opens the quest: the portrait, the name and title, and the dishes.
     const face = button('', 'ticket-face', () => showQuest(quest)), picture = portrait(person.id), words = element('span', 'ticket-words');
     face.setAttribute('aria-label', `${quest.title}: ${labels.join('; ')}`);
-    words.append(element('span', 'ticket-name', person.name), element('span', 'ticket-title', quest.title));
+    // A booked ticket gives its evening in the place of the title, which the face and the dialog still name.
+    const booking = bookedTicket(state, quest, data);
+    words.append(element('span', 'ticket-name', person.name), booking ? element('span', 'ticket-title ticket-booking', booking) : element('span', 'ticket-title', quest.title));
+    if (booking) face.setAttribute('aria-label', `${face.getAttribute('aria-label')}. ${booking}`);
     // A long order, such as the supper, shows its first dishes and the count of the others; its dialog lists every plate.
     const shown = quest.requirements.length > 4 ? quest.requirements.slice(0, 3) : quest.requirements;
     const dishes = element('span', `ticket-items${quest.requirements.length > 2 ? ' many' : ''}`);
@@ -101,11 +104,33 @@ export function renderTickets() {
     deliverButton.disabled = !ready;
     deliverButton.setAttribute('aria-label', quest.finale ? `Serve ${quest.title}` : `Deliver ${quest.title} to ${person.name} for ${coinText(quest.reward)}`);
     if (guided?.ticket === quest.id) deliverButton.setAttribute('aria-label', `${deliverButton.getAttribute('aria-label')}. Next step toward ${goal}`);
-    card.append(face, deliverButton); container.append(card);
+    card.append(face, booking ? bookedControl(quest, person.name) ?? deliverButton : deliverButton); container.append(card);
   });
   // The recovery ticket keeps its own column beside the line, so the line still says why no quest waits.
   if (tickets.every(quest => quest.recovery)) container.prepend(element('p', 'tickets-empty', state.taskIndex === data.tasks.length ? 'Every quest is delivered. The bistro is yours.' : 'No quests wait now. Pay for the next preparation.'));
 }
+/**
+ * The control of a booked ticket that cannot deliver yet: the lanterns for tonight's guest before the booking time, or a table for a
+ * later evening. Null when Deliver serves: tonight's guest from the booking time.
+ */
+function bookedControl(quest: Quest, name: string) {
+  const time = clockText(data.day.booking);
+  if (awaitsLanterns(state, quest, data)) {
+    const lantern = button('', 'primary-button deliver-button lantern-button', () => lightLanterns(quest));
+    lantern.append(lanternMark(), element('span', 'deliver-word', 'Light the lanterns'), element('span', 'booking-time', time));
+    lantern.disabled = !canLightLanterns(state, quest, data);
+    lantern.setAttribute('aria-label', `Light the lanterns: ${name} is booked for ${time}`);
+    return lantern;
+  }
+  if (bookedTonight(state, quest)) return null;
+  const later = button('', 'primary-button deliver-button later-button', () => {});
+  later.append(moonMark(), element('span', 'deliver-word', 'Later'));
+  later.disabled = true;
+  later.setAttribute('aria-label', `${quest.title}: booked for another evening`);
+  return later;
+}
+/** The lanterns bring tonight's booked guest at once. The closing, the upkeep, and the night come sooner. */
+const lightLanterns = (quest: Quest) => act({ type: 'lantern', id: quest.id });
 /**
  * The dishes land on the ticket, a notice reports the reward, and the next quest takes the ticket's place.
  * The completion scene waits in Story. After a failed save, the notice says so, and Options offers Retry save.
@@ -175,7 +200,14 @@ function showQuest(quest: Quest) {
   const deliverButton=button(quest.finale?'Serve':`Deliver · ${count.format(quest.reward)}`,'primary-button quest-deliver',()=>{modal.close();void deliver(quest);});
   if(!quest.finale)deliverButton.append(coinMark());
   deliverButton.setAttribute('aria-label',quest.finale?`Serve ${quest.title}`:`Deliver ${quest.title} for ${coinText(quest.reward)}`);deliverButton.disabled=!canDeliverQuest(state,quest,data);
-  const actions=element('div','quest-actions');actions.append(deliverButton);
+  // A booked quest gives its evening, and the lanterns or a later evening take the place of Deliver.
+  const booking=bookedTicket(state,quest,data),name=character(quest.character).name;
+  if(booking)content.append(element('p','quest-booking',awaitsLanterns(state,quest,data)?`${booking}. When every dish is on the board, light the lanterns, and ${name} arrives at once.`
+    :bookedTonight(state,quest)?`${booking}. ${name} is at the table.`
+    :`${booking}. ${names.format([...new Set(data.quests.filter(value=>value.booked).map(value=>character(value.character).name))])} never dine on the same evening.`));
+  const control=booking?bookedControl(quest,name):null;
+  control?.addEventListener('click',()=>modal.close());
+  const actions=element('div','quest-actions');actions.append(control??deliverButton);
   // The supper pays nothing and opens the finale. The recovery quest returns while the purse runs low.
   content.append(requirements,element('p','quest-reward',quest.finale?'The supper pays nothing. Serving it opens the finale.':`Reward: ${coinText(quest.reward)}`),actions,
     element('p','quest-note',quest.finale?'One plate for each guest, to each one’s taste. There is no deadline.':quest.recovery?'Ana returns while the purse runs low. Herbs from the Herb basket are free.':'Delivery uses dishes on the board. There is no deadline.'));

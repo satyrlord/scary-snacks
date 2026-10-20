@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { firstFreeBoardCell, generatorOutputs, resolveQuests } from '../../src/model.ts';
 import type { GameState, SceneLine } from '../../src/model.ts';
-import { act, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, journal, onTicket, opened, openQuest, options, person, portraitCell, quest, readTo, replaceSave, saved, start, startAgainAndImport, story, supplies, supply, ticket, toast } from './support.ts';
+import { act, atBookingTime, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, journal, onTicket, opened, openQuest, options, person, portraitCell, quest, readTo, replaceSave, saved, start, startAgainAndImport, story, supplies, supply, ticket, toast } from './support.ts';
 
 const dinner=quest('ionatan-castle-dinner');
 const search=quest('mina-avram-search');
@@ -144,9 +144,10 @@ async function winePicture(target: Locator){
 
 test('red wine made through the visible controls readies Vlad’s quest, and Deliver pays it once',async({page})=>{
   test.setTimeout(60000);await page.emulateMedia({reducedMotion:'reduce'});
-  // The purse pays for the Plums from the Fruit stand.
+  // The purse pays for the Plums from the Cornucopia.
   const value=quest('vlad-after-dark'),dishes=supplies(value);dishes.splice(dishes.indexOf('fruits_5'),1);
-  const initial=supply(onTicket(value),dishes);initial.coins=100;
+  // Vlad has the evening, and the clock shows his booking time.
+  const initial=atBookingTime(supply(onTicket(value),dishes),value);initial.coins=100;
   await start(page,initial);await expect(deliverButton(page,value)).toBeDisabled();
   const wine=await makeDish(page,'fruits_5');
   await expect(page.locator(`[data-cell="${wine}"]`)).toHaveAttribute('aria-label',/Red wine$/);await winePicture(page.locator(`[data-cell="${wine}"]`));

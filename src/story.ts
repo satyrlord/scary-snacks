@@ -32,7 +32,12 @@ export function storyContent(inSheet: boolean) {
   const body = element('div', 'task-content');
   const supper = supperQuest(data)!;
   if (!task && !supperComplete(state,data)) body.append(element('h3', '', supper.title), element('p', '', `Every preparation is done. ${character(supper.character).name}’s last quest waits on the counter: cook the supper there, one plate for each guest.`));
-  else if (!task) body.append(element('h3', '', 'The table is ready.'), element('p', '', 'The community supper is open, and every quest is delivered. The board and the recipe book stay yours.'));
+  else if (!task) {
+    // The result of act 1 keeps the days and the purse of the supper, whatever the purse holds now.
+    const { days, purse } = state.act1!;
+    body.append(element('h3', '', 'The table is ready.'), element('p', '', 'The community supper is open, and every quest is delivered. The board and the recipe book stay yours.'),
+      element('p', 'act-result', `The bistro worked for ${count.format(days)} ${days === 1 ? 'day' : 'days'}. ${purse < 0 ? `The shop notebook holds a debt of ${coinText(-purse)}.` : `The purse holds ${coinText(purse)}.`}`));
+  }
   else {
     body.append(element('h3', '', task.title));
     const requirements = element('div', 'preparation-requirements');

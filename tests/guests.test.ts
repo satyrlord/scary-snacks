@@ -5,7 +5,7 @@ import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import { questProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import type { GameData, GameState } from '../src/model.ts';
-import { act, data, deliver, opened, player, validate } from './support.ts';
+import { act, data, deliver, opened, player, tonight, validate } from './support.ts';
 
 const search = data.quests.find(quest => quest.id === 'mina-avram-search')!;
 const predecessor = search.afterQuest!;
@@ -21,23 +21,27 @@ function untilSearch(state: GameState): GameState {
 const tags = (quest: { requirements: { item: string }[] }) => quest.requirements.flatMap(({ item }) => data.items[item].tags);
 
 // Vlad's dinner can be made from stage-one ingredients, chain merges, and recipe merges.
-test(`Vlad's dinner after dark is deliverable by cooking red wine, roast pork, and cabbage rolls from stage-one ingredients`, () => {
-  const play = player(opened(8));
+test(`Vlad's dinner after dark is deliverable by cooking red wine and smoked bacon from stage-one ingredients`, () => {
+  // Vlad comes last in his window: his ticket shows once the quests before him are delivered.
+  const play = player(deliver(deliver(opened(8), 'mara-table'), 'ileana-fitting'));
   play.state.coins = 1000;
   assert.equal(data.items.fruits_5.name, 'Red wine');
   assert.equal(data.items.fruits_4.next, 'fruits_5');
-  assert.deepEqual(data.items['mixed_cabbage-rolls'].recipe, ['pork_2', 'vegetables_3']);
   const quest = data.quests.find(quest => quest.id === 'vlad-after-dark')!;
-  assert.deepEqual(quest.requirements.map(({ item }) => item).sort(), ['fruits_5', 'mixed_cabbage-rolls', 'pork_5']);
+  assert.deepEqual(quest.requirements.map(({ item }) => item).sort(), ['fruits_5', 'pork_4']);
   assert.equal(status(play.state, quest.id), 'active');
   for (const { item, quantity } of quest.requirements) for (let count = 0; count < quantity; count++) play.produce(item);
-  assert.ok(play.state.discovered.includes('fruits_5') && play.state.discovered.includes('mixed_cabbage-rolls'));
-  const before = structuredClone(play.state);
-  play.act({ type: 'deliverQuest', id: quest.id });
-  assert.equal(play.state.coins, before.coins + quest.reward);
-  assert.deepEqual(play.state.completedQuests, [...before.completedQuests, quest.id]);
-  assert.equal(play.state.board.some(cell => quest.requirements.some(({ item }) => cell?.code === item)), false);
-  assert.deepEqual(importSave<GameState>(exportSave(play.state, validate), validate), play.state);
+  assert.ok(play.state.discovered.includes('fruits_5') && play.state.discovered.includes('pork_4'));
+  // Vlad books the evening, and the lanterns bring him.
+  const booked = player(tonight(play.state, quest.id));
+  booked.act({ type: 'lantern', id: quest.id });
+  const before = structuredClone(booked.state);
+  booked.act({ type: 'deliverQuest', id: quest.id });
+  const after = booked.state;
+  assert.equal(after.coins, before.coins + quest.reward);
+  assert.deepEqual(after.completedQuests, [...before.completedQuests, quest.id]);
+  assert.equal(after.board.some(cell => quest.requirements.some(({ item }) => cell?.code === item)), false);
+  assert.deepEqual(importSave<GameState>(exportSave(after, validate), validate), after);
 });
 
 test('Ionatan has one dinner, and the journal shows him only once his visit opens', () => {
@@ -46,7 +50,7 @@ test('Ionatan has one dinner, and the journal shows him only once his visit open
   const quests = data.quests.filter(quest => quest.character === person.id);
   assert.deepEqual(quests.map(quest => quest.id), [predecessor]);
   assert.equal(quests[0].afterTask, 'task_9');
-  assert.deepEqual(quests[0].requirements, [['fruits_6', 2], ['mixed_sharing-board', 2], ['mixed_tochitura', 2], ['mixed_chimney-cake', 2], ['pork_5', 1]]
+  assert.deepEqual(quests[0].requirements, [['fruits_6', 1], ['mixed_sharing-board', 1], ['mixed_tochitura', 1]]
     .map(([item, quantity]) => ({ item, quantity })));
   const shown = (state: GameState) => journalCharacters(state, data).map(character => character.id);
   assert.deepEqual(shown(createGame(data)), data.characters.filter(character => !character.singleVisit && !character.arrivesAfter).map(character => character.id));
@@ -59,7 +63,7 @@ test('Mina and Avram share one vegetarian, kosher-style quest after Ionatan has 
   assert.deepEqual(search.companions, ['avram']);
   assert.equal(predecessor, 'ionatan-castle-dinner');
   assert.equal(search.afterTask, 'task_10');
-  assert.deepEqual(search.requirements, [['mixed_zacusca-toast', 2], ['vegetables_4', 2], ['dairy_5', 1], ['mixed_fruit-tea', 2]].map(([item, quantity]) => ({ item, quantity })));
+  assert.deepEqual(search.requirements, [['vegetables_5', 2], ['vegetables_4', 2], ['dairy_5', 1], ['mixed_fruit-tea', 1]].map(([item, quantity]) => ({ item, quantity })));
   // Mina eats no meat or fish. Avram eats no pork, and keeps meat and dairy apart.
   const shared = data.quests.filter(quest => ['mina', 'avram'].some(id => quest.character === id || quest.companions?.includes(id)));
   assert.deepEqual(shared, [search]);

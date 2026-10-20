@@ -42,7 +42,7 @@ Two matching dishes of a chain merge into the next dish of that chain.
 | Dairy | Milk churn | Milk | Sour cream | Cottage cheese | Telemea | Smoked cheese | Cheese board |
 | Poultry | Hen's nest | Eggs | Chicken | Chicken broth | Roast chicken | | |
 | Vegetables | Vegetable crate | Potatoes | Vegetable basket | Pickled cabbage | Roasted vegetables | Zacuscă | Vegetable stew |
-| Fruits | Fruit stand | Plums | Fruit bowl | Cherry compote | Plum jam | Red wine | Plum brandy |
+| Fruits | Cornucopia | Plums | Fruit bowl | Cherry compote | Plum jam | Red wine | Plum brandy |
 | Pork | Butcher's hook | Pork | Minced pork | Sausages | Smoked bacon | Roast pork | |
 | Beans | Legume sacks | White beans | Lentils | Green beans | Bean dip | Bean stew | |
 | Lamb | Shepherd's bag | Lamb | Lamb cuts | Lamb chops | Lamb stew | Roast lamb | |
@@ -236,7 +236,7 @@ These values are starting values. The campaign balance test measures them, and t
 | --- | ---: |
 | Take cost: the coins that one take from a paid source spends | 1 |
 | Blocker coin: the coins that each cleared blocker gives | 1 |
-| Work rate: the coins that each merge adds to a menu price | 1 |
+| Work rate: the coins that each merge adds to a menu price | 2 |
 | Recovery floor: the purse below which the recovery quest opens while a quest is open | 10 |
 
 ### Takes
@@ -261,7 +261,7 @@ price = staples × take cost + merges × work rate
 - "Merges" is the number of merges from the staples to the dish, recipe merges included.
 
 For example, Bulz uses Mămăligă (8 Corn staples, 7 merges) and Telemea (8 Dairy staples, 7 merges), plus one recipe merge.
-Its price is 16 × 1 + 15 × 1 = 31 coins.
+Its price is 16 × 1 + 15 × 2 = 46 coins.
 
 Every quest except the supper pays its menu value. The supper pays nothing. No quest has a reward multiplier.
 So every delivery earns at least the work rate for each merge, and no delivery loses coins.
@@ -276,7 +276,7 @@ It is open in each of these cases:
 - the campaign has no open quest, and the purse holds less than the cost of the next preparation.
 
 It closes when neither case is true, and it opens again each time a case becomes true.
-So a player who spends coins on spare food is never stuck before a preparation. The player repays the shortfall with tea: one Linden tea pays 7 coins at the starting levers, and the shortfall is at most the coins spent on spare takes.
+So a player who spends coins on spare food is never stuck before a preparation. The player repays the shortfall with tea: one Linden tea pays 14 coins at the starting levers, and the tea can cover spare takes and daily upkeep.
 While it is open, it has its own ticket after the three quest tickets. It never moves a quest to waiting.
 A delivery pays its menu value. It records nothing, queues no scene, and has no journal entry.
 The recovery quest is outside the order of Ana's quests. It needs no earlier Ana quest, and no Ana quest needs it. It can be open at the same time as an Ana campaign quest. Save validation rejects it in the delivered quests.
@@ -289,7 +289,7 @@ A board that the player fills with dishes that cannot merge and that no quest ne
 
 The campaign balance test plays one efficient strategy with no injected coins or items.
 It pays all 24 preparations and delivers the supper.
-After the supper, the purse must hold from 0 to 10% of the coins that the strategy spent on preparations and takes.
+After the supper, the purse must hold from 0 to 10% of the coins that the strategy spent on preparations, takes, and upkeep.
 The test prints the purse, the takes, the coins from blockers, and the free cells at each preparation.
 
 ## Acceptance checks
@@ -304,7 +304,7 @@ The test prints the purse, the takes, the coins from blockers, and the free cell
 
 ## Quests and interface
 
-- The quest requirements are in `tools/create-original-data.ts`. The work value of the quests in each window pays for the next preparation, with a margin that grows to about 600 coins before the supper.
+- The quest requirements are in `tools/create-original-data.ts`. The work value of the quests in each window pays for the next preparation, with enough coins for daily upkeep and the staples of the supper under the efficient strategy of spec 013.
 - A new game has no coins. The first quest of Mara asks only for free herbs. The early quests also ask for Linden tea and socată, which need no paid staple, so the purse has the coins for the staples of the next quests.
 - Selection marks each dish and each blocked space that the selected dish merges with, with the same dotted mark as a matching pair.
 - The recipe book has one section for each chain, in chain order, and then one section for the mixed dishes. The item dialog of a mixed dish shows its two parts. The item dialog of a part names the mixed dishes that it makes.

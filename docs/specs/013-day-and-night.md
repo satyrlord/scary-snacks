@@ -1,6 +1,6 @@
 # 013: Bistro day and night
 
-Status: Proposed.
+Status: Implemented.
 
 ## Outcome and scope
 
@@ -35,11 +35,11 @@ A failed merge does not move the clock.
 A move, a take, a delivery, a payment, and a scene do not move the clock.
 The lantern control is the only other action that moves the clock. The section on bookings defines it.
 
-The clock shows the day and the time, for example "Day 3 · 14:21". A new game starts on day 1 at 07:00.
+The clock shows the day and the time, for example "Day 3 · 14:24". A new game starts on day 1 at 07:00.
 The time is the opening time plus the merge time for each merge of the day.
-With the starting levers, a day holds 300 merges.
+With the starting levers, a day holds 150 merges.
 
-A day holds about the merges of one big quest, one medium quest, and two small quests.
+A day holds about the merges of one set of provisions and a few meals.
 So the biggest quest fills most of one day, and the bistro must keep its trade moving.
 The data check counts the merges that each quest needs from its staples. Each quest must fit in one day.
 `DESIGN.md` gives the place of the clock.
@@ -263,7 +263,7 @@ These values are starting values. The campaign balance test measures them, and t
 | --- | ---: |
 | Opening time | 07:00 |
 | Closing time | 22:00 |
-| Merge time: the minutes that one merge adds to the clock | 3 |
+| Merge time: the minutes that one merge adds to the clock | 6 |
 | Upkeep: the coins that each closing spends | 10 |
 | Rat take: the most loose raw ingredients that the thief rat takes in one night | 3 |
 | Rat hole limit: the most rat holes that can be open at one time | 3 |
@@ -285,25 +285,12 @@ These values are starting values. The campaign balance test measures them, and t
 - The purse can hold an integer below zero. Save validation accepts a debt.
 - The game state version and the save key change. The game does not read or convert a save in an earlier format. Each player starts a new game.
 
-## Contract changes
+## Owner contracts
 
-`PRODUCT.md` changes where it says these items:
-
-- the game has no time-of-day clock;
-- the delivery rules of the quests of Vlad and Elisabeta;
-- the blocker rules, for the rat holes;
-- only a take or a merge discovers a dish: a gift also discovers its dish;
-- the purse cannot go below zero;
-- the state has no random seed;
-- the text of the supper card after the supper.
-
-`DESIGN.md` changes where it says these items:
-
-- the cats and the bat are the only sprites over the room: the rat of the night is also a sprite over the room;
-- the window glass shows the bat: the glass also shows the night sky.
-
-`DESIGN.md` adds the clock, the booked tickets, the lantern control, the night sequence with its tint, and the night notice.
-`DESIGN.md` permits a tint on a room painting. The Untouched Plate Rule keeps food, portraits, and timber in their original colours.
+`PRODUCT.md` controls the clock, bookings, rat holes, gifts, debt, saved seed, and act 1 result.
+`DESIGN.md` controls the clock, booked tickets, lantern control, night sequence, and night notice.
+The rat appears over the room, and the window glass can show the night sky.
+A night tint changes the room painting. The Untouched Plate Rule keeps food, portraits, and timber in their original colours.
 
 ## Balance check
 
@@ -334,7 +321,7 @@ Two more strategies play act 1 with the same seeds:
 - Rat holes: the first pick becomes blocked in its cell. With three open rat holes, the thief rat makes no rat hole. A matching merge clears a rat hole and gives the blocker coin.
 - Gift: on a board without a loose raw ingredient and with at least five free cells, Șoricescu leaves the gift of the next chain in turn. The gift discovers its dish. With fewer free cells, he leaves no gift.
 - Gift and recovery: a board with exactly four free cells and no loose raw ingredient closes the day with a merge. Șoricescu leaves no gift, and a Linden tea for the recovery quest can still be made from scratch.
-- Debt: with a purse of −20, a Herbs take works, and a paid take and a payment do not. A recovery delivery takes the purse from −20 to −13. A cleared blocker gives its coin with a debt. The recovery quest stays open across another closing.
+- Debt: with a purse of −20, a Herbs take works, and a paid take and a payment do not. A recovery delivery takes the purse from −20 to −6. A cleared blocker gives its coin with a debt. The recovery quest stays open across another closing.
 - Debt and the next preparation: with no open campaign quest and a debt, the recovery quest is open, and its deliveries reach the cost of the next preparation.
 - Evening guest: each case in the table of the evening guest gives its result. Vlad and Elisabeta never have the same evening.
 - Booked tickets: the evening guest shows "Booked for 20:00", and each other booked ticket shows "Booked for another evening". Deliver works only from the booking time to closing, once per day.

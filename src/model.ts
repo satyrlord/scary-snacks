@@ -24,9 +24,11 @@ export type Diet = { name: string; forbid: DishTag[]; require?: { item: string; 
  * A person of the bistro. The core characters drive the story. A regular (spec 010) is a neighbour who arrives with the preparation that
  * arrivesAfter names, or is present from the start; arrival plays a short scene, and favourites names the dishes that they like.
  */
+/** A character with provisions orders food for several days or for other people. Every other quest is one meal for each eater. */
 export type Character = {
   id: string; name: string; role: string; introduction: string; sprite: number; visitor?: boolean; singleVisit?: boolean;
   portraitAtlas?: PortraitAtlas; regular?: boolean; arrivesAfter?: string; favourites?: string[]; arrival?: SceneLine[]; diet?: Diet;
+  provisions?: true;
 };
 export const portraitAtlases = ['guest', 'regulars-1', 'regulars-2', 'regulars-3'] as const;
 export type PortraitAtlas = typeof portraitAtlases[number];
@@ -45,8 +47,16 @@ export type TaskEligibility = { task: Task | null; ready: boolean; requirements:
 export type Quest = {
   id: string; character: string; title: string; afterTask: string | null; afterQuest?: string;
   requirements: { item: string; quantity: number }[]; reward: number; opening: SceneLine[]; completion: SceneLine[];
-  companions?: string[]; unlocks?: { slot: string; variant: string }; finale?: true; guests?: string[]; recovery?: true;
+  companions?: string[]; unlocks?: { slot: string; variant: string }; finale?: true; guests?: string[]; recovery?: true; booked?: true;
   followUp?: { id: string; title: string; afterDeliveries: number; dialogue: SceneLine[] };
+};
+/**
+ * The levers of the bistro day (spec 013). Times are minutes after midnight. Each merge adds mergeMinutes to the clock, and the merge
+ * that reaches closing pays the upkeep and brings the night. A booked quest delivers from booking to closing.
+ */
+export type DayLevers = {
+  opening: number; closing: number; booking: number; mergeMinutes: number; upkeep: number;
+  ratTake: number; ratHoles: number; giftStage: number; giftSpace: number;
 };
 /**
  * The levers of the economy. A take from a paid source spends takeCost. Each cleared blocker gives blockerCoin. A menu price is
@@ -72,7 +82,7 @@ export type DecorationSlot = {
   crop: { x: number; y: number; width: number; height: number };
 };
 export type DecorationView = DecorationSlot & { unlocked: boolean; selected: DecorationVariant };
-export type BoardObstacle = { id: string; position: number; name: string; type: 'clutter' | 'anchored'; ingredient: string; sprite?: number; atlas?: 'preparation'; context?: string };
+export type BoardObstacle = { id: string; position: number; name: string; type: 'clutter' | 'anchored' | 'rat-hole'; ingredient: string; sprite?: number; atlas?: 'preparation'; context?: string };
 export type BoardLayout = { id: string; obstacles: BoardObstacle[] };
 export type PreparationObstacleBatch = { after: string; context: string; obstacles: Omit<BoardObstacle, 'position' | 'context'>[] };
 /**
@@ -95,7 +105,7 @@ export const roomPaintings: readonly string[] = [
 export type GameData = {
   board: { columns: number; rows: number; initial: (string | null)[]; defaultLayout: string; layouts: BoardLayout[]; preparations: PreparationObstacleBatch[] };
   chains: { id: string; name: string }[]; items: Record<string, Item>; characters: Character[]; chapters: Chapter[]; finale: Finale; tasks: Task[];
-  areas: Area[]; rooms: RoomState[]; decorationSlots: DecorationSlot[]; economy: Economy;
+  areas: Area[]; rooms: RoomState[]; decorationSlots: DecorationSlot[]; economy: Economy; day: DayLevers;
   quests: Quest[];
 };
 /**
@@ -104,8 +114,20 @@ export type GameData = {
  */
 export type RoomView = Area & { open: boolean; states: RoomState[]; current: RoomState | null; painting: RoomState | null };
 export type Cell = { code: string };
+/** A dish and the board cell where it was. */
+export type Placed = { item: string; position: number };
+/**
+ * The last closing. The thief rat takes loose raw ingredients: the trapped one stays blocked in a new rat hole, and a thief with no
+ * trapped ingredient found three rat holes open. Șoricescu leaves a gift, and a visit with no gift found too few free cells.
+ */
+export type NightReport = {
+  day: number; upkeep: number; rat: 'thief' | 'soricescu'; taken: Placed[]; trapped: Placed | null;
+  gift: (Placed & { first: boolean }) | null; purse: number; seen: boolean;
+};
 export type GameState = {
-  version: 13; board: (Cell | null)[]; coins: number; taskIndex: number;
+  version: 14; board: (Cell | null)[];
+  /** The purse. Below zero, it is a debt in the notebook of the village shop. */
+  coins: number; taskIndex: number;
   discovered: string[]; decorations: string[];
   decorationChoices: Record<string, string>;
   /** The delivered quests, in the order of delivery. */
@@ -118,11 +140,26 @@ export type GameState = {
    * scenes, local news, chapter closing scenes, and the finale. Preparation scenes, chapter scenes, and the finale keep story order.
    */
   pendingScenes: string[];
+  /** The day number and the merges of the current day. The supper stops the clock. */
+  clock: { day: number; merges: number };
+  /** The random seed of the thief rat. Only a closing with the thief rat uses and advances it. */
+  seed: number;
+  /** The open rat holes: each blocks the raw ingredient that the thief rat dropped in its cell. */
+  ratHoles: Placed[];
+  /** The gifts of Șoricescu so far. The chains take turns by this count. */
+  gifts: number;
+  /** The booked guest of this evening, the guest of the last evening, and whether this day had its booked delivery. */
+  evening: { guest: string | null; last: string | null; delivered: boolean };
+  night: NightReport | null;
+  /** The days and the purse when the supper was served. */
+  act1: { days: number; purse: number } | null;
 };
 export type Action =
   | { type: 'move'; from: number; to: number }
   | { type: 'spawn'; index: number }
   | { type: 'deliverQuest'; id: string }
+  | { type: 'lantern'; id: string }
+  | { type: 'seeNight' }
   | { type: 'decorate'; slot: string; variant: string }
   | { type: 'readScene'; id: string }
   | { type: 'task' };
@@ -137,18 +174,23 @@ export const spoken = (line: unknown, data: GameData) => !!line && typeof line =
 /** A scene has at least one line, and each line is spoken. */
 export const scene = (lines: unknown, data: GameData): lines is SceneLine[] => Array.isArray(lines) && lines.length > 0 && lines.every(line => spoken(line, data));
 export const present = <T>(value: T): value is NonNullable<T> => Boolean(value);
-export function boardObstacles(state: Pick<GameState, 'layoutId' | 'preparationObstacles'>, data: GameData): BoardObstacle[] {
+/** A rat hole as a blocker. It has no ID of its own: a cleared rat hole leaves the list, so it never enters the cleared blockers. */
+const ratHole = (hole: Placed): BoardObstacle => ({ id: `rat-hole-${hole.position}`, position: hole.position, name: 'Rat hole', type: 'rat-hole',
+  ingredient: hole.item, context: 'The thief rat dropped it here in the night.' });
+export function boardObstacles(state: Pick<GameState, 'layoutId' | 'preparationObstacles' | 'ratHoles'>, data: GameData): BoardObstacle[] {
   return [...(data.board.layouts.find(layout => layout.id === state.layoutId)?.obstacles ?? []),
     ...(state.preparationObstacles?.placed.flatMap(placement => {
       const batch = data.board.preparations.find(batch => batch.obstacles.some(obstacle => obstacle.id === placement.id));
       const obstacle = batch?.obstacles.find(obstacle => obstacle.id === placement.id);
       return obstacle ? [{ ...obstacle, position: placement.position, context: batch!.context }] : [];
-    }) ?? [])];
+    }) ?? []), ...state.ratHoles.map(ratHole)];
 }
-export function unresolvedObstacle(state: Pick<GameState, 'layoutId' | 'resolvedObstacles' | 'preparationObstacles'>, index: number, data: GameData): BoardObstacle | null {
+export function unresolvedObstacle(state: Pick<GameState, 'layoutId' | 'resolvedObstacles' | 'preparationObstacles' | 'ratHoles'>, index: number, data: GameData): BoardObstacle | null {
   const initial = data.board.layouts.find(layout => layout.id === state.layoutId)?.obstacles.find(obstacle =>
     obstacle.position === index && !state.resolvedObstacles.includes(obstacle.id));
   if (initial) return initial;
+  const hole = state.ratHoles.find(value => value.position === index);
+  if (hole) return ratHole(hole);
   const placement = state.preparationObstacles?.placed.find(value => value.position === index && !state.resolvedObstacles.includes(value.id));
   if (!placement) return null;
   const batch = data.board.preparations.find(batch => batch.obstacles.some(obstacle => obstacle.id === placement.id))!;
@@ -293,8 +335,33 @@ export function questDeliveryCells(state: GameState, quest: Quest, data: GameDat
 }
 export function canDeliverQuest(state: GameState, quest: Quest | string, data: GameData): boolean {
   const view = resolveQuests(state, data).find(view => view.quest.id === (typeof quest === 'string' ? quest : quest.id));
-  return view?.status === 'active' && questDeliveryCells(state, view.quest, data).every(index => index >= 0);
+  return view?.status === 'active' && questDeliveryCells(state, view.quest, data).every(index => index >= 0)
+    && (!view.quest.booked || (bookedTonight(state, view.quest) && clockMinutes(state, data) >= data.day.booking));
 }
+/** The merges that one day holds, from opening to closing. */
+export const dayMerges = (data: GameData) => (data.day.closing - data.day.opening) / data.day.mergeMinutes;
+/** The time of day, in minutes after midnight. */
+export const clockMinutes = (state: Pick<GameState, 'clock'>, data: GameData) => data.day.opening + state.clock.merges * data.day.mergeMinutes;
+/** A time of day as "hh:mm". */
+export const clockText = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+/** A loose raw ingredient: a stage-1 dish of a paid chain. Herbs and cooked dishes are safe overnight. A blocked cell holds no item. */
+export function looseRaw(code: string, data: GameData): boolean {
+  const item = getItem(code, data);
+  return !!item && !item.generator && item.chain !== MIXED && item.stage === 1 && !data.items[`generator_${item.chain}`]?.generator?.free;
+}
+export const looseRawCells = (state: GameState, data: GameData) => state.board.flatMap((cell, index) => cell && looseRaw(cell.code, data) ? [index] : []);
+/** A booked quest is tonight's while its guest has the evening and the day has had no booked delivery. */
+export const bookedTonight = (state: Pick<GameState, 'evening'>, quest: Quest) => !!quest.booked && state.evening.guest === quest.character && !state.evening.delivered;
+/** Tonight's booked quest before the booking time: its ticket has the lantern control in place of Deliver. */
+export const awaitsLanterns = (state: GameState, quest: Quest, data: GameData) => bookedTonight(state, quest) && clockMinutes(state, data) < data.day.booking;
+/** The lantern control moves the clock to the booking time: tonight's booked quest, on its ticket, before the booking time, with every portion on the board. */
+export function canLightLanterns(state: GameState, quest: Quest, data: GameData): boolean {
+  return awaitsLanterns(state, quest, data) && resolveQuests(state, data).find(view => view.quest === quest)?.status === 'active'
+    && questDeliveryCells(state, quest, data).every(index => index >= 0);
+}
+/** The text of a booked ticket. Only the evening that the game fixed gets a time. */
+export const bookedTicket = (state: Pick<GameState, 'evening'>, quest: Quest, data: GameData) =>
+  !quest.booked ? null : bookedTonight(state, quest) ? `Booked for ${clockText(data.day.booking)}` : 'Booked for another evening';
 /**
  * The index of the latest preparation that a quest and its predecessors wait for: -1 when it opens in a new game.
  * Known keeps the openings that one check found, so each quest is resolved once and long quest lines stay linear.

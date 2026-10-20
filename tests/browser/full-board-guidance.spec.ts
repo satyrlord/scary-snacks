@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { boardObstacles, firstFreeBoardCell, unresolvedObstacle } from '../../src/model.ts';
 import { createGame } from '../../src/engine.ts';
 import type { GameState } from '../../src/model.ts';
-import { act, checkpoint, data, deliverable, deliverButton, quest, saved, start, supply, tile, validate } from './support.ts';
+import { act, checkpoint, data, deliverable, deliverButton, quest, saved, start, supply, tile, validate, know } from './support.ts';
 
 /** A purse at the recovery floor keeps Ana's recovery quest, which could take the Linden tea of Mara's quest, off the counter. */
 const welcomeReady = () => { const state = deliverable(quest('mara-welcome')); state.coins = data.economy.recoveryFloor; return state; };
@@ -12,7 +12,7 @@ function fullBoard(code: string, seed = createGame(data), keep: (index: number) 
   state.board.forEach((cell, index) => {
     if (!unresolvedObstacle(state,index,data) && !cell?.code.startsWith('generator_') && !keep(index)) state.board[index] = {code};
   });
-  if (!state.discovered.includes(code)) state.discovered.push(code);
+  if (!state.discovered.includes(code)) know(state,code);
   expect(firstFreeBoardCell(state,data)).toBe(-1);
   expect(validate(state)).toBe(true);
   return state;
@@ -27,7 +27,7 @@ test('a full-board guide points to a ready delivery that frees space',async({pag
   const welcome=quest('mara-welcome'),seed=welcomeReady();
   const drinks=seed.board.flatMap((cell,index)=>welcome.requirements.some(({item})=>item===cell?.code)?[index]:[]);
   const state=fullBoard('grain_6',seed,index=>drinks.includes(index));
-  state.discovered.push('corn_4');
+  know(state,'corn_4');
   await page.setViewportSize({width:390,height:844});await start(page,state);
   await guide(page,'corn_4');
   const deliver=deliverButton(page,welcome);
@@ -45,7 +45,7 @@ test('a full-board guide points to a campaign quest before the recovery quest',a
   const welcome=quest('mara-welcome'),recovery=quest('ana-night-ward-tea'),seed=welcomeReady();seed.coins=0;
   const drinks=seed.board.flatMap((cell,index)=>welcome.requirements.some(({item})=>item===cell?.code)?[index]:[]);
   const state=fullBoard('grain_6',seed,index=>drinks.includes(index));
-  state.discovered.push('corn_4');
+  know(state,'corn_4');
   await start(page,state);await expect(deliverButton(page,recovery)).toBeEnabled();
   await guide(page,'corn_4');
   await expect(deliverButton(page,welcome)).toHaveClass(/guide-target/);await expect(deliverButton(page,recovery)).not.toHaveClass(/guide-target/);
@@ -56,7 +56,7 @@ test('on a phone, a full-board guide to the recovery quest focuses its ticket fa
   const recovery=quest('ana-night-ward-tea'),seed=deliverable(recovery);seed.coins=0;
   const tea=seed.board.flatMap((cell,index)=>cell?.code===recovery.requirements[0].item?[index]:[]);
   const state=fullBoard('grain_6',seed,index=>tea.includes(index));
-  state.discovered.push('corn_4');
+  know(state,'corn_4');
   await page.setViewportSize({width:390,height:844});await start(page,state);
   await guide(page,'corn_4');
   const face=page.locator(`#tickets [data-quest="${recovery.id}"] .ticket-face`);
@@ -65,12 +65,26 @@ test('on a phone, a full-board guide to the recovery quest focuses its ticket fa
   await expect.poll(async()=>firstFreeBoardCell(await saved(page),data)).toBeGreaterThanOrEqual(0);
 });
 
+test('a full-board guide offers recovery delivery while its reward leaves a debt',async({page})=>{
+  const recovery=quest('ana-night-ward-tea'),seed=deliverable(recovery);seed.coins=-30;
+  const tea=seed.board.flatMap((cell,index)=>cell?.code===recovery.requirements[0].item?[index]:[]);
+  const state=fullBoard('grain_6',seed,index=>tea.includes(index));know(state,'corn_4');
+  await page.setViewportSize({width:390,height:844});await start(page,state);
+  await guide(page,'corn_4');
+  const face=page.locator(`#tickets [data-quest="${recovery.id}"] .ticket-face`);
+  await expect(face).toBeFocused();await expect(page.locator('#status')).toContainText(`Deliver ${recovery.title} to make space`);
+  await face.click();await page.locator('#modal').getByRole('button',{name:/^Deliver /}).click();
+  const after=await saved(page);
+  expect(after.coins).toBe(state.coins+recovery.reward);expect(after.coins).toBeLessThan(0);
+  expect(firstFreeBoardCell(after,data)).toBeGreaterThanOrEqual(0);
+});
+
 test('a goal-chain merge takes priority over a ready delivery on a full board',async({page})=>{
   const welcome=quest('mara-welcome'),seed=welcomeReady();
   const drinks=seed.board.flatMap((cell,index)=>welcome.requirements.some(({item})=>item===cell?.code)?[index]:[]);
   const corn=firstFreeBoardCell(seed,data);seed.board[corn]={code:'corn_1'};
   const state=fullBoard('grain_6',seed,index=>drinks.includes(index)||index===corn||index===22);
-  state.discovered.push('corn_2');
+  know(state,'corn_2');
   await start(page,state);await guide(page,'corn_2');
   await expect(deliverButton(page,welcome)).toBeEnabled();
   await expect(deliverButton(page,welcome)).not.toHaveClass(/guide-target/);
@@ -86,11 +100,11 @@ test('a full-board mixed guide checks both parts for a useful merge before a rea
   for(const [index,cell] of seed.board.entries())if(cell&&!data.items[cell.code].generator)seed.board[index]=null;
   for(const obstacle of boardObstacles(seed,data)){
     if(!seed.resolvedObstacles.includes(obstacle.id))seed.resolvedObstacles.push(obstacle.id);
-    if(!seed.discovered.includes(obstacle.ingredient))seed.discovered.push(obstacle.ingredient);
+    if(!seed.discovered.includes(obstacle.ingredient))know(seed,obstacle.ingredient);
   }
   const supplied=supply(seed,['corn_3','dairy_1','dairy_1',recovery.requirements[0].item]);
   const parts=supplied.board.flatMap((cell,index)=>cell&&!data.items[cell.code].generator?[index]:[]);
-  const state=fullBoard('grain_6',supplied,index=>parts.includes(index));state.discovered.push('mixed_bulz');
+  const state=fullBoard('grain_6',supplied,index=>parts.includes(index));know(state,'mixed_bulz');
   // Mămăligă needs fewer total steps, but only the Telemea part has a legal merge on this full board.
   await start(page,state);await guide(page,'mixed_bulz');
   const [first,second]=state.board.flatMap((cell,index)=>cell?.code==='dairy_1'?[index]:[]);
@@ -105,7 +119,7 @@ test('a full-board guide skips a delivery that would exceed the coin limit',asyn
   const drinks=seed.board.flatMap((cell,index)=>welcome.requirements.some(({item})=>item===cell?.code)?[index]:[]);
   const state=fullBoard('grain_6',seed,index=>drinks.includes(index)||index===13||index===14);
   state.coins=1_000_000_000-welcome.reward+1;
-  state.discovered.push('corn_4');
+  know(state,'corn_4');
   await start(page,state);await guide(page,'corn_4');
   await expect(deliverButton(page,welcome)).toBeEnabled();
   await expect(deliverButton(page,welcome)).not.toHaveClass(/guide-target/);
@@ -118,7 +132,7 @@ test('a full-board guide skips a delivery that would exceed the coin limit',asyn
 
 test('a full-board guide points to a legal ordinary merge',async({page})=>{
   const state=fullBoard('grain_6',createGame(data),index=>index===13||index===14);
-  state.discovered.push('herbs_3');
+  know(state,'herbs_3');
   await start(page,state);await guide(page,'herbs_3');
   const from=Number((await page.locator('#board .selected').getAttribute('data-cell'))!);
   const to=Number((await page.locator('#board .guide-target').first().getAttribute('data-cell'))!);
@@ -133,7 +147,7 @@ test('a full-board guide points to a legal ordinary merge',async({page})=>{
 
 test('a full-board guide points to a legal blocker merge',async({page})=>{
   const state=fullBoard('grain_6',createGame(data),index=>index===22);
-  state.discovered.push('herbs_3');
+  know(state,'herbs_3');
   await start(page,state);await guide(page,'herbs_3');
   await expect(tile(page,22)).toHaveClass(/selected/);
   await expect(tile(page,11)).toHaveClass(/guide-target/);
@@ -146,7 +160,7 @@ test('a full-board guide points to a legal blocker merge',async({page})=>{
 });
 
 test('a full-board guide ignores blocked pairs and explains when no action makes room',async({page})=>{
-  const state=fullBoard('grain_6');state.discovered.push('grain_3');
+  const state=fullBoard('grain_6');know(state,'grain_3');
   await page.setViewportSize({width:390,height:844});await start(page,state);
   await guide(page,'grain_3');
   await expect(page.locator('#board .guide-target')).toHaveCount(0);

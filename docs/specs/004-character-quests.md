@@ -47,32 +47,32 @@ Spec 012 gives the formula of the menu prices.
 
 | Quest ID | Opens after | Requirements |
 | --- | --- | --- |
-| mara-welcome | New game | 2 Socată, 1 Linden tea |
-| sorin-first-ride | New game | 2 Dough, 1 Socată, 1 Langoș |
-| ilie-stove | New game | 2 Bread basket, 2 Pogăcele, 1 Mămăligă, 1 Loaf, 2 Linden tea |
-| eszter-cups | New game | 2 Linden tea, 2 Pogăcele, 2 Langoș, 2 Socată |
-| mara-cellar | New game | 1 Bread basket, 1 Langoș, 2 Linden tea, 1 Mămăligă |
-| ilie-counter | 1 | 2 Pogăcele, 2 Socată |
-| eszter-first-plate | 1 | 2 Mămăligă, 1 Pogăcele, 1 Linden tea |
-| mara-lamp-supper | 3 | 2 Bulz, 3 Linden tea, 1 Loaf |
-| sorin-tyre | 3 | 2 Langoș, 2 Papanași, 3 Linden tea, 2 Cheese pie |
-| eszter-bowls | 4 | 2 Mămăligă, 2 Sour cream, 1 Linden tea |
-| ilie-pickles | 4 | 2 Bulz, 2 Cheese pie, 2 Langoș, 1 Cottage cheese, 1 Linden tea |
-| eszter-kiln | 5 | 1 Papanași, 2 Pogăcele, 2 Chimney cake, 2 Roast chicken, 1 Sweet dough, 3 Linden tea, 1 Socată |
-| sorin-lunch | 6 | 1 Pogăcele, 1 Socată, 1 Roasted vegetables |
-| mara-table | 8 | 1 Bulz, 1 Cheese pie, 1 Stuffed peppers |
-| mara-candles | 8 | 1 Sharing board, 2 Roasted vegetables, 2 Cabbage rolls, 2 Socată, 1 Cheese pie |
-| eszter-table | 9 | 2 Papanași, 2 Cozonac, 2 Chimney cake |
-| eszter-green-bowls | 9 | 2 Bulz, 2 Cabbage rolls with mămăligă, 2 Papanași, 1 Plum jam |
-| sorin-postbag | 9 | 2 Roasted vegetables, 2 Langoș, 2 Fruit tea, 2 Sausages, 1 Cherry compote |
+| mara-welcome | New game | 2 Herb bunch, 1 Linden tea |
+| sorin-first-ride | New game | 2 Dough, 1 Socată |
+| ilie-stove | New game | 2 Langoș, 1 Cornmeal |
+| eszter-cups | New game | 1 Pogăcele, 2 Langoș |
+| mara-cellar | New game | 1 Bread basket, 1 Langoș, 1 Mămăligă |
+| ilie-counter | 1 | 2 Pogăcele, 1 Socată |
+| eszter-first-plate | 1 | 1 Mămăligă, 1 Pogăcele, 1 Linden tea |
+| mara-lamp-supper | 3 | 2 Milk, 1 Linden tea |
+| sorin-tyre | 3 | 1 Langoș, 2 Cottage cheese |
+| eszter-bowls | 4 | 2 Mămăligă, 1 Sour cream |
+| ilie-pickles | 4 | 2 Bulz, 1 Cheese pie |
+| eszter-kiln | 5 | 2 Sweet dough, 1 Chicken |
+| sorin-lunch | 6 | 1 Pogăcele, 1 Potatoes, 1 Socată |
+| mara-table | 8 | 1 Fruit bowl, 1 Pork, 1 Vegetable basket |
+| mara-candles | 8 | 1 Pickled cabbage, 1 Sausages, 1 Socată |
+| eszter-table | 9 | 2 Cozonac, 1 Chimney cake |
+| eszter-green-bowls | 9 | 1 Bulz, 2 Pickled cabbage |
+| sorin-postbag | 9 | 2 Roasted vegetables, 1 Langoș |
 | ilie-courtyard | 12 | 1 Langoș, 1 Socată |
 | sorin-path | 13 | 2 Roasted vegetables, 1 Socată |
-| eszter-kiln-party | 14 | 2 Plum dumplings, 2 Zacuscă, 2 Fruit tea, 2 Beans with sausages, 2 Roast lamb, 1 Cheese board, 1 Langoș, 1 Plum jam, 2 Linden tea |
-| ilie-cellar | 14 | 2 Bread basket, 2 Bean soup in a bread bowl, 2 Roast lamb, 1 Lamb stew, 2 Linden tea |
-| ilie-family | 16 | 1 Cheese board |
-| eszter-tasting | 17 | 1 Plum dumplings, 3 Cozonac |
-| mara-supper | 20 | 2 Zacuscă toast, 1 Cheese board, 1 Cheese pie |
-| sorin-welcome | 20 | 2 Fruit tea, 2 Linden tea, 2 Roasted vegetables, 1 Zacuscă, 1 Meatball soup |
+| eszter-kiln-party | 14 | 1 Plum dumplings, 1 Lamb cuts, 1 Fruit tea |
+| ilie-cellar | 14 | 2 Bean soup, 1 Lamb chops |
+| ilie-family | 16 | 1 Cheese board, 1 Lentils |
+| eszter-tasting | 17 | 1 Plum dumplings, 2 Cozonac |
+| mara-supper | 20 | 1 Cheese board, 2 Fresh trout |
+| sorin-welcome | 20 | 1 Zacuscă, 2 Diced veal |
 
 Mara tests a welcome, explores the cellar, and plans a supper service. Ilie tests the stove, fills the cellar, and prepares the bread counter and a family tasting dish.
 Eszter checks cups, bowls, plates, and her kiln, and her second glaze unlocks a finish from spec 002. Sorin prepares food around errands, a patched tyre, the post, and the courtyard welcome.
@@ -86,21 +86,21 @@ Their nine visits alternate in that order. Each visit also waits for the deliver
 
 | Quest ID | Opens after | Requirements |
 | --- | --- | --- |
-| adrian-first-pack | 6 | 6 Langoș, 4 Smoked cheese, 2 Roasted vegetables, 4 Pogăcele |
-| monica-first-pack | 8 | 4 Zacuscă, 4 Smoked cheese, 4 Roast pork |
-| janos-first-pack | 9 | 6 Langoș, 2 Bread basket, 2 Smoked cheese, 2 Red wine, 2 Pogăcele |
-| adrian-second-pack | 13 | 2 Bread basket, 2 Roast lamb, 2 Loaf, 2 Pogăcele, 2 Lamb chops, 2 Lamb stew |
-| monica-second-pack | 14 | 4 Cherry compote, 4 Bread basket, 4 Roast lamb |
-| janos-second-pack | 17 | 1 Chimney cake, 3 Tochitură, 2 Sharing board |
-| adrian-third-pack | 19 | 6 Langoș, 4 Smoked cheese, 2 Socată, 1 Veal stew |
-| monica-third-pack | 21 | 2 Bread basket, 2 Veal stew, 2 Roast veal, 6 Roasted vegetables |
-| janos-third-pack | 22 | 2 Zacuscă, 2 Roast veal, 4 Saramură, 4 Plum jam |
+| adrian-first-pack | 6 | 4 Langoș, 2 Smoked cheese, 6 Pogăcele |
+| monica-first-pack | 8 | 4 Plum jam, 4 Sausages, 4 Smoked cheese |
+| janos-first-pack | 9 | 3 Langoș, 1 Bread basket, 2 Red wine, 6 Pogăcele |
+| adrian-second-pack | 13 | 1 Bread basket, 5 Loaf, 6 Pogăcele |
+| monica-second-pack | 14 | 1 Bread basket, 6 Cherry compote, 7 Lamb stew |
+| janos-second-pack | 17 | 1 Chimney cake, 2 Tochitură, 1 Sharing board |
+| adrian-third-pack | 19 | 2 Langoș, 4 Socată, 6 Loaf |
+| monica-third-pack | 21 | 1 Loaf, 4 Meatballs, 4 Smoked trout, 3 Pickled cabbage |
+| janos-third-pack | 22 | 4 Saramură, 1 Veal stew, 4 Cherry compote, 3 Pickled cabbage |
 
 ## Single-visit dinner
 
 Ionatan is a foreign real estate agent. His only quest, `ionatan-castle-dinner`, opens after preparation 9 and after Vlad's quest "A guest at the castle" (`vlad-guest`).
-It needs two plum brandies, two sharing boards, two tochitură, two chimney cakes, and one roast pork.
-The dinner pays its menu value of 343 coins. It is independent of the traveller sequence.
+It needs one plum brandy, one sharing board, and one tochitură.
+The dinner pays its menu value of 222 coins. It is independent of the traveller sequence.
 
 His introduction appears only while his quest is open. Delivery records the quest ID once and queues his farewell in Story. His introduction and quest replays are then absent from the journal. Reload and export/import preserve his completed visit. A new game permits another visit. A failed write keeps the departure in the session. A reload restores only durable progress.
 
@@ -108,8 +108,8 @@ His introduction appears only while his quest is open. Delivery records the ques
 
 Mina and Doctor Avram share one visit per save. Their quest, `mina-avram-search`, has `mina` as its character and `avram` as its companion.
 It opens after preparation 10 and delivery of Ionatan's dinner.
-The quest needs two zacuscă toasts, two roasted vegetable plates, one smoked cheese, and two fruit teas.
-The meal is vegetarian, and it suits the diets of both characters. It has a menu value of 149 coins and pays 149 coins.
+The quest needs two portions of zacuscă, two roasted vegetable plates, one smoked cheese, and one fruit tea.
+The meal is vegetarian, and it suits the diets of both characters. It has a menu value of 190 coins and pays 190 coins.
 
 Their introductions appear only while their quest is open. The ticket and the quest dialog show both names and both portraits.
 Delivery records the quest ID once and queues their farewell in Story. Their introductions and quest replays are then absent from the journal.
