@@ -32,7 +32,8 @@ export function checkpoint(count: number,{ready=false,coins=0}: {ready?: boolean
 export function onTicket(target: Quest){
   for(let count=0;count<=data.tasks.length;count++){
     const state=checkpoint(count);
-    for(const earlier of data.quests.slice(0,data.quests.indexOf(target))){
+    // The recovery quest is never recorded as delivered, and it never holds a quest ticket.
+    for(const earlier of data.quests.slice(0,data.quests.indexOf(target)).filter(value=>!value.recovery)){
       const view=resolveQuests(state,data).find(value=>value.quest.id===earlier.id)!;
       if(view.status==='active'||view.status==='waiting')state.completedQuests.push(earlier.id);
     }

@@ -3,8 +3,8 @@ import { $, button, element, pulse, status, svg } from './dom.ts';
 import { coveredDish, food } from './art.ts';
 import { modal, showModal } from './dialog.ts';
 import { setLowered } from './room.ts';
-import { canDeliverQuest, firstFreeBoardCell, integer, questDeliveryCells, resolveQuests, unresolvedObstacle } from './model.ts';
-import { data, definition, itemName, matchingBlocker, onReplace, redraw, select, sourceOf, state } from './session.ts';
+import { availableChains, boardObstacles, canDeliverQuest, dishChains, firstFreeBoardCell, integer, mergeResult, MIXED, questDeliveryCells, resolveQuests, unresolvedObstacle } from './model.ts';
+import { data, definition, itemName, matchingBlocker, onReplace, redraw, select, sourceOf, state, takePrice } from './session.ts';
 import type { Change } from './session.ts';
 
 // The dishes discovered since the recipe book was last opened.
@@ -20,73 +20,122 @@ export function markRecipeBook() {
   $('#discovery-count').textContent = `${state.discovered.filter(code => !definition(code).generator).length} of ${dishes} dishes discovered${label}`;
 }
 export function noteNewDishes(found: number) { freshDishes += found; markRecipeBook(); }
-/** An item's six-stage chain as an ordered list with visible names, three to a row. */
-function chainOf(code: string) {
-  const def = definition(code); const chain = element('ol', 'chain named'); chain.setAttribute('aria-label','Merge chain');
-  for (let stage=1;stage<=6;stage++) {
-    const id=`${def.chain}_${stage}`; const step=element('li', id===code?'current':'');
-    if (id===code) step.setAttribute('aria-current','step');
-    const known = state.discovered.includes(id);
-    step.append(known ? food(id) : coveredDish(), element('span', '', known ? itemName(id) : 'Not yet')); chain.append(step);
-  }
-  return chain;
+/** The dishes of a chain, in stage order. */
+const chainDishes = (chain: string) => Object.values(data.items).filter(item => item.chain === chain && !item.generator).sort((a, b) => a.stage - b.stage).map(item => item.id);
+/** The mixed dishes, in the order of the data. */
+const mixedDishes = () => Object.values(data.items).filter(item => item.recipe).map(item => item.id);
+/** A dish, or a covered dish with "Not yet" until the player discovers it. */
+function step(code: string, current: boolean) {
+  const value = element('li', current ? 'current' : ''), known = state.discovered.includes(code);
+  if (current) value.setAttribute('aria-current', 'step');
+  value.append(known ? food(code) : coveredDish(), element('span', '', known ? itemName(code) : 'Not yet'));
+  return value;
+}
+/** How a dish is made, as an ordered list with visible names: its whole chain, or the two parts and the mixed dish of its recipe. */
+function pathOf(code: string) {
+  const def = definition(code), path = element('ol', 'chain named');
+  path.setAttribute('aria-label', def.recipe ? 'Recipe' : 'Merge chain');
+  for (const id of def.recipe ? [...def.recipe, code] : chainDishes(def.chain)) path.append(step(id, id === code));
+  return path;
+}
+/** The mixed dishes that a dish is a part of: discovered ones by name. */
+function cooksInto(code: string) {
+  const results = mixedDishes().filter(id => definition(id).recipe!.includes(code));
+  if (!results.length) return null;
+  const known = results.filter(id => state.discovered.includes(id)).map(itemName), hidden = results.length - known.length;
+  return element('p', '', `It is a part of ${results.length} mixed ${results.length === 1 ? 'dish' : 'dishes'}${known.length ? `: ${known.join(', ')}${hidden ? `, and ${hidden} not yet discovered` : ''}` : ''}.`);
 }
 /** The item dialog answers the quest's question: how to get this item, and how many are at hand. Its title names the item. */
 function detailContent(code: string) {
-  const def = definition(code), name = itemName(code), source = sourceOf(def.chain);
+  const def = definition(code), name = itemName(code);
   const onBoard = state.board.filter(cell => cell?.code === code).length;
-  const unlocked = state.board.some(cell => cell?.code === source.id);
   const content = document.createDocumentFragment();
-  content.append(food(code), element('p','item-how', def.stage > 1 ? `Merge two ${itemName(`${def.chain}_${def.stage - 1}`)} to make ${name}.` : `Tap the ${source.name} to take ${name}.`));
-  if (!unlocked) {
-    const task = data.tasks.find(value => value.unlock === def.chain);
-    content.append(element('p','',`The ${source.name} arrives with ${task ? `the preparation “${task.title}”` : 'a later preparation'}.`), chainOf(code));
+  const how = def.recipe ? `Merge ${itemName(def.recipe[0])} and ${itemName(def.recipe[1])} to make ${name}.`
+    : def.stage > 1 ? `Merge two ${itemName(`${def.chain}_${def.stage - 1}`)} to make ${name}.`
+    : `Tap the ${sourceOf(def.chain).name} to take ${name}, ${takePrice(sourceOf(def.chain).id)}.`;
+  content.append(food(code), element('p','item-how', how));
+  const open = availableChains(state, data), closed = dishChains(code, data).filter(chain => !open.includes(chain));
+  if (closed.length) {
+    const sources = closed.map(chain => { const task = data.tasks.find(value => value.unlock === chain); return `the ${sourceOf(chain).name} arrives with ${task ? `the preparation “${task.title}”` : 'a later preparation'}`; });
+    const text = sources.join(', and ');
+    content.append(element('p','',`${text[0].toUpperCase()}${text.slice(1)}.`), pathOf(code));
     return content;
   }
   const have = onBoard ? `You have ${onBoard} on the board.` : 'You have none yet.';
-  content.append(element('p','',have), chainOf(code), button('Show me on the board','secondary-button',() => showWay(code)));
+  content.append(element('p','',have), pathOf(code));
+  const parts = cooksInto(code);
+  if (parts) content.append(parts);
+  content.append(button('Show me on the board','secondary-button',() => showWay(code)));
   return content;
 }
 type Step = { at: number[]; line: string; short: string; ready?: boolean; ticket?: string };
-/** Find one useful action toward a dish without changing the board or selection. */
-function nextStep(code: string, includeReady = false): Step | null {
-  const def = definition(code), name = itemName(code);
-  const cells = (id: string) => state.board.flatMap((cell, index) => cell?.code === id && !unresolvedObstacle(state,index,data) ? [index] : []);
+/** The movable cells that hold a dish. */
+const cells = (id: string) => state.board.flatMap((cell, index) => cell?.code === id && !unresolvedObstacle(state,index,data) ? [index] : []);
+/** A blocked cell that holds this very dish, so a matching dish merges into it. */
+const blockedCopy = (id: string) => boardObstacles(state,data).find(obstacle => obstacle.ingredient === id && !state.resolvedObstacles.includes(obstacle.id));
+/** The takes and merges that a dish still needs, from the movable dishes on the board. Guidance follows the part with fewer steps. */
+function effort(code: string, quantity = 1): number {
+  const missing = Math.max(0, quantity - cells(code).length);
+  if (!missing) return 0;
+  const def = definition(code);
+  if (def.recipe) return effort(def.recipe[0], missing) + effort(def.recipe[1], missing) + missing;
+  if (def.stage === 1) return missing;
+  return effort(`${def.chain}_${def.stage - 1}`, missing * 2) + missing;
+}
+/** Find one useful action toward a dish without changing the board or selection. Goal names the dish that the guide is for. */
+function nextStep(code: string, includeReady = false, goalName = itemName(code), allowRoom = true): Step | null {
+  const def = definition(code), name = goalName;
+  const toward = (made: string) => made === name ? '' : ` for ${name}`;
   if (includeReady && cells(code).length) return { at: cells(code), line: `${name} is ready on the board.`, short: `${name} is ready`, ready:true };
+  if (def.recipe) {
+    const [first, second] = def.recipe, a = cells(first), b = cells(second);
+    if (a.length && b.length) return { at:[a[0], b[0]], line:`Merge ${itemName(first)} and ${itemName(second)} to make ${itemName(code)}${toward(itemName(code))}.`, short:`For ${name}: cook ${itemName(code)}` };
+    for (const [part, other] of [[first, second], [second, first]] as const) {
+      const blocked = blockedCopy(other);
+      if (cells(part).length && blocked) return { at:[cells(part)[0], blocked.position], line:`Merge ${itemName(part)} into the blocked ${itemName(other)} to make ${itemName(code)}${toward(itemName(code))}.`, short:`For ${name}: clear blocked ${itemName(other)}` };
+    }
+    const missing = [first, second].filter(part => !cells(part).length).sort((x, y) => effort(x) - effort(y));
+    // Check every part for a useful merge before a full board falls back to a delivery or another pair.
+    for (const part of missing) { const found = nextStep(part, false, name, false); if (found) return found; }
+    return allowRoom && firstFreeBoardCell(state,data) === -1 ? roomStep(name) : null;
+  }
   for (let stage = def.stage - 1; stage >= 1; stage--) {
     const id = `${def.chain}_${stage}`, pair = cells(id).slice(0, 2);
     if (pair.length === 2) {
       const made=itemName(definition(id).next!);
-      return { at:pair, line:`Merge two ${itemName(id)} to make ${made}${made===name?'':` for ${name}`}.`, short:`For ${name}: merge ${itemName(id)}` };
+      return { at:pair, line:`Merge two ${itemName(id)} to make ${made}${toward(made)}.`, short:`For ${name}: merge ${itemName(id)}` };
     }
-    const blocker = matchingBlocker(id);
+    const blocker = blockedCopy(id);
     if (pair.length && blocker) {
       const made=itemName(definition(id).next!);
-      return { at:[pair[0], blocker.position], line:`Merge ${itemName(id)} into its blocked space to make ${made}${made===name?'':` for ${name}`}.`, short:`For ${name}: clear blocked ${itemName(id)}` };
+      return { at:[pair[0], blocker.position], line:`Merge ${itemName(id)} into its blocked space to make ${made}${toward(made)}.`, short:`For ${name}: clear blocked ${itemName(id)}` };
     }
   }
-  if (firstFreeBoardCell(state,data) === -1) {
-    const delivery = resolveQuests(state,data).find(({quest}) => canDeliverQuest(state,quest,data)
-      && questDeliveryCells(state,quest,data).length > 0 && integer(state.coins + quest.reward));
-    if (delivery) return { at:[], ticket:delivery.quest.id,
-      line:`The board is full. Deliver ${delivery.quest.title} to make space for ${name}.`,
-      short:`For ${name}: deliver ${delivery.quest.title}` };
-    for (const [index, cell] of state.board.entries()) {
-      if (!cell || unresolvedObstacle(state,index,data) || !definition(cell.code).next) continue;
-      const match = cells(cell.code).find(other => other !== index);
-      if (match !== undefined) return { at:[index,match],
-        line:`The board is full. Merge two ${itemName(cell.code)} to make space for ${name}.`,
-        short:`For ${name}: merge ${itemName(cell.code)} to make room` };
-      const blocker = matchingBlocker(cell.code);
-      if (blocker) return { at:[index,blocker.position],
-        line:`The board is full. Merge ${itemName(cell.code)} into its blocked space to make room for ${name}.`,
-        short:`For ${name}: clear blocked ${itemName(cell.code)}` };
-    }
-    return { at:[], line:`The board is full. No delivery or merge can free space for ${name}.`,
-      short:'No delivery or merge can free space' };
+  if (firstFreeBoardCell(state,data) === -1) return allowRoom ? roomStep(name) : null;
+  const source = sourceOf(def.chain), at = cells(source.id), staple = itemName(source.generator!.outputs[0]);
+  return at.length ? { at, line:`Tap the ${source.name} to take ${staple} for ${name}, ${takePrice(source.id)}.`, short:`For ${name}: take ${staple}` } : null;
+}
+/** Make room only after no legal merge can advance any part of the requested dish. */
+function roomStep(name: string): Step {
+  // A campaign quest comes before the recovery quest, which only refills a short purse.
+  const delivery = resolveQuests(state,data).sort((a, b) => Number(!!a.quest.recovery) - Number(!!b.quest.recovery)).find(({quest}) => canDeliverQuest(state,quest,data)
+    && questDeliveryCells(state,quest,data).length > 0 && integer(state.coins + quest.reward));
+  if (delivery) return { at:[], ticket:delivery.quest.id,
+    line:`The board is full. Deliver ${delivery.quest.title} to make space for ${name}.`,
+    short:`For ${name}: deliver ${delivery.quest.title}` };
+  for (const [index, cell] of state.board.entries()) {
+    if (!cell || unresolvedObstacle(state,index,data) || definition(cell.code).generator) continue;
+    const match = state.board.findIndex((other, at) => at !== index && !!other && !unresolvedObstacle(state,at,data) && !!mergeResult(cell.code, other.code, data));
+    if (match >= 0) return { at:[index,match],
+      line:`The board is full. Merge ${state.board[match]!.code === cell.code ? `two ${itemName(cell.code)}` : `${itemName(cell.code)} and ${itemName(state.board[match]!.code)}`} to make space for ${name}.`,
+      short:`For ${name}: merge ${itemName(cell.code)} to make room` };
+    const blocker = matchingBlocker(cell.code);
+    if (blocker) return { at:[index,blocker.position],
+      line:`The board is full. Merge ${itemName(cell.code)} into the blocked ${itemName(blocker.ingredient)} to make room for ${name}.`,
+      short:`For ${name}: clear blocked ${itemName(blocker.ingredient)}` };
   }
-  const source = sourceOf(def.chain), at = cells(source.id);
-  return at.length ? { at, line:`Tap the ${source.name} to take ${itemName(source.generator!.outputs[0])} for ${name}.`, short:`For ${name}: take ${itemName(source.generator!.outputs[0])}` } : null;
+  return { at:[], line:`The board is full. No delivery or merge can free space for ${name}.`,
+    short:'No delivery or merge can free space' };
 }
 export const guidanceGoal = () => goal ? itemName(goal) : null;
 export const guidanceStep = () => goal ? nextStep(goal) : null;
@@ -111,7 +160,9 @@ function showWay(code: string, needAnother = false) {
   if (!step) return;
   setLowered(false);
   select(step.at[0] ?? null); redraw(); pulse(step.at.slice(1)); status(step.line);
-  if (step.ticket) $(`#tickets [data-quest="${step.ticket}"] .deliver-button`).focus({ preventScroll:true });
+  // A phone shows the recovery ticket as its face alone, so the guide focuses the face, and its dialog delivers.
+  if (step.ticket) [...document.querySelectorAll<HTMLElement>(`#tickets [data-quest="${step.ticket}"] :is(.deliver-button,.ticket-face)`)].reverse()
+    .find(control => control.checkVisibility())?.focus({ preventScroll:true });
   else if (step.at.length) $(`[data-cell="${step.at[0]}"]`).focus({ preventScroll:true });
   else $('#hint-button').focus({ preventScroll:true });
 }
@@ -120,19 +171,19 @@ export function showItem(code: string, back?: () => void) { const content=elemen
 /** Undiscovered dishes stay covered, so the book never spoils what the kitchen has not made yet. */
 function recipeBook(returnTo?: string, scrollTop = 0) {
   freshDishes=0;markRecipeBook();
-  const content=element('div');content.append(element('p','modal-copy','A playful menu inspired by regional foods and drinks. Merge paths are game rules, not cooking recipes. Dishes you have not made yet stay covered.'));
+  const content=element('div');content.append(element('p','modal-copy','A playful menu inspired by regional foods and drinks. Two matching dishes merge into the next dish of their chain, and dishes from different chains cook a mixed dish. Merge paths are game rules, not cooking recipes. Dishes you have not made yet stay covered.'));
   let focus: HTMLElement | undefined;
-  for(const chain of data.chains) {
-    const section=element('section','recipe-chain'),heading=element('h3','',chain.name);section.append(heading);
-    // A chain is complete once all six of its dishes are discovered. The mark is derived, never saved, and earns nothing.
-    if([1,2,3,4,5,6].every(stage=>state.discovered.includes(`${chain.id}_${stage}`))){
-      heading.setAttribute('aria-label',`${chain.name}, complete`);
+  for(const {id,name} of [...data.chains,{id:MIXED,name:'Mixed dishes'}]) {
+    const codes=id===MIXED?mixedDishes():chainDishes(id);
+    const section=element('section','recipe-chain'),heading=element('h3','',name);section.append(heading);
+    // A section is complete once all its dishes are discovered. The mark is derived, never saved, and earns nothing.
+    if(codes.every(code=>state.discovered.includes(code))){
+      heading.setAttribute('aria-label',`${name}, complete`);
       const mark=element('span','chain-complete'),check=svg('svg');check.setAttribute('viewBox','0 0 16 16');check.setAttribute('aria-hidden','true');
       const tick=svg('path');tick.setAttribute('d','M3.5 8.5l3 3 6-7');check.append(tick);mark.append(check,element('span','','Complete'));heading.append(mark);
     }
     const grid=element('div','recipe-grid');
-    for(let stage=1;stage<=6;stage++) {
-      const code=`${chain.id}_${stage}`;
+    for(const code of codes) {
       if(!state.discovered.includes(code)){const slot=element('div','recipe-item not-yet');slot.append(coveredDish(),element('span','','Not yet'));grid.append(slot);continue;}
       const value=button('','recipe-item',()=>{
         const position=modal.scrollTop;

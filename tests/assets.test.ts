@@ -5,13 +5,38 @@ import { existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import sharp from 'sharp';
 import { runtimeFiles } from '../tools/build.ts';
+import type { GameData } from '../src/model.ts';
 
 test('the PNG masters match their provenance records',async()=>{
   const record=JSON.parse(await readFile('docs/asset-provenance.json','utf8'));
-  assert.equal(record.assets.length,75);
+  assert.equal(record.assets.length,89);
   const names=await readdir('public/assets/original');
   assert.deepEqual(names.sort(),record.assets.map((a: { file: string })=>a.file.split('/').at(-1)).sort());
   for(const asset of record.assets){assert.equal(asset.sourceGameImageInput,false);const bytes=await readFile(asset.file);assert.equal(createHash('sha256').update(bytes).digest('hex'),asset.sha256,asset.id);assert.ok(asset.width>1000);}
+});
+
+test('food atlases contain each assigned picture and keep unused cells fully transparent',async()=>{
+  const game: GameData=JSON.parse(await readFile('public/data/game.json','utf8'));
+  const assigned=new Map<string,Set<number>>();
+  for(const item of Object.values(game.items)){
+    const cells=assigned.get(item.art.atlas)??new Set<number>();
+    cells.add(item.art.cell);assigned.set(item.art.atlas,cells);
+  }
+  assert.equal(assigned.size,16);
+  for(const [atlas,cells] of assigned){
+    const {data,info}=await sharp(`public/assets/original/food-${atlas}.png`).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+    assert.deepEqual([info.width,info.height,info.channels],[2048,1024,4],atlas);
+    const visible=Array<number>(8).fill(0),painted=Array<number>(8).fill(0);
+    for(let y=0;y<info.height;y++)for(let x=0;x<info.width;x++){
+      const cell=Math.floor(y/512)*4+Math.floor(x/512),alpha=data[(y*info.width+x)*4+3];
+      if(alpha>0)painted[cell]++;
+      if(alpha>=128)visible[cell]++;
+    }
+    for(let cell=0;cell<8;cell++){
+      if(cells.has(cell))assert.ok(visible[cell]>0,`${atlas} cell ${cell+1} contains its picture.`);
+      else assert.equal(painted[cell],0,`${atlas} cell ${cell+1} stays fully transparent.`);
+    }
+  }
 });
 
 test('the parchment is opaque and Mara keeps transparent space between pencil marks',async()=>{

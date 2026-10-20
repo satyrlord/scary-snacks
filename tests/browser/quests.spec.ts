@@ -5,8 +5,11 @@ import { createGame } from '../../src/engine.ts';
 import type { GameState, Quest } from '../../src/model.ts';
 import { act, checkpoint, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readTo, replaceSave, restoreWrites, saved, serialize, start, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate } from './support.ts';
 
-/** The first quest of each neighbour who lives in the village. */
-const firstQuests=data.characters.filter(character=>!character.visitor&&data.quests.some(value=>value.character===character.id)).map(character=>data.quests.find(value=>value.character===character.id)!);
+/** The first campaign quest of each neighbour who lives in the village. The recovery quest stands outside the order of quests. */
+const campaign=data.quests.filter(value=>!value.recovery);
+const firstQuests=data.characters.filter(character=>!character.visitor&&campaign.some(value=>value.character===character.id)).map(character=>campaign.find(value=>value.character===character.id)!);
+/** A ticket shows at most four dishes: a longer order shows its first three and the count of the others. */
+const shownDishes=(value: Quest)=>value.requirements.length>4?3:value.requirements.length;
 const itemName=(code: string)=>getItem(code,data)!.name;
 
 async function combinedConversation(page: Page,value: Quest){
@@ -137,7 +140,8 @@ for(const visitor of data.characters.filter(person=>person.visitor))test(`${visi
 for(const value of firstQuests)test(`${value.character} asks on a ticket, the quest dialog explains it, and Deliver pays once across reload`,async({page})=>{
   const initial=deliverable(value);await start(page,initial);const before=await saved(page),name=person(value.character).name;
   const card=ticket(page,value);await expect(card).toHaveAccessibleName(`${name}’s quest: ${value.title}`);await expect(card.locator('.ticket-name')).toHaveText(name);
-  await expect(card.locator('.ticket-item.ready')).toHaveCount(value.requirements.length);await expect(deliverButton(page,value)).toBeEnabled();
+  await expect(card.locator('.ticket-item.ready')).toHaveCount(shownDishes(value));await expect(deliverButton(page,value)).toBeEnabled();
+  if(value.requirements.length>4)await expect(card.locator('.ticket-more')).toHaveText(`+${value.requirements.length-3}`);
   await journal(page,['chapters','conversations','neighbours']);await page.getByRole('button',{name:`Meet ${name}`,exact:true}).click();
   await expect(page.locator('#modal .quest-sketch')).toHaveAttribute('src',new RegExp(`sketch-${value.character}-768x768\\.webp$`));
   await expect(page.locator('.quest-page-content')).toBeVisible();await page.keyboard.press('Escape');await page.keyboard.press('Escape');
@@ -275,8 +279,8 @@ test('a surplus on the board reads as the required count on the ticket and in th
 test('quest dish help keeps focus on the next blocked merge on desktop and phone',async({page})=>{
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
     await page.setViewportSize(viewport);await start(page,createGame(data));
-    const value=firstQuests[0],code=value.requirements[0].item;
-    await openQuest(page,value);await page.getByRole('button',{name:new RegExp(`^1 ${itemName(code)}:`)}).click();
+    const value=firstQuests[0],{item:code,quantity}=value.requirements[0];
+    await openQuest(page,value);await page.getByRole('button',{name:new RegExp(`^${quantity} ${itemName(code)}:`)}).click();
     await page.getByRole('button',{name:'Show me on the board',exact:true}).click();
     await expect(page.locator('#modal')).toBeHidden();
     const movable=page.locator('#board .selected');await expect(movable).toHaveAttribute('aria-label',/Elderflowers/);
@@ -300,7 +304,7 @@ test('Find on a missing quest dish goes straight to the next board step',async({
 
 test('Find seeks another portion when one required dish is already on the board',async({page})=>{
   const initial=createGame(data),value=quest('sorin-first-ride');
-  initial.board[18]={code:'bakery_2'};initial.discovered.push('bakery_2');
+  initial.board[18]={code:'grain_2'};initial.discovered.push('grain_2');
   await start(page,initial);await openQuest(page,value);
   const find=page.getByRole('button',{name:'Find the next step for Dough on the board'});
   await expect(find).toBeVisible();await find.click();
@@ -311,17 +315,18 @@ test('Find seeks another portion when one required dish is already on the board'
   expect(await saved(page)).toEqual(initial);
   await tile(page,14).click();
   await expect(page.getByRole('button',{name:'Stop guide for Dough'})).toHaveCount(0);
-  expect((await saved(page)).board.filter(cell=>cell?.code==='bakery_2')).toHaveLength(2);
+  expect((await saved(page)).board.filter(cell=>cell?.code==='grain_2')).toHaveLength(2);
 });
 
 test('a dish guide updates after takes and ends when its dish is made',async({page})=>{
-  const initial=createGame(data);initial.board[13]=null;initial.board[14]=null;
+  // The purse pays for the Flour from the Windmill.
+  const initial=createGame(data);initial.board[13]=null;initial.board[14]=null;initial.coins=10;
   await page.setViewportSize({width:390,height:844});await start(page,initial);await openQuest(page,quest('sorin-first-ride'));
   await page.getByRole('button',{name:'Find the next step for Dough on the board'}).click();
   await expect(page.locator('#item-detail.guided')).toContainText('For Dough: take Flour');
   await expect(page.getByRole('button',{name:'Stop guide for Dough'})).toBeVisible();
   expect(await saved(page)).toEqual(initial);
-  const source=initial.board.findIndex(cell=>cell?.code==='generator_bakery');
+  const source=initial.board.findIndex(cell=>cell?.code==='generator_grain');
   const first=firstFreeBoardCell(initial,data);
   await tile(page,source).click();
   const afterFirst=act(initial,{type:'spawn',index:source});expect(await saved(page)).toEqual(afterFirst);
@@ -339,24 +344,24 @@ test('a dish guide updates after takes and ends when its dish is made',async({pa
 });
 
 test('a dish guide updates after a move and blocker clearing',async({page})=>{
-  const initial=createGame(data),value=quest('dochia-sheepskin');
+  const value=quest('victor-exam'),initial=onTicket(value);expect(supplies(value)).toContain('grain_3');expect(initial.board).toEqual(createGame(data).board);
   await start(page,initial);await openQuest(page,value);
-  await page.getByRole('button',{name:`Find the next step for ${itemName('bakery_3')} on the board`}).click();
+  await page.getByRole('button',{name:`Find the next step for ${itemName('grain_3')} on the board`}).click();
   await tile(page,20).click();
   await expect(tile(page,20)).toHaveClass(/selected/);
   await expect(tile(page,14)).toHaveClass(/guide-target/);
   await tile(page,14).click();
-  await expect(page.locator('#item-detail.guided')).toContainText(`For ${itemName('bakery_3')}: clear blocked Dough`);
+  await expect(page.locator('#item-detail.guided')).toContainText(`For ${itemName('grain_3')}: clear blocked Dough`);
   for(const index of [6,41])await expect(tile(page,index)).toHaveClass(/merge-target/);
   const target=await page.locator('#board .guide-target').evaluateAll(elements=>elements.map(element=>Number((element as HTMLElement).dataset.cell)));
   expect(target.filter(index=>[6,41].includes(index))).toHaveLength(1);
   await tile(page,target[0]).click();
-  await expect(page.getByRole('button',{name:`Stop guide for ${itemName('bakery_3')}`})).toHaveCount(0);
-  expect((await saved(page)).board[target[0]]).toEqual({code:'bakery_3'});
+  await expect(page.getByRole('button',{name:`Stop guide for ${itemName('grain_3')}`})).toHaveCount(0);
+  expect((await saved(page)).board[target[0]]).toEqual({code:'grain_3'});
 });
 
 test('delivery keeps a dish guide, Stop cancels it, and reload clears it',async({page})=>{
-  const initial=supply(createGame(data),['drinks_2']);
+  const initial=supply(createGame(data),supplies(quest('mara-welcome')));
   await start(page,initial);await openQuest(page,quest('sorin-first-ride'));
   await page.getByRole('button',{name:'Find the next step for Dough on the board'}).click();
   await deliverButton(page,quest('mara-welcome')).click();
@@ -374,7 +379,7 @@ test('delivery keeps a dish guide, Stop cancels it, and reload clears it',async(
 });
 
 test('a quest row with enough portions keeps dish help and has no Find control',async({page})=>{
-  const value=quest('sorin-first-ride'),initial=supply(createGame(data),['bakery_2','bakery_2']);
+  const value=quest('sorin-first-ride'),initial=supply(createGame(data),['grain_2','grain_2']);
   await start(page,initial);await openQuest(page,value);
   await expect(page.getByRole('button',{name:'Find the next step for Dough on the board'})).toHaveCount(0);
   await expect(page.getByRole('button',{name:'Find the next step for Socată on the board'})).toBeVisible();
@@ -450,18 +455,19 @@ test('keyboard and emulated touch can open a quest and deliver it with focus ret
 function almost(state: GameState,value: Quest){
   const next=structuredClone(state),item=value.requirements[0].item,lower=Object.values(data.items).find(candidate=>candidate.next===item)!.id;
   const first=next.board.findIndex(cell=>cell?.code===item);next.board[first]={code:lower};
-  const second=firstFreeBoardCell(next,data);next.board[second]={code:lower};
+  const second=firstFreeBoardCell(next,data);next.board[second]={code:lower};if(!next.discovered.includes(lower))next.discovered.push(lower);
   expect(validate(next)).toBe(true);return {state:next,first,second};
 }
 
 test('a merge that completes a quest marks its dishes ready and enables Deliver without opening a dialog',async({page})=>{
   const value=firstQuests[0],fixture=almost(deliverable(value),value);await start(page,fixture.state);
-  await expect(deliverButton(page,value)).toBeDisabled();await expect(ticket(page,value).locator('.ticket-item.ready')).toHaveCount(0);
+  // Every other dish of the quest is ready already.
+  await expect(deliverButton(page,value)).toBeDisabled();await expect(ticket(page,value).locator('.ticket-item.ready')).toHaveCount(value.requirements.length-1);
   await tile(page,fixture.first).click();await tile(page,fixture.second).click();
-  await expect(deliverButton(page,value)).toBeEnabled();await expect(ticket(page,value).locator('.ticket-item.ready')).toHaveCount(1);
+  await expect(deliverButton(page,value)).toBeEnabled();await expect(ticket(page,value).locator('.ticket-item.ready')).toHaveCount(value.requirements.length);
   await expect(page.locator('#modal')).toBeHidden();await expect(tile(page,fixture.second)).toBeFocused();
   const merged=await saved(page);expect(merged.completedQuests).toEqual(fixture.state.completedQuests);
-  await expect(ticket(page,value).locator('.ticket-face')).toHaveAccessibleName(`${value.title}: 1 ${itemName(value.requirements[0].item)}, 1 on the board`);
+  await expect(ticket(page,value).locator('.ticket-face')).toHaveAccessibleName(`${value.title}: ${value.requirements.map(({item,quantity})=>`${quantity} ${itemName(item)}, ${quantity} on the board`).join('; ')}`);
 });
 
 test('another tab that delivers a quest takes it off this tab’s ticket, and the reward is paid once',async({page,context})=>{

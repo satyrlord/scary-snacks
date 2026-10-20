@@ -54,7 +54,9 @@ The closing scene of chapter 1 names the one friendly spider that stays under th
    The six contributions cover all four core characters.
    Like every quest, a contribution is necessary for the preparation that follows its opening.
    `questProblems` checks the combined graph of preparations and quests for cycles and unknown prerequisites.
-5. After preparation 24, Mara's supper quest opens. Its payment of 1,000 coins queues the finale and opens it.
+5. After preparation 24, Mara's supper quest opens. It asks for one plate for each of the 11 guests and pays nothing.
+   Spec 012 gives the plates.
+   Serve takes the plates once, records the quest, and queues the finale. The finale opens immediately.
    The game records the finale once.
    The game does not charge a preparation again and does not give a reward again.
 6. The finale names the outcome of each chapter, and all four core characters speak.
@@ -64,6 +66,7 @@ The closing scene of chapter 1 names the one friendly spider that stays under th
    Replay and closing a dialog have no economic effect.
 8. A failed payment, missing coins, a missing required quest, and a full board for a new source change nothing.
    They complete no chapter, queue no scene, and open no finale.
+   Serve without every plate on the board also changes nothing.
 9. `storyProblems` rejects missing or blank scenes, unknown speakers, and duplicate or unstable IDs.
    It rejects unknown contributions and contributions that open outside their chapter.
    It rejects empty chapters.
@@ -89,8 +92,8 @@ Spec 008 owns the transcript presentation and the reading rules.
 ## State and save compatibility
 
 Validation accepts the closing scene of each complete chapter.
-After the payment of the supper quest, validation also accepts the finale.
-The completed quest ID of the supper quest records that payment.
+After the player serves the supper, validation also accepts the finale.
+The completed quest ID of the supper quest records the served supper.
 Each ID occurs once, and story scenes keep story order.
 Validation rejects unknown IDs and scenes that the saved progress did not earn.
 The same list holds the preparation scenes and the quest scenes of spec 008.
@@ -99,18 +102,19 @@ Follow [Shared save compatibility](README.md#shared-save-compatibility) in the s
 ## Acceptance and evidence
 
 - `tests/story.test.ts` covers the outline, the content checks, every chapter boundary, and failed payments.
-  It also covers the supper payment, the single finale, the scene actions, the board after the finale, and the validation of saved scenes.
+  It also covers the served supper, the single finale, the scene actions, the board after the finale, and the validation of saved scenes.
 - `tests/storage.test.ts` covers failed writes, malformed saves, and save and load of valid scene lists.
-- `tests/campaign-balance.test.ts` shows that a legal fresh campaign ends with each chapter scene waiting, in story order, and the coins for the supper.
+- `tests/campaign-balance.test.ts` shows that a legal fresh campaign leaves each chapter scene waiting, in story order.
+  The campaign serves the supper with no injected coins or items.
 - `tests/browser/story.spec.ts` covers the objective, the preparation steps, the chapter changes, and Escape and reload with a waiting scene.
-  It covers the supper payment, the finale with reading and replay, the supper painting, and the board after the finale.
+  It covers the served supper, the finale with reading and replay, the supper painting, and the board after the finale.
   It checks the layout at 1440×900, 390×844, and 390×800 in both themes.
 
 The playthrough in `tests/browser/story.spec.ts` starts from a fresh save in the built game.
 Before each payment, the test writes a save with the quests that the payment needs and the exact coins.
-`tests/campaign-balance.test.ts` covers legal play from a new game to the supper quest.
+`tests/campaign-balance.test.ts` covers legal play from a new game through the served supper.
 The test makes every payment through the interface.
-It reads every preparation scene, runs every reveal, and reads every chapter scene. It pays for the supper and reads the finale.
+It reads every preparation scene, runs every reveal, and reads every chapter scene. It serves the supper and reads the finale.
 The test also checks the journal.
 The playthrough checks that the story agrees with the campaign.
 The journal shows each contribution beside the payoff.

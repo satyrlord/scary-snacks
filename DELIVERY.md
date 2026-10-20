@@ -30,9 +30,11 @@ The site is public. The [release notes](docs/release-notes.md) give the release 
 
 ## Assets
 
-75 Portable Network Graphics (PNG) masters in `public/assets/original/` are the source of the game art. The game ships variants of the masters in AV1 Image File Format (AVIF) and WebP. The sizes of the variants fit the screens. The variants come only from these masters. The local folders `private/` and `analysis/` are not release inputs.
+89 Portable Network Graphics (PNG) masters in `public/assets/original/` are the source of the game art. The game ships variants of the masters in AV1 Image File Format (AVIF) and WebP. The sizes of the variants fit the screens. The variants come only from these masters. The local folders `private/` and `analysis/` are not release inputs.
 
-The transparent board-clutter atlas has six open-center overlays in square cells. The preparation-clutter atlas has 12 contextual overlays with transparent centers, in a four-by-three grid of 1448 by 1086 pixels. The chat image generator made the preparation-clutter atlas. The atlas ships as one WebP variant at its original size. The core, visitor, guest, and three regulars portrait atlases and the mascot atlas each ship one 640-by-640 WebP variant. Red wine (`drinks_5`) uses its own transparent picture instead of its cell in the menu atlas.
+The transparent board-clutter atlas has six open-center overlays in square cells. The preparation-clutter atlas has 12 contextual overlays with transparent centers, in a four-by-three grid of 1448 by 1086 pixels. The chat image generator made the preparation-clutter atlas. The atlas ships as one WebP variant at its original size. The core, visitor, guest, and three regulars portrait atlases and the mascot atlas each ship one 640-by-640 WebP variant.
+
+The OpenAI Images API made the 16 food atlases: one for each chain and four for the mixed dishes. Each is a transparent grid of 4 by 2 cells, 2048 by 1024 pixels, and ships one 1024 by 512 WebP variant. Alpha cuts, moves, box clears, and cell copies between candidates correct them. No pixel is painted.
 
 After a master changes, run `npm run assets:build`. [Asset variants](docs/asset-variants.json) records the files, the sizes, and the hashes.
 
@@ -49,9 +51,9 @@ The game makes its sounds as tones that code generates in the browser. The inter
 The generator refuses to write the game data in these conditions:
 
 - An identifier (ID) in `roomPaintings` in `src/model.ts` has no approved master.
-- `dataProblems` in `src/content.ts` reports a problem. It checks the board, preparation blocker batches, room states, decoration slots, and saved-choice milestones. It also checks the cast, quests, campaign funds, story, and menu prices. Every preparation needs two or three blockers with stable IDs, valid art cells, context, and ingredients from an available chain. The starting board must make a new game that passes the save validation.
+- `dataProblems` in `src/content.ts` reports a problem. It checks the board, preparation blocker batches, room states, decoration slots, chains, and recipes. It also checks the cast, quests, campaign funds, story, and menu prices. Every preparation needs two or three blockers with stable IDs, valid art cells, context, and ingredients from an available chain. The starting board must make a new game that passes the save validation.
 
-The data checks require a complete six-stage merge path for each chain and one source unlock for each later chain. Initial blockers must use valid atlas cells. A regular's quest must open after the regular arrives and ask for a dish from a favourite chain.
+The data checks require a complete merge path of four to six dishes for each chain, one source unlock for each later chain, and recipes that nest one level deep and use at most three chains. Each price follows the formula, and each mixed dish has every tag of its parts. Initial blockers must use valid atlas cells. A regular's quest must open after the regular arrives and ask for a favourite dish. No quest breaks a diet, and the work value of the quests before each preparation pays for it.
 
 Data generation validates prerequisites, shared companions, finishes, follow-up scenes, the quest order, and the campaign funds.
 
@@ -59,12 +61,12 @@ The game runs `dataProblems` when it starts, before it reads the save. The game 
 
 Preparation blocker placement and the queue of blocker batches that wait use the shared blocked-cell rules of the engine. The save validator checks earned IDs, placement order, unique active positions, discovery, and the limit of three active blockers. A cell can take a new blocker after the blocker on that cell is resolved.
 
-The validator does not require three empty cells in a save. Ordinary production can use the space that placement leaves.
+Placement keeps four cells free for the recovery quest. The validator does not require four empty cells in a save. Ordinary production can use the space that placement leaves.
 
 ## Manual checks
 
 `npm run saves:checkpoints` writes 25 saves to `tmp/checkpoint-saves/`, one for each number of paid preparations. A file name gives that number and the next preparation, for example `12-next-clear-the-courtyard.json`. Each save holds the exact coins and the delivered quests for the next preparation. It holds no scene that waits from an earlier payment. A payment then shows only the scenes that it earns.
 
-The finished save holds the scene of preparation 24 and the closing scene of chapter 6, and the coins for the supper quest. Import a save with Import saved game in Options. Pay for the next preparation to see its story and reveal. These saves do not measure campaign balance.
+The finished save holds the scene of preparation 24 and the closing scene of chapter 6, and the coins for the staples of the supper. Import a save with Import saved game in Options. Pay for the next preparation to see its story and reveal. These saves do not measure campaign balance.
 
 `node tools/campaign-balance.ts` runs a reproducible campaign balance check. The [economy record](docs/economy.md) explains the report and the limits of the check. [Verification](docs/verification.md) gives the coverage of the automated checks.

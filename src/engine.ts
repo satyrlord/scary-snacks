@@ -1,9 +1,11 @@
 // The deterministic rules of the bistro game: the new game, the actions, and the acceptance of an untrusted save.
-import { arrivalScene, availableChains, boardObstacles, canDeliverQuest, decorationUnlocked, deliveriesSince, earnedScenes, firstFreeBoardCell, freeBoardCells, getItem, integer, own, pendingPreparationObstacles, present, questDeliveryCells, questPredecessors, requiredQuests, resolveChapters, storyOrder, supperComplete, taskEligibility, unresolvedObstacle } from './model.ts';
+import { arrivalScene, availableChains, boardObstacles, canDeliverQuest, decorationUnlocked, deliveriesSince, dishOpen, earnedScenes, firstFreeBoardCell, freeBoardCells, getItem, integer, mergePartners, mergeResult, own, pendingPreparationObstacles, present, questDeliveryCells, questPredecessors, requiredQuests, resolveChapters, storyOrder, supperComplete, takeCost, taskEligibility, unresolvedObstacle } from './model.ts';
 import type { Action, Cell, GameData, GameState, Result } from './model.ts';
 
 /** At most this many preparation blockers wait on the board at one time. */
 const ACTIVE_BLOCKERS = 3;
+/** Placement keeps this many usable cells empty: one Linden tea from scratch, for the recovery quest, needs four. */
+export const KEEP_FREE = 4;
 const copy = (state: GameState): GameState => structuredClone(state);
 const itemAt = (state: GameState, index: unknown) => integer(index, 0, state.board.length - 1) ? state.board[index] : null;
 function discover(state: GameState, code: string) {
@@ -21,7 +23,7 @@ function placePreparationObstacles(state: GameState, data: GameData): number {
   if (!progress) return 0;
   let placed = 0;
   for (const obstacle of pendingPreparationObstacles(state, data)) {
-    if (progress.placed.filter(placement => !state.resolvedObstacles.includes(placement.id)).length >= ACTIVE_BLOCKERS || freeBoardCells(state, data) <= 3) break;
+    if (progress.placed.filter(placement => !state.resolvedObstacles.includes(placement.id)).length >= ACTIVE_BLOCKERS || freeBoardCells(state, data) <= KEEP_FREE) break;
     const position = firstFreeBoardCell(state, data);
     if (position === -1) break;
     progress.placed.push({ id: obstacle.id, position });
@@ -32,26 +34,26 @@ function placePreparationObstacles(state: GameState, data: GameData): number {
 export function createGame(data: GameData): GameState {
   const layoutId = data.board.defaultLayout;
   return {
-    version: 12, layoutId, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] }, pendingScenes: [],
+    version: 13, layoutId, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] }, pendingScenes: [],
     board: data.board.initial.map(code => code ? { code } : null), coins: 0, taskIndex: 0,
     discovered: [...new Set(data.board.initial.filter(present))],
-    decorations: [], decorationChoices: {}, outputChoices: {}, completedQuests: [],
+    decorations: [], decorationChoices: {}, completedQuests: [],
   };
 }
-/** Delivered quests are known, unique, not recurring, and opened in delivery order, and every completed preparation had its quests. */
+/** Delivered quests are known, unique, not the recovery quest, and opened in delivery order, and every completed preparation had its quests. */
 function validateQuestProgress(state: GameState, data: GameData): boolean {
   const complete = state.completedQuests;
   if (!Array.isArray(complete) || complete.length > data.quests.length || new Set(complete).size !== complete.length) return false;
   const done = new Set<string>();
   for (const id of complete) {
     const quest = data.quests.find(quest => quest.id === id);
-    if (!quest || quest.repeat || (quest.afterTask !== null && !state.decorations.includes(quest.afterTask))
+    if (!quest || quest.recovery || (quest.afterTask !== null && !state.decorations.includes(quest.afterTask))
       || !questPredecessors(quest, data).every(previous => done.has(previous))) return false;
     done.add(id);
   }
   return !state.taskIndex || requiredQuests(state.taskIndex - 1, data).every(quest => done.has(quest.id));
 }
-/** A save that waits for the finale before the supper payment drops the finale, so the payment earns it. Other saves stay as they are. */
+/** A save that waits for the finale before the supper delivery drops the finale, so the delivery earns it. Other saves stay as they are. */
 export function repairSave(candidate: unknown, data: GameData): unknown {
   const state = candidate as GameState, id = data.finale.id;
   if (!state || typeof state !== 'object' || !Array.isArray(state.pendingScenes) || !Array.isArray(state.completedQuests)
@@ -62,7 +64,7 @@ export function repairSave(candidate: unknown, data: GameData): unknown {
 export function validateGame(candidate: unknown, data: GameData): candidate is GameState {
   try {
     const state = candidate as GameState;
-    if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== 12) return false;
+    if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== 13) return false;
     if (!Array.isArray(state.board) || state.board.length !== data.board.columns * data.board.rows) return false;
     if (!integer(state.coins)) return false;
     if (!integer(state.taskIndex, 0, data.tasks.length)) return false;
@@ -76,7 +78,7 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
     }
     if (!validateQuestProgress(state, data)) return false;
     const validItem = (cell: Cell | null) => cell && typeof cell === 'object' && !Array.isArray(cell)
-      && Object.keys(cell).length === 1 && own(data.items, cell.code) && chains.includes(data.items[cell.code].chain);
+      && Object.keys(cell).length === 1 && own(data.items, cell.code) && dishOpen(cell.code, chains, data);
     if (!state.board.every(cell => cell === null || validItem(cell))) return false;
     {
       const layout = data.board.layouts.find(layout => layout.id === state.layoutId);
@@ -104,11 +106,11 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
     }
     if (!Array.isArray(state.discovered) || state.discovered.length > Object.keys(data.items).length
       || new Set(state.discovered).size !== state.discovered.length
-      || !state.discovered.every(code => own(data.items, code) && chains.includes(data.items[code].chain))
+      || !state.discovered.every(code => own(data.items, code) && dishOpen(code, chains, data))
       || !cells.every(cell => state.discovered.includes(cell.code))) return false;
-    // A blocker does not discover its ingredient, but clearing one needs that ingredient on the board.
+    // A blocker does not discover its dish, but clearing one needs a dish that merges with it: a matching dish or a recipe partner.
     if (boardObstacles(state, data).some(obstacle => state.resolvedObstacles.includes(obstacle.id)
-      && !state.discovered.includes(obstacle.ingredient))) return false;
+      && !mergePartners(obstacle.ingredient, data).some(code => state.discovered.includes(code)))) return false;
     if (!Array.isArray(state.decorations) || state.decorations.length !== state.taskIndex
       || !state.decorations.every((id, index) => id === data.tasks[index].id)) return false;
     const choices = state.decorationChoices;
@@ -118,15 +120,6 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
       const slot = data.decorationSlots.find(slot => slot.id === id);
       if (!slot || !state.decorations.includes(slot.unlock) || typeof value !== 'string' || value === slot.default
         || !slot.variants.some(variant => variant.id === value) || !decorationUnlocked(state, slot, value, data)) return false;
-    }
-    const outputs = state.outputChoices;
-    if (!outputs || typeof outputs !== 'object' || Array.isArray(outputs)
-      || ![Object.prototype, null].includes(Object.getPrototypeOf(outputs)) || Object.keys(outputs).length > chains.length) return false;
-    const completed = new Set(data.tasks.slice(0, state.taskIndex).map(task => task.id));
-    for (const [chain, code] of Object.entries(outputs)) {
-      if (!chains.includes(chain) || !own(data.items, code) || data.items[code].generator
-        || data.items[code].chain !== chain || data.items[code].stage < 2
-        || !data.generatorTiers.some(tier => tier.chain === chain && tier.stage === data.items[code].stage && completed.has(tier.after))) return false;
     }
     return true;
   } catch {
@@ -142,20 +135,19 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
   switch (action.type) {
     case 'deliverQuest': {
       const quest = data.quests.find(quest => quest.id === action.id);
-      if (quest?.cost && next.coins < quest.cost) return fail(`Earn ${quest.cost - next.coins} more coins to pay for ${quest.title}.`);
       if (!quest || !canDeliverQuest(next, quest, data)) return fail('This quest needs every required item on the board. Check that the quest is still on a ticket.');
       if (!integer(next.coins + quest.reward)) return fail('Spend some coins before you deliver this quest.');
       for (const index of questDeliveryCells(next, quest, data)) next.board[index] = null;
-      next.coins += quest.reward - (quest.cost ?? 0);
-      // A recurring quest keeps no record and has no reply, so it can open again.
-      if (!quest.repeat) {
+      next.coins += quest.reward;
+      // The recovery quest keeps no record and has no reply, so it can open again.
+      if (!quest.recovery) {
         next.completedQuests.push(quest.id);
-        // The payment of the supper earns the finale in place of a reply.
-        next.pendingScenes.push(quest.cost ? data.finale.id : quest.id);
+        // The supper earns the finale in place of a reply.
+        next.pendingScenes.push(quest.finale ? data.finale.id : quest.id);
         // A follow-up scene waits for a count of later deliveries; it is earned by the delivery that reaches the count.
         for (const earlier of data.quests) if (earlier.followUp && deliveriesSince(next, earlier.id) === earlier.followUp.afterDeliveries) next.pendingScenes.push(earlier.followUp.id);
       }
-      message = quest.cost ? `${quest.title}: paid ${quest.cost} coins.` : `${quest.title}: delivered. Earned ${quest.reward} coins.`;
+      message = quest.finale ? `${quest.title}: served.` : `${quest.title}: delivered. Earned ${quest.reward} ${quest.reward === 1 ? 'coin' : 'coins'}.`;
       break;
     }
     case 'decorate': {
@@ -187,17 +179,24 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const obstacle = unresolvedObstacle(next, action.to, data);
       const target = next.board[action.to];
       const item = getItem(source.code, data)!;
-      if (obstacle && obstacle.ingredient !== source.code) return fail('Merge a matching ingredient into this blocked space.');
-      if ((target?.code === source.code || obstacle) && !item.generator) {
-        if (!item.next) return fail(`${item.name} is a final dish. Deliver it to a neighbour.`);
-        next.board[action.to] = { code: item.next };
+      // Any legal merge into a blocked item clears its blocker: a matching dish of the chain, or a recipe partner.
+      const result = obstacle ? mergeResult(source.code, obstacle.ingredient, data) : target ? mergeResult(source.code, target.code, data) : null;
+      if (obstacle && !result) return fail('Merge a matching dish or a recipe partner into this blocked space.');
+      if (!result && target?.code === source.code && !item.generator) return fail(`${item.name} is a final dish. Deliver it to a neighbour${mergePartners(source.code, data).length ? ', or cook it with a recipe partner' : ''}.`);
+      if (result) {
+        next.board[action.to] = { code: result };
         next.board[action.from] = null;
-        if (obstacle) next.resolvedObstacles.push(obstacle.id);
-        const name = getItem(item.next, data)!.name;
-        message = made(next, item.next, name, `Made ${name}.`);
+        const name = getItem(result, data)!.name;
+        message = made(next, result, name, `Made ${name}.`);
+        if (obstacle) {
+          const coin = data.economy.blockerCoin;
+          if (!integer(next.coins + coin)) return fail('Spend some coins before you clear this blocker.');
+          next.resolvedObstacles.push(obstacle.id);
+          next.coins += coin;
+          message += ` The blocker is cleared: +${coin} ${coin === 1 ? 'coin' : 'coins'}.`;
+        }
         event = 'merge';
       } else {
-        if (obstacle) return fail('Merge a matching ingredient into this blocked space.');
         next.board[action.to] = source;
         next.board[action.from] = target;
         message = target ? 'Items swapped.' : 'Item moved.';
@@ -212,9 +211,13 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       if (Object.hasOwn(action, 'output')) return fail('This source takes only its first ingredient.');
       const empty = firstFreeBoardCell(next, data);
       if (empty === -1) return fail('The board is full. Merge a pair or deliver a quest.');
+      // A take from a paid source spends its coins. A purse that cannot pay takes nothing.
+      const cost = takeCost(item, data);
+      if (next.coins < cost) return fail(`The ${item.name} costs ${cost} ${cost === 1 ? 'coin' : 'coins'} for each take, and the purse cannot pay. Deliver a quest, or take free herbs from the Herb basket.`);
+      next.coins -= cost;
       next.board[empty] = { code };
       const name = getItem(code, data)!.name;
-      message = made(next, code, name, `Took ${name}.`);
+      message = made(next, code, name, cost ? `Took ${name} for ${cost} ${cost === 1 ? 'coin' : 'coins'}.` : `Took ${name}.`);
       break;
     }
     case 'task': {

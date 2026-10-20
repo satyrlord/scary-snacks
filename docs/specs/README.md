@@ -5,7 +5,7 @@ Each specification in this folder records one feature of Scary Snacks: its rules
 The specifications cover act 1.
 
 The game has six chapters, 24 preparations, and 83 authored quests.
-These include 81 campaign quests, the supper quest, and the recurring quest.
+These include 81 campaign quests, the supper quest, and the recovery quest.
 
 ## File names
 
@@ -27,7 +27,7 @@ The team authors the content, the art, and the rules.
 
 ## Feature register
 
-All specifications in this register are implemented. The status of a specification changes only when its owner documents and its checks change.
+The status column gives the state of each specification. The status of a specification changes only when its owner documents and its checks change.
 
 | Number | Specification | Status | Full-feature dependencies |
 | --- | --- | --- | --- |
@@ -42,6 +42,8 @@ All specifications in this register are implemented. The status of a specificati
 | 009 | [Discovery and recipe book](009-discovery-and-recipe-book.md) | Implemented | None |
 | 010 | [Neighbourhood regulars](010-neighbourhood-regulars.md) | Implemented | 008 for arrival scenes |
 | 011 | [Motion choice](011-motion-choice.md) | Implemented | None |
+| 012 | [Staple chains and mixed dishes](012-staple-chains.md) | Implemented | None |
+| 013 | [Bistro day and night](013-day-and-night.md) | Proposed | 012 |
 
 A dependency is a specification that the complete feature needs. A reference to another specification is not always a dependency. Only this register lists the dependencies.
 
@@ -61,7 +63,7 @@ A dependency is a specification that the complete feature needs. A reference to 
 
 ## Shared save compatibility
 
-Current saves use game state version 12 in envelope version 11 at `scary-snacks-save-v11`.
+Current saves use game state version 13 in envelope version 12 at `scary-snacks-save-v12`.
 The game supports only this format.
 Load reads only this key.
 If no current save exists, the game starts a new campaign.

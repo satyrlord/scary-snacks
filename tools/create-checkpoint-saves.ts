@@ -1,7 +1,7 @@
 // Synthetic saves at every preparation checkpoint, for manual checks without playing the whole campaign.
 // Each save has its preparations paid, the quests that the next preparation needs delivered, and the exact coins for the next reveal.
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { currentTask, requiredQuests, supperQuest } from '../src/model.ts';
+import { currentTask, dishWork, requiredQuests, supperQuest } from '../src/model.ts';
 import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import type { GameData, GameState } from '../src/model.ts';
 import { exportSave } from '../src/storage.ts';
@@ -10,13 +10,13 @@ import { exportSave } from '../src/storage.ts';
  * The state before the payment of the preparation at index count: the earlier preparations are paid, every quest that this
  * preparation needs is delivered in data order, and the coins equal its cost. A checkpoint keeps no scene from earlier payments,
  * so its own payment shows only the scenes that it earns. The finished checkpoint keeps the scenes earned by the last payment,
- * and its coins equal the cost of the supper.
+ * and its coins buy the staples of the supper.
  */
 export function checkpointState(data: GameData, count: number, start: GameState = createGame(data)): GameState {
   let state = structuredClone(start);
   for (;;) {
     for (const quest of requiredQuests(state.taskIndex, data)) if (!state.completedQuests.includes(quest.id)) state.completedQuests.push(quest.id);
-    state.coins = currentTask(state, data)?.cost ?? supperQuest(data)?.cost ?? 0;
+    state.coins = currentTask(state, data)?.cost ?? supperQuest(data)!.requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).staples * data.economy.takeCost * quantity, 0);
     if (state.taskIndex < data.tasks.length) {
       state.pendingScenes = [];
     }

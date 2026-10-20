@@ -50,12 +50,15 @@ Then run `npm run data:generate`.
 Examine the diff of the generated file. Confirm that it contains only the approved change.
 
 Use stable identifiers.
-An item identifier has the form `<chain>_<stage>`, and a generator identifier has the form `generator_<chain>`.
+A chain dish has the identifier `<chain>_<stage>`, a mixed dish has `mixed_<slug>`, and a generator has `generator_<chain>`.
 A save refers to these identifiers. A changed identifier makes that save invalid.
 If a change breaks the saves that players have, tell the user before the edit.
 A new save version is a product decision. Use [add-feature](../add-feature/SKILL.md) for it.
 
-Each item has a `sprite` index in the six-by-six food atlas.
+Each item has an `art` field: its food atlas and its cell in the four-by-two grid of that atlas.
+A chain atlas holds the source in cell 0 and the dishes in stage order. Four atlases hold the mixed dishes.
+Each dish has its content `tags`, and each mixed dish has every tag of its two parts.
+The data tool gives each price by the formula in `docs/economy.md`. Do not write a price by hand.
 The four core characters use the two-by-two portrait atlas.
 The first four visitors use the two-by-two visitor portrait atlas.
 Characters with `portraitAtlas: 'guest'` use the two-by-two guest portrait atlas.
@@ -64,7 +67,6 @@ The lower cells of `regulars-3` stay transparent.
 Verify each assignment against `portraitAtlas` and `sprite` in the data tool.
 The index goes from left to right, and then from top to bottom.
 A new item or a changed dish must have its own matching art.
-Red wine uses a separate picture for `drinks_5`.
 Each preparation has one authored room state.
 A room state has the fields `id`, `area`, `after`, `focus`, `mark`, `label`, and `text`.
 The `id` also names the painting. The field `after` names the preparation.

@@ -1,15 +1,32 @@
 // The content and state types of the bistro game, and the read-only questions that the rules and the interface ask about a game.
 // Nothing here changes a state, reads the clock, or touches the page.
 
-export type Item = { id: string; name: string; chain: string; stage: number; next: string | null; sprite: number; price: number; generator?: { outputs: string[] } };
+/** What a dish contains. A mixed dish has every tag of its parts. The data check enforces the diets with these tags. */
+export const dishTags = ['meat', 'pork', 'dairy', 'egg', 'fish', 'alcohol', 'garlic'] as const;
+export type DishTag = typeof dishTags[number];
+/** The food atlases: one for each chain, and four for the mixed dishes. Each is a grid of four columns and two rows. */
+export const foodAtlases = ['grain', 'corn', 'herbs', 'dairy', 'poultry', 'vegetables', 'fruits', 'pork', 'beans', 'lamb', 'veal', 'fish', 'soups', 'mains', 'sweets', 'breads'] as const;
+export type FoodAtlas = typeof foodAtlases[number];
+/** The chain of every mixed dish. A mixed dish has no stage path: its recipe names its two parts. */
+export const MIXED = 'mixed';
+/**
+ * A source (stage 0, with a generator), a chain dish (`<chain>_<stage>`), or a mixed dish (chain `mixed`, with a recipe of two parts).
+ * Art names the atlas and the cell of its picture. A source with free set takes without a coin.
+ */
+export type Item = {
+  id: string; name: string; chain: string; stage: number; next: string | null; art: { atlas: FoodAtlas; cell: number }; price: number; tags: DishTag[];
+  generator?: { outputs: string[]; free?: true }; recipe?: [string, string];
+};
 export type SceneLine = { speaker: string; text: string };
+/** A diet forbids tags, can require a dish and a tag in each quest, and can forbid two tags in one quest. */
+export type Diet = { name: string; forbid: DishTag[]; require?: { item: string; tag: DishTag }; apart?: [DishTag, DishTag] };
 /**
  * A person of the bistro. The core characters drive the story. A regular (spec 010) is a neighbour who arrives with the preparation that
- * arrivesAfter names, or is present from the start; arrival plays a short scene, and prefers names the two chains whose dishes they like.
+ * arrivesAfter names, or is present from the start; arrival plays a short scene, and favourites names the dishes that they like.
  */
 export type Character = {
   id: string; name: string; role: string; introduction: string; sprite: number; visitor?: boolean; singleVisit?: boolean;
-  portraitAtlas?: PortraitAtlas; regular?: boolean; arrivesAfter?: string; prefers?: string[]; arrival?: SceneLine[];
+  portraitAtlas?: PortraitAtlas; regular?: boolean; arrivesAfter?: string; favourites?: string[]; arrival?: SceneLine[]; diet?: Diet;
 };
 export const portraitAtlases = ['guest', 'regulars-1', 'regulars-2', 'regulars-3'] as const;
 export type PortraitAtlas = typeof portraitAtlases[number];
@@ -21,15 +38,21 @@ export type TaskEligibility = { task: Task | null; ready: boolean; requirements:
 /**
  * A quest from a character. It opens after the preparation that afterTask names (null: in a new game), after afterQuest, and after
  * the earlier quests of its character. Unlocks names a decoration finish that the delivery adds. A follow-up scene is earned after
- * afterDeliveries further deliveries. The supper quest has a cost instead of dishes and a reward; its payment earns the finale.
- * A recurring quest is open only while the coins do not cover the supper; its delivery pays its reward and is never recorded.
+ * afterDeliveries further deliveries. The supper quest (finale) asks for one plate for each guest, in the order of guests, pays
+ * nothing, and earns the finale. The recovery quest is open only while the purse runs low (recoveryOpen); its delivery pays its
+ * reward and is never recorded, and it stands outside the order of its character's quests.
  */
 export type Quest = {
   id: string; character: string; title: string; afterTask: string | null; afterQuest?: string;
   requirements: { item: string; quantity: number }[]; reward: number; opening: SceneLine[]; completion: SceneLine[];
-  companions?: string[]; unlocks?: { slot: string; variant: string }; cost?: number; repeat?: true;
+  companions?: string[]; unlocks?: { slot: string; variant: string }; finale?: true; guests?: string[]; recovery?: true;
   followUp?: { id: string; title: string; afterDeliveries: number; dialogue: SceneLine[] };
 };
+/**
+ * The levers of the economy. A take from a paid source spends takeCost. Each cleared blocker gives blockerCoin. A menu price is
+ * staples × takeCost + merges × workRate. The recovery quest opens while a quest is open and the purse is below recoveryFloor.
+ */
+export type Economy = { takeCost: number; blockerCoin: number; workRate: number; recoveryFloor: number };
 /**
  * A chapter of the story. Its preparations are the tasks that name its number. Opening sets the scene when the chapter starts,
  * objective is its goal, payoff says what the chapter changed, and closing is the scene that plays when its last preparation completes.
@@ -72,9 +95,7 @@ export const roomPaintings: readonly string[] = [
 export type GameData = {
   board: { columns: number; rows: number; initial: (string | null)[]; defaultLayout: string; layouts: BoardLayout[]; preparations: PreparationObstacleBatch[] };
   chains: { id: string; name: string }[]; items: Record<string, Item>; characters: Character[]; chapters: Chapter[]; finale: Finale; tasks: Task[];
-  areas: Area[]; rooms: RoomState[]; decorationSlots: DecorationSlot[];
-  /** These milestones validate output choices in existing version-11 saves. They no longer change production. */
-  generatorTiers: { chain: string; stage: number; after: string }[];
+  areas: Area[]; rooms: RoomState[]; decorationSlots: DecorationSlot[]; economy: Economy;
   quests: Quest[];
 };
 /**
@@ -84,10 +105,9 @@ export type GameData = {
 export type RoomView = Area & { open: boolean; states: RoomState[]; current: RoomState | null; painting: RoomState | null };
 export type Cell = { code: string };
 export type GameState = {
-  version: 12; board: (Cell | null)[]; coins: number; taskIndex: number;
+  version: 13; board: (Cell | null)[]; coins: number; taskIndex: number;
   discovered: string[]; decorations: string[];
   decorationChoices: Record<string, string>;
-  outputChoices: Record<string, string>;
   /** The delivered quests, in the order of delivery. */
   completedQuests: string[];
   layoutId: string; resolvedObstacles: string[];
@@ -150,6 +170,51 @@ export const availableChains = (state: Pick<GameState, 'taskIndex'>, data: GameD
   ...data.board.initial.filter(present).filter(code => data.items[code].generator).map(code => data.items[code].chain),
   ...data.tasks.slice(0, state.taskIndex).flatMap(task => task.unlock ? [task.unlock] : []),
 ])];
+/** The chains that a dish uses: its own chain, or every chain of the parts of a mixed dish. */
+export function dishChains(code: string, data: GameData): string[] {
+  const item = getItem(code, data);
+  if (!item) return [];
+  return item.recipe ? [...new Set(item.recipe.flatMap(part => dishChains(part, data)))] : [item.chain];
+}
+/** A dish is open when each of its chains is open. */
+export const dishOpen = (code: string, chains: readonly string[], data: GameData) => {
+  const used = dishChains(code, data);
+  return used.length > 0 && used.every(chain => chains.includes(chain));
+};
+/** The mixed dish that two parts make, in either order, or undefined. */
+const recipeResult = (first: string, second: string, data: GameData) => Object.values(data.items).find(item => item.recipe
+  && ((item.recipe[0] === first && item.recipe[1] === second) || (item.recipe[0] === second && item.recipe[1] === first)));
+/** The dish that a merge of two items makes: the next dish of a matching pair, or the dish of a recipe. Null when they do not merge. */
+export function mergeResult(first: string, second: string, data: GameData): string | null {
+  const item = getItem(first, data), other = getItem(second, data);
+  if (!item || !other || item.generator || other.generator) return null;
+  if (first === second) return item.next;
+  return recipeResult(first, second, data)?.id ?? null;
+}
+/** The dishes that merge with a dish: the same dish while it has a next stage, then each recipe partner. */
+export function mergePartners(code: string, data: GameData): string[] {
+  const item = getItem(code, data);
+  if (!item || item.generator) return [];
+  return [...(item.next ? [code] : []), ...Object.values(data.items).flatMap(dish => !dish.recipe ? []
+    : dish.recipe[0] === code ? [dish.recipe[1]] : dish.recipe[1] === code ? [dish.recipe[0]] : [])];
+}
+/** The coins that one take from a source spends: nothing from a free source. */
+export const takeCost = (source: Item, data: GameData) => source.generator?.free ? 0 : data.economy.takeCost;
+/** The stage-1 staples and the merges that a dish needs from a source. A staple of a free source counts as zero. */
+export function dishWork(code: string, data: GameData): { staples: number; merges: number } {
+  const item = data.items[code];
+  if (item.recipe) {
+    const [first, second] = item.recipe.map(part => dishWork(part, data));
+    return { staples: first.staples + second.staples, merges: first.merges + second.merges + 1 };
+  }
+  const count = 2 ** (item.stage - 1), free = data.items[`generator_${item.chain}`]?.generator?.free;
+  return { staples: free ? 0 : count, merges: count - 1 };
+}
+/** The menu price of a dish: staples × take cost + merges × work rate. */
+export function menuPrice(code: string, data: GameData): number {
+  const { staples, merges } = dishWork(code, data);
+  return staples * data.economy.takeCost + merges * data.economy.workRate;
+}
 function questReady(state: GameState, quest: Quest, data: GameData): boolean {
   return (quest.afterTask === null || state.decorations.includes(quest.afterTask)) && questPredecessors(quest, data).every(id => questDone(state, id));
 }
@@ -172,33 +237,45 @@ export function resolveNeighbours(state: GameState, data: GameData) {
       delivered: state.completedQuests.filter(id => data.quests.find(quest => quest.id === id)?.character === person.id).length }));
 }
 const questDone = (state: GameState, id: string) => state.completedQuests.includes(id);
+/** The earlier quests of the same character, and afterQuest. The recovery quest needs none and is no quest's predecessor. */
 export function questPredecessors(quest: Quest, data: GameData): string[] {
-  const earlier = data.quests.slice(0, data.quests.indexOf(quest)).filter(previous => previous.character === quest.character);
+  if (quest.recovery) return [];
+  const earlier = data.quests.slice(0, data.quests.indexOf(quest)).filter(previous => previous.character === quest.character && !previous.recovery);
   return [...new Set([...(quest.afterQuest ? [quest.afterQuest] : []), ...earlier.map(previous => previous.id)])];
 }
-/** The number of quest tickets on the counter. */
+/** The number of quest tickets on the counter. The recovery quest has its own ticket after them. */
 export const QUEST_TICKETS = 3;
 /**
+ * The recovery quest is open in two cases: a campaign quest is open and the purse holds less than the recovery floor, or no
+ * campaign quest is open and the purse cannot pay the next preparation. So a player who spends coins on spare food is never stuck.
+ */
+function recoveryOpen(state: GameState, data: GameData, open = data.quests.some(quest => !quest.recovery && !questDone(state, quest.id) && questReady(state, quest, data))): boolean {
+  const task = currentTask(state, data);
+  return open ? state.coins < data.economy.recoveryFloor : !!task && state.coins < task.cost;
+}
+/**
  * Open quests take the tickets in authored order: the first three are active, and the others wait for a free ticket.
- * A character has at most one open quest, because each quest waits for the earlier quests of its character.
+ * A character has at most one open campaign quest, because each quest waits for the earlier quests of its character.
+ * The recovery quest is active while it is open, on its own ticket, so it never moves a quest to waiting.
  */
 export function resolveQuests(state: GameState, data: GameData): QuestView[] {
   let tickets = 0;
-  const supper = supperQuest(data), complete = supperComplete(state, data);
-  const short = !!supper && !complete && questReady(state, supper, data) && state.coins < supper.cost!;
-  return data.quests.map(quest => ({ quest, status: questDone(state, quest.id) || (quest === supper && complete) ? 'complete'
-    : !questReady(state, quest, data) || (quest.repeat && !short) ? 'locked' : tickets++ < QUEST_TICKETS ? 'active' : 'waiting' }));
+  const views: QuestView[] = data.quests.map(quest => ({ quest, status: questDone(state, quest.id) ? 'complete'
+    : quest.recovery || !questReady(state, quest, data) ? 'locked' : tickets++ < QUEST_TICKETS ? 'active' : 'waiting' }));
+  const open = views.some(view => view.status === 'active' || view.status === 'waiting');
+  for (const view of views) if (view.quest.recovery && recoveryOpen(state, data, open)) view.status = 'active';
+  return views;
 }
-/** The quest whose payment earns the finale. */
-export const supperQuest = (data: GameData) => data.quests.find(quest => quest.cost !== undefined);
-/** The supper is paid when its quest is delivered. */
+/** The quest whose delivery earns the finale. */
+export const supperQuest = (data: GameData) => data.quests.find(quest => quest.finale);
+/** The supper is served when its quest is delivered. */
 export function supperComplete(state: Pick<GameState, 'completedQuests'>, data: GameData): boolean {
   return state.completedQuests.includes(supperQuest(data)?.id ?? '');
 }
-/** The quests that the preparation at this index needs: every quest that opens before it, except the supper and the recurring quests. */
+/** The quests that the preparation at this index needs: every quest that opens before it, except the supper and the recovery quest. */
 export function requiredQuests(taskIndex: number, data: GameData): Quest[] {
   const known = new Map<Quest, number>();
-  return data.quests.filter(quest => quest.cost === undefined && !quest.repeat && questOpening(quest, data, known) < taskIndex);
+  return data.quests.filter(quest => !quest.finale && !quest.recovery && questOpening(quest, data, known) < taskIndex);
 }
 /** A guest who visits once has a journal introduction only while their quest is open. */
 export function journalCharacters(state: GameState, data: GameData): Character[] {
@@ -216,7 +293,7 @@ export function questDeliveryCells(state: GameState, quest: Quest, data: GameDat
 }
 export function canDeliverQuest(state: GameState, quest: Quest | string, data: GameData): boolean {
   const view = resolveQuests(state, data).find(view => view.quest.id === (typeof quest === 'string' ? quest : quest.id));
-  return view?.status === 'active' && state.coins >= (view.quest.cost ?? 0) && questDeliveryCells(state, view.quest, data).every(index => index >= 0);
+  return view?.status === 'active' && questDeliveryCells(state, view.quest, data).every(index => index >= 0);
 }
 /**
  * The index of the latest preparation that a quest and its predecessors wait for: -1 when it opens in a new game.

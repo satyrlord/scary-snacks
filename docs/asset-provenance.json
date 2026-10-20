@@ -2,20 +2,6 @@
   "title": "Scary Snacks",
   "assets": [
     {
-      "id": "menu-atlas",
-      "file": "public/assets/original/menu-atlas.png",
-      "sha256": "4eb85ae860456d1174331d0d50dd43a0ff7a71405fe6a09756ed505f13f97df7",
-      "bytes": 4338583,
-      "width": 1536,
-      "height": 1536,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "menu-atlas-api",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an edit of the reference menu-atlas-chat that repaints it at 1536 by 1536 pixels, with tools in .github/skills/generate-game-art-openai/scripts",
-      "sourceGameImageInput": false,
-      "review": "The 36 food, drink, and source icons at 1536 by 1536 pixels. The agent compared each cell with menu-atlas-chat on light and dark tiles: every subject, its order, and its design are unchanged. The sprite bounds in src/app.ts are measured from this alpha channel."
-    },
-    {
       "id": "portraits",
       "file": "public/assets/original/portraits.png",
       "sha256": "42ecfa1970b5b6ad9a874990ca9b5ac055fc22f4fc7d3d40c8d549c751106a92",
@@ -676,22 +662,6 @@
       "referenceAsset": "guests-initial",
       "referenceSha256": "81df60bf0ea19ee4cc30fea7db6b55b2a51ce6c784ae9f98939962466bb49bd3",
       "review": "The agent examined all four identities, clothing, cell order and containment. The square sheet has outer borders and central seams with alpha at most 1, below visible opacity. User visual acceptance is not recorded."
-    },
-    {
-      "id": "red-wine",
-      "file": "public/assets/original/red-wine.png",
-      "sha256": "b936c905701f9fee4d5cbc04b0424511dd22d1131f9debfb652d8a1d72dc898d",
-      "bytes": 1420068,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "red-wine-final",
-      "generation": "Built-in in-chat image generation.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "menu-atlas",
-      "referenceSha256": "4eb85ae860456d1174331d0d50dd43a0ff7a71405fe6a09756ed505f13f97df7",
-      "review": "The agent examined the ruby wine, decanter, stemmed glass and transparent margins. User visual acceptance is not recorded."
     },
     {
       "id": "preparation-clutter",
@@ -1470,9 +1440,297 @@
         "status": "accepted",
         "by": "user"
       }
+    },
+    {
+      "id": "food-grain",
+      "file": "public/assets/original/food-grain.png",
+      "sha256": "00a2e8b485f1013e1c370b78a2fb7fb6c2bed5d9a033512497c93563fda5305b",
+      "bytes": 4676238,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-grain-flour",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a text request, a masked edit of cell 1, an unmasked repaint without glow, and a repaint of cell 2 composited through a cell-2 mask; a user-approved box clear (740,0,120,110) removes a detached flour wisp; no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts; a user-approved alpha clear makes unused cells 8 fully transparent and preserves every used pixel",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the Grain chain for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Windmill, Flour, Dough, Loaf, Pogăcele, Langoș, and Bread basket, in stage order. The agent measured the soft-alpha fringe (0.019 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it. Decoded pixel comparison confirms that the unused-cell clear preserves every used cell exactly.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-corn",
+      "file": "public/assets/original/food-corn.png",
+      "sha256": "68a872a99c1cbf21f017ee47146bf28402211ee302785d6933077348e7683f0d",
+      "bytes": 3884032,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-corn",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a user-approved shift of x 0 to 560 left by 32 pixels moves the corn basket and the mămăligă fully inside their cells; no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts; a user-approved alpha clear makes unused cells 6, 7, 8 fully transparent and preserves every used pixel",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the Corn chain for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Corn basket, Corn cob, Shelled corn, Cornmeal, and Mămăligă, in stage order. The agent measured the soft-alpha fringe (0.012 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it. Decoded pixel comparison confirms that the unused-cell clear preserves every used cell exactly.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-herbs",
+      "file": "public/assets/original/food-herbs.png",
+      "sha256": "cf4779f6bf205b6b9d99888d8a7b3165488a2c464f13482f7005f65953f0482c",
+      "bytes": 3874911,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-herbs-clean",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked repaint of the first candidate removes its glow; no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts; a user-approved alpha clear makes unused cells 6, 7, 8 fully transparent and preserves every used pixel",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the Herbs chain for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Herb basket, Elderflowers, Herb bunch, Socată, and Linden tea, in stage order. The agent measured the soft-alpha fringe (0.046 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it. Decoded pixel comparison confirms that the unused-cell clear preserves every used cell exactly.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-dairy",
+      "file": "public/assets/original/food-dairy.png",
+      "sha256": "51ed9f8a7ea1aa30072257703027ba19b929993e7e073e420156f336a9418932",
+      "bytes": 4551714,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-dairy-cottage",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; cell 4 takes the cottage cheese of a second request (box copy 1536,0,512,512), and an alpha cut at 96 in cell 4 removes its glow ramp; no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts; a user-approved alpha clear makes unused cells 8 fully transparent and preserves every used pixel",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the Dairy chain for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Milk churn, Milk, Sour cream, Cottage cheese, Telemea, Smoked cheese, and Cheese board, in stage order. The agent measured the soft-alpha fringe (0.013 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it. Decoded pixel comparison confirms that the unused-cell clear preserves every used cell exactly.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-poultry",
+      "file": "public/assets/original/food-poultry.png",
+      "sha256": "849e6118368643d69c096999d0861f7b11d35d34ee575a9ab4305c00501be322",
+      "bytes": 3439065,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-poultry-eggs",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked repaint removes the glow; an alpha cut at 96 in cells 1 and 2 removes straw specks; with the approval of the user, a box clear removes the egg basket from cell 1 and the nest moves from cell 2 to cell 1; cell 2 takes the egg bowl of a third request after an alpha cut at 200 (box copy 512,0,512,512); no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts; a user-approved alpha clear makes unused cells 6, 7, 8 fully transparent and preserves every used pixel",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the Poultry chain for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Hen's nest, Eggs, Chicken, Chicken broth, and Roast chicken, in stage order. The agent measured the soft-alpha fringe (0.015 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it. Decoded pixel comparison confirms that the unused-cell clear preserves every used cell exactly.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-vegetables",
+      "file": "public/assets/original/food-vegetables.png",
+      "sha256": "cfaaad0c55e508a995242a74ad7df1948cf0a621d2154591bf174856ae497843",
+      "bytes": 4652675,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-vegetables",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an alpha cut at 200 removes the glow around the icons; no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the Vegetables chain for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Vegetable crate, Potatoes, Vegetable basket, Pickled cabbage, Roasted vegetables, Zacuscă, and Vegetable stew, in stage order. The agent measured the soft-alpha fringe (0.007 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-fruits",
+      "file": "public/assets/original/food-fruits.png",
+      "sha256": "b92c77e78b79bf2f8439a3e2e25c4c8cfde4d1cd03ef1af17b7fe0cc3869efce",
+      "bytes": 4623393,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-fruits-stand",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; cell 1 takes the fruit stand of a second request, centred by a move of -64,-71 (box copy 0,0,512,512); no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts; a user-approved alpha clear makes unused cells 8 fully transparent and preserves every used pixel",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the Fruits chain for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Fruit stand, Plums, Fruit bowl, Cherry compote, Plum jam, Red wine, and Plum brandy, in stage order. The agent measured the soft-alpha fringe (0.018 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it. Decoded pixel comparison confirms that the unused-cell clear preserves every used cell exactly.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-pork",
+      "file": "public/assets/original/food-pork.png",
+      "sha256": "eff067fb6bbbbf9b260bae4567e632abcded2130a996153a5d89b0da07ad886e",
+      "bytes": 4409175,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-pork",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an alpha cut at 32 removes faint seams along the cell edges; no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the Pork chain for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Butcher's hook, Pork, Minced pork, Sausages, Smoked bacon, and Roast pork, in stage order. The agent measured the soft-alpha fringe (0.009 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-beans",
+      "file": "public/assets/original/food-beans.png",
+      "sha256": "1c8f2e4e72947abf416a40b99484bcb565b7100ae27ecb94237b5e7888e27323",
+      "bytes": 4070143,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-beans-legumes",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; cells 1, 3, and 4 take the icons of a second request after an alpha cut at 200 (box copies 0,0,512,512 and 1024,0,1024,512); no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts; a user-approved alpha clear makes unused cells 7, 8 fully transparent and preserves every used pixel",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the Beans chain for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Legume sacks, White beans, Lentils, Green beans, Bean dip, and Bean stew, in stage order. The agent measured the soft-alpha fringe (0.014 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it. Decoded pixel comparison confirms that the unused-cell clear preserves every used cell exactly.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-lamb",
+      "file": "public/assets/original/food-lamb.png",
+      "sha256": "ca5b9bb182352328e48e7f6a90a6f82a9cc81241e045742edd484c8044576b25",
+      "bytes": 4349538,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-lamb",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts; a user-approved alpha clear makes unused cells 7, 8 fully transparent and preserves every used pixel",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the Lamb chain for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Shepherd's bag, Lamb, Lamb cuts, Lamb chops, Lamb stew, and Roast lamb, in stage order. The agent measured the soft-alpha fringe (0.018 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it. Decoded pixel comparison confirms that the unused-cell clear preserves every used cell exactly.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-veal",
+      "file": "public/assets/original/food-veal.png",
+      "sha256": "8ddc42c2070e770ee9d69e6d1b67f835875e59642e4cf4bb6d9f585d417697e6",
+      "bytes": 4684138,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-veal",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an alpha cut at 96 removes the glow around cells 2, 3, 5, and 6; no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the Veal chain for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Butcher's block, Veal, Diced veal, Minced veal, Meatballs, Veal stew, and Roast veal, in stage order. The agent measured the soft-alpha fringe (0.007 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-fish",
+      "file": "public/assets/original/food-fish.png",
+      "sha256": "e3e86b0bddff659a5bc5b182132c37e4be7b08ea3ec5975da86dd5c8edc185de",
+      "bytes": 3646742,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-fish",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; five moves centre each icon in its cell, and an alpha cut at 96 removes a soft fern fringe and faint smudges; no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the Fish chain for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Fish trap, Fresh trout, Fried trout, Smoked trout, and Saramură, in stage order. The agent measured the soft-alpha fringe (0.009 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-soups",
+      "file": "public/assets/original/food-soups.png",
+      "sha256": "120c1d9b8936a108858482151f916c1804f8b921a66e942e50f099f391a17a0b",
+      "bytes": 3547132,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-soups",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; no processing; no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the soups and stews for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Meatball soup, Chicken noodle soup, Fish soup, Bean soup, Bean soup in a bread bowl, Goulash pot, Beans with sausages, and Tochitură, in stage order. The agent measured the soft-alpha fringe (0.011 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-mains",
+      "file": "public/assets/original/food-mains.png",
+      "sha256": "a34227f8f79520dc05a2d69da4d534da4b3fdf522aa6cfdbfd2f3c81b4a3609a",
+      "bytes": 4205081,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-mains",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an alpha cut at 200 removes a grey haze around every icon; no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the mixed main dishes for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Bulz, Cabbage rolls, Cabbage rolls with mămăligă, Stuffed peppers, Mici, Drob, and Saramură with mămăligă, in stage order. The agent measured the soft-alpha fringe (0.006 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-sweets",
+      "file": "public/assets/original/food-sweets.png",
+      "sha256": "3f1447a694933ce6597aa5c3668534a7efa8ef5ace1d720de68a44e08d3c1445",
+      "bytes": 4085543,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-sweets",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; five moves centre each icon in its cell, and an alpha cut at 96 removes faint smudges; no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the sweets for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Sweet dough, Cozonac, Chimney cake, Papanași, and Plum dumplings, in stage order. The agent measured the soft-alpha fringe (0.004 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-breads",
+      "file": "public/assets/original/food-breads.png",
+      "sha256": "ea0279208f7df53d973741c65eaa2c441b16dff5df2b59802dd5dcb6a1bb97c7",
+      "bytes": 3785756,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-breads-pie",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; three moves centre the toast, the board, and the tea; cell 1 takes the cheese pie of a second request after an alpha cut at 200 and a centring move (box copy 0,0,512,1024); an alpha cut at 96 removes faint smudges; no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the breads, boards, and drinks for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Cheese pie, Zacuscă toast, Sharing board, and Fruit tea, in stage order. The agent measured the soft-alpha fringe (0.004 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
     }
   ],
-  "note": "The game uses only project-generated images. The menu atlas and mascots use generated chat atlases from the references list. The core portraits use a revision of a generated candidate. front-room-00 and courtyard-13 use generated room references. The decoration paintings use generated design references. Each later room state edits the previous state of its area. Each composite retains only the changed region. The board-clutter atlas uses chat generation and cell corrections. Five pencil sketches, four quest scenes, and the second regulars atlas revise their previous versions, and the references list keeps each previous version. This record preserves the source and review evidence of the current assets. This record does not give legal clearance.",
+  "note": "The game uses only project-generated images. The mascots use a generated chat atlas from the references list. The core portraits use a revision of a generated candidate. front-room-00 and courtyard-13 use generated room references. The decoration paintings use generated design references. Each later room state edits the previous state of its area. Each composite retains only the changed region. The board-clutter atlas uses chat generation and cell corrections. Five pencil sketches, four quest scenes, and the second regulars atlas revise their previous versions, and the references list keeps each previous version. The 16 food atlases use alpha cuts, moves, box clears, and cell copies between candidates, without painted pixels. This record preserves the source and review evidence of the current assets. This record does not give legal clearance.",
   "references": [
     {
       "id": "counter-band",
@@ -1525,19 +1783,6 @@
       "generation": "built-in in-chat imagegen; unchanged output",
       "sourceGameImageInput": false,
       "use": "The design reference of decoration-courtyard. The game does not ship it."
-    },
-    {
-      "id": "menu-atlas-chat",
-      "sha256": "e92eab962787d63fff30eb4ec58d5eb4fc4b7800da87472df812f02afcb20e7a",
-      "bytes": 2370281,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "menu-atlas-final",
-      "generation": "built-in in-chat imagegen",
-      "sourceGameImageInput": false,
-      "use": "The reference of menu-atlas. The game does not ship it."
     },
     {
       "id": "mascots-chat",

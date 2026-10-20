@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { arrivalScene, deliveriesSince, journalCharacters, resolveChapters, resolveQuests, supperComplete } from '../../src/model.ts';
-import { act, checkpoint, data, deliverable, journal, quest, readTo, saved, start, validate } from './support.ts';
+import { act, checkpoint, data, deliverable, journal, quest, readTo, saved, start, supplies, supply, validate } from './support.ts';
 
 /** Earned scenes left unread at representative campaign positions. */
 function journalState(count: number){
@@ -85,7 +85,7 @@ test('single-visit farewell is readable once from Unread and returns to its head
 });
 
 test('earlier conversations follow delivery order, and the latest chapter remains after the supper',async({page})=>{
-  const supper=data.quests.find(value=>value.cost)!;let state=checkpoint(24,{coins:supper.cost!});
+  const supper=data.quests.find(value=>value.finale)!;let state=supply(checkpoint(24,{coins:data.economy.recoveryFloor}),supplies(supper));
   state=act(state,{type:'deliverQuest',id:supper.id});state=act(state,{type:'readScene',id:data.finale.id});
   await start(page,state);await journal(page,['conversations']);
   await expect(page.locator('[data-current-chapter]')).toHaveAttribute('data-chapter',data.chapters.at(-1)!.id);
@@ -108,4 +108,19 @@ test('reading one combined quest keeps another waiting scene',async({page})=>{
   await expect(page.getByRole('dialog',{name:'Story journal',exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:`Replay ${value.title}`,exact:true})).toBeFocused();
   await expect(page.locator(`[data-quest="${value.id}"]`)).toHaveCount(1);
+});
+
+for(const width of [1440,390])for(const theme of ['light','dark'])test(`each regular’s journal row names their favourite dishes at ${width}px in ${theme}`,async({page},testInfo)=>{
+  await page.setViewportSize({width,height:width===1440?900:844});await page.emulateMedia({reducedMotion:'reduce'});
+  await start(page,checkpoint(24),theme);await journal(page,['neighbours']);
+  const regulars=data.characters.filter(person=>person.regular);expect(regulars.every(person=>person.favourites?.length)).toBe(true);
+  for(const person of regulars){
+    const favourites=`Favourites: ${new Intl.ListFormat('en',{type:'conjunction'}).format(person.favourites!.map(code=>data.items[code].name))}`;
+    const entry=page.getByRole('button',{name:`Meet ${person.name}`,exact:true});
+    await expect(entry.locator('.neighbour-words')).toContainText(favourites);expect((await entry.getAttribute('aria-description'))!.startsWith(`${person.role}. ${favourites}. `)).toBe(true);
+    expect(await entry.evaluate(node=>node.scrollWidth<=node.clientWidth+1)).toBe(true);
+  }
+  expect(await page.locator('#modal').evaluate(node=>node.scrollWidth<=node.clientWidth)).toBe(true);
+  await page.getByRole('button',{name:`Meet ${regulars[0].name}`,exact:true}).scrollIntoViewIfNeeded();
+  await page.screenshot({path:testInfo.outputPath('journal-favourites.png')});
 });

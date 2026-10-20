@@ -1,4 +1,4 @@
-// The game's pictures as page elements: dishes from the menu atlas, portraits, blocker art, and the small icons.
+// The game's pictures as page elements: dishes and sources from the food atlases, portraits, blocker art, and the small icons.
 import { element, svg } from './dom.ts';
 import { character, definition } from './session.ts';
 
@@ -52,15 +52,10 @@ export function questSketch(person: string, questId?: string) {
   return image;
 }
 
-// The runtime loads image variants of the PNG masters (npm run assets:build). The atlas keeps its master size, so the sprite bounds below apply to it.
-const atlas = new URL('../assets/variants/menu-atlas-1536x1536.webp', import.meta.url).href;
-// Measured from the atlas alpha channel: each sprite's bounds, padded only where no neighbouring sprite intrudes.
-// The generated sprites overflow a regular 256px grid, so clipping to these bounds isolates them without modifying pixels.
-// Where two sprites' bounds overlap, the bounds split at the middle of the overlap.
-const spriteBounds = [[25,53,237,208],[267,92,247,176],[519,50,241,209],[779,76,239,181],[1029,61,237,203],[1269,37,248,225],[18,292,241,204],[261,315,254,187],[519,298,242,197],[765,294,249,204],[1015,312,269,181],[1284,298,237,199],[20,544,240,205],[277,552,221,191],[522,512,226,236],[769,553,257,201],[1035,517,262,241],[1327,508,156,251],[15,779,244,237],[290,762,222,252],[523,744,241,254],[797,775,199,224],[1045,768,181,240],[1299,768,218,242],[23,1035,237,193],[276,1038,217,187],[493,1039,283,180],[791,1007,201,226],[1008,1036,249,197],[1252,1030,269,212],[23,1234,230,256],[267,1242,263,248],[529,1243,269,243],[801,1246,205,242],[1006,1257,292,233],[1299,1281,217,203]];
-// Sprites share one scale unless a side is larger than SPRITE_VIEW atlas pixels.
-const SPRITE_VIEW = 246;
-let spriteSequence = 0;
+// The runtime loads image variants of the PNG masters (npm run assets:build). Each food atlas is a grid of four columns and two rows;
+// its variant has 256px cells. Every picture stays inside its cell, so a dish shows its whole cell.
+const FOOD_CELL = 256;
+const foodAtlas = (atlas: string) => new URL(`../assets/variants/food-${atlas}-1024x512.webp`, import.meta.url).href;
 // Square crops within each portrait cell: left, top, and side as fractions of the cell.
 // Face scale and eye lines guide these crops; headwear and upper-body identity remain visible.
 const portraitFrames: Record<string, readonly [number, number, number]> = {
@@ -93,23 +88,14 @@ export function coinMark() {
   const moon = svg('path'); moon.setAttribute('class', 'coin-moon'); moon.setAttribute('d', 'M15.7 7.6a5 5 0 1 0 0 8.8 4.6 4.6 0 0 1 0-8.8z');
   value.append(face, moon); return value;
 }
+/** A dish or a source: its cell of its food atlas. */
 export function food(code: string, extra = '') {
-  const index = definition(code).sprite;
-  const wine = code === 'drinks_5';
-  const rect = wine ? [0,0,256,256] : spriteBounds[index];
-  const [x,y,width,height] = rect, side = Math.max(width,height,SPRITE_VIEW);
+  const { atlas, cell } = definition(code).art;
   const value = svg('svg');
-  value.setAttribute('class', `food ${extra}`); value.setAttribute('viewBox',[x+width/2-side/2,y+height/2-side/2,side,side].join(' '));
-  const definitions=svg('defs');
-  const clip=svg('clipPath');
-  const clipId=`food-clip-${++spriteSequence}`;clip.id=clipId;clip.setAttribute('clipPathUnits','userSpaceOnUse');
-  const bounds=svg('rect');
-  ['x','y','width','height'].forEach((key,index)=>bounds.setAttribute(key,String(rect[index])));
-  clip.append(bounds);definitions.append(clip);value.append(definitions);
+  value.setAttribute('class', `food ${extra}`);
+  value.setAttribute('viewBox', [cell % 4 * FOOD_CELL, Math.floor(cell / 4) * FOOD_CELL, FOOD_CELL, FOOD_CELL].join(' '));
   const image = svg('image');
-  image.setAttribute('href',wine ? new URL('../assets/variants/red-wine-256x256.webp',import.meta.url).href : atlas);
-  image.setAttribute('width',wine?'256':'1536');image.setAttribute('height',wine?'256':'1536');
-  image.setAttribute('clip-path',`url(#${clipId})`);
+  image.setAttribute('href', foodAtlas(atlas)); image.setAttribute('width', String(FOOD_CELL * 4)); image.setAttribute('height', String(FOOD_CELL * 2));
   value.append(image);
   value.setAttribute('aria-hidden', 'true'); return value;
 }

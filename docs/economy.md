@@ -3,65 +3,146 @@
 `PRODUCT.md` controls the rules. `tools/create-original-data.ts` defines the numbers.
 This record explains the price model and the work estimates.
 
-## Money and portions
+## Money and levers
 
 One coin uses approximately one Romanian leu as its reference scale.
 This scale relates small food purchases to repair budgets.
-The model is a game budget, not a precise profit account.
-Production is free. The model does not charge for replacement ingredients or for the cost to run the bistro.
+The model is a game budget, not a precise profit account. The model does not charge for the cost to run the bistro.
 
-Each food has a menu price for the portion that the table lists.
-The menu value of a quest is the sum of its portion prices.
-A later stage does not always cost more. The portion and dish determine the price.
+Four levers set the economy. They are starting values: the campaign balance check measures them, and play tunes them.
 
-| Chain | Item and reference portion | Coins |
-| --- | --- | ---: |
-| Bread | Flour, one small bag | 2 |
-| Bread | Dough, one portion to prepare | 4 |
-| Bread | Pogăcele, three small pieces | 12 |
-| Bread | Langoș, one dressed piece | 22 |
-| Bread | Zacuscă toast, one plate | 28 |
-| Bread | Bread basket, one table basket | 35 |
-| Warm | Cornmeal, one small bag | 2 |
-| Warm | Mămăligă, one side portion | 8 |
-| Warm | Bulz, one main portion | 32 |
-| Warm | Smoked cheese plate, one plate | 40 |
-| Warm | Cabbage rolls, one meat main portion | 50 |
-| Warm | Goulash pot, two main portions | 80 |
-| Dessert | Walnuts, one small ingredient portion | 3 |
-| Dessert | Doughnut, one piece | 8 |
-| Dessert | Papanași, one dessert portion | 32 |
-| Dessert | Plum dumplings, one dessert portion | 28 |
-| Dessert | Cozonac, one small loaf | 40 |
-| Dessert | Chimney cake, one cake | 35 |
-| Drinks | Elderflowers, one small fresh bunch | 1 |
-| Drinks | Socată, one glass | 12 |
-| Drinks | Fruit tea, one small pot | 18 |
-| Drinks | Cherry compote, one small jar | 20 |
-| Drinks | Red wine, one small carafe | 35 |
-| Drinks | Plum brandy, one small carafe | 40 |
-| Produce | Aubergine, one small vegetable | 3 |
-| Produce | Peppers, one small ingredient portion | 3 |
-| Produce | Roasted vegetables, one side plate | 18 |
-| Produce | Zacuscă, one small jar | 24 |
-| Produce | Wild mushroom sauce, two small portions | 28 |
-| Produce | Sharing board, a board for two | 65 |
+| Lever | Value |
+| --- | ---: |
+| Take cost: the coins that one take from a paid source spends | 1 |
+| Blocker coin: the coins that each cleared blocker gives | 1 |
+| Work rate: the coins that each merge adds to a menu price | 1 |
+| Recovery floor: the purse below which the recovery quest opens while a quest is open | 10 |
 
-The project defines these portion prices with reference to Romanian shops and restaurants.
-The model does not copy a menu or claim that every restaurant has these prices.
-The raw ingredient prices stay between 1 and 3 coins.
+A take from the Herb basket is free. A take from each other source spends the take cost.
+The bistro buys its staples: the Windmill sells grain, the butcher sells pork and veal, and so on.
+
+## Menu prices
+
+A formula gives the menu price of each dish:
+
+price = paid staples × take cost + merges × work rate
+
+- Paid staples are the stage-1 staples that the dish uses. A Herbs staple counts as zero.
+- Merges are the merges from the staples to the dish, recipe merges included.
+
+A dish at stage s of a chain uses 2^(s-1) staples and 2^(s-1) - 1 merges.
+A mixed dish adds the staples and the merges of its two parts, plus one merge.
+For example, Bulz uses Mămăligă (8 Corn staples, 7 merges) and Telemea (8 Dairy staples, 7 merges), plus one recipe merge.
+Its price is 16 × 1 + 15 × 1 = 31 coins.
+
 Merge chains are game rules, not recipes for food preparation.
+
+| Chain | Dish | Paid staples | Merges | Coins |
+| --- | --- | ---: | ---: | ---: |
+| Grain | Flour | 1 | 0 | 1 |
+| Grain | Dough | 2 | 1 | 3 |
+| Grain | Loaf | 4 | 3 | 7 |
+| Grain | Pogăcele | 8 | 7 | 15 |
+| Grain | Langoș | 16 | 15 | 31 |
+| Grain | Bread basket | 32 | 31 | 63 |
+| Corn | Corn cob | 1 | 0 | 1 |
+| Corn | Shelled corn | 2 | 1 | 3 |
+| Corn | Cornmeal | 4 | 3 | 7 |
+| Corn | Mămăligă | 8 | 7 | 15 |
+| Herbs | Elderflowers | 0 | 0 | 0 |
+| Herbs | Herb bunch | 0 | 1 | 1 |
+| Herbs | Socată | 0 | 3 | 3 |
+| Herbs | Linden tea | 0 | 7 | 7 |
+| Dairy | Milk | 1 | 0 | 1 |
+| Dairy | Sour cream | 2 | 1 | 3 |
+| Dairy | Cottage cheese | 4 | 3 | 7 |
+| Dairy | Telemea | 8 | 7 | 15 |
+| Dairy | Smoked cheese | 16 | 15 | 31 |
+| Dairy | Cheese board | 32 | 31 | 63 |
+| Poultry | Eggs | 1 | 0 | 1 |
+| Poultry | Chicken | 2 | 1 | 3 |
+| Poultry | Chicken broth | 4 | 3 | 7 |
+| Poultry | Roast chicken | 8 | 7 | 15 |
+| Vegetables | Potatoes | 1 | 0 | 1 |
+| Vegetables | Vegetable basket | 2 | 1 | 3 |
+| Vegetables | Pickled cabbage | 4 | 3 | 7 |
+| Vegetables | Roasted vegetables | 8 | 7 | 15 |
+| Vegetables | Zacuscă | 16 | 15 | 31 |
+| Vegetables | Vegetable stew | 32 | 31 | 63 |
+| Fruits | Plums | 1 | 0 | 1 |
+| Fruits | Fruit bowl | 2 | 1 | 3 |
+| Fruits | Cherry compote | 4 | 3 | 7 |
+| Fruits | Plum jam | 8 | 7 | 15 |
+| Fruits | Red wine | 16 | 15 | 31 |
+| Fruits | Plum brandy | 32 | 31 | 63 |
+| Pork | Pork | 1 | 0 | 1 |
+| Pork | Minced pork | 2 | 1 | 3 |
+| Pork | Sausages | 4 | 3 | 7 |
+| Pork | Smoked bacon | 8 | 7 | 15 |
+| Pork | Roast pork | 16 | 15 | 31 |
+| Beans | White beans | 1 | 0 | 1 |
+| Beans | Lentils | 2 | 1 | 3 |
+| Beans | Green beans | 4 | 3 | 7 |
+| Beans | Bean dip | 8 | 7 | 15 |
+| Beans | Bean stew | 16 | 15 | 31 |
+| Lamb | Lamb | 1 | 0 | 1 |
+| Lamb | Lamb cuts | 2 | 1 | 3 |
+| Lamb | Lamb chops | 4 | 3 | 7 |
+| Lamb | Lamb stew | 8 | 7 | 15 |
+| Lamb | Roast lamb | 16 | 15 | 31 |
+| Veal | Veal | 1 | 0 | 1 |
+| Veal | Diced veal | 2 | 1 | 3 |
+| Veal | Minced veal | 4 | 3 | 7 |
+| Veal | Meatballs | 8 | 7 | 15 |
+| Veal | Veal stew | 16 | 15 | 31 |
+| Veal | Roast veal | 32 | 31 | 63 |
+| Fish | Fresh trout | 1 | 0 | 1 |
+| Fish | Fried trout | 2 | 1 | 3 |
+| Fish | Smoked trout | 4 | 3 | 7 |
+| Fish | Saramură | 8 | 7 | 15 |
+| Mixed | Bulz (Mămăligă + Telemea) | 16 | 15 | 31 |
+| Mixed | Papanași (Dough + Cottage cheese) | 6 | 5 | 11 |
+| Mixed | Cheese pie (Dough + Telemea) | 10 | 9 | 19 |
+| Mixed | Sweet dough (Dough + Eggs) | 3 | 2 | 5 |
+| Mixed | Chicken noodle soup (Chicken broth + Dough) | 6 | 5 | 11 |
+| Mixed | Zacuscă toast (Loaf + Zacuscă) | 20 | 19 | 39 |
+| Mixed | Plum dumplings (Potatoes + Plums) | 2 | 1 | 3 |
+| Mixed | Fruit tea (Herb bunch + Fruit bowl) | 2 | 3 | 5 |
+| Mixed | Cabbage rolls (Minced pork + Pickled cabbage) | 6 | 5 | 11 |
+| Mixed | Stuffed peppers (Minced pork + Vegetable basket) | 4 | 3 | 7 |
+| Mixed | Tochitură (Roast pork + Mămăligă) | 24 | 23 | 47 |
+| Mixed | Sharing board (Smoked cheese + Sausages) | 20 | 19 | 39 |
+| Mixed | Bean soup (White beans + Smoked bacon) | 9 | 8 | 17 |
+| Mixed | Beans with sausages (Bean stew + Sausages) | 20 | 19 | 39 |
+| Mixed | Drob (Lamb cuts + Eggs) | 3 | 2 | 5 |
+| Mixed | Goulash pot (Diced veal + Vegetable basket) | 4 | 3 | 7 |
+| Mixed | Meatball soup (Meatballs + Herb bunch) | 8 | 9 | 17 |
+| Mixed | Mici (Minced veal + Minced pork) | 6 | 5 | 11 |
+| Mixed | Fish soup (Fresh trout + Vegetable basket) | 3 | 2 | 5 |
+| Mixed | Cabbage rolls with mămăligă (Cabbage rolls + Mămăligă) | 14 | 13 | 27 |
+| Mixed | Bean soup in a bread bowl (Bean soup + Loaf) | 13 | 12 | 25 |
+| Mixed | Saramură with mămăligă (Saramură + Mămăligă) | 16 | 15 | 31 |
+| Mixed | Cozonac (Sweet dough + Fruit bowl) | 5 | 4 | 9 |
+| Mixed | Chimney cake (Sweet dough + Milk) | 4 | 3 | 7 |
 
 ## Quest rewards
 
-Quests earn campaign coins. Quests are the only income.
-Every quest pays its menu value: the sum of the prices of its portions.
-The number of quests that open before each preparation makes the quest income cover the preparation costs.
+Quests and cleared blockers are the only income.
+Every quest except the supper pays its menu value: the sum of the prices of its portions.
+So a delivery pays back the staples of its dishes and earns the work rate for each merge. The supper pays nothing.
 
 A quest that opens after preparation N is necessary for preparation N + 1.
-For each preparation, the available quest rewards must total at least the cost of all preparations to that point.
-`questProblems` in `src/content.ts` checks this rule before the data can ship.
-A player who delivers every open quest has enough coins for the next preparation.
+The work value of a quest is the merges of its dishes times the work rate.
+For each preparation, the work value of the quests that open before it must total at least the cost of all preparations to that point.
+The coins that remain after the last preparation must buy the staples of the supper.
+`questProblems` in `src/content.ts` checks these rules before the data can ship.
+A player who delivers every open quest and buys only its staples has enough coins for the next preparation.
+
+A new game starts with no coins. The first quest asks only for free herbs.
+The early quests also ask for Linden tea and socată, which need no paid staple. Their work value gives the purse the coins to buy staples for the next quests.
+
+The recovery quest is the safety net. Ana asks for one Linden tea while a quest is open and the purse is below the recovery floor, or while no quest is open and the purse cannot pay the next preparation.
+A player who spends coins on spare food repays the shortfall with tea, and is never stuck.
 
 ## Work and price
 
@@ -142,7 +223,7 @@ The 24 preparations total 57 estimated person-hours and 5585 coins.
 
 A preparation can cost less than the preparation before it.
 Late menu or display work does not cost more only because the work occurs late in the story.
-The necessary quests determine the play effort.
+The necessary quests determine the play effort: with a work rate of 1, the campaign needs about 6,300 merges and 6,900 takes.
 The game has no separate goal currency, timer, or chapter reset.
 
 ## Reference inputs
@@ -179,20 +260,28 @@ Verify the source and the portion before a price revision.
 ## Verification and limits
 
 Run `node tools/campaign-balance.ts`.
-The report gives costs, work, actions, takes, merges, deliveries, and coins for each preparation and chapter.
+The report gives costs, work, actions, takes, merges, deliveries, recovery deliveries, and coins for each preparation and chapter.
+It also gives the free cells at each preparation, the purse after the supper, and the coins spent on preparations and takes.
 
 The campaign fixture is the play code in `tools/campaign-balance.ts`.
-The fixture plays a fresh game with one repeatable policy.
+The fixture plays a fresh game with one repeatable policy, with no injected coins or items.
 The fixture pays each preparation when payment becomes available.
-Otherwise, the fixture delivers the first quest that has a ticket.
-The fixture makes each required dish from stage-one ingredients and merges.
-If the board is full, the fixture merges spare food: a pair, or a match for a blocked ingredient. A full board without such a merge is a deadlock, and the fixture fails.
+Otherwise, it delivers the ticket whose staples cost the least, and it delivers the recovery quest only while the purse cannot buy a staple.
+The fixture makes each required dish from spare food on the board, or from stage-one staples, merges, and recipes.
+If the board is full, the fixture merges spare food: a pair, a recipe, or a match for a blocked dish. A full board without such a merge is a deadlock, and the fixture fails.
+After the last preparation, the fixture serves the supper.
+The balance band: the purse after the supper holds 0 to 10% of the coins that the fixture spent on preparations and takes.
+
+With the current levers, the fixture takes 13,315 actions: 6,906 takes and 6,302 merges.
+It spends 5,585 coins on preparations and 6,267 coins on takes, and it delivers the recovery quest once, at the start.
+The purse after the supper holds 525 coins, 4.4% of the spending.
+The fixture never clears a blocker, so these figures earn no blocker coin.
 
 This check measures actions under that policy. This check does not establish a satisfactory human play experience.
-The first repair is the largest balance uncertainty: the player does substantial work before the first room reward.
-Play an early chapter and a late chapter before a price revision.
+The campaign needs more actions than a free-production campaign, because each merge earns one coin. Raise the work rate to shorten it, and then reduce the quests to keep the balance band.
+Play an early chapter and a late chapter before a lever change.
 Record the device, initial save, action counts, and elapsed human play time.
 Do not convert automated execution time to player time.
 
-A price change changes the reward of each quest that needs the item.
-Run `npm run data:generate` and `npm test` after each price or reward change.
+A lever change changes the price of each dish and the reward of each quest.
+Run `npm run data:generate`, `node tools/campaign-balance.ts`, and `npm test` after each lever or quest change.

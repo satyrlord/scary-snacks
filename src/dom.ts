@@ -22,5 +22,6 @@ const plural = new Intl.PluralRules(locale);
 export const count = new Intl.NumberFormat(locale);
 export const compact = new Intl.NumberFormat(locale, { notation:'compact', maximumFractionDigits:1, roundingMode:'trunc' });
 export const names = new Intl.ListFormat(locale, { type:'conjunction' });
+export const either = new Intl.ListFormat(locale, { type:'disjunction' });
 export const coinWord = (value: number) => plural.select(value) === 'one' ? 'coin' : 'coins';
 export const coinText = (value: number) => `${count.format(value)} ${coinWord(value)}`;

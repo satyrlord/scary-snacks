@@ -10,8 +10,10 @@ Copy the accepted candidate, or its processed result, to `public/assets/original
 Give each processing step in the `generation` field of its provenance entry.
 Do not put a second file in that folder. The test fails for a file with no record.
 The game never loads a master.
-If the replacement moves a subject inside an atlas, update the cell rectangles.
-They are `spriteBounds`, `blockerFrames`, and `preparationFrames` in `src/art.ts`, and the mascot positions in `src/style.css`.
+Keep each food picture inside its assigned cell in the four-by-two grid.
+Food uses the whole cell, with no measured crop.
+For other atlases, update the cell rectangles if the replacement moves a subject.
+Use `blockerFrames`, `preparationFrames`, and portrait crops in `src/art.ts`, and the mascot positions in `src/style.css`.
 Update the records before you make variants with `npm run assets:build`.
 
 ## Update the two records

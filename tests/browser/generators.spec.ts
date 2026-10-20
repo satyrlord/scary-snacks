@@ -4,8 +4,9 @@ import { unresolvedObstacle } from '../../src/model.ts';
 import type { GameState } from '../../src/model.ts';
 import { appearance, checkpoint, data, saved, start } from './support.ts';
 
-const afterPreparations = (count: number) => checkpoint(count, { ready: true });
-const source = (page: Page, state: GameState, chain = 'bakery') =>
+/** The game after count preparations, with coins for paid takes. */
+const afterPreparations = (count: number) => checkpoint(count, count < data.tasks.length ? { ready: true } : { coins: 100 });
+const source = (page: Page, state: GameState, chain = 'grain') =>
   page.locator(`[data-cell="${state.board.findIndex(cell => cell?.code === `generator_${chain}`)}"]`);
 
 for (const count of [0, 12, 20, 24]) test(`sources give only stage-one ingredients after ${count} preparations`, async ({ page }) => {
@@ -13,15 +14,18 @@ for (const count of [0, 12, 20, 24]) test(`sources give only stage-one ingredien
   await start(page, initial);
   const tile = source(page, initial);
   await tile.click();
-  await expect(page.locator('#item-detail.source-detail')).toContainText('Tap again for Flour.');
+  await expect(page.locator('#item-detail.source-detail')).toContainText('Tap again for Flour: 1 coin each.');
   await expect(page.locator('#item-detail').getByRole('button')).toHaveCount(1);
-  await expect(page.locator('#item-detail')).not.toContainText(data.items.bakery_2.name);
+  await expect(page.locator('#item-detail')).not.toContainText(data.items.grain_2.name);
   const before = await saved(page);
   await tile.click();
   const after = await saved(page);
-  expect(after.board.filter(cell => cell?.code === 'bakery_1')).toHaveLength(before.board.filter(cell => cell?.code === 'bakery_1').length + 1);
-  expect(after.board.filter(cell => cell?.code === 'bakery_2')).toHaveLength(before.board.filter(cell => cell?.code === 'bakery_2').length);
-  expect(after.outputChoices).toEqual(before.outputChoices);
+  expect(after.board.filter(cell => cell?.code === 'grain_1')).toHaveLength(before.board.filter(cell => cell?.code === 'grain_1').length + 1);
+  expect(after.board.filter(cell => cell?.code === 'grain_2')).toHaveLength(before.board.filter(cell => cell?.code === 'grain_2').length);
+  expect(after.coins).toBe(before.coins - data.economy.takeCost);
+  // The Herb basket is free, and its line says so once.
+  await source(page, after, 'herbs').click();
+  await expect(page.locator('#item-detail.source-detail')).toContainText(`Tap again for ${data.items.herbs_1.name}: free. No limit.`);
 });
 
 for (const count of [12, 20]) test(`preparation ${count} does not announce a new source output`, async ({ page }) => {
@@ -47,17 +51,18 @@ test('keyboard source activation produces stage one repeatedly and keeps focus',
     await expect(button).toHaveCSS('outline-width', '3px');
   }
   const after = await saved(page);
-  expect(after.board.filter(cell => cell?.code === 'bakery_1')).toHaveLength(before.board.filter(cell => cell?.code === 'bakery_1').length + 2);
-  expect(after.outputChoices).toEqual({});
+  expect(after.board.filter(cell => cell?.code === 'grain_1')).toHaveLength(before.board.filter(cell => cell?.code === 'grain_1').length + 2);
+  expect(after.coins).toBe(before.coins - 2 * data.economy.takeCost);
 });
 
 for (const viewport of [{ width: 360, height: 740 }, { width: 390, height: 844 }, { width: 412, height: 915 }]) {
   test(`repeated source taps keep the board still at ${viewport.width} by ${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    const initial = afterPreparations(20);
+    // Quests are open and the purse stays above the recovery floor, so the tickets do not change while the source takes.
+    const initial = checkpoint(20, { coins: 100 });
     await start(page, initial);
-    const cell = source(page, initial, 'produce');
+    const cell = source(page, initial, 'vegetables');
     const before = (await cell.boundingBox())!;
     const x = before.x + before.width / 2, y = before.y + before.height / 2;
     await page.mouse.click(x, y);
@@ -65,28 +70,28 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 390, height: 844 }
     expect(await cell.boundingBox()).toEqual(before);
     await page.mouse.click(x, y);
     const after = await saved(page);
-    expect(after.board.filter(cell => cell?.code === 'produce_1')).toHaveLength(initial.board.filter(cell => cell?.code === 'produce_1').length + 2);
+    expect(after.board.filter(cell => cell?.code === 'vegetables_1')).toHaveLength(initial.board.filter(cell => cell?.code === 'vegetables_1').length + 2);
   });
 }
 
-test('a saved higher-output choice stays valid but taps take stage one', async ({ page }) => {
+test('each take from a paid source spends its cost across reload, and the Herb basket stays free', async ({ page }) => {
   const initial = afterPreparations(20);
-  initial.outputChoices = { bakery: 'bakery_3' };
   await start(page, initial);
   await source(page, initial).click();
   await source(page, initial).click();
   const after = await saved(page);
-  expect(after.outputChoices).toEqual(initial.outputChoices);
-  expect(after.board.filter(cell => cell?.code === 'bakery_1')).toHaveLength(initial.board.filter(cell => cell?.code === 'bakery_1').length + 2);
+  expect(after.coins).toBe(initial.coins - 2 * data.economy.takeCost);
+  expect(after.board.filter(cell => cell?.code === 'grain_1')).toHaveLength(initial.board.filter(cell => cell?.code === 'grain_1').length + 2);
   await page.reload();
-  await source(page, after).click();
-  expect((await saved(page)).board.filter(cell => cell?.code === 'bakery_1')).toHaveLength(after.board.filter(cell => cell?.code === 'bakery_1').length + 1);
+  await source(page, after, 'herbs').click();
+  const herbs = await saved(page);
+  expect(herbs.coins).toBe(after.coins);
+  expect(herbs.board.filter(cell => cell?.code === 'herbs_1')).toHaveLength(after.board.filter(cell => cell?.code === 'herbs_1').length + 1);
 });
 
-test('a full board cannot take another ingredient or change a saved choice', async ({ page }) => {
+test('a full board cannot take another ingredient and spends nothing', async ({ page }) => {
   const initial = afterPreparations(20);
-  initial.outputChoices = { bakery: 'bakery_2' };
-  initial.board = initial.board.map((cell, index) => cell ?? (unresolvedObstacle(initial, index, data) ? null : { code: 'bakery_1' }));
+  initial.board = initial.board.map((cell, index) => cell ?? (unresolvedObstacle(initial, index, data) ? null : { code: 'grain_1' }));
   await start(page, initial);
   await source(page, initial).click();
   await expect(page.locator('#status')).toContainText('The board is full.');
@@ -103,7 +108,7 @@ test('touch takes stage one with reduced motion', async ({ browser, baseURL }) =
     const before = await saved(page);
     await source(page, before).tap();
     const after = await saved(page);
-    expect(after.board.filter(cell => cell?.code === 'bakery_1')).toHaveLength(before.board.filter(cell => cell?.code === 'bakery_1').length + 1);
+    expect(after.board.filter(cell => cell?.code === 'grain_1')).toHaveLength(before.board.filter(cell => cell?.code === 'grain_1').length + 1);
     expect(await page.locator('#board').evaluate(board => board.getAnimations({ subtree: true }).length)).toBe(0);
   } finally { await context.close(); }
 });

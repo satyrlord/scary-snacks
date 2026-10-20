@@ -10,10 +10,10 @@ const pay = (page: Page) => page.locator('#story').getByRole('button', { name: /
 const goal = (page: Page, kind: string) => page.locator(`#story .preparation-requirements [data-requirement="${kind}"]`);
 const needed = requiredQuests(0, data);
 /** Every quest of the first preparation is delivered but the last, whose dishes are on the board, and the coins reach the cost with its reward. */
-function lastQuestReady() {
-  const state = createGame(data), last = needed.at(-1)!;
-  state.completedQuests = needed.slice(0, -1).map(quest => quest.id); state.coins = first.cost - last.reward;
-  return { state: supply(state, supplies(last)), last };
+function lastQuestReady(index = 0, extra: string[] = []) {
+  const quests = requiredQuests(index, data), state = checkpoint(index), last = quests.at(-1)!;
+  state.completedQuests.push(...quests.slice(0, -1).filter(quest => !state.completedQuests.includes(quest.id)).map(quest => quest.id)); state.coins = data.tasks[index].cost - last.reward;
+  return { state: supply(state, [...supplies(last), ...extra]), last };
 }
 
 for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 800 }]) {
@@ -69,10 +69,10 @@ for(const viewport of [{width:1280,height:800},{width:390,height:800},{width:320
 test('cost expansion survives board redraws for the same preparation and resets on reload',async({page})=>{
   const state=createGame(data);await start(page,state);
   await page.getByRole('button',{name:'Work and cost',exact:true}).click();
-  await tile(page,1).click();
+  await tile(page,31).click();
   await expect(page.locator('#story [data-work-cost]')).toHaveAttribute('aria-expanded','true');
   await expect(page.locator('#story .task-cost')).toBeVisible();
-  expect(await saved(page)).toEqual(act(state,{type:'spawn',index:1}));
+  expect(await saved(page)).toEqual(act(state,{type:'spawn',index:31}));
   await page.reload();await opened(page);
   await expect(page.locator('#story [data-work-cost]')).toHaveAttribute('aria-expanded','false');
   await expect(page.locator('#story .task-cost')).toBeHidden();
@@ -129,8 +129,8 @@ test('completed quests leave only the missing coins, with exact totals in Cost d
 test('source placement is the only visible requirement until a merge frees a space',async({page})=>{
   const index=data.tasks.findIndex(task=>task.unlock),task=data.tasks[index];
   const state=checkpoint(index,{ready:true});
-  state.board.forEach((cell,at)=>{if(!cell&&!unresolvedObstacle(state,at,data))state.board[at]={code:'bakery_6'};});
-  state.discovered.push('bakery_6');expect(validate(state)).toBe(true);
+  state.board.forEach((cell,at)=>{if(!cell&&!unresolvedObstacle(state,at,data))state.board[at]={code:'grain_6'};});
+  state.discovered.push('grain_6');expect(validate(state)).toBe(true);
   await start(page,state);
   const source=data.items[`generator_${task.unlock}`].name;
   await expect(page.locator('#story .preparation-requirements li')).toHaveText([`Free a board space for the ${source}.`]);
@@ -167,17 +167,18 @@ test('delivering the last required quest makes the phone offer ready', async ({ 
 test('a ready preparation keeps guide Stop visible after delivery clears the selected dish', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  const fixture = lastQuestReady();
-  const state = supply(fixture.state, ['warm_4']);
-  state.discovered.push('warm_5');
+  // The last quest of the ninth preparation takes the Smoked cheese that the guide to the Sharing board selects: it is Smoked cheese and Sausages.
+  const fixture = lastQuestReady(8, ['pork_3']), state = fixture.state, sharing = data.items['mixed_sharing-board'];
+  expect(sharing.recipe).toEqual(['dairy_5', 'pork_3']); expect(supplies(fixture.last)).toContain('dairy_5'); expect(supplies(fixture.last)).not.toContain(sharing.id);
+  state.discovered.push(sharing.id);
   await start(page, state);
   await page.locator('#recipes-button').click();
-  await page.getByRole('button', { name: data.items.warm_5.name, exact: true }).click();
+  await page.getByRole('button', { name: sharing.name, exact: true }).click();
   await page.getByRole('button', { name: 'Show me on the board' }).click();
-  await expect(page.locator('#board .selected')).toHaveAttribute('aria-label', /Smoked cheese plate/);
+  await expect(page.locator('#board .selected')).toHaveAttribute('aria-label', new RegExp(`: ${data.items.dairy_5.name}`));
   await deliverButton(page, fixture.last).click();
   await expect(page.locator('#board .selected')).toHaveCount(0);
-  await expect(page.locator('#hint-button')).toHaveAccessibleName(`Stop guide for ${data.items.warm_5.name}`);
+  await expect(page.locator('#hint-button')).toHaveAccessibleName(`Stop guide for ${sharing.name}`);
   await expect(page.locator('#hint-button')).toBeVisible();
   await expect(page.locator('#offer')).toBeHidden();
   await expect(page.locator('#story-button')).toHaveAttribute('data-ready', '');
@@ -193,7 +194,7 @@ test('a ready preparation keeps guide Stop visible after delivery clears the sel
 
 test('the last delivery returns focus to Story when the selected cell is in the lowered phone drawer',async({page})=>{
   await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'reduce'});
-  const {state,last}=lastQuestReady();await start(page,state);await tile(page,1).click();
+  const {state,last}=lastQuestReady();await start(page,state);await tile(page,31).click();
   await page.locator('#drawer-handle').click();await expect(page.locator('#drawer-body')).toHaveAttribute('inert','');
   await deliverButton(page,last).focus();await page.keyboard.press('Enter');
   await expect(toast(page)).toContainText('Earned');await expect(page.locator('#story-button')).toBeFocused();

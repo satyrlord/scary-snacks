@@ -59,10 +59,12 @@ test('local news from the road arrives with the third delivery after the shared 
   let state=delivered(deliverable(search),search.id);
   // Two later quests are delivered through the rules. When no quest is open, the next preparation is paid to open more.
   const next=()=>{
-    while(!resolveQuests(state,data).some(view=>view.status==='active')){
+    // The recovery quest keeps no record, so it is never one of these deliveries.
+    const open=()=>resolveQuests(state,data).filter(view=>view.status==='active'&&!view.quest.recovery);
+    while(!open().length){
       state.coins=data.tasks[state.taskIndex].cost;state=act(state,{type:'task'});for(const id of [...state.pendingScenes])state=act(state,{type:'readScene',id});
     }
-    return resolveQuests(state,data).find(view=>view.status==='active')!.quest;
+    return open()[0].quest;
   };
   for(let count=0;count<2;count++){const value=next();state=delivered(state,value.id);}
   expect(state.pendingScenes).toEqual([]);
@@ -103,13 +105,13 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const
   await dialogDeliver(page,search).scrollIntoViewIfNeeded();await expect(dialogDeliver(page,search)).toBeEnabled();await expect(dialogDeliver(page,search)).toBeInViewport();
 });
 
-test('Vlad’s quest shows the red wine picture on its ticket and opens the wine’s help',async({page})=>{
-  const value=quest('vlad-after-dark');expect(value.requirements.map(requirement=>requirement.item)).toContain('drinks_5');
+test('Vlad’s quest shows Red wine from the fruits atlas on its ticket and opens the wine’s help',async({page})=>{
+  const value=quest('vlad-after-dark'),wine=value.requirements.find(requirement=>requirement.item==='fruits_5')!;expect(data.items.fruits_5.name).toBe('Red wine');
   await start(page,onTicket(value));await portrait(ticket(page,value).locator('.portrait'),person('vlad').sprite);
   await winePicture(ticket(page,value));await openQuest(page,value);
-  await page.getByRole('button',{name:`1 Red wine: 0 of 1 on the board`,exact:true}).click();
+  await page.getByRole('button',{name:`${wine.quantity} Red wine: 0 of ${wine.quantity} on the board`,exact:true}).click();
   await expect(page.getByRole('dialog',{name:'Red wine',exact:true})).toBeVisible();await winePicture(page.locator('#modal'));
-  await expect(page.getByRole('dialog')).toContainText('Merge two Cherry compote to make Red wine.');
+  await expect(page.getByRole('dialog')).toContainText(`Merge two ${data.items.fruits_4.name} to make Red wine.`);
 });
 
 async function dismissDialogs(page: Page){while(await page.locator('#modal').isVisible())await page.keyboard.press('Escape');}
@@ -131,20 +133,25 @@ async function makeDish(page: Page,code: string): Promise<number>{
   await page.locator(`[data-cell="${first}"]`).click();await page.locator(`[data-cell="${second}"]`).click();await dismissDialogs(page);
   expect((await saved(page)).board[second]?.code).toBe(code);return second;
 }
+/** Red wine is its cell of the fruits atlas: the view box of its picture is that 256px cell of the 1024 by 512 variant. */
 async function winePicture(target: Locator){
-  const image=target.locator('.food image[href*="red-wine"]').first();
-  await expect(image).toHaveAttribute('href',/assets\/variants\/red-wine-256x256\.webp$/);
-  expect(await image.evaluate(async element=>{const image=new Image();image.src=element.getAttribute('href')!;await image.decode();return [image.naturalWidth,image.naturalHeight];})).toEqual([256,256]);
+  const {atlas,cell}=data.items.fruits_5.art;expect(atlas).toBe('fruits');
+  const picture=target.locator('svg.food').filter({has:target.page().locator('image[href*="food-fruits-"]')}).first();
+  await expect(picture).toHaveAttribute('viewBox',`${cell%4*256} ${Math.floor(cell/4)*256} 256 256`);
+  const image=picture.locator('image');await expect(image).toHaveAttribute('href',/assets\/variants\/food-fruits-1024x512\.webp$/);
+  expect(await image.evaluate(async element=>{const image=new Image();image.src=element.getAttribute('href')!;await image.decode();return [image.naturalWidth,image.naturalHeight];})).toEqual([1024,512]);
 }
 
 test('red wine made through the visible controls readies Vlad’s quest, and Deliver pays it once',async({page})=>{
   test.setTimeout(60000);await page.emulateMedia({reducedMotion:'reduce'});
-  const value=quest('vlad-after-dark'),initial=supply(onTicket(value),value.requirements.filter(requirement=>requirement.item!=='drinks_5').map(requirement=>requirement.item));
+  // The purse pays for the Plums from the Fruit stand.
+  const value=quest('vlad-after-dark'),dishes=supplies(value);dishes.splice(dishes.indexOf('fruits_5'),1);
+  const initial=supply(onTicket(value),dishes);initial.coins=100;
   await start(page,initial);await expect(deliverButton(page,value)).toBeDisabled();
-  const wine=await makeDish(page,'drinks_5');
+  const wine=await makeDish(page,'fruits_5');
   await expect(page.locator(`[data-cell="${wine}"]`)).toHaveAttribute('aria-label',/Red wine$/);await winePicture(page.locator(`[data-cell="${wine}"]`));
   await expect(deliverButton(page,value)).toBeEnabled();await expect(ticket(page,value).locator('.ticket-item.ready')).toHaveCount(value.requirements.length);
-  const ready=await saved(page);expect(ready.discovered).toContain('drinks_5');
+  const ready=await saved(page);expect(ready.discovered).toContain('fruits_5');expect(ready.coins).toBe(initial.coins-2**(data.items.fruits_5.stage-1)*data.economy.takeCost);
   await deliverButton(page,value).click();await expect(toast(page)).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);
   const after=await saved(page);expect(after.coins).toBe(ready.coins+value.reward);expect(after.completedQuests).toEqual([...ready.completedQuests,value.id]);
   await page.reload();await opened(page);expect(await saved(page)).toEqual(after);await expect(ticket(page,value)).toHaveCount(0);

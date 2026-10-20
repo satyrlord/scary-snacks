@@ -126,12 +126,12 @@ test('a matching merge clears preparation clutter without respawning it', async 
   await expect(tile(page, obstacle.position)).not.toHaveClass(/clutter/);
 });
 
-test('a full board defers the batch and merges place it while keeping three free cells', async ({ page }) => {
+test('a full board defers the batch and merges place it while keeping four free cells', async ({ page }) => {
   const initial = checkpoint();
-  initial.board = initial.board.map((cell, index) => cell ?? (unresolvedObstacle(initial, index, data) ? null : { code: 'bakery_1' }));
-  // Five merges of two Flours: each one frees the cell of its first Flour.
-  const flours = initial.board.flatMap((cell, index) => cell?.code === 'bakery_1' ? [index] : []);
-  const merges = Array.from({ length: 5 }, (_, at) => [flours[2 * at], flours[2 * at + 1]]);
+  initial.board = initial.board.map((cell, index) => cell ?? (unresolvedObstacle(initial, index, data) ? null : { code: 'grain_1' }));
+  // Six merges of two Flours: each one frees the cell of its first Flour. One Linden tea from scratch needs four free cells.
+  const flours = initial.board.flatMap((cell, index) => cell?.code === 'grain_1' ? [index] : []);
+  const merges = Array.from({ length: 6 }, (_, at) => [flours[2 * at], flours[2 * at + 1]]);
   await start(page, initial); await pay(page);
   let state = await saved(page);
   expect(active(state)).toHaveLength(0); expect(pendingPreparationObstacles(state, data)).toHaveLength(2);
@@ -139,11 +139,11 @@ test('a full board defers the batch and merges place it while keeping three free
   for (const [index, [from, to]] of merges.entries()) {
     await tile(page, from).click(); await tile(page, to).click();
     state = await saved(page);
-    expect(freeBoardCells(state, data)).toBe(Math.min(index + 1, 3));
-    expect(active(state)).toHaveLength(Math.max(0, index - 2));
+    expect(freeBoardCells(state, data)).toBe(Math.min(index + 1, 4));
+    expect(active(state)).toHaveLength(Math.max(0, index - 3));
   }
   expect(pendingPreparationObstacles(state, data)).toHaveLength(0);
-  await expect(page.locator('#board')).toHaveAttribute('aria-label', /3 free spaces$/);
+  await expect(page.locator('#board')).toHaveAttribute('aria-label', /4 free spaces$/);
   await page.reload(); expect(await saved(page)).toEqual(state);
 });
 

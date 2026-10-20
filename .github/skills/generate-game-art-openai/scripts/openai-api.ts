@@ -15,8 +15,9 @@ const gameData: GameData = JSON.parse(readFileSync(new URL('../../../../public/d
 type RoomStateId = `front-room-${string}` | `courtyard-${string}`;
 type SketchId = `sketch-${string}`;
 type SceneId = `scene-${string}`;
+type FoodAtlasId = `food-${string}`;
 export type AssetId =
-  | 'menu-atlas'
+  | FoodAtlasId
   | 'portraits'
   | 'regulars-1'
   | 'regulars-2'
@@ -34,7 +35,7 @@ export type AssetId =
 type Background = 'transparent' | 'opaque';
 interface AssetContract {
   background: Background;
-  shape: 'square' | 'landscape-3x1' | 'landscape-3x2' | 'portrait-3x4';
+  shape: 'square' | 'landscape-2x1' | 'landscape-3x1' | 'landscape-3x2' | 'portrait-3x4';
   columns: number;
   rows: number;
   blankCells?: readonly number[];
@@ -61,7 +62,16 @@ const portraitAtlas: AssetContract = { background: 'transparent', shape: 'square
 const sketch: AssetContract = { background: 'opaque', shape: 'square', columns: 1, rows: 1, defaultSize: '1024x1024' };
 const scene: AssetContract = { background: 'opaque', shape: 'landscape-3x2', columns: 1, rows: 1, defaultSize: '1536x1024' };
 const sceneIds = [...Array.from({ length: 9 }, (_, index) => `scene-cathedral-${index + 1}`), 'scene-ionatan-dinner', 'scene-mina-avram-meal'];
+// The food atlases of spec 012: one for each chain (its source, then its dishes in stage order) and four for the mixed dishes.
+// Each is a 4-by-2 grid; the cells after the last picture stay fully transparent.
+const foodAtlases: [id: string, pictures: number][] = [
+  ['grain', 7], ['corn', 5], ['herbs', 5], ['dairy', 7], ['poultry', 5], ['vegetables', 7], ['fruits', 7], ['pork', 6],
+  ['beans', 6], ['lamb', 6], ['veal', 7], ['fish', 5], ['soups', 8], ['mains', 7], ['sweets', 5], ['breads', 4],
+];
+const foodAtlas = (pictures: number): AssetContract => ({ background: 'transparent', shape: 'landscape-2x1', columns: 4, rows: 2,
+  ...(pictures < 8 ? { blankCells: Array.from({ length: 8 - pictures }, (_, index) => pictures + index) } : {}), defaultSize: '2048x1024' });
 const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
+  ...(Object.fromEntries(foodAtlases.map(([id, pictures]) => [`food-${id}`, foodAtlas(pictures)])) as Record<FoodAtlasId, AssetContract>),
   ...(Object.fromEntries(gameData.rooms.map(state => [state.id, roomState])) as Record<RoomStateId, AssetContract>),
   ...(Object.fromEntries(gameData.characters.map(person => [`sketch-${person.id}`, sketch])) as Record<SketchId, AssetContract>),
   ...(Object.fromEntries(sceneIds.map(id => [id, scene])) as Record<SceneId, AssetContract>),
@@ -75,13 +85,6 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
     columns: 3,
     rows: 2,
     defaultSize: '1536x1024',
-  },
-  'menu-atlas': {
-    background: 'transparent',
-    shape: 'square',
-    columns: 6,
-    rows: 6,
-    defaultSize: '1536x1536',
   },
   portraits: portraitAtlas,
   // Ten regulars use these atlases in arrival order. The last atlas has two empty lower cells.
@@ -128,6 +131,7 @@ export function validateAssetSize(assetId: unknown, size: unknown) {
     throw new Error('Use between 655,360 and 8,294,400 pixels.');
   const shapes = {
     square: [width === height, 'Use a square size for this asset.'],
+    'landscape-2x1': [width === height * 2, 'Use a 2:1 landscape size for this atlas.'],
     'landscape-3x1': [width === height * 3, 'Use a 3:1 landscape size for this strip.'],
     'landscape-3x2': [width * 2 === height * 3, 'Use a 3:2 landscape size for this asset.'],
     'portrait-3x4': [width * 4 === height * 3, 'Use a 3:4 portrait size for this room state.'],

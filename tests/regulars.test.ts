@@ -1,12 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { arrivalScene, hasArrived, journalCharacters, requiredQuests, resolveNeighbours, resolveQuests } from '../src/model.ts';
+import { arrivalScene, availableChains, dishOpen, hasArrived, journalCharacters, requiredQuests, resolveNeighbours, resolveQuests } from '../src/model.ts';
 import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import { characterProblems, dataProblems } from '../src/content.ts';
-import type { GameData } from '../src/model.ts';
+import type { GameData, Quest } from '../src/model.ts';
 import { checkpoint, data, payNext } from './support.ts';
 
 const regulars = data.characters.filter(person => person.regular);
+/** The tags of the dishes of a quest. */
+const tags = (quest: Quest) => quest.requirements.flatMap(({ item }) => data.items[item].tags);
+/** The preparations paid before a quest opens: 0 for a quest of a new game. */
+const window = (quest: Quest) => quest.afterTask === null ? 0 : data.tasks.findIndex(task => task.id === quest.afterTask) + 1;
 
 test('Dorian is a gentleman of leisure who sits for a portrait and entertains guests', () => {
   const person = data.characters.find(person => person.id === 'dorian')!;
@@ -29,13 +33,9 @@ test('twelve regulars arrive in pairs: four at the start, then with preparations
   assert.deepEqual(arrived(8).slice(-4), ['vlad', 'elisabeta', 'ileana', 'cezar']);
   assert.deepEqual(arrived(11).length, 10);
   assert.deepEqual(arrived(12).slice(-2), ['catalina', 'bran']);
-  for (const person of regulars) {
-    assert.equal(person.prefers!.length, 2);
-    assert.ok(person.prefers!.every(chain => data.chains.some(known => known.id === chain)));
-    assert.ok(person.introduction.length > 40);
-  }
+  for (const person of regulars) assert.ok(person.introduction.length > 40);
   const nobles = data.characters.filter(person => ['vlad', 'elisabeta'].includes(person.id));
-  assert.ok(nobles.every(person => person.arrivesAfter === 'task_8' && person.prefers!.join() === 'warm,drinks'));
+  assert.ok(nobles.every(person => person.arrivesAfter === 'task_8' && person.favourites!.includes('fruits_5') && person.diet?.require?.item === 'fruits_5'));
 });
 
 test('the preparation that brings a regular queues the arrival scene once, after its story scenes', () => {
@@ -80,12 +80,21 @@ test('each regular asks only after arrival, and the journal shows only arrived n
   assert.equal(resolveNeighbours(fresh, data).filter(view => !view.arrived).length, 8);
 });
 
-test('the cast check rejects a bad arrival, liked chains, a missing scene, and a shared portrait cell', () => {
+test('the cast check rejects a bad arrival, bad favourite dishes, bad diets, a missing scene, and a shared portrait cell', () => {
+  const ana = (content: GameData) => content.characters.find(person => person.id === 'ana')!;
   const cases: [string, (content: GameData) => void][] = [
     ['unknown arrival', content => { content.characters.find(person => person.id === 'bran')!.arrivesAfter = 'task_99'; }],
-    ['one liked chain', content => { content.characters.find(person => person.id === 'ana')!.prefers = ['warm']; }],
-    ['the same chain twice', content => { content.characters.find(person => person.id === 'ana')!.prefers = ['warm', 'warm']; }],
-    ['an unknown chain', content => { content.characters.find(person => person.id === 'ana')!.prefers = ['warm', 'soup']; }],
+    ['one favourite dish', content => { ana(content).favourites = ['herbs_4']; }],
+    ['four favourite dishes', content => { ana(content).favourites = ['herbs_4', 'grain_4', 'mixed_chicken-noodle-soup', 'grain_5']; }],
+    ['the same dish twice', content => { ana(content).favourites = ['herbs_4', 'herbs_4']; }],
+    ['an unknown dish', content => { ana(content).favourites = ['herbs_4', 'soup']; }],
+    ['a source as a favourite', content => { ana(content).favourites = ['herbs_4', 'generator_herbs']; }],
+    ['a liked chain', content => { ana(content).favourites = ['herbs', 'grain']; }],
+    ['a regular without favourite dishes', content => { delete ana(content).favourites; }],
+    ['favourite dishes of a core character', content => { content.characters.find(person => person.id === 'mara')!.favourites = ['herbs_4', 'grain_4']; }],
+    ['an unknown diet tag', content => { content.characters.find(person => person.id === 'catalina')!.diet!.forbid = ['meat', 'nuts' as 'meat']; }],
+    ['a diet that requires an unknown dish', content => { content.characters.find(person => person.id === 'vlad')!.diet!.require!.item = 'absent'; }],
+    ['a diet that keeps one tag apart from itself', content => { content.characters.find(person => person.id === 'avram')!.diet!.apart = ['meat', 'meat']; }],
     ['a later arrival without a scene', content => { delete content.characters.find(person => person.id === 'cezar')!.arrival; }],
     ['an arrival scene without the regular', content => { content.characters.find(person => person.id === 'cezar')!.arrival = [{ speaker: 'sorin', text: 'Hello.' }]; }],
     ['a shared portrait cell', content => { content.characters.find(person => person.id === 'bran')!.sprite = 0; }],
@@ -105,6 +114,36 @@ test('the data check rejects a regular quest before arrival or without a favouri
   late.characters.find(person => person.id === 'sanziana')!.arrivesAfter = 'task_5';
   assert.match(dataProblems(late).join(' '), /character must arrive before the quest opens/);
   const favourites = structuredClone(data);
-  favourites.characters.find(person => person.id === 'dochia')!.prefers = ['produce', 'sweet'];
-  assert.match(dataProblems(favourites).join(' '), /regular needs a dish from a favourite chain/);
+  favourites.characters.find(person => person.id === 'dochia')!.favourites = ['grain_2', 'herbs_2'];
+  assert.match(dataProblems(favourites).join(' '), /dochia-sheepskin: a regular needs a favourite dish/);
+});
+
+test('each regular has two or three favourite dishes, asks for one in each quest, and has one open at the window of each quest', () => {
+  for (const person of regulars) {
+    const favourites = person.favourites!;
+    assert.ok(favourites.length >= 2 && favourites.length <= 3, person.id);
+    assert.equal(new Set(favourites).size, favourites.length, person.id);
+    assert.ok(favourites.every(code => data.items[code] && !data.items[code].generator), person.id);
+    for (const quest of data.quests.filter(quest => quest.character === person.id)) {
+      assert.ok(quest.requirements.some(({ item }) => favourites.includes(item)), `${quest.id} asks for a favourite dish.`);
+      const chains = availableChains({ taskIndex: window(quest) }, data);
+      assert.ok(favourites.some(code => dishOpen(code, chains, data)), `${person.id} has a favourite dish open when ${quest.id} opens.`);
+    }
+  }
+});
+
+test('every quest of Vlad and Elisabeta has red wine and a meat dish and no garlic, and every quest of Cătălina keeps her fast', () => {
+  for (const id of ['vlad', 'elisabeta']) {
+    const quests = data.quests.filter(quest => quest.character === id);
+    assert.ok(quests.length >= 2, id);
+    for (const quest of quests) {
+      assert.ok(quest.requirements.some(({ item }) => item === 'fruits_5'), `${quest.id} has red wine.`);
+      assert.ok(tags(quest).includes('meat'), `${quest.id} has a meat dish.`);
+      assert.ok(!tags(quest).includes('garlic'), `${quest.id} has no garlic.`);
+    }
+  }
+  const fast = data.quests.filter(quest => quest.character === 'catalina' || quest.companions?.includes('catalina'));
+  assert.ok(fast.length >= 2);
+  // Fish is allowed in her fast.
+  for (const quest of fast) assert.ok(!tags(quest).some(tag => ['meat', 'dairy', 'egg'].includes(tag)), quest.id);
 });

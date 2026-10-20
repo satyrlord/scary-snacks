@@ -19,12 +19,13 @@ For an atlas, give these items in the prompt:
 - A transparent background with no checkerboard and no coloured matte.
 - The full sequence of the objects, from left to right and then from top to bottom.
 
-For food and portraits, match the `sprite` indexes in `tools/create-original-data.ts`.
+For food, match the `art.atlas` and `art.cell` fields in `tools/create-original-data.ts`.
+For portraits, match the `sprite` indexes in that file.
 For mascots, match the cell positions in `src/style.css`.
 For blockers, match the frame rectangles `blockerFrames` and `preparationFrames` in `src/art.ts`.
 For blockers, preserve each transparent centre and the clear cell margins that `tests/assets.test.ts` checks.
-In the food atlas, row `r` holds the six stages of chain `r`.
-The first five cells of the last row hold the five generators.
+Each chain atlas holds its source in cell 0, then its dishes in stage order.
+The four mixed-dish atlases hold dishes in their assigned cells.
 Get the dish names from `tools/create-original-data.ts`.
 Write local dish names without diacritics in the prompt. Add a short description of how the picture must show each dish.
 
@@ -44,14 +45,14 @@ Open the saved image with an image viewer.
 Measure the decoded width, the decoded height, the colour mode, and the alpha.
 The test requires a width of more than 1000 pixels.
 Check the image against the layout table in [`SKILL.md`](../SKILL.md).
-Use square sheets for food, all portrait atlases, and mascots.
+Use a four-by-two grid of 2:1 for each food atlas, with the source and the dishes in stage order.
+Use square sheets for all portrait atlases and mascots.
 Use a three-by-two grid for `board-clutter` and a four-by-three grid for `preparation-clutter`.
 Keep each blocker cell square.
-Use a separate square image for `red-wine`.
 Use a 3:4 portrait image for a room state and for a decoration painting.
 Check that each atlas has transparent pixels.
 The room states, the decoration paintings, the timber, and the runner are opaque.
-The red wine picture and both blocker atlases have transparent backgrounds.
+The food atlases and both blocker atlases have transparent backgrounds.
 
 ## Examine each cell
 
@@ -84,8 +85,8 @@ Give each defect one of these causes:
 
 1. The bitmap: the object, the cell position, the alpha, or the style.
 2. The runtime code: the cell rectangle, the clip region, the scale, or the position in `src/art.ts` or `src/style.css`.
-   The food rectangles are `spriteBounds` in `src/art.ts`.
-3. The data: a `sprite` index or a name in the content generator.
+   The food rectangles use the `art.cell` field and the four-by-two grid in `src/art.ts`.
+3. The data: an `art` field, a portrait `sprite` index, or a name in the content generator.
 
 Do not change a value until the evidence identifies the owner.
 The interface clips each food tile to its source region. A pixel from an adjacent cell shows a bitmap defect or a runtime code defect.

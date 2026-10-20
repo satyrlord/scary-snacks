@@ -1,11 +1,11 @@
 // The merge board: its spaces and blockers, the selected item and its actions under the board, and tap, drag, and keyboard play.
-import { freeBoardCells, pendingPreparationObstacles, unresolvedObstacle } from './model.ts';
-import { $, button, element, names, pulse, status } from './dom.ts';
-import { blockerMark, clutterArt, crossMark, food, sourceMark } from './art.ts';
+import { freeBoardCells, mergePartners, mergeResult, pendingPreparationObstacles, takeCost, unresolvedObstacle } from './model.ts';
+import { $, button, either, element, names, pulse, status } from './dom.ts';
+import { blockerMark, clutterArt, coinMark, crossMark, food, sourceMark } from './art.ts';
 import { activeQuests } from './tickets.ts';
 import { guidanceGoal, guidanceStep, stopGuidance } from './dishes.ts';
 import { fitPin } from './room.ts';
-import { act, character, data, definition, itemName, matchingBlocker, onReplace, redraw, select, selected, sourceOutput, state } from './session.ts';
+import { act, character, data, definition, itemName, matchingBlocker, onReplace, redraw, select, selected, sourceOutput, state, takePrice } from './session.ts';
 import { onMotionResume, phone } from './preferences.ts';
 
 // Mara's note when nothing is selected: the move gesture, in the same words as the other board guidance.
@@ -18,26 +18,34 @@ onMotionResume(() => { for(const cell of document.querySelectorAll('.cell'))cell
 /** Mara's note for a selected item, which the status region announces. On phones the note leaves out the name, which the selection strip shows. */
 function selectionLine(code: string) {
   const def = definition(code), name = phone.matches ? '' : `${itemName(code)}: `;
-  const line = def.generator ? `tap it to take more ${sourceOutput(code)}.` : def.next ? 'tap another to merge, or an empty space to move it.' : 'a final dish. Deliver it, or tap an empty space to move it.';
+  const line = def.generator ? `tap it to take more ${sourceOutput(code)}, ${takePrice(code)}.`
+    : mergePartners(code, data).length ? 'tap a marked dish to merge, or an empty space to move it.' : 'a final dish. Deliver it, or tap an empty space to move it.';
   return name ? name + line : line[0].toUpperCase() + line.slice(1);
 }
-/** Mark movable matches for the selected blocked ingredient. */
+/**
+ * The dishes that merge with a dish, in words: the same dish while it has a next stage, and each recipe partner that the player has made.
+ * An unmade partner stays covered, so the words never name it.
+ */
+const knownPartners = (code: string) => mergePartners(code, data).filter(partner => partner === code || state.discovered.includes(partner));
+const partnerNames = (code: string) => either.format([...new Set(knownPartners(code).map(itemName))]);
+/** Mark movable dishes that merge with the selected blocked dish. */
 function blockerTargets(index: number): number[] {
   const obstacle = unresolvedObstacle(state,index,data);
   if (!obstacle) return [];
   return state.board.flatMap((cell, at) => {
     const other = unresolvedObstacle(state,at,data);
-    return !other && cell?.code === obstacle.ingredient ? [at] : [];
+    return !other && cell && mergeResult(cell.code, obstacle.ingredient, data) ? [at] : [];
   });
 }
-/** Mark every legal merge destination for a selected movable dish. */
+/** Mark every legal merge destination for a selected movable dish: a match, a recipe partner, or a blocked dish that merges with it. */
 function dishTargets(index: number): number[] {
   const cell = state.board[index];
-  if (!cell || !definition(cell.code).next) return [];
+  if (!cell || definition(cell.code).generator) return [];
   return state.board.flatMap((other, at) => {
     if (at === index) return [];
     const obstacle = unresolvedObstacle(state,at,data);
-    return obstacle ? obstacle.ingredient === cell.code ? [at] : [] : other?.code === cell.code ? [at] : [];
+    const code = obstacle ? obstacle.ingredient : other?.code;
+    return code && mergeResult(cell.code, code, data) ? [at] : [];
   });
 }
 function clearSelectionButton() {
@@ -57,21 +65,21 @@ function chooseCell(index: number) {
   const obstacle = unresolvedObstacle(state,index,data);
   if (obstacle) {
     const held = selected !== null ? state.board[selected] : null;
-    if (held?.code === obstacle.ingredient) {
+    if (held && mergeResult(held.code, obstacle.ingredient, data)) {
       act({ type:'move', from:selected!, to:index }, index);
     } else if (selected === index) {
       stopGuidance(); select(null); redraw(); status(MOVE_HINT);
     } else {
       select(index);
       redraw();
-      const rule = `${obstacle.name}: tap a marked ${itemName(obstacle.ingredient)} to merge here.`;
+      const rule = `${obstacle.name}: tap a marked ${partnerNames(obstacle.ingredient)} to merge here.`;
       status(obstacle.context ? `${rule} ${obstacle.context}` : rule);
     }
     return;
   }
   const cell = state.board[index];
   const selectedObstacle = selected === null ? null : unresolvedObstacle(state,selected,data);
-  if (selectedObstacle && cell?.code === selectedObstacle.ingredient) {
+  if (selectedObstacle && cell && mergeResult(cell.code, selectedObstacle.ingredient, data)) {
     const destination = selected!;
     void Promise.resolve(act({ type:'move', from:index, to:destination }, destination)).then(() => {
       if (selected === destination && state.board[destination] && !state.board[index]) $(`[data-cell="${destination}"]`).focus({ preventScroll:true });
@@ -82,8 +90,8 @@ function chooseCell(index: number) {
   if (cell && definition(cell.code).generator) { select(index); act({ type:'spawn', index }); return; }
   if (selected === index) { stopGuidance(); select(null); redraw(); status(MOVE_HINT); return; }
   const held = selected !== null ? state.board[selected] : null;
-  // A click moves into an empty space or merges a matching pair. Any other item is selected instead; swapping needs a drag.
-  if (selected !== null && held && (!cell || (cell.code === held.code && definition(cell.code).next))) {
+  // A click moves into an empty space, merges a matching pair, or cooks a recipe. Any other item is selected instead; swapping needs a drag.
+  if (selected !== null && held && (!cell || mergeResult(held.code, cell.code, data))) {
     act({ type:'move', from:selected, to:index }, index);
     return;
   }
@@ -105,8 +113,8 @@ export function renderBoard() {
     const value = button('', `cell ${obstacle ? `obstacle ${obstacle.type}` : cell ? '' : 'empty'} ${selected === index ? 'selected' : ''} ${targets.includes(index) ? 'blocker-target' : ''} ${matches.includes(index) ? 'merge-target' : ''} ${recommended ? 'guide-target' : ''}`, () => chooseCell(index));
     value.dataset.cell = String(index);
     const what = obstacle
-      ? `${obstacle.name}, blocked ${itemName(obstacle.ingredient)}. Merge a matching movable ingredient into this space to clear it`
-      : !cell ? 'empty' : definition(cell.code).generator ? `${itemName(cell.code)}, source of ${sourceOutput(cell.code)}: tap to take an ingredient` : itemName(cell.code);
+      ? `${obstacle.name}, blocked ${itemName(obstacle.ingredient)}. Merge ${partnerNames(obstacle.ingredient)} into this space to clear it`
+      : !cell ? 'empty' : definition(cell.code).generator ? `${itemName(cell.code)}, source of ${sourceOutput(cell.code)}: tap to take an ingredient, ${takePrice(cell.code)}` : itemName(cell.code);
     value.setAttribute('aria-label', `Row ${Math.floor(index / data.board.columns) + 1}, column ${index % data.board.columns + 1}: ${what}${obstacle?.context ? `. ${obstacle.context}` : ''}`);
     if (targets.includes(index)) value.setAttribute('aria-label', `${value.getAttribute('aria-label')}. Tap to merge into the selected blocked space`);
     if (matches.includes(index)) value.setAttribute('aria-label', `${value.getAttribute('aria-label')}. Tap to merge the selected ${itemName(state.board[selected!]!.code)}${obstacle ? ' here and clear this blocker' : ' here'}`);
@@ -117,7 +125,12 @@ export function renderBoard() {
     value.setAttribute('aria-pressed', String(selected === index));
     if (cell) {
       value.append(food(cell.code));
-      if (definition(cell.code).generator) value.append(sourceMark());
+      if (definition(cell.code).generator) {
+        value.append(sourceMark());
+        // A paid source shows the coins of one take beside its mark.
+        const cost = takeCost(definition(cell.code), data);
+        if (cost) { const price = element('span', 'take-cost', String(cost)); price.prepend(coinMark()); price.setAttribute('aria-hidden', 'true'); value.append(price); }
+      }
     }
     if (obstacle) value.append(food(obstacle.ingredient));
     if (obstacle?.type === 'clutter') {
@@ -129,14 +142,14 @@ export function renderBoard() {
     }
     if (obstacle) {
       value.append(blockerMark());
-      value.title = `Merge another ${itemName(obstacle.ingredient)} into this blocked space. Tap for help.`;
+      value.title = `Merge ${partnerNames(obstacle.ingredient)} into this blocked space. Tap for help.`;
     }
     board.append(value);
   });
 }
 /** The selection strip's note: how a source works, or which neighbours on the tickets want the item. */
 function detailNote(code: string) {
-  if (definition(code).generator) return `Tap again for ${sourceOutput(code)}. No limit.`;
+  if (definition(code).generator) return `Tap again for ${sourceOutput(code)}: ${takePrice(code)}. No limit.`;
   const waiting = [...new Set(activeQuests().filter(quest => quest.requirements.some(requirement => requirement.item === code)).map(quest => character(quest.character).name))];
   return waiting.length ? `${names.format(waiting)} ${waiting.length === 1 ? 'is' : 'are'} waiting for one.` : 'No quest on the counter needs it now.';
 }
@@ -155,7 +168,7 @@ export function renderDetail() {
   container.classList.toggle('source-detail', !!cell && !!definition(cell.code).generator);
   if (obstacle) {
     const copy = element('div','blocker-copy'), rule = element('p','blocker-rule',
-      `Tap a marked ${itemName(obstacle.ingredient)} to merge here.`);
+      `Tap a marked ${partnerNames(obstacle.ingredient)} to merge here.`);
     rule.id = 'blocker-rule';
     copy.append(element('strong','blocker-title',obstacle.name),rule);
     container.append(copy,clearSelectionButton()); fitPin(); return;
@@ -166,7 +179,8 @@ export function renderDetail() {
   words.append(element('h3','',def.name));
   if (guided) words.append(element('p','detail-next',guided.short));
   else {
-    if (!def.generator) words.append(element('p','detail-next',def.next ? `Two make ${state.discovered.includes(def.next) ? itemName(def.next) : 'a new dish'}` : 'Final dish'));
+    if (!def.generator) words.append(element('p','detail-next',def.next ? `Two make ${state.discovered.includes(def.next) ? itemName(def.next) : 'a new dish'}`
+      : knownPartners(cell.code).length ? `Cook it with ${partnerNames(cell.code)}` : mergePartners(cell.code, data).length ? 'Cook it with a new dish' : 'Final dish'));
     words.append(element('p','detail-description',detailNote(cell.code)));
   }
   head.append(food(cell.code), words);
@@ -179,12 +193,12 @@ export function renderDetail() {
 }
 function findMatch() {
   for(let from=0;from<state.board.length;from++) {
-    const cell=state.board[from];if(!cell||!definition(cell.code).next)continue;
+    const cell=state.board[from];if(!cell||definition(cell.code).generator||unresolvedObstacle(state,from,data))continue;
     const blocker=matchingBlocker(cell.code);
-    if(blocker){select(from);redraw();pulse([blocker.position]);status(`Tap the blocked ${itemName(cell.code)} to merge and clear it.`);return;}
-    const to=state.board.findIndex((other,index)=>index!==from&&other?.code===cell.code);
+    if(blocker){select(from);redraw();pulse([blocker.position]);status(`Tap the blocked ${itemName(blocker.ingredient)} to merge and clear it.`);return;}
+    const to=state.board.findIndex((other,index)=>index!==from&&!!other&&!unresolvedObstacle(state,index,data)&&!!mergeResult(cell.code,other.code,data));
     // One item of the pair is selected and the other pulses, so the instruction names a single target.
-    if(to>=0){select(from);redraw();pulse([to]);status(`Tap the other ${itemName(cell.code)} to merge them.`);return;}
+    if(to>=0){const other=state.board[to]!.code;select(from);redraw();pulse([to]);status(other===cell.code?`Tap the other ${itemName(cell.code)} to merge them.`:`Tap the ${itemName(other)} to cook ${itemName(mergeResult(cell.code,other,data)!)}.`);return;}
   }
   const index=state.board.findIndex(cell=>cell&&definition(cell.code).generator);
   if(index>=0){const code=state.board[index]!.code;select(index);redraw();status(`No matches yet. Tap the ${itemName(code)} to take ${sourceOutput(code)}.`);return;}

@@ -16,16 +16,6 @@
   },
   "variants": [
     {
-      "file": "public/assets/variants/menu-atlas-1536x1536.webp",
-      "master": "menu-atlas",
-      "masterSha256": "4eb85ae860456d1174331d0d50dd43a0ff7a71405fe6a09756ed505f13f97df7",
-      "width": 1536,
-      "height": 1536,
-      "format": "webp",
-      "bytes": 762674,
-      "sha256": "aa412a2b9cf1cbc8c893035a52edae692773e6347b3ba4eceed8bc994a9d62b2"
-    },
-    {
       "file": "public/assets/variants/portraits-640x640.webp",
       "master": "portraits",
       "masterSha256": "42ecfa1970b5b6ad9a874990ca9b5ac055fc22f4fc7d3d40c8d549c751106a92",
@@ -1146,16 +1136,6 @@
       "sha256": "6910514b7b271f290046eacb6b75b3b40dc482ef9f07676eda9c4198754f49db"
     },
     {
-      "file": "public/assets/variants/red-wine-256x256.webp",
-      "master": "red-wine",
-      "masterSha256": "b936c905701f9fee4d5cbc04b0424511dd22d1131f9debfb652d8a1d72dc898d",
-      "width": 256,
-      "height": 256,
-      "format": "webp",
-      "bytes": 22026,
-      "sha256": "82330261171917e9f46aa5e484cc36b52d7db755f782c55ddb354e6ce27143d9"
-    },
-    {
       "file": "public/assets/variants/preparation-clutter-1448x1086.webp",
       "master": "preparation-clutter",
       "masterSha256": "823ffead44cd83a821085ac7d4b7a5faa7a87cb9a0a548cb9d3361b8a160b21b",
@@ -1574,6 +1554,166 @@
       "format": "webp",
       "bytes": 1166084,
       "sha256": "f6639aa965b2d67925fe4a119399c6ad3dd97e7c428a7f9a529239f41f784cda"
+    },
+    {
+      "file": "public/assets/variants/food-grain-1024x512.webp",
+      "master": "food-grain",
+      "masterSha256": "00a2e8b485f1013e1c370b78a2fb7fb6c2bed5d9a033512497c93563fda5305b",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 145982,
+      "sha256": "d218e5996d2dea9c3159455fcda31d45e0c0a893f7d7aec6ac4482acaca5696a"
+    },
+    {
+      "file": "public/assets/variants/food-corn-1024x512.webp",
+      "master": "food-corn",
+      "masterSha256": "68a872a99c1cbf21f017ee47146bf28402211ee302785d6933077348e7683f0d",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 115760,
+      "sha256": "0a3b060cc8d1d08c1ea8b168d1a2591a42fda5c7508166edcc5869c330473218"
+    },
+    {
+      "file": "public/assets/variants/food-herbs-1024x512.webp",
+      "master": "food-herbs",
+      "masterSha256": "cf4779f6bf205b6b9d99888d8a7b3165488a2c464f13482f7005f65953f0482c",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 129222,
+      "sha256": "f70552e98a3f7d5c562adedab40f4f7ab21ec45a661f9e54d9198ced60565186"
+    },
+    {
+      "file": "public/assets/variants/food-dairy-1024x512.webp",
+      "master": "food-dairy",
+      "masterSha256": "51ed9f8a7ea1aa30072257703027ba19b929993e7e073e420156f336a9418932",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 125536,
+      "sha256": "1d0afa726198bde3f89edb60dfc87c2a8fb7a693a64361592acbf7a96cb8f68f"
+    },
+    {
+      "file": "public/assets/variants/food-poultry-1024x512.webp",
+      "master": "food-poultry",
+      "masterSha256": "849e6118368643d69c096999d0861f7b11d35d34ee575a9ab4305c00501be322",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 96240,
+      "sha256": "510df42445cade9957d28d6f14de16bd0a9b66749072697cab16fa9e52598919"
+    },
+    {
+      "file": "public/assets/variants/food-vegetables-1024x512.webp",
+      "master": "food-vegetables",
+      "masterSha256": "cfaaad0c55e508a995242a74ad7df1948cf0a621d2154591bf174856ae497843",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 169842,
+      "sha256": "5839fef420e9a20f4cf454f73a93a356df3bb1296d9daa7fd738005a44be5e8a"
+    },
+    {
+      "file": "public/assets/variants/food-fruits-1024x512.webp",
+      "master": "food-fruits",
+      "masterSha256": "b92c77e78b79bf2f8439a3e2e25c4c8cfde4d1cd03ef1af17b7fe0cc3869efce",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 147764,
+      "sha256": "f39bcf4704624ed133283bf2ea728b9ed1821b73ab9caab65e976705a657cb6b"
+    },
+    {
+      "file": "public/assets/variants/food-pork-1024x512.webp",
+      "master": "food-pork",
+      "masterSha256": "eff067fb6bbbbf9b260bae4567e632abcded2130a996153a5d89b0da07ad886e",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 130278,
+      "sha256": "3c337239f88b1013affb85231965200da5ae9d6e5287c11efff2cb73c628ed43"
+    },
+    {
+      "file": "public/assets/variants/food-beans-1024x512.webp",
+      "master": "food-beans",
+      "masterSha256": "1c8f2e4e72947abf416a40b99484bcb565b7100ae27ecb94237b5e7888e27323",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 139694,
+      "sha256": "0b671d819dae48f3467038a58f865be6cef3f1c97736590fc04ff1444715e218"
+    },
+    {
+      "file": "public/assets/variants/food-lamb-1024x512.webp",
+      "master": "food-lamb",
+      "masterSha256": "ca5b9bb182352328e48e7f6a90a6f82a9cc81241e045742edd484c8044576b25",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 155512,
+      "sha256": "5186f39bda4bb0b7371109cb52f2518e38795012dd30bbc34c837f5fecdd74ab"
+    },
+    {
+      "file": "public/assets/variants/food-veal-1024x512.webp",
+      "master": "food-veal",
+      "masterSha256": "8ddc42c2070e770ee9d69e6d1b67f835875e59642e4cf4bb6d9f585d417697e6",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 155282,
+      "sha256": "f29c723cb9dc96695dfe32e713b040b3f0f150caa9258245221f6591f3d70ccb"
+    },
+    {
+      "file": "public/assets/variants/food-fish-1024x512.webp",
+      "master": "food-fish",
+      "masterSha256": "e3e86b0bddff659a5bc5b182132c37e4be7b08ea3ec5975da86dd5c8edc185de",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 127490,
+      "sha256": "8b94665474e5ae3b9b75a42cdd3d8f6fe36dfe69524f3343281a40c63596cdf0"
+    },
+    {
+      "file": "public/assets/variants/food-soups-1024x512.webp",
+      "master": "food-soups",
+      "masterSha256": "120c1d9b8936a108858482151f916c1804f8b921a66e942e50f099f391a17a0b",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 180114,
+      "sha256": "bc6f7d4342230b1875d4d5e14746e99507d77a28dcf8e26eaddababcd4cec7ac"
+    },
+    {
+      "file": "public/assets/variants/food-mains-1024x512.webp",
+      "master": "food-mains",
+      "masterSha256": "a34227f8f79520dc05a2d69da4d534da4b3fdf522aa6cfdbfd2f3c81b4a3609a",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 181840,
+      "sha256": "faf90f0eef2a6d57881128ab96f5cbb9e5dc7042b4708f24a3639a9cb898926b"
+    },
+    {
+      "file": "public/assets/variants/food-sweets-1024x512.webp",
+      "master": "food-sweets",
+      "masterSha256": "3f1447a694933ce6597aa5c3668534a7efa8ef5ace1d720de68a44e08d3c1445",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 124504,
+      "sha256": "7183d72522615dce71d5f385023ee317011a58c38e7ef4ac2d6c4bdcb241e97c"
+    },
+    {
+      "file": "public/assets/variants/food-breads-1024x512.webp",
+      "master": "food-breads",
+      "masterSha256": "ea0279208f7df53d973741c65eaa2c441b16dff5df2b59802dd5dcb6a1bb97c7",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 103040,
+      "sha256": "87fc3368ef06ee979d33497983151e40c306d7c2226f8b76cab211f358aacc33"
     }
   ]
 }

@@ -150,7 +150,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .drawer { background: var(--panel); }
 .drawer-handle { display: none; }
 .tickets { position: relative; }
-.ticket-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+/* Three quest tickets, and a fourth for the recovery quest while it is open. */
+.ticket-row { display: grid; grid-template-columns: repeat(var(--tickets, 3), minmax(0, 1fr)); }
 .ticket { position: relative; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--control-radius); box-shadow: 0 1px 2px #2a1a1029; }
 .ticket .portrait { width: 36px; height: 36px; }
 /* The face of a ticket is one target that opens the quest. Its title is the reading cue, in the accent of things that the player can press. */
@@ -167,7 +168,11 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 /* A dish that a quest needs more than once shows how many the board holds, out of how many. */
 .ticket-count { position: absolute; left: 0; bottom: 0; padding: 0 3px; border-radius: 6px; background: var(--surface); color: var(--ink); font-size: 10px; font-weight: 600; line-height: 14px; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 1px var(--line); }
 .ticket-items.many .ticket-item { width: 34px; }.ticket-items.many .food { width: 30px; height: 30px; }
+/* The recovery quest is an offer, not a campaign quest: its ticket has a dashed edge. */
+.recovery-ticket { grid-column: -2; border-style: dashed; }
+.ticket-more { color: var(--muted); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .tickets-empty { grid-column: 1 / -1; margin: 0; padding: 12px; color: var(--muted); font-size: 13px; text-align: center; }
+.ticket-row:has(.recovery-ticket) .tickets-empty { grid-column: 1 / -2; }
 .deliver-button { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 44px; padding: 6px; font-size: 13px; white-space: nowrap; }
 .deliver-button .coin { width: 16px; height: 16px; }
 .deliver-button.guide-target { outline: 2px dotted color-mix(in srgb, var(--muted) 50%, transparent); outline-offset: -4px; }
@@ -203,6 +208,9 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .cell:is(.blocker-target,.merge-target,.guide-target):focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
 .source-mark { position: absolute; right: 3px; bottom: 3px; width: 17px; height: 17px; pointer-events: none; }
 .source-mark circle { fill: var(--action); stroke: var(--tile-a); stroke-width: 1.5; }.source-mark path { stroke: var(--on-action); stroke-width: 2.6; }
+/* A paid source shows the coins of one take. The Herb basket is free and shows none. */
+.take-cost { position: absolute; left: 3px; bottom: 3px; display: flex; align-items: center; gap: 1px; padding: 0 5px 0 1px; border-radius: 9px; background: var(--panel); color: var(--ink); font-size: 11px; font-weight: 600; line-height: 16px; font-variant-numeric: tabular-nums; pointer-events: none; box-shadow: 0 0 0 1px var(--control-line); }
+.take-cost .coin { width: 14px; height: 14px; }
 .cell.hint { animation: hint-pulse .75s ease-in-out 3; }
 /* A merged or new item settles onto its tile; the first of each dish arrives with a small flourish. */
 .cell.settle .food { animation: settle .18s cubic-bezier(.16,1,.3,1); }
@@ -309,7 +317,8 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 #modal-body .item-detail p { margin: 0 0 4px; color: var(--muted); font-size: 13px; line-height: 1.6; }
 #modal-body .item-detail .item-how { color: var(--ink); font-size: 14px; }
 #modal-body .item-detail .secondary-button { margin-top: 18px; }
-.food { display: block; stroke: none; fill: none; }
+/* A dish shows only its own atlas cell. */
+.food { display: block; overflow: hidden; stroke: none; fill: none; }
 .portrait { display: block; background-image: url('../assets/variants/portraits-640x640.webp'); background-size: 200% 200%; background-repeat: no-repeat; border-radius: 50%; background-color: var(--inset); }
 .visitor-portrait { background-image: url('../assets/variants/visitor-portraits-640x640.webp'); }
 .guest-portrait { background-image: url('../assets/variants/guests-640x640.webp'); }
@@ -533,9 +542,21 @@ dialog:has(.quest-page-content) {
   .deliver-button { flex: 1; min-width: 44px; padding: 0 3px; gap: 3px; font-size: 12px; }
   .deliver-dot,.deliver-button .coin { display: none; }
   .deliver-button:disabled .deliver-word,.deliver-button:enabled .deliver-reward { display: none; }
+  /* Serve has no reward, so it keeps its word in the not-yet style. The count of the other plates keeps its own width. */
+  .deliver-button:disabled .deliver-word:only-child { display: inline; }
+  .ticket-items.many .ticket-more { flex: none; width: auto; min-width: 24px; padding-left: 4px; justify-items: center; }
   /* A ready Deliver keeps its whole word; the fanned dishes give way. */
   .deliver-button:enabled { flex: 1 0 auto; }
   .deliver-button:disabled .coin { display: block; width: 14px; height: 14px; }
+  /* Four tickets do not fit two 44px targets each, so the recovery ticket shows its face alone. Its dialog delivers. */
+  .ticket-row:has(.recovery-ticket) { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; }
+  .recovery-ticket .deliver-button { display: none; }
+  .recovery-ticket .ticket-face:has(~ .guide-target) { outline: 2px dotted color-mix(in srgb, var(--muted) 50%, transparent); outline-offset: -4px; }
+  .recovery-ticket .ticket-face:has(~ .guide-target):focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+  /* The line is as tall as a ticket, so the board stays still when a ticket replaces it. */
+  .tickets-empty { display: grid; place-items: center; min-height: 50px; padding: 0 12px; }
+  /* The source mark holds the lower corner of a small tile, so the cost of a take sits in the upper corner. */
+  .take-cost { top: 2px; bottom: auto; left: 2px; }
   .drawer-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   .kitchen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   .table { flex: none; margin-top: 4px; border-radius: var(--card-radius); background-image: url('../assets/variants/timber-tabletop-1024x1024.webp'); background-image: image-set(url('../assets/variants/timber-tabletop-1024x1024.avif') type('image/avif'), url('../assets/variants/timber-tabletop-1024x1024.webp') type('image/webp')); }
@@ -563,6 +584,7 @@ dialog:has(.quest-page-content) {
 }
 /* Narrow phones drop the word once the figure grows; the coin mark carries the unit and screen readers hear the exact total. */
 @media (max-width: 410px) { .masthead { padding-inline: 12px; gap: 8px; }.coin-count.long .coin-label { display: none; } }
+@media (max-width: 410px) { .tickets:has(.recovery-ticket) { padding-inline: 4px; }.ticket-row:has(.recovery-ticket) { gap: 4px; } }
 /* Narrow phones give the strip's words the room: a smaller dish, and below 361px no dish at all. */
 @media (max-width: 410px) { .detail-head .food { width: 34px; height: 34px; } }
 @media (max-width: 360px) { .detail-head .food,.detail-next { display: none; }.item-actions button { padding-inline: 9px; } }

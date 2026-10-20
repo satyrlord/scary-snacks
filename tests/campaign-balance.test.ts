@@ -1,58 +1,118 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { generatorOutputs, requiredQuests, resolveQuests, supperQuest } from '../src/model.ts';
-import { validateGame } from '../src/engine.ts';
+import { generatorOutputs, getItem, requiredQuests, resolveQuests, supperComplete, supperQuest } from '../src/model.ts';
+import { KEEP_FREE, validateGame } from '../src/engine.ts';
 import { runCampaignBalance } from '../tools/campaign-balance.ts';
 import type { CampaignTotals } from '../tools/campaign-balance.ts';
-import { data } from './support.ts';
+import { checkpointState } from '../tools/create-checkpoint-saves.ts';
+import { act, data, player } from './support.ts';
 
 const report = runCampaignBalance(data);
-// The quests that the preparations need: every quest except the supper and the recurring quests.
+// The quests that the preparations need: every quest except the supper and the recovery quest.
 const campaign = requiredQuests(data.tasks.length, data);
+const recovery = data.quests.find(quest => quest.recovery)!;
 
-test('the legal quest campaign reaches the supper and accounts for every action and coin by chapter and preparation', t => {
+test('the efficient run pays all 24 preparations and serves the supper with no injected coins or items', t => {
   const { totals, finalState } = report;
+  const supper = supperQuest(data)!;
   assert.equal(finalState.taskIndex, data.tasks.length);
   assert.equal(validateGame(finalState, data), true);
-  assert.deepEqual(new Set(finalState.completedQuests), new Set(campaign.map(quest => quest.id)), 'The last preparation needs every campaign quest.');
-  assert.equal(totals.quests, campaign.length);
-  // The coins left pay for the supper, so the recurring quest stays closed.
-  assert.ok(finalState.coins >= supperQuest(data)!.cost!);
-  assert.deepEqual(resolveQuests(finalState, data).filter(view => view.status === 'active').map(view => view.quest.id), [supperQuest(data)!.id]);
-  // The legal policy reads no scene, so each preparation scene and each delivered quest scene waits, with the chapter scenes in story order.
-  const story = data.chapters.flatMap((chapter, index) => [...data.tasks.filter(task => task.chapter === index + 1).map(task => task.id), chapter.id]);
+  assert.ok(supperComplete(finalState, data));
+  assert.deepEqual(new Set(finalState.completedQuests), new Set([...campaign.map(quest => quest.id), supper.id]), 'The last preparation needs every campaign quest.');
+  assert.equal(finalState.completedQuests.at(-1), supper.id);
+  assert.equal(totals.quests, campaign.length + 1 + totals.recoveries, 'Each campaign quest, the supper, and each recovery tea.');
+  // Every coin comes from a quest or a cleared blocker, and goes to a preparation or a take.
+  assert.equal(finalState.coins, totals.questCoins + totals.blockerCoins - totals.preparationCoins - totals.takeCoins);
+  assert.equal(totals.questCoins, campaign.reduce((sum, quest) => sum + quest.reward, 0) + totals.recoveries * recovery.reward);
+  assert.equal(totals.preparationCoins, data.tasks.reduce((sum, task) => sum + task.cost, 0));
+  assert.equal(totals.blockerCoins, finalState.resolvedObstacles.length * data.economy.blockerCoin);
+  assert.ok(totals.takeCoins > 0 && totals.takeCoins <= totals.spawns * data.economy.takeCost);
+  // The legal policy reads no scene, so each preparation scene, each chapter scene, and the finale wait in story order.
+  const story = [...data.chapters.flatMap((chapter, index) => [...data.tasks.filter(task => task.chapter === index + 1).map(task => task.id), chapter.id]), data.finale.id];
   assert.deepEqual(finalState.pendingScenes.filter(id => story.includes(id)), story);
   assert.deepEqual(new Set(finalState.pendingScenes.filter(id => !story.includes(id))),
     new Set([...campaign.map(quest => quest.id), ...data.quests.flatMap(quest => quest.followUp ? [quest.followUp.id] : []),
       ...data.characters.flatMap(person => person.arrival ? [`arrival-${person.id}`] : [])]));
   assert.equal(finalState.layoutId, data.board.defaultLayout);
-  assert.deepEqual(finalState.resolvedObstacles, [], 'The campaign needs no blocker release.');
   assert.ok(finalState.preparationObstacles!.placed.length >= 3);
-  assert.equal(finalState.coins, totals.questCoins - totals.preparationCoins);
-  assert.equal(totals.preparationCoins, data.tasks.reduce((sum, task) => sum + task.cost, 0));
-  assert.equal(totals.questCoins, campaign.reduce((sum, quest) => sum + quest.reward, 0));
+  assert.deepEqual(resolveQuests(finalState, data).filter(view => view.status === 'active' || view.status === 'waiting'), [], 'No quest stays open after the supper.');
+  for (const chain of data.chains) assert.deepEqual(generatorOutputs(finalState, `generator_${chain.id}`, data), [`${chain.id}_1`]);
+  t.diagnostic(`${totals.actions} actions, ${totals.spawns} takes, ${totals.merges} merges; ${totals.questCoins} quest coins, ${totals.blockerCoins} blocker coins; ${totals.takeCoins} on takes, ${totals.preparationCoins} on preparations; ${totals.recoveries} recovery teas; ${report.purse} remain.`);
+});
+
+test('the purse after the supper holds from 0 to 10% of the coins spent on preparations and takes', t => {
+  const { totals, finalState } = report;
+  assert.equal(report.purse, finalState.coins);
+  assert.equal(report.spending, totals.preparationCoins + totals.takeCoins);
+  assert.ok(report.purse >= 0, 'The purse never goes below zero.');
+  assert.ok(report.purse <= report.spending * 0.1, `${report.purse} coins is more than 10% of ${report.spending}.`);
+  t.diagnostic(`Purse ${report.purse} of ${report.spending} spent (${(100 * report.purse / report.spending).toFixed(1)}%).`);
+});
+
+test('the run records the coins, the takes, and the free cells at each preparation and each chapter', t => {
+  const { totals } = report;
   assert.deepEqual(report.chapters.map(chapter => chapter.chapter), [1, 2, 3, 4, 5, 6]);
+  assert.deepEqual(report.preparations.map(task => task.id), data.tasks.map(task => task.id));
   let balance = 0;
   for (const chapter of report.chapters) {
-    balance += chapter.questCoins - chapter.preparationCoins;
+    balance += chapter.questCoins + chapter.blockerCoins - chapter.preparationCoins - chapter.takeCoins;
     assert.equal(chapter.balance, balance, `Chapter ${chapter.chapter} records its actual balance.`);
     assert.equal(chapter.preparationCoins, report.preparations.filter(task => task.chapter === chapter.chapter).reduce((sum, task) => sum + task.cost, 0));
   }
+  // The chapters and the preparations record the same play. The supper comes after the last preparation, so only its delivery is outside them.
+  const sum = (rows: CampaignTotals[], key: keyof CampaignTotals) => rows.reduce((total, row) => total + row[key], 0);
   for (const key of Object.keys(totals) as (keyof CampaignTotals)[]) {
-    assert.equal(report.chapters.reduce((sum, chapter) => sum + chapter[key], 0), totals[key], `${key} is fully recorded by chapter.`);
-    assert.equal(report.preparations.reduce((sum, preparation) => sum + preparation[key], 0), totals[key], `${key} is fully recorded by preparation.`);
+    assert.equal(sum(report.chapters, key), sum(report.preparations, key), `${key} is the same by chapter and by preparation.`);
+    assert.ok(sum(report.preparations, key) <= totals[key], key);
   }
-  assert.deepEqual(report.preparations.map(task => task.id), data.tasks.map(task => task.id));
+  for (const key of ['questCoins', 'preparationCoins', 'blockerCoins', 'recoveries'] as const) assert.equal(sum(report.preparations, key), totals[key], `${key} is fully recorded by preparation.`);
+  assert.equal(totals.quests - sum(report.preparations, 'quests'), 1, 'Only the supper is delivered after the last preparation.');
   for (const preparation of report.preparations) {
     const authored = data.tasks.find(task => task.id === preparation.id)!;
     assert.deepEqual(preparation.work, authored.work);
     assert.equal(preparation.cost, authored.work.materials + authored.work.labour);
     assert.ok(preparation.balance >= 0);
+    assert.ok(Number.isInteger(preparation.freeCells) && preparation.freeCells >= KEEP_FREE && preparation.freeCells <= data.board.initial.length,
+      `${preparation.id} leaves room for a recovery tea.`);
   }
-  for (const chain of data.chains) assert.deepEqual(generatorOutputs(finalState, `generator_${chain.id}`, data), [`${chain.id}_1`]);
-  t.diagnostic(`${totals.actions} actions, ${totals.spawns} spawns, ${totals.merges} merges; ${totals.questCoins} quest coins; ${totals.preparationCoins} spent; ${finalState.coins} remain.`);
+  t.diagnostic(`Free cells after each preparation: ${report.preparations.map(preparation => preparation.freeCells).join(' ')}.`);
+  t.diagnostic(`Take coins by preparation: ${report.preparations.map(preparation => preparation.takeCoins).join(' ')}.`);
 });
 
 test('the legal action policy reproduces the same campaign evidence', () => {
   assert.deepEqual(runCampaignBalance(data), report);
+});
+
+test('a player who buys a spare staple before each preparation repays it with recovery teas and pays every preparation', t => {
+  const teas: number[] = [];
+  for (let count = 0; count < data.tasks.length; count++) {
+    let state = checkpointState(data, count);
+    const task = data.tasks[count];
+    assert.equal(state.coins, task.cost);
+    // One spare staple from a paid source leaves the purse short of the preparation.
+    const paid = state.board.findIndex(cell => !!cell && !!getItem(cell.code, data)?.generator && !getItem(cell.code, data)!.generator!.free);
+    state = act(state, { type: 'spawn', index: paid });
+    assert.equal(state.coins, task.cost - data.economy.takeCost);
+    let made = 0;
+    while (state.coins < task.cost) {
+      const views = resolveQuests(state, data);
+      assert.equal(views.find(view => view.quest === recovery)!.status, 'active', `${task.id}: the recovery quest opens.`);
+      assert.deepEqual(views.filter(view => !view.quest.recovery && (view.status === 'active' || view.status === 'waiting')), [], 'No campaign quest takes a ticket.');
+      // One Linden tea from free herbs: Elderflowers merge into Herb bunches, Socată, and tea, with reducer actions only.
+      const play = player(state);
+      for (const { item, quantity } of recovery.requirements) for (let portion = 0; portion < quantity; portion++) play.produce(item);
+      assert.equal(play.state.coins, state.coins, 'The herbs are free.');
+      const before = play.state;
+      state = act(before, { type: 'deliverQuest', id: recovery.id });
+      assert.equal(state.coins, before.coins + recovery.reward);
+      assert.deepEqual(state.completedQuests, before.completedQuests, 'The recovery quest is never recorded.');
+      assert.deepEqual(state.pendingScenes, before.pendingScenes, 'The recovery quest queues no scene.');
+      made++;
+    }
+    assert.equal(resolveQuests(state, data).find(view => view.quest === recovery)!.status, 'locked', `${task.id}: the recovery quest closes.`);
+    state = act(state, { type: 'task' });
+    assert.equal(state.taskIndex, count + 1);
+    teas.push(made);
+  }
+  t.diagnostic(`Recovery teas before each preparation: ${teas.join(' ')}.`);
 });

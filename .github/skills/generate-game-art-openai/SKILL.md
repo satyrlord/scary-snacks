@@ -68,7 +68,7 @@ It reads each other value from the asset:
 
 | Asset identifier | Default size | Background | Grid |
 | --- | --- | --- | --- |
-| `menu-atlas` | `1536x1536` | `transparent` | 6 columns by 6 rows |
+| `food-<atlas>` for each atlas of spec 012: `grain`, `corn`, `herbs`, `dairy`, `poultry`, `vegetables`, `fruits`, `pork`, `beans`, `lamb`, `veal`, `fish`, `soups`, `mains`, `sweets`, `breads` | `2048x1024` | `transparent` | 4 columns by 2 rows; the cells after the last picture stay fully transparent |
 | `portraits` | `1536x1536` | `transparent` | 2 columns by 2 rows |
 | `regulars-1`, `regulars-2` | `1536x1536` | `transparent` | 2 columns by 2 rows |
 | `regulars-3` | `1536x1536` | `transparent` | 2 columns by 2 rows; the lower cells stay fully transparent |
@@ -82,7 +82,7 @@ It reads each other value from the asset:
 | `sketch-<character>` for each character in `public/data/game.json` | `1024x1024` | `opaque`, then `ink` | One image, square, a pencil sketch |
 | `scene-cathedral-1` to `scene-cathedral-9`, `scene-ionatan-dinner`, `scene-mina-avram-meal` | `1536x1024` | `opaque`, then `ink` | One image, 3:2 landscape, a pencil quest scene |
 
-The helper does not accept `visitor-portraits`, `guests`, `red-wine`, `preparation-clutter`, or `parchment-page`.
+The helper does not accept `visitor-portraits`, `guests`, `preparation-clutter`, or `parchment-page`.
 Use the chat route for these assets unless the approved scope includes an API contract change.
 
 To print the contract of one asset, run `plan --asset <identifier>`, as [API generation](references/api-generation.md) tells you.

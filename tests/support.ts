@@ -62,12 +62,22 @@ export function supply(state: GameState, id: string): GameState {
 }
 export const deliver = (state: GameState, id: string) => act(supply(state, id), { type: 'deliverQuest', id });
 
-/** A player who takes only legal actions, and who makes each dish from its source and merges. */
+/**
+ * A player who takes only legal actions, and who makes each dish from its source, merges, and recipes. A recipe merges its second
+ * part into its first. A take from a paid source needs the coins in the purse.
+ */
 export function player(initial = createGame(data), content = data) {
   let state = initial;
   assert.deepEqual(dataProblems(content), [], 'The fixture data passes its checks.');
   function produce(code: string): number {
-    const source = `generator_${getItem(code, content)!.chain}`;
+    const item = getItem(code, content)!;
+    if (item.recipe) {
+      const first = produce(item.recipe[0]), second = produce(item.recipe[1]);
+      state = act(state, { type: 'move', from: second, to: first }, content);
+      assert.equal(state.board[first]?.code, code);
+      return first;
+    }
+    const source = `generator_${item.chain}`;
     if (generatorOutputs(state, source, content).includes(code)) {
       const empty = firstFreeBoardCell(state, content);
       assert.ok(empty >= 0, 'Normal production fits the board.');

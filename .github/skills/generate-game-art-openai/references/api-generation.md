@@ -36,7 +36,7 @@ If the key is not available, give the request the status `BLOCKED`.
 Print the plan. The command reads no key and sends nothing:
 
 ```powershell
-node .github/skills/generate-game-art-openai/scripts/art-image.ts plan --asset menu-atlas
+node .github/skills/generate-game-art-openai/scripts/art-image.ts plan --asset food-grain
 ```
 
 The plan rejects a size that does not agree with the asset.
@@ -44,7 +44,8 @@ It requires multiples of 16 and an aspect ratio of 1:3 to 3:1.
 It requires an edge of at most 3840 pixels and 655,360 to 8,294,400 pixels in total.
 It also requires the shape of the asset:
 
-- Square for the food, core portrait, regular portrait, and mascot atlases, the timber, and the character sketches.
+- Square for the core portrait, regular portrait, and mascot atlases, the timber, and the character sketches.
+- 2:1 for the food atlases.
 - 3:1 for the runner.
 - 3:2 for the board-clutter atlas and the quest scenes.
 - 3:4 for a room state, a decoration painting, and the supper painting.
@@ -57,7 +58,7 @@ Then run the dry run:
 
 ```powershell
 node .github/skills/generate-game-art-openai/scripts/art-image.ts generate `
-  --asset menu-atlas --prompt <prompt-file> `
+  --asset food-grain --prompt <prompt-file> `
   --out analysis/art-generation/<task>/<run> --dry-run
 ```
 
@@ -153,7 +154,7 @@ Remove `--dry-run` only for an authorized request:
 
 ```powershell
 node .github/skills/generate-game-art-openai/scripts/art-image.ts generate `
-  --asset menu-atlas --prompt <prompt-file> `
+  --asset food-grain --prompt <prompt-file> `
   --out analysis/art-generation/<task>/<run>
 ```
 
@@ -190,7 +191,7 @@ Run the measurement for a candidate, or for any bitmap:
 
 ```powershell
 node .github/skills/generate-game-art-openai/scripts/art-image.ts inspect `
-  --asset menu-atlas --input analysis/art-generation/<task>/<run>/candidate.png --size 1536x1536
+  --asset food-grain --input analysis/art-generation/<task>/<run>/candidate.png --size 2048x1024
 ```
 
 The command prints the hash, the dimensions, the mode, and the alpha counts.
@@ -198,7 +199,7 @@ It sets the exit code to 1 for an `issues` entry. An issue is one of these items
 
 - The size does not agree with `--size`, or the width is not more than 1000 pixels.
 - The image does not divide into the grid.
-- A blank cell of `regulars-3` has a pixel that is not transparent.
+- A required blank cell in a food atlas or `regulars-3` has a pixel that is not transparent.
 - A transparent asset has no alpha channel or no fully transparent pixel.
 - A cell of a transparent asset has no visible object. A visible object has pixels with an alpha of 128 or more.
 - An opaque painting has a transparent or partly transparent pixel.

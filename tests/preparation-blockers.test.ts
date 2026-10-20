@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { boardObstacles, freeBoardCells, pendingPreparationObstacles, requiredQuests, unresolvedObstacle } from '../src/model.ts';
-import { reduceGame } from '../src/engine.ts';
+import { KEEP_FREE, reduceGame } from '../src/engine.ts';
 import { dataProblems } from '../src/content.ts';
 import { exportSave, importSave, loadSave, saveGame } from '../src/storage.ts';
 import type { GameData, GameState } from '../src/model.ts';
@@ -15,7 +15,7 @@ function ready(taskIndex = 0): GameState {
   state.completedQuests = requiredQuests(taskIndex, data).map(quest => quest.id);
   state.decorations = data.tasks.slice(0, taskIndex).map(task => task.id);
   state.preparationObstacles = { start: taskIndex, placed: [] };
-  const chains = new Set(['bakery', 'warm', 'drinks', ...data.tasks.slice(0, taskIndex).flatMap(task => task.unlock ? [task.unlock] : [])]);
+  const chains = new Set(['grain', 'corn', 'herbs', ...data.tasks.slice(0, taskIndex).flatMap(task => task.unlock ? [task.unlock] : [])]);
   for (const chain of chains) if (!state.board.some(cell => cell?.code === `generator_${chain}`)) {
     state.board[state.board.indexOf(null)] = { code: `generator_${chain}` };
   }
@@ -24,13 +24,13 @@ function ready(taskIndex = 0): GameState {
   return state;
 }
 function full(state: GameState) {
-  state.board = state.board.map(cell => cell ?? { code: 'bakery_1' });
+  state.board = state.board.map(cell => cell ?? { code: 'grain_1' });
   assert.ok(validate(state));
   return state;
 }
 /** Merge the first two Flours: the first one's cell becomes free. */
 function mergeOne(state: GameState) {
-  const [from, to] = state.board.flatMap((cell, index) => cell?.code === 'bakery_1' ? [index] : []);
+  const [from, to] = state.board.flatMap((cell, index) => cell?.code === 'grain_1' ? [index] : []);
   return act(state, { type: 'move', from, to });
 }
 const active = (state: GameState) => state.preparationObstacles!.placed.filter(entry => !state.resolvedObstacles.includes(entry.id));
@@ -38,7 +38,7 @@ const active = (state: GameState) => state.preparationObstacles!.placed.filter(e
 test('all 24 preparations have two or three contextual blockers with new art and available low-stage rewards', () => {
   assert.deepEqual(dataProblems(data), []);
   assert.equal(data.board.preparations.length, 24);
-  const chains = new Set(['bakery', 'warm', 'drinks']);
+  const chains = new Set(['grain', 'corn', 'herbs']);
   let total = 0;
   for (const [index, batch] of data.board.preparations.entries()) {
     if (data.tasks[index].unlock) chains.add(data.tasks[index].unlock!);
@@ -49,7 +49,7 @@ test('all 24 preparations have two or three contextual blockers with new art and
     assert.ok(batch.obstacles.some(obstacle => obstacle.atlas === undefined));
     for (const obstacle of batch.obstacles) {
       const item = data.items[obstacle.ingredient];
-      assert.ok(chains.has(item.chain) && item.next && !item.generator && item.stage <= 2);
+      assert.ok(chains.has(item.chain) && item.next && !item.generator && item.stage <= 2, obstacle.id);
     }
     total += batch.obstacles.length;
   }
@@ -69,7 +69,7 @@ test('payment places a batch once and preserves existing items and quest progres
 
 test('failed payment leaves placed blockers, queued batches, and the input state unchanged', () => {
   let state = act(full(ready()), { type: 'task' });
-  for (let count = 0; count < 4; count++) state = mergeOne(state);
+  for (let count = 0; count <= KEEP_FREE; count++) state = mergeOne(state);
   state.completedQuests = requiredQuests(state.taskIndex, data).map(quest => quest.id);
   state.coins = 0;
   assert.equal(active(state).length, 1);
@@ -77,66 +77,102 @@ test('failed payment leaves placed blockers, queued batches, and the input state
   assert.match(rejected(state, { type: 'task' }).message, /more coins/);
 });
 
-test('full-board batches queue and drain only above three free cells, with at most three active blockers', () => {
+test('full-board batches queue while only four cells are free, drain when a fifth frees, and keep at most three active blockers', () => {
+  assert.equal(KEEP_FREE, 4);
   let state = act(full(ready()), { type: 'task' });
   assert.equal(pendingPreparationObstacles(state, data).length, 2);
-  for (let count = 1; count <= 3; count++) {
+  for (let count = 1; count <= 4; count++) {
     state = mergeOne(state);
     assert.equal(freeBoardCells(state, data), count);
     assert.equal(active(state).length, 0);
+    assert.equal(pendingPreparationObstacles(state, data).length, 2);
   }
   state = mergeOne(state);
-  assert.equal(freeBoardCells(state, data), 3);
+  assert.equal(freeBoardCells(state, data), 4);
   assert.equal(active(state).length, 1);
   state = mergeOne(state);
+  assert.equal(freeBoardCells(state, data), 4);
   assert.equal(active(state).length, 2);
   state.completedQuests = requiredQuests(state.taskIndex, data).map(quest => quest.id);
   state = act(state, { type: 'task' });
+  assert.equal(freeBoardCells(state, data), 4);
   assert.equal(pendingPreparationObstacles(state, data).length, 3);
   state = mergeOne(state);
   assert.equal(active(state).length, 3);
+  assert.equal(freeBoardCells(state, data), 4);
   state = mergeOne(state);
   assert.equal(active(state).length, 3);
+  assert.equal(freeBoardCells(state, data), 5);
   assert.equal(pendingPreparationObstacles(state, data).length, 2);
+});
+
+test('a board with four free cells holds back a waiting blocker, so one Linden tea fits from scratch', () => {
+  let state = act(full(ready()), { type: 'task' });
+  for (let count = 0; count < KEEP_FREE; count++) state = mergeOne(state);
+  assert.equal(freeBoardCells(state, data), KEEP_FREE);
+  assert.equal(pendingPreparationObstacles(state, data).length, 2);
+  const herbs = state.board.findIndex(cell => cell?.code === 'generator_herbs');
+  // Stages 1 to 3 wait on three cells while the fourth takes the next Elderflowers.
+  const make = (stage: number): number => {
+    if (stage === 1) {
+      const empty = state.board.indexOf(null), coins = state.coins;
+      state = act(state, { type: 'spawn', index: herbs });
+      assert.equal(state.board[empty]?.code, 'herbs_1');
+      assert.equal(state.coins, coins, 'The Herb basket takes for free.');
+      return empty;
+    }
+    const from = make(stage - 1), to = make(stage - 1);
+    state = act(state, { type: 'move', from, to });
+    assert.equal(state.board[to]?.code, `herbs_${stage}`);
+    return to;
+  };
+  const tea = make(4);
+  assert.equal(state.board[tea]?.code, 'herbs_4');
+  assert.equal(freeBoardCells(state, data), KEEP_FREE - 1);
+  assert.equal(active(state).length, 0);
 });
 
 test('a merge that makes a new dish and places a waiting blocker keeps both notices and discovers only the dish', () => {
   let state = act(full(ready()), { type: 'task' });
-  for (let count = 1; count <= 3; count++) state = mergeOne(state);
+  for (let count = 1; count <= KEEP_FREE; count++) state = mergeOne(state);
   state.discovered = state.discovered.filter(code => data.items[code].generator || state.board.some(cell => cell?.code === code));
   const known = [...state.discovered];
-  const [from, to] = state.board.flatMap((cell, index) => cell?.code === 'bakery_2' ? [index] : []);
+  const [from, to] = state.board.flatMap((cell, index) => cell?.code === 'grain_2' ? [index] : []);
   const result = reduceGame(state, { type: 'move', from, to }, data);
   assert.ok(result.ok && validate(result.state));
   assert.equal(active(result.state).length, 1);
-  assert.equal(result.message, `${data.items.bakery_3.name} is a new dish! It is in the recipe book now. 1 preparation blocker placed.`);
-  assert.deepEqual(result.state.discovered, [...known, 'bakery_3']);
+  assert.equal(result.message, `${data.items.grain_3.name} is a new dish! It is in the recipe book now. 1 preparation blocker placed.`);
+  assert.deepEqual(result.state.discovered, [...known, 'grain_3']);
 });
 
-test('all preparation blockers require a matching ingredient on their own cell', () => {
+test('preparation blockers clear only with a merge partner on their own cell, and each clear gives one coin', () => {
   let state = act(ready(2), { type: 'task' });
+  const coins = state.coins;
   const [clutter, anchor] = state.preparationObstacles!.placed;
   const beside = clutter.position + data.board.columns, source = beside + data.board.columns;
-  state.board[beside] = { code: 'bakery_1' }; state.board[source] = { code: 'bakery_1' };
+  state.board[beside] = { code: 'grain_1' }; state.board[source] = { code: 'grain_1' };
   state = act(state, { type: 'move', from: source, to: beside });
   assert.ok(!state.resolvedObstacles.includes(clutter.id));
+  assert.equal(state.coins, coins);
   const ingredient = unresolvedObstacle(state, clutter.position, data)!.ingredient;
   state.board[source] = { code: ingredient };
   state = act(state, { type: 'move', from: source, to: clutter.position });
   assert.ok(state.resolvedObstacles.includes(clutter.id));
   assert.equal(state.board[clutter.position]?.code, data.items[ingredient].next);
-  state.board[10] = { code: 'bakery_1' };
-  rejected(state, { type: 'move', from: 10, to: anchor.position });
-  state.board[10] = { code: 'sweet_1' }; state.discovered.push('sweet_1');
+  assert.equal(state.coins, coins + 1);
+  state.board[10] = { code: 'grain_1' };
+  assert.match(rejected(state, { type: 'move', from: 10, to: anchor.position }).message, /recipe partner/);
+  state.board[10] = { code: 'dairy_1' }; state.discovered.push('dairy_1');
   state = act(state, { type: 'move', from: 10, to: anchor.position });
-  assert.equal(state.board[anchor.position]?.code, 'sweet_2');
+  assert.equal(state.board[anchor.position]?.code, 'dairy_2');
   assert.ok(state.resolvedObstacles.includes(anchor.id));
+  assert.equal(state.coins, coins + 2);
 });
 
 test('a newly unlocked source takes the last empty cell before its blocker batch', () => {
   const state = full(ready(2)); state.board[0] = null;
   const paid = act(state, { type: 'task' });
-  assert.equal(paid.board[0]?.code, 'generator_sweet');
+  assert.equal(paid.board[0]?.code, 'generator_dairy');
   assert.equal(active(paid).length, 0);
   assert.equal(pendingPreparationObstacles(paid, data).length, 2);
 });
@@ -160,7 +196,7 @@ test('pending and partly cleared batches survive export, reload, failed writes, 
   } };
   assert.equal(saveGame(storage, state, validate).ok, true);
   const durable = structuredClone(state);
-  for (let count = 0; count < 4; count++) state = mergeOne(state);
+  for (let count = 0; count <= KEEP_FREE; count++) state = mergeOne(state);
   assert.equal(active(state)[0].position, 0);
   const obstacle = unresolvedObstacle(state, 0, data)!;
   state.board[7] = { code: obstacle.ingredient };
@@ -185,13 +221,13 @@ test('save validation rejects malformed adoption, placement, overlap, and resolu
     value => { value.preparationObstacles!.placed[1].id = value.preparationObstacles!.placed[0].id; },
     value => { value.preparationObstacles!.placed[1].position = value.preparationObstacles!.placed[0].position; },
     value => { value.preparationObstacles!.placed[0].position = 42; },
-    value => { value.board[value.preparationObstacles!.placed[0].position] = { code: 'bakery_1' }; },
+    value => { value.board[value.preparationObstacles!.placed[0].position] = { code: 'grain_1' }; },
     value => { value.preparationObstacles!.placed.pop(); value.resolvedObstacles.push(data.board.preparations[0].obstacles[1].id); },
     value => { value.layoutId = data.board.defaultLayout; },
     value => {
       value.resolvedObstacles.push(value.preparationObstacles!.placed[0].id);
-      value.board = value.board.map(cell => cell?.code === 'bakery_1' ? null : cell);
-      value.discovered = value.discovered.filter(code => code !== 'bakery_1');
+      value.board = value.board.map(cell => cell?.code === 'grain_1' ? null : cell);
+      value.discovered = value.discovered.filter(code => code !== 'grain_1');
     },
   ];
   for (const mutate of mutations) { const malformed = structuredClone(state); mutate(malformed); assert.equal(validate(malformed), false, String(mutate)); }
@@ -212,7 +248,7 @@ test('content validation rejects duplicate IDs, unavailable rewards, bad sprites
   const mutations: ((value: GameData) => void)[] = [
     value => { value.board.preparations[0].obstacles[0].id = value.board.preparations[0].obstacles[1].id; },
     value => { value.board.preparations[0].obstacles[0].id = 'old-crate'; },
-    value => { value.board.preparations[0].obstacles[0].ingredient = 'produce_1'; },
+    value => { value.board.preparations[0].obstacles[0].ingredient = 'fish_1'; },
     value => { value.board.preparations[0].obstacles[0].sprite = 12; },
     value => { value.board.preparations[0].obstacles[1].sprite = 4; },
     value => { value.board.preparations[0].obstacles.pop(); },

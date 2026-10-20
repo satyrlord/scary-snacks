@@ -6,7 +6,7 @@ import { coinMark, portrait, questSketch } from './art.ts';
 import { modal, showModal } from './dialog.ts';
 import { guidanceGoal } from './dishes.ts';
 import { holdChange, miezSprite, preloadRoom, roomPicture, SUPPER_PICTURE, toggleCat } from './room.ts';
-import { apply, changeGame, character, data, onReplace, saveFailed, saveMessage, state } from './session.ts';
+import { apply, changeGame, character, data, itemName, onReplace, saveFailed, saveMessage, state } from './session.ts';
 
 // A scene that leads on to the next waiting scene, so that focus can return to the story when the last one closes.
 let sceneFlow = false;
@@ -31,7 +31,7 @@ export function storyContent(inSheet: boolean) {
   }
   const body = element('div', 'task-content');
   const supper = supperQuest(data)!;
-  if (!task && !supperComplete(state,data)) body.append(element('h3', '', supper.title), element('p', '', `Every preparation is done. ${character(supper.character).name}’s last quest waits on the counter: pay for the supper there.`));
+  if (!task && !supperComplete(state,data)) body.append(element('h3', '', supper.title), element('p', '', `Every preparation is done. ${character(supper.character).name}’s last quest waits on the counter: cook the supper there, one plate for each guest.`));
   else if (!task) body.append(element('h3', '', 'The table is ready.'), element('p', '', 'The community supper is open, and every quest is delivered. The board and the recipe book stay yours.'));
   else {
     body.append(element('h3', '', task.title));
@@ -315,7 +315,7 @@ function journal(focusEntry?: string, scrollTop = 0, openGroups: string[] = []) 
   for(const {person,arrived,delivered} of resolveNeighbours(state,data)){
     if(!arrived){const slot=element('div','journal-entry neighbour-entry not-yet');slot.append(element('span','portrait-outline'),element('span','','Not yet'));neighbours.append(slot);continue;}
     const entry=button('','journal-entry neighbour-entry',()=>meet(person));
-    const likes=person.prefers?`Favourites: ${names.format(person.prefers.map(chain=>data.chains.find(value=>value.id===chain)!.name))}`:'';
+    const likes=person.favourites?`Favourites: ${names.format(person.favourites.map(itemName))}`:'';
     const words=element('span','neighbour-words');words.append(element('strong','',person.name),element('span','',person.role));if(likes)words.append(element('span','',likes));
     entry.dataset.journal=person.id;entry.setAttribute('aria-label',`Meet ${person.name}`);
     entry.setAttribute('aria-description',`${person.role}${likes?`. ${likes}`:''}. ${delivered} ${delivered===1?'quest':'quests'} delivered.`);

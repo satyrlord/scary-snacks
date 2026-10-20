@@ -8,7 +8,7 @@ The core characters are Mara, Ilie, Eszter, and Sorin.
 ## Outcome and scope
 
 The neighbourhood of the bistro grows as the renovation progresses. New regulars arrive.
-Each regular has a name, a trade, a portrait, an introduction, two favourite chains, and quests.
+Each regular has a name, a trade, a portrait, an introduction, two or three favourite dishes, and quests.
 The player can find who lives nearby and what they like.
 
 - The four core characters drive the story, the preparations, and their own quest arcs in 004.
@@ -28,10 +28,11 @@ The player can find who lives nearby and what they like.
    Cătălina and Bran arrive with preparation 12.
 3. Each regular who arrives later records an `arrivesAfter` preparation ID.
    The game derives arrival from completed preparations and does not save it.
-4. Each regular has two authored favourite chains (`prefers`).
-   Each quest of a regular asks for at least one dish from those chains.
-   Vlad and Elisabeta like the warm kitchen and the drinks counter.
-   Their quests ask for cabbage rolls, goulash, and red wine.
+4. Each regular has two or three authored favourite dishes (`favourites`).
+   Each quest of a regular asks for at least one favourite dish.
+   Each quest of Vlad and Elisabeta asks for red wine and a meat dish. No dish of theirs has garlic.
+   Cătălina keeps an Orthodox fast: no dish of hers has meat, dairy, or egg. Fish is allowed.
+   Spec 012 gives the content tags and the diets.
 5. Author the taste of each person from their trade and story.
    Never derive taste from the appearance or the age of a neighbour.
    Never derive taste from an inferred ethnic or national identity.
@@ -47,7 +48,7 @@ The player can find who lives nearby and what they like.
    Reading the scene does not change the arrival.
 8. The Neighbours group in the journal starts collapsed. It shows the core characters, then the regulars in order of arrival.
    Each arrived neighbour shows the portrait, the name, and the trade.
-   A regular also shows the favourite chains.
+   A regular also shows the favourite dishes.
    Each arrived neighbour shows the count of delivered quests.
    A neighbour who has not arrived is a "Not yet" outline without a name or a portrait.
    Thus the list does not spoil later chapters.
@@ -60,32 +61,33 @@ The player can find who lives nearby and what they like.
 
 Each reference is in the name, the trade, or one habit of the regular.
 A reference never copies text, a plot, or a design from its source.
-The Favourite chains column gives chain IDs.
+The Favourite dishes column gives the dish names.
 
-| Arrives | Regular | Trade | Favourite chains | Reference |
+| Arrives | Regular | Trade | Favourite dishes | Reference |
 | --- | --- | --- | --- | --- |
-| Start | Dochia | Shepherdess | warm, bakery | Baba Dochia, the old woman of March who sheds her nine sheepskins (Romanian folklore) |
-| Start | Victor | Anatomy student | warm, drinks | *Frankenstein* (Mary Shelley, 1818) |
-| Start | Ana | Night-shift nurse | warm, drinks | She hangs garlic on the ward door on Saint Andrew's Eve, when the strigoi walk (Romanian folklore) |
-| Start | Costel | Clock and automaton maker | sweet, drinks | *The Sandman* (E. T. A. Hoffmann, 1816) |
-| After preparation 4 | Sânziana | Florist | sweet, produce | The Sânziene, the midsummer flower fairies. She weaves bedstraw crowns on 24 June (Romanian folklore) |
-| After preparation 4 | Dorian | Gentleman of leisure | sweet, drinks | *The Picture of Dorian Gray* (Oscar Wilde, 1890). He seems never to age |
-| After preparation 8 | Vlad | Local baron | warm, drinks | Vlad III Dracula, voivode of Wallachia (historical figure, 15th century). He is a baron who styles himself as a count and lives in a countryside castle |
-| After preparation 8 | Elisabeta | Visiting countess | warm, drinks | Báthory Erzsébet (Elizabeth Báthory), a Hungarian countess (historical figure, 1560–1614). She is an Austro-Hungarian countess who sometimes visits her land nearby |
-| After preparation 8 | Ileana | Seamstress | produce, drinks | She finishes every spindle before Maundy Thursday, for fear of Joimărița, who punishes idle spinners (Romanian folklore) |
-| After preparation 8 | Cezar | Night watchman | warm, produce | *The Cabinet of Dr. Caligari* (film, 1920). He seems to sleepwalk his rounds |
-| After preparation 12 | Cătălina | Church bell-ringer | sweet, warm | She rings the bell against hailstorms and the solomonari who ride the storm clouds (village custom) |
-| After preparation 12 | Bran | Night-bus driver | bakery, warm | The Headless Horseman of *The Legend of Sleepy Hollow* (Washington Irving, 1820). He rides a horse on his days off |
+| Start | Dochia | Shepherdess | Mămăligă, Bulz, Drob | Baba Dochia, the old woman of March who sheds her nine sheepskins (Romanian folklore) |
+| Start | Victor | Anatomy student | Linden tea, Chicken noodle soup, Meatball soup | *Frankenstein* (Mary Shelley, 1818) |
+| Start | Ana | Night-shift nurse | Pogăcele, Linden tea, Chicken noodle soup | She hangs garlic on the ward door on Saint Andrew's Eve, when the strigoi walk (Romanian folklore) |
+| Start | Costel | Clock and automaton maker | Socată, Papanași, Cozonac | *The Sandman* (E. T. A. Hoffmann, 1816) |
+| After preparation 4 | Sânziana | Florist | Socată, Plum dumplings, Fruit tea | The Sânziene, the midsummer flower fairies. She weaves bedstraw crowns on 24 June (Romanian folklore) |
+| After preparation 4 | Dorian | Gentleman of leisure | Cheese board, Red wine, Cozonac | *The Picture of Dorian Gray* (Oscar Wilde, 1890). He seems never to age |
+| After preparation 8 | Vlad | Local baron | Roast pork, Red wine, Roast lamb | Vlad III Dracula, voivode of Wallachia (historical figure, 15th century). He is a baron who styles himself as a count and lives in a countryside castle |
+| After preparation 8 | Elisabeta | Visiting countess | Red wine, Tochitură, Roast lamb | Báthory Erzsébet (Elizabeth Báthory), a Hungarian countess (historical figure, 1560–1614). She is an Austro-Hungarian countess who sometimes visits her land nearby |
+| After preparation 8 | Ileana | Seamstress | Zacuscă toast, Fruit tea, Stuffed peppers | She finishes every spindle before Maundy Thursday, for fear of Joimărița, who punishes idle spinners (Romanian folklore) |
+| After preparation 8 | Cezar | Night watchman | Tochitură, Bean soup, Mici | *The Cabinet of Dr. Caligari* (film, 1920). He seems to sleepwalk his rounds |
+| After preparation 12 | Cătălina | Church bell-ringer | Plum dumplings, Bean stew, Saramură with mămăligă | She rings the bell against hailstorms and the solomonari who ride the storm clouds (village custom) |
+| After preparation 12 | Bran | Night-bus driver | Langoș, Bean soup in a bread bowl, Mici | The Headless Horseman of *The Legend of Sleepy Hollow* (Washington Irving, 1820). He rides a horse on his days off |
 
 The night-shift nurse, the night watchman, and the bell-ringer add a slightly eerie side to the village.
 They are awake when the bats are.
 
 ## Data and state
 
-- `Character` in `src/model.ts` has `regular`, `arrivesAfter`, `prefers`, `arrival`, and `portraitAtlas`.
+- `Character` in `src/model.ts` has `regular`, `arrivesAfter`, `favourites`, `diet`, `arrival`, and `portraitAtlas`.
   `tools/create-original-data.ts` authors the records.
-- `characterProblems` checks unique IDs, portrait cells, and known arrival preparations.
-  Each regular must have two different known favourite chains.
+- `characterProblems` checks unique IDs, portrait cells, known arrival preparations, and diets.
+  Each regular must have two or three different known favourite dishes.
+- `questProblems` checks that each quest of a regular asks for a favourite dish and suits each diet.
   Each later regular must speak in their arrival scene.
 - `hasArrived` and `resolveNeighbours` derive the arrivals and the delivered counts from the completed preparations and `completedQuests`.
   The state has no field for arrivals or counts.

@@ -1,9 +1,30 @@
 // The checks of the authored game data. The content generator refuses to write data with a problem, and the game refuses to start on it.
-import { availableChains, getItem, integer, isRegular, own, portraitAtlases, present, questOpening, questPredecessors, roomPaintings, scene, spoken, stable, stateNumber, storyScenes } from './model.ts';
-import type { BoardObstacle, GameData, Quest } from './model.ts';
+import { availableChains, dishChains, dishTags, dishWork, foodAtlases, getItem, integer, isRegular, menuPrice, mergePartners, MIXED, own, portraitAtlases, present, questOpening, questPredecessors, roomPaintings, scene, spoken, stable, stateNumber, storyScenes } from './model.ts';
+import type { BoardObstacle, Character, GameData, Item, Quest } from './model.ts';
 import { createGame, validateGame } from './engine.ts';
 
-/** Check the cast: unique people and portrait cells, and for each regular, two liked chains, a known arrival, and an arrival scene. */
+/** A known dish that is not a source. */
+const isDish = (code: unknown, data: GameData): code is string => typeof code === 'string' && own(data.items, code) && !data.items[code].generator;
+/** The problems of one diet: known forbidden tags, a known required dish and tag, and two known tags kept apart. */
+function dietProblems(person: Character, data: GameData): string[] {
+  const diet = person.diet;
+  if (diet === undefined) return [];
+  const tag = (value: unknown) => (dishTags as readonly unknown[]).includes(value);
+  if (!diet || typeof diet.name !== 'string' || !diet.name.trim() || !Array.isArray(diet.forbid) || !diet.forbid.every(tag)
+    || (diet.require !== undefined && (!isDish(diet.require.item, data) || !tag(diet.require.tag)))
+    || (diet.apart !== undefined && (!Array.isArray(diet.apart) || diet.apart.length !== 2 || !diet.apart.every(tag) || diet.apart[0] === diet.apart[1]))) return [`${person.id}: invalid diet.`];
+  return [];
+}
+/** The dishes that one person cannot eat in one quest: a forbidden tag, a missing required dish or tag, or two tags kept apart. */
+export function dietBreaks(person: Character, dishes: readonly string[], data: GameData, wholeQuest = true): boolean {
+  const diet = person.diet;
+  if (!diet) return false;
+  const tags = dishes.flatMap(code => data.items[code].tags);
+  if (diet.forbid.some(tag => tags.includes(tag))) return true;
+  if (diet.apart && diet.apart.every(tag => tags.includes(tag))) return true;
+  return wholeQuest && !!diet.require && (!dishes.includes(diet.require.item) || !tags.includes(diet.require.tag));
+}
+/** Check the cast: unique people and portrait cells, and for each regular, two or three favourite dishes, a known arrival, and an arrival scene. */
 export function characterProblems(data: GameData): string[] {
   const problems: string[] = [];
   try {
@@ -17,20 +38,24 @@ export function characterProblems(data: GameData): string[] {
       portraits.add(`${atlas}:${person.sprite}`);
       if (person.regular !== undefined && (person.regular !== true || person.visitor)) problems.push(`${person.id}: invalid regular flag.`);
       if (person.arrivesAfter !== undefined && (!isRegular(person) || !data.tasks.some(task => task.id === person.arrivesAfter))) problems.push(`${person.id}: unknown arrival preparation.`);
-      if (person.prefers !== undefined && (!person.regular || !Array.isArray(person.prefers) || person.prefers.length !== 2 || person.prefers[0] === person.prefers[1]
-        || !person.prefers.every(chain => data.chains.some(known => known.id === chain)))) problems.push(`${person.id}: a regular likes two different known chains.`);
-      if (person.regular && !person.prefers) problems.push(`${person.id}: a regular needs two liked chains.`);
+      if (person.favourites !== undefined && (!person.regular || !Array.isArray(person.favourites) || person.favourites.length < 2 || person.favourites.length > 3
+        || new Set(person.favourites).size !== person.favourites.length || !person.favourites.every(code => isDish(code, data)))) problems.push(`${person.id}: a regular likes two or three different known dishes.`);
+      if (person.regular && !person.favourites) problems.push(`${person.id}: a regular needs favourite dishes.`);
+      problems.push(...dietProblems(person, data));
       if ((person.arrival !== undefined) !== (person.arrivesAfter !== undefined) || (person.arrival && (!Array.isArray(person.arrival) || !person.arrival.length
         || !person.arrival.every(line => spoken(line, data)) || !person.arrival.some(line => line.speaker === person.id)))) problems.push(`${person.id}: a regular who arrives later needs an arrival scene in which they speak.`);
     }
   } catch { problems.push('The character records are malformed.'); }
   return problems;
 }
-/** The supper quest and the recurring quests close the campaign: they open after the last preparation. */
-const closing = (quest: Quest) => quest.cost !== undefined || !!quest.repeat;
+/** The returning cathedral visitors. Their supply quests come in two sizes: provisions and meals. */
+const cathedral = (person: Character | undefined) => !!person?.visitor && !person.singleVisit;
+/** The work value of a quest: the merges that its dishes need, at the work rate. A delivery pays this over the cost of its staples. */
+const workValue = (quest: Quest, data: GameData) => quest.requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).merges * data.economy.workRate * quantity, 0);
 /**
  * Check the combined preparation and quest graph, the required items, chain availability, the decoration finishes, the authored
- * order, and the campaign funds: each preparation is paid by the rewards of the quests that open before it, so no player can be stuck.
+ * order, the diets, the favourites, the supper, the recovery quest, and the campaign funds: the work value of the quests that
+ * open before each preparation pays for it, so a player who buys only the staples of the quests is never short.
  */
 export function questProblems(data: GameData): string[] {
   const problems: string[] = [];
@@ -54,17 +79,19 @@ export function questProblems(data: GameData): string[] {
       if (quest.companions !== undefined && (!Array.isArray(quest.companions) || !quest.companions.length
         || new Set(quest.companions).size !== quest.companions.length
         || !quest.companions.every(id => id !== quest.character && data.characters.some(character => character.id === id && character.visitor)))) problems.push(`${quest.id}: invalid companions.`);
-      if (quest.cost !== undefined ? !integer(quest.cost, 1) || quest.reward !== 0 || quest.repeat !== undefined : !integer(quest.reward, 1)) problems.push(`${quest.id}: invalid coin reward or cost.`);
-      if (quest.repeat !== undefined && (quest.repeat !== true || quest.followUp || quest.unlocks)) problems.push(`${quest.id}: invalid recurring quest.`);
-      // The supper quest earns the finale, and a recurring quest has no reply, so neither has a completion scene.
-      if (!scene(quest.opening, data) || (closing(quest) ? !Array.isArray(quest.completion) || quest.completion.length !== 0 : !scene(quest.completion, data))) problems.push(`${quest.id}: invalid scene.`);
+      if (quest.finale !== undefined && quest.finale !== true) problems.push(`${quest.id}: invalid supper flag.`);
+      if (quest.recovery !== undefined && (quest.recovery !== true || quest.finale || quest.followUp || quest.unlocks || quest.afterTask !== null || quest.afterQuest !== undefined)) problems.push(`${quest.id}: invalid recovery quest.`);
+      if (!Array.isArray(quest.requirements) || !quest.requirements.length || quest.requirements.reduce((count, requirement) => count + requirement.quantity, 0) > data.board.initial.length) problems.push(`${quest.id}: invalid delivery size.`);
+      for (const requirement of quest.requirements) {
+        if (!isDish(requirement.item, data) || !integer(requirement.quantity, 1, data.board.initial.length)) problems.push(`${quest.id}: invalid requirement.`);
+      }
+      // Every quest pays its menu value, except the supper, which pays nothing.
+      const value = quest.requirements.reduce((sum, { item, quantity }) => sum + (isDish(item, data) ? data.items[item].price * quantity : 0), 0);
+      if (quest.finale ? quest.reward !== 0 : !integer(quest.reward, 1) || quest.reward !== value) problems.push(`${quest.id}: invalid coin reward.`);
+      // The supper earns the finale, and the recovery quest has no reply, so neither has a completion scene.
+      if (!scene(quest.opening, data) || (quest.finale || quest.recovery ? !Array.isArray(quest.completion) || quest.completion.length !== 0 : !scene(quest.completion, data))) problems.push(`${quest.id}: invalid scene.`);
       if (quest.followUp && (!stable(quest.followUp.id) || !quest.followUp.title
         || !integer(quest.followUp.afterDeliveries, 1) || !scene(quest.followUp.dialogue, data))) problems.push(`${quest.id}: invalid follow-up scene.`);
-      if (!Array.isArray(quest.requirements) || quest.requirements.length === 0 !== (quest.cost !== undefined) || quest.requirements.reduce((count, requirement) => count + requirement.quantity, 0) > data.board.initial.length) problems.push(`${quest.id}: invalid delivery size.`);
-      for (const requirement of quest.requirements) {
-        const item = getItem(requirement.item, data);
-        if (!item || item.generator || !integer(requirement.quantity, 1, data.board.initial.length)) problems.push(`${quest.id}: invalid requirement.`);
-      }
       if (quest.unlocks !== undefined) {
         const slot = data.decorationSlots.find(value => value.id === quest.unlocks!.slot);
         if (!slot || slot.default === quest.unlocks.variant || !slot.variants.some(variant => variant.id === quest.unlocks!.variant)
@@ -92,21 +119,28 @@ export function questProblems(data: GameData): string[] {
     // The tickets show open quests in authored order, so an earlier quest never opens after a later one.
     const known = new Map<Quest, number>(), openings = data.quests.map(quest => questOpening(quest, data, known));
     if (openings.some((opening, at) => at && opening < openings[at - 1])) problems.push('Quests must be in the order in which they open.');
-    // Every quest opens before the last preparation, so the campaign needs it, and each preparation is paid by the quests before it.
-    // Only the supper quest and the recurring quests open after the last preparation.
-    if (openings.some((opening, at) => opening >= data.tasks.length - 1 && !closing(data.quests[at]))) problems.push('Every quest must open before the last preparation.');
-    if (openings.some((opening, at) => closing(data.quests[at]) && opening !== data.tasks.length - 1)) problems.push('The supper quest and the recurring quests open after the last preparation.');
-    const supper = data.quests.filter(quest => quest.cost !== undefined);
-    if (supper.length !== 1) problems.push('The finale needs exactly one quest with a cost.');
+    // Every campaign quest opens before the last preparation, so the campaign needs it. Only the supper opens after the last preparation.
+    if (openings.some((opening, at) => opening >= data.tasks.length - 1 && !data.quests[at].finale)) problems.push('Every quest must open before the last preparation.');
+    const supper = data.quests.filter(quest => quest.finale), recovery = data.quests.filter(quest => quest.recovery);
+    if (supper.length !== 1) problems.push('The finale needs exactly one supper quest.');
+    else if (openings[data.quests.indexOf(supper[0])] !== data.tasks.length - 1) problems.push('The supper quest opens after the last preparation.');
+    // The recovery quest asks only for dishes of free sources, so a player with an empty purse can always cook it.
+    if (recovery.length !== 1) problems.push('The game needs exactly one recovery quest.');
+    else if (!recovery[0].requirements.every(({ item }) => dishChains(item, data).every(chain => data.items[`generator_${chain}`]?.generator?.free) && availableChains({ taskIndex: 0 }, data).includes(data.items[item].chain))) {
+      problems.push(`${recovery[0].id}: the recovery quest asks only for open dishes of free sources.`);
+    }
     let earned = 0, spent = 0;
     for (const [index, task] of data.tasks.entries()) {
-      earned += data.quests.filter((_, at) => openings[at] === index - 1).reduce((sum, quest) => sum + quest.reward, 0);
+      earned += data.quests.filter((quest, at) => openings[at] === index - 1 && !quest.recovery).reduce((sum, quest) => sum + workValue(quest, data), 0);
       spent += task.cost;
-      if (earned < spent) problems.push(`${task.id}: the quests before it pay ${earned} coins, less than the ${spent} that the preparations cost.`);
+      if (earned < spent) problems.push(`${task.id}: the quests before it earn ${earned} coins of work, less than the ${spent} that the preparations cost.`);
     }
-    // The coins left after the last preparation pay for the supper, so the recurring quests are only a safety net.
-    const left = data.quests.filter(quest => !quest.repeat).reduce((sum, quest) => sum + quest.reward, 0) - spent;
-    if (supper.length === 1 && left < supper[0].cost!) problems.push(`${supper[0].id}: the quests leave ${left} coins, less than the ${supper[0].cost} that it costs.`);
+    // The coins left after the last preparation buy the staples of the supper.
+    if (supper.length === 1) {
+      const staples = supper[0].requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).staples * data.economy.takeCost * quantity, 0);
+      if (earned - spent < staples) problems.push(`${supper[0].id}: the quests leave ${earned - spent} coins, less than the ${staples} that its staples cost.`);
+      problems.push(...supperProblems(supper[0], data));
+    }
     const ancestors = (id: string, found = new Set<string>()): Set<string> => {
       for (const dependency of graph.get(id) ?? []) if (!found.has(dependency)) { found.add(dependency); ancestors(dependency, found); }
       return found;
@@ -115,16 +149,38 @@ export function questProblems(data: GameData): string[] {
     for (const quest of data.quests) {
       const before = ancestors(`quest:${quest.id}`);
       const person = data.characters.find(person => person.id === quest.character)!;
-      if (person.arrivesAfter && !before.has(`task:${person.arrivesAfter}`)) problems.push(`${quest.id}: the character must arrive before the quest opens.`);
-      if (person.regular && !quest.requirements.some(requirement => person.prefers?.includes(data.items[requirement.item].chain))) {
-        problems.push(`${quest.id}: a regular needs a dish from a favourite chain.`);
+      if (person.arrivesAfter && !quest.recovery && !before.has(`task:${person.arrivesAfter}`)) problems.push(`${quest.id}: the character must arrive before the quest opens.`);
+      const dishes = quest.requirements.map(requirement => requirement.item);
+      if (person.regular && !quest.finale && !dishes.some(code => person.favourites?.includes(code))) problems.push(`${quest.id}: a regular needs a favourite dish.`);
+      if (!quest.finale && [person, ...(quest.companions ?? []).map(id => data.characters.find(value => value.id === id)!)].some(eater => dietBreaks(eater, dishes, data))) problems.push(`${quest.id}: breaks a diet.`);
+      if (cathedral(person)) {
+        const portions = quest.requirements.reduce((sum, requirement) => sum + requirement.quantity, 0);
+        const provisions = portions >= 12 && portions <= 16 && dishes.every(code => !data.items[code].recipe && data.items[code].stage >= 3);
+        const meals = portions >= 4 && portions <= 6 && dishes.every(code => !!data.items[code].recipe);
+        if (!provisions && !meals) problems.push(`${quest.id}: a cathedral supply quest has 12 to 16 portions of chain dishes from stage 3, or 4 to 6 mixed dishes.`);
       }
-      for (const requirement of quest.requirements) {
-        const item = getItem(requirement.item, data);
-        if (item && !starting.includes(item.chain) && !data.tasks.some(task => task.unlock === item.chain && before.has(`task:${task.id}`))) problems.push(`${quest.id}: required chain is not available before activation.`);
+      for (const code of dishes) {
+        const open = (chain: string) => starting.includes(chain) || data.tasks.some(task => task.unlock === chain && before.has(`task:${task.id}`));
+        if (!dishChains(code, data).every(open)) problems.push(`${quest.id}: required chain is not available before activation.`);
       }
     }
   } catch { problems.push('The quest records are malformed.'); }
+  return problems;
+}
+/** The supper: one plate for each guest, in the order of guests. Each plate suits its guest, each regular gets a favourite, and the plates use every chain. */
+function supperProblems(quest: Quest, data: GameData): string[] {
+  const problems: string[] = [];
+  const guests = quest.guests;
+  if (!Array.isArray(guests) || guests.length !== quest.requirements.length || new Set(guests).size !== guests.length
+    || !guests.every(id => data.characters.some(person => person.id === id && !person.visitor))) return [`${quest.id}: needs one plate for each known neighbour.`];
+  for (const [at, id] of guests.entries()) {
+    const person = data.characters.find(value => value.id === id)!, { item, quantity } = quest.requirements[at];
+    if (quantity !== 1) problems.push(`${quest.id}: one plate for ${person.name}.`);
+    if (dietBreaks(person, [item], data, false)) problems.push(`${quest.id}: the plate of ${person.name} breaks a diet.`);
+    if (person.regular && !person.favourites?.includes(item)) problems.push(`${quest.id}: ${person.name} gets a favourite dish.`);
+  }
+  const used = new Set(quest.requirements.flatMap(({ item }) => dishChains(item, data)));
+  if (!data.chains.every(chain => used.has(chain.id))) problems.push(`${quest.id}: the plates use every chain.`);
   return problems;
 }
 /** Check the chapters, their scenes, their neighbour contributions, and the finale before the content can ship. */
@@ -163,12 +219,14 @@ export function storyProblems(data: GameData): string[] {
   } catch { problems.push('The story records are malformed.'); }
   return problems;
 }
-/** Check the authored prices and work before the content can ship. */
+/** Check the levers, the formula prices, and the work of the preparations before the content can ship. */
 export function economyProblems(data: GameData): string[] {
   const problems: string[] = [];
   try {
+    const { takeCost, blockerCoin, workRate, recoveryFloor } = data.economy;
+    if (!integer(takeCost) || !integer(blockerCoin) || !integer(workRate, 1) || !integer(recoveryFloor, 1)) problems.push('The economy needs whole levers, with a work rate and a recovery floor of at least one.');
     for (const item of Object.values(data.items)) {
-      if (!integer(item.price, item.generator ? 0 : 1, item.generator ? 0 : 500_000_000)) problems.push(`${item.id}: invalid menu price.`);
+      if (item.generator ? item.price !== 0 : !integer(item.price) || item.price !== menuPrice(item.id, data)) problems.push(`${item.id}: the menu price must follow the formula.`);
     }
     for (const task of data.tasks) {
       const work = task.work;
@@ -180,33 +238,6 @@ export function economyProblems(data: GameData): string[] {
       if (!integer(task.cost) || task.cost !== work.materials + work.labour) problems.push(`${task.id}: cost must equal materials plus labour.`);
     }
   } catch { problems.push('The economy records are malformed.'); }
-  return problems;
-}
-/** Check milestones that validate output choices in existing saves. They do not change source production. */
-export function generatorTierProblems(data: GameData): string[] {
-  const problems: string[] = [];
-  const starting = availableChains({ taskIndex: 0 }, data);
-  for (const tier of data.generatorTiers) {
-    const source = data.items[`generator_${tier.chain}`];
-    const item = data.items[`${tier.chain}_${tier.stage}`];
-    const after = data.tasks.findIndex(task => task.id === tier.after);
-    const unlock = starting.includes(tier.chain) ? -1 : data.tasks.findIndex(task => task.unlock === tier.chain);
-    if (!data.chains.some(chain => chain.id === tier.chain) || !source?.generator || !item || item.generator
-      || item.chain !== tier.chain || item.stage !== tier.stage || !integer(tier.stage, 2, 3)) problems.push(`${tier.chain}: invalid saved-choice stage.`);
-    if (after < 0 || (!starting.includes(tier.chain) && unlock < 0) || after < unlock) problems.push(`${tier.chain}: invalid saved-choice preparation.`);
-  }
-  for (const chain of data.chains) {
-    const tiers = data.generatorTiers.filter(tier => tier.chain === chain.id)
-      .sort((a, b) => data.tasks.findIndex(task => task.id === a.after) - data.tasks.findIndex(task => task.id === b.after));
-    let previousStage = 1;
-    let previousPreparation = -1;
-    for (const tier of tiers) {
-      const preparation = data.tasks.findIndex(task => task.id === tier.after);
-      if (tier.stage !== previousStage + 1 || preparation <= previousPreparation) problems.push(`${chain.id}: saved-choice stages must increase in preparation order.`);
-      previousStage = tier.stage;
-      previousPreparation = preparation;
-    }
-  }
   return problems;
 }
 /** Check authored choices before packaging their data and approved images. Without knownImages, the image names are not checked. */
@@ -274,31 +305,56 @@ export function dataProblems(data: GameData, knownImages?: readonly string[]): s
     }
     const items = itemProblems(data);
     if (items.length) return items;
-    const problems = [...characterProblems(data), ...boardLayoutProblems(data), ...roomProblems(data), ...decorationProblems(data, knownImages), ...generatorTierProblems(data),
+    const problems = [...characterProblems(data), ...boardLayoutProblems(data), ...roomProblems(data), ...decorationProblems(data, knownImages),
       ...questProblems(data), ...storyProblems(data), ...economyProblems(data)];
     // The save validation relies on the other checks, so it judges the new game only after they pass.
     if (!problems.length && !validateGame(createGame(data), data)) problems.push('The starting board does not make a valid new game.');
     return problems;
   } catch { return ['The game data is malformed.']; }
 }
-/** Validate merge paths and sources before any check or action follows their references. */
+/**
+ * Validate the chains, the mixed dishes, and the sources before any check or action follows their references. A chain has four to six
+ * dishes. A recipe has two parts from different chains, or one mixed part made from two chain dishes, so recipes nest one level deep.
+ */
 function itemProblems(data: GameData): string[] {
   const problems: string[] = [];
   const chains = new Set(data.chains.map(chain => chain.id));
-  if (chains.size !== data.chains.length) problems.push('Chain IDs must be unique.');
+  if (chains.size !== data.chains.length || chains.has(MIXED)) problems.push('Chain IDs must be unique, and mixed is not a chain.');
+  const cells = new Set<string>(), pairs = new Set<string>();
+  const tagged = (item: Item) => Array.isArray(item.tags) && new Set(item.tags).size === item.tags.length && item.tags.every(tag => (dishTags as readonly string[]).includes(tag));
   for (const [code, item] of Object.entries(data.items)) {
-    if (item.id !== code || !chains.has(item.chain)) { problems.push(`${code}: invalid item ID or chain.`); continue; }
+    if (item.id !== code || (!chains.has(item.chain) && item.chain !== MIXED)) { problems.push(`${code}: invalid item ID or chain.`); continue; }
+    const cell = `${item.art?.atlas}:${item.art?.cell}`;
+    if (!item.art || !foodAtlases.includes(item.art.atlas) || !integer(item.art.cell, 0, 7) || cells.has(cell)) problems.push(`${code}: needs its own atlas cell.`);
+    cells.add(cell);
+    if (!tagged(item) || (item.generator && item.tags.length)) problems.push(`${code}: invalid content tags.`);
     if (item.generator) {
-      if (code !== `generator_${item.chain}` || item.stage !== 0 || item.next !== null
-        || !Array.isArray(item.generator.outputs) || item.generator.outputs.length !== 1 || item.generator.outputs[0] !== `${item.chain}_1`) {
-        problems.push(`${code}: invalid ingredient source.`);
-      }
-    } else if (!integer(item.stage, 1, 6) || code !== `${item.chain}_${item.stage}`
-      || item.next !== (item.stage === 6 ? null : `${item.chain}_${item.stage + 1}`)) problems.push(`${code}: invalid merge path.`);
+      if (code !== `generator_${item.chain}` || item.chain === MIXED || item.stage !== 0 || item.next !== null || item.recipe !== undefined
+        || !Array.isArray(item.generator.outputs) || item.generator.outputs.length !== 1 || item.generator.outputs[0] !== `${item.chain}_1`
+        || (item.generator.free !== undefined && item.generator.free !== true)) problems.push(`${code}: invalid ingredient source.`);
+    } else if (item.chain !== MIXED) {
+      const next = `${item.chain}_${item.stage + 1}`;
+      if (!integer(item.stage, 1, 6) || code !== `${item.chain}_${item.stage}` || item.recipe !== undefined
+        || item.next !== (own(data.items, next) ? next : null)) problems.push(`${code}: invalid merge path.`);
+    } else {
+      const parts = item.recipe;
+      if (!/^mixed_[a-z]+(-[a-z]+)*$/.test(code) || item.next !== null || !Array.isArray(parts) || parts.length !== 2 || parts[0] === parts[1]
+        || !parts.every(part => own(data.items, part) && !data.items[part].generator)) { problems.push(`${code}: a mixed dish needs two known parts.`); continue; }
+      const [first, second] = parts.map(part => data.items[part]);
+      const mixed = [first, second].filter(part => part.recipe);
+      const nested = mixed.some(part => part.recipe!.some(inner => data.items[inner]?.recipe));
+      if (mixed.length > 1 || nested || (!mixed.length && first.chain === second.chain) || item.stage !== mixed.length + 1) problems.push(`${code}: invalid recipe parts or depth.`);
+      const pair = [...parts].sort().join('+');
+      if (pairs.has(pair)) problems.push(`${code}: each pair of parts makes at most one dish.`);
+      pairs.add(pair);
+      if (!tagged(item) || ![first, second].every(part => part.tags.every(tag => item.tags.includes(tag)))) problems.push(`${code}: a mixed dish has every tag of its parts.`);
+    }
   }
+  for (const item of Object.values(data.items)) if (item.recipe && dishChains(item.id, data).length > 3) problems.push(`${item.id}: a mixed dish uses at most three chains.`);
   for (const chain of chains) {
-    if (!data.items[`generator_${chain}`]?.generator || !Array.from({ length: 6 }, (_, index) => `${chain}_${index + 1}`).every(code => own(data.items, code))) {
-      problems.push(`${chain}: needs a source and all six food stages.`);
+    const length = Object.values(data.items).filter(item => item.chain === chain && !item.generator).length;
+    if (!data.items[`generator_${chain}`]?.generator || length < 4 || length > 6 || !Array.from({ length }, (_, index) => `${chain}_${index + 1}`).every(code => own(data.items, code))) {
+      problems.push(`${chain}: needs a source and four to six food stages.`);
     }
     const sources = data.board.initial.filter(code => code === `generator_${chain}`).length + data.tasks.filter(task => task.unlock === chain).length;
     if (sources !== 1) problems.push(`${chain}: its source must be available exactly once.`);
@@ -306,11 +362,11 @@ function itemProblems(data: GameData): string[] {
   for (const task of data.tasks) if (task.unlock !== undefined && !chains.has(task.unlock)) problems.push(`${task.id}: unknown source unlock.`);
   return problems;
 }
-/** A blocker needs a stable ID, a name, a known type, and a movable ingredient of an open chain. A clutter blocker names its art cell. */
+/** A blocker needs a stable ID, a name, a known type, and an open dish that merges with something. A clutter blocker names its art cell. */
 function validObstacle(obstacle: Omit<BoardObstacle, 'position' | 'context'>, chains: readonly string[], data: GameData): boolean {
   return !!obstacle && stable(obstacle.id) && typeof obstacle.name === 'string' && !!obstacle.name.trim() && ['clutter', 'anchored'].includes(obstacle.type)
-    && own(data.items, obstacle.ingredient) && !data.items[obstacle.ingredient].generator && !!data.items[obstacle.ingredient].next
-    && chains.includes(data.items[obstacle.ingredient].chain)
+    && isDish(obstacle.ingredient, data) && mergePartners(obstacle.ingredient, data).length > 0
+    && dishChains(obstacle.ingredient, data).every(chain => chains.includes(chain))
     && (obstacle.atlas === undefined || obstacle.atlas === 'preparation')
     && (obstacle.type !== 'clutter' || integer(obstacle.sprite, 0, obstacle.atlas === 'preparation' ? 11 : 3));
 }

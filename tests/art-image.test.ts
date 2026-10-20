@@ -35,12 +35,12 @@ function png(channels: 3 | 4, colorKey = false, alpha = 255) {
 }
 
 test('atlas requests preserve the square sheet and square cells', () => {
-  const plan = planAsset('menu-atlas');
+  const plan = planAsset('mascots');
   assert.equal(plan.size, '1536x1536');
-  assert.equal(plan.columns, 6);
-  assert.equal(plan.rows, 6);
+  assert.equal(plan.columns, 2);
+  assert.equal(plan.rows, 2);
   assert.equal(plan.width / plan.columns, plan.height / plan.rows);
-  const request = buildImageRequest({ assetId: plan.assetId, size: plan.size, promptText: 'Thirty-six dishes in a grid.' });
+  const request = buildImageRequest({ assetId: plan.assetId, size: plan.size, promptText: 'Four poses in a grid.' });
   assert.equal(typeof request.body, 'string');
   const body = JSON.parse(request.body as string);
   assert.equal(body.size, '1536x1536');
@@ -57,6 +57,20 @@ test('the last regulars atlas requires two top portraits and two blank lower cel
   assert.equal(inspectPng(await sheet([0]), plan).valid, false, 'Both top portraits are required.');
   assert.equal(inspectPng(await sheet([0, 1, 2]), plan).valid, false, 'Lower cells must stay blank.');
   assert.equal(inspectPng(await sheet([0, 1]), planAsset('regulars-1')).valid, false, 'Other regulars atlases require four portraits.');
+});
+
+test('a food atlas is a 2:1 four-by-two sheet whose cells after the last picture stay blank', async () => {
+  const plan = planAsset('food-corn');
+  assert.equal(plan.size, '2048x1024');
+  assert.deepEqual([plan.columns, plan.rows], [4, 2]);
+  assert.deepEqual(plan.blankCells, [5, 6, 7]);
+  assert.equal(planAsset('food-soups').blankCells, undefined);
+  assert.throws(() => planAsset('food-corn', '1536x1536'), /2:1 landscape/u);
+  const dish = await sharp({ create: { width: 8, height: 8, channels: 4, background: { r: 200, g: 160, b: 40, alpha: 1 } } }).png().toBuffer();
+  const sheet = (cells: number[]) => sharp({ create: { width: 128, height: 64, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+    .composite(cells.map(cell => ({ input: dish, left: (cell % 4) * 32 + 12, top: Math.floor(cell / 4) * 32 + 12 }))).png().toBuffer();
+  assert.ok(inspectPng(await sheet([0, 1, 2, 3, 4]), plan).valid);
+  assert.equal(inspectPng(await sheet([0, 1, 2, 3, 4, 5]), plan).valid, false, 'Cells after the last picture must stay blank.');
 });
 
 test('image measurement refuses color-key transparency instead of reporting an opaque painting', () => {

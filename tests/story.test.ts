@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { firstFreeBoardCell, requiredQuests, resolveChapters, resolveQuests, storyScenes, supperComplete, supperQuest } from '../src/model.ts';
+import { availableChains, firstFreeBoardCell, requiredQuests, resolveChapters, resolveQuests, storyScenes, supperComplete, supperQuest } from '../src/model.ts';
 import { createGame, validateGame } from '../src/engine.ts';
 import { dataProblems, storyProblems } from '../src/content.ts';
 import type { GameData } from '../src/model.ts';
-import { act, data, payNext, ready, rejected } from './support.ts';
+import { act, data, payNext, ready, rejected, supply } from './support.ts';
 
 const titles = ['Open the shutters', 'A kitchen for everyone', 'Around one table', 'The courtyard', 'Recipes to share', 'The first community supper'];
 const boundaries = [4, 8, 12, 16, 20, 24];
@@ -108,9 +108,10 @@ test('a failed payment, a missing required quest, or a full destination complete
   // The last preparation of the chapter brings a source here, so it needs a board space.
   const placed = structuredClone(data);
   delete placed.tasks[2].unlock;
-  placed.tasks[3].unlock = 'sweet';
+  placed.tasks[3].unlock = 'dairy';
   let full = checkpoint(3, placed);
-  const source = full.board.findIndex(cell => cell?.code === 'generator_bakery');
+  // The Herb basket is free, so an empty purse can still fill the board.
+  const source = full.board.findIndex(cell => cell?.code === 'generator_herbs');
   while (firstFreeBoardCell(full, placed) !== -1) full = act(full, { type: 'spawn', index: source }, placed);
   full = ready(full, placed);
   assert.match(rejected(full, { type: 'task' }, placed).message, /Free a space/);
@@ -136,22 +137,24 @@ test('the last preparation queues its scene and the chapter scene once, with no 
   rejected(read, { type: 'readScene', id: undefined as unknown as string });
 });
 
-test('the supper quest takes its cost once, earns the finale, leaves no ticket, and keeps the board playable', () => {
+test('the supper quest has no cost, is served once, earns the finale, leaves no ticket, and keeps the board playable', () => {
   const supper = supperQuest(data)!, campaign = requiredQuests(data.tasks.length, data);
   const before = ready(checkpoint(23));
   assert.deepEqual(new Set(before.completedQuests), new Set(campaign.map(quest => quest.id)), 'Every campaign quest is required before the supper.');
   for (const quest of campaign) rejected({ ...before, completedQuests: before.completedQuests.filter(id => id !== quest.id) }, { type: 'task' });
   const paid = act(before, { type: 'task' });
+  assert.equal(paid.coins, 0);
   assert.equal(resolveQuests(paid, data).find(view => view.quest.id === supper.id)!.status, 'active');
-  assert.match(rejected(paid, { type: 'deliverQuest', id: supper.id }).message, new RegExp(`Earn ${supper.cost} more coins to pay for ${supper.title}`));
-  let state = act({ ...paid, coins: supper.cost! + 5 }, { type: 'deliverQuest', id: supper.id });
-  assert.equal(state.coins, 5);
+  assert.match(rejected(paid, { type: 'deliverQuest', id: supper.id }).message, /every required item/);
+  // An empty purse serves the supper: it takes no coins and pays none.
+  let state = act(supply(paid, supper.id), { type: 'deliverQuest', id: supper.id });
+  assert.equal(state.coins, 0);
   assert.deepEqual(state.pendingScenes, [...queued(24), 'finale']);
   assert.deepEqual(state.completedQuests.slice(-1), [supper.id]);
-  rejected({ ...state, coins: supper.cost! }, { type: 'deliverQuest', id: supper.id });
+  rejected(supply(state, supper.id), { type: 'deliverQuest', id: supper.id });
   state = act(state, { type: 'readScene', id: 'finale' });
-  assert.ok(resolveQuests(state, data).every(view => view.status === 'complete' || (view.quest.repeat && view.status === 'locked')));
-  const source = state.board.findIndex(cell => cell?.code === 'generator_bakery');
+  assert.ok(resolveQuests(state, data).every(view => view.status === 'complete' || (view.quest.recovery && view.status === 'locked')));
+  const source = state.board.findIndex(cell => cell?.code === 'generator_herbs');
   state = act(state, { type: 'spawn', index: source });
   assert.deepEqual(state.pendingScenes, queued(24));
 });
@@ -161,7 +164,7 @@ test('saved scene queues hold only earned scenes, once each, in story order', ()
   assert.deepEqual(storyScenes(data), [...data.tasks.map(task => task.id), ...data.quests.map(quest => quest.id), ...data.chapters.map(chapter => chapter.id), 'finale', 'mina-avram-news',
     ...data.characters.flatMap(person => person.arrival ? [`arrival-${person.id}`] : [])]);
   const quest = data.quests.find(value => middle.completedQuests.includes(value.id))!;
-  const undelivered = data.quests.find(value => !middle.completedQuests.includes(value.id))!;
+  const undelivered = data.quests.find(value => !value.recovery && !middle.completedQuests.includes(value.id))!;
   for (const pendingScenes of [[], ['chapter-1'], ['chapter-3'], ['chapter-1', 'chapter-2', 'chapter-3'], ['task_1', 'chapter-1', 'task_12'], ['task_4', 'task_9', 'chapter-3'], queued(12)]) {
     assert.equal(validateGame({ ...middle, pendingScenes }, data), true, JSON.stringify(pendingScenes));
   }
@@ -204,4 +207,14 @@ test('a payment queues its preparation scene in the same change, and reading it 
   const read = act(after, { type: 'readScene', id: data.tasks[1].id });
   assert.deepEqual({ ...read, pendingScenes: after.pendingScenes }, after);
   rejected(read, { type: 'readScene', id: data.tasks[1].id });
+});
+
+test('three chains are open in a new game, and each preparation that opens a chain names its new source in its scene', () => {
+  assert.deepEqual(availableChains({ taskIndex: 0 }, data), ['grain', 'corn', 'herbs']);
+  const opens = Object.fromEntries(data.tasks.flatMap(task => task.unlock ? [[task.id, task.unlock]] : []));
+  assert.deepEqual(opens, { task_3: 'dairy', task_5: 'poultry', task_6: 'vegetables', task_7: 'fruits', task_8: 'pork', task_11: 'beans', task_13: 'lamb', task_16: 'veal', task_20: 'fish' });
+  for (const [id, chain] of Object.entries(opens)) {
+    const source = data.items[`generator_${chain}`].name.toLowerCase();
+    assert.ok(data.tasks.find(task => task.id === id)!.dialogue.some(line => line.text.toLowerCase().includes(source)), `${id} names the ${source}.`);
+  }
 });

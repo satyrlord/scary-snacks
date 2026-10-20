@@ -1,6 +1,6 @@
 // The game in this tab: its data, its state, the selected space, and the saves that keep them. The other modules read these
 // bindings; only the functions here change them, and each change asks the interface to draw the game again.
-import { boardObstacles, getItem } from './model.ts';
+import { boardObstacles, getItem, mergeResult, takeCost } from './model.ts';
 import { createGame, reduceGame, repairSave, validateGame } from './engine.ts';
 import type { Action, GameData, GameState, Result } from './model.ts';
 import { loadSave, saveGame, savedText, SAVE_KEY } from './storage.ts';
@@ -19,11 +19,14 @@ export const repair = (candidate: unknown) => repairSave(candidate, data);
 export const definition = (code: string) => getItem(code,data)!;
 export const itemName = (code: string) => definition(code).name;
 export const character = (id: string) => data.characters.find(value => value.id === id)!;
-// Players meet generators as ingredient sources: the Flour bin, the Copper pot, and so on. They take ingredients from them.
+// Players meet generators as ingredient sources: the Windmill, the Herb basket, and so on. They take ingredients from them.
 export const sourceOf = (chain: string) => definition(`generator_${chain}`);
 export const sourceOutput = (code: string) => itemName(definition(code).generator!.outputs[0]);
+/** A blocked dish that a dish merges with: a matching dish of its chain, or a recipe partner. */
 export const matchingBlocker = (code: string) => boardObstacles(state,data).find(obstacle =>
-  obstacle.ingredient === code && !state.resolvedObstacles.includes(obstacle.id));
+  !state.resolvedObstacles.includes(obstacle.id) && !!mergeResult(code, obstacle.ingredient, data));
+/** The coins that one take from a source spends, in words. */
+export const takePrice = (source: string) => { const cost = takeCost(definition(source), data); return cost ? `${cost} ${cost === 1 ? 'coin' : 'coins'} each` : 'free'; };
 
 /** What the interface shows after a change: the result of an action and the state before it, or null for a redraw alone. */
 export type Change = { result: Result; before: GameState } | null;

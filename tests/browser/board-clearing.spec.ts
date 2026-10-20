@@ -7,15 +7,15 @@ test('new board explains blocked spaces and counts only usable empty cells', asy
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await start(page);
   await expect(page.locator('#board')).toHaveAttribute('aria-label', /27 free spaces/);
-  await expect(tile(page, 0)).toHaveAttribute('aria-label', /Old crate, blocked Pogăcele/);
+  await expect(tile(page, 0)).toHaveAttribute('aria-label', /Old crate, blocked Loaf/);
   await expect(tile(page, 0).locator('.clutter-overlay')).toHaveCount(1);
   await expect(tile(page, 0).locator('.food')).toBeVisible();
-  await expect(tile(page, 6)).toHaveAttribute('aria-label', /blocked Dough.*Merge a matching movable ingredient/);
+  await expect(tile(page, 6)).toHaveAttribute('aria-label', /blocked Dough. Merge Dough into this space to clear it/);
   await tile(page, 0).focus();
   await page.keyboard.press('ArrowDown');
   await expect(tile(page, 6)).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(page.locator('#status')).toContainText('tap a marked Dough to merge here');
+  await expect(page.locator('#status')).toHaveText('Tied dough: tap a marked Dough to merge here.');
   await expect(page.locator('.cell.clutter')).toHaveCount(4);
   await expect(page.locator('.cell.anchored')).toHaveCount(4);
 });
@@ -34,14 +34,14 @@ test('selected ingredients mark matching food and update targets after a move an
   await tile(page, 14).click();
   await expect(tile(page, 14)).toHaveClass(/selected/);
   for (const index of [6, 41]) await expect(tile(page, index)).toHaveClass(/merge-target/);
-  expect((await saved(page)).board[14]).toEqual({ code: 'bakery_2' });
+  expect((await saved(page)).board[14]).toEqual({ code: 'grain_2' });
 });
 
 test('a selected dish marks movable matches and matching blockers only', async ({ page }) => {
   const state = createGame(data);
-  state.board[18] = { code: 'bakery_2' };
-  state.board[19] = { code: 'bakery_2' };
-  state.discovered.push('bakery_2');
+  state.board[18] = { code: 'grain_2' };
+  state.board[19] = { code: 'grain_2' };
+  state.discovered.push('grain_2');
   await start(page, state);
   await tile(page, 18).click();
   const marked = await page.locator('#board .merge-target').evaluateAll(elements => elements.map(element => Number((element as HTMLElement).dataset.cell)));
@@ -56,7 +56,7 @@ test('a selected dish marks movable matches and matching blockers only', async (
   await tile(page, 6).click();
   await expect(tile(page, 0)).toHaveClass(/merge-target/);
   await expect(tile(page, 19)).not.toHaveClass(/merge-target/);
-  expect((await saved(page)).board[6]).toEqual({ code: 'bakery_3' });
+  expect((await saved(page)).board[6]).toEqual({ code: 'grain_3' });
 });
 
 test('forced colours distinguish the selected dish from its matching targets', async ({ page }) => {
@@ -70,8 +70,8 @@ test('forced colours distinguish the selected dish from its matching targets', a
 
 test('sources, final dishes, and cleared selections show no merge targets', async ({ page }) => {
   const state = createGame(data);
-  state.board[18] = { code: 'bakery_6' };
-  state.discovered.push('bakery_6');
+  state.board[18] = { code: 'grain_6' };
+  state.discovered.push('grain_6');
   await start(page, state);
   await tile(page, 1).click();
   await expect(page.locator('#board .merge-target')).toHaveCount(0);
@@ -90,20 +90,20 @@ test('a pointer merge clears only its destination and can then clear the adjacen
   await tile(page, 13).click();
   await tile(page, 14).click();
   await tile(page, 6).click();
-  await expect(tile(page, 6)).toHaveAttribute('aria-label', /Pogăcele/);
-  await expect(tile(page, 0)).toHaveAttribute('aria-label', /Pogăcele/);
+  await expect(tile(page, 6)).toHaveAttribute('aria-label', /Loaf/);
+  await expect(tile(page, 0)).toHaveAttribute('aria-label', /Loaf/);
   const state = await saved(page);
   expect(state.resolvedObstacles).toEqual(['tied-dough']);
-  expect(state.board[6]).toEqual({ code: 'bakery_3' });
+  expect(state.board[6]).toEqual({ code: 'grain_3' });
   await expect(tile(page, 0)).toHaveClass(/clutter/);
   await expect(tile(page, 6)).toHaveAttribute('aria-pressed', 'true');
   await tile(page, 0).click();
   await expect(tile(page, 0)).not.toHaveClass(/clutter/);
   expect(await tile(page, 0).evaluate(cell => getComputedStyle(cell, '::before').content)).toBe('none');
-  expect((await saved(page)).board[0]).toEqual({ code: 'bakery_4' });
+  expect((await saved(page)).board[0]).toEqual({ code: 'grain_4' });
   await page.reload();
   await expect(tile(page, 0)).not.toHaveClass(/clutter/);
-  expect((await saved(page)).board[0]).toEqual({ code: 'bakery_4' });
+  expect((await saved(page)).board[0]).toEqual({ code: 'grain_4' });
 });
 
 test('dragging a matching item into an anchor clears it', async ({ page }) => {
@@ -117,7 +117,7 @@ test('dragging a matching item into an anchor clears it', async ({ page }) => {
   await page.mouse.down();
   await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 8 });
   await page.mouse.up();
-  await expect(tile(page, 6)).toHaveAttribute('aria-label', /Pogăcele/);
+  await expect(tile(page, 6)).toHaveAttribute('aria-label', /Loaf/);
   expect((await saved(page)).resolvedObstacles).toEqual(['tied-dough']);
 });
 
@@ -129,7 +129,7 @@ test('keyboard selection can merge into an anchored cell', async ({ page }) => {
   await page.keyboard.press('Enter');
   await tile(page, 6).focus();
   await page.keyboard.press('Enter');
-  await expect(tile(page, 6)).toHaveAttribute('aria-label', /Pogăcele/);
+  await expect(tile(page, 6)).toHaveAttribute('aria-label', /Loaf/);
   expect((await saved(page)).resolvedObstacles).toEqual(['tied-dough']);
 });
 
@@ -141,7 +141,7 @@ test('touch can release an anchor with two taps', async ({ browser, baseURL }) =
     await tile(page, 13).tap();
     await tile(page, 14).tap();
     await tile(page, 6).tap();
-    await expect(tile(page, 0)).toHaveAttribute('aria-label', /Pogăcele/);
+    await expect(tile(page, 0)).toHaveAttribute('aria-label', /Loaf/);
     expect((await saved(page)).resolvedObstacles).toEqual(['tied-dough']);
     await expect(tile(page, 0)).toHaveClass(/clutter/);
   } finally { await context.close(); }
@@ -150,14 +150,14 @@ test('touch can release an anchor with two taps', async ({ browser, baseURL }) =
 test('Find a match selects movable food and points to matching clutter', async ({ page }) => {
   const state = createGame(data);
   state.board = state.board.map(cell => cell && data.items[cell.code].generator ? cell : null);
-  state.board[13] = { code: 'bakery_3' };
-  if (!state.discovered.includes('bakery_3')) state.discovered.push('bakery_3');
+  state.board[13] = { code: 'grain_3' };
+  if (!state.discovered.includes('grain_3')) state.discovered.push('grain_3');
   await start(page, state); await page.getByRole('button', { name: 'Find a match', exact: true }).click();
   await expect(tile(page, 13)).toHaveAttribute('aria-pressed', 'true');
   await expect(tile(page, 0)).toHaveClass(/hint/);
-  await expect(page.locator('#status')).toHaveText('Tap the blocked Pogăcele to merge and clear it.');
+  await expect(page.locator('#status')).toHaveText('Tap the blocked Loaf to merge and clear it.');
   await tile(page, 0).click();
-  expect((await saved(page)).board[0]).toEqual({ code: 'bakery_4' });
+  expect((await saved(page)).board[0]).toEqual({ code: 'grain_4' });
   await expect(tile(page, 0)).not.toHaveClass(/obstacle/);
 });
 
@@ -168,7 +168,7 @@ test('the first preparation removes the webs without clearing the clutter blocke
   const paid = reduceGame(state, { type: 'task' }, data);
   expect(paid.ok, paid.message).toBe(true);
   await start(page, paid.state);
-  await expect(tile(page, 0)).toHaveAttribute('aria-label', /Old crate, blocked Pogăcele/);
+  await expect(tile(page, 0)).toHaveAttribute('aria-label', /Old crate, blocked Loaf/);
   await expect(tile(page, 0).locator('.clutter-overlay')).toHaveCount(0);
   await expect(tile(page, 0).locator('.clutter-art')).toHaveCount(1);
   await expect(page.locator('.cell.clutter')).toHaveCount(4 + data.board.preparations[0].obstacles.filter(obstacle => obstacle.type === 'clutter').length);

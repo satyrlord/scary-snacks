@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { canDeliverQuest, currentTask, supperQuest, taskEligibility } from '../src/model.ts';
+import { currentTask, dishWork, resolveQuests, supperQuest, taskEligibility } from '../src/model.ts';
 import { reduceGame, validateGame } from '../src/engine.ts';
 import { checkpointState } from '../tools/create-checkpoint-saves.ts';
 import { data } from './support.ts';
@@ -16,12 +16,15 @@ test('each manual checkpoint is valid and ready for its next payment without ear
   }
 });
 
-test('the finished manual checkpoint retains the last preparation and chapter scenes, with the coins for the supper', () => {
-  const state = checkpointState(data, data.tasks.length);
+test('the finished manual checkpoint retains the last preparation and chapter scenes, with the coins for the staples of the supper', () => {
+  const state = checkpointState(data, data.tasks.length), supper = supperQuest(data)!;
   assert.ok(validateGame(state, data));
   assert.equal(state.taskIndex, data.tasks.length);
-  assert.equal(state.coins, supperQuest(data)!.cost);
-  assert.ok(canDeliverQuest(state, supperQuest(data)!, data));
+  assert.equal(state.coins, supper.requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).staples * data.economy.takeCost * quantity, 0));
+  assert.ok(state.coins > 0);
+  // The supper is the only open quest, and the purse is above the recovery floor, so the recovery quest stays closed.
+  assert.deepEqual(resolveQuests(state, data).filter(view => view.status === 'active').map(view => view.quest.id), [supper.id]);
+  assert.ok(state.coins >= data.economy.recoveryFloor);
   assert.deepEqual(state.pendingScenes, [data.tasks.at(-1)!.id, data.chapters.at(-1)!.id]);
 });
 
