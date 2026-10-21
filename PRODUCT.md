@@ -119,7 +119,7 @@ The game checks the coins, the necessary quests, and the free cell for an unlock
 
 Three quest tickets are on the counter. The first three open quests, in authored order, get the tickets. The other open quests wait without a ticket. The next open quest gets the first free ticket. A character has at most one open campaign quest, because each quest waits for the earlier quests of its character. An open repeating quest gets a ticket after the campaign quests. Among the quests that open after the same preparation, the quest of a booked guest comes last. So the quests before the evening put the dishes of the dinner in the recipe book. While the recovery quest is open, it has a fourth ticket with a dashed edge.
 
-A ticket shows the portrait and the name of the character, the dishes, and Deliver with its reward. The ticket face is the portrait, the name, the title, and the dishes. A tap on the face opens the quest dialog. A ticket with more than four dishes shows the first three and the count of the others. On a wider screen, the ticket also shows the quest title. The quest dialog and the accessible name of the ticket face give the board count of each dish. On a wider screen, a dish that needs more than one portion also shows that count on the ticket. Deliver is available when the board holds every portion. The label of the ticket section is "Neighbour quests".
+A ticket shows the portrait and the name of the character and the dishes. The ticket face is the portrait, the name, the title, and the dishes. A tap on the face opens the quest dialog. A ticket with more than four dishes shows the first three and the count of the others. On a wider screen, the ticket also shows the quest title and Deliver with its reward. A phone ticket has one target: its face. The phone player delivers, serves the supper, and lights the lanterns in the quest dialog. The quest dialog and the accessible name of the ticket face give the board count of each dish. On phones, each shown dish has its board count and required quantity. On a wider screen, a dish that needs more than one portion has that count. Deliver is available when the board holds every portion. The label of the ticket section is "Neighbour quests".
 
 The quest dialog shows who asks and why. It also shows each dish with its board count, the reward, and Deliver. If more than one character speaks, the name of the speaker starts each change of speaker. The dish rows give the exact dishes, so the dialogue does not list them. Each dish row opens the item dialog of its dish. If a portion is missing, its row also has a Find button. Find closes the dialog and marks the next board step for another portion. A row with enough portions has no Find button. Deliver removes all the required portions from the board in one change. A delivery changes nothing in these cases:
 
@@ -245,6 +245,10 @@ At most three preparation blockers can be on the board at the same time. This li
 
 A placement never replaces an item and never moves an item. A blocked cell can get another blocker only after the player clears the earlier blocker and the cell is empty. Each blocker appears once. Its name and its explanation give its context. The label of the board gives the number of blockers that wait.
 
+On the first opening with no saved game, Mara's line explains how two Socată make Linden tea for Ana's 14-coin recovery quest. The two starting Socată have the hint pulse. The selected Socată and tea keep the delivery instruction until the player earns coins. This instruction does not block any action. A loaded game keeps its welcome message and ordinary guidance.
+
+If an action on a selected cell fails, the visible selection strip shows the reason and recovery action in place of the ordinary item text. The next selection or game action clears that message. The failure does not change the board or the purse.
+
 The screen shows one Pay button at a time. If the story card is on the screen, only the story card has Pay. If Story is a sheet, Mara's line has Pay. Mara's line offers the next preparation by name with a Pay button.
 
 Mara's line makes this offer if all of these conditions are true:
@@ -261,7 +265,7 @@ Every preparation repaints one area. Miez, the bistro cat, sits on the windowsil
 
 Story has a Miez card. A tap on the card or on the cat on the windowsill changes the cat between sitting and sleeping. The change shows a short notice and plays a sound if sound is on. The change does not affect the save.
 
-A bat crosses the dusk sky beyond the mended window of the front room after each preparation. A bat also crosses after every third delivered quest. The bat crosses only while the room shows the front room. The bat never crosses in these cases:
+A bat crosses the dusk sky beyond the mended window of the front room after each preparation. A bat also crosses after every third delivered quest. Only the bat is clipped to the six repaired glass panes, so the painted wooden frames hide it. The broken window has different frames and never shows a bat. The bat crosses only while the room shows the front room. The bat never crosses in these cases:
 
 - The page is hidden.
 - Reduced motion is on.

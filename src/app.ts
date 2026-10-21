@@ -7,7 +7,7 @@ import { modal } from './dialog.ts';
 import { changeGame, data, definition, onDraw, open, persist, saveFailed, select, selected, state, syncSavedGame } from './session.ts';
 import { SAVE_KEY } from './storage.ts';
 import { drawerLayout, onMotionResume, phone, playTone } from './preferences.ts';
-import { renderBoard, renderDetail } from './board.ts';
+import { introduceFirstDelivery, renderBoard, renderDetail } from './board.ts';
 import { renderTickets } from './tickets.ts';
 import { guidanceStep, markRecipeBook, noteNewDishes, updateGuidance } from './dishes.ts';
 import { endSceneFlow, renderOffer, showScene, storyContent } from './story.ts';
@@ -18,6 +18,7 @@ import { morning, playNight } from './night.ts';
 // Rendering replaces the controls in these regions, so focus is restored by region and position.
 const FOCUS_REGIONS = '#board,#tickets,#story,#item-detail,#offer';
 const TONE_EVENTS = ['merge', 'deliverQuest', 'task'];
+let actionFeedback = '';
 
 /**
  * Phones abbreviate large totals so the coins never reach the wordmark; screen readers always hear the exact amount.
@@ -60,7 +61,7 @@ function render() {
   renderRoom();
   renderCoins(); renderClock();
   renderBoard();
-  renderTickets(); $('#story').replaceChildren(storyContent(false)); renderDetail(); renderOffer();
+  renderTickets(); $('#story').replaceChildren(storyContent(false)); renderDetail(actionFeedback); renderOffer();
   markRecipeBook();
   if (region && position >= 0) {
     const controls = [...region.querySelectorAll('button')];
@@ -74,6 +75,8 @@ function render() {
 // After an action: the drawing, its tone, the coins it earned, the dishes it made, and Mara's line about it.
 onDraw(change => {
   const nextStep=updateGuidance(change);
+  // Selection changes and later actions replace a refusal. Resizing keeps it until the player acts.
+  actionFeedback=change&&!change.result.ok?(nextStep??change.result.message):'';
   render();
   if (!change) return;
   const { result, before } = change;
@@ -109,7 +112,7 @@ $('.skip-link').addEventListener('click',event=>{
   if(lowered)setLowered(false);
   event.preventDefault();stop.focus({preventScroll:true});stop.scrollIntoView({block:'nearest'});
 });
-phone.addEventListener('change',()=>{if(state){renderCoins();renderClock();renderDetail();}});
+phone.addEventListener('change',()=>{if(state){renderCoins();renderClock();renderDetail(actionFeedback);}});
 drawerLayout.addEventListener('change',()=>{setLowered(false);if(state){renderOffer();renderTickets();}});
 window.addEventListener('storage',event=>{
   if(!state||event.key!==SAVE_KEY||event.newValue===null)return;
@@ -127,8 +130,7 @@ try {
   // The frame pans smoothly only after it first settles, so opening the game shows the room in place.
   requestAnimationFrame(()=>requestAnimationFrame(()=>{$('#room-frame').classList.add('settled');syncRoomControls();}));
   if(saved.status==='empty')await changeGame(persist);
-  // Phones get a shorter opening line, so that it fits the line under the board.
-  status(saved.status==='loaded'?`Welcome back. The stove is still warm.${state.pendingScenes.length?' A story scene is waiting in Story.':''}`:phone.matches?'Merge the two Flours. Match blocked food to clear it.':'Tap one Flour, then the other, to merge. Merge onto matching blocked food to clear it.');
+  status(saved.status==='loaded'?`Welcome back. The stove is still warm.${state.pendingScenes.length?' A story scene is waiting in Story.':''}`:introduceFirstDelivery());
   if(saveFailed)options();
   // A night that the player did not see before the page closed opens its morning dialog now, without the sequence.
   if(modal.open)modal.addEventListener('close',morning,{once:true});else morning();

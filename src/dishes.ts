@@ -160,7 +160,7 @@ function showWay(code: string, needAnother = false) {
   if (!step) return;
   setLowered(false);
   select(step.at[0] ?? null); redraw(); pulse(step.at.slice(1)); status(step.line);
-  // A phone shows the recovery ticket as its face alone, so the guide focuses the face, and its dialog delivers.
+  // A phone shows each ticket as its face alone, so the guide focuses the face, and its dialog delivers.
   if (step.ticket) [...document.querySelectorAll<HTMLElement>(`#tickets [data-quest="${step.ticket}"] :is(.deliver-button,.ticket-face)`)].reverse()
     .find(control => control.checkVisibility())?.focus({ preventScroll:true });
   else if (step.at.length) $(`[data-cell="${step.at[0]}"]`).focus({ preventScroll:true });

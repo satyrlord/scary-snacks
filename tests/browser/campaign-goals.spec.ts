@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { requiredQuests, unresolvedObstacle } from '../../src/model.ts';
 import { createGame } from '../../src/engine.ts';
 import type { GameState } from '../../src/model.ts';
-import { act, checkpoint, data, deliverButton, goal, importSaveFile, newGame, opened, options, pay, ratio, saved, serialize, start, supplies, supply, tile, toast, validate, know } from './support.ts';
+import { act, checkpoint, data, dialogDeliver, goal, importSaveFile, newGame, opened, openQuest, options, pay, ratio, saved, serialize, start, supplies, supply, ticket, tile, toast, validate, know } from './support.ts';
 
 const first = data.tasks[0];
 const needed = requiredQuests(0, data);
@@ -145,7 +145,8 @@ test('delivering the last required quest makes the phone offer ready', async ({ 
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const { state, last } = lastQuestReady(); await start(page, state);
   await expect(page.locator('#offer')).toBeHidden();
-  const deliver = deliverButton(page, last);
+  await ticket(page,last).locator('.ticket-face').focus();await page.keyboard.press('Enter');
+  const deliver = dialogDeliver(page, last);
   await deliver.focus(); await page.keyboard.press('Enter');
   await expect(toast(page)).toHaveText(`${last.title}: delivered. Earned ${last.reward} coins.`);
   expect((await saved(page)).completedQuests).toHaveLength(needed.length);
@@ -172,7 +173,7 @@ test('a ready preparation keeps guide Stop visible after delivery clears the sel
   await page.getByRole('button', { name: sharing.name, exact: true }).click();
   await page.getByRole('button', { name: 'Show me on the board' }).click();
   await expect(page.locator('#board .selected')).toHaveAttribute('aria-label', new RegExp(`: ${data.items.dairy_5.name}`));
-  await deliverButton(page, fixture.last).click();
+  await openQuest(page,fixture.last);await dialogDeliver(page, fixture.last).click();
   await expect(page.locator('#board .selected')).toHaveCount(0);
   await expect(page.locator('#hint-button')).toHaveAccessibleName(`Stop guide for ${sharing.name}`);
   await expect(page.locator('#hint-button')).toBeVisible();
@@ -192,7 +193,8 @@ test('the last delivery returns focus to Story when the selected cell is in the 
   await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'reduce'});
   const {state,last}=lastQuestReady();await start(page,state);await tile(page,31).click();
   await page.locator('#drawer-handle').click();await expect(page.locator('#drawer-body')).toHaveAttribute('inert','');
-  await deliverButton(page,last).focus();await page.keyboard.press('Enter');
+  await ticket(page,last).locator('.ticket-face').focus();await page.keyboard.press('Enter');
+  await dialogDeliver(page,last).focus();await page.keyboard.press('Enter');
   await expect(toast(page)).toContainText('Earned');await expect(page.locator('#story-button')).toBeFocused();
 });
 

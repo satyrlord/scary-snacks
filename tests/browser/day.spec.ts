@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test';
 import { dayMerges } from '../../src/model.ts';
 import { createGame, reduceGame } from '../../src/engine.ts';
 import type { GameState, NightReport } from '../../src/model.ts';
-import { act, supper, checkpoint, data, KEY, mergeFlour, opened, options, quest, replaceSave, saved, serialize, start, supplies, supply, svgImageSizes, ticket, tile, toast, validate } from './support.ts';
+import { act, supper, checkpoint, data, dialogDeliver, KEY, mergeFlour, opened, openQuest, options, quest, replaceSave, saved, serialize, start, supplies, supply, svgImageSizes, ticket, tile, toast, validate } from './support.ts';
 
 // A new game has two Flours at 13 and 14, a Corn cob at 22, and Elderflowers at 27.
 const report = (values: Partial<NightReport> = {}): NightReport => ({ day: 2, upkeep: 10, rat: 'soricescu', taken: [], trapped: null, gift: null, purse: 30, seen: true, ...values });
@@ -35,17 +35,21 @@ test('a purse below zero shows a debt with a minus sign', async ({ page }) => {
   await expect(page.locator('#coin-total')).toHaveText('A debt of 12 coins');
 });
 
-test('tonight’s booked ticket lights the lanterns, and the other booked ticket waits for another evening', async ({ page }) => {
+for(const width of [1440,390])test(`tonight’s booked ticket lights the lanterns, and the other booked ticket waits for another evening at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({width,height:900});
   await start(page, bookedEvening());
   const vlad = ticket(page, quest('vlad-after-dark')), elisabeta = ticket(page, quest('elisabeta-papers'));
   await expect(vlad.locator('.ticket-booking')).toHaveText('Booked for 20:00');
   await expect(elisabeta.locator('.ticket-booking')).toHaveText('Booked for another evening');
-  await expect(elisabeta.getByRole('button', { name: 'The estate papers: booked for another evening' })).toBeDisabled();
-  const lanterns = vlad.getByRole('button', { name: 'Light the lanterns: Vlad is booked for 20:00' });
+  if(width<1024)await openQuest(page,quest('elisabeta-papers'));
+  await expect((width<1024?page.locator('#modal'):elisabeta).getByRole('button', { name: 'The estate papers: booked for another evening' })).toBeDisabled();
+  if(width<1024){await page.keyboard.press('Escape');await openQuest(page,quest('vlad-after-dark'));}
+  const lanterns = (width<1024?page.locator('#modal'):vlad).getByRole('button', { name: 'Light the lanterns: Vlad is booked for 20:00' });
   await expect(lanterns).toBeEnabled();
   await lanterns.click();
   await expect(page.locator('#day-clock')).toHaveText('Day 1 · 20:00');
-  await vlad.getByRole('button', { name: /^Deliver Dinner after dark/ }).click();
+  if(width<1024){await openQuest(page,quest('vlad-after-dark'));await dialogDeliver(page,quest('vlad-after-dark')).click();}
+  else await vlad.getByRole('button', { name: /^Deliver Dinner after dark/ }).click();
   await expect(toast(page)).toContainText('Dinner after dark: delivered.');
   expect((await saved(page)).evening).toEqual({ guest: 'vlad', last: null, delivered: true });
   await expect(ticket(page, quest('vlad-guest')).locator('.ticket-booking')).toHaveText('Booked for another evening');

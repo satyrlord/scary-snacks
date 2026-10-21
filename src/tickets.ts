@@ -99,12 +99,12 @@ export function renderTickets() {
     for (const { item, quantity } of shown) {
       const value = element('span', `ticket-item ${onBoard(item, quantity) === quantity ? 'ready' : ''}`);
       value.append(food(item));
-      if (quantity > 1) value.append(element('span', 'ticket-count', `${onBoard(item, quantity)}/${quantity}`));
+      value.append(element('span', `ticket-count${quantity === 1 ? ' single-portion' : ''}`, `${onBoard(item, quantity)}/${quantity}`));
       dishes.append(value);
     }
     if (shown.length < quest.requirements.length) dishes.append(element('span', 'ticket-item ticket-more', `+${quest.requirements.length - shown.length}`));
     face.append(picture, words, dishes);
-    // Phones show the reward alone until the quest can be delivered, and then the word alone, so four tickets fit the drawer's handle.
+    // Wider screens deliver from the counter. Phone tickets keep their names and counts, and open the dialog to deliver.
     const deliverButton = button('', 'primary-button deliver-button', () => deliver(quest));
     if (guided?.ticket === quest.id) deliverButton.classList.add('guide-target');
     // The supper pays nothing: its button serves the supper.
@@ -127,7 +127,7 @@ function bookedControl(quest: Quest, name: string) {
   const time = clockText(data.day.booking);
   if (awaitsLanterns(state, quest, data)) {
     const lantern = button('', 'primary-button deliver-button lantern-button', () => lightLanterns(quest));
-    lantern.append(lanternMark(), element('span', 'deliver-word', 'Light the lanterns'), element('span', 'booking-time', time));
+    lantern.append(lanternMark(), element('span', 'deliver-word', 'Light the lanterns'));
     lantern.disabled = !canLightLanterns(state, quest, data);
     lantern.setAttribute('aria-label', `Light the lanterns: ${name} is booked for ${time}`);
     return lantern;

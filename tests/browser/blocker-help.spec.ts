@@ -21,15 +21,19 @@ async function targets(page: Page) {
   return page.locator('#board .blocker-target').evaluateAll(elements => elements.map(element => Number((element as HTMLElement).dataset.cell)));
 }
 
-test('every opening blocker has a rule mark and selecting clutter replaces source details without a save change', async ({ page }) => {
-  await start(page, createGame(data));
+test('every opening blocker has a rule mark and selecting clutter replaces a source refusal without a save change', async ({ page }) => {
+  const initial=createGame(data);await start(page, initial);
   for (const obstacle of boardObstacles(createGame(data), data)) {
     await expect(tile(page, obstacle.position).locator('svg.blocker-mark')).toBeVisible();
     await expect(tile(page, obstacle.position).locator('.food')).toBeVisible();
     await expect(tile(page, obstacle.position)).toHaveAttribute('title', /Merge/i);
   }
-  await tile(page, 1).click(); await expect(page.locator('#item-detail.source-detail')).toContainText('Tap again for Flour');
+  await tile(page, 1).click();
+  const refusal=page.locator('#item-detail.source-detail .detail-feedback');
+  await expect(refusal).toBeVisible();
+  await expect(refusal).toHaveText('The Windmill costs 1 coin for each take, and the purse cannot pay. Deliver a quest, or take free herbs from the Herb basket.');
   const before = await saved(page);
+  expect(before).toEqual(initial);
   await tile(page, 0).click();
   await expect(help(page)).toBeVisible(); await expect(help(page).locator('.blocker-title')).toHaveText('Old crate');
   // The Loaf in the crate is also a part of mixed dishes, but a new game has made none of their other parts, so the rule names only the Loaf.
@@ -39,6 +43,7 @@ test('every opening blocker has a rule mark and selecting clutter replaces sourc
   await expect(tile(page, 0)).toHaveAttribute('aria-pressed', 'true');
   expect(await targets(page)).toEqual([]);
   await expect(page.locator('#item-detail.source-detail')).toHaveCount(0);
+  await expect(page.locator('#item-detail .detail-feedback')).toHaveCount(0);
   expect(await saved(page)).toEqual(before);
   await page.getByRole('button', { name: 'Clear selection', exact: true }).click();
   await expect(help(page)).toHaveCount(0); expect(await targets(page)).toEqual([]);

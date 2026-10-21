@@ -4,7 +4,7 @@ import { boardObstacles, firstFreeBoardCell, generatorOutputs, mergePartners, re
 import { createGame } from '../../src/engine.ts';
 import { appVersion } from '../../tools/build.ts';
 import type { GameState } from '../../src/model.ts';
-import { KEY, act, naturalSize, recovery, supper, appearance, checkpoint, data, deliverButton, dismissDialogs, exportText, forward, goal, importSaveFile, journal, mergeFlour, newGame, onTicket, opened, options, painting, pay, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, startAgain, stateText, supplies, supply, tile, ticket, toast, unselect, know, madeLine } from './support.ts';
+import { KEY, act, naturalSize, recovery, supper, appearance, checkpoint, data, deliverButton, dialogDeliver, dismissDialogs, exportText, forward, goal, importSaveFile, journal, mergeFlour, newGame, onTicket, opened, openQuest, options, painting, pay, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, startAgain, stateText, supplies, supply, tile, ticket, toast, unselect, know, madeLine } from './support.ts';
 
 const welcome=quest('mara-welcome'),welcomeSupplied=()=>supply(createGame(data),supplies(welcome));
 /** Earn the first preparation through legal actions: every required quest but the last delivered, and the dishes of the last on the board. */
@@ -327,29 +327,37 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
     const card=page.locator('#tickets .ticket').nth(slot),name=data.characters.find(person=>person.id===value.character)!.name;
     await expect(card).toHaveAttribute('data-quest',value.id);await expect(card).toHaveAccessibleName(`${name}’s quest: ${value.title}`);
     await expect(card.locator('.ticket-item')).toHaveCount(value.requirements.length);
-    // On a phone, the recovery ticket shows its face alone; its dialog delivers.
-    if(value.recovery&&viewport.width<1024)await expect(card.locator('.deliver-button')).toBeHidden();
+    // Each phone ticket is one target with its name and counts; its dialog delivers.
+    if(viewport.width<1024){
+      await expect(card.locator('.deliver-button')).toBeHidden();await expect(card.getByRole('button')).toHaveCount(1);
+      for(const [index,requirement] of value.requirements.entries()){
+        const count=card.locator('.ticket-count').nth(index),onBoard=Math.min(requirement.quantity,data.board.initial.filter(code=>code===requirement.item).length);
+        await expect(count).toBeVisible();await expect(count).toHaveText(`${onBoard}/${requirement.quantity}`);
+      }
+    }
     else{await expect(card.locator('.deliver-button')).toBeDisabled();
       await expect(card.locator('.deliver-button')).toHaveAccessibleName(new RegExp(` for ${value.reward} coins$`));await expect(card.locator('.deliver-button')).toContainText(String(value.reward));}
     const box=(await card.boundingBox())!;expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(viewport.width);expect(box.y+box.height).toBeLessThanOrEqual(viewport.height);
     // The phone check of the width of four tickets is its own test below.
     expect(await card.evaluate(e=>e.scrollHeight<=e.clientHeight+1)).toBe(true);if(viewport.width>=1024)expect(await card.evaluate(e=>e.scrollWidth<=e.clientWidth+1)).toBe(true);
     for(const target of await card.getByRole('button').all()){const size=(await target.boundingBox())!;expect(size.width).toBeGreaterThanOrEqual(44);expect(size.height).toBeGreaterThanOrEqual(44);}
-    // The ticket and the Deliver price stay readable while it waits for its dishes.
-    const colors=await card.evaluate(e=>({paper:getComputedStyle(e).backgroundColor,name:getComputedStyle(e.querySelector('.ticket-name')!).color,price:getComputedStyle(e.querySelector('.deliver-button')!).color,button:getComputedStyle(e.querySelector('.deliver-button')!).backgroundColor}));
-    if(viewport.width>=1024)expect(ratio(colors.paper,colors.name)).toBeGreaterThanOrEqual(4.5);
+    // The name and the visible count or desktop Deliver price stay readable while the ticket waits.
+    await expect(card.locator('.ticket-name')).toBeVisible();
+    const colors=await card.evaluate(e=>{const price=e.querySelector(innerWidth<1024?'.ticket-count':'.deliver-button')!;return {paper:getComputedStyle(e).backgroundColor,name:getComputedStyle(e.querySelector('.ticket-name')!).color,price:getComputedStyle(price).color,button:getComputedStyle(price).backgroundColor};});
+    expect(ratio(colors.paper,colors.name)).toBeGreaterThanOrEqual(4.5);
     expect(ratio(colors.button==='rgba(0, 0, 0, 0)'?colors.paper:colors.button,colors.price)).toBeGreaterThanOrEqual(4.5);
   }
-  if(viewport.width<1024)await expect(page.locator('#tickets .ticket-count').first()).toBeHidden();
+  if(viewport.width>=1024)for(const count of await page.locator('#tickets .ticket-count.single-portion').all())await expect(count).toBeHidden();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:testInfo.outputPath(`tickets-${viewport.width}-${theme}.png`)});
 });
 
-// Four tickets do not fit two 44px targets each on a phone, so the recovery ticket shows its face alone, and its dialog delivers.
+// Each phone ticket has one full-width target; all actions remain in its quest dialog.
 for(const width of [390,360])test(`on a ${width}px phone, each target stays inside its ticket when the recovery ticket makes four`,async({page})=>{
   await page.setViewportSize({width,height:844});await start(page);await expect(page.locator('#tickets .ticket')).toHaveCount(4);
-  await expect(page.locator('#tickets .recovery-ticket .deliver-button')).toBeHidden();
+  for(const button of await page.locator('#tickets .deliver-button').all())await expect(button).toBeHidden();
   for(const card of await page.locator('#tickets .ticket').all()){
+    await expect(card.getByRole('button')).toHaveCount(1);
     const box=(await card.boundingBox())!;
     for(const target of await card.getByRole('button').all()){
       const size=(await target.boundingBox())!;expect(size.width).toBeGreaterThanOrEqual(44);expect(size.height).toBeGreaterThanOrEqual(44);
@@ -381,10 +389,13 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   const initial=checkpoint(1,{coins:1_000_000_000}),value=resolveQuests(initial,data).find(view=>view.status==='active'&&!view.quest.recovery)!.quest;
   const supplied=supply(initial,supplies(value));
   await page.setViewportSize(viewport);await page.emulateMedia({reducedMotion:'no-preference'});await start(page,supplied,theme);
-  await deliverButton(page,value).click();await expect(page.locator('#status')).toHaveText('Spend some coins before you deliver this quest.');
+  if(viewport.width<1024){await openQuest(page,value);await dialogDeliver(page,value).click();}else await deliverButton(page,value).click();
+  await expect(page.locator('#status')).toHaveText('Spend some coins before you deliver this quest.');
   expect(await saved(page)).toEqual(supplied);
   expect(await ticket(page,value).evaluate(card=>card.classList.contains('arriving'))).toBe(false);
-  await expect(ticket(page,value)).toBeVisible();await expect(deliverButton(page,value)).toBeEnabled();
+  await expect(ticket(page,value)).toBeVisible();
+  if(viewport.width<1024){await openQuest(page,value);await expect(dialogDeliver(page,value)).toBeEnabled();await page.keyboard.press('Escape');}
+  else await expect(deliverButton(page,value)).toBeEnabled();
   await expect(page.locator('.deliver-flight,.toast')).toHaveCount(0);
   await page.screenshot({path:testInfo.outputPath(`refused-delivery-${viewport.width}-${theme}.png`)});
 });
@@ -803,7 +814,8 @@ test('a first visit is dark on a light device, and light, dark, and system theme
       const colors=await page.evaluate(()=>{
         const style=(selector: string)=>getComputedStyle(document.querySelector(selector)!);
         const behind=(selector: string)=>{let e: Element|null=document.querySelector(selector);while(e&&getComputedStyle(e).backgroundColor==='rgba(0, 0, 0, 0)')e=e.parentElement;return getComputedStyle(e??document.documentElement).backgroundColor;};
-        return{page:behind('body'),text:style('body').color,drawer:behind('.drawer'),status:style('#status').color,card:behind('.story-foot'),muted:style('.story-foot').color,ticket:behind('.deliver-button:disabled'),price:style('.deliver-button:disabled').color};
+        const ticketText=innerWidth<1024?'.ticket-count':'.deliver-button:disabled';
+        return{page:behind('body'),text:style('body').color,drawer:behind('.drawer'),status:style('#status').color,card:behind('.story-foot'),muted:style('.story-foot').color,ticket:behind(ticketText),price:style(ticketText).color};
       });
       expect(ratio(colors.page,colors.text)).toBeGreaterThanOrEqual(4.5);expect(ratio(colors.drawer,colors.status)).toBeGreaterThanOrEqual(4.5);
       expect(ratio(colors.card,colors.muted)).toBeGreaterThanOrEqual(4.5);expect(ratio(colors.ticket,colors.price)).toBeGreaterThanOrEqual(4.5);
@@ -1017,7 +1029,8 @@ test('phone shows the room, the tickets, the board and Mara in one screen, with 
   // About 250px of room shows above the handle row of tickets; the board and Mara's line follow inside the drawer.
   expect(drawer.y-height).toBeGreaterThanOrEqual(230);expect(drawer.y-height).toBeLessThanOrEqual(280);
   expect(tickets.y).toBeGreaterThanOrEqual(drawer.y);expect(board.y).toBeGreaterThanOrEqual(tickets.y+tickets.height);expect(board.y+board.height).toBeLessThanOrEqual(slot.y);expect(slot.y+slot.height).toBeLessThanOrEqual(bar.y+1);
-  for(const deliver of await page.locator('#tickets .deliver-button:visible').all())expect((await deliver.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await expect(page.locator('#tickets .deliver-button:visible')).toHaveCount(0);
+  for(const face of await page.locator('#tickets .ticket-face').all())expect((await face.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   expect((await tile(page,0).boundingBox())!.width).toBeGreaterThanOrEqual(44);
   await unselect(page);await expect(page.locator('.mara-line')).toBeVisible();await expect(page.locator('#item-detail')).toBeHidden();
   await tile(page,14).click();await expect(page.locator('#item-detail')).toBeVisible();expect((await box('.mara-line')).width).toBeLessThanOrEqual(1);
@@ -1187,7 +1200,7 @@ test('narrow phones keep the whole dish name in the strip, and short screens kee
   // A new game on a short phone: the shorter opening line fits the line under the board.
   await page.addInitScript(key=>localStorage.removeItem(key),KEY);
   for(const width of [320,390]){
-    await page.setViewportSize({width,height:740});await start(page);await expect(page.locator('#status')).toHaveText(/^Merge the two Flours\./);
+    await page.setViewportSize({width,height:740});await start(page);await expect(page.locator('#status')).toHaveText(/^Merge two Socată/);
     const words=await page.locator('#status').evaluate(e=>{const range=document.createRange();range.selectNodeContents(e);return range.getBoundingClientRect().bottom;});
     expect(words).toBeLessThanOrEqual((await page.locator('.phone-bar').boundingBox())!.y);
   }
@@ -1266,7 +1279,7 @@ test('a guide keeps a visible Stop action when delivery removes its selected cel
   await page.getByRole('button',{name:data.items[target].name,exact:true}).click();
   await page.getByRole('button',{name:'Show me on the board'}).click();
   await expect(page.locator('#board .selected')).toHaveAttribute('aria-label',/Dough/);
-  await deliverButton(page,sorin).click();
+  await openQuest(page,sorin);await dialogDeliver(page,sorin).click();
   await expect(page.locator('#board .selected')).toHaveCount(0);
   const before=await saved(page);
   const stop=page.getByRole('button',{name:`Stop guide for ${data.items[target].name}`});

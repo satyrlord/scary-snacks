@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { requiredQuests } from '../../src/model.ts';
 import type { GameState, SceneLine } from '../../src/model.ts';
-import { KEY, act, recovery, supper, checkpoint, data, deliverable, deliverButton, exportText, failWrites, forward, journal, opened, options, painting, payAndRead, ratio, readNow, readTo, replaceSave, revealed, saved, start, startAgainAndImport, story, supplies, supply, tile } from './support.ts';
+import { KEY, act, recovery, supper, checkpoint, data, deliverable, deliverButton, exportText, failWrites, forward, journal, opened, openQuest, options, painting, payAndRead, ratio, readNow, readTo, replaceSave, revealed, saved, start, startAgainAndImport, story, supplies, supply, tile } from './support.ts';
 
 const closing=(index: number)=>`Chapter ${index+1} complete: ${data.chapters[index].title}`;
 /** The regulars whose arrival scenes the payment of a preparation queues. */
@@ -17,6 +17,11 @@ async function readWithArrivals(page: Page,index: number){
 const scene=(page: Page,title: string)=>page.getByRole('dialog',{name:title,exact:true});
 /** Every preparation is paid and each plate of the supper is on the board. A purse at the recovery floor keeps the recovery quest away. */
 const supperReady=()=>supply(checkpoint(data.tasks.length,{coins:data.economy.recoveryFloor}),supplies(supper));
+/** Phone tickets open the quest to serve; desktop tickets serve directly. */
+async function serveSupper(page: Page){
+  if(page.viewportSize()!.width<1024){await openQuest(page,supper);await scene(page,supper.title).getByRole('button',{name:`Serve ${supper.title}`,exact:true}).click();}
+  else await deliverButton(page,supper).click();
+}
 /** The supper painting after the finale: its picture has loaded, it names the guests, and the ending line stands under it. */
 async function supperPainting(page: Page){
   const dialog=scene(page,'The supper'),image=dialog.locator('img');await expect(dialog).toBeVisible();
@@ -87,7 +92,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`the
   await page.setViewportSize(viewport);await start(page,supperReady());
   await journal(page,['chapters','conversations','neighbours']);await expect(page.locator(`[data-journal="${data.finale.id}"]`)).toHaveCount(0);
   await expect(page.getByRole('heading',{name:'The finale',exact:true})).toHaveCount(0);
-  await page.keyboard.press('Escape');await deliverButton(page,supper).click();
+  await page.keyboard.press('Escape');await serveSupper(page);
   await expect(scene(page,data.finale.title)).toBeVisible();await page.keyboard.press('Escape');
   await journal(page,['chapters','conversations','neighbours']);await expect(page.getByRole('button',{name:`Read ${data.finale.title}`,exact:true})).toBeVisible();
 });
@@ -95,7 +100,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`the
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`a failed supper save warns inside the finale before reading at ${viewport.width}`,async({page,context})=>{
   const initial=supperReady();
   await page.setViewportSize(viewport);await start(page,initial);await failWrites(page);
-  await deliverButton(page,supper).click();
+  await serveSupper(page);
   const dialog=scene(page,data.finale.title),warning=dialog.locator('.scene-unsaved');
   await expect(warning).toHaveText('This session is not saved. You can keep reading. Use Retry save in Options before you leave.');
   // The native modal excludes the outside toast from Chromium's accessibility tree.
@@ -108,7 +113,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`a f
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`after the supper is served the courtyard shows the supper painting without finishes, also after a reload, at ${viewport.width}`,async({page},testInfo)=>{
   await page.setViewportSize(viewport);await start(page,{...supperReady(),decorationChoices:{textiles:'blue'}});
   await expect.poll(()=>painting(page)).toMatch(/^front-room-24-/);
-  await deliverButton(page,supper).click();
+  await serveSupper(page);
   await expect(scene(page,data.finale.title)).toBeVisible();await page.keyboard.press('Escape');
   const supperRoom=async()=>{
     await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','finale-supper');await expect.poll(()=>painting(page)).toMatch(/^finale-supper-/);
@@ -388,17 +393,21 @@ test('a regular’s arrival scene waits in Story after a reload and then opens t
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`the supper ticket, its plates, and the supper painting fit ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
   await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});
-  // Without its plates, the supper ticket shows its first three plates, the count of the others, and Serve, which waits.
+  // Without its plates, the supper ticket shows its first three plates and the count of the others. Serve waits for them.
   await start(page,checkpoint(data.tasks.length,{coins:data.economy.recoveryFloor}),theme);
   expect(supper.requirements).toHaveLength(11);expect(supper.reward).toBe(0);expect(supper.guests).toHaveLength(11);
   const card=page.locator(`#tickets .ticket[data-quest="${supper.id}"]`),button=card.locator('.deliver-button');
   await expect(page.locator('#tickets .ticket')).toHaveCount(1);await expect(card).toBeInViewport();
   await expect(card.locator('.ticket-item:not(.ticket-more)')).toHaveCount(3);await expect(card.locator('.ticket-more')).toHaveText('+8');
   await expect(card.locator('.ticket-face')).toHaveAccessibleName(`${supper.title}: ${supper.requirements.map(({item,quantity})=>`${quantity} ${data.items[item].name}, 0 on the board`).join('; ')}`);
-  await expect(button).toBeDisabled();await expect(button).toHaveText('Serve');await expect(button).toHaveAccessibleName(`Serve ${supper.title}`);await expect(button.locator('.coin')).toHaveCount(0);
+  await expect(button).toBeDisabled();await expect(button).toHaveText('Serve');await expect(button.locator('.coin')).toHaveCount(0);
+  if(viewport.width>=1024)await expect(button).toHaveAccessibleName(`Serve ${supper.title}`);else await expect(button).toBeHidden();
   const fits=async()=>{
-    const [word,box,more,face]=await Promise.all([button.locator('.deliver-word').boundingBox(),button.boundingBox(),card.locator('.ticket-more').boundingBox(),card.boundingBox()]);
-    expect(word!.width).toBeGreaterThan(0);expect(word!.x).toBeGreaterThanOrEqual(box!.x);expect(word!.x+word!.width).toBeLessThanOrEqual(box!.x+box!.width);
+    const target=viewport.width<1024?card.locator('.ticket-face'):button;
+    const [box,more,face]=await Promise.all([target.boundingBox(),card.locator('.ticket-more').boundingBox(),card.boundingBox()]);
+    if(viewport.width>=1024){const word=(await button.locator('.deliver-word').boundingBox())!;
+      expect(word.width).toBeGreaterThan(0);expect(word.x).toBeGreaterThanOrEqual(box!.x);expect(word.x+word.width).toBeLessThanOrEqual(box!.x+box!.width);}
+    else {await expect(card.getByRole('button')).toHaveCount(1);for(const count of await card.locator('.ticket-count').all())await expect(count).toBeVisible();}
     expect(box!.width).toBeGreaterThanOrEqual(44);expect(box!.height).toBeGreaterThanOrEqual(viewport.width<1024?44:36);
     expect(more!.width).toBeGreaterThan(0);expect(more!.x+more!.width).toBeLessThanOrEqual(face!.x+face!.width);
     expect(await card.evaluate(e=>e.scrollWidth<=e.clientWidth+1)).toBe(true);
@@ -418,7 +427,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   // With every plate on the board, Serve is ready.
   await replaceSave(page,supperReady());await expect(button).toBeEnabled();await expect(card.locator('.ticket-item.ready:not(.ticket-more)')).toHaveCount(3);
   await fits();await page.screenshot({path:testInfo.outputPath('supper-ticket.png')});
-  await button.click();await page.getByRole('button',{name:'See the supper',exact:true}).click();
+  await serveSupper(page);await page.getByRole('button',{name:'See the supper',exact:true}).click();
   const painted=await supperPainting(page),done=painted.getByRole('button',{name:'Back to the kitchen',exact:true});
   // The painting, the ending line, and the button fit the screen without a scroll.
   await expect(painted.locator('img')).toBeInViewport({ratio:1});await expect(done).toBeInViewport({ratio:1});await expect(done).toBeFocused();

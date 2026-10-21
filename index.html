@@ -18,6 +18,12 @@
   <a class="skip-link" href="#board">Skip to the board</a>
   <!-- One repeat of the runner bitmap (x 161, width 503) tiles without a seam; the whole bitmap does not. -->
   <svg class="runner-source" aria-hidden="true" focusable="false"><defs><pattern id="runner-repeat" patternUnits="userSpaceOnUse" width="503" height="512"><image href="./assets/variants/embroidered-runner-384x128.webp" x="-161" y="0" width="1536" height="512"/></pattern></defs></svg>
+  <!-- Six glass panes measured on front-room-01 and later. The broken window has different wood and never shows a bat. -->
+  <svg class="runner-source" aria-hidden="true" focusable="false"><defs><clipPath id="window-panes-mended" clipPathUnits="objectBoundingBox">
+    <rect x=".018" y=".008" width=".399" height=".292"/><rect x=".582" y=".008" width=".412" height=".292"/>
+    <rect x=".018" y=".34" width=".399" height=".299"/><rect x=".582" y=".34" width=".412" height=".299"/>
+    <rect x=".018" y=".682" width=".399" height=".294"/><rect x=".582" y=".682" width=".412" height=".294"/>
+  </clipPath></defs></svg>
   <header class="masthead">
     <div class="brand">
       <h1 class="wordmark"><span class="mascot cat-sitting" aria-hidden="true"></span><span>Scary Snacks</span></h1>
@@ -37,7 +43,7 @@
           <div class="room-paintings" id="room-paintings"></div>
           <div class="room-decorations" id="room-decorations" aria-hidden="true"></div>
           <div class="room-finishes" id="room-finishes"></div>
-          <span class="window-sky" aria-hidden="true"><span class="night-sky"></span></span>
+          <span class="window-sky" aria-hidden="true"><span class="night-sky"></span><span class="window-flight"></span></span>
           <span class="night-tint" aria-hidden="true"></span>
           <span class="mascot cat-sleeping counter-cat" aria-hidden="true"></span>
           <button type="button" class="miez sill-cat" id="cat-button" aria-label="Give Miez, the bistro cat, some attention"><span class="mascot miez-sprite cat-sitting" aria-hidden="true"></span></button>

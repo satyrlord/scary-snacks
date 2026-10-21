@@ -192,27 +192,32 @@ export function syncRoomControls() {
  */
 export function fitPin() {
   const pin=$('#room-pin');if(pin.hidden)return;
-  const frame=$('#room-frame'),stage=$('#room-stage').getBoundingClientRect(),area=$('#area-switch').getBoundingClientRect(),below=Boolean(data.rooms.find(room=>room.id===pin.dataset.state)?.mark.below);
+  const frame=$('#room-frame'),stage=$('#room-stage').getBoundingClientRect(),area=$('#area-switch').getBoundingClientRect(),handle=$('#drawer-handle').getBoundingClientRect(),below=Boolean(data.rooms.find(room=>room.id===pin.dataset.state)?.mark.below);
+  // The handle reaches above the drawer. Its transparent target must also stay clear of the pin.
+  const obstacles=[area,...(handle.width&&handle.height?[handle]:[])];
   const bottom=drawerLayout.matches?Math.min(stage.bottom,$('#drawer').getBoundingClientRect().top):stage.bottom;
   frame.style.setProperty('--pin-pan','0px');
   pin.style.setProperty('--shift','0px');pin.removeAttribute('data-bare');pin.toggleAttribute('data-below',below);
-  const meets=(box: DOMRect)=>box.left<area.right&&area.left<box.right&&box.top<area.bottom&&area.top<box.bottom;
-  let box=pin.getBoundingClientRect();
-  if(box.width>stage.width-16){pin.toggleAttribute('data-bare',true);box=pin.getBoundingClientRect();}
+  // Include the transparent extension of the button. Fitting only the painted capsule lets the drawer intercept its lower edge.
+  const target=getComputedStyle(pin,'::before'),outset={left:-parseFloat(target.left)||0,top:-parseFloat(target.top)||0,right:-parseFloat(target.right)||0,bottom:-parseFloat(target.bottom)||0};
+  const bounds=()=>{const box=pin.getBoundingClientRect();return new DOMRect(box.left-outset.left,box.top-outset.top,box.width+outset.left+outset.right,box.height+outset.top+outset.bottom);};
+  const meets=(box: DOMRect)=>obstacles.some(obstacle=>box.left<obstacle.right&&obstacle.left<box.right&&box.top<obstacle.bottom&&obstacle.top<box.bottom);
+  let box=bounds();
+  if(box.width>stage.width-16){pin.toggleAttribute('data-bare',true);box=bounds();}
   if(box.top<stage.top+4||box.bottom>bottom-4||meets(box)){
-    pin.toggleAttribute('data-below',!below);const alternate=pin.getBoundingClientRect();
+    pin.toggleAttribute('data-below',!below);const alternate=bounds();
     const cost=(value: DOMRect)=>Math.max(0,stage.top+4-value.top)+Math.max(0,value.bottom-(bottom-4))+(meets(value)?value.height:0);
     if(cost(alternate)<cost(box))box=alternate;else pin.toggleAttribute('data-below',below);
   }
   // A short viewport can place the mark itself above the crop. Pan the painting with the mark, not the pin alone.
   const pan=Math.max(0,stage.top+4-box.top)-Math.max(0,box.bottom-(bottom-4));
-  if(pan){frame.style.setProperty('--pin-pan',`${pan}px`);box=pin.getBoundingClientRect();}
-  if(meets(box)){pin.toggleAttribute('data-bare',true);box=pin.getBoundingClientRect();}
+  if(pan){frame.style.setProperty('--pin-pan',`${pan}px`);box=bounds();}
+  if(meets(box)){pin.toggleAttribute('data-bare',true);box=bounds();}
   let left=Math.max(stage.left+8,Math.min(box.left,stage.right-8-box.width));
-  if(box.top<area.bottom&&area.top<box.bottom&&left<area.right&&area.left<left+box.width){
-    if(area.right+8+box.width<=stage.right-8)left=area.right+8;
-    else if(area.left-8-box.width>=stage.left+8)left=area.left-8-box.width;
-  }
+  const candidates=[left,...obstacles.flatMap(obstacle=>[obstacle.right+8,obstacle.left-8-box.width])]
+    .filter(value=>value>=stage.left+8&&value+box.width<=stage.right-8)
+    .sort((a,b)=>Math.abs(a-left)-Math.abs(b-left));
+  left=candidates.find(value=>!meets(new DOMRect(value,box.top,box.width,box.height)))??left;
   pin.style.setProperty('--shift',`${Math.round(left-box.left)}px`);
 }
 /** A finish over the room painting, cropped to its slot in scene coordinates. Saves only supply validated choice IDs. */
@@ -259,7 +264,7 @@ function renderFinishes(area: string) {
 export function batFlight() {
   const frame = $('#room-frame');
   if (still() || document.hidden || frame.dataset.area !== 'front-room' || frame.dataset.painting === 'front-room-00' || $('#room-stage').hasAttribute('data-failed')) return;
-  const sky = $('.window-sky'), bat = element('span', 'mascot bat'); bat.setAttribute('aria-hidden', 'true'); sky.append(bat);
+  const sky = $('.window-sky'), bat = element('span', 'mascot bat'); bat.setAttribute('aria-hidden', 'true'); $('.window-flight').append(bat);
   const { width, height } = sky.getBoundingClientRect();
   bat.animate([
     // In from the right and out to the left, across the upper panes and down past the transom.

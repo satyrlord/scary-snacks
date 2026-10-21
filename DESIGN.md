@@ -190,7 +190,7 @@ components:
     backgroundColor: "{colors.light-panel}"
     textColor: "{colors.light-ink}"
     rounded: "18px 18px 0 0"
-    height: "calc(var(--cell) * 7 + 18px + 152px)"
+    height: "calc(var(--cell) * 7 + 18px + var(--drawer-chrome))"
   drawer-handle:
     backgroundColor: "{colors.light-control-line}"
     rounded: "2px"
@@ -206,7 +206,7 @@ components:
     textColor: "{colors.light-ink}"
     rounded: "{rounded.control}"
     padding: "2px 3px"
-    height: "50px"
+    height: "58px"
   deliver-button:
     backgroundColor: "{colors.plum-brandy}"
     textColor: "{colors.light-on-action}"
@@ -383,6 +383,8 @@ The area switch is in a lower corner of the visible room. The top of the switch 
 
 The kitchen column is as wide as the board plus 28px. It holds the timber table and Mara's line, 12px apart. The side column has a hairline on its left and 20px of padding. It holds the story and the recipe book as sections between hairlines. The sections are 14px apart (10px from 1024px to 1365px).
 
+At a wider-screen height of 799px or less, the masthead has 10px top and 8px bottom padding. The wordmark is 43px. Tickets have 6px padding and 4px gaps. Their portraits are 28px, and their dishes are 26px in 28px-high slots. The drawer gap is 10px, the kitchen gap is 8px, and the board has 10px vertical padding. The status strip has 4px vertical padding. These sizes keep the board and its instructions visible at 1280 by 720px.
+
 **Phones (1023px or less).** The masthead is 48px tall on the page colour, with 14px gutters. The room fills the screen below the masthead. The painting is as wide as the screen. The drawer has a fixed position above the bar, with an 18px radius on its top corners. The content of the drawer is at most 560px wide and in the centre. The drawer holds these parts, from top to bottom:
 - The grip. The grip is a 40px by 4px bar in Control Line, on a 96px by 44px target. The target extends over the room.
 - The three tickets, 6px apart. While the recovery quest is open, the recovery ticket is a fourth ticket.
@@ -395,7 +397,7 @@ The bar is 56px tall plus the safe area. The safe area is the space that the dev
 
 **The height budget.** The cell size and the visible room share one budget:
 - Wider screens: `--cell: clamp(44px, min(calc((var(--panel-w) - var(--side-w) - 116px) / 6), calc((100dvh - 432px) / 7)), 96px)`, with 4px gaps.
-- Phones: `--cell: clamp(44px, min(calc((100vw - 40px) / 6), calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7)), 60px)`, with 3px gaps. The value of `--drawer-chrome` is 152px. If the cell size allows it, the room shows at least 29.5dvh above the drawer. The unit dvh is one percent of the dynamic viewport height.
+- Phones: `--cell: clamp(44px, min(calc((100vw - 40px) / 6), calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7)), 60px)`, with 3px gaps. The value of `--drawer-chrome` is 160px. Below 360px, a ticket with four shown dishes uses 176px. A visible action failure adds 24px for its explanation. If the cell size allows it, the room shows at least 29.5dvh above the drawer. The unit dvh is one percent of the dynamic viewport height.
 
 **Short screens.** On a short screen, the room, the drawer, and the bar do not have a fixed position. They follow each other in the page, and the page scrolls. The room is 240px tall. The grip does not show. A change to this layout clears the lowered drawer state, so the kitchen accepts input after rotation.
 
@@ -414,7 +416,7 @@ The short form follows the page language. The short form rounds down, so it neve
 ### Named Rules
 **The Open Room Rule.** On wider screens, no interface covers the room, except the pin, the area switch, and unlocked finish switches. On phones, the drawer covers only the lower part of the room. The frame keeps the latest change in the visible part.
 
-**The One Screen Rule.** The cell size and the visible room share one height budget. If you change one of them, recompute the other. Then the tickets, the whole board, and Mara's line stay on the first screen at 1280×800, 1440×900, 1920×1080, and 390×844.
+**The One Screen Rule.** The cell size and the visible room share one height budget. If you change one of them, recompute the other. Then the tickets, the whole board, and Mara's line stay on the first screen at 1280×720, 1280×800, 1440×900, 1920×1080, and 390×844.
 
 **The Thumb Rule.** On phones, the bar holds Story, Recipes, and Options. The masthead never holds them.
 
@@ -456,7 +458,7 @@ Corners increase with the size of the surface. A nested shape has a smaller radi
 
 Borders are 1px. Hairlines separate content. Control Line outlines the parts that the player can press. A dashed outline means "empty" or "not yet". It marks an unaffordable action, a locked area, or an undiscovered dish. A dashed panel in place of the room means that the painting did not load.
 
-Portraits are circles. Food and mascots keep their own transparent outlines. The room clips only to rectangles: the window glass, its two upper panes, and each decoration region. A bat flies behind the glass, and the night sky shows behind the upper panes.
+Portraits are circles. Food and mascots keep their own transparent outlines. The room clips only to rectangles: the six repaired window panes, its two upper panes for the night sky, and each decoration region. A bat flies behind the glass and its wooden frames. The night sky shows behind the upper panes.
 
 ## Components
 
@@ -481,7 +483,7 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 - **Caption:** a visually hidden list gives in words what each state added. If the painting cannot load, the caption shows in a dashed Parchment panel. The panel text is "The painting of this room could not load, so here it is in words."
 - **Miez:** the cat that sits on the left end of the front-room windowsill. Miez is a button (at least 44px). Miez accepts input only while the sill shows above the drawer. The Story sheet also holds the Miez card.
 - **Second cat:** in the finished front room (front-room-24), a second cat sleeps on the free left end of the counter. The second cat is decorative.
-- **Bats:** a rectangular clip on the mended window glass holds the dusk. A bat crosses the clip from right to left over 2.6s, and its wings flap. `PRODUCT.md` gives when a bat crosses.
+- **Bats:** a separate layer clips only the bat to the six glass panes measured on front-room-01 and the later repaired paintings. The central wooden bar and both horizontal bars hide the bat. The room painting and night sky are separate from this clip. The broken window has four different panes and no bat. A bat crosses from right to left over 2.6s, and its wings flap. `PRODUCT.md` gives when a bat crosses.
 
 ### The night
 - **Closing dialog:** the closing applies at once. Then the dialog "Closing time" opens with one line, "Day N is over. Mara blows out the lamps and locks the door. Something small stirs under the floorboards." Its actions are Skip, a secondary button, and Watch the night, the primary button. Watch the night has focus. While the dialog is open, a dish that the night takes stays drawn in its cell, inset 15%. Also, a cell that the night changes shows its earlier look.
@@ -502,7 +504,7 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 
 ### "New" pin (signature)
 - **Style:** a Parchment capsule with a copper-glow dot. The word "New" has weight 600. The change label has weight 400 ("New: the painted dresser"). The tail of the pin touches the edge of the change, so the pin never covers the change. The touch target of the pin is 44px tall.
-- **Fit:** the pin uses the side of its mark where it fits and does not cover the area switch. On short screens, the frame can move enough to keep the mark visible, within the edges of the painting. At a side edge, the pin slides sideways, and the tail stays on the mark. If the pin has no room, it hides its label.
+- **Fit:** the complete 44px touch target stays inside the visible room and clear of the area switch and drawer handle. On short screens, the frame can move enough to keep the mark visible, within the edges of the painting. At a side edge, the pin slides sideways, and the tail stays on the mark. If the pin has no room, it hides its label.
 - **Action:** a tap puts the description of the change in Mara's line. The pin marks only a painted change.
 
 ### Area switch
@@ -513,18 +515,18 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 
 ### Paper tickets
 - **Wider screens:** Fresh Linen, a hairline border, a 12px radius, and 8px padding. A 36px portrait is beside two lines: the name (13px, 600) and the quest title (12px, accent). If a line does not fit, it ends with an ellipsis. The dishes follow in a row under the portrait, as 32px pictures in 40px by 36px slots. Deliver spans the ticket below them. On hover, the title has an underline. The tickets show the first three open quests, in the order of the game data. The accessible name of a ticket is "[Name]’s quest: [title]". If no quest is open, one muted 13px line fills the row. While the recovery ticket is open, the line is beside the recovery ticket. On phones, the line is as tall as a ticket. `PRODUCT.md` gives the text of the line.
-- **Phones:** 50px tall, a 9px radius, 2px × 3px padding. A 22px portrait is on the upper-left corner with a ring of the ticket colour. The name and the title do not show. The accessible names of the face and Deliver give them. Deliver fills the rest of the width.
-- **Dishes:** 32px on wider screens. If a quest needs more than two kinds of dish, each dish is 30px in a 34px slot. A Ready Green dot marks a dish when the board holds every portion of it. On wider screens, a dish that needs more than one portion has an "n/q" badge at the lower-left corner. The badge uses 10px tabular figures at weight 600, Fresh Linen, and a hairline ring. Phones do not show the badge.
-- **Face target:** the portrait, the name, the title, and the dishes of a ticket are one target, the face. The face opens the quest dialog. The face is at least 44px tall and 44px wide. On phones, the dishes show as 26px pictures (22px at 360px and below). The accessible name of the face starts with the quest title. Each dish follows with its quantity and the count on the board.
-- **Narrowest tickets:** at 360px and below, the ticket padding is 2px, and Deliver has 1px side padding. Each target on a ticket stays at least 44px wide down to 320px.
-- **Deliver:** "Deliver · N" with the 16px coin mark. On phones, a ready Deliver shows only the word "Deliver", at its full width. The fanned dishes of the face take less width. If the board does not hold every portion, the button shows the dashed "not yet" style. On phones, the not-yet style shows only the reward and a 14px coin mark. The accessible name is "Deliver [quest] to [name] for N coins".
+- **Phones:** 58px tall, a 9px radius, and 2px × 3px padding. A 16px portrait is beside the name in 12px text. The title stays in the accessible name and the quest dialog. Each ticket has one full-width face target. The quest dialog holds the reward and its Deliver, Serve, or lantern control.
+- **Dishes:** 32px on wider screens. If a quest needs more than two kinds of dish, each dish is 30px in a 34px slot. A Ready Green dot marks a dish when the board holds every portion of it. On wider screens, a dish that needs more than one portion has an "n/q" badge at the lower-left corner. Phones show this badge for every shown dish, including a single portion. The phone badge is below its picture and uses Ready Green when complete. The badge uses 10px tabular figures at weight 600, Fresh Linen, and a hairline ring.
+- **Face target:** the portrait, the name, the title, and the dishes of a ticket are one target, the face. The face opens the quest dialog. The face is at least 44px tall and 44px wide. On phones, the dishes show as pictures up to 26px wide in separate slots. The accessible name of the face starts with the quest title. Each dish follows with its quantity and the count on the board.
+- **Narrowest tickets:** below 360px, four shown dishes use two rows of two, with a 14px picture beside each count. The ticket row is then 74px tall. The height budget includes these extra 16px. Each face target stays at least 44px wide down to 320px.
+- **Deliver:** wider-screen tickets show "Deliver · N" with the 16px coin mark. If the board does not hold every portion, the button shows the dashed "not yet" style. The accessible name is "Deliver [quest] to [name] for N coins". Phone tickets open the quest dialog for delivery.
 - **Supper ticket:** the supper quest shows its first three plates and a "+8" count in 12px muted figures. "Serve" takes the place of Deliver, with no coin mark. Serve has the dashed "not yet" style until the board holds every plate. The accessible name is "Serve [quest]". Serve opens the finale at once, without the delivery motion.
 - **Booked ticket:** on wider screens, a booked ticket shows its evening in Smoke in the place of the title. The evening guest shows "Booked for 20:00". Each other booked ticket shows "Booked for another evening". If the line does not fit, it ends with an ellipsis, as the title does. The accessible name of the face also gives the evening.
 
-  Before 20:00, the ticket of the evening guest has the lantern control in the place of Deliver. The lantern control has a 16px lantern vector and "Light the lanterns". It has the primary style, or the dashed "not yet" style until the board holds every portion. On phones, the lantern control shows the lantern and the time "20:00". The accessible name of the lantern control is "Light the lanterns: [Name] is booked for 20:00".
+  Before 20:00, the wider-screen ticket of the evening guest has the lantern control in the place of Deliver. The lantern control has a 16px lantern vector and "Light the lanterns". It has the primary style, or the dashed "not yet" style until the board holds every portion. On phones, the quest dialog shows the booking time and the full lantern control. The accessible name of the lantern control is "Light the lanterns: [Name] is booked for 20:00".
 
   Each other booked ticket has a disabled control in the "not yet" style with a crescent moon and "Later". Its accessible name is "[quest]: booked for another evening". From 20:00, the ticket of the evening guest has Deliver.
-- **Recovery ticket:** while the recovery quest is open, the last column of the ticket row holds that quest. The ticket has a dashed edge, because it is an offer and not a campaign quest. The other tickets keep their places. On wider screens, the row has four equal columns. On phones, the recovery ticket shows only its face, and its quest dialog delivers. The three quest tickets share the rest of the row. At 410px and below, while the recovery ticket shows, the row has 4px gaps and 4px side padding. Each target on a ticket stays at least 44px wide down to 360px.
+- **Recovery ticket:** while the recovery quest is open, the last column of the ticket row holds that quest. The ticket has a dashed edge, because it is an offer and not a campaign quest. The four columns have equal widths. On phones, all tickets show their faces, and their quest dialogs deliver. At 410px and below, while the recovery ticket shows, the row has 4px gaps and 4px side padding. Each target on a ticket stays at least 44px wide down to 320px.
 - **Delivery motion:** the dishes fly to the ticket over 600ms. Each dish starts 60ms after the dish before it. The sixth and later dishes start together. The delivery notice appears after all dishes arrive. The next quest arrives on the same ticket over 450ms, 700ms after the delivery. With reduced motion, the notice shows at once, and the next ticket appears without motion.
 
 ### Timber table and runners
@@ -557,15 +559,18 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 
 ### Mara's line, the offer, and the selected item
 These three parts share one strip under the board. The strip is at least 62px tall on wider screens.
-- **Mara's line:** the 38px portrait of Mara (28px on phones), the live status line, and "Find a match". At 720px and below, the first line is shorter. The note for a selected item then does not name the item.
+On the first opening without a save, the instruction connects the starting Socată pair to Linden tea and Ana's 14-coin delivery. The pair has the hint pulse. The selected item keeps the purpose in a 12px rule line until the first income. A loaded game keeps its welcome message.
+
+If an action on a selected cell fails, its reason and recovery text replace the item picture and ordinary detail text. This paragraph uses 13px text at line height 1.35, with no clamp. Clear selection or Stop stays visible. The next selection or action clears the refusal. A phone drawer adds 24px to its height budget while the refusal shows.
+- **Mara's line:** the 38px portrait of Mara (28px on phones), the live status line, and "Find a match". On phones, the live note for a selected item does not repeat its visible name.
 - **Stop the guide:** if a guide is active with no selected cell, Mara's line shows a short next-step note. "Stop guide" takes the place of "Find a match". With a selected cell, the same Stop control takes the place of Clear selection in the strip. Escape works from the board and from each Stop control. A tap on the selected dish or blocker also ends the guide. A tap on a selected source takes another ingredient.
-- **Full board:** a legal merge toward the goal keeps its board cue. Otherwise, the ticket button of a ready delivery that frees a cell has the dotted Smoke outline at 50% opacity. When the guide starts, it focuses that Deliver button. For the recovery ticket on a phone, the guide focuses the ticket face, which opens its dialog. If no such delivery is ready, another legal pair merge or blocker merge uses the board cue. If no action can make room, Mara names the limit, and Stop stays visible. The guide never marks a source for a take that cannot fit.
+- **Full board:** a legal merge toward the goal keeps its board cue. Otherwise, the ticket button of a ready delivery that frees a cell has the dotted Smoke outline at 50% opacity. When the guide starts, it focuses that Deliver button on wider screens. On a phone, the guide marks and focuses the ticket face, which opens its dialog. If no such delivery is ready, another legal pair merge or blocker merge uses the board cue. If no action can make room, Mara names the limit, and Stop stays visible. The guide never marks a source for a take that cannot fit.
 - **Offer:** the offer shows the preparation name, "Ready when you are.", and a primary Pay button. An active guide keeps its Stop control visible in Mara's line in place of the offer. The Story button still marks a ready payment, and Pay stays in the Story sheet. The offer returns when the guide ends. `PRODUCT.md` gives when the offer shows.
 - **Selected item:** the item picture, its name, and its rule line ("Two make …", "Cook it with …", or "Final dish"). "Cook it with" names only the recipe partners that the player has made. If the player has made none, the line reads "Cook it with a new dish". A selected source shows its name and a short line. The line tells the player to tap the source again for its ingredient. While a dish guide is active, the rule line gives the goal dish and the next action. A visible Stop control takes the place of Clear selection. The board marks the next useful cells with the same dotted outline as matching items. The guide adds no row, and the selected board cell keeps its focus. The item picture is 44px (40px on phones). Below 411px, the item picture is 34px. At 360px and below, the item picture does not show.
 
   At 720px and below, if the name takes two lines, the ordinary rule line does not show. The goal line of the guide stays visible. Clear selection or Stop follows the name or rule. A source tile takes an ingredient when the player taps it or presses Enter or Space on it.
 
-  Keyboard focus uses the Teal Focus ring. The 44px Clear or Stop control follows. When the player selects a source, the board does not move under the finger. The selected item and its control fit at 360px without horizontal scroll. On a phone that is taller than 600px, the strip is 52px high. The strip keeps blocker help and the offer visible.
+  Keyboard focus uses the Teal Focus ring. The 44px Clear or Stop control follows. An ordinary source selection keeps the board in place. The selected item and its control fit at 360px without horizontal scroll. On a phone that is taller than 600px, the ordinary strip is 52px high. A refusal gives the strip more room for its full explanation. The strip keeps blocker help and the offer visible.
 
 ### Story and recipe book
 - **Wider screens:** the story and the recipe book are sections of the docked panel between hairlines. They are not cards. The story section starts with the chapter title, the objective, and the steps. If an unread scene exists, its line follows. An unread scene is a story scene that the player has earned and not read.

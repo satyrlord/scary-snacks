@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { boardObstacles, firstFreeBoardCell, unresolvedObstacle } from '../../src/model.ts';
 import { createGame } from '../../src/engine.ts';
 import type { GameState } from '../../src/model.ts';
-import { act, checkpoint, data, deliverable, deliverButton, quest, saved, start, supply, tile, validate, know } from './support.ts';
+import { act, checkpoint, data, deliverable, deliverButton, dialogDeliver, quest, saved, start, supply, ticket, tile, validate, know } from './support.ts';
 
 /** A purse at the recovery floor keeps Ana's recovery quest, which could take the Linden tea of Mara's quest, off the counter. */
 const welcomeReady = () => { const state = deliverable(quest('mara-welcome')); state.coins = data.economy.recoveryFloor; return state; };
@@ -30,12 +30,12 @@ test('a full-board guide points to a ready delivery that frees space',async({pag
   know(state,'corn_4');
   await page.setViewportSize({width:390,height:844});await start(page,state);
   await guide(page,'corn_4');
-  const deliver=deliverButton(page,welcome);
+  const deliver=deliverButton(page,welcome),face=ticket(page,welcome).locator('.ticket-face');
   await expect(deliver).toBeEnabled();await expect(deliver).toHaveClass(/guide-target/);
-  await expect(deliver).toBeFocused();
+  await expect(deliver).toBeHidden();await expect(face).toBeVisible();await expect(face).toBeFocused();
   await expect(page.locator('#status')).toContainText(`Deliver ${welcome.title} to make space`);
   expect(await saved(page)).toEqual(state);
-  await deliver.click();
+  await face.click();await expect(dialogDeliver(page,welcome)).toBeEnabled();await dialogDeliver(page,welcome).click();
   await expect.poll(async()=>firstFreeBoardCell(await saved(page),data)).toBeGreaterThanOrEqual(0);
   await expect(tile(page,4)).toHaveClass(/guide-target/);
   await expect(page.getByRole('button',{name:`Stop guide for ${data.items.corn_4.name}`})).toBeVisible();

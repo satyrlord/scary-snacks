@@ -10,10 +10,29 @@ import { onMotionResume, phone } from './preferences.ts';
 
 // Mara's note when nothing is selected: the move gesture, in the same words as the other board guidance.
 const MOVE_HINT = 'Tap an item, then tap where it should go.';
-let ignoreClick = false, boardFocus = 0;
+let ignoreClick = false, boardFocus = 0, firstDelivery = false;
 let dragging: { index: number; id: number; x: number; y: number; ghost: SVGSVGElement | null } | null = null;
 onReplace(cancelDrag);
+onReplace(() => { firstDelivery = false; });
 onMotionResume(() => { for(const cell of document.querySelectorAll('.cell'))cell.classList.remove('first','settle','hint'); });
+
+/** A fresh visit points to the free starting tea and its real delivery reward. It never locks an action. */
+export function introduceFirstDelivery() {
+  firstDelivery=true;
+  const quest=data.quests.find(value=>value.recovery)!, tea=quest.requirements[0].item;
+  const part=Object.values(data.items).find(value=>value.next===tea)!;
+  pulse(state.board.flatMap((cell,index)=>cell?.code===part.id?[index]:[]));
+  return `Merge two ${part.name} into ${itemName(tea)}. Deliver to ${character(quest.character).name} for ${quest.reward} coins.`;
+}
+/** Keep the purpose in the selection strip until the first income. Loaded games use their normal guidance. */
+function firstDeliveryNote(code: string) {
+  if(!firstDelivery)return null;
+  const quest=data.quests.find(value=>value.recovery)!, tea=quest.requirements[0].item;
+  if(code===tea)return `Deliver to ${character(quest.character).name} for ${quest.reward} coins.`;
+  if(definition(code).next===tea&&state.board.filter(cell=>cell?.code===code).length>=2)
+    return `Tap the other ${itemName(code)}. Deliver the tea to ${character(quest.character).name} for ${quest.reward} coins.`;
+  return null;
+}
 
 /** Mara's note for a selected item, which the status region announces. On phones the note leaves out the name, which the selection strip shows. */
 function selectionLine(code: string) {
@@ -153,8 +172,10 @@ function detailNote(code: string) {
   return waiting.length ? `${names.format(waiting)} ${waiting.length === 1 ? 'is' : 'are'} waiting for one.` : 'No quest on the counter needs it now.';
 }
 /** The selected item and its actions take the place of Mara's line under the board, so the player acts without leaving the board. */
-export function renderDetail() {
+export function renderDetail(feedback = '') {
+  if(state.coins>0)firstDelivery=false;
   const container = $('#item-detail'); container.replaceChildren();
+  container.classList.toggle('action-feedback', !!feedback);
   const goal=guidanceGoal(), hint=$('#hint-button');
   hint.textContent=goal?'Stop guide':'Find a match';
   hint.setAttribute('aria-label',goal?`Stop guide for ${goal}`:'Find a match');
@@ -165,6 +186,10 @@ export function renderDetail() {
   container.setAttribute('aria-label', obstacle ? 'Selected blocker' : 'Selected item');
   const cell = selected !== null ? state.board[selected] : null;
   container.classList.toggle('source-detail', !!cell && !!definition(cell.code).generator);
+  if(feedback&&(cell||obstacle)) {
+    container.append(element('p','detail-feedback',feedback),clearSelectionButton());
+    fitPin();return;
+  }
   if (obstacle) {
     const copy = element('div','blocker-copy'), rule = element('p','blocker-rule',
       `Tap a marked ${partnerNames(obstacle.ingredient)} to merge here.`);
@@ -174,9 +199,11 @@ export function renderDetail() {
   }
   if (!cell) { fitPin(); return; }
   const def = definition(cell.code);
+  const first=firstDeliveryNote(cell.code);
   const head = element('div','detail-head'); const words = element('div','detail-words');
   words.append(element('h3','',def.name));
   if (guided) words.append(element('p','detail-next',guided.short));
+  else if(first)words.append(element('p','detail-onboarding',first));
   else {
     if (!def.generator) words.append(element('p','detail-next',def.next ? `Two make ${state.discovered.includes(def.next) ? itemName(def.next) : 'a new dish'}`
       : knownPartners(cell.code).length ? `Cook it with ${partnerNames(cell.code)}` : mergePartners(cell.code, data).length ? 'Cook it with a new dish' : 'Final dish'));

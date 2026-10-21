@@ -2,7 +2,8 @@
 
 Each specification in this folder records one feature of Scary Snacks: its rules, its data, its saves, and its checks. [PRODUCT.md](../../PRODUCT.md), [DESIGN.md](../../DESIGN.md), and [DELIVERY.md](../../DELIVERY.md) control the current behavior. A specification does not change a contract. When you change a feature, change its owner documents in the same task.
 
-The specifications cover act 1.
+The implemented specifications cover act 1.
+The proposed specifications 015 to 017 add the calendar, the prologue before act 1, and the seasons.
 
 The game has six chapters, 24 preparations, and 87 authored quests.
 The quests are 82 campaign quests, the supper quest, the recovery quest, and three repeating quests.
@@ -45,6 +46,9 @@ The status column gives the state of each specification. The status of a specifi
 | 012 | [Staple chains and mixed dishes](012-staple-chains.md) | Implemented | None |
 | 013 | [Bistro day and night](013-day-and-night.md) | Implemented | 012 |
 | 014 | [Repeating quests](014-repeating-quests.md) | Implemented | 010, 013 |
+| 015 | [Calendar and act 1 dates](015-calendar.md) | Proposed | 013, 014 |
+| 016 | [The prologue](016-prologue.md) | Proposed | 015, 017 for the pickle barrel |
+| 017 | [Seasons and holidays](017-seasons-and-holidays.md) | Proposed | 012, 014, 015 |
 
 A dependency is a specification that the complete feature needs. A reference to another specification is not always a dependency. Only this register lists the dependencies.
 

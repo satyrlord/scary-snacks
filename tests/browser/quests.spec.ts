@@ -181,18 +181,29 @@ test('a desktop ticket shows who asks and the quest title, and its portrait open
   await expect(dialog.locator('.quest-speaker')).toHaveText(turns);await expect(dialog.locator('.quest-line')).toHaveCount(value.opening.length);
 });
 
-for(const width of [390,320])test(`a ready ticket with four dishes shows the whole Deliver word at ${width}px`,async({page})=>{
+for(const width of [390,320])test(`a ready phone ticket with four dishes opens a whole Deliver label in its dialog at ${width}px`,async({page})=>{
   await page.setViewportSize({width,height:844});const value=quest('mina-avram-search');await start(page,deliverable(value));
-  const deliver=deliverButton(page,value);await expect(deliver).toBeEnabled();
-  const button=(await deliver.boundingBox())!,word=(await deliver.locator('.deliver-word').boundingBox())!;
-  expect(word.x).toBeGreaterThanOrEqual(button.x);expect(word.x+word.width).toBeLessThanOrEqual(button.x+button.width);
-  for(const control of await ticket(page,value).getByRole('button').all()){const size=(await control.boundingBox())!;expect(size.width).toBeGreaterThanOrEqual(44);expect(size.height).toBeGreaterThanOrEqual(44);}
+  const card=ticket(page,value),face=card.locator('.ticket-face');
+  await expect(deliverButton(page,value)).toBeHidden();await expect(card.getByRole('button')).toHaveCount(1);
+  await expect(card.locator('.ticket-name')).toBeVisible();await expect(card.locator('.ticket-name')).toHaveText(person(value.character).name);
+  await expect(card.locator('.ticket-item')).toHaveCount(4);
+  for(const [index,{quantity}] of value.requirements.entries()){
+    const count=card.locator('.ticket-count').nth(index);await expect(count).toBeVisible();await expect(count).toHaveText(`${quantity}/${quantity}`);
+  }
+  const target=(await face.boundingBox())!;expect(target.width).toBeGreaterThanOrEqual(44);expect(target.height).toBeGreaterThanOrEqual(44);
+  await face.click();const deliver=dialogDeliver(page,value);await expect(deliver).toBeVisible();await expect(deliver).toBeEnabled();
+  await expect(deliver).toHaveText(`Deliver · ${value.reward}`);
+  const button=(await deliver.boundingBox())!;
+  const word=await deliver.evaluate(node=>{const range=document.createRange();range.selectNodeContents(node.firstChild!);const box=range.getBoundingClientRect();return {x:box.x,y:box.y,width:box.width,height:box.height};});
+  expect(word.width).toBeGreaterThan(0);expect(word.x).toBeGreaterThanOrEqual(button.x);expect(word.x+word.width).toBeLessThanOrEqual(button.x+button.width);
+  expect(word.y).toBeGreaterThanOrEqual(button.y);expect(word.y+word.height).toBeLessThanOrEqual(button.y+button.height);
+  expect(button.width).toBeGreaterThanOrEqual(44);expect(button.height).toBeGreaterThanOrEqual(44);
 });
 
 test('the delivery notice offers the reply by name, and the phone Story button and Story name the reply until it is read',async({page})=>{
   const value=quest('eszter-bowls'),storyButton=page.locator('#story-button');await page.setViewportSize({width:390,height:844});
   await start(page,deliverable(value));await expect(storyButton).toHaveAccessibleName('Story');
-  await deliverButton(page,value).click();
+  await openQuest(page,value);await dialogDeliver(page,value).click();
   const reply=page.getByRole('button',{name:'Read Eszter’s reply',exact:true});await expect(reply).toBeVisible();
   await expect(storyButton).toHaveAttribute('data-ready','');await expect(storyButton).toHaveAccessibleName('Story, a scene is waiting');
   await reply.click();await expect(page.getByRole('dialog',{name:value.title,exact:true})).toBeVisible();await expect(page.locator('.toast')).toHaveCount(0);
@@ -205,7 +216,8 @@ test('the delivery notice offers the reply by name, and the phone Story button a
 
 test('the delivery toast sits top-center on a phone',async({page})=>{
   const value=firstQuests[0];await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'reduce'});
-  await start(page,deliverable(value));await deliverButton(page,value).click();
+  await start(page,deliverable(value));await openQuest(page,value);await dialogDeliver(page,value).click();
+  await expect(toast(page)).toBeVisible();
   const box=(await toast(page).boundingBox())!;
   expect(box.x+box.width/2).toBeGreaterThan(390*.3);expect(box.x+box.width/2).toBeLessThan(390*.7);expect(box.y).toBeLessThan(844*.3);
 });
@@ -226,7 +238,9 @@ test('after delivering, the completion scene waits in Story and the journal acro
 for(const width of [1440,390])test(`a waiting quest has one complete journal conversation with safe return at ${width}px`,async({page})=>{
   await page.setViewportSize({width,height:844});const value=quest('eszter-table');
   expect(value.opening.length+value.completion.length).toBeGreaterThan(4);
-  await start(page,deliverable(value));await deliverButton(page,value).click();const delivered=await saved(page);
+  await start(page,deliverable(value));
+  if(width<1024){await openQuest(page,value);await dialogDeliver(page,value).click();}else await deliverButton(page,value).click();
+  const delivered=await saved(page);
   await journal(page,['chapters','conversations','neighbours']);
   const unread=page.getByRole('button',{name:`Read ${value.title}`,exact:true}),replay=page.getByRole('button',{name:`Replay ${value.title}`,exact:true});
   await expect(unread).toHaveCount(1);await expect(replay).toHaveCount(0);
