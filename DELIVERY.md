@@ -6,6 +6,8 @@ The source is TypeScript 7 in strict mode, Hypertext Markup Language (HTML), and
 
 Playwright, TypeScript, Sharp (for image variants), Fallow (for dead code), and the Node.js type definitions are development dependencies.
 
+On Windows, the Playwright test browsers disable `TcpPortRandomizationWin` as a temporary workaround for failed local connections (`ERR_NO_BUFFER_SPACE`). The configuration keeps all default disabled features of the installed Playwright version. The browser launch test compares the effective arguments with a default launch. Check this list on each Playwright update. Remove the workaround when the upstream fix is available and verified. See the [upstream issue](https://github.com/microsoft/playwright/issues/43545). Other operating systems use the default launch. This setting changes only the test browsers.
+
 `npm run deadcode` runs Fallow on the module graph. The check fails on an unused file, export, type, or dependency, and on an import that Fallow cannot resolve. `.fallowrc.json` gives the entry point that Fallow cannot find. `.fallowrc.json` also lists the runtime paths that the build resolves and that Fallow cannot resolve.
 
 `npm run preview` serves `dist/` at http://127.0.0.1:4178. `npm run dev` serves the source. To serve at a subdirectory, set `BASE_PATH` to `/scary-snacks/` before you start the server. The address then becomes http://127.0.0.1:4178/scary-snacks/.

@@ -13,7 +13,7 @@ export const sourceFiles=[...runtimeFiles,'public/data/game.json',...fontFiles.m
   'tools/campaign-balance.ts','tests/campaign-balance.test.ts','tests/campaign-missed-bookings.test.ts','tests/campaign-debt.test.ts','tests/day.test.ts','tests/campaign-goals.test.ts','tests/economy.test.ts','tests/browser/campaign-goals.spec.ts',
   'tests/board-clearing.test.ts','tests/browser/board-clearing.spec.ts',
   'tests/preparation-blockers.test.ts','tests/browser/preparation-blockers.spec.ts',
-  'tests/browser/blocker-help.spec.ts','tests/browser/full-board-guidance.spec.ts',
+  'tests/browser/blocker-help.spec.ts','tests/browser/full-board-guidance.spec.ts','tests/browser/browser-launch.spec.ts',
   'tests/story.test.ts','tests/browser/story.spec.ts','tests/browser/journal.spec.ts',
   'tests/checkpoint-saves.test.ts','tests/support.ts','tests/browser/support.ts','tests/browser/portrait-framing.spec.ts','tests/browser/day.spec.ts',
   'docs/asset-prompts.json','docs/asset-provenance.json','docs/asset-variants.json','docs/font-provenance.json','docs/release-notes.md','docs/verification.md','docs/economy.md',

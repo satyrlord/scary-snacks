@@ -15,6 +15,8 @@ The full browser suite runs under `/scary-snacks/`, the GitHub Pages path.
 The asset and path test also runs at the root path.
 `playwright.config.ts` controls these settings.
 
+`tests/browser/browser-launch.spec.ts` checks the effective Chromium launch arguments. On Windows, the launch must keep every default disabled feature and add only `TcpPortRandomizationWin`. The test also reports when Playwright supplies that workaround itself. Other operating systems must keep the default feature list and have no custom launch arguments. `DELIVERY.md` gives the removal rule for the temporary workaround.
+
 [`DELIVERY.md`](../DELIVERY.md) gives the checks of the Pages workflow.
 
 ## Result
