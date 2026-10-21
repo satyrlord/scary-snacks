@@ -26,7 +26,7 @@ Cleanup mode:
 - Output: the report that the section "Complete the task" describes.
 - Completion: each removal has evidence and all the related checks pass.
 
-In this skill, "slop" is content that does not agree with one of these items:
+In this skill, unsupported content is content that does not agree with one of these items:
 
 - The contract that controls it.
 - The behavior of the code.
@@ -64,17 +64,19 @@ If the repository has a command for tests or generated output, record the output
 
 ## Examine each content type
 
-- Code: remove only defects that have evidence.
+- Source code: remove only defects that have evidence.
   Examine debug output, comments that do not agree with the code, and policy that the code gives twice.
   Examine items that the code does not use.
   Also examine failures that the code does not show, and abstractions that do not decrease work for the callers.
-- Prose: remove meaning that the text gives more than once, and facts that are not correct at this time.
+- Owner documents and documentation: remove meaning that the text gives more than once.
+  Remove facts that are not correct at this time.
   Remove unclear sentences, text that gives no information, and rules from other products.
   Keep accurate rules, sources, the legal limits, and the voice of the user.
-- Data and configuration: compare the generator, the validator, the consumers, and files of the same type.
+- Content and configuration: compare the generator, the validator, the consumers, and files of the same type.
   Keep identifiers, prices, sprite indexes, provenance, hashes, and pinned package versions.
   Change them only when the contract that controls them gives approval for the change.
-- Tests: find a defect signal that is different from the other tests.
+- Tests: find the defect that each test detects.
+  A test is unsupported if other tests detect all its defects.
   Coverage, file length, test count, and the name of a code smell do not show a defect.
 
 Remove text that records history: retired items, dated results, audit figures, and notes about an earlier state.

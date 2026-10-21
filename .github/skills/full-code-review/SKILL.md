@@ -46,14 +46,16 @@ For each changed contract, find the evidence.
 Examine each applicable area:
 
 - Confirm that `src/model.ts`, `src/engine.ts`, and `src/content.ts` are deterministic.
-  Confirm that these modules have no Document Object Model (DOM) access, no storage access, no random source, and no wall-clock values.
+  Confirm that these modules have no Document Object Model (DOM) access and no storage access.
+  Confirm that these modules have no random source and no wall-clock values.
 - Confirm that an action that is not correct or not available does not change the state.
 - Compare the rules for merges, generators, quests, rewards, and preparations with `PRODUCT.md`.
   Confirm that a value that the interface shows agrees with the value that the engine applies.
 - Confirm that persistence fails safely.
   Examine the save validation, the size limit, the preservation of malformed saves, and the rejection of unsupported save versions.
 - Confirm that text from game data and from saves uses `textContent`.
-- For a user interface (UI) change, confirm that these items still work: the pointer, keyboard, and touch controls, the viewports, the themes, and reduced motion.
+- For a user interface (UI) change, confirm that the pointer, keyboard, and touch controls still work.
+  Also examine the viewports, the themes, and reduced motion.
 - Compare `public/data/game.json` with its generator. Examine identifiers, sprite indexes, and unlocks.
 - Examine the build allowlist in `tools/build.ts`, the source export list in `tools/export-source.ts`, and the paths that `tools/server.ts` refuses.
 - Examine the relative asset paths and the `/scary-snacks/` base path.

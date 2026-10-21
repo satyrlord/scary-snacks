@@ -30,6 +30,7 @@ The full gate is `npm run quality:full`.
 It runs `npm run typecheck`, `npm run deadcode`, `npm run test`, `npm run build`, and `npm run test:browser` in that order.
 A pass of only `npm test` is not full-gate evidence and is not release evidence.
 If the user tells you not to run tests, do not run a check. Give the missing evidence in the report.
+If the user tells you not to edit files, use verification mode.
 If the user changes the scope, select the mode again before the next edit.
 
 The build writes `dist/` and `analysis/build-manifest.json`. Git ignores both paths. Do not track files under these paths.
@@ -37,7 +38,7 @@ Each addition below needs approval before you make it, unless the approved scope
 
 - A test exclusion, a skipped test, or a retry setting.
 - A less strict compiler option, an `any` type, or a comment that hides a type error.
-- A changed pin or a new command.
+- A changed dependency version or a new command.
 - A lower limit, for example a contrast limit or a size limit.
 - A new entry in a build allowlist or a provenance record.
 - A new entry, ignore pattern, or rule in `.fallowrc.json`, or a `fallow-ignore` comment.
@@ -53,8 +54,8 @@ A script name is a check only if `package.json` has the script.
 If a necessary script is missing, give that check the status `BLOCKED`.
 Do not create an equivalent command and give it the status `PASS`.
 
-`AGENTS.md` gives the browser of the browser phase and the command that installs it.
-The browser phase starts its servers on ports 4181 and 4182. It does not use a server that already runs.
+`AGENTS.md` gives the browser for the browser phase and the command that installs that browser.
+The browser phase starts its servers on ports 4181 and 4182. The phase does not use a server that already runs.
 If a port is not available, give the browser phase the status `BLOCKED`. Do not stop a process that you did not start.
 
 ## Run the checks
@@ -65,12 +66,14 @@ The gate stops at the first phase that fails.
 Before a related browser check, obey the build order in `AGENTS.md`.
 If a skill package changed, validate that package with [create-skill](../create-skill/SKILL.md).
 
-Do not run a passed phase again, unless a file changed, a check failed, or a problem is open.
+Do not run a phase that passed again, unless a file changed, a check failed, or a problem is open.
 Do not retry a failed test to hide the failure.
-A test that fails and then passes at the next run has a defect. Record the defect, and repair its cause.
+A test that fails and then passes at the next run has a defect. Record the defect.
+In repair mode, repair the cause of the defect.
 
 In release mode, run the full gate.
-Run `npm run release:source`, and then run `npm ci` and `npm test` in `.release/scary-snacks-source/`.
+Run `npm run release:source`.
+Then run `npm ci` and `npm test` in `.release/scary-snacks-source/`.
 Run `git diff --check`.
 Examine the final status and the final diff.
 Release mode does not remove the risks in `docs/release-notes.md`.

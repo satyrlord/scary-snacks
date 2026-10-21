@@ -43,6 +43,7 @@ Record the entry points for production, tests, content, assets, development tool
 - `runtimeFiles` and `fontFiles` in `tools/build.ts`.
 - `sourceFiles` in `tools/export-source.ts`.
 - The scripts in `package.json`.
+- The entries in `.fallowrc.json` and the scripts in `.github/skills/`.
 - The test files in `tests/` and `tests/browser/`.
 
 Run `npm test` before you record candidates.
@@ -63,7 +64,8 @@ Use the procedure below for each candidate and for the items that Fallow does no
 
 Do not run `fallow fix` without `--dry-run`.
 Do not add an entry, an ignore pattern, or a `fallow-ignore` comment to hide a dead item.
-Add one only for a live item that Fallow cannot find, and only with the approval that [run-quality-gate](../run-quality-gate/SKILL.md) gives.
+Add an entry, a pattern, or a comment only for a live item that Fallow cannot find.
+Before you add one of these items, get the approval that [run-quality-gate](../run-quality-gate/SKILL.md) requires.
 Record the reason in the report.
 
 ## Find evidence for each candidate
@@ -86,7 +88,7 @@ Record the evidence for that status.
 In cleanup mode, remove only the smallest set of dead items that have evidence.
 Do not remove save validation or the preservation of malformed saves.
 Keep the provenance records, the license texts, and the prompt records.
-Keep the files in `private/`, `analysis/`, `.release/`, and `.tools/`. They are ignored local folders.
+Do not change the local folders that Git ignores. `AGENTS.md` lists these folders.
 For game data, obey the generator rule in `AGENTS.md`.
 
 After each removal, run the checks that the removal touches.

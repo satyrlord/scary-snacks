@@ -47,7 +47,7 @@ export const imageVariants = {
   'scene-cathedral-9': { widths: [1024], formats: ['webp'] },
   'scene-ionatan-dinner': { widths: [1024], formats: ['webp'] },
   'scene-mina-avram-meal': { widths: [1024], formats: ['webp'] },
-  // The runner is drawn at most 14px tall through an SVG pattern, which takes one format.
+  // The page draws the runner at most 14px tall through an SVG pattern, which takes one format.
   'embroidered-runner': { widths: [384], formats: ['webp'] },
   // The food atlases have 512px cells. The 1024px width gives 256px cells.
   'food-grain': { widths: [1024], formats: ['webp'] },

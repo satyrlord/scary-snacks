@@ -28,7 +28,8 @@ Record mode:
 
 If the user changes the scope, select the mode again before the next edit.
 If the user tells you not to edit files, use interview mode.
-If the user prohibits tests, use existing evidence and report the checks that you did not run.
+If the user prohibits tests, use the evidence that you have.
+In the report, give each check that you did not run.
 
 ## Prepare the decision tree
 
@@ -63,7 +64,7 @@ Give that evidence to the user.
 ## Record the approved decisions
 
 Identify one owner document for each decision that the project must keep.
-`PRODUCT.md` controls the product, `DESIGN.md` controls the design, and `DELIVERY.md` controls the delivery.
+`AGENTS.md` names the owner documents.
 `docs/release-notes.md` gives the release limits.
 In record mode, update only that owner and each owner document that does not agree with the decision.
 In interview mode, give the necessary document changes in the report.

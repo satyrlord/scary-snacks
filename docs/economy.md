@@ -9,7 +9,7 @@ One coin uses approximately one Romanian leu as its reference scale.
 This scale relates small food purchases to repair budgets.
 The model is a game budget, not a precise profit account. The daily upkeep stands for wood, wages, and the other daily costs of the bistro.
 
-Four levers set the economy. They are starting values: the campaign balance check measures them, and play tunes them.
+Four levers set the economy. The levers are starting values. The campaign balance check measures the levers, and play tunes them.
 
 | Lever | Value |
 | --- | ---: |
@@ -18,7 +18,7 @@ Four levers set the economy. They are starting values: the campaign balance chec
 | Work rate: the coins that each merge adds to a menu price | 2 |
 | Recovery floor: the purse below which the recovery quest opens while a quest is open | 10 |
 
-The bistro day has these levers. They are starting values too.
+The bistro day has these levers. These levers are also starting values.
 
 | Lever | Value |
 | --- | ---: |
@@ -32,31 +32,31 @@ The bistro day has these levers. They are starting values too.
 | Gift stage | 4 |
 | Gift space: the fewest free cells that a gift needs | 5 |
 
-So a day holds 150 merges. The biggest provisions fill most of one day. The data check refuses a quest that needs more merges than one day holds.
+So a day holds 150 merges. The largest provisions fill most of one day. The data check refuses a quest that needs more merges than one day holds.
 
-A quest without provisions is one meal: at most three portions for each eater, and at most two portions of one dish.
-The work rate of 2 lets these small meals pay for the preparations. The merge time of 6 minutes keeps act 1 at about three weeks.
+A quest without provisions is one meal. One meal has at most three portions for each eater and at most two portions of one dish.
+The work rate of 2 lets these small meals pay for the preparations. The merge time of 6 minutes keeps act 1 at approximately three weeks.
 
 A take from the Herb basket is free. A take from each other source spends the take cost.
-The bistro buys its staples: the Windmill sells grain, the butcher sells pork and veal, and so on.
+The bistro buys its ingredients. For example, the Windmill sells grain, and the butcher sells pork and veal.
 
 ## Menu prices
 
 A formula gives the menu price of each dish:
 
-price = paid staples × take cost + merges × work rate
+price = paid ingredients × take cost + merges × work rate
 
-- Paid staples are the stage-1 staples that the dish uses. A Herbs staple counts as zero.
-- Merges are the merges from the staples to the dish, recipe merges included.
+- Paid ingredients are the stage-1 ingredients that the dish uses. A Herbs ingredient counts as zero.
+- Merges are the merges from the ingredients to the dish, recipe merges included.
 
-A dish at stage s of a chain uses 2^(s-1) staples and 2^(s-1) - 1 merges.
-A mixed dish adds the staples and the merges of its two parts, plus one merge.
-For example, Bulz uses Mămăligă (8 Corn staples, 7 merges) and Telemea (8 Dairy staples, 7 merges), plus one recipe merge.
-Its price is 16 × 1 + 15 × 2 = 46 coins.
+A dish at stage s of a chain uses 2^(s-1) ingredients and 2^(s-1) - 1 merges.
+A mixed dish adds the ingredients and the merges of its two parts, plus one merge.
+For example, Bulz uses Mămăligă (8 Corn ingredients, 7 merges) and Telemea (8 Dairy ingredients, 7 merges).
+Bulz also needs one recipe merge. The price of Bulz is 16 × 1 + 15 × 2 = 46 coins.
 
 Merge chains are game rules, not recipes for food preparation.
 
-| Chain | Dish | Paid staples | Merges | Coins |
+| Chain | Dish | Paid ingredients | Merges | Coins |
 | --- | --- | ---: | ---: | ---: |
 | Grain | Flour | 1 | 0 | 1 |
 | Grain | Dough | 2 | 1 | 4 |
@@ -148,26 +148,31 @@ Merge chains are game rules, not recipes for food preparation.
 
 Quests and cleared blockers are the only income.
 Every quest except the supper pays its menu value: the sum of the prices of its portions.
-So a delivery pays back the staples of its dishes and earns the work rate for each merge. The supper pays nothing.
+So a delivery repays the ingredients of its dishes and earns the work rate for each merge. The supper pays nothing.
 
 A quest that opens after preparation N is necessary for preparation N + 1.
 The work value of a quest is the merges of its dishes times the work rate.
-For each preparation, the work value of the quests that open before it must total at least the cost of all preparations to that point.
-The coins that remain after the last preparation must buy the staples of the supper.
+Each preparation has a minimum work value for the quests that open before that preparation.
+That minimum is the total cost of all preparations up to and including that preparation.
+The coins that remain after the last preparation must buy the ingredients of the supper.
 `questProblems` in `src/content.ts` checks these rules before the data can ship.
-A player who delivers every open quest and buys only its staples has enough coins for the next preparation.
+A player who delivers every open quest and buys only its ingredients has enough coins for the next preparation.
 
 A new game starts with no coins. The first quest asks only for free herbs.
-The early quests also ask for herb bunches, Linden tea, and socată, which need no paid staple. Their work value gives the purse the coins to buy staples for the next quests.
+The early quests also ask for herb bunches, Linden tea, and socată, which need no paid ingredient. The work value of these quests gives the purse the coins to buy ingredients for the next quests.
 
-The recovery quest is the safety net. Ana asks for one Linden tea while a quest is open and the purse is below the recovery floor, or while no quest is open and the purse cannot pay the next preparation.
-A player who spends coins on spare food repays the shortfall with tea, and is never stuck.
+The recovery quest prevents a stop in the campaign. Ana asks for one Linden tea in two conditions:
+
+- A quest is open, and the purse is below the recovery floor.
+- No quest is open, and the purse cannot pay the next preparation.
+
+A player who spends coins on spare food repays the shortfall with tea. So the player can always continue.
 
 ## Work and price
 
 The bistro repairs and reuses its furniture.
 Each preparation defines work, materials or stock, labour, and estimated active person-hours.
-Materials plus labour determine the cost. The story position does not determine the cost.
+The materials and the labour determine the cost. The story position does not determine the cost.
 
 These figures are estimates for the stated work.
 Retail examples and minimum service rates inform the estimates.
@@ -207,9 +212,9 @@ The work estimates have these limits:
 - Window: one new pane, seals, and the preparation and paint of the existing frame and shutters.
   Materials allow approximately 120 coins for glass and 80 for supplies and finish.
   The four hours cover removal, preparation, installation, seals, and paint. The frame stays in use.
-- Sign: the wood is sound. The work is to sand and repaint the sign. It uses small amounts of finish and 1.5 hours.
+- Sign: the wood is sound. The work sands and repaints the sign. The work uses small amounts of finish and 1.5 hours.
 - Shelves: the paintings show timber that is already in the bistro.
-  The work is to clean and secure the shelves, repair the finish, and stock the shelves.
+  The work cleans and secures the shelves, repairs the finish, and stocks the shelves.
   The estimate does not include a new shelf unit.
 - Lamps: two supplied lamps and the existing connections.
   The estimate covers bulbs, small materials, installation, and a check of the connections.
@@ -225,7 +230,7 @@ The work estimates have these limits:
   The estimate allows 800 coins for shingles and 100 for fasteners and weather seals.
   The estimate includes eight active labour hours.
 - First menu: one small slate, chalk, and half an hour for text and pictures.
-- Supper menus: ten strong prints and simple stands cost approximately 40 coins.
+- Supper menu: ten strong prints and simple stands cost approximately 40 coins.
   The labour includes movement of the existing long table into the courtyard.
 - Invitations: twenty small prints and a wreath on the kitchen door.
   The gate has a lantern and pots of red geraniums, and more pots line the wall.
@@ -278,29 +283,47 @@ Verify the source and the portion before a price revision.
 
 ## Verification and limits
 
-Run `node tools/campaign-balance.ts efficient`, `node tools/campaign-balance.ts miss-bookings`, or `node tools/campaign-balance.ts debt`.
-For each of the 20 fixed seeds, the report gives the days, the lantern uses, the thefts, the stolen ingredients, the gifts, the lowest purse, the merges made only to move the clock, the purse after the supper, the spending, and the free cells at each preparation.
-The test file also reports the costs, work, actions, takes, merges, deliveries, recovery deliveries, and coins for each preparation and chapter.
+Run one of these commands:
+
+- `node tools/campaign-balance.ts efficient`
+- `node tools/campaign-balance.ts miss-bookings`
+- `node tools/campaign-balance.ts debt`
+
+For each of the 20 fixed seeds, the report gives these values:
+
+- The days, the lantern uses, the thefts, the stolen ingredients, and the gifts.
+- The lowest purse and the merges that only move the clock.
+- The purse after the supper, the spending, and the free cells at each preparation.
+
+`tests/campaign-balance.test.ts` also reports the costs, work, actions, takes, merges, deliveries, recovery deliveries, and coins.
+The test file gives these values for each preparation and each chapter.
 
 The campaign fixture is the play code in `tools/campaign-balance.ts`.
-The fixture plays a fresh game with one repeatable policy, with no injected coins or items.
+The fixture plays a new game with one repeatable policy, with no injected coins or items.
 The fixture pays each preparation when payment becomes available.
-Otherwise, it delivers tonight's booked quest first, and it lights the lanterns when the meal is ready before 20:00.
-Then it delivers the unbooked ticket whose staples cost the least.
-With only booked quests for later evenings left, it cooks them, and their merges bring the night.
-Before a quest, a short purse makes recovery teas. Within 30 merges of the closing, a purse short of the upkeep makes recovery teas, so the purse never goes below zero.
+If the fixture cannot pay, the fixture delivers tonight's booked quest first.
+The fixture lights the lanterns if the meal is ready before 20:00.
+Then the fixture delivers the unbooked ticket whose ingredients cost the least.
+If only booked quests for later evenings remain, the fixture cooks them, and their merges bring the night.
+Before a quest, the fixture delivers the recovery quest while the purse is short.
+Within 30 merges of the closing, the fixture delivers the recovery quest while the purse is below the upkeep.
+So the purse never goes below zero.
 While fewer than 24 cells are free, the fixture clears the cheapest blocker between quests.
-The fixture makes each required dish from spare food on the board, or from stage-one staples, merges, and recipes.
-If the board is full, the fixture merges spare food: a pair, a recipe, or a match for a blocked dish. A full board without such a merge is a deadlock, and the fixture fails.
+The fixture makes each required dish from spare food on the board, or from stage-1 ingredients, merges, and recipes.
+If the board is full, the fixture merges spare food. The merge uses a pair, a recipe, or a match for a blocked dish.
+A full board without such a merge is a deadlock, and the fixture fails.
 After the last preparation, the fixture serves the supper.
-The balance band: the purse after the supper holds 0 to 10% of the coins that the fixture spent on preparations, takes, and upkeep.
+The balance band is the range of the purse after the supper.
+The purse must hold 0 to 10% of the coins that the fixture spent on preparations, takes, and upkeep.
 
 `tests/campaign-balance.test.ts` enforces the bounds that `PRODUCT.md` gives for the three strategies.
-The efficient fixture never leaves a raw staple loose at a closing: it takes two staples and merges them at once.
+The efficient fixture never leaves a loose raw ingredient at a closing.
+The efficient fixture takes two ingredients and merges them immediately.
 So the thief rat never comes, and the 20 seeds give the same run.
 
 This check measures actions under that policy. This check does not establish a satisfactory human play experience.
-The campaign needs more actions than a free-production campaign, because each merge earns only the work rate. Raise the work rate to shorten it, and then reduce the provisions to keep the balance band.
+Each merge earns only the work rate. So the campaign needs more actions than a campaign with free production.
+To shorten the campaign, increase the work rate. Then decrease the provisions to keep the balance band.
 Play an early chapter and a late chapter before a lever change.
 Record the device, initial save, action counts, and elapsed human play time.
 Do not convert automated execution time to player time.

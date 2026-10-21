@@ -6,13 +6,13 @@ The [room states art plan](001-visible-renovation-art-plan.md) gives the 25 stat
 
 ## Rules
 
-1. Each of the 24 preparations maps to a painted change that the player can identify. A result that is not physical maps to a distinct marker, for example the festive gate. No outcome depends only on a progress counter or on tiny text in an image.
+1. Each of the 24 preparations maps to a painted change that the player can identify. A result that is not physical maps to a distinct marker, for example the festive gate. No outcome depends only on a progress counter or on small text in an image.
 2. The new-game front room shows unfinished work, cobwebs in the broken window, and a few small spiders. Preparation 1, "Fix the broken window", clears the webs. It also sends those spiders outside alive. One friendly resident spider stays under the upper wall shelf in every state, including the restored room. No other web or spider stays after preparation 1.
-3. The courtyard opens after preparation 13, "Clear the courtyard", in chapter 4. Before that, the courtyard control shows only its name and its prerequisite. It shows no picture and no scene description.
+3. The courtyard opens after preparation 13, "Clear the courtyard", in chapter 4. Before preparation 13, the courtyard control shows only its name and its prerequisite. It shows no picture and no scene description.
 4. Room state comes only from completed stable task identifiers (IDs).
-   Viewing the room gives no progress and no reward. Selecting an area gives no progress and no reward.
+   A view of the room gives no progress and no reward. The selection of an area gives no progress and no reward.
    Completed work stays visible until an authored replacement includes it.
-5. A preparation must save successfully before its progress becomes active. Its story and its room reward appear only after that. A failed action or a failed save write changes neither the coins nor the room. If images are missing, the captions keep the earned outcome readable. Missing images do not reset progress and do not block play.
+5. A preparation must save successfully before its progress becomes active. Its story and its room reward appear only after the save. A failed action or a failed save write changes neither the coins nor the room. If images are missing, the captions keep the earned outcome readable. Missing images do not reset progress and do not block play.
 6. With reduced motion, the game shows the completed state directly. Other players see a short reveal after the new images decode. If a decode fails, the game shows the captions and gives access to the kitchen again. Authored lighting appears at these points:
    - the lamps at preparation 4
    - the courtyard dusk at preparation 13
@@ -48,7 +48,7 @@ Each later painting keeps the earned changes of its area, unless the authored ou
 
 The [shared compatibility contract](README.md#shared-save-compatibility) applies. The save has no room field. A valid prefix of the completed preparations resolves its earned rooms without payment and without repeated rewards. The game rejects invalid progression. The selected area is a browser preference outside the save.
 
-Fresh, mid-campaign, and completed saves resolve the same rooms after reload and after export and import. A preparation must save before its progress becomes active. The story holds the previous painting until the story ends. Then, where the drawer moves (1023px or less wide and taller than 600px), the drawer lowers, and the room reveals the change. A failed write keeps the previous state and shows an error that the player can recover from. A failed image cannot change the saved list of completed preparations.
+Fresh, mid-campaign, and completed saves resolve the same rooms after reload and after export and import. A preparation must save before its progress becomes active. The story holds the previous painting until the story ends. Then the room reveals the change. If the drawer moves (1023px or less wide and taller than 600px), the drawer lowers before the reveal. A failed write keeps the previous state and shows an error that the player can recover from. A failed image cannot change the saved list of completed preparations.
 
 ## Acceptance and evidence
 
@@ -71,4 +71,4 @@ The checks cover these areas:
 
 The [verification record](../verification.md) gives the procedure and the limits of the full gate. The gate does not measure the decode time or the display latency of a painting. A measurement of the production build needs a record of the host, the viewport, the workload, and the method.
 
-The checks do not use a physical touch device or a screen reader. A physical Chromium phone playthrough should pay for a preparation, examine both areas, reload, and import a save.
+The checks do not use a physical touch device or a screen reader. On a physical Chromium phone, a tester should pay for a preparation, examine both areas, reload, and import a save.

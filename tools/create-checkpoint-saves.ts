@@ -20,7 +20,7 @@ export function checkpointState(data: GameData, count: number, start: GameState 
     if (state.taskIndex < data.tasks.length) {
       state.pendingScenes = [];
     }
-    // Marking quests delivered moves the tickets on; the quests that now hold one put their dishes in the recipe book.
+    // The delivered quests advance the tickets. Each quest that then holds a ticket puts its dishes in the recipe book.
     revealTickets(state, data);
     if (state.taskIndex >= count) return state;
     const result = reduceGame(state, { type: 'task' }, data);

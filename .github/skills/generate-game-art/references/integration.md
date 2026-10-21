@@ -1,19 +1,19 @@
 # Integration
 
-Read this module before a change to a shipping file or a record.
-Use it only after the candidate review passes and the scope includes a replacement.
+Read this module before a change to a shipped file or a record.
+Use this module only after the candidate review passes and the scope includes a replacement.
 
 ## Replace the bitmap
 
 Keep the file name and the asset identifier for a replacement.
 Copy the accepted candidate, or its processed result, to `public/assets/original/`.
 Give each processing step in the `generation` field of its provenance entry.
-Do not put a second file in that folder. The test fails for a file with no record.
+Do not put a file without a record in that folder. The asset test fails for that file.
 The game never loads a master.
 Keep each food picture inside its assigned cell in the four-by-two grid.
 Food uses the whole cell, with no measured crop.
 For other atlases, update the cell rectangles if the replacement moves a subject.
-Use `blockerFrames`, `preparationFrames`, and portrait crops in `src/art.ts`, and the mascot positions in `src/style.css`.
+Use `blockerFrames`, `preparationFrames`, and `portraitFrames` in `src/art.ts`, and the mascot positions in `src/style.css`.
 Update the records before you make variants with `npm run assets:build`.
 
 ## Update the two records
@@ -27,7 +27,7 @@ For the handoff route, record the prompt with the changes that the user reported
 
 In `docs/asset-provenance.json`, update the entry of the asset with measured values:
 
-- `sha256` and `bytes` of the shipping file.
+- `sha256` and `bytes` of the shipped file.
 - `width`, `height`, `mode`, and `hasTransparency`.
 - `promptId`, which must be the new prompt `id`.
 - `generation`, which gives the route. For the handoff route, give the tool that the user named.
@@ -53,22 +53,23 @@ Confirm that the approved scope includes that change.
 Then do these steps:
 
 1. Add the entry to `docs/asset-provenance.json` and the prompt to `docs/asset-prompts.json`.
-2. Update the asset count in `tests/assets.test.ts`.
+2. Update the master count in `PRODUCT.md`, `DESIGN.md`, `DELIVERY.md`, `docs/release-notes.md`, and `AGENTS.md`.
+   The asset test compares each count with the number of entries in `docs/asset-provenance.json`.
 3. Add the asset to `imageVariants` in `tools/build-image-variants.ts`.
    "Required actions" in `DESIGN.md` gives the formats and the widths of each asset kind.
    The comments in `tools/build-image-variants.ts` give the reasons.
-   Compare the required widths with the source dimensions before you generate variants.
+   Compare the required widths with the master dimensions before you generate variants.
 4. Run `npm run assets:build`.
 5. Add the code that shows a variant, with a path relative to the file that loads it.
    For a room state, also add its identifier to `roomPaintings` in `src/model.ts`.
-6. Update the asset statements in `PRODUCT.md`, `DESIGN.md`, and `DELIVERY.md`.
+6. Update the other asset statements in `PRODUCT.md`, `DESIGN.md`, and `DELIVERY.md`.
 
 The build collects the variants. The source export collects the masters and the variants from their records.
 
 ## Examine the runtime use
 
-Run `npm run assets:build`, then `npm test`.
-The asset test compares each hash with its record. It fails on a variant that an older master made.
+Run `npm run assets:build`. Then run `npm test`.
+The asset test compares each hash with its record. The test fails on a variant that an older master made.
 Run `npm run build` and then `npm run test:browser`.
 For the production build, use [verify-game](../../verify-game/SKILL.md).
 Examine the changed cells in the game in the Light theme and the Dark theme.

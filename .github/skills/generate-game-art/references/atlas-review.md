@@ -23,6 +23,7 @@ For food, match the `art.atlas` and `art.cell` fields in `tools/create-original-
 For portraits, match the `sprite` indexes in that file.
 For mascots, match the cell positions in `src/style.css`.
 For blockers, match the frame rectangles `blockerFrames` and `preparationFrames` in `src/art.ts`.
+For portraits, also match the crops `portraitFrames` in `src/art.ts`.
 For blockers, preserve each transparent centre and the clear cell margins that `tests/assets.test.ts` checks.
 Each chain atlas holds its source in cell 0, then its dishes in stage order.
 The four mixed-dish atlases hold dishes in their assigned cells.
@@ -37,19 +38,19 @@ Give the previous accepted state as the reference.
 Name the features that must stay unchanged.
 `docs/specs/001-visible-renovation-art-plan.md` lists the features that every state keeps and the items that no state includes.
 Do not paste an object onto a painting. Paint the change in the perspective and the light of the room.
-For the API route, read [generate-game-art-openai](../../generate-game-art-openai/references/api-generation.md) for the masked edit and the composite.
+For the API route, read [API generation](../../generate-game-art-openai/references/api-generation.md) for the masked edit and the composite.
 
 ## Measure the candidate
 
 Open the saved image with an image viewer.
 Measure the decoded width, the decoded height, the colour mode, and the alpha.
-The test requires a width of more than 1000 pixels.
+The asset test requires a width of more than 1000 pixels.
 Check the image against the layout table in [`SKILL.md`](../SKILL.md).
-Use a four-by-two grid of 2:1 for each food atlas, with the source and the dishes in stage order.
-Use square sheets for all portrait atlases and mascots.
-Use a three-by-two grid for `board-clutter` and a four-by-three grid for `preparation-clutter`.
-Keep each blocker cell square.
-Use a 3:4 portrait image for a room state and for a decoration painting.
+Each food atlas must be a four-by-two grid of 2:1, with the source and the dishes in stage order.
+Each portrait atlas and the mascot atlas must be square.
+`board-clutter` must be a three-by-two grid, and `preparation-clutter` must be a four-by-three grid.
+Each blocker cell must be square.
+A room state and a decoration painting must be 3:4 portrait images.
 Check that each atlas has transparent pixels.
 The room states, the decoration paintings, the timber, and the runner are opaque.
 The food atlases and both blocker atlases have transparent backgrounds.
@@ -75,9 +76,9 @@ For portraits, compare each face with the accepted version of that character.
 For a room state or a decoration painting, examine the whole painting at full size.
 
 - **Change:** the change sits on a surface. It matches the perspective, the light, the scale, and the shadows of the room.
-- **Stability:** no pixel outside the region of the change moved. A seam at the edge of the region is a defect.
+- **Stability:** no pixel outside the region of the change is different. A seam at the edge of the region is a defect.
 - **Artifacts:** there is no text, number, or logo.
-- **Themes:** the painting shows the same in the two themes, with the interface in front of it.
+- **Themes:** the painting looks the same in the two themes, with the interface in front of it.
 
 ## Select the repair
 
@@ -86,7 +87,7 @@ Give each defect one of these causes:
 1. The bitmap: the object, the cell position, the alpha, or the style.
 2. The runtime code: the cell rectangle, the clip region, the scale, or the position in `src/art.ts` or `src/style.css`.
    The food rectangles use the `art.cell` field and the four-by-two grid in `src/art.ts`.
-3. The data: an `art` field, a portrait `sprite` index, or a name in the content generator.
+3. The data: an `art` field, a portrait `sprite` index, or a name in `tools/create-original-data.ts`.
 
 Do not change a value until the evidence identifies the owner.
 The interface clips each food tile to its source region. A pixel from an adjacent cell shows a bitmap defect or a runtime code defect.
@@ -94,6 +95,7 @@ Repair a bitmap defect with a corrective request. Do not paint pixels manually.
 Repair a runtime code defect in the code, and add a browser assertion for it.
 For a data defect, use [update-game-content](../../update-game-content/SKILL.md).
 
-Record the candidate path, the decision, and the observed defects in one short work record in the task folder.
+Record the candidate path, the decision, and the observed defects in one short work record.
+Keep the work record in `tmp/`, as `AGENTS.md` tells you.
 If you cannot view an image, give its path in the report.
 Also give the visual review that you did not complete.

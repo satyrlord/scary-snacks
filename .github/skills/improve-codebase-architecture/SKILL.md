@@ -31,7 +31,7 @@ Map the selected behavior across these owners:
 
 - `src/model.ts`, `src/engine.ts`, and `src/content.ts`: the types, the rules, the state validation, and the data checks.
 - `src/storage.ts`: the save, load, export, import, and reset behavior.
-- `src/session.ts`: the game of the tab, its writes, and the lock between tabs.
+- `src/session.ts`: the game of the tab, its saves, and the lock between tabs.
 - `src/app.ts`, the interface modules, `src/style.css`, and `index.html`: the view, the input, the themes, and the sound.
   `AGENTS.md` gives the owner of each interface module.
 - `tools/create-original-data.ts` and `public/data/game.json`: the game data.
@@ -44,8 +44,8 @@ Give the file evidence for each problem.
 
 ## Examine the candidates
 
-- Removal: imagine the callers without the boundary. If the callers become larger or harder to read, keep the boundary.
-- Gain: the boundary must reduce the information that the callers need.
+- Removal: examine the callers without the boundary. If the callers become larger or more difficult to read, keep the boundary.
+- Gain: the boundary must decrease the information that the callers need.
 - Locality: code and contracts that change together must have one owner.
 - Dependencies: the engine must not use the Document Object Model (DOM), storage, sound, or rendering.
   The storage module must not use the DOM. The storage module receives the browser storage from `src/session.ts`.
@@ -66,7 +66,7 @@ For each candidate, give these items:
 - The new owner and the changes to responsibilities.
 - The result, the risk, and the effect on contracts.
 - The verification step.
-- The rating: `Strong`, `Worth exploring`, or `Speculative`.
+- The rating: `Strong`, `Possible`, or `Weak`.
 
 Put the candidates in order. Put the candidates with the `Strong` rating first.
 In analysis mode, stop before you design or edit.

@@ -6,7 +6,7 @@ Status: Implemented.
 
 Three details of the bistro each have two finishes. The room painting is the default finish. A quest unlocks the second finish. A switch on the detail in the room changes the finish. Switches are free. The player can switch again at any time. Finishes do not change dialogue, campaign progress, income, or rewards.
 
-| Slot | Detail shows after | Default | Second finish | Unlocking quest |
+| Slot | Detail shows after | Default | Second finish | Quest that unlocks the finish |
 | --- | --- | --- | --- | --- |
 | Tableware | 9: Choose the tableware | Blue bowls | Green bowls | Eszter's "A second glaze", after preparation 9 |
 | Courtyard table cloth | 22: Prepare the serving station | Red embroidery | Blue embroidery | Ileana's "A blue table cloth", after preparation 22 |
@@ -20,10 +20,10 @@ The cloth finish applies to the serving table. The flowers finish applies to the
 2. Delivery of the required quest adds the second finish.
    After delivery, the switch shows when the detail is visible in the room.
 3. A tap on the switch applies the other finish only after a successful save. The status line names the new finish. Focus stays on the switch.
-4. A failed write keeps the previous finish and says that the finish is not saved.
+4. A failed write keeps the previous finish and says that the game did not save the finish.
 5. The switch shows only in the area that the room shows. The completion line of each finish quest says where the switch is.
 6. The engine rejects unknown slots, unknown finishes, mismatched finishes, and locked finishes. A rejection changes no state. A repeated switch grants nothing.
-7. If another tab changes the saved game, the game adopts the latest saved game before the next action can run.
+7. If another tab changes the saved game, the game adopts the latest saved game before the next action runs.
 
 `tools/create-original-data.ts` authors the decoration slots and the `unlocks` field of the three quests.
 Each slot has IDs, names, finishes, asset IDs, defaults, prerequisites, areas, and crop bounds.
@@ -51,6 +51,5 @@ PRODUCT.md owns these behaviors. DESIGN.md owns the design of the finish switch 
 The two decoration masters are each 1536 by 2048 pixels and fully opaque, like the room states.
 The masters use red, green, and blue (RGB) colour channels.
 The OpenAI Images application programming interface (API) made both masters as edits of front-room-24 and courtyard-22.
-A composite keeps every pixel outside the changed regions.
-Thus each crop edge meets the room painting.
+A composite keeps every pixel outside the changed regions, so each crop edge meets the room painting.
 `docs/asset-prompts.json` holds the prompts.

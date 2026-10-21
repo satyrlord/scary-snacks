@@ -116,8 +116,9 @@ function nobleDiet(): Character['diet'] {
   return { name: 'Red wine and meat, no garlic', forbid: ['garlic'], require: { item: dish('Red wine'), tag: 'meat' } };
 }
 /**
- * The regulars. Each one nods to a horror novel, a horror film, or local folklore, in the name, the trade, or one habit.
- * Each has two or three favourite dishes. Four are present from the start. The others arrive with the last preparation of chapters 1 to 3, introduced by a core character.
+ * The regulars. Each one refers to a horror novel, a horror film, or local folklore, in the name, the trade, or one habit.
+ * Each has two or three favourite dishes. Four are present from the start. The others arrive with the last preparation of chapters 1 to 3.
+ * A core character introduces each of them.
  */
 function regulars(): Character[] {
   const rows: [id: string, name: string, role: string, atlas: Character['portraitAtlas'], sprite: number, favourites: string[], arrivesAfter: number,
@@ -683,7 +684,7 @@ campaign.push({ window: 24, quest: { id: 'mara-community-supper', character: 'ma
     ['ilie', 'Then we are eleven, and the courtyard has ten seats.'],
     ['mara', 'I will stand. A host never sits until the pot is empty. Tonight the bistro cooks, and nobody pays a coin.']]),
   completion: [] } });
-// When the purse runs low, Ana asks for linden tea for the night ward. The herbs are free, so a player with an empty purse can always
+// When the purse is low, Ana asks for linden tea for the night ward. The herbs are free, so a player with an empty purse can always
 // cook it. The quest stands outside the order of Ana's other quests, keeps no record, and returns while the purse stays low.
 const recovery: Quest = { id: 'ana-night-ward-tea', character: 'ana', title: 'Tea for the night ward', afterTask: null, recovery: true,
   ...questTerms([['Linden tea', 1]]),
@@ -696,7 +697,7 @@ const recovery: Quest = { id: 'ana-night-ward-tea', character: 'ana', title: 'Te
 // A booked guest comes last in the window: the quests before the evening bring the dishes of the dinner into the recipe book.
 const quests: Quest[] = [recovery, ...campaign.sort((first, second) => first.window - second.window
   || Number(!!first.quest.booked) - Number(!!second.quest.booked)).map(({ quest }) => quest)];
-// The renovation: every preparation repaints one room, so the bistro visibly improves as coins are spent.
+// The renovation: every preparation repaints one room, so the bistro visibly improves as the player spends coins.
 // Each area is a series of 3:4 portrait paintings (docs/specs/001-visible-renovation-art-plan.md). A state shows every change paid for in its area.
 const areas: Area[] = [
   { id: 'front-room', name: 'The front room', unlock: null },

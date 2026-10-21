@@ -2,8 +2,8 @@
 
 Before you use a skill, read [`PRODUCT.md`](../../PRODUCT.md), [`DESIGN.md`](../../DESIGN.md), and [`DELIVERY.md`](../../DELIVERY.md).
 These owner documents control the product, the design, and the delivery.
-[`AGENTS.md`](../../AGENTS.md) gives the code rules, the commands, and the verification steps. All skills obey it.
-Its rules include the limits on `private/`, `analysis/`, public documents, commits, pushes, deployment, and legal clearance.
+[`AGENTS.md`](../../AGENTS.md) gives the code rules, the commands, and the verification steps. All skills obey `AGENTS.md`.
+The rules of `AGENTS.md` include the limits on `private/`, `analysis/`, public documents, commits, pushes, deployment, and legal clearance.
 Use only the scripts that `package.json` has in the working tree.
 
 Read the entry point of the selected skill first.
@@ -32,22 +32,20 @@ For the full gate, use [`run-quality-gate`](run-quality-gate/SKILL.md).
   or a checkout. Repair only when the user tells you to.
 - [`generate-game-art`](generate-game-art/SKILL.md): Generate, review, repair, or
   replace bitmap art with the built-in chat image generator.
-  The art includes the atlases, the timber, the runner, the painted room states, and the two decoration paintings.
-  It also includes the supper painting, the night sky, the rat sheets, the rat hole, and the parchment.
-  It also includes the character sketches and the quest scenes.
+  The `description` of the skill lists the art that the skill covers.
   If the agent has no image generator, give the user a prompt to run.
   Also start here for the OpenAI Images application programming interface (API) route.
 - [`generate-game-art-openai`](generate-game-art-openai/SKILL.md): Plan, send, and measure
-  OpenAI Images API requests, only when the user chooses the API route.
-  Its asset table gives the supported bitmaps, including the two decoration paintings.
+  OpenAI Images API requests, only if the user chooses the API route.
+  The asset table of the skill gives the supported bitmaps.
 - [`grill-me`](grill-me/SKILL.md): Challenge a plan one decision at a time,
-  when the user tells you to interview them.
+  if the user tells you to interview them.
 - [`improve-codebase-architecture`](improve-codebase-architecture/SKILL.md):
   Review ownership, module boundaries, coupling, data flow, and test boundaries, and improve them.
 - [`refactor`](refactor/SKILL.md): Improve the structure without a change
   to behavior or contracts.
 - [`run-quality-gate`](run-quality-gate/SKILL.md): Run or repair the full
-  quality gate. Also collect the evidence for a release.
+  quality gate. Also use it to collect the evidence for a release.
 - [`update-game-content`](update-game-content/SKILL.md): Add or change items, merge chains,
   generators, characters, chapters, preparations, dialogue, quests, or the initial board.
   Do not use it for interface text only.

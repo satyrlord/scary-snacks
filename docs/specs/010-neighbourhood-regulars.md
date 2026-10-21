@@ -7,11 +7,11 @@ The core characters are Mara, Ilie, Eszter, and Sorin.
 
 ## Outcome and scope
 
-The neighbourhood of the bistro grows as the renovation progresses. New regulars arrive.
+The neighbourhood of the bistro grows with the renovation. New regulars arrive.
 Each regular has a name, a trade, a portrait, an introduction, two or three favourite dishes, and quests.
 The player can find who lives nearby and what they like.
 
-- The four core characters drive the story, the preparations, and their own quest arcs in 004.
+- The four core characters lead the story, the preparations, and their own quest arcs in 004.
 - Only the four core characters are generic neighbours.
   Each regular refers to a horror novel, a horror film, local folklore, or a historical figure.
   The reference uses the name, the trade, or one habit.
@@ -27,11 +27,11 @@ The player can find who lives nearby and what they like.
    Vlad, Elisabeta, Ileana, and Cezar arrive with preparation 8, in that order.
    Cătălina and Bran arrive with preparation 12.
 3. Each regular who arrives later records an `arrivesAfter` preparation ID.
-   The game derives arrival from completed preparations and does not save it.
+   The game derives arrival from completed preparations and does not save the arrival.
 4. Each regular has two or three authored favourite dishes (`favourites`).
    Each quest of a regular asks for at least one favourite dish.
    Each quest of Vlad and Elisabeta asks for red wine and a meat dish. No dish of theirs has garlic.
-   Cătălina keeps an Orthodox fast: no dish of hers has meat, dairy, or egg. Fish is allowed.
+   Cătălina keeps an Orthodox fast: no dish of hers has meat, dairy, or egg. Her diet allows fish.
    Spec 012 gives the content tags and the diets.
 5. Author the taste of each person from their trade and story.
    Never derive taste from the appearance or the age of a neighbour.
@@ -43,18 +43,18 @@ The player can find who lives nearby and what they like.
    The quests follow the campaign rules of 004.
 7. The arrival of each later regular plays a short original scene.
    A core character introduces the regular. The regular answers.
-   The payment queues the arrival scene after the preparation scene and the closing scene that it earned.
+   The payment queues the arrival scene after the preparation scene and the closing scene that the payment earned.
    The scene follows the continuation rules of 008.
-   Reading the scene does not change the arrival.
-8. The Neighbours group in the journal starts collapsed. It shows the core characters, then the regulars in order of arrival.
+   When the player reads the scene, the arrival does not change.
+8. The Neighbours group in the journal starts collapsed. The group shows the core characters, then the regulars in order of arrival.
    Each arrived neighbour shows the portrait, the name, and the trade.
    A regular also shows the favourite dishes.
    Each arrived neighbour shows the count of delivered quests.
    A neighbour who has not arrived is a "Not yet" outline without a name or a portrait.
-   Thus the list does not spoil later chapters.
-   A waiting arrival scene has one entry under Unread scenes, above the chapter.
+   As a result, the list does not reveal later chapters.
+   An unread arrival scene has one entry under Unread scenes, above the chapter.
    The neighbour entry always shows the count and opens the introduction.
-   Reading the arrival opens Neighbours and focuses that regular.
+   After the player reads the arrival scene, the game opens Neighbours and focuses that regular.
 9. Vlad and Elisabeta do not join the community supper scene.
 
 ## Roster
@@ -71,15 +71,15 @@ The Favourite dishes column gives the dish names.
 | Start | Costel | Clock and automaton maker | Socată, Papanași, Cozonac | *The Sandman* (E. T. A. Hoffmann, 1816) |
 | After preparation 4 | Sânziana | Florist | Socată, Plum dumplings, Fruit tea | The Sânziene, the midsummer flower fairies. She weaves bedstraw crowns on 24 June (Romanian folklore) |
 | After preparation 4 | Dorian | Gentleman of leisure | Cheese board, Red wine, Cozonac | *The Picture of Dorian Gray* (Oscar Wilde, 1890). He seems never to age |
-| After preparation 8 | Vlad | Local baron | Roast pork, Red wine, Roast lamb | Vlad III Dracula, voivode of Wallachia (historical figure, 15th century). He is a baron who styles himself as a count and lives in a countryside castle |
+| After preparation 8 | Vlad | Local baron | Roast pork, Red wine, Roast lamb | Vlad III Dracula, voivode of Wallachia (historical figure, 15th century). He is a baron who calls himself a count and lives in a countryside castle |
 | After preparation 8 | Elisabeta | Visiting countess | Red wine, Tochitură, Roast lamb | Báthory Erzsébet (Elizabeth Báthory), a Hungarian countess (historical figure, 1560–1614). She is an Austro-Hungarian countess who sometimes visits her land nearby |
 | After preparation 8 | Ileana | Seamstress | Zacuscă toast, Fruit tea, Stuffed peppers | She finishes every spindle before Maundy Thursday, for fear of Joimărița, who punishes idle spinners (Romanian folklore) |
 | After preparation 8 | Cezar | Night watchman | Tochitură, Bean soup, Mici | *The Cabinet of Dr. Caligari* (film, 1920). He seems to sleepwalk his rounds |
 | After preparation 12 | Cătălina | Church bell-ringer | Plum dumplings, Bean stew, Saramură with mămăligă | She rings the bell against hailstorms and the solomonari who ride the storm clouds (village custom) |
 | After preparation 12 | Bran | Night-bus driver | Langoș, Bean soup in a bread bowl, Mici | The Headless Horseman of *The Legend of Sleepy Hollow* (Washington Irving, 1820). He rides a horse on his days off |
 
-The night-shift nurse, the night watchman, and the bell-ringer add a slightly eerie side to the village.
-They are awake when the bats are.
+The night-shift nurse, the night watchman, and the bell-ringer give the village a slightly eerie quality.
+They are awake at night.
 
 ## Data and state
 
@@ -91,7 +91,7 @@ They are awake when the bats are.
   Each later regular must speak in their arrival scene.
 - `hasArrived` and `resolveNeighbours` derive the arrivals and the delivered counts from the completed preparations and `completedQuests`.
   The state has no field for arrivals or counts.
-- A waiting arrival scene uses the ID `arrival-` followed by the ID of its regular.
+- An unread arrival scene uses the ID `arrival-` followed by the ID of its regular.
   A save cannot hold the arrival scene of a regular who has not arrived.
 - Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
 
@@ -108,10 +108,11 @@ They are awake when the bats are.
 ## Acceptance and evidence
 
 - Engine: `tests/regulars.test.ts` covers each group of arrivals and one arrival scene after the earned story scenes.
-  It covers rejection of an early arrival scene in a save, the neighbours list, and the cast check.
+  The test also covers the neighbours list and the cast check.
+  The test also covers the rejection of an early arrival scene in a save.
 - Quests: the quest tests of 004 cover the quests of the regulars.
 - Assets: `tests/assets.test.ts` compares the masters and the variants of the three atlases with their records.
-  It also checks that the portraits of the third atlas stay in its top cells.
+  The test also checks that the portraits of the third atlas stay in its top cells.
 - Browser: follow [Verification and release](README.md#verification-and-release).
-  Complete an arrival preparation, read the arrival scene, reload, and open the neighbours list.
+  Complete an arrival preparation. Read the arrival scene. Reload the game. Open the neighbours list.
   Check that the portraits and names fit the tickets and the list at every size.

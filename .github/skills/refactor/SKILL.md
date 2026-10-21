@@ -12,6 +12,7 @@ Inputs: the approved change and its scope.
 Approval: the instruction of the user for that change.
 Files to change: only the source code, the tests, and the documentation in the approved scope.
 Output: the changed files, the measurement before and after, and the checks.
+Completion: the conditions in the section "Complete the task" are true.
 If the user changes the scope, examine the scope again before the next edit.
 If the user tells you not to edit files or not to run checks, obey that instruction.
 In that condition, give each edit or check that you did not complete in the report.
@@ -53,13 +54,13 @@ Make one change to structure that removes one named problem.
 Run the smallest related check.
 Continue only if the next step is part of the same refactor.
 Compare the selected measurement with its initial value.
-Stop if a necessary change alters the behavior or an approved contract.
+Stop if the refactor must change the behavior or an approved contract.
 Use [add-feature](../add-feature/SKILL.md) for the change of behavior.
 
 If you add, move, or remove a file, examine `runtimeFiles` in `tools/build.ts`.
 Also examine `sourceFiles` in `tools/export-source.ts`.
 Change each list that names the file.
-For reachability work on many files, use [dead-code-audit](../dead-code-audit/SKILL.md).
+To find dead items in many files, use [dead-code-audit](../dead-code-audit/SKILL.md).
 Run the checks that `AGENTS.md` gives for the scope.
 For the full gate, use [run-quality-gate](../run-quality-gate/SKILL.md).
 Obey the limits of the user on checks.
@@ -69,7 +70,7 @@ In the report, give each check that you did not run.
 
 The refactor is complete when these conditions are true:
 
-- The behavior and the contracts did not change.
+- The behavior and the contracts are the same as before the refactor.
 - The selected measurement is better.
 - Each changed line is part of the refactor.
 - All the applicable checks pass.

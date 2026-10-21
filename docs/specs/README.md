@@ -5,7 +5,7 @@ Each specification in this folder records one feature of Scary Snacks: its rules
 The specifications cover act 1.
 
 The game has six chapters, 24 preparations, and 83 authored quests.
-These include 81 campaign quests, the supper quest, and the recovery quest.
+The quests are 81 campaign quests, the supper quest, and the recovery quest.
 
 ## File names
 
@@ -21,7 +21,7 @@ The following boundaries apply to every feature:
 - no waiting;
 - no purchases, advertisements, or accounts;
 - quests without a deadline;
-- neighbours whose tastes the player can read and plan for (010).
+- neighbours with tastes that the player can learn and anticipate (010).
 
 The team authors the content, the art, and the rules.
 
@@ -56,9 +56,9 @@ A dependency is a specification that the complete feature needs. A reference to 
 - Author all content and art independently.
   Obey the source-input limits in [AGENTS.md](../../AGENTS.md).
   Use the current source and these independently authored requirements.
-- Put the rules in `src/model.ts`, `src/engine.ts`, and `src/content.ts`, the persistence in `src/storage.ts`, and the interaction in the interface modules. [`AGENTS.md`](../../AGENTS.md) gives the owner of each module. Do not use the Document Object Model (DOM) in the rules or the persistence. Author data through `tools/create-original-data.ts`.
-- The game state has one random seed (013). Only a closing with the thief rat uses and advances it. A feature with other random outcomes coordinates its use of the seed. A failed action does not use resources, advance progress, change a seed, or grant part of a reward.
-- Give every objective and reward a stable identifier (ID). Claim each one-time reward once. Journal replay, scene viewing, repeated input, and reload must not claim the reward again.
+- Put the rules in `src/model.ts`, `src/engine.ts`, and `src/content.ts`. Put the persistence in `src/storage.ts` and the interaction in the interface modules. [`AGENTS.md`](../../AGENTS.md) gives the owner of each module. Do not use the Document Object Model (DOM) in the rules or the persistence. Author data through `tools/create-original-data.ts`.
+- The game state has one random seed (013). Only a closing with the thief rat uses and advances the seed. A feature with other random outcomes must coordinate its use of the seed. A failed action does not use resources, advance progress, change a seed, or grant part of a reward.
+- Give every objective and reward a stable identifier (ID). Claim each one-time reward once. A journal replay, a scene view, a repeated input, and a reload must not claim the reward again.
 - Show a reachable next goal. A mandatory task must not require a reward, area, item, or quest that the same task unlocks. Validate the combined prerequisite graph before release.
 
 ## Shared save compatibility
@@ -70,7 +70,7 @@ If no current save exists, the game starts a new campaign.
 The game leaves earlier local bytes unchanged and does not read or convert them.
 Import rejects earlier formats.
 
-The optional preparation obstacle baseline and placement history use this format. A missing record receives no past preparation batches. It starts at the next paid preparation. `PRODUCT.md` owns the queue and placement rules.
+The optional preparation blocker record uses this format. The record holds the baseline and the placement history. A missing record receives no past preparation batches. The record starts at the next paid preparation. `PRODUCT.md` owns the queue and placement rules.
 
 Validate the full envelope and state before import. Adopt the candidate only after its write succeeds. If a write fails or the input is invalid, keep the previous save and offer recovery. Test fresh, partial, and completed current saves, malformed records, unsupported versions, oversized imports, and failed writes.
 
@@ -79,7 +79,7 @@ Later features must coordinate their state versions and envelope versions. Indiv
 A reward on a full board must have an atomic outcome.
 Give a defined reward that needs no board cell, if the feature permits that reward.
 Otherwise, reject the action.
-Explain the space that the action needs.
+Explain the free cells that the action needs.
 Never lose an item or pay a reward twice.
 Mandatory progression must not depend on an exhausted or inaccessible generator.
 

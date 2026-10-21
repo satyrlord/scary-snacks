@@ -17,7 +17,7 @@ A state shows every change that the player has paid for in its area. The game sh
 
 The masters are opaque 1536x2048 Portable Network Graphics (PNG) images. The build ships AV1 Image File Format (AVIF) and WebP variants at 768x1024 and 1536x2048. Only the current state downloads. The next state preloads while its story plays.
 
-## How each state is made
+## Steps for each state
 
 1. **Base paintings.** Use front-room-00 and courtyard-13 as the base paintings of the two areas.
    Include the composition table for the area in each base request.
@@ -39,17 +39,17 @@ The masters are opaque 1536x2048 Portable Network Graphics (PNG) images. The bui
 ### Fixed in every state
 
 - The windowsill where Miez sits.
-- The resident spider under the left bracket of the upper shelf. The painting shows it in every state from state 00. It is not a sprite.
-- The counter edge at the bottom. It carries no characters.
+- The resident spider under the left bracket of the upper shelf. The painting shows the spider in every state from state 00. The spider is not a sprite.
+- The counter edge at the bottom. No character sits on the counter edge.
 - No people, no cats, no text, no letters, and no numbers. The cat sprites are not part of a painting.
 
 ## Front room composition (portrait)
 
-Positions are percentages of the painting, measured from the top-left corner. On a phone, the visible view shows about half the height of the painting. The view moves to frame the change of each state.
+Positions are percentages of the painting from the top-left corner. On a phone, the visible view shows about half the height of the painting. The view moves to frame the change of each state.
 
 | Zone | Height | Contents in state 00 |
 | --- | --- | --- |
-| Ceiling | 0–12% | Dark beams with drying herbs. Two unlit brass lamps at x 26% and x 72%. An empty iron hook beside the herbs at x 10% |
+| Ceiling | 0–12% | Dark beams with dried herbs. Two unlit brass lamps at x 26% and x 72%. An empty iron hook beside the herbs at x 10% |
 | Upper wall | 12–47% | Left: the embroidered wall hanging at x 4–16%, y 18–38%. Centre: two empty wall shelves at x 36–60%, y 22% and 33%. Right: a square two-casement village window in a deep plaster reveal at about x 64–98%, y 19–46%. The window is old and broken. It has cobwebs and three small spiders. The sill is at y 47% |
 | Middle | 40–76% | The teal tiled stove with a small fire at x 18–40%, y 30–76%. A copper rail with dull pans at x 44–60%, y 44–56%. A blank weathered board under the rail at x 44–58%, y 60–76%. The board leans against the wall |
 | Low zone | 60–86% | Left: a low cabinet with one lit candle at x 2–18%. The top of the cabinet is at y 62%. Right corner: a dust sheet over stacked chairs at x 72–98%, y 52–86% |

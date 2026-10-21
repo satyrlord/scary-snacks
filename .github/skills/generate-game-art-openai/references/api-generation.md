@@ -52,9 +52,10 @@ It also requires the shape of the asset:
 - 3:4 for a room state, a decoration painting, and the supper painting.
 
 The size must divide into equal grid cells.
-The plan sets `experimentalResolution` for a size of more than 3,686,400 pixels (2560 by 1440). Avoid such a size.
+The plan sets `experimentalResolution` for a size of more than 3,686,400 pixels (2560 by 1440).
+You should use a smaller size.
 
-Write the final prompt in a file that is not in the repository, or in an ignored folder.
+Write the final prompt in a file in `tmp/`.
 Then run the dry run:
 
 ```powershell
@@ -72,7 +73,7 @@ Use text-only generation for a new asset.
 For a revision, use one `--reference <image>` for each accepted image that the revision must keep.
 The helper accepts only these references:
 
-- A shipping bitmap in `public/assets/original/` that matches its provenance hash.
+- A shipped bitmap in `public/assets/original/` that matches its provenance hash.
 - A `candidate.png` in `analysis/art-generation/` that matches its generation-record hash.
 - A `composite.png` there that matches its `composite.json` hash.
 - A `paper.png` there that matches its `paper.json` hash.
@@ -80,7 +81,8 @@ The helper accepts only these references:
 The helper rejects every other path, including `private/` and the other folders under `analysis/`.
 The helper accepts at most 16 references. Each reference must be a PNG image of less than 50 MB.
 The prompt and each reference leave the computer. Do not put a secret or private data in them.
-Give each reference a role in the prompt, and name the cells and the features that must stay unchanged.
+Give each reference a role in the prompt.
+Name the cells and the features that must stay unchanged.
 
 ## Edit a room state
 
@@ -120,8 +122,10 @@ Only the changed region of the edit goes into the new state.
    Repair the defect with a corrective request or a larger mask.
 
    A newly lit lamp is a change of light.
-   For a change of light, a mask in the request makes the model stop the light at the edge of the mask.
-   Thus send the edit without `--mask`. Then composite with the mask of the region, `--ramp`, and a wide `--feather` (64 to 128).
+   For a change of light, a mask in the request causes a defect.
+   The model stops the light at the edge of the mask.
+   Send that edit without `--mask`.
+   Then composite with the mask of the region, `--ramp`, and a wide `--feather` (64 to 128).
    Without a ramp, the weight drops to one half at the edge of the region. That drop shows as a line when the light changes.
    A ramp widens the region by the feather first, so the fade starts at full strength.
    `composite.json` then records `"ramp": true`.
@@ -130,7 +134,7 @@ Only the changed region of the edit goes into the new state.
 
 A sketch or a quest scene is pencil on transparency.
 With a transparent background, the provider makes only the area around the drawing clear. The paper inside closed shapes stays as a fill.
-Thus ask for the drawing on plain pure white paper, with no paper texture and no fills.
+Ask for the drawing on plain white paper, with no paper texture and no fills.
 Then make the paper transparent:
 
 ```powershell
@@ -157,7 +161,7 @@ Review `ink.png` on the parchment and on a dark background. A tinted area on the
 
 Use this procedure to change one region of an accepted transparent sketch or quest scene.
 
-1. **Make a paper copy.** The drawing must be a reference that the helper accepts, for example a shipping bitmap:
+1. **Make a paper copy.** The drawing must be a reference that the helper accepts, for example a shipped bitmap:
 
    ```powershell
    node .github/skills/generate-game-art-openai/scripts/art-composite.ts paper `
@@ -177,7 +181,8 @@ Use this procedure to change one region of an accepted transparent sketch or que
      --mask <mask> --out analysis/art-generation/<task>/<run>-patch
    ```
 
-   The command takes only the masked region of the candidate, and makes the paper of that region clear with the ink conversion.
+   The command takes only the masked region of the candidate.
+   The ink conversion makes the paper of that region clear.
    The command composites that region into the drawing, with a feather of 8 pixels by default.
    Every other pixel of the drawing stays unchanged.
    The command stops if the drawing changed after the paper copy.
@@ -186,7 +191,7 @@ Use this procedure to change one region of an accepted transparent sketch or que
 
 ## Send the request
 
-Remove `--dry-run` only for an authorized request:
+Remove `--dry-run` only for an approved request:
 
 ```powershell
 node .github/skills/generate-game-art-openai/scripts/art-image.ts generate `
@@ -205,12 +210,12 @@ It saves these files in the run folder:
 - `inspection.json`: the measurements.
 - `status.json`: the state of the run.
 
-Keep those files as the only record of the paid request. Do not make a second ledger.
+Keep those files as the only record of the paid request. Do not make a second record.
 Read `status.json` before you continue:
 
 | State | Meaning | Next step |
 | --- | --- | --- |
-| `request-started` | The result is unknown. | Do not repeat the request. Examine the folder, and ask the user. |
+| `request-started` | The result is unknown. | Do not repeat the request. Examine the folder. Ask the user what to do. |
 | `request-failed` | The request gave no image. The provider rejected it, the provider failed, the response had no usable image, or a local error stopped it. The record has a code. | Report the code. Do not retry without approval. |
 | `request-failed` with the code `network-outcome-unknown` | A network error or a timeout stopped the request. The billing result is unknown. | Do not repeat the request. Report the unknown result to the user. |
 | `response-saved` | The candidate is saved. | Measure it. |
@@ -246,7 +251,7 @@ Use an RGB image without a colour key, or an RGBA image, so that the alpha is ex
 A `warnings` entry reports visible pixels in the edge band of a cell.
 Generated grids are not exact, and the accepted atlases also give this warning.
 Examine each listed cell for containment, as [atlas generation and review](../../generate-game-art/references/atlas-review.md) tells you.
-A passing measurement does not show visual quality. Examine the candidate cell by cell, at 64 pixels for food.
+A measurement that passes does not show visual quality. Examine the candidate cell by cell, at 64 pixels for food.
 
 ## Record the route
 
@@ -263,7 +268,7 @@ Add these route details:
   Change the top-level `mode` field so that it names each route that made an entry.
 - Examine the statements that name the built-in chat image generator in `docs/release-notes.md` (section "Art provenance").
   Change a statement that is not true.
-- Set `sourceGameImageInput` to `false` only if each reference is a shipping bitmap or a candidate of this project.
+- Set `sourceGameImageInput` to `false` only if each reference is a shipped bitmap or a candidate of this project.
 
 Run `npm run assets:build`, `npm test`, `npm run build`, and `npm run test:browser`.
 Examine the changed assets in the game in both themes at the desktop size and the phone size.

@@ -43,7 +43,7 @@ Record each related environment value:
 - The theme.
 - The base path: the root or `/scary-snacks/`.
 - The server mode: development or the built `dist/` output.
-- The saved state and the save version.
+- The save and its version.
 - The Node.js version.
 - The full command.
 
@@ -53,7 +53,7 @@ Select the first applicable test from this list:
 1. Run an engine test with `createGame` and `reduceGame` if it applies to the symptom.
 2. Run a storage test if it applies to the symptom.
 3. Run a build test or a server test if it applies to the symptom.
-4. Run a Playwright flow in headless mode against the built output if the failure occurs only in a browser.
+4. Run a Playwright test in headless mode against the built output if the failure occurs only in a browser.
 5. If only one tool shows the failure, run that tool.
 
 To run one Node.js test file, use `node --test tests/<file>.test.ts`.
@@ -71,18 +71,18 @@ Change only one condition at a time.
 Stop when one cause agrees with all the evidence.
 
 In diagnosis mode, use only tests that do not change tracked files or stored data.
-The build changes no tracked file. [run-quality-gate](../run-quality-gate/SKILL.md) gives its outputs.
+The build changes no tracked file. [run-quality-gate](../run-quality-gate/SKILL.md) gives the outputs of the build.
 Do not show the content of a save file that a user gives, except the fields that the diagnosis needs.
 
 ## Complete the diagnosis or the repair
 
 In repair mode, first make the smallest regression test that fails.
-Repair the root cause.
+Repair the cause.
 Run the test sequence again.
 Remove all temporary logs and traces.
 
 The evidence must show that the cause is different from related alternatives.
 If you cannot make a correct test sequence, give each attempt and the missing file or access in the report.
-In that case, do not give a root cause.
+In that case, report each possible cause as unverified.
 
 Complete the mode when its completion condition is true.

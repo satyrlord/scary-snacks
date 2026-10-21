@@ -26,10 +26,11 @@ Git history keeps the past.
   `assets/variants/` holds AV1 Image File Format (AVIF) and WebP images.
   `assets/fonts/` holds the fonts, and `data/game.json` holds the game data.
   `public/assets/original/` holds the 93 Portable Network Graphics (PNG) masters of those variants. The build does not ship the masters.
-- `tools/` holds the Node.js tools. They build the game, serve it, write the game data, make the image variants, write the checkpoint saves, check the campaign balance, and export the source.
-  `tools/create-original-data.ts` authors `public/data/game.json`.
-  Edit the generator.
-  Run `npm run data:generate`.
+- `tools/` holds the Node.js tools. They build the game, serve it, and write the game data.
+  They also make the image variants, write the checkpoint saves, check the campaign balance, and export the source.
+  `tools/create-original-data.ts` writes `public/data/game.json`.
+  To change the game data, edit the generator.
+  Then run `npm run data:generate`.
 - `tests/` holds the Node.js tests. `tests/browser/` holds the Playwright browser tests.
   `tests/support.ts` and `tests/browser/support.ts` hold the shared test helpers.
 - `docs/` holds the records and the feature specifications.
@@ -43,11 +44,13 @@ Git history keeps the past.
   `analysis/art-generation/references/` holds the reference images of `docs/asset-provenance.json` that the game does not ship.
   Each other folder in `analysis/art-generation/` holds one art task that is not complete.
   When the user accepts or rejects each candidate of an art task, the task is complete.
-  Then copy each new reference image to `references/`, and move the task folder to `tmp/`.
-  Put logs, previews, masks, review notes, handoffs, rejected candidates, and scripts for one task in `tmp/`, not in `analysis/`.
+  Then copy each new reference image to `references/`.
+  Then move the task folder to `tmp/`.
+  Put logs, previews, review notes, handoffs, rejected candidates, and scripts for one task in `tmp/`, not in `analysis/`.
+  Keep a mask that the art helper reads in its task folder. The helper reads masks only from `analysis/art-generation/`.
   Do not add other files or folders to `analysis/`.
   Do not read `private/` or `analysis/` as an input for source code, content, or tests.
-  Art can use the images in `analysis/art-generation/` as generator inputs, as the art skills tell you.
+  An art task can use the images in `analysis/art-generation/` as generator inputs. The art skills give the procedure.
 
 ## Public and private documents
 
@@ -71,7 +74,7 @@ Do not say that a check passed if you did not run it.
 ## Code style and names
 
 Use TypeScript 7 in strict mode for runtime modules, Node.js tools, tests, and skill scripts.
-The skill installation script uses PowerShell.
+The skill link script uses PowerShell.
 Do not add a `.js` or `.mjs` file.
 Node.js runs `.ts` files directly. Use only syntax that Node.js can remove: no enums, namespaces, or parameter properties.
 Give each relative import its `.ts` extension.
@@ -88,17 +91,19 @@ Put a helper that more than one test file uses in the shared helper file of its 
 Give each test a name that tells its behavior.
 Add a regression test for each defect.
 The game supports only Chromium-based browsers. The full browser suite runs on Chromium under `/scary-snacks/`, the GitHub Pages path. The asset and path test also runs at the root path.
-Run each browser test in headless mode when the tool allows it.
-This rule applies to the Playwright suite, to the browser checks in `npm run quality:full`, and to one-time browser checks that you run from the chat.
-Use a headed browser only when a check cannot run headless. Tell the user why.
+Run each browser test in headless mode if the tool allows it.
+This rule applies to the Playwright suite and to the browser checks in `npm run quality:full`.
+This rule also applies to one-time browser checks that you run from the chat.
+Use a headed browser only if a check cannot run headless. Tell the user why.
 Examine both themes at the desktop size and the phone size.
 A test that passes does not show visual quality. Examine the changed interface.
 
 ## Commit and pull request guidelines
 
-Start each commit subject with an imperative verb, and keep it short.
+Start each commit subject with an imperative verb.
+Keep the subject short.
 Do not commit, push, deploy, rename the repository, or change the Git history unless the user tells you to.
-When the behavior or the design changes, update the owner documents.
+If the behavior or the design changes, update the owner documents.
 For a change that the user can see, give browser evidence.
 
 ## Assets, security, and deployment
@@ -112,7 +117,7 @@ The asset test fails on a variant that the current master did not make.
 The build ships only the variants. The build stops on a file in that folder that is not an AVIF or WebP image.
 Keep candidates, rejected images, and previews out of that folder.
 Use [`generate-game-art`](.github/skills/generate-game-art/SKILL.md) for bitmap art.
-Use [`generate-game-art-openai`](.github/skills/generate-game-art-openai/SKILL.md) only when the user requests the OpenAI Images application programming interface (API).
+Use [`generate-game-art-openai`](.github/skills/generate-game-art-openai/SKILL.md) only if the user requests the OpenAI Images application programming interface (API).
 Give the generator only text prompts and images that this project generated.
 Use only fonts that are self-hosted with their license texts. Do not copy assets from websites.
 
@@ -131,10 +136,10 @@ Write the owner documents, the records, and the skills in ASD-STE100 Simplified 
 The create-skill skill gives the writing rules.
 
 Use [`.github/skills/SKILLS.md`](.github/skills/SKILLS.md) as the index of the repository skills.
-Before important work, select the applicable workflow from that index.
+Before important work, select the applicable skill from that index.
 Repository skills do not increase the approval that the user gave.
 Reviews, audits, and diagnosis do not change files unless the user tells you to make a change.
 To let the skill discovery tools find the skills, run `pwsh -File .github/scripts/setup-skill-links.ps1`.
 The script makes the ignored folder links `.claude/skills`, `.agents/skills`, and `.codex/skills`.
-[`.github/copilot-instructions.md`](.github/copilot-instructions.md) and [`CLAUDE.md`](CLAUDE.md) point to this file.
+[`.github/copilot-instructions.md`](.github/copilot-instructions.md) and [`CLAUDE.md`](CLAUDE.md) refer to this file.
 Change the rules only here.

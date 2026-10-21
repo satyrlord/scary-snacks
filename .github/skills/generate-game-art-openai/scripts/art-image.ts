@@ -16,7 +16,7 @@ import {
 import type { AssetId, ReferenceImage } from './openai-api.ts';
 import { hasPngSignature, inspectPng } from './png-facts.ts';
 
-// The real path, so that the drive letter agrees with the paths that realpath gives when the shell gives a lower-case one.
+// Use the real path. Then the drive letter agrees with the paths from realpath if the shell gives a lower-case letter.
 export const REPO = realpathSync.native(fileURLToPath(new URL('../../../../', import.meta.url)));
 export const TASK_ROOT = path.join(REPO, 'analysis', 'art-generation');
 const SHIPPING_ROOT = path.join(REPO, 'public', 'assets', 'original');
@@ -37,7 +37,7 @@ export async function pathExists(file: string) {
   }
 }
 
-// Resolve the deepest existing ancestor so that a junction cannot move a write out of its root.
+// Resolve the deepest ancestor that exists. Then a junction cannot move a write outside its root.
 export async function resolveWithAncestors(value: string) {
   let ancestor = path.resolve(value);
   const suffix: string[] = [];
@@ -117,7 +117,7 @@ export function verifyReferenceHash(bytes: Buffer, expectedHash: unknown) {
 }
 
 // Use only project-generated images as references.
-// Accept shipping bitmaps, helper candidates, and the composites and paper copies that art-composite.ts makes from those images.
+// Accept shipped bitmaps, helper candidates, and the composites and paper copies that art-composite.ts makes from those images.
 export async function readReference(file: string): Promise<ReferenceImage & { sha256: string }> {
   const resolved = await realpath(path.resolve(file));
   const shipping = await resolveWithAncestors(SHIPPING_ROOT);
@@ -128,7 +128,7 @@ export async function readReference(file: string): Promise<ReferenceImage & { sh
     isInside(tasks, resolved) && record !== undefined && (await pathExists(path.join(path.dirname(resolved), record)));
   if (!isShipping && !isCandidate)
     throw new Error(
-      'Use only a shipping bitmap, a candidate that this helper generated, or a composite or a paper copy of them as a reference.',
+      'Use only a shipped bitmap, a candidate that this helper generated, or a composite or a paper copy of them as a reference.',
     );
   const bytes = await readFile(resolved);
   if (isShipping) {
@@ -137,7 +137,7 @@ export async function readReference(file: string): Promise<ReferenceImage & { sh
     };
     const asset = record.assets.find((entry) => path.resolve(REPO, entry.file) === resolved);
     if (!asset || asset.sourceGameImageInput !== false)
-      throw new Error('Use a shipping bitmap from the project provenance record.');
+      throw new Error('Use a shipped bitmap from the project provenance record.');
     verifyReferenceHash(bytes, asset.sha256);
   } else {
     const generation = JSON.parse(await readFile(path.join(path.dirname(resolved), record!), 'utf8')) as {

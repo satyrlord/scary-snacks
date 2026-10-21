@@ -9,7 +9,7 @@ description: Design, audit, add, repair, or examine the Scary Snacks browser int
 
 Use the installed `$impeccable` skill. Its other name is `/impeccable`.
 Use it as the workflow that controls the design.
-The `impeccable` skill is installed in the home folder of the user. It is not in this repository.
+The home folder of the user holds the `impeccable` skill. This repository does not hold it.
 The `.impeccable/` folder is local, and Git ignores it.
 If the installed skill is missing, report the blocker.
 If its launcher fails, use the fallback procedure in the installed skill.
@@ -28,7 +28,7 @@ Do not use rules from this skill as an alternative to the Impeccable workflow.
 
 `PRODUCT.md` and `DESIGN.md` give the product context and the design context.
 If `.impeccable/config.json` is present, it records the detector findings to ignore.
-Check the evidence for each relevant entry before you rely on that entry.
+Check the evidence for each applicable entry before you use that entry.
 Do not infer user approval from an ignore entry.
 Do not invent tokens, a palette, typography, or a component language that `DESIGN.md` does not give.
 If the design and the code do not agree, give the difference in the report.
@@ -100,7 +100,7 @@ In implementation mode and verification mode, do these tests:
 - Examine overlap, horizontal scroll, the phone bar, the dialogs, and the focus ring.
 - Examine each atlas cell for pixels from an adjacent sprite.
 
-Use a fresh game or a deterministic save for geometry and screenshots.
+Use a new game or a save that you recorded for geometry and screenshots.
 A screenshot does not show interaction.
 For production evidence, use [verify-game](../verify-game/SKILL.md).
 The tests do not include physical touch devices or assistive technology. Give that limit in the report.

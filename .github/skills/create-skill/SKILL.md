@@ -71,15 +71,17 @@ Keep a short skill in one file when more files do not give a better selection.
 ## Write the text
 
 Write all the files in the package in ASD-STE100 Simplified Technical English.
-This skill must follow the same rules.
+This skill must obey the same rules.
 Obey the rules in `AGENTS.md` for public documents and for the current state.
 
 Write the sentences with these rules:
 
 - Use sentences of 20 words or fewer.
+- Use the articles "the" and "a". Do not omit them.
 - Put one instruction in each sentence.
 - Start each instruction with an imperative verb.
 - Use the active voice and the present tense.
+- Do not use "will", "would", "could", "might", or "shall" if the present tense gives the meaning.
 - Put one topic in each paragraph.
 
 Choose the words with these rules:
@@ -95,10 +97,13 @@ Choose the words with these rules:
 - Use "can" for possibility or ability.
 - Use "if" for a condition and "before" or "after" for order.
 - Do not use "it" or "this" if the reference is not clear. Repeat the noun.
+- Do not use "ensure", "via", "utilize", "leverage", "appropriate", "relevant", "various", or "several".
+- Do not use "however", "therefore", "simply", "just", or "very".
 
 Write the lists and the terms with these rules:
 
 - List every item. Do not use "and/or", "etc.", or "and so on".
+- Write "for example" and "that is". Do not write "e.g." or "i.e.".
 - Give the full term when an abbreviation first occurs.
 - Do not change identifiers, commands, paths, or quoted interface text.
 - Preserve exact source quotations, license text, and recorded generation prompts.
@@ -117,10 +122,10 @@ Preserve approval that the user already gave for the current scope.
 Do not request the same approval again.
 Give the procedure for a change of scope.
 Give the procedure for a user instruction that prevents edits or tests.
-Keep automatic selection of the skill active.
-Deactivate automatic selection only when the user tells you to start the skill only by its name.
 Add `agents/openai.yaml` with quoted strings.
-Give the file a default prompt that includes the skill name.
+Give the file a default prompt that includes the skill name as `$skill-name`.
+Set `policy.allow_implicit_invocation` to `true` to keep automatic selection of the skill active.
+Set the value to `false` only if the user tells you to start the skill only by its name.
 Update `SKILLS.md` and each link to the skill.
 
 ## Validate the package

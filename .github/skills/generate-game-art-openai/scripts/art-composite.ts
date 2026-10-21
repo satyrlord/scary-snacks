@@ -130,8 +130,8 @@ export async function paperToAlpha(drawing: Buffer, floor = 0.04) {
 }
 
 /**
- * Lay a transparent pencil drawing on white paper. Pad each side to the next multiple of 16, so that the provider
- * edits the drawing at its own scale and no pixel is resampled.
+ * Lay a transparent pencil drawing on white paper. Pad each side to the next multiple of 16.
+ * Then the provider edits the drawing at its own scale, and the copy resamples no pixel.
  */
 export async function paperCopy(drawing: Buffer) {
   const { width, height } = await sharp(drawing).metadata();
@@ -142,7 +142,7 @@ export async function paperCopy(drawing: Buffer) {
   return { bytes, left, top };
 }
 
-/** Take the masked region of an edit of a paper copy back into the transparent drawing, with its paper made clear. */
+/** Copy the masked region of an edited paper copy into the transparent drawing. Make the paper of that region clear. */
 export async function inkPatch(drawing: Buffer, edit: Buffer, mask: Buffer, left: number, top: number, feather = 8) {
   const { width, height } = await sharp(drawing).metadata();
   const region = { left, top, width: width!, height: height! };

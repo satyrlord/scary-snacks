@@ -37,7 +37,7 @@ If the user tells you not to run checks, give each check that you did not run in
 
 Read `PRODUCT.md`, `DESIGN.md`, `DELIVERY.md`, and `package.json`.
 Examine the repository status.
-Read the source code, callers, tests, and tools that control the behavior.
+Read the source code, the callers, the tests, and the tools that control the behavior.
 Identify each contract that the change touches.
 Examine the engine, content, persistence, and user interface (UI) contracts.
 Also examine the asset, security, build, and deployment contracts.
@@ -66,7 +66,7 @@ Examine `sourceFiles` in `tools/export-source.ts` also.
 Update each list that names the file.
 The build publishes each runtime `.ts` module as a `.js` script in `dist/`. `index.html` names the `.ts` source.
 
-Add the smallest tests that fail for the changed behavior.
+Add the smallest tests that fail before the change and pass after the change.
 Update the related developer and user documentation.
 For behavior that the user can see, add evidence from a browser test in `tests/browser/`.
 For sound, state in the report that an automated check does not measure how the sound plays.

@@ -31,7 +31,7 @@ Tests also check that runtime files and game data load assets only from the vari
 The project records do not guarantee that no person can make a legal claim.
 The records do not establish ownership of every generated output.
 The records do not give trademark clearance for the title.
-A lawyer should review the intended release and the applicable jurisdictions before publication.
+A lawyer should examine the intended release and the jurisdictions that apply before publication.
 
 The [United States Copyright Office](https://www.copyright.gov/register/tx-games.html) distinguishes game ideas and methods from expressive text and artwork.
 The [United States Patent and Trademark Office](https://www.uspto.gov/trademarks/search/likelihood-confusion) explains confusion between similar marks for related goods.
@@ -40,7 +40,7 @@ These sources do not determine which law applies to this project.
 
 The project has no comprehensive title clearance.
 Such clearance requires more than an exact-name search.
-Relevant searches cover trademark registers, unregistered rights, company names, domains, and jurisdictions outside the United States.
+The necessary searches cover trademark registers, unregistered rights, company names, domains, and jurisdictions outside the United States.
 
 ## Publication
 
@@ -79,7 +79,7 @@ The provenance record distinguishes recorded user acceptance from agent review.
 
 The OpenAI Images application programming interface (API) supplies these assets through `gpt-image-2.5-flare` at high quality:
 
-- The mascots, with a project-generated chat atlas as its reference.
+- The mascots, with a project-generated chat atlas as their reference.
 - The timber tabletop and embroidered runner, from text prompts.
 - The core portraits, with a project-generated candidate as their reference.
 - The three regulars atlases, with project-generated portraits as style references.
@@ -101,4 +101,4 @@ A cell trim keeps each pose of the thief rat sheet inside its grid cell without 
 Each later room state edits the previous state of its area.
 A composite applies only the changed region.
 The decoration composites also apply only their changed regions.
-The application displays the authored decoration regions.
+The game displays the authored decoration regions.

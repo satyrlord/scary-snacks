@@ -230,8 +230,8 @@ class ImageRequestError extends Error {
 }
 
 export async function sendImageRequest(request: ImageRequest, key: string): Promise<Buffer> {
-  // Recheck the actual payload at the public transport entry point. Callers can
-  // construct requests directly or change a request after the builder returns.
+  // Check the payload again at the public entry point of the transport. A caller can
+  // make a request directly, or change a request after the builder returns.
   let fields: Record<string, unknown>;
   if (typeof request.body === 'string') {
     try {

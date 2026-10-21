@@ -4,7 +4,7 @@ Status: Implemented.
 
 ## Outcome and scope
 
-A basic ingredient has little value. A prepared dish has a price for its staples and its work.
+A basic ingredient has little value. A prepared dish has a price for its ingredients and its work.
 A repair costs more money and effort than a new menu.
 A repair also costs more than new paint on a welcome board whose wood is sound.
 The position of a preparation does not change a price.
@@ -19,38 +19,40 @@ The [economy record](../economy.md) gives the price table, the work scopes, the 
 2. The economy record gives the price of each dish.
 3. Every quest except the supper pays its menu value. The supper pays nothing. No quest has a reward multiplier.
 4. A take from a paid source spends the take cost. A take from the Herb basket is free. Each cleared blocker gives the blocker coin.
-5. A window is the group of quests that open after one preparation. The quests in each window make their work value cover the preparation costs.
+5. A window is the group of quests that open after one preparation. The work value of the quests in each window covers the preparation costs.
 6. A dish leaves the board by a merge, a delivery, or a theft at closing (spec 013).
 7. Each preparation defines its work scope, material or stock allowance, labour allowance,
    and estimated active person-hours. Its cost is materials plus labour. The order of the preparations does not change the cost.
 8. The reference scale is one coin for about one Romanian leu. The model uses supplier and service
-   prices as references. Work quantities, labour hours, and budget allocations are authored estimates.
+   prices as references. The team authors estimates for work quantities, labour hours, and budget allocations.
 9. A quest that opens after preparation N is necessary for preparation N + 1.
    Each preparation needs its coins and every quest that opens before it.
 10. The work value of a quest is the merges of its dishes times the work rate.
     The funding check compares the cumulative work value of the quests with the cumulative preparation costs at each preparation.
     The check includes every quest that opens before that preparation.
     The work value must cover the costs through that preparation.
-    The coins that remain after the last preparation must buy the staples of the supper.
-    Thus a player who delivers every open quest and buys only its staples always has the coins for the next preparation.
+    The coins that remain after the last preparation must buy the ingredients of the supper.
+    Assume that a player delivers every open quest and buys only the ingredients of those quests.
+    That player always has the coins for the next preparation.
 11. The engine checks coins, the necessary quests, and source placement together.
-    Successful payment spends coins once and advances one preparation. Failure changes nothing.
+    A successful payment spends the coins once and advances the campaign by one preparation. A failed payment changes nothing.
 
 ## Feedback
 
-Story shows only the requirements still unmet: the extra coins to earn, quests to deliver, or board space to free for a source.
-Completed requirements have no row. When every requirement is met, one line says "Ready to prepare."
+Story shows only the unmet requirements.
+An unmet requirement can be extra coins to earn, quests to deliver, or a free cell for a source.
+Completed requirements have no row. When the player meets every requirement, one line says "Ready to prepare."
 The accessible description of Pay keeps the exact current and required totals.
 Pay and Mara's offer use the same engine eligibility result.
 
 Cost details sits beside Pay.
-The disclosure expands below that row inside Story. It shows the work scope, material and labour costs, and total price.
-It also shows estimated person-hours and the exact current and required coins, delivered quests, and source space.
+The disclosure expands below that row inside Story. It shows the work scope, the material and labour costs, and the total price.
+It also shows estimated person-hours and the exact current and required coins, delivered quests, and the free cell for a source.
 The text states that there is no timer.
-The control exposes its expanded state and its region. Enter, Space, or a tap toggles it and keeps focus on the control. Pay stays available above the expanded region.
-Expansion lasts through redraws of the same preparation. A new preparation starts collapsed. A reload or game replacement clears expansion. Both Story views share the state.
-An expanded phone sheet can scroll. Reading or toggling the details changes no game state.
-No future source output or unearned room painting appears in this explanation.
+The control exposes its expanded state and its region. Enter, Space, or a tap expands or collapses the details. The focus stays on the control. Pay stays available above the expanded region.
+The details stay expanded through redraws of the same preparation. The details of a new preparation start collapsed. A reload or a replacement of the game collapses the details. Both Story views share the expanded state.
+An expanded phone sheet can scroll. A read or a toggle of the details changes no game state.
+No future source output or unearned room painting appears in the details.
 
 ## Authored data and save compatibility
 
@@ -58,10 +60,10 @@ No future source output or unearned room painting appears in this explanation.
 It computes each menu price with `menuPrice` and each quest reward from those prices.
 The generator produces `public/data/game.json`.
 `economyProblems` validates the levers, the formula prices, the work fields, the half-hour estimates, and the cost sum.
-`questProblems` validates the quest order, the funding check, and the coins for the staples of the supper.
-Content tests also check the reward rule and relative cost relationships.
+`questProblems` validates the quest order, the funding check, and the coins for the ingredients of the supper.
+Content tests also check the reward rule and the relations between costs.
 
-`taskEligibility` owns readiness. The interface and reducer use it.
+`taskEligibility` owns readiness. The interface and the reducer use `taskEligibility`.
 The state has no goal counter. Readiness comes from the coins and `completedQuests`.
 The [shared save contract](README.md#shared-save-compatibility) applies.
 A failed write keeps the current save. The player can recover.
@@ -70,21 +72,21 @@ A failed write keeps the current save. The player can recover.
 
 Run `node tools/campaign-balance.ts`. `tests/campaign-balance.test.ts` runs the same checks in the full gate.
 
-The fixture starts a new game. It pays each preparation as soon as it is ready.
+The fixture starts a new game. It pays for each preparation as soon as the preparation is ready.
 Otherwise it delivers the booked quest of the evening first.
 It lights the lanterns when that meal is ready before 20:00.
-Then it delivers the unbooked ticket whose staples cost the least.
+Then it delivers the unbooked ticket whose ingredients cost the least.
 It cooks booked meals for later evenings when no other quest remains.
-It delivers recovery tea before a quest if the purse cannot buy its staples.
+It delivers recovery tea before a quest if the purse cannot buy its ingredients.
 Within 30 merges of closing, it also makes recovery tea if the purse cannot pay the upkeep.
 Between quests, it clears the cheapest blocker while fewer than 24 cells are free.
-It makes each required dish from spare food on the board, or from stage-one staples, merges, and recipes.
+It makes each required dish from spare food on the board, or from stage-one ingredients, merges, and recipes.
 When the board is full, it merges spare food: a pair, a recipe, or a match for a blocked dish.
 A full board without such a merge is a deadlock, and the fixture fails.
 After the last preparation, the fixture serves the supper.
 
-Each preparation and chapter reports successful actions, takes, merges, deliveries, recovery deliveries,
-quest income, blocker income, preparation expense, take expense, upkeep, and balance.
+The report gives the successful actions, takes, merges, deliveries, and recovery deliveries for each preparation and chapter.
+It also gives the quest income, blocker income, preparation expense, take expense, upkeep, and balance.
 Preparation records also include work scope, material and labour budgets, and free cells.
 The report gives the purse after the supper and the coins spent on preparations, takes, and upkeep.
 The purse after the supper must be inside the balance band of spec 012: 0 to 10% of those coins.
@@ -100,10 +102,10 @@ The report measures gameplay effort under one stated policy. It does not measure
   The checks cover complete work budgets and relative costs for signs, menus, and repairs.
   They also cover the funding check, the recovery quest, and invalid authored data.
 - Saves: current saves, export and import, failed writes, and malformed data.
-- Browser: text requirements, readiness, payment from expanded details, keyboard toggling and focus, inline cost details, phone scrolling, reload, imports, themes,
-  and desktop and phone geometry.
+- Browser: text requirements, readiness, payment from expanded details, keyboard toggles and focus, and inline cost details.
+  The checks also cover phone scroll, reload, imports, themes, and desktop and phone geometry.
 - Synthetic reveal saves: `npm run saves:checkpoints` supplies the necessary quests and the exact coins for the next preparation.
-  After the last preparation, the supplied coins buy the staples of the supper.
+  After the last preparation, the supplied coins buy the ingredients of the supper.
   These supplied resources are not balance evidence.
 
 ## Economy changes

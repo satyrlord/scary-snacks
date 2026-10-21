@@ -35,7 +35,7 @@ The asset and path test also uses the root path on port 4181.
 
 For a manual check, serve the build with `npm run preview` and open `http://127.0.0.1:4178`.
 For the Pages subpath, set the `BASE_PATH` environment variable to `/scary-snacks/` before that command.
-Use a different `PORT` value if port 4178 is not available. Do not stop a server that you did not start.
+If port 4178 is not available, use a different `PORT` value. Do not stop a server that you did not start.
 Run automated browsers in headless mode.
 Start from empty browser storage or from a save file that you recorded.
 Record the operating system, the browser and its version, the viewport, the theme, and the build commit or status.
@@ -46,7 +46,7 @@ Do not use the development server from `npm run dev` as an alternative.
 ## Test the behavior that the user can see
 
 Use the controls that the interface shows, with the gestures that each control needs.
-Test generator output, merges, swaps, quest tickets, deliveries, and coins.
+Test the takes from the sources, merges, swaps, quest tickets, deliveries, and coins.
 Test the preparations, the chain unlocks, the dialogue, and the board after the story.
 Test the room painting, the area switch, and the reveal after a paid preparation.
 Test pointer selection, drag input, the arrow keys, Enter, Space, and Escape.
@@ -75,7 +75,7 @@ Automation cannot do these checks. Give them as limits in the report:
 
 ## Complete the run
 
-Keep temporary evidence in an ignored path for this run, for example `test-results/`.
+Keep the temporary evidence of this run in `tmp/`, as `AGENTS.md` tells you.
 Close only the browsers and servers that you started for this verification.
 Give each contract one of these statuses: `PASS`, `FAIL`, `BLOCKED`, or `N-A`.
 In the report, give the limits of the run, the manual checks, and all the necessary evidence.

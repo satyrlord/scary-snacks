@@ -9,7 +9,7 @@ Each chapter has a stable identifier (ID), a title, an objective, and opening co
 Each chapter also has a payoff, one neighbour contribution, and a closing scene.
 Each of the 24 preparations has a stable ID, three dialogue lines, and a chapter number.
 The chapter number of a preparation is the only link between a chapter and its preparations.
-Each preparation has one room state from 001. The journal names that change beside the preparation.
+Each preparation has one room state from spec 001. The journal names that change beside the preparation.
 The player can see the current chapter goal and the state of its four preparations.
 The journal shows the result of each complete chapter.
 The finale names the result of each chapter. All four core characters speak: Mara, Ilie, Eszter, and Sorin.
@@ -37,8 +37,8 @@ The Objective column quotes the game. The Payoff column summarizes the payoff te
 | 6. The first community supper | 21-24 | Bring every preparation together and welcome the guests. | Mara and the team have prepared the bistro for the community supper. | mara-supper |
 
 Miez, the bats, and the early spiders are quiet details of the setting.
-They are not obstacles. They are not supernatural villains.
-The spiders and their webs leave with preparation 1, as 001 describes.
+They do not block play. They are not supernatural villains.
+The spiders and their webs leave with preparation 1, as spec 001 describes.
 The closing scene of chapter 1 names the one friendly spider that stays under the upper wall shelf.
 
 ## Rules
@@ -50,7 +50,7 @@ The closing scene of chapter 1 names the one friendly spider that stays under th
    The next preparation never waits for the scene.
 3. The game keeps no second count of completed preparations.
 4. Each contribution is a quest of a core character.
-   It opens after the previous chapter closes. It opens before the last preparation of its chapter.
+   The contribution opens after the previous chapter closes. It opens before the last preparation of its chapter.
    The six contributions cover all four core characters.
    Like every quest, a contribution is necessary for the preparation that follows its opening.
    `questProblems` checks the combined graph of preparations and quests for cycles and unknown prerequisites.
@@ -61,9 +61,10 @@ The closing scene of chapter 1 names the one friendly spider that stays under th
    The game does not charge a preparation again and does not give a reward again.
 6. The finale names the outcome of each chapter, and all four core characters speak.
    Its last control, "See the supper", opens the supper painting with the ending line of the finale.
-   The painting ends with "Back to the kitchen" if no other scene waits. No quests remain.
-7. The journal replays the closing scene of each complete chapter and, after the supper, the finale with the supper painting.
-   Replay and closing a dialog have no economic effect.
+   The painting ends with "Back to the kitchen" if no other scene is unread. No quests remain.
+7. The journal replays the closing scene of each complete chapter.
+   After the supper, the journal also replays the finale with the supper painting.
+   A replay and the close of a dialog have no effect on the economy.
 8. A failed payment, missing coins, a missing required quest, and a full board for a new source change nothing.
    They complete no chapter, queue no scene, and open no finale.
    Serve without every plate on the board also changes nothing.
@@ -71,21 +72,21 @@ The closing scene of chapter 1 names the one friendly spider that stays under th
    It rejects unknown contributions and contributions that open outside their chapter.
    It rejects empty chapters.
    It rejects preparations with an unknown chapter or a chapter that is out of order.
-   The generator and the game refuse such data.
+   The generator and the game refuse data with these problems.
    If a saved scene ID has no scene, the game shows a recoverable error and keeps the progress.
    The game does not invent story text.
 
 ## Scene order and reading
 
-A waiting scene is an earned scene that the player has not finished.
-The state holds `pendingScenes`: the IDs of the waiting scenes.
+An unread scene is an earned scene that the player has not finished.
+The state holds `pendingScenes`: the IDs of the unread scenes.
 Preparation scenes, closing scenes, and the finale keep story order in this list.
 The paid preparation scene opens before the room reveal.
 After the reveal, the next scene that the payment earned opens, unless another dialog is open.
-The completion action sends `readScene`, which removes only that scene. Then the next waiting scene opens.
+The completion action sends `readScene`, which removes only that scene. Then the next unread scene opens.
 A repeated, stale, or unknown `readScene` changes nothing.
-Close and Escape leave the scene waiting.
-Story shows the first waiting scene with Read now.
+Close and Escape leave the scene unread.
+Story shows the first unread scene with Read now.
 After a reload, Mara's line says that a scene is waiting.
 Spec 008 owns the transcript presentation and the reading rules.
 
@@ -102,12 +103,14 @@ Follow [Shared save compatibility](README.md#shared-save-compatibility) in the s
 ## Acceptance and evidence
 
 - `tests/story.test.ts` covers the outline, the content checks, every chapter boundary, and failed payments.
-  It also covers the served supper, the single finale, the scene actions, the board after the finale, and the validation of saved scenes.
+  It also covers the served supper, the single finale, and the scene actions.
+  It also covers the board after the finale and the validation of saved scenes.
 - `tests/storage.test.ts` covers failed writes, malformed saves, and save and load of valid scene lists.
-- `tests/campaign-balance.test.ts` shows that a legal fresh campaign leaves each chapter scene waiting, in story order.
+- `tests/campaign-balance.test.ts` shows that a legal fresh campaign leaves each chapter scene unread, in story order.
   The campaign serves the supper with no injected coins or items.
-- `tests/browser/story.spec.ts` covers the objective, the preparation steps, the chapter changes, and Escape and reload with a waiting scene.
-  It covers the served supper, the finale with reading and replay, the supper painting, and the board after the finale.
+- `tests/browser/story.spec.ts` covers the objective, the preparation steps, the chapter changes, and Escape and reload with an unread scene.
+  It covers the served supper, the read and the replay of the finale, and the supper painting.
+  It also covers the board after the finale.
   It checks the layout at 1440×900, 390×844, and 390×800 in both themes.
 
 The playthrough in `tests/browser/story.spec.ts` starts from a fresh save in the built game.

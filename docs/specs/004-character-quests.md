@@ -6,7 +6,7 @@ Status: Implemented.
 
 The game has 83 authored quests: 81 campaign quests, one supper quest, and one recovery quest.
 Quests and cleared blockers earn every coin of the campaign.
-The journal has an optional introduction for each neighbour and replay of completed quest scenes.
+The journal has an optional introduction for each neighbour. The journal also replays completed quest scenes.
 Spec 005 records the funding check and the economy fixture. Spec 007 names one quest of a core character as the contribution of each chapter. Spec 010 records the regulars.
 Spec 012 records the diets, the favourite dishes, the supper plates, and the recovery quest. `PRODUCT.md` controls all of them.
 
@@ -23,9 +23,9 @@ The campaign rules below apply to the 81 campaign quests. `PRODUCT.md` owns the 
 2. A campaign quest that opens after preparation N is necessary for preparation N + 1. Each preparation needs every campaign quest that opens before it. The player delivers all campaign quests before the supper quest.
 3. The quests are in the order in which they open. Every campaign quest opens before the last preparation. The supper quest opens after preparation 24.
    The recovery quest opens and closes with the purse, as spec 012 gives.
-4. Three quest tickets sit on the counter. The first three open quests, in authored order, take the tickets. Other open quests wait without a ticket. The next open quest takes the first ticket that is free.
-5. While the recovery quest is open, it has a fourth ticket with a dashed edge. It never moves a quest to waiting.
-6. There is no deadline and no expiry.
+4. Three quest tickets are on the counter. The first three open quests, in authored order, take the tickets. Other open quests wait without a ticket. The next open quest takes the first ticket that is free.
+5. While the recovery quest is open, the recovery quest has a fourth ticket with a dashed edge. The recovery quest never takes a ticket from another quest.
+6. A quest has no deadline and no expiry.
 
 | Character group | Quests |
 | --- | --- |
@@ -75,14 +75,14 @@ Every quest except the supper pays its menu value in coins. The supper pays noth
 | sorin-welcome | 20 | 1 Zacuscă, 2 Diced veal |
 
 Mara tests a welcome, explores the cellar, and plans a supper service. Ilie tests the stove, fills the cellar, and prepares the bread counter and a family tasting dish.
-Eszter checks cups, bowls, plates, and her kiln, and her second glaze unlocks a finish from spec 002. Sorin prepares food around errands, a patched tyre, the post, and the courtyard welcome.
+Eszter checks cups, bowls, plates, and her kiln. Her second glaze unlocks a finish from spec 002. Sorin's quests are about errands, a patched tyre, the post, and the courtyard welcome.
 The generator owns the exact rewards.
 
-## Recurring travellers
+## Visitors who return
 
-Adrian, Monica, and Janos each return for three supply quests. Each quest supplies a stay in the passages under the cathedral, one level deeper on each visit. Each opening reports a finding to a core character.
-A supply quest has one of two sizes: provisions of 12 to 16 portions of chain dishes from stage 3, or meals of 4 to 6 portions of mixed dishes.
-Their nine visits alternate in that order. Each visit also waits for the delivery of the previous visitor. Thus only one cathedral supply quest is open at a time. There is no timer.
+Adrian, Monica, and Janos each return for three supply quests. Each quest supplies a stay in the passages under the cathedral, one level deeper on each visit. Each opening scene tells a core character what the visitor found.
+A supply quest has one of two sizes. Provisions are 12 to 16 portions of chain dishes from stage 3. Meals are 4 to 6 portions of mixed dishes.
+The nine visits rotate in that order: Adrian, Monica, then Janos. Each visit also waits for the delivery of the previous visitor. As a result, only one cathedral supply quest is open at a time. The visits have no timer.
 
 | Quest ID | Opens after | Requirements |
 | --- | --- | --- |
@@ -100,14 +100,14 @@ Their nine visits alternate in that order. Each visit also waits for the deliver
 
 Ionatan is a foreign real estate agent. His only quest, `ionatan-castle-dinner`, opens after preparation 9 and after Vlad's quest "A guest at the castle" (`vlad-guest`).
 It needs one plum brandy, one sharing board, and one tochitură.
-The dinner pays its menu value of 222 coins. It is independent of the traveller sequence.
+The dinner pays its menu value of 222 coins. The dinner is independent of the visitor sequence.
 
-His introduction appears only while his quest is open. Delivery records the quest ID once and queues his farewell in Story. His introduction and quest replays are then absent from the journal. Reload and export/import preserve his completed visit. A new game permits another visit. A failed write keeps the departure in the session. A reload restores only durable progress.
+His introduction appears only while his quest is open. Delivery records the quest ID once and queues his farewell in Story. His introduction and quest replays are then absent from the journal. Reload, export, and import preserve his completed visit. A new game permits another visit. A failed write keeps the departure in the session. A reload restores only durable progress.
 
 ## Shared search visit
 
 Mina and Doctor Avram share one visit per save. Their quest, `mina-avram-search`, has `mina` as its character and `avram` as its companion.
-It opens after preparation 10 and delivery of Ionatan's dinner.
+It opens after preparation 10 and after the delivery of Ionatan's dinner.
 The quest needs two portions of zacuscă, two roasted vegetable plates, one smoked cheese, and one fruit tea.
 The meal is vegetarian, and it suits the diets of both characters. It has a menu value of 190 coins and pays 190 coins.
 
@@ -115,9 +115,9 @@ Their introductions appear only while their quest is open. The ticket and the qu
 Delivery records the quest ID once and queues their farewell in Story. Their introductions and quest replays are then absent from the journal.
 They never meet Ionatan at the bistro. A new game permits another visit.
 
-The third delivery after their meal makes the local news scene `mina-avram-news` ("News from the road") a waiting scene.
+The third delivery after their meal makes the local news scene `mina-avram-news` ("News from the road") an unread scene.
 Sorin and Mara say that Mina and Avram found Ionatan gravely ill. They say that all three left for Britain.
-The scene has only local speakers and gives no reward. After its delivery gate, the journal shows it under Unread scenes while it waits, then under Local news in Earlier conversations.
+The scene has only local speakers and gives no reward. After its delivery gate, the journal shows the scene under Unread scenes while the scene is unread. After the player reads the scene, the journal shows it under Local news in Earlier conversations.
 
 ## Quest rules
 
@@ -130,15 +130,16 @@ The recovery quest pays each valid delivery, records nothing, and queues no scen
 2. A companion counts as a character of the quest. Authored order resolves the tickets.
 3. Delivery consumes the full requirement from the board in one action.
 4. Repeated requirement entries count separately. A missing item, a quest without a ticket, a stale ID, a completed ID, or a reward overflow change nothing.
-5. Success records completion in delivery order, pays once, and queues the completion scene in the same change.
-6. Each chain of each required dish is open before the quest opens. The combined quest and preparation graph must have no cycle.
+5. A successful delivery records the completion in delivery order, pays once, and queues the completion scene in the same change.
+6. Each chain of each required dish is open before the quest opens. The combined graph of quests and preparations must have no cycle.
 7. Each dish suits the diet of each character of the quest. Each quest of a regular asks for at least one favourite dish.
-8. Reading, replaying, reloading, and repeated clicks give no second reward.
-9. Quest scenes use the transcript. The completion scene waits until the player completes it, as spec 008 gives.
+8. A read, a replay, a reload, or a repeated click gives no second reward.
+9. Quest scenes use the transcript. The completion scene stays unread until the player completes it, as spec 008 gives.
 
 `questProblems` checks IDs, scenes, quantities, rewards, required items, and chain availability.
 It also checks companions, finishes, news scenes, authored order, the combined prerequisite graph, and the campaign funds.
-It also checks the diets, the favourite dishes, the sizes of the cathedral supply quests, the supper plates, and the recovery quest.
+It also checks the diets, the favourite dishes, and the sizes of the cathedral supply quests.
+It also checks the supper plates and the recovery quest.
 The content generator refuses invalid quest data.
 
 ## Interface
@@ -146,30 +147,30 @@ The content generator refuses invalid quest data.
 A ticket shows the character portrait, name, dishes, and Deliver with the reward. A wider screen also shows the quest title.
 The supper ticket and its dialog show Serve in place of Deliver. The supper dialog names the guest of each plate.
 The accessible name of the ticket face gives the board count of each dish.
-On a wider screen, a dish that needs multiple portions also shows that count on the ticket.
+On a wider screen, a dish that needs more than one portion also shows that count on the ticket.
 Deliver is unavailable until the board holds every required item.
 A tap on the face of the ticket (the portrait, name, title, and dishes) opens the quest dialog.
 The dialog explains who asks and why.
 It shows each dish with its count on the board, the reward, and Deliver.
-Each dish row opens ingredient help. If the board lacks a portion, Find beside that row closes the dialog and starts a temporary guide for another portion. The guide updates its next step while the player acts and ends when that portion is made or the player stops it.
+Each dish row opens ingredient help. If the board lacks a portion, Find beside that row closes the dialog. Find then starts a temporary guide for another portion. The guide updates its next step after each action of the player. The guide ends when the player makes that portion or stops the guide.
 
-Deliver takes the dishes from the board. The dishes fly to the ticket, and a temporary notice reports the delivery and reward. The notice offers the reply of the character. The completion scene waits in Story. The next open quest takes the ticket.
+Deliver takes the dishes from the board. The dishes fly to the ticket, and a temporary notice reports the delivery and reward. The notice offers the reply of the character. The completion scene stays unread in Story. The next open quest takes the ticket.
 
 The notice does not block play or take focus.
 After a failed save, the notice includes the unsaved warning.
 Options offers Retry save.
 A failed save keeps the current session.
 
-The journal starts with waiting scenes in saved order, then the current or latest chapter. Each waiting scene appears once. This includes the farewells of single-visit guests until they are read. Earlier chapters, Earlier conversations, and Neighbours are collapsed groups. Completed campaign quests have one conversation entry with Quest then Reply, except the quests of single-visit guests. Each page keeps all text, speakers, and the accepted illustration, with one Return action. A combined page uses one transcript. A quest with an unread reply has its whole conversation only under Unread scenes; it has no separate archived opening. The most recently delivered quest comes first in Earlier conversations. The neighbour rows open optional introductions.
+The journal starts with unread scenes in saved order, then the current or latest chapter. Each unread scene appears once. The unread scenes include the farewells of single-visit visitors until the player reads them. Earlier chapters, Earlier conversations, and Neighbours are collapsed groups. Completed campaign quests have one conversation entry with Quest then Reply, except the quests of single-visit visitors. Each page keeps all text, speakers, and the accepted illustration, with one Return action. A combined page uses one transcript. A quest with an unread reply has its whole conversation only under Unread scenes; it has no separate archived opening. The most recently delivered quest comes first in Earlier conversations. The neighbour rows open optional introductions.
 The supper quest keeps only its opening. The finale has its own entry. The recovery quest has no entry.
-An earned news scene appears once under Unread scenes while it waits. After reading, Local news in Earlier conversations offers its replay.
-Close, Escape, and Return from a quest scene keep the open groups and reading position, and restore the journal entry focus. Completing a combined conversation marks only its pending reply as read, moves the same entry to Earlier conversations, and opens that group. Close and Escape keep the reply unread. A read replay changes no game state. Story and delivery notices keep reply-only reading. A read single-visit farewell returns to the Unread scenes heading.
+An earned news scene appears once under Unread scenes while it is unread. After the player reads the scene, Local news in Earlier conversations offers its replay.
+Close, Escape, and Return from a quest scene keep the open groups and the reading position. They also return the focus to the journal entry. When the player completes a combined conversation, the journal marks only its unread reply as read. The journal moves the same entry to Earlier conversations and opens that group. Close and Escape keep the reply unread. A read replay changes no game state. Story and the delivery notices open only the reply. After the player reads the farewell of a single-visit visitor, the journal returns to the Unread scenes heading.
 
 ## Save compatibility
 
 The state stores unique, known `completedQuests` in delivery order. Each completed quest has its prerequisites earlier in the list. Every completed preparation has its necessary quests in the list.
 The recovery quest never enters the list.
-The delivery order determines local news. A waiting news scene is valid only after its delivery gate.
+The delivery order determines local news. An unread news scene is valid only after its delivery gate.
 The game rejects unknown IDs and contradictory state.
 See [Shared save compatibility](README.md#shared-save-compatibility).
 
@@ -181,10 +182,11 @@ Import adopts a valid quest state only after its write succeeds.
 
 The Node.js tests cover tickets, repeated quantities, atomic failure, single rewards, and coin overflow.
 They also cover prerequisite cycles, unavailable chains, the funding check, and malformed quest records.
-They also cover the diets, the favourite dishes, the sizes of the cathedral supply quests, the supper plates, and the recovery quest with its fourth ticket.
+They also cover the diets, the favourite dishes, and the sizes of the cathedral supply quests.
+They also cover the supper plates and the recovery quest with its fourth ticket.
 The storage tests cover fresh, partial, and completed saves, malformed and oversized input, and invalid completion lists.
 They also cover failed writes and rejection of unsupported versions.
-`tests/quests.test.ts` covers the traveller sequence and Ionatan's visit. It also rejects a save that lists the recovery quest.
+`tests/quests.test.ts` covers the visitor sequence and Ionatan's visit. It also rejects a save that lists the recovery quest.
 `tests/guests.test.ts` covers Ionatan's dinner, the shared visit, the vegetarian quest, and the news scene three deliveries later.
 `tests/campaign-balance.test.ts` completes all 24 preparations and all 81 campaign quests through legal actions without injected resources.
 The fixture then serves the supper. The purse after the supper must be inside the balance band of spec 012.
