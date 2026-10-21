@@ -152,7 +152,9 @@ test('the last required quest enables Pay, and the preparation paid with earned 
   const needed=requiredQuests(0,data).length,next=requiredQuests(1,data),cost=data.tasks[0].cost;
   await start(page,initial);
   await expect(goal(page,'quests')).toHaveText('Deliver 1 more quest.');
-  await expect(goal(page,'coins')).toHaveText(`Earn ${cost-initial.coins} more coins.`);await expect(pay(page)).toBeDisabled();
+  // The quests before the last one can earn the whole cost already.
+  if(cost>initial.coins)await expect(goal(page,'coins')).toHaveText(`Earn ${cost-initial.coins} more coins.`);else await expect(goal(page,'coins')).toHaveCount(0);
+  await expect(pay(page)).toBeDisabled();
   await deliverButton(page,last).click();await expect(toast(page)).toHaveText(`${last.title}: delivered. Earned ${last.reward} coins.`);
   await expect(page.locator('#story .story-waiting button')).toBeFocused();
   await expect(goal(page,'quests')).toHaveCount(0);await expect(goal(page,'coins')).toHaveCount(0);

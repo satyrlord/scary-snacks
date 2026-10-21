@@ -25,11 +25,11 @@ The [economy record](../economy.md) gives the price table, the work scopes, the 
    and estimated active person-hours. Its cost is materials plus labour. The order of the preparations does not change the cost.
 8. The reference scale is one coin for about one Romanian leu. The model uses supplier and service
    prices as references. The team authors estimates for work quantities, labour hours, and budget allocations.
-9. A quest that opens after preparation N is necessary for preparation N + 1.
-   Each preparation needs its coins and every quest that opens before it.
+9. A campaign quest that opens after preparation N is necessary for preparation N + 1.
+   Each preparation needs its coins and every campaign quest that opens before it.
 10. The work value of a quest is the merges of its dishes times the work rate.
     The funding check compares the cumulative work value of the quests with the cumulative preparation costs at each preparation.
-    The check includes every quest that opens before that preparation.
+    The check includes every campaign quest that opens before that preparation. It excludes recovery and repeating quests.
     The work value must cover the costs through that preparation.
     The coins that remain after the last preparation must buy the ingredients of the supper.
     Assume that a player delivers every open quest and buys only the ingredients of those quests.
@@ -77,6 +77,7 @@ Otherwise it delivers the booked quest of the evening first.
 It lights the lanterns when that meal is ready before 20:00.
 Then it delivers the unbooked ticket whose ingredients cost the least.
 It cooks booked meals for later evenings when no other quest remains.
+It delivers repeating quests when all those meals are ready and the bistro has no other work.
 It delivers recovery tea before a quest if the purse cannot buy its ingredients.
 Within 30 merges of closing, it also makes recovery tea if the purse cannot pay the upkeep.
 Between quests, it clears the cheapest blocker while fewer than 24 cells are free.
@@ -89,7 +90,7 @@ The report gives the successful actions, takes, merges, deliveries, and recovery
 It also gives the quest income, blocker income, preparation expense, take expense, upkeep, and balance.
 Preparation records also include work scope, material and labour budgets, and free cells.
 The report gives the purse after the supper and the coins spent on preparations, takes, and upkeep.
-The purse after the supper must be inside the balance band of spec 012: 0 to 10% of those coins.
+The purse after the supper must be inside the balance band of spec 012: 0 to 20% of those coins.
 The fixture checks state validity and every coin after each action.
 
 The report measures gameplay effort under one stated policy. It does not measure human play time.

@@ -2887,11 +2887,11 @@
       "id": "task_1",
       "chapter": 1,
       "title": "Fix the broken window",
-      "cost": 400,
+      "cost": 360,
       "work": {
         "summary": "Replace one broken pane. Prepare and repaint the existing frame and shutters. Keep the sound window structure.",
-        "materials": 200,
-        "labour": 200,
+        "materials": 180,
+        "labour": 180,
         "hours": 4
       },
       "dialogue": [
@@ -2913,11 +2913,11 @@
       "id": "task_2",
       "chapter": 1,
       "title": "Mend the welcome board",
-      "cost": 90,
+      "cost": 81,
       "work": {
         "summary": "Sand and repaint the existing sound welcome board. Add a small flower motif.",
-        "materials": 30,
-        "labour": 60,
+        "materials": 27,
+        "labour": 54,
         "hours": 1.5
       },
       "dialogue": [
@@ -2939,11 +2939,11 @@
       "id": "task_3",
       "chapter": 1,
       "title": "Set up the pastry shelf",
-      "cost": 70,
+      "cost": 63,
       "work": {
         "summary": "Clean the existing pastry shelf. Add a tray, a liner, and the first pastry display.",
-        "materials": 30,
-        "labour": 40,
+        "materials": 27,
+        "labour": 36,
         "hours": 1
       },
       "dialogue": [
@@ -2966,11 +2966,11 @@
       "id": "task_4",
       "chapter": 1,
       "title": "Light the front room",
-      "cost": 240,
+      "cost": 216,
       "work": {
         "summary": "Mount and connect two supplied lamps. Fit bulbs and check the existing connections.",
-        "materials": 40,
-        "labour": 200,
+        "materials": 36,
+        "labour": 180,
         "hours": 3
       },
       "dialogue": [
@@ -2992,11 +2992,11 @@
       "id": "task_5",
       "chapter": 2,
       "title": "Repair the kitchen worktop",
-      "cost": 240,
+      "cost": 216,
       "work": {
         "summary": "Stabilize the existing worktop. Repair and seal its damaged edge, then polish the existing pans.",
-        "materials": 90,
-        "labour": 150,
+        "materials": 81,
+        "labour": 135,
         "hours": 3
       },
       "dialogue": [
@@ -3019,11 +3019,11 @@
       "id": "task_6",
       "chapter": 2,
       "title": "Bring in market produce",
-      "cost": 120,
+      "cost": 108,
       "work": {
         "summary": "Buy one small basket of vegetables and garlic. Prepare the first display and preserves batch.",
-        "materials": 80,
-        "labour": 40,
+        "materials": 72,
+        "labour": 36,
         "hours": 1
       },
       "dialogue": [
@@ -3046,11 +3046,11 @@
       "id": "task_7",
       "chapter": 2,
       "title": "Hang the kitchen shelves",
-      "cost": 180,
+      "cost": 162,
       "work": {
         "summary": "Secure and touch up the existing upper shelf. Add the first jars of preserves.",
-        "materials": 80,
-        "labour": 100,
+        "materials": 72,
+        "labour": 90,
         "hours": 2
       },
       "dialogue": [
@@ -3073,11 +3073,11 @@
       "id": "task_8",
       "chapter": 2,
       "title": "Write the first menu",
-      "cost": 50,
+      "cost": 46,
       "work": {
         "summary": "Use one small chalk slate and chalk. Write and draw the first menu by hand.",
-        "materials": 25,
-        "labour": 25,
+        "materials": 23,
+        "labour": 23,
         "hours": 0.5
       },
       "dialogue": [
@@ -3100,11 +3100,11 @@
       "id": "task_9",
       "chapter": 3,
       "title": "Choose the tableware",
-      "cost": 520,
+      "cost": 468,
       "work": {
         "summary": "Buy six handmade bowls and six cups with saucers. Wash and arrange them. Keep them for later meals.",
-        "materials": 480,
-        "labour": 40,
+        "materials": 432,
+        "labour": 36,
         "hours": 1
       },
       "dialogue": [
@@ -3126,11 +3126,11 @@
       "id": "task_10",
       "chapter": 3,
       "title": "Sand the long table",
-      "cost": 600,
+      "cost": 540,
       "work": {
         "summary": "Repair, sand, and refinish the existing long table and two chairs. Keep their sound timber.",
-        "materials": 120,
-        "labour": 480,
+        "materials": 108,
+        "labour": 432,
         "hours": 8
       },
       "dialogue": [
@@ -3152,11 +3152,11 @@
       "id": "task_11",
       "chapter": 3,
       "title": "Make a recipe corner",
-      "cost": 40,
+      "cost": 36,
       "work": {
         "summary": "Add a notebook and pencils to the existing cabinet. Arrange the recipe corner.",
-        "materials": 20,
-        "labour": 20,
+        "materials": 18,
+        "labour": 18,
         "hours": 0.5
       },
       "dialogue": [
@@ -3179,11 +3179,11 @@
       "id": "task_12",
       "chapter": 3,
       "title": "Open the shared table",
-      "cost": 100,
+      "cost": 90,
       "work": {
         "summary": "Move the prepared table, chairs, and existing dresser. Clean and set the shared places.",
-        "materials": 20,
-        "labour": 80,
+        "materials": 18,
+        "labour": 72,
         "hours": 2
       },
       "dialogue": [
@@ -3205,11 +3205,11 @@
       "id": "task_13",
       "chapter": 4,
       "title": "Clear the courtyard",
-      "cost": 140,
+      "cost": 126,
       "work": {
         "summary": "Sweep a small paved courtyard of about 20 square metres. Bag the leaves and clear the path.",
-        "materials": 20,
-        "labour": 120,
+        "materials": 18,
+        "labour": 108,
         "hours": 4
       },
       "dialogue": [
@@ -3232,11 +3232,11 @@
       "id": "task_14",
       "chapter": 4,
       "title": "Plant the herb pots",
-      "cost": 140,
+      "cost": 126,
       "work": {
         "summary": "Plant three small herbs in three clay pots with soil and drainage.",
-        "materials": 100,
-        "labour": 40,
+        "materials": 90,
+        "labour": 36,
         "hours": 1
       },
       "dialogue": [
@@ -3258,11 +3258,11 @@
       "id": "task_15",
       "chapter": 4,
       "title": "Repair the door hood",
-      "cost": 1300,
+      "cost": 1170,
       "work": {
         "summary": "Replace about two square metres of wooden shingles on the sound door hood. Renew fixings and weather seals.",
-        "materials": 900,
-        "labour": 400,
+        "materials": 810,
+        "labour": 360,
         "hours": 8
       },
       "dialogue": [
@@ -3284,11 +3284,11 @@
       "id": "task_16",
       "chapter": 4,
       "title": "Set the outdoor tables",
-      "cost": 90,
+      "cost": 81,
       "work": {
         "summary": "Move two existing outdoor tables and chairs. Clean and level them, and keep the path clear.",
-        "materials": 10,
-        "labour": 80,
+        "materials": 9,
+        "labour": 72,
         "hours": 2
       },
       "dialogue": [
@@ -3311,11 +3311,11 @@
       "id": "task_17",
       "chapter": 5,
       "title": "Collect family recipes",
-      "cost": 75,
+      "cost": 68,
       "work": {
         "summary": "Collect family recipes, copy them onto paper, and pin them above the menu.",
-        "materials": 15,
-        "labour": 60,
+        "materials": 14,
+        "labour": 54,
         "hours": 2
       },
       "dialogue": [
@@ -3337,11 +3337,11 @@
       "id": "task_18",
       "chapter": 5,
       "title": "Prepare the tasting plates",
-      "cost": 150,
+      "cost": 135,
       "work": {
         "summary": "Prepare twelve small tasting portions and labels. Use the plates and bowls already bought.",
-        "materials": 90,
-        "labour": 60,
+        "materials": 81,
+        "labour": 54,
         "hours": 2
       },
       "dialogue": [
@@ -3363,11 +3363,11 @@
       "id": "task_19",
       "chapter": 5,
       "title": "Stock the drinks cabinet",
-      "cost": 200,
+      "cost": 180,
       "work": {
         "summary": "Buy the first drinks, fruit, and tea stock and labels. Use the existing niche, pitcher, cups, and glasses.",
-        "materials": 160,
-        "labour": 40,
+        "materials": 144,
+        "labour": 36,
         "hours": 1
       },
       "dialogue": [
@@ -3389,11 +3389,11 @@
       "id": "task_20",
       "chapter": 5,
       "title": "Print the supper menu",
-      "cost": 120,
+      "cost": 108,
       "work": {
         "summary": "Print ten sturdy supper menus and add simple stands. Move the existing long table into the courtyard.",
-        "materials": 40,
-        "labour": 80,
+        "materials": 36,
+        "labour": 72,
         "hours": 2
       },
       "dialogue": [
@@ -3416,11 +3416,11 @@
       "id": "task_21",
       "chapter": 6,
       "title": "Send the invitations",
-      "cost": 220,
+      "cost": 198,
       "work": {
         "summary": "Print twenty small invitations. Hang a wreath on the kitchen door. Dress the gate with a lantern and pots of red geraniums, and line the wall with more. Reuse the towels.",
-        "materials": 160,
-        "labour": 60,
+        "materials": 144,
+        "labour": 54,
         "hours": 2
       },
       "dialogue": [
@@ -3442,11 +3442,11 @@
       "id": "task_22",
       "chapter": 6,
       "title": "Prepare the serving station",
-      "cost": 200,
+      "cost": 180,
       "work": {
         "summary": "Set the existing serving table with a cloth and labels. Prepare the first warm dishes and bread. Reuse the plates.",
-        "materials": 120,
-        "labour": 80,
+        "materials": 108,
+        "labour": 72,
         "hours": 2
       },
       "dialogue": [
@@ -3468,11 +3468,11 @@
       "id": "task_23",
       "chapter": 6,
       "title": "Add the final flowers",
-      "cost": 180,
+      "cost": 162,
       "work": {
         "summary": "Hang one outdoor light string. Arrange gathered wildflowers in existing vases.",
-        "materials": 120,
-        "labour": 60,
+        "materials": 108,
+        "labour": 54,
         "hours": 1.5
       },
       "dialogue": [
@@ -3494,11 +3494,11 @@
       "id": "task_24",
       "chapter": 6,
       "title": "Welcome the community supper",
-      "cost": 120,
+      "cost": 108,
       "work": {
         "summary": "Top up bread, water, and food for eleven guests. Finish setting places and welcome everyone. Reuse the prepared room and tableware.",
-        "materials": 60,
-        "labour": 60,
+        "materials": 54,
+        "labour": 54,
         "hours": 2
       },
       "dialogue": [
@@ -7227,6 +7227,86 @@
         {
           "speaker": "mara",
           "text": "I will stand. A host never sits until the pot is empty. Tonight the bistro cooks, and nobody pays a coin."
+        }
+      ],
+      "completion": []
+    },
+    {
+      "id": "sorin-staff-meal",
+      "character": "sorin",
+      "title": "Staff meal",
+      "afterTask": null,
+      "repeating": true,
+      "companions": [
+        "mara"
+      ],
+      "requirements": [
+        {
+          "item": "grain_3",
+          "quantity": 2
+        },
+        {
+          "item": "herbs_3",
+          "quantity": 2
+        }
+      ],
+      "reward": 32,
+      "opening": [
+        {
+          "speaker": "sorin",
+          "text": "The kitchen is quiet for a moment. Mara says that the staff eat when the kitchen is quiet. Two loaves and two socată, and we sit down for once."
+        }
+      ],
+      "completion": []
+    },
+    {
+      "id": "bela-cold-night",
+      "character": "bela",
+      "title": "Another cold night",
+      "afterTask": null,
+      "afterQuest": "bela-warm-cup",
+      "repeating": true,
+      "requirements": [
+        {
+          "item": "corn_4",
+          "quantity": 1
+        },
+        {
+          "item": "herbs_4",
+          "quantity": 1
+        }
+      ],
+      "reward": 36,
+      "opening": [
+        {
+          "speaker": "bela",
+          "text": "The graves send their regards. Mămăligă and a hot linden tea, please, before the night gets cold."
+        }
+      ],
+      "completion": []
+    },
+    {
+      "id": "cezar-before-rounds",
+      "character": "cezar",
+      "title": "Before the rounds",
+      "afterTask": null,
+      "afterQuest": "cezar-long-night",
+      "repeating": true,
+      "requirements": [
+        {
+          "item": "mixed_bean-soup",
+          "quantity": 1
+        },
+        {
+          "item": "grain_3",
+          "quantity": 1
+        }
+      ],
+      "reward": 35,
+      "opening": [
+        {
+          "speaker": "cezar",
+          "text": "My round starts soon. My feet already know the way, but my stomach does not. A bean soup and a loaf, please."
         }
       ],
       "completion": []

@@ -52,7 +52,7 @@ The board has six columns and seven rows. The game has these authored parts:
 - 24 mixed dishes, each cooked from dishes of two or three chains
 - 12 ingredient sources (generators), one for each chain
 - 23 characters
-- 84 quests: 82 campaign quests, one supper quest, and one recovery quest
+- 87 quests: 82 campaign quests, one supper quest, one recovery quest, and three repeating quests
 - 24 preparations in six chapters
 
 In this document, "dish" also means a drink. An ingredient is a dish that a source gives. Each dish has an English name. If English has no name for the dish, the dish has its Romanian regional name with diacritics. The initial layout, the prices, the progression, the characters, and the dialogue are new works.
@@ -91,13 +91,23 @@ The recovery quest is Ana's "Tea for the night ward". It asks for one Linden tea
 
 The supper quest counts as another quest, so the purse can pay for the ingredients of the supper. The recovery quest has its own ticket after the three quest tickets. So the recovery quest never moves a quest to waiting. A delivery pays the reward, records nothing, and queues no scene. The quest closes when neither case is true. The quest opens again each time a case becomes true. The quest is outside the order of Ana's quests. Its dialog says "Ana returns while the purse runs low. Herbs from the Herb basket are free." So a player who spends coins on extra food can always continue. The herbs are free, and blocker placement keeps room for the tea. One tea puts an empty purse above the recovery floor. In a new game, two Socată are next to the Herb basket. So on the first day, the player can make the tea with one merge.
 
+The repeating quests give the bistro work when it has no other work. A quest has work if the player can act on it on the current day. Each open campaign quest, the supper quest, and an open recovery quest have work. A booked quest for another evening is different: the player can cook its meal now but cannot deliver it. So the booked meals for later evenings have work only while a portion is missing. The board must hold the portions of all of them together. The bistro has no work if no open quest has work and the next preparation is not ready to pay.
+
+Three repeating quests take turns in this order:
+
+- Sorin's "Staff meal", for Sorin and Mara: 2 Loaf and 2 Socată.
+- Bela's "Another cold night": 1 Mămăligă and 1 Linden tea. It joins the cycle after the delivery of "A warm cup at the gate".
+- Cezar's "Before the rounds": 1 Bean soup and 1 Loaf. It joins the cycle after the delivery of "The longest night".
+
+If the bistro has no work, the next repeating quest that can join the cycle opens in the same change. The next quest comes after the last delivered repeating quest. A repeating quest stays open until its delivery. A campaign quest gets a ticket before a repeating quest, so a repeating quest can wait without a ticket. A repeating quest pays its menu value, records nothing, queues no scene, and has no journal entry. No preparation needs a repeating quest. Its dialog shows one opening line, which does not introduce the character again. The two cases of the recovery quest do not count the repeating quests. After the supper, the bistro has no other work, so the repeating quests continue. The data check limits each repeating quest to 15 merges and one meal for each eater. At least three repeating quests exist, and one can join the cycle in a new game.
+
 The data check adds the work value of the quests that open before each preparation. The work value is the merges of their dishes times the work rate. The check also adds the costs of the preparations up to that preparation. The work value must cover the costs. Consider a player who delivers every open quest and pays only for its ingredients. That player always has the coins for the next preparation. The coins that remain after the last preparation must pay for the ingredients of the supper. Only the supper quest opens after the last preparation. The data has exactly one supper quest and one recovery quest. The data check also counts the merges of each quest: each quest fits in one day.
 
 The campaign balance test plays the campaign with 20 fixed seeds. An efficient strategy cooks only for quests and lights the lanterns for each booking. For each seed, the efficient strategy has these results:
 
 - The purse never goes below zero.
 - Act 1 lasts from 18 to 30 days.
-- After the supper, the purse holds 0 to 10% of the total cost of preparations, takes, and upkeep.
+- After the supper, the purse holds 0 to 20% of the total cost of preparations, takes, and upkeep.
 
 A strategy that misses each booking once also completes act 1. Another strategy starts each preparation window with a debt of 20 coins. That strategy gets to each preparation through the recovery quest.
 
@@ -107,7 +117,7 @@ The story journal (the journal) is a dialog that Story opens.
 
 The game checks the coins, the necessary quests, and the free cell for an unlocked source at the same time. A failed check changes nothing. A payment spends the coins once and completes one preparation. A quest prerequisite that is unknown or cyclic is not valid. The authored quests are in the order in which they open. Every campaign quest opens before the last preparation.
 
-Three quest tickets are on the counter. The first three open quests, in authored order, get the tickets. The other open quests wait without a ticket. The next open quest gets the first free ticket. A character has at most one open campaign quest, because each quest waits for the earlier quests of its character. Among the quests that open after the same preparation, the quest of a booked guest comes last. So the quests before the evening put the dishes of the dinner in the recipe book. While the recovery quest is open, it has a fourth ticket with a dashed edge.
+Three quest tickets are on the counter. The first three open quests, in authored order, get the tickets. The other open quests wait without a ticket. The next open quest gets the first free ticket. A character has at most one open campaign quest, because each quest waits for the earlier quests of its character. An open repeating quest gets a ticket after the campaign quests. Among the quests that open after the same preparation, the quest of a booked guest comes last. So the quests before the evening put the dishes of the dinner in the recipe book. While the recovery quest is open, it has a fourth ticket with a dashed edge.
 
 A ticket shows the portrait and the name of the character, the dishes, and Deliver with its reward. The ticket face is the portrait, the name, the title, and the dishes. A tap on the face opens the quest dialog. A ticket with more than four dishes shows the first three and the count of the others. On a wider screen, the ticket also shows the quest title. The quest dialog and the accessible name of the ticket face give the board count of each dish. On a wider screen, a dish that needs more than one portion also shows that count on the ticket. Deliver is available when the board holds every portion. The label of the ticket section is "Neighbour quests".
 
@@ -122,7 +132,7 @@ The quest dialog shows who asks and why. It also shows each dish with its board 
 
 Character introductions, quest dialogs, quest completion scenes, and quest replays use parchment pages. All 23 characters have individual pencil sketches. A quest shows the sketch of its character. The nine supply quests, Ionatan's dinner, and Mina and Avram's meal are exceptions: they show their own scene illustrations. The illustration stays with the quest through speaker changes and journal replays. Introductions show the individual character sketch. Other story scenes keep their usual presentation. Victor draws these sketches while he waits for his meal. He is an anatomy student, and he studies anatomy, proportions, and perspective. He draws light but clear facial features. Awake people have open eyes, and sleepers have closed eyelids. He is secretly in love with Mara, so he draws her face with the most care.
 
-The dishes fly to the ticket. A temporary notice reports the delivery and the reward. While the completion scene is unread, the notice also offers "Read [Name]’s reply", which opens that scene. The next open quest gets the ticket. If no quest is open, the counter shows "No quests wait now. Pay for the next preparation." After the delivery of the last quest, the counter shows "Every quest is delivered. The bistro is yours."
+The dishes fly to the ticket. A temporary notice reports the delivery and the reward. While the completion scene is unread, the notice also offers "Read [Name]’s reply", which opens that scene. The next open quest gets the ticket. If no quest is open, the counter shows "No quests wait now. Pay for the next preparation." After the supper, the repeating quests keep a ticket on the counter.
 
 An unread scene is a scene that the player has not read.
 
@@ -190,9 +200,9 @@ The journal starts with Unread scenes, in their saved order. Each unread scene h
 
 The journal lists each chapter that is current or complete. A current chapter shows its opening context, its objective, and the state of each preparation. After the quest of its neighbour help opens, the chapter also shows its neighbour help. A complete chapter shows its payoff and its neighbour help. The complete chapter also shows its preparations, each with the name of its room change, and its closing scene. After the supper, the journal also holds the finale.
 
-In the finale, the four core characters speak, and the finale names the result of each chapter. Its last button, "See the supper", opens the supper painting. The painting shows 11 neighbours in the courtyard. Mara stands at the long table with a steaming pot. Ilie, Costel, Sorin, and Victor sit on one bench. Eszter, Ana, Ileana, and Bran sit on the other bench. Cătălina and Cezar share the small table. Miez and the second black cat wait for scraps. The ending line of the finale is under the painting, and its button returns to the kitchen. A replay of the finale from the journal also ends with the painting. After the player serves the supper, the courtyard of the room shows the supper painting and no finishes. No quests remain after the supper.
+In the finale, the four core characters speak, and the finale names the result of each chapter. Its last button, "See the supper", opens the supper painting. The painting shows 11 neighbours in the courtyard. Mara stands at the long table with a steaming pot. Ilie, Costel, Sorin, and Victor sit on one bench. Eszter, Ana, Ileana, and Bran sit on the other bench. Cătălina and Cezar share the small table. Miez and the second black cat wait for scraps. The ending line of the finale is under the painting, and its button returns to the kitchen. A replay of the finale from the journal also ends with the painting. After the player serves the supper, the courtyard of the room shows the supper painting and no finishes. Only repeating quests remain after the supper.
 
-While the supper waits, the supper card names the supper quest on the counter. When the supper is complete, the card says "The community supper is open, and every quest is delivered. The board and the recipe book stay yours." Then the card gives the result of act 1. An example is "The bistro worked for 22 days. The purse holds 312 coins." The card shows a debt as "The shop notebook holds a debt of 40 coins."
+While the supper waits, the supper card names the supper quest on the counter. When the supper is complete, the card says "The community supper is open, and every campaign quest is delivered. The board and the recipe book stay yours." Then the card gives the result of act 1. An example is "The bistro worked for 22 days. The purse holds 312 coins." The card shows a debt as "The shop notebook holds a debt of 40 coins."
 
 The kitchen is the board with the tickets and Mara's line. Mara's line is the line of text under the board. Mara says what the player can do next. The room is the main screen of the game and the reward of the game. On a narrow screen, the kitchen is a drawer over the room. On a wide screen, the kitchen is a panel next to the room. The room shows one painted area of the bistro. The area shows the state that the completed preparations give. The bistro has two areas:
 
@@ -258,7 +268,7 @@ A bat crosses the dusk sky beyond the mended window of the front room after each
 - The player has not mended the window.
 - The room painting did not load.
 
-Deliveries of the recovery quest count for the bat only during the current visit of the tab. A reload, an import, a reset, or an adopted save clears that temporary count.
+Deliveries of the recovery quest and the repeating quests count for the bat only during the current tab visit. A reload, an import, a reset, or an adopted save clears that temporary count.
 
 A caption stays available if a painting cannot load. If a state has no accepted painting, the room shows the latest earlier painting of its area. The room shows the caption of the new state. Authored lamps and lanterns light the room at story milestones.
 
@@ -362,6 +372,8 @@ A current save has game state version 14 in envelope version 13 at the key `scar
 The ID of the supper quest in the completed quests records the served supper. If a current save has all preparations complete and no served supper, the game shows the supper quest. The save earns the finale only when the player serves the supper. If such a save holds the finale as an unread scene, load and import remove the finale before the check.
 
 Saves in an earlier format stay unchanged. The game does not read them or convert them. Import rejects earlier formats. A new game uses the authored blocked layout. A save records the ID of the layout and the IDs of the cleared blockers. A layout ID must stay the same after release.
+
+The optional record of the repeating quests stores the last delivered repeating quest and the open repeating quest. A missing record means neither. Save validation rejects a record that names an unknown quest or a quest that cannot join the cycle.
 
 The optional record of preparation blockers stores the baseline. For each placed blocker, the record also stores its ID and its cell. The baseline is the number of completed preparations when the record starts. The waiting blockers come from the paid batches after the baseline. A current save without this record starts the baseline before its next successful preparation payment. The save gets no batch for an earlier payment.
 

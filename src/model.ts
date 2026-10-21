@@ -42,12 +42,14 @@ type TaskEligibility = { task: Task | null; ready: boolean; requirements: TaskRe
  * the earlier quests of its character. Unlocks names a decoration finish that the delivery adds. A follow-up scene is earned after
  * afterDeliveries further deliveries. The supper quest (finale) asks for one plate for each guest, in the order of guests, pays
  * nothing, and earns the finale. The recovery quest is open only while the purse runs low (recoveryOpen); its delivery pays its
- * reward and is never recorded, and it stands outside the order of its character's quests.
+ * reward and is never recorded, and it stands outside the order of its character's quests. A repeating quest opens only while the
+ * bistro has no other work (openRepeating); like the recovery quest, it is never recorded. Its afterQuest is the campaign quest
+ * that it follows.
  */
 export type Quest = {
   id: string; character: string; title: string; afterTask: string | null; afterQuest?: string;
   requirements: { item: string; quantity: number }[]; reward: number; opening: SceneLine[]; completion: SceneLine[];
-  companions?: string[]; unlocks?: { slot: string; variant: string }; finale?: true; guests?: string[]; recovery?: true; booked?: true;
+  companions?: string[]; unlocks?: { slot: string; variant: string }; finale?: true; guests?: string[]; recovery?: true; booked?: true; repeating?: true;
   followUp?: { id: string; title: string; afterDeliveries: number; dialogue: SceneLine[] };
 };
 /**
@@ -153,6 +155,8 @@ export type GameState = {
   night: NightReport | null;
   /** The days and the purse when the supper was served. */
   act1: { days: number; purse: number } | null;
+  /** The last delivered repeating quest and the open one. A missing record means neither. */
+  repeating?: { last: string | null; open: string | null };
 };
 export type Action =
   | { type: 'move'; from: number; to: number }
@@ -282,11 +286,44 @@ export function resolveNeighbours(state: GameState, data: GameData) {
       delivered: state.completedQuests.filter(id => data.quests.find(quest => quest.id === id)?.character === person.id).length }));
 }
 const questDone = (state: GameState, id: string) => state.completedQuests.includes(id);
-/** The earlier quests of the same character, and afterQuest. The recovery quest needs none and is no quest's predecessor. */
+/**
+ * The earlier quests of the same character, and afterQuest. The recovery quest needs none, and a repeating quest needs only the
+ * campaign quest that it follows. Neither is a predecessor of another quest.
+ */
 export function questPredecessors(quest: Quest, data: GameData): string[] {
   if (quest.recovery) return [];
-  const earlier = data.quests.slice(0, data.quests.indexOf(quest)).filter(previous => previous.character === quest.character && !previous.recovery);
+  if (quest.repeating) return quest.afterQuest ? [quest.afterQuest] : [];
+  const earlier = data.quests.slice(0, data.quests.indexOf(quest)).filter(previous => previous.character === quest.character && !previous.recovery && !previous.repeating);
   return [...new Set([...(quest.afterQuest ? [quest.afterQuest] : []), ...earlier.map(previous => previous.id)])];
+}
+/** A repeating quest joins the cycle once its character has arrived, the chain of each dish is open, and the quest that it follows is delivered. */
+export function canJoinCycle(state: Pick<GameState, 'taskIndex' | 'decorations' | 'completedQuests'>, quest: Quest, data: GameData): boolean {
+  const person = data.characters.find(person => person.id === quest.character), chains = availableChains(state, data);
+  return !!quest.repeating && !!person && hasArrived(state, person) && quest.requirements.every(({ item }) => dishOpen(item, chains, data))
+    && (!quest.afterQuest || state.completedQuests.includes(quest.afterQuest));
+}
+/** The repeating quests take turns: the next one after the last delivered one, in data order, that can join the cycle. */
+function nextRepeating(state: GameState, data: GameData): Quest | undefined {
+  const cycle = data.quests.filter(quest => quest.repeating), last = cycle.findIndex(quest => quest.id === state.repeating?.last);
+  for (let step = 1; step <= cycle.length; step++) {
+    const quest = cycle[(last + step) % cycle.length];
+    if (canJoinCycle(state, quest, data)) return quest;
+  }
+  return undefined;
+}
+/**
+ * The open repeating quest: the saved one, which stays open until its delivery, or the next one while the bistro has no work.
+ * The bistro has no work if no open quest has work, the recovery quest is closed, and the next preparation is not ready to pay.
+ * The engine saves the quest that opens, in the same change.
+ */
+function openRepeating(state: GameState, views: QuestView[], data: GameData): Quest | undefined {
+  if (state.repeating?.open) return data.quests.find(quest => quest.id === state.repeating!.open);
+  // A booked quest for another evening has work while the board lacks a portion: the player can cook it now, but cannot deliver it
+  // before its evening. These meals share no portion. Every other open quest has work.
+  const open = views.filter(view => view.status === 'active' || view.status === 'waiting').map(view => view.quest);
+  const later = open.filter(quest => quest.booked && !bookedTonight(state, quest));
+  const busy = open.length > later.length || questDeliveryCells(state, { requirements: later.flatMap(quest => quest.requirements) }).some(index => index < 0);
+  return busy || taskEligibility(state, data).ready ? undefined : nextRepeating(state, data);
 }
 /** The number of quest tickets on the counter. The recovery quest has its own ticket after them. */
 export const QUEST_TICKETS = 3;
@@ -294,21 +331,24 @@ export const QUEST_TICKETS = 3;
  * The recovery quest is open in two cases: another quest (the supper included) is open and the purse holds less than the recovery
  * floor, or no other quest is open and the purse cannot pay the next preparation. So a player who spends coins on spare food is never stuck.
  */
-function recoveryOpen(state: GameState, data: GameData, open = data.quests.some(quest => !quest.recovery && !questDone(state, quest.id) && questReady(state, quest, data))): boolean {
+function recoveryOpen(state: GameState, data: GameData, open = data.quests.some(quest => !quest.recovery && !quest.repeating && !questDone(state, quest.id) && questReady(state, quest, data))): boolean {
   const task = currentTask(state, data);
   return open ? state.coins < data.economy.recoveryFloor : !!task && state.coins < task.cost;
 }
 /**
  * Open quests take the tickets in authored order: the first three are active, and the others wait for a free ticket.
  * A character has at most one open campaign quest, because each quest waits for the earlier quests of its character.
- * The recovery quest is active while it is open, on its own ticket, so it never moves a quest to waiting.
+ * The recovery quest is active while it is open, on its own ticket, so it never moves a quest to waiting. An open repeating quest
+ * takes a ticket after the campaign quests, so a campaign quest never waits for it.
  */
 export function resolveQuests(state: GameState, data: GameData): QuestView[] {
   let tickets = 0;
   const views: QuestView[] = data.quests.map(quest => ({ quest, status: questDone(state, quest.id) ? 'complete'
-    : quest.recovery || !questReady(state, quest, data) ? 'locked' : tickets++ < QUEST_TICKETS ? 'active' : 'waiting' }));
+    : quest.recovery || quest.repeating || !questReady(state, quest, data) ? 'locked' : tickets++ < QUEST_TICKETS ? 'active' : 'waiting' }));
   const open = views.some(view => view.status === 'active' || view.status === 'waiting');
   for (const view of views) if (view.quest.recovery && recoveryOpen(state, data, open)) view.status = 'active';
+  const repeating = openRepeating(state, views, data);
+  if (repeating) views[data.quests.indexOf(repeating)].status = tickets++ < QUEST_TICKETS ? 'active' : 'waiting';
   return views;
 }
 /** The quest whose delivery earns the finale. */
@@ -317,10 +357,10 @@ export const supperQuest = (data: GameData) => data.quests.find(quest => quest.f
 export function supperComplete(state: Pick<GameState, 'completedQuests'>, data: GameData): boolean {
   return state.completedQuests.includes(supperQuest(data)?.id ?? '');
 }
-/** The quests that the preparation at this index needs: every quest that opens before it, except the supper and the recovery quest. */
+/** The quests that the preparation at this index needs: every campaign quest that opens before it. */
 export function requiredQuests(taskIndex: number, data: GameData): Quest[] {
   const known = new Map<Quest, number>();
-  return data.quests.filter(quest => !quest.finale && !quest.recovery && questOpening(quest, data, known) < taskIndex);
+  return data.quests.filter(quest => !quest.finale && !quest.recovery && !quest.repeating && questOpening(quest, data, known) < taskIndex);
 }
 /** A guest who visits once has a journal introduction only while their quest is open. */
 export function journalCharacters(state: GameState, data: GameData): Character[] {
@@ -331,7 +371,7 @@ export function journalCharacters(state: GameState, data: GameData): Character[]
 /** The cells that hold a dish, in board order. A blocked cell holds no item, so the player can move each of them. */
 export const cellsOf = (state: Pick<GameState, 'board'>, code: string) => state.board.flatMap((cell, index) => cell?.code === code ? [index] : []);
 /** The board cells that a delivery empties: the first matching cell that is still free for each portion, or -1 if there is none. */
-export function questDeliveryCells(state: Pick<GameState, 'board'>, quest: Quest): number[] {
+export function questDeliveryCells(state: Pick<GameState, 'board'>, quest: Pick<Quest, 'requirements'>): number[] {
   const left = new Map<string, number[]>();
   return quest.requirements.flatMap(({ item, quantity }) => {
     const cells = left.get(item) ?? cellsOf(state, item);

@@ -1,5 +1,5 @@
 // The checks of the authored game data. The content generator refuses to write data with a problem, and the game refuses to start on it.
-import { availableChains, dayMerges, dishChains, dishTags, dishWork, foodAtlases, integer, isRegular, menuPrice, mergePartners, MIXED, own, portraitAtlases, present, questOpening, questPredecessors, roomPaintings, scene, spoken, stable, stapleCost, stateNumber, storyScenes } from './model.ts';
+import { availableChains, canJoinCycle, dayMerges, dishChains, dishTags, dishWork, foodAtlases, integer, isRegular, menuPrice, mergePartners, MIXED, own, portraitAtlases, present, questOpening, questPredecessors, roomPaintings, scene, spoken, stable, stapleCost, stateNumber, storyScenes } from './model.ts';
 import type { BoardObstacle, Character, GameData, Item, Quest } from './model.ts';
 import { createGame, KEEP_FREE, validateGame } from './engine.ts';
 
@@ -53,8 +53,12 @@ export function characterProblems(data: GameData): string[] {
 const cathedral = (person: Character | undefined) => !!person?.visitor && !person.singleVisit;
 /** One meal at one sitting: the portions for each eater, and the portions of one dish. */
 const MEAL = { portions: 3, same: 2 };
+/** The merges that the dishes of a quest need from their ingredients. */
+const questMerges = (quest: Quest, data: GameData) => quest.requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).merges * quantity, 0);
 /** The work value of a quest: the merges that its dishes need, at the work rate. A delivery pays this over the cost of its staples. */
-const workValue = (quest: Quest, data: GameData) => quest.requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).merges * data.economy.workRate * quantity, 0);
+const workValue = (quest: Quest, data: GameData) => questMerges(quest, data) * data.economy.workRate;
+/** A repeating quest is a simple meal: it needs at most this many merges. */
+const REPEAT_MERGES = 15;
 /**
  * Check the combined preparation and quest graph, the required items, chain availability, the decoration finishes, the authored
  * order, the diets, the favourites, the supper, the recovery quest, and the campaign funds: the work value of the quests that
@@ -81,9 +85,14 @@ export function questProblems(data: GameData): string[] {
       if (quest.afterTask !== null && !data.tasks.some(task => task.id === quest.afterTask)) problems.push(`${quest.id}: unknown opening preparation.`);
       if (quest.companions !== undefined && (!Array.isArray(quest.companions) || !quest.companions.length
         || new Set(quest.companions).size !== quest.companions.length
-        || !quest.companions.every(id => id !== quest.character && data.characters.some(character => character.id === id && character.visitor)))) problems.push(`${quest.id}: invalid companions.`);
+        // A companion is a visitor. The staff of the bistro also eat together, so a repeating quest can share a core character.
+        || !quest.companions.every(id => id !== quest.character && data.characters.some(character => character.id === id
+          && (character.visitor || (quest.repeating && !character.regular)))))) problems.push(`${quest.id}: invalid companions.`);
       if (quest.finale !== undefined && quest.finale !== true) problems.push(`${quest.id}: invalid supper flag.`);
       if (quest.recovery !== undefined && (quest.recovery !== true || quest.finale || quest.followUp || quest.unlocks || quest.afterTask !== null || quest.afterQuest !== undefined)) problems.push(`${quest.id}: invalid recovery quest.`);
+      // A repeating quest opens in no window. It can follow one campaign quest.
+      if (quest.repeating !== undefined && (quest.repeating !== true || quest.finale || quest.recovery || quest.booked || quest.followUp || quest.unlocks || quest.afterTask !== null
+        || (quest.afterQuest !== undefined && !data.quests.some(other => other.id === quest.afterQuest && !other.repeating && !other.recovery && !other.finale)))) problems.push(`${quest.id}: invalid repeating quest.`);
       if (!Array.isArray(quest.requirements) || !quest.requirements.length || quest.requirements.reduce((count, requirement) => count + requirement.quantity, 0) > data.board.initial.length) problems.push(`${quest.id}: invalid delivery size.`);
       for (const requirement of quest.requirements) {
         if (!isDish(requirement.item, data) || !integer(requirement.quantity, 1, data.board.initial.length)) problems.push(`${quest.id}: invalid requirement.`);
@@ -91,8 +100,8 @@ export function questProblems(data: GameData): string[] {
       // Every quest pays its menu value, except the supper, which pays nothing.
       const value = quest.requirements.reduce((sum, { item, quantity }) => sum + (isDish(item, data) ? data.items[item].price * quantity : 0), 0);
       if (quest.finale ? quest.reward !== 0 : !integer(quest.reward, 1) || quest.reward !== value) problems.push(`${quest.id}: invalid coin reward.`);
-      // The supper earns the finale, and the recovery quest has no reply, so neither has a completion scene.
-      if (!scene(quest.opening, data) || (quest.finale || quest.recovery ? !Array.isArray(quest.completion) || quest.completion.length !== 0 : !scene(quest.completion, data))) problems.push(`${quest.id}: invalid scene.`);
+      // The supper earns the finale, and the recovery quest and the repeating quests have no reply, so none has a completion scene.
+      if (!scene(quest.opening, data) || (quest.finale || quest.recovery || quest.repeating ?!Array.isArray(quest.completion) || quest.completion.length !== 0 : !scene(quest.completion, data))) problems.push(`${quest.id}: invalid scene.`);
       if (quest.followUp && (!stable(quest.followUp.id) || !quest.followUp.title
         || !integer(quest.followUp.afterDeliveries, 1) || !scene(quest.followUp.dialogue, data))) problems.push(`${quest.id}: invalid follow-up scene.`);
       if (quest.unlocks !== undefined) {
@@ -120,10 +129,16 @@ export function questProblems(data: GameData): string[] {
     for (const id of graph.keys()) visit(id);
     if (problems.length) return problems;
     // The tickets show open quests in authored order, so an earlier quest never opens after a later one.
-    const known = new Map<Quest, number>(), openings = data.quests.map(quest => questOpening(quest, data, known));
+    // The repeating quests open in no window, so they come last, in their cycle order.
+    const known = new Map<Quest, number>(), openings = data.quests.map(quest => quest.repeating ? Infinity : questOpening(quest, data, known));
     if (openings.some((opening, at) => at && opening < openings[at - 1])) problems.push('Quests must be in the order in which they open.');
     // Every campaign quest opens before the last preparation, so the campaign needs it. Only the supper opens after the last preparation.
-    if (openings.some((opening, at) => opening >= data.tasks.length - 1 && !data.quests[at].finale)) problems.push('Every quest must open before the last preparation.');
+    if (openings.some((opening, at) => opening >= data.tasks.length - 1 && !data.quests[at].finale && !data.quests[at].repeating)) problems.push('Every quest must open before the last preparation.');
+    // At least three simple repeating quests take turns, and one can join the cycle in a new game.
+    const repeating = data.quests.filter(quest => quest.repeating);
+    if (repeating.length < 3) problems.push('The game needs at least three repeating quests.');
+    for (const quest of repeating) if (questMerges(quest, data) > REPEAT_MERGES) problems.push(`${quest.id}: a repeating quest needs at most ${REPEAT_MERGES} merges.`);
+    if (!repeating.some(quest => canJoinCycle({ taskIndex: 0, decorations: [], completedQuests: [] }, quest, data))) problems.push('A repeating quest must be able to join the cycle in a new game.');
     const supper = data.quests.filter(quest => quest.finale), recovery = data.quests.filter(quest => quest.recovery);
     if (supper.length !== 1) problems.push('The finale needs exactly one supper quest.');
     else if (openings[data.quests.indexOf(supper[0])] !== data.tasks.length - 1) problems.push('The supper quest opens after the last preparation.');
@@ -134,7 +149,7 @@ export function questProblems(data: GameData): string[] {
     }
     let earned = 0, spent = 0;
     for (const [index, task] of data.tasks.entries()) {
-      earned += data.quests.filter((quest, at) => openings[at] === index - 1 && !quest.recovery).reduce((sum, quest) => sum + workValue(quest, data), 0);
+      earned += data.quests.filter((quest, at) => openings[at] === index - 1 && !quest.recovery && !quest.repeating).reduce((sum, quest) => sum + workValue(quest, data), 0);
       spent += task.cost;
       if (earned < spent) problems.push(`${task.id}: the quests before it earn ${earned} coins of work, less than the ${spent} that the preparations cost.`);
     }
@@ -155,8 +170,8 @@ export function questProblems(data: GameData): string[] {
       if (person.arrivesAfter && !quest.recovery && !before.has(`task:${person.arrivesAfter}`)) problems.push(`${quest.id}: the character must arrive before the quest opens.`);
       const dishes = quest.requirements.map(requirement => requirement.item);
       if (person.regular && !quest.finale && !dishes.some(code => person.favourites?.includes(code))) problems.push(`${quest.id}: a regular needs a favourite dish.`);
-      // A quest without provisions is one meal for each eater. The supper has one plate for each guest.
-      if (!quest.finale && !person.provisions) {
+      // A repeating quest or a quest without provisions is one meal for each eater. The supper has one plate for each guest.
+      if (!quest.finale && (quest.repeating || !person.provisions)) {
         const counts = new Map<string, number>();
         for (const { item, quantity } of quest.requirements) counts.set(item, (counts.get(item) ?? 0) + quantity);
         const portions = [...counts.values()].reduce((sum, count) => sum + count, 0), eaters = 1 + (quest.companions?.length ?? 0);
@@ -362,7 +377,7 @@ export function discoveryProblems(data: GameData): string[] {
   const start = data.board.initial.filter(present);
   /** The quests that are delivered before this one opens: those that the preparations before it need, and its predecessors. */
   const delivered = (quest: Quest, found = new Set<Quest>()): Set<Quest> => {
-    for (const other of data.quests) if (!other.finale && !other.recovery && opening(other) < opening(quest)) found.add(other);
+    for (const other of data.quests) if (!other.finale && !other.recovery && !other.repeating && opening(other) < opening(quest)) found.add(other);
     for (const id of predecessors.get(quest)!) {
       const previous = byId.get(id);
       if (previous && !found.has(previous)) { found.add(previous); delivered(previous, found); }
@@ -373,7 +388,7 @@ export function discoveryProblems(data: GameData): string[] {
   for (const [at, quest] of data.quests.entries()) {
     const done = delivered(quest), known = new Set(start);
     for (const chain of availableChains({ taskIndex: opening(quest) + 1 }, data)) known.add(`generator_${chain}`);
-    const shown = data.quests.slice(0, at).filter(other => !other.recovery && opening(other) <= opening(quest)
+    const shown = data.quests.slice(0, at).filter(other => !other.recovery && !other.repeating && opening(other) <= opening(quest)
       && predecessors.get(other)!.every(id => done.has(byId.get(id)!)));
     for (const other of [...done, ...shown]) for (const { item } of other.requirements) known.add(item);
     for (const { item } of quest.requirements) {

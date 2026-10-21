@@ -21,7 +21,7 @@ const arriving = new Map<string, number>();
 let delivery: { id: string; at: number; before: GameState } | null = null;
 // A delivery notice belongs to the game that made it.
 let deliveryToken = 0;
-// Recovery deliveries have no saved record. Their share of the bat cadence lasts for this game in this tab.
+// Recovery and repeating deliveries have no saved record. Their share of the bat cadence lasts for this game in this tab.
 let recurringDeliveries = 0;
 /** The quest on each ticket. A quest keeps its ticket, and the next open quest takes the first free ticket, in authored order. */
 let ticketQuests: string[] = [];
@@ -63,7 +63,7 @@ export const activeQuests = () => {
   const tickets = [...kept, ...waiting];
   // The recovery quest has its own ticket after the quest tickets, so it never moves a quest to waiting.
   const shown = [...tickets, ...active.filter(quest => quest.recovery)];
-  // A quest that takes a ticket in a delivery arrives on it. So does a delivered quest that opens again: the recovery quest.
+  // A quest that takes a ticket in a delivery arrives on it. So does a delivered quest that opens again: the recovery quest, or a repeating quest.
   if (delivery && state !== delivery.before) for (const quest of shown) if (quest.id === delivery.id || !shownQuests.includes(quest.id)) arriving.set(quest.id, delivery.at);
   ticketQuests = tickets.map(quest => quest.id); shownQuests = shown.map(quest => quest.id);
   return shown;
@@ -116,7 +116,8 @@ export function renderTickets() {
     card.append(face, booking ? bookedControl(quest, person.name) ?? deliverButton : deliverButton); container.append(card);
   });
   // The recovery ticket keeps its own column beside the line, so the line still says why no quest waits.
-  if (tickets.every(quest => quest.recovery)) container.prepend(element('p', 'tickets-empty', state.taskIndex === data.tasks.length ? 'Every quest is delivered. The bistro is yours.' : 'No quests wait now. Pay for the next preparation.'));
+  // Without work, a repeating quest opens, so an empty counter means that the next preparation is ready to pay.
+  if (tickets.every(quest => quest.recovery)) container.prepend(element('p', 'tickets-empty', 'No quests wait now. Pay for the next preparation.'));
 }
 /**
  * The control of a booked ticket that cannot deliver yet: the lanterns for tonight's guest before the booking time, or a table for a
@@ -154,7 +155,7 @@ function deliver(quest: Quest) { return changeGame(() => {
   const result = apply({ type:'deliverQuest', id:quest.id });
   delivery = null;
   if (!result.ok) return;
-  if (quest.recovery) recurringDeliveries++;
+  if (quest.recovery || quest.repeating) recurringDeliveries++;
   if ((state.completedQuests.length + recurringDeliveries) % 3 === 0) batFlight();
   const message = `${result.message}${saveFailed ? ' This session is not saved. Use Retry save in Options, or export before leaving.' : ''}`;
   // The reply of the neighbour waits in Story; the notice offers it at once, by name.

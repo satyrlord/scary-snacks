@@ -5,7 +5,7 @@ import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import type { Action, GameData, GameState, Quest, Task } from '../src/model.ts';
 
 export type CampaignTotals = {
-  actions: number; spawns: number; merges: number; quests: number; recoveries: number;
+  actions: number; spawns: number; merges: number; quests: number; recoveries: number; repeats: number; repeatCoins: number;
   questCoins: number; preparationCoins: number; takeCoins: number; blockerCoins: number; upkeepCoins: number;
 };
 export type CampaignChapter = CampaignTotals & { chapter: number; balance: number; cumulative: { actions: number; merges: number; quests: number } };
@@ -28,7 +28,7 @@ export type CampaignBalance = {
   purse: number; spending: number;
 };
 
-const emptyTotals = (): CampaignTotals => ({ actions: 0, spawns: 0, merges: 0, quests: 0, recoveries: 0, questCoins: 0, preparationCoins: 0, takeCoins: 0, blockerCoins: 0, upkeepCoins: 0 });
+const emptyTotals = (): CampaignTotals => ({ actions: 0, spawns: 0, merges: 0, quests: 0, recoveries: 0, repeats: 0, repeatCoins: 0, questCoins: 0, preparationCoins: 0, takeCoins: 0, blockerCoins: 0, upkeepCoins: 0 });
 /** The debt that the debt strategy carries into each preparation window. */
 const WINDOW_DEBT = 20;
 /** Within this many merges of the closing, the purse keeps the upkeep: a short purse makes recovery teas first. */
@@ -39,7 +39,7 @@ const TIDY_FREE = 24;
 /**
  * Deterministic reducer play with a fixed seed. Pay each preparation as soon as it is ready. Deliver tonight's booked quest first,
  * with the lanterns if it is early. Otherwise deliver the unbooked ticket whose staples cost the least. With only booked quests for
- * later evenings left, cook them now: their merges bring the night. Make each quest dish from spare food on the board when it can,
+ * later evenings left, cook them now. Then the bistro has no work, and the strategy delivers the repeating quests until the night. Make each quest dish from spare food on the board when it can,
  * and otherwise from stage-one staples, merging up and cooking recipes. A full board makes room only by a merge of spare food: a pair,
  * a recipe, or a match for a blocked dish. A full board without such a merge is a deadlock, and the fixture fails.
  * Near the closing, a purse short of the upkeep makes recovery teas, so the efficient purse never goes below zero.
@@ -68,7 +68,11 @@ export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignS
     totals.actions++;
     if (result.event === 'merge') { totals.merges++; if (filling) nights.fillerMerges++; }
     if (action.type === 'spawn') { totals.spawns++; totals.takeCoins += before.coins - state.coins; }
-    if (action.type === 'deliverQuest') { totals.quests++; totals.questCoins += state.coins - before.coins; if (action.id === recovery.id) totals.recoveries++; }
+    if (action.type === 'deliverQuest') {
+      totals.quests++; totals.questCoins += state.coins - before.coins;
+      if (action.id === recovery.id) totals.recoveries++;
+      else if (data.quests.find(quest => quest.id === action.id)?.repeating) { totals.repeats++; totals.repeatCoins += state.coins - before.coins; }
+    }
     if (action.type === 'task') totals.preparationCoins += before.coins - state.coins;
     if (action.type === 'lantern') nights.lanterns++;
     if (state.clock.day !== before.clock.day) {
@@ -283,9 +287,11 @@ export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignS
     const open = tickets.filter(quest => !quest.booked);
     if (open.length) { deliver(open.reduce((cheapest, quest) => staples(quest) < staples(cheapest) ? quest : cheapest)); continue; }
     // Only booked quests for later evenings are left. Their cooking is needed anyway, and its merges bring the night.
+    // With every booked meal cooked, the bistro has no work, and a repeating quest opens on the next turn of this loop.
+    // Only the miss strategy, which lets tonight's guest wait, cooks spare food to pass the evening.
     const day = state.clock.day;
     prepare(...tickets);
-    if (state.clock.day === day) {
+    if (state.clock.day === day && !resolveQuests(state, data).some(view => view.quest.repeating && view.status === 'active')) {
       assert.notEqual(strategy, 'efficient', `Day ${day}: the efficient strategy has cooked every quest, and the booked guest comes on a later evening.`);
       // A missed guest's lanterns bring the closing near, so the wait is short.
       for (const quest of tickets) if (canLightLanterns(state, quest, data)) act({ type: 'lantern', id: quest.id });

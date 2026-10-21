@@ -12,11 +12,12 @@ const floor = data.economy.recoveryFloor;
 
 test('every neighbour asks across the whole campaign, and every quest except the supper opens before the last preparation', () => {
   assert.deepEqual(questProblems(data), []);
-  assert.equal(data.quests.length, 84);
-  assert.equal(data.quests.filter(quest => !quest.finale && !quest.recovery).length, 82);
+  assert.equal(data.quests.length, 87);
+  assert.equal(data.quests.filter(quest => !quest.finale && !quest.recovery && !quest.repeating).length, 82);
+  assert.equal(data.quests.filter(quest => quest.repeating).length, 3);
   for (const character of data.characters) {
     assert.ok(character.introduction.length > 40);
-    const count = data.quests.filter(quest => quest.character === character.id || quest.companions?.includes(character.id)).length;
+    const count = data.quests.filter(quest => !quest.repeating && (quest.character === character.id || quest.companions?.includes(character.id))).length;
     // Bela, the graveyard keeper, has one campaign quest.
     if (character.singleVisit) assert.equal(count, 1, character.id);
     else if (character.id === 'bela') assert.equal(count, 1, character.id);
@@ -191,7 +192,7 @@ test('traveller quests return in one shared sequence of provisions and meals tha
 });
 
 test('each quest of a core character is a short exchange at its opening and at its completion, and the supper has no completion', () => {
-  const core = ['mara', 'ilie', 'eszter', 'sorin'], quests = data.quests.filter(quest => core.includes(quest.character));
+  const core = ['mara', 'ilie', 'eszter', 'sorin'], quests = data.quests.filter(quest => core.includes(quest.character) && !quest.repeating);
   assert.equal(quests.length, 27);
   for (const quest of quests) {
     // The supper earns the finale in place of a reply.
@@ -311,7 +312,7 @@ test('a long quest line of one character resolves its openings once each', () =>
   // Each quest waits for every earlier quest of its character, so a check without shared openings grows with 2 to the number of quests.
   const content = structuredClone(data);
   for (const quest of content.quests) quest.character = 'mara';
-  assert.equal(requiredQuests(content.tasks.length, content).length, content.quests.filter(quest => !quest.finale && !quest.recovery).length);
+  assert.equal(requiredQuests(content.tasks.length, content).length, content.quests.filter(quest => !quest.finale && !quest.recovery && !quest.repeating).length);
 });
 
 test('the supper asks one plate for each guest, to the taste of each one, and its delivery pays nothing and queues the finale once', () => {

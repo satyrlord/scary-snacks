@@ -24,7 +24,8 @@ async function supperPainting(page: Page){
   await expect.poll(()=>image.evaluate(e=>{const value=e as HTMLImageElement;return value.complete?value.naturalWidth:0;})).toBeGreaterThan(0);
   return dialog;
 }
-const noMoreQuests=async(page: Page)=>{await expect(page.locator('#tickets .ticket')).toHaveCount(0);await expect(page.locator('.tickets-empty')).toHaveText('Every quest is delivered. The bistro is yours.');};
+/** After the supper, the bistro has no other work: only the first repeating quest is on the counter. */
+const onlyRepeating=async(page: Page)=>{await expect(page.locator('#tickets .ticket')).toHaveCount(1);await expect(page.locator('#tickets .ticket[data-quest="sorin-staff-meal"]')).toBeVisible();await expect(page.locator('.tickets-empty')).toHaveCount(0);};
 
 test('the story shows the chapter objective and the state of its four preparations',async({page})=>{
   await start(page,payable(5));const chapter=data.chapters[1],tasks=data.tasks.slice(4,8);
@@ -131,7 +132,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`the
   }
 });
 
-test('serving the supper pays nothing and opens the finale and the supper painting; reading and replay change nothing else, and no quest waits',async({page})=>{
+test('serving the supper pays nothing and opens the finale and the supper painting; reading and replay change nothing else, and only a repeating quest waits',async({page})=>{
   const initial=supply(payable(23),supplies(supper));await start(page,initial);await payAndRead(page);await expect(scene(page,closing(5))).toBeVisible({timeout:8000});
   const paid=await saved(page);expect(paid.pendingScenes).toEqual(['chapter-6']);expect(paid.coins).toBe(0);
   await readTo(page,'Back to the kitchen');await expect(page.locator('#modal')).toBeHidden();
@@ -155,7 +156,7 @@ test('serving the supper pays nothing and opens the finale and the supper painti
   await (await supperPainting(page)).getByRole('button',{name:'Continue',exact:true}).click();
   await expect(page.getByRole('button',{name:`Replay ${data.finale.title}`,exact:true})).toBeFocused();expect(await saved(page)).toEqual(read);
   await page.keyboard.press('Escape');await page.reload();await opened(page);expect(await saved(page)).toEqual(read);
-  await expect(page.locator('#modal')).toBeHidden();await noMoreQuests(page);
+  await expect(page.locator('#modal')).toBeHidden();await onlyRepeating(page);
 });
 
 test('a reload during the last preparation story resumes the waiting scenes in order, an empty purse brings the recovery quest, and the board still plays',async({page})=>{
@@ -266,7 +267,7 @@ test('a fresh save plays through every payment, chapter scene, the supper, and t
   await deliverButton(page,supper).click();await expect(scene(page,data.finale.title)).toBeVisible();
   await transcript(page,data.finale.dialogue);await readTo(page,'See the supper');
   await (await supperPainting(page)).getByRole('button',{name:'Back to the kitchen',exact:true}).click();await expect(page.locator('#modal')).toBeHidden();
-  await expect(page.locator('#story')).toContainText('The table is ready.');await noMoreQuests(page);
+  await expect(page.locator('#story')).toContainText('The table is ready.');await onlyRepeating(page);
   await journal(page,['chapters','conversations','neighbours']);await expect(page.getByRole('button',{name:`Replay ${data.finale.title}`,exact:true})).toBeVisible();
   expect(errors).toEqual([]);
 });

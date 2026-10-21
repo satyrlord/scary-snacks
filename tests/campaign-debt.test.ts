@@ -9,6 +9,7 @@ test('a strategy that starts each preparation window with a debt of 20 coins rea
   for (const [seed, run] of runs('debt')) {
     assert.ok(supperComplete(run.finalState, data), `Seed ${seed}: the supper is served.`);
     assert.ok(run.nights.lowestPurse <= -20, `Seed ${seed}: the windows start in debt.`);
+    assert.equal(run.nights.fillerMerges, 0, `Seed ${seed}: no dish only to move the clock.`);
     for (const preparation of run.preparations) assert.ok(preparation.recoveries > 0, `Seed ${seed}, ${preparation.id}: the recovery quest pays the debt.`);
     t.diagnostic(`${nightLine(seed, run)} ${run.totals.recoveries} recovery teas. Purse ${run.purse}.`);
   }

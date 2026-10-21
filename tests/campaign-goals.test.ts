@@ -12,15 +12,15 @@ const withoutWindow = (count: number) => ({ ...openCheckpoint(count), completedQ
 /** The work value of a quest: the merges of its dishes at the work rate. The funding check counts this, not the staples. */
 const work = (quest: Quest) => quest.requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).merges * data.economy.workRate * quantity, 0);
 
-test('each preparation needs every quest that opens before it, and the last one needs every quest except the supper and the recovery quest', () => {
+test('each preparation needs every campaign quest that opens before it, and the last one needs every campaign quest', () => {
   assert.deepEqual(questProblems(data), []);
-  assert.deepEqual(requiredQuests(0, data).map(quest => quest.id), data.quests.filter(quest => quest.afterTask === null && !quest.afterQuest && !quest.recovery).map(quest => quest.id));
+  assert.deepEqual(requiredQuests(0, data).map(quest => quest.id), data.quests.filter(quest => quest.afterTask === null && !quest.afterQuest && !quest.recovery && !quest.repeating).map(quest => quest.id));
   for (let index = 1; index < data.tasks.length; index++) {
     const earlier = requiredQuests(index - 1, data), now = requiredQuests(index, data);
     assert.deepEqual(now.slice(0, earlier.length), earlier, 'Each preparation keeps the quests of the one before it.');
     assert.ok(now.length > earlier.length, `${data.tasks[index].id} adds at least one quest.`);
   }
-  assert.deepEqual(requiredQuests(data.tasks.length - 1, data), data.quests.filter(quest => !quest.finale && !quest.recovery));
+  assert.deepEqual(requiredQuests(data.tasks.length - 1, data), data.quests.filter(quest => !quest.finale && !quest.recovery && !quest.repeating));
 });
 
 test('eligibility lists the unmet coins and quests and keeps the exact totals above a requirement', () => {
@@ -79,8 +79,8 @@ test('the funding check rejects a preparation that the work of the quests before
   assert.ok(dataProblems(costly).length);
   // Quests with less work earn less, even when their rewards match their menu values.
   const cheap = structuredClone(data);
-  for (const id of ['mara-cellar', 'ilie-stove']) Object.assign(cheap.quests.find(quest => quest.id === id)!, { requirements: [{ item: 'herbs_2', quantity: 1 }], reward: data.items.herbs_2.price });
-  assert.match(questProblems(cheap).join(' '), /^task_1: the quests before it earn \d+ coins of work, less than the 400/);
+  for (const { id } of requiredQuests(0, data)) Object.assign(cheap.quests.find(quest => quest.id === id)!, { requirements: [{ item: 'herbs_2', quantity: 1 }], reward: data.items.herbs_2.price });
+  assert.match(questProblems(cheap).join(' '), new RegExp(`^task_1: the quests before it earn \\d+ coins of work, less than the ${data.tasks[0].cost}`));
   // The shortfall carries forward: the totals are cumulative.
   const surplus = requiredQuests(data.tasks.length, data).reduce((sum, quest) => sum + work(quest), 0) - data.tasks.reduce((sum, task) => sum + task.cost, 0);
   const later = structuredClone(data);
@@ -98,7 +98,7 @@ test('the funding check rejects a preparation that the work of the quests before
 
 test('the quest check rejects quests out of opening order, a quest that opens with the last preparation, a second or misplaced supper, and a broken recovery quest', () => {
   const late = structuredClone(data);
-  late.quests.findLast(quest => !quest.finale && !quest.recovery)!.afterTask = data.tasks.at(-1)!.id;
+  late.quests.findLast(quest => !quest.finale && !quest.recovery && !quest.repeating)!.afterTask = data.tasks.at(-1)!.id;
   assert.ok(questProblems(late).includes('Every quest must open before the last preparation.'));
   const swapped = structuredClone(data);
   const first = swapped.quests.findIndex(quest => quest.afterTask === 'task_1');

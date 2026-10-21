@@ -1,5 +1,5 @@
 // The deterministic rules of the bistro game: the new game, the actions, and the acceptance of an untrusted save.
-import { arrivalScene, availableChains, boardObstacles, canDeliverQuest, canLightLanterns, decorationUnlocked, deliveriesSince, dayMerges, dishOpen, earnedScenes, firstFreeBoardCell, freeBoardCells, getItem, integer, looseRaw, looseRawCells, mergePartners, mergeResult, own, pendingPreparationObstacles, present, questDeliveryCells, questPredecessors, requiredQuests, resolveChapters, resolveQuests, storyOrder, supperComplete, takeCost, taskEligibility, unresolvedObstacle } from './model.ts';
+import { arrivalScene, availableChains, boardObstacles, canDeliverQuest, canJoinCycle, canLightLanterns, decorationUnlocked, deliveriesSince, dayMerges, dishOpen, earnedScenes, firstFreeBoardCell, freeBoardCells, getItem, integer, looseRaw, looseRawCells, mergePartners, mergeResult, own, pendingPreparationObstacles, present, questDeliveryCells, questPredecessors, requiredQuests, resolveChapters, resolveQuests, storyOrder, supperComplete, takeCost, taskEligibility, unresolvedObstacle } from './model.ts';
 import type { Action, Cell, GameData, GameState, NightReport, Placed, Result } from './model.ts';
 
 /** At most this many preparation blockers wait on the board at one time. */
@@ -113,14 +113,14 @@ export function createGame(data: GameData, seed = 0): GameState {
   revealTickets(state, data);
   return state;
 }
-/** Delivered quests are known, unique, not the recovery quest, and opened in delivery order, and every completed preparation had its quests. */
+/** Delivered quests are known, unique, campaign quests or the supper, and opened in delivery order, and every completed preparation had its quests. */
 function validateQuestProgress(state: GameState, data: GameData): boolean {
   const complete = state.completedQuests;
   if (!Array.isArray(complete) || complete.length > data.quests.length || new Set(complete).size !== complete.length) return false;
   const done = new Set<string>();
   for (const id of complete) {
     const quest = data.quests.find(quest => quest.id === id);
-    if (!quest || quest.recovery || (quest.afterTask !== null && !state.decorations.includes(quest.afterTask))
+    if (!quest || quest.recovery || quest.repeating || (quest.afterTask !== null && !state.decorations.includes(quest.afterTask))
       || !questPredecessors(quest, data).every(previous => done.has(previous))) return false;
     done.add(id);
   }
@@ -230,7 +230,12 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
       if (!slot || !state.decorations.includes(slot.unlock) || typeof value !== 'string' || value === slot.default
         || !slot.variants.some(variant => variant.id === value) || !decorationUnlocked(state, slot, value, data)) return false;
     }
-    if (!resolveQuests(state, data).every(view => view.status !== 'active' || view.quest.requirements.every(({ item }) => state.discovered.includes(item)))) return false;
+    // The saved repeating quests are known and can join the cycle. A repeating quest that the save has not opened yet shows its dishes after the next action.
+    const repeating = state.repeating;
+    if (repeating !== undefined && (!record(repeating, ['last', 'open']) || ![repeating.last, repeating.open].every(id => id === null
+      || (typeof id === 'string' && data.quests.some(quest => quest.id === id && canJoinCycle(state, quest, data)))))) return false;
+    if (!resolveQuests(state, data).every(view => view.status !== 'active' || (view.quest.repeating && view.quest.id !== repeating?.open)
+      || view.quest.requirements.every(({ item }) => state.discovered.includes(item)))) return false;
     return true;
   } catch {
     return false;
@@ -240,6 +245,11 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
   const fail = (message: string): Result => ({ state, ok: false, message, event: null });
   if (!action || typeof action !== 'object') return fail('Choose an action.');
   const next = copy(state);
+  // Keep a ticket that a save without an open record already shows, even if this action gives a booked quest more work.
+  if (!next.repeating?.open) {
+    const open = resolveQuests(next, data).find(view => view.quest.repeating && view.status !== 'locked')?.quest.id;
+    if (open) next.repeating = { last: next.repeating?.last ?? null, open };
+  }
   let event: string = action.type;
   let message = '';
   switch (action.type) {
@@ -254,8 +264,10 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       // Each day admits one booked delivery. The supper stops the clock and records the result of act 1.
       if (quest.booked) next.evening.delivered = true;
       if (quest.finale) next.act1 = { days: next.clock.day, purse: next.coins };
-      // The recovery quest keeps no record and has no reply, so it can open again.
-      if (!quest.recovery) {
+      // The recovery quest and a repeating quest keep no record and have no reply, so they can open again.
+      // A repeating delivery moves the cycle to the next quest.
+      if (quest.repeating) next.repeating = { last: quest.id, open: null };
+      else if (!quest.recovery) {
         next.completedQuests.push(quest.id);
         // The supper earns the finale in place of a reply.
         next.pendingScenes.push(quest.finale ? data.finale.id : quest.id);
@@ -388,6 +400,9 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
     message += ' The bistro closes for the night.';
   }
   fixEvening(next, data);
+  // A repeating quest that opens in this change is saved, so it stays open until its delivery.
+  const repeating = resolveQuests(next, data).find(view => view.quest.repeating && view.status !== 'locked')?.quest.id ?? null;
+  if (repeating !== (next.repeating?.open ?? null)) next.repeating = { last: next.repeating?.last ?? null, open: repeating };
   revealTickets(next, data);
   return { state: next, ok: true, message, event };
 }

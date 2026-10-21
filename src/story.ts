@@ -35,7 +35,7 @@ export function storyContent(inSheet: boolean) {
   else if (!task) {
     // The result of act 1 keeps the days and the purse of the supper, whatever the purse holds now.
     const { days, purse } = state.act1!;
-    body.append(element('h3', '', 'The table is ready.'), element('p', '', 'The community supper is open, and every quest is delivered. The board and the recipe book stay yours.'),
+    body.append(element('h3', '', 'The table is ready.'), element('p', '', 'The community supper is open, and every campaign quest is delivered. The board and the recipe book stay yours.'),
       element('p', 'act-result', `The bistro worked for ${count.format(days)} ${days === 1 ? 'day' : 'days'}. ${purse < 0 ? `The shop notebook holds a debt of ${coinText(-purse)}.` : `The purse holds ${coinText(purse)}.`}`));
   }
   else {

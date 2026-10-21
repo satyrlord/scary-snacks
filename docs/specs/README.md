@@ -4,8 +4,8 @@ Each specification in this folder records one feature of Scary Snacks: its rules
 
 The specifications cover act 1.
 
-The game has six chapters, 24 preparations, and 84 authored quests.
-The quests are 82 campaign quests, the supper quest, and the recovery quest.
+The game has six chapters, 24 preparations, and 87 authored quests.
+The quests are 82 campaign quests, the supper quest, the recovery quest, and three repeating quests.
 
 ## File names
 
@@ -44,7 +44,7 @@ The status column gives the state of each specification. The status of a specifi
 | 011 | [Motion choice](011-motion-choice.md) | Implemented | None |
 | 012 | [Staple chains and mixed dishes](012-staple-chains.md) | Implemented | None |
 | 013 | [Bistro day and night](013-day-and-night.md) | Implemented | 012 |
-| 014 | [Repeating quests](014-repeating-quests.md) | Partly implemented | 010, 013 |
+| 014 | [Repeating quests](014-repeating-quests.md) | Implemented | 010, 013 |
 
 A dependency is a specification that the complete feature needs. A reference to another specification is not always a dependency. Only this register lists the dependencies.
 

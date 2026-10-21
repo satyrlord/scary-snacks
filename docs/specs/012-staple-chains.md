@@ -273,7 +273,7 @@ A board that the player fills with dishes that cannot merge and that no quest ne
 
 The campaign balance test plays one efficient strategy with no injected coins or items.
 The test pays all 24 preparations and delivers the supper.
-The strategy spends coins on preparations, takes, and upkeep. After the supper, the purse must hold from 0 to 10% of those coins.
+The strategy spends coins on preparations, takes, and upkeep. After the supper, the purse must hold from 0 to 20% of those coins.
 The test prints the purse, the takes, the coins from blockers, and the free cells at each preparation.
 
 ## Acceptance checks

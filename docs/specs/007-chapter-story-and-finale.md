@@ -13,7 +13,7 @@ Each preparation has one room state from spec 001. The journal names that change
 The player can see the current chapter goal and the state of its four preparations.
 The journal shows the result of each complete chapter.
 The finale names the result of each chapter. All four core characters speak: Mara, Ilie, Eszter, and Sorin.
-The finale ends with a return to the kitchen. No quests remain after the supper.
+The finale ends with a return to the kitchen. Only repeating quests remain after the supper.
 The board and the recipe book stay available.
 
 ## Scope and ownership
@@ -52,7 +52,7 @@ The closing scene of chapter 1 names the one friendly spider that stays under th
 4. Each contribution is a quest of a core character.
    The contribution opens after the previous chapter closes. It opens before the last preparation of its chapter.
    The six contributions cover all four core characters.
-   Like every quest, a contribution is necessary for the preparation that follows its opening.
+   Like every campaign quest, a contribution is necessary for the preparation that follows its opening.
    `questProblems` checks the combined graph of preparations and quests for cycles and unknown prerequisites.
 5. After preparation 24, Mara's supper quest opens. It asks for one plate for each of the 11 guests and pays nothing.
    Spec 012 gives the plates.
@@ -61,7 +61,7 @@ The closing scene of chapter 1 names the one friendly spider that stays under th
    The game does not charge a preparation again and does not give a reward again.
 6. The finale names the outcome of each chapter, and all four core characters speak.
    Its last control, "See the supper", opens the supper painting with the ending line of the finale.
-   The painting ends with "Back to the kitchen" if no other scene is unread. No quests remain.
+   The painting ends with "Back to the kitchen" if no other scene is unread. Only repeating quests remain.
 7. The journal replays the closing scene of each complete chapter.
    After the supper, the journal also replays the finale with the supper painting.
    A replay and the close of a dialog have no effect on the economy.

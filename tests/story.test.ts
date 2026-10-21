@@ -155,7 +155,7 @@ test('the last preparation queues its scene and the chapter scene once, with no 
   rejected(read, { type: 'readScene', id: undefined as unknown as string });
 });
 
-test('the supper quest has no cost, earns the finale, leaves no ticket, and keeps the board playable', () => {
+test('the supper quest has no cost, earns the finale, leaves only a repeating ticket, and keeps the board playable', () => {
   const supper = supperQuest(data)!, campaign = requiredQuests(data.tasks.length, data);
   const before = ready(checkpoint(23));
   assert.deepEqual(new Set(before.completedQuests), new Set(campaign.map(quest => quest.id)), 'Every campaign quest is required before the supper.');
@@ -170,7 +170,9 @@ test('the supper quest has no cost, earns the finale, leaves no ticket, and keep
   assert.deepEqual(state.pendingScenes, [...queued(24), 'finale']);
   assert.deepEqual(state.completedQuests.slice(-1), [supper.id]);
   state = act(state, { type: 'readScene', id: 'finale' });
-  assert.ok(resolveQuests(state, data).every(view => view.status === 'complete' || (view.quest.recovery && view.status === 'locked')));
+  // After the supper, the bistro has no other work, so a repeating quest opens.
+  assert.ok(resolveQuests(state, data).every(view => view.status === 'complete' || view.status === 'locked' || (view.quest.repeating && view.status === 'active')));
+  assert.equal(resolveQuests(state, data).filter(view => view.status === 'active').length, 1);
   const source = state.board.findIndex(cell => cell?.code === 'generator_herbs');
   state = act(state, { type: 'spawn', index: source });
   assert.deepEqual(state.pendingScenes, queued(24));

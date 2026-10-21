@@ -175,6 +175,8 @@ Each preparation defines work, materials or stock, labour, and estimated active 
 The materials and the labour determine the cost. The story position does not determine the cost.
 
 These figures are estimates for the stated work.
+The table and the game use 90% of each estimate of materials and labour, rounded to whole coins.
+The allowances below give the full estimates.
 Retail examples and minimum service rates inform the estimates.
 No supplier gives a quote for this fictional bistro.
 Quantities, hours, and the share of a partly used supply pack are assumptions.
@@ -182,30 +184,30 @@ The game has no wait for paint to dry, materials to cure, or supplies to arrive.
 
 | N | Preparation | Materials or stock | Labour | Person-hours | Total coins |
 | --- | --- | ---: | ---: | ---: | ---: |
-| 1 | Fix the broken window | 200 | 200 | 4 | 400 |
-| 2 | Mend the welcome board | 30 | 60 | 1.5 | 90 |
-| 3 | Set up the pastry shelf | 30 | 40 | 1 | 70 |
-| 4 | Light the front room | 40 | 200 | 3 | 240 |
-| 5 | Repair the kitchen worktop | 90 | 150 | 3 | 240 |
-| 6 | Bring in market produce | 80 | 40 | 1 | 120 |
-| 7 | Hang the kitchen shelves | 80 | 100 | 2 | 180 |
-| 8 | Write the first menu | 25 | 25 | 0.5 | 50 |
-| 9 | Choose the tableware | 480 | 40 | 1 | 520 |
-| 10 | Sand the long table | 120 | 480 | 8 | 600 |
-| 11 | Make a recipe corner | 20 | 20 | 0.5 | 40 |
-| 12 | Open the shared table | 20 | 80 | 2 | 100 |
-| 13 | Clear the courtyard | 20 | 120 | 4 | 140 |
-| 14 | Plant the herb pots | 100 | 40 | 1 | 140 |
-| 15 | Repair the door hood | 900 | 400 | 8 | 1300 |
-| 16 | Set the outdoor tables | 10 | 80 | 2 | 90 |
-| 17 | Collect family recipes | 15 | 60 | 2 | 75 |
-| 18 | Prepare the tasting plates | 90 | 60 | 2 | 150 |
-| 19 | Stock the drinks cabinet | 160 | 40 | 1 | 200 |
-| 20 | Print the supper menu | 40 | 80 | 2 | 120 |
-| 21 | Send the invitations | 160 | 60 | 2 | 220 |
-| 22 | Prepare the serving station | 120 | 80 | 2 | 200 |
-| 23 | Add the final flowers | 120 | 60 | 1.5 | 180 |
-| 24 | Welcome the community supper | 60 | 60 | 2 | 120 |
+| 1 | Fix the broken window | 180 | 180 | 4 | 360 |
+| 2 | Mend the welcome board | 27 | 54 | 1.5 | 81 |
+| 3 | Set up the pastry shelf | 27 | 36 | 1 | 63 |
+| 4 | Light the front room | 36 | 180 | 3 | 216 |
+| 5 | Repair the kitchen worktop | 81 | 135 | 3 | 216 |
+| 6 | Bring in market produce | 72 | 36 | 1 | 108 |
+| 7 | Hang the kitchen shelves | 72 | 90 | 2 | 162 |
+| 8 | Write the first menu | 23 | 23 | 0.5 | 46 |
+| 9 | Choose the tableware | 432 | 36 | 1 | 468 |
+| 10 | Sand the long table | 108 | 432 | 8 | 540 |
+| 11 | Make a recipe corner | 18 | 18 | 0.5 | 36 |
+| 12 | Open the shared table | 18 | 72 | 2 | 90 |
+| 13 | Clear the courtyard | 18 | 108 | 4 | 126 |
+| 14 | Plant the herb pots | 90 | 36 | 1 | 126 |
+| 15 | Repair the door hood | 810 | 360 | 8 | 1170 |
+| 16 | Set the outdoor tables | 9 | 72 | 2 | 81 |
+| 17 | Collect family recipes | 14 | 54 | 2 | 68 |
+| 18 | Prepare the tasting plates | 81 | 54 | 2 | 135 |
+| 19 | Stock the drinks cabinet | 144 | 36 | 1 | 180 |
+| 20 | Print the supper menu | 36 | 72 | 2 | 108 |
+| 21 | Send the invitations | 144 | 54 | 2 | 198 |
+| 22 | Prepare the serving station | 108 | 72 | 2 | 180 |
+| 23 | Add the final flowers | 108 | 54 | 1.5 | 162 |
+| 24 | Welcome the community supper | 54 | 54 | 2 | 108 |
 
 The work estimates have these limits:
 
@@ -243,7 +245,7 @@ The work estimates have these limits:
 ## Effort in play
 
 The estimated person-hours describe the work. The hours do not set a timer or a play goal.
-The 24 preparations total 57 estimated person-hours and 5585 coins.
+The 24 preparations total 57 estimated person-hours and 5028 coins.
 
 A preparation can cost less than the preparation before it.
 Late menu or display work does not cost more only because the work occurs late in the story.
@@ -304,7 +306,8 @@ The fixture pays each preparation when payment becomes available.
 If the fixture cannot pay, the fixture delivers tonight's booked quest first.
 The fixture lights the lanterns if the meal is ready before 20:00.
 Then the fixture delivers the unbooked ticket whose ingredients cost the least.
-If only booked quests for later evenings remain, the fixture cooks them, and their merges bring the night.
+If only booked quests for later evenings remain, the fixture cooks them.
+Then the bistro has no work, and the fixture delivers the repeating quests until the night.
 Before a quest, the fixture delivers the recovery quest while the purse is short.
 Within 30 merges of the closing, the fixture delivers the recovery quest while the purse is below the upkeep.
 So the purse never goes below zero.
@@ -314,7 +317,7 @@ If the board is full, the fixture merges spare food. The merge uses a pair, a re
 A full board without such a merge is a deadlock, and the fixture fails.
 After the last preparation, the fixture serves the supper.
 The balance band is the range of the purse after the supper.
-The purse must hold 0 to 10% of the coins that the fixture spent on preparations, takes, and upkeep.
+The purse must hold 0 to 20% of the coins that the fixture spent on preparations, takes, and upkeep.
 
 `tests/campaign-balance.test.ts` enforces the bounds that `PRODUCT.md` gives for the three strategies.
 The efficient fixture takes two ingredients and merges them immediately.

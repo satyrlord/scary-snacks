@@ -253,30 +253,30 @@ const taskRows = [
 // Materials and labour are scoped estimates in lei-equivalent coins, not contractor quotes.
 // Hours count active person-hours, not elapsed waiting. See the source anchors and assumptions in docs/economy.md.
 const workRows: [materials: number, labour: number, hours: number, summary: string][] = [
-  [200, 200, 4, 'Replace one broken pane. Prepare and repaint the existing frame and shutters. Keep the sound window structure.'],
-  [30, 60, 1.5, 'Sand and repaint the existing sound welcome board. Add a small flower motif.'],
-  [30, 40, 1, 'Clean the existing pastry shelf. Add a tray, a liner, and the first pastry display.'],
-  [40, 200, 3, 'Mount and connect two supplied lamps. Fit bulbs and check the existing connections.'],
-  [90, 150, 3, 'Stabilize the existing worktop. Repair and seal its damaged edge, then polish the existing pans.'],
-  [80, 40, 1, 'Buy one small basket of vegetables and garlic. Prepare the first display and preserves batch.'],
-  [80, 100, 2, 'Secure and touch up the existing upper shelf. Add the first jars of preserves.'],
-  [25, 25, 0.5, 'Use one small chalk slate and chalk. Write and draw the first menu by hand.'],
-  [480, 40, 1, 'Buy six handmade bowls and six cups with saucers. Wash and arrange them. Keep them for later meals.'],
-  [120, 480, 8, 'Repair, sand, and refinish the existing long table and two chairs. Keep their sound timber.'],
-  [20, 20, 0.5, 'Add a notebook and pencils to the existing cabinet. Arrange the recipe corner.'],
-  [20, 80, 2, 'Move the prepared table, chairs, and existing dresser. Clean and set the shared places.'],
-  [20, 120, 4, 'Sweep a small paved courtyard of about 20 square metres. Bag the leaves and clear the path.'],
-  [100, 40, 1, 'Plant three small herbs in three clay pots with soil and drainage.'],
-  [900, 400, 8, 'Replace about two square metres of wooden shingles on the sound door hood. Renew fixings and weather seals.'],
-  [10, 80, 2, 'Move two existing outdoor tables and chairs. Clean and level them, and keep the path clear.'],
-  [15, 60, 2, 'Collect family recipes, copy them onto paper, and pin them above the menu.'],
-  [90, 60, 2, 'Prepare twelve small tasting portions and labels. Use the plates and bowls already bought.'],
-  [160, 40, 1, 'Buy the first drinks, fruit, and tea stock and labels. Use the existing niche, pitcher, cups, and glasses.'],
-  [40, 80, 2, 'Print ten sturdy supper menus and add simple stands. Move the existing long table into the courtyard.'],
-  [160, 60, 2, 'Print twenty small invitations. Hang a wreath on the kitchen door. Dress the gate with a lantern and pots of red geraniums, and line the wall with more. Reuse the towels.'],
-  [120, 80, 2, 'Set the existing serving table with a cloth and labels. Prepare the first warm dishes and bread. Reuse the plates.'],
-  [120, 60, 1.5, 'Hang one outdoor light string. Arrange gathered wildflowers in existing vases.'],
-  [60, 60, 2, 'Top up bread, water, and food for eleven guests. Finish setting places and welcome everyone. Reuse the prepared room and tableware.'],
+  [180, 180, 4, 'Replace one broken pane. Prepare and repaint the existing frame and shutters. Keep the sound window structure.'],
+  [27, 54, 1.5, 'Sand and repaint the existing sound welcome board. Add a small flower motif.'],
+  [27, 36, 1, 'Clean the existing pastry shelf. Add a tray, a liner, and the first pastry display.'],
+  [36, 180, 3, 'Mount and connect two supplied lamps. Fit bulbs and check the existing connections.'],
+  [81, 135, 3, 'Stabilize the existing worktop. Repair and seal its damaged edge, then polish the existing pans.'],
+  [72, 36, 1, 'Buy one small basket of vegetables and garlic. Prepare the first display and preserves batch.'],
+  [72, 90, 2, 'Secure and touch up the existing upper shelf. Add the first jars of preserves.'],
+  [23, 23, 0.5, 'Use one small chalk slate and chalk. Write and draw the first menu by hand.'],
+  [432, 36, 1, 'Buy six handmade bowls and six cups with saucers. Wash and arrange them. Keep them for later meals.'],
+  [108, 432, 8, 'Repair, sand, and refinish the existing long table and two chairs. Keep their sound timber.'],
+  [18, 18, 0.5, 'Add a notebook and pencils to the existing cabinet. Arrange the recipe corner.'],
+  [18, 72, 2, 'Move the prepared table, chairs, and existing dresser. Clean and set the shared places.'],
+  [18, 108, 4, 'Sweep a small paved courtyard of about 20 square metres. Bag the leaves and clear the path.'],
+  [90, 36, 1, 'Plant three small herbs in three clay pots with soil and drainage.'],
+  [810, 360, 8, 'Replace about two square metres of wooden shingles on the sound door hood. Renew fixings and weather seals.'],
+  [9, 72, 2, 'Move two existing outdoor tables and chairs. Clean and level them, and keep the path clear.'],
+  [14, 54, 2, 'Collect family recipes, copy them onto paper, and pin them above the menu.'],
+  [81, 54, 2, 'Prepare twelve small tasting portions and labels. Use the plates and bowls already bought.'],
+  [144, 36, 1, 'Buy the first drinks, fruit, and tea stock and labels. Use the existing niche, pitcher, cups, and glasses.'],
+  [36, 72, 2, 'Print ten sturdy supper menus and add simple stands. Move the existing long table into the courtyard.'],
+  [144, 54, 2, 'Print twenty small invitations. Hang a wreath on the kitchen door. Dress the gate with a lantern and pots of red geraniums, and line the wall with more. Reuse the towels.'],
+  [108, 72, 2, 'Set the existing serving table with a cloth and labels. Prepare the first warm dishes and bread. Reuse the plates.'],
+  [108, 54, 1.5, 'Hang one outdoor light string. Arrange gathered wildflowers in existing vases.'],
+  [54, 54, 2, 'Top up bread, water, and food for eleven guests. Finish setting places and welcome everyone. Reuse the prepared room and tableware.'],
 ];
 // The preparation, by number, that opens each source after the first three. Its scene names the new source.
 const unlocks: Record<number, string> = { 3: 'dairy', 5: 'poultry', 6: 'vegetables', 7: 'fruits', 8: 'pork', 11: 'beans', 13: 'lamb', 16: 'veal', 20: 'fish' };
@@ -699,10 +699,22 @@ const recovery: Quest = { id: 'ana-night-ward-tea', character: 'ana', title: 'Te
     ['mara', 'And if the purse is still thin tomorrow?'],
     ['ana', 'Then I come back tomorrow. Patients never run out of nights.']]),
   completion: [] };
+// While the bistro has no other work, three neighbours ask again and again for a simple meal, in this cycle order. Bela and Cezar
+// ask only after the campaign quest that the player first knows them by, so their lines need no introduction.
+const repeatingRows: [id: string, character: string, title: string, after: string | null, requirements: [string, number][], opening: string, companions?: string[]][] = [
+  ['sorin-staff-meal', 'sorin', 'Staff meal', null, [['Loaf', 2], ['Socată', 2]],
+    'The kitchen is quiet for a moment. Mara says that the staff eat when the kitchen is quiet. Two loaves and two socată, and we sit down for once.', ['mara']],
+  ['bela-cold-night', 'bela', 'Another cold night', 'bela-warm-cup', [['Mămăligă', 1], ['Linden tea', 1]],
+    'The graves send their regards. Mămăligă and a hot linden tea, please, before the night gets cold.'],
+  ['cezar-before-rounds', 'cezar', 'Before the rounds', 'cezar-long-night', [['Bean soup', 1], ['Loaf', 1]],
+    'My round starts soon. My feet already know the way, but my stomach does not. A bean soup and a loaf, please.'],
+];
+const repeating: Quest[] = repeatingRows.map(([id, character, title, after, requirements, opening, companions]) => ({ id, character, title, afterTask: null,
+  ...(after ? { afterQuest: after } : {}), repeating: true, ...(companions ? { companions } : {}), ...questTerms(requirements), opening: lines(character, opening), completion: [] }));
 // The tickets show open quests in authored order, so the quests are listed in the order in which they open.
 // A booked guest comes last in the window: the quests before the evening bring the dishes of the dinner into the recipe book.
 const quests: Quest[] = [recovery, ...campaign.sort((first, second) => first.window - second.window
-  || Number(!!first.quest.booked) - Number(!!second.quest.booked)).map(({ quest }) => quest)];
+  || Number(!!first.quest.booked) - Number(!!second.quest.booked)).map(({ quest }) => quest), ...repeating];
 // The renovation: every preparation repaints one room, so the bistro visibly improves as the player spends coins.
 // Each area is a series of 3:4 portrait paintings (docs/specs/001-visible-renovation-art-plan.md). A state shows every change paid for in its area.
 const areas: Area[] = [

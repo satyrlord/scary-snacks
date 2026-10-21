@@ -1,6 +1,6 @@
 # 014: Repeating quests
 
-Status: Partly implemented. Bela, his campaign quest, and his art are implemented. The repeating quests and the economy change are proposed.
+Status: Implemented.
 
 ## Outcome and scope
 
@@ -36,8 +36,8 @@ A quest has work if the player can act on the quest on the current day.
 
 - An open campaign quest, the supper quest, and an open recovery quest have work.
 - The booked quest of the evening guest has work until its delivery. The player can cook, light the lanterns, or deliver.
-- A booked quest for another evening has work only if a portion of the quest is not on the board.
-  If every portion is on the board, the quest has no work until its evening.
+- A booked quest for another evening has work only while a portion is missing from the board.
+  The booked meals for later evenings share no portion. The board must hold the portions of all of them together.
 
 The bistro has no work if no open quest has work and the next preparation is not ready to pay.
 A repeating quest does not count in this rule.
@@ -94,11 +94,13 @@ The rewards use the current levers.
 | --- | --- | --- | --- | --- | ---: | ---: |
 | 1 | Staff meal | Sorin, with Mara | New game | 2 Loaf, 2 Socată | 12 | 32 |
 | 2 | Another cold night | Bela, the graveyard keeper | The delivery of `bela-warm-cup` | 1 Mămăligă, 1 Linden tea | 14 | 36 |
-| 3 | Before the rounds | Cezar, the night watchman | Preparation 11 opens Beans | 1 Bean soup, 1 Loaf | 11 | 35 |
+| 3 | Before the rounds | Cezar, the night watchman | The delivery of `cezar-long-night` | 1 Bean soup, 1 Loaf | 11 | 35 |
 
 The staff meal feeds two eaters: Sorin, the bistro helper, and Mara, the bistro owner.
+A companion is a visitor. A repeating quest can also have a core character as a companion.
 Bela's opening line: "The graves send their regards. Mămăligă and a hot linden tea, please, before the night gets cold."
 Cezar's quest includes Bean soup, one of his favourite dishes. So the favourite rule of spec 010 applies without an exception.
+The player first surely knows Bean soup from `cezar-long-night`. So his quest follows that quest, and the one-merge rule holds.
 
 ## The graveyard keeper
 
@@ -123,48 +125,48 @@ The run spends coins on preparations, takes, and upkeep. The purse after the sup
 
 The material cost and the labour cost of each preparation decrease by 10%, rounded to whole coins.
 The cost of each preparation stays the material cost plus the labour cost.
-The total of the preparations decreases from 5585 to 5028 coins.
+The total of the preparations is 5028 coins.
 
-These results come from the current fixture, with seed 1:
+These results come from the fixture, with seed 1:
 
 | Strategy | Purse after the supper | Share of the spending |
 | --- | ---: | ---: |
 | Efficient | 1010 of 8345 | 12.1% |
-| Miss bookings | 1033 of 8321 | 12.4% |
+| Miss bookings | 1066 of 8389 | 12.7% |
 | Debt | 8 of 8356 | 0.1% |
 
 The efficient purse is near the middle of the band.
-After each payment, the efficient purse holds 40 to 560 more coins than at the current costs.
+After each payment, the efficient purse holds 40 to 560 more coins than at the full estimates.
 
 ## Data and state
 
 - `tools/create-original-data.ts` authors the repeating quests in cycle order and the lower preparation costs.
-- `src/model.ts` gives the work of a quest, whether the bistro has work, and the next repeating quest.
+- `src/model.ts` gives whether the bistro has work, whether a repeating quest can join the cycle, and the next repeating quest.
 - `src/model.ts` gives the open repeating quest a ticket after the campaign quests.
 - `src/engine.ts` opens the next repeating quest in the change that removes the last work.
   The module also delivers a repeating quest and moves the cycle.
 - `src/content.ts` checks that the data has at least three repeating quests, with at most 15 merges each.
   The module checks the one-meal limits and the one-merge rule of each repeating quest.
   The module also checks that at least one repeating quest can join the cycle in a new game.
-- The state has an optional record of the repeating quests. The record holds the number of repeating deliveries and the ID of the open repeating quest, if one is open.
+- The state has an optional record of the repeating quests. The record holds the ID of the last delivered repeating quest and the ID of the open one.
+  Each ID can be empty.
 - A missing record means no repeating delivery and no open repeating quest.
   So a current save loads without a change, as for the optional record of the preparation blockers.
 - The game state version and the envelope version do not change.
-- Save validation rejects an open quest that is not a repeating quest or that cannot join the cycle.
+- Save validation rejects a record that names an unknown quest. The quest must be a repeating quest that can join the cycle.
 - Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index.
 
 ## Owner contracts
 
-The task that implements the feature also changes these owner documents:
-
-- `PRODUCT.md`: the work rule, the repeating quests, the optional save record, the balance band, and the preparation costs.
-- `docs/economy.md`: the preparation costs, the balance band, and the measured results.
+- `PRODUCT.md` controls the work rule, the repeating quests, the optional save record, and the balance band.
+- `docs/economy.md` gives the preparation costs and the measured results.
 
 ## Balance check
 
 - The efficient strategy does not change. Its purse after the supper is inside the band of 0 to 20%.
-- The miss-bookings strategy delivers repeating quests while the bistro has no work. It does not cook spare food.
-- In each strategy and each seed, the filler merges are zero: no strategy cooks a dish that no quest needs.
+- The miss-bookings strategy delivers repeating quests while the bistro has no work.
+- The miss-bookings strategy cooks spare food only while it lets tonight's guest wait. Then the bistro has work, so no repeating quest opens.
+- The efficient strategy and the debt strategy cook no dish that no quest needs.
 
 ## Acceptance checks
 

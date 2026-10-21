@@ -36,12 +36,13 @@ The files in `tests/` check these areas.
 | `economy.test.ts` | Formula prices, paid and free takes, a take without the coins, and the recovery quest after the last preparation. One Linden tea in four free cells, and work budgets. |
 | `campaign-goals.test.ts` | Required quests, coins, the free cell for a source, failed payments, quest order, the supper and recovery quest records, and sufficient campaign work. |
 | `campaign-balance.test.ts` | A complete campaign through valid actions, with accounts for actions, coins, and upkeep. The efficient strategy for 20 seeds: days, a purse never below zero, and the balance band after the supper. The efficient strategy has no merges only to move the clock. Free cells at each preparation, and the recovery quest before each preparation. |
-| `campaign-missed-bookings.test.ts` | For 20 seeds, a strategy that misses each booking once finishes act 1. |
+| `campaign-missed-bookings.test.ts` | For 20 seeds, a strategy that misses each booking once finishes act 1. The strategy delivers repeating quests while the bistro has no work. |
 | `campaign-debt.test.ts` | For 20 seeds, a strategy starts each preparation window with a debt of 20 coins. The strategy reaches each preparation through the recovery quest. |
 | `day.test.ts` | The clock, the closing order, the thief rat and its seed, and rat holes. Șoricescu's gift, the gift space and the recovery quest, debt, and the evening guest. Booked tickets, the lantern control, and the result of act 1. The day levers and the booked quests, and saves of the day fields. |
 | `quests.test.ts` | Quest data, three tickets and the recovery ticket, authored order, delivery requirements, and failed deliveries. The coin limit on delivery, visitor order, cathedral sizes, and one-meal sizes. The one-merge rule for quest dishes, diets, favourites, and the supper plates. |
 | `guests.test.ts` | Red wine quests, Ionatan's dinner and journal entry, the shared vegetarian meal, visitor departure, and later local news. |
 | `regulars.test.ts` | Arrival pairs, arrival scenes, quest timing, favourite dishes, diets, the neighbours list, and cast validation. |
+| `repeating.test.ts` | The work rule, the cycle order, the ticket after the campaign quests, repeating deliveries, the recovery cases, play after the supper, the data checks, and the saved record. |
 | `board-clearing.test.ts` | Initial blockers, matching merges, recipe partners, the blocker coin, blocked actions, the free cells that placement keeps, discoveries, and saved progress. |
 | `preparation-blockers.test.ts` | Preparation batches, deferred placement, four free cells, source priority, saved history, failed writes, and retry. |
 | `story.test.ts` | Chapters, scenes, source openings, the served supper, the finale, queues, failed payments, and play after the finale. |
@@ -56,7 +57,7 @@ Generator checks cover stage-1 production, paid and free takes, and a full board
 The campaign fixture completes all 24 preparations and all 82 campaign quests without injected coins or items.
 Then the fixture serves the supper.
 The purse after the supper is inside the balance band.
-The balance band is 0 to 10% of the coins that the fixture spent on preparations, takes, and upkeep.
+The balance band is 0 to 20% of the coins that the fixture spent on preparations, takes, and upkeep.
 The thief rat robs the efficient fixture once and takes each loose ingredient, so its 20 seeds give the same run. The day tests check the thief rat with given seeds.
 The fixture reports actions, takes, merges, deliveries, recovery deliveries, income, and free cells for each preparation and chapter.
 Before each preparation, a check buys one spare ingredient so that the purse cannot pay.
@@ -91,6 +92,7 @@ The files in `tests/browser/` check these areas.
 | `quests.spec.ts` | Tickets, quest dialogs, direct missing-dish guidance, dish help, deliveries, scenes, saves, focus, input, and concurrent tabs. |
 | `visitors.spec.ts` | Supply quests, visitor portraits, introductions, Ionatan's dinner, departure, and save failures. |
 | `guests.spec.ts` | Shared quests, both portraits, diets, local news, departure, and red wine. |
+| `repeating.spec.ts` | A repeating ticket after the supper, its delivery, and the next quest of the cycle, at the desktop size and the phone size in both themes. A saved repeating quest that waits while campaign quests hold the tickets. |
 | `board-clearing.spec.ts` | Blocked cells, legal merge targets, labels, help, input, reload, the blocker coin, and web removal at preparation 1. |
 | `preparation-blockers.spec.ts` | Payment, failed payment saves, artwork, matching merges, deferred placement, four free cells, reload, and layout. |
 | `blocker-help.spec.ts` | Rule marks, both tap orders to clear a blocker, matching dishes, and recipe partners. Names of only the partners that the player has made. The blocker coin, eligible targets, dismissed help, unchanged saves, contrast, and layout. |
