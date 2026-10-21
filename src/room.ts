@@ -285,4 +285,5 @@ $('#room-pin').addEventListener('click',()=>{const {view}=currentView();status(v
 $('#cat-button').addEventListener('click',toggleCat);
 movableDrawer.addEventListener('change',()=>setLowered(false));
 window.addEventListener('resize',syncRoomControls);
-$('#room-frame').addEventListener('transitionend',syncRoomControls);$('.game-layout').addEventListener('transitionend',syncRoomControls);
+// Only the pan of the frame and the drop of the drawer move the room. The press transitions of the buttons inside them also bubble here.
+for(const mover of [$('#room-frame'),$('.game-layout')])mover.addEventListener('transitionend',event=>{if(event.target===mover)syncRoomControls();});

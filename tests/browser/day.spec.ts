@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test';
 import { dayMerges } from '../../src/model.ts';
 import { createGame, reduceGame } from '../../src/engine.ts';
 import type { GameState, NightReport } from '../../src/model.ts';
-import { act, checkpoint, data, KEY, mergeFlour, opened, options, quest, replaceSave, saved, serialize, start, supplies, supply, ticket, tile, toast, validate } from './support.ts';
+import { act, supper, checkpoint, data, KEY, mergeFlour, opened, options, quest, replaceSave, saved, serialize, start, supplies, supply, ticket, tile, toast, validate } from './support.ts';
 
 // A new game has two Flours at 13 and 14, a Corn cob at 22, and Elderflowers at 27.
 const report = (values: Partial<NightReport> = {}): NightReport => ({ day: 2, upkeep: 10, rat: 'soricescu', taken: [], trapped: null, gift: null, purse: 30, seen: true, ...values });
@@ -206,13 +206,15 @@ for (const watching of [false, true]) test(`hiding the page ${watching ? 'during
 test('a queued closing-dialog event does not mark an open morning report as seen', async ({ page }) => {
   await start(page, lateEvening()); await mergeFlour(page);
   await closing(page).getByRole('button', { name: 'Watch the night' }).evaluate(control => {
+    // The mark shows that the queued close event has run.
+    document.querySelector('#modal')!.addEventListener('close', () => { document.documentElement.dataset.closed = ''; }, { once: true });
     (control as HTMLButtonElement).click();
     // Hide before the browser dispatches the closing dialog's queued close event.
     Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
     document.dispatchEvent(new Event('visibilitychange'));
   });
   await expect(morning(page)).toBeVisible();
-  await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+  await expect(page.locator('html')).toHaveAttribute('data-closed', '');
   expect((await saved(page)).night!.seen).toBe(false);
   await morning(page).getByRole('button', { name: 'Open the bistro' }).click();
   await expect.poll(async () => (await saved(page)).night!.seen).toBe(true);
@@ -276,7 +278,6 @@ for (const [name, night, words] of unreported) test(`after a reload, the morning
 });
 
 test('after the supper, the supper card gives the result of act 1, also with a debt', async ({ page }) => {
-  const supper = data.quests.find(value => value.finale)!;
   const finished = supply({ ...checkpoint(data.tasks.length), coins: 0, clock: { day: 22, merges: 10 }, night: report({ day: 21 }) }, supplies(supper));
   const served = reduceGame(finished, { type: 'deliverQuest', id: supper.id }, data).state;
   await start(page, { ...served, coins: -40, act1: { days: 22, purse: -40 }, pendingScenes: [] });

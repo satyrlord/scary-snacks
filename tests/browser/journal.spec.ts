@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { arrivalScene, deliveriesSince, journalCharacters, resolveChapters, resolveQuests, supperComplete } from '../../src/model.ts';
-import { act, checkpoint, data, deliverable, forward, journal, opened, quest, ratio, readTo, saved, start, supplies, supply, validate } from './support.ts';
+import { act, supper, checkpoint, data, deliverable, forward, journal, opened, quest, ratio, readTo, saved, start, supplies, supply, validate } from './support.ts';
 
 /** Earned scenes left unread at representative campaign positions. */
 function journalState(count: number){
@@ -85,7 +85,7 @@ test('single-visit farewell is readable once from Unread and returns to its head
 });
 
 test('earlier conversations follow delivery order, and the latest chapter remains after the supper',async({page})=>{
-  const supper=data.quests.find(value=>value.finale)!;let state=supply(checkpoint(24,{coins:data.economy.recoveryFloor}),supplies(supper));
+  let state=supply(checkpoint(24,{coins:data.economy.recoveryFloor}),supplies(supper));
   state=act(state,{type:'deliverQuest',id:supper.id});state=act(state,{type:'readScene',id:data.finale.id});
   await start(page,state);await journal(page,['conversations']);
   await expect(page.locator('[data-current-chapter]')).toHaveAttribute('data-chapter',data.chapters.at(-1)!.id);

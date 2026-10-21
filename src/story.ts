@@ -1,8 +1,8 @@
 // The story: the chapter card with the next preparation and its payment, the scenes, and the story journal.
 import { deliveriesSince, journalCharacters, resolveChapters, resolveNeighbours, resolveQuests, sceneSource, supperComplete, supperQuest, taskEligibility } from './model.ts';
 import type { Character, ChapterView, SceneLine, Task, TaskRequirement } from './model.ts';
-import { $, button, coinText, count, element, names, svg } from './dom.ts';
-import { coinMark, portrait, questSketch } from './art.ts';
+import { $, button, coinText, count, element, names } from './dom.ts';
+import { coinMark, icon, portrait, questSketch } from './art.ts';
 import { modal, showModal } from './dialog.ts';
 import { guidanceGoal } from './dishes.ts';
 import { holdChange, miezSprite, preloadRoom, roomPicture, SUPPER_PICTURE, toggleCat } from './room.ts';
@@ -68,8 +68,7 @@ export function storyContent(inSheet: boolean) {
     });
     details.dataset.workCost = ''; details.setAttribute('aria-label', 'Work and cost');
     details.setAttribute('aria-expanded', String(!costs.hidden)); details.setAttribute('aria-controls', costs.id);
-    const chevron = svg('svg'), path = svg('path'); chevron.setAttribute('viewBox','0 0 24 24'); chevron.setAttribute('aria-hidden','true');
-    path.setAttribute('d','m7 10 5 5 5-5'); chevron.append(path); details.append(chevron);
+    details.append(icon('', '0 0 24 24', ['path', { d: 'm7 10 5 5 5-5' }]));
     actions.append(pay, details); body.append(requirements, actions, costs);
   }
   const links = element('div', 'story-links');

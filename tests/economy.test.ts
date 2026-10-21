@@ -4,11 +4,10 @@ import { freeBoardCells, menuPrice, pendingPreparationObstacles, unresolvedObsta
 import { dataProblems, economyProblems } from '../src/content.ts';
 import { KEEP_FREE } from '../src/engine.ts';
 import type { GameData } from '../src/model.ts';
-import { act, addOpenLayout, checkpoint, data, openGame, player, rejected, status, know } from './support.ts';
+import { act, addOpenLayout, checkpoint, data, openGame, player, rejected, status, know, recovery } from './support.ts';
 
 addOpenLayout();
 
-const recovery = data.quests.find(quest => quest.recovery)!;
 /** The price from the formula, worked out here from the chains and the recipes: staples × take cost + merges × work rate. */
 function formula(code: string): { staples: number; merges: number } {
   const item = data.items[code];

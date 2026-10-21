@@ -4,7 +4,7 @@ import { SAVE_KEY, MAX_SAVE_BYTES, loadSave, saveGame, exportSave, importSave, r
 import { taskEligibility, resolveQuests, supperComplete, supperQuest } from '../src/model.ts';
 import { createGame, reduceGame, repairSave } from '../src/engine.ts';
 import type { GameState } from '../src/model.ts';
-import { act, checkpoint, data, memoryStorage, rejected, supply, validate, withTickets } from './support.ts';
+import { act, checkpoint, data, memoryStorage, rejected, supply, validate, withTickets, recovery } from './support.ts';
 
 type State = { coins: number; board: ({ code: string } | null)[]; story: string; self?: State };
 
@@ -339,7 +339,6 @@ test('malformed campaign saves remain recoverable without replacing current byte
 test('unknown, duplicate, contradictory, and recovery quest records cannot replace current saved progress', () => {
   const current = createGame(data);
   const first = data.quests.find(quest => quest.afterTask === null && !quest.afterQuest && !quest.recovery)!;
-  const recovery = data.quests.find(quest => quest.recovery)!;
   const later = data.quests.find(quest => quest.afterQuest)!;
   const text = exportSave(current, validate);
   const invalidStates = [

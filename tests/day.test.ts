@@ -5,11 +5,10 @@ import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import { dayProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import type { GameData, GameState } from '../src/model.ts';
-import { act, addOpenLayout, checkpoint, data, deliver, openGame, player, ready, rejected, status, supply, validate, know } from './support.ts';
+import { act, addOpenLayout, checkpoint, data, deliver, openGame, player, ready, rejected, status, supply, validate, know, quest } from './support.ts';
 
 addOpenLayout();
 // The open layout: the Windmill at 1, the Corn basket at 4, Flour at 13 and 14, Corn at 22, Elderflowers at 27, the Herb basket at 31, Socată at 32 and 33.
-const quest = (id: string) => data.quests.find(value => value.id === id)!;
 const recovery = data.quests.find(value => value.recovery)!;
 /** A copy with these dishes in these cells. */
 function withBoard(state: GameState, cells: [number, string | null][]): GameState {

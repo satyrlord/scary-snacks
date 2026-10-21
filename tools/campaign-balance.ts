@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { canDeliverQuest, canLightLanterns, currentTask, dayMerges, dishWork, firstFreeBoardCell, freeBoardCells, getItem, mergeResult, requiredQuests, resolveQuests, supperComplete, supperQuest, takeCost, taskEligibility, unresolvedObstacle } from '../src/model.ts';
+import { canDeliverQuest, canLightLanterns, currentTask, dayMerges, dishWork, firstFreeBoardCell, freeBoardCells, getItem, mergeResult, requiredQuests, resolveQuests, stapleCost, supperComplete, supperQuest, takeCost, taskEligibility, unresolvedObstacle } from '../src/model.ts';
 import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import type { Action, GameData, GameState, Quest, Task } from '../src/model.ts';
 
@@ -86,7 +86,7 @@ export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignS
     assert.equal(state.coins, totals.questCoins + totals.blockerCoins - totals.preparationCoins - totals.takeCoins - totals.upkeepCoins + injected, 'Every coin comes from a recorded legal action.');
     assert.ok(totals.actions < 400_000, 'The campaign must converge within the fixture action limit.');
   }
-  const staples = (quest: Quest) => quest.requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).staples * data.economy.takeCost * quantity, 0);
+  const staples = (quest: Quest) => stapleCost(quest, data);
   const movable = (index: number) => !!state.board[index] && !unresolvedObstacle(state, index, data) && !getItem(state.board[index]!.code, data)!.generator;
 
   /** Near the closing, a purse that cannot pay the upkeep makes recovery teas first. The cells of the next merge stay kept. */
@@ -310,6 +310,7 @@ export const BALANCE_SEEDS = Array.from({ length: 20 }, (_, index) => index + 1)
 if (import.meta.main) {
   const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
   const strategy = (process.argv[2] ?? 'efficient') as CampaignStrategy;
+  if (!['efficient', 'miss-bookings', 'debt'].includes(strategy)) throw new Error('Use the strategy efficient, miss-bookings, or debt.');
   for (const seed of BALANCE_SEEDS) {
     const { nights, purse, spending, preparations } = runCampaignBalance(data, seed, strategy, false);
     console.log(JSON.stringify({ seed, ...nights, purse, spending, share: +(100 * purse / spending).toFixed(1), freeCells: preparations.map(value => value.freeCells).join(' ') }));

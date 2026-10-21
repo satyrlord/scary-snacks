@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { boardObstacles, mergePartners, unresolvedObstacle } from '../../src/model.ts';
 import { createGame, reduceGame } from '../../src/engine.ts';
 import type { GameState } from '../../src/model.ts';
-import { checkpoint, data, ratio, saved, start as open, tile, validate, know, madeLine } from './support.ts';
+import { checkpoint, data, ratio, saved, startStill as start, tile, validate, know, madeLine } from './support.ts';
 
 const help = (page: Page) => page.locator('#item-detail.blocker-help');
 /** The rule of a blocked dish: the matching dish, and each recipe partner that the player has made. */
@@ -17,15 +17,12 @@ function eggsOnly() {
   know(state,'poultry_1');
   return state;
 }
-async function start(page: Page, state = createGame(data), theme = 'light') {
-  await page.emulateMedia({ reducedMotion: 'reduce' }); await open(page, state, theme);
-}
 async function targets(page: Page) {
   return page.locator('#board .blocker-target').evaluateAll(elements => elements.map(element => Number((element as HTMLElement).dataset.cell)));
 }
 
 test('every opening blocker has a rule mark and selecting clutter replaces source details without a save change', async ({ page }) => {
-  await start(page);
+  await start(page, createGame(data));
   for (const obstacle of boardObstacles(createGame(data), data)) {
     await expect(tile(page, obstacle.position).locator('svg.blocker-mark')).toBeVisible();
     await expect(tile(page, obstacle.position).locator('.food')).toBeVisible();

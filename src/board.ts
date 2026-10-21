@@ -32,10 +32,7 @@ const partnerNames = (code: string) => either.format([...new Set(knownPartners(c
 function blockerTargets(index: number): number[] {
   const obstacle = unresolvedObstacle(state,index,data);
   if (!obstacle) return [];
-  return state.board.flatMap((cell, at) => {
-    const other = unresolvedObstacle(state,at,data);
-    return !other && cell && mergeResult(cell.code, obstacle.ingredient, data) ? [at] : [];
-  });
+  return state.board.flatMap((cell, at) => cell && mergeResult(cell.code, obstacle.ingredient, data) ? [at] : []);
 }
 /** Mark every legal merge destination for a selected movable dish: a match, a recipe partner, or a blocked dish that merges with it. */
 function dishTargets(index: number): number[] {
@@ -195,10 +192,10 @@ export function renderDetail() {
 }
 function findMatch() {
   for(let from=0;from<state.board.length;from++) {
-    const cell=state.board[from];if(!cell||definition(cell.code).generator||unresolvedObstacle(state,from,data))continue;
+    const cell=state.board[from];if(!cell||definition(cell.code).generator)continue;
     const blocker=matchingBlocker(cell.code);
     if(blocker){select(from);redraw();pulse([blocker.position]);status(`Tap the blocked ${itemName(blocker.ingredient)} to merge and clear it.`);return;}
-    const to=state.board.findIndex((other,index)=>index!==from&&!!other&&!unresolvedObstacle(state,index,data)&&!!mergeResult(cell.code,other.code,data));
+    const to=state.board.findIndex((other,index)=>index!==from&&!!other&&!!mergeResult(cell.code,other.code,data));
     // One item of the pair is selected and the other pulses, so the instruction names a single target.
     if(to>=0){const other=state.board[to]!.code;select(from);redraw();pulse([to]);status(other===cell.code?`Tap the other ${itemName(cell.code)} to merge them.`:`Tap the ${itemName(other)} to cook ${itemName(mergeResult(cell.code,other,data)!)}.`);return;}
   }
@@ -209,7 +206,7 @@ function findMatch() {
 function cancelDrag() { dragging?.ghost?.remove();dragging=null; }
 $('#board').addEventListener('pointerdown',event=>{
   const target=(event.target as Element).closest<HTMLElement>('[data-cell]');if(!target||event.button!==0)return;
-  const index=Number(target.dataset.cell);if(!state.board[index]||unresolvedObstacle(state,index,data))return;
+  const index=Number(target.dataset.cell);if(!state.board[index])return;
   // A second pointer, or a release that the window did not receive, must not leave a ghost behind.
   cancelDrag();
   dragging={index,id:event.pointerId,x:event.clientX,y:event.clientY,ghost:null};

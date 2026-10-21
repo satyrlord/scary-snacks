@@ -4,9 +4,9 @@ import { boardObstacles, firstFreeBoardCell, generatorOutputs, mergePartners, re
 import { createGame } from '../../src/engine.ts';
 import { appVersion } from '../../tools/build.ts';
 import type { GameState } from '../../src/model.ts';
-import { KEY, act, appearance, checkpoint, data, deliverButton, dismissDialogs, exportText, forward, goal, importSaveFile, journal, mergeFlour, newGame, onTicket, opened, options, painting, pay, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, startAgain, stateText, supplies, supply, tile, ticket, toast, unselect, know, madeLine } from './support.ts';
+import { KEY, act, naturalSize, recovery, supper, appearance, checkpoint, data, deliverButton, dismissDialogs, exportText, forward, goal, importSaveFile, journal, mergeFlour, newGame, onTicket, opened, options, painting, pay, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, startAgain, stateText, supplies, supply, tile, ticket, toast, unselect, know, madeLine } from './support.ts';
 
-const welcome=quest('mara-welcome'),welcomeSupplied=()=>supply(createGame(data),supplies(welcome)),recovery=data.quests.find(value=>value.recovery)!,supper=data.quests.find(value=>value.finale)!;
+const welcome=quest('mara-welcome'),welcomeSupplied=()=>supply(createGame(data),supplies(welcome));
 /** Earn the first preparation through legal actions: every required quest but the last delivered, and the dishes of the last on the board. */
 function beforeFirstPreparation(){
   let state=createGame(data);
@@ -917,7 +917,7 @@ test('only approved assets load from the active root or Pages prefix, and only t
   expect(rooms()).toEqual(['front-room-00']);
   await ticket(page,welcome).locator('.ticket-face').click();
   const sketch=page.locator('#modal .quest-sketch');
-  expect(await sketch.evaluate(async node=>{await (node as HTMLImageElement).decode();return (node as HTMLImageElement).naturalWidth;})).toBe(768);
+  expect((await naturalSize(sketch))[0]).toBe(768);
   for(const id of ['parchment-page','sketch-mara'])await expect.poll(()=>loaded.some(path=>path.includes(`/assets/variants/${id}-`))).toBe(true);
   await page.getByRole('button',{name:'Close dialog'}).click();
   await page.getByRole('button',{name:/The recipe book/}).click();await expect(page.locator('.recipe-item')).toHaveCount(Object.values(data.items).filter(item=>!item.generator).length);await page.getByRole('button',{name:'Close dialog'}).click();
@@ -926,7 +926,7 @@ test('only approved assets load from the active root or Pages prefix, and only t
   await expect.poll(()=>loaded.some(path=>path.includes('/assets/variants/visitor-portraits-'))).toBe(true);
   await page.getByRole('button',{name:'Close dialog'}).click();
   const expedition=quest('adrian-first-pack');await replaceSave(page,onTicket(expedition));await ticket(page,expedition).locator('.ticket-face').click();
-  expect(await sketch.evaluate(async node=>{const image=node as HTMLImageElement;await image.decode();return [image.naturalWidth,image.naturalHeight];})).toEqual([1024,683]);
+  expect(await naturalSize(sketch)).toEqual([1024,683]);
   await expect.poll(()=>loaded.some(path=>path.includes('/assets/variants/scene-cathedral-1-1024x683.webp'))).toBe(true);
   await page.getByRole('button',{name:'Close dialog'}).click();
   // The completed save opens on the front room with its selected decorations. The courtyard loads only when the player opens it.

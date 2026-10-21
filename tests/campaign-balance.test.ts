@@ -1,17 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { getItem, requiredQuests, resolveQuests, supperComplete, supperQuest } from '../src/model.ts';
 import { KEEP_FREE, validateGame } from '../src/engine.ts';
 import { BALANCE_SEEDS, runCampaignBalance } from '../tools/campaign-balance.ts';
 import type { CampaignTotals } from '../tools/campaign-balance.ts';
 import { checkpointState } from '../tools/create-checkpoint-saves.ts';
-import { act, data, nightLine, player, runs } from './support.ts';
+import { act, data, nightLine, player, runs, recovery } from './support.ts';
 
 /** The first efficient run, which checks the state after every action. */
 const report = runCampaignBalance(data, BALANCE_SEEDS[0]);
+/** The efficient runs for every seed, without the check of the state after every action. Two tests share them. */
+let efficient: ReturnType<typeof runs> | undefined;
+const efficientRuns = () => efficient ??= runs('efficient');
 // The quests that the preparations need: every quest except the supper and the recovery quest.
 const campaign = requiredQuests(data.tasks.length, data);
-const recovery = data.quests.find(quest => quest.recovery)!;
 
 test('the efficient run pays all 24 preparations and serves the supper with no injected coins or items', t => {
   const { totals, finalState } = report;
@@ -43,7 +47,7 @@ test('the efficient run pays all 24 preparations and serves the supper with no i
 });
 
 test('the efficient strategy finishes act 1 in 18 to 30 days for every seed, with the purse in its band and never below zero', t => {
-  for (const [seed, run] of runs('efficient')) {
+  for (const [seed, run] of efficientRuns()) {
     const { totals, nights, finalState } = run;
     assert.equal(finalState.taskIndex, data.tasks.length, `Seed ${seed}: all 24 preparations.`);
     assert.ok(supperComplete(finalState, data), `Seed ${seed}: the supper is served.`);
@@ -89,7 +93,7 @@ test('the run records the coins, the takes, and the free cells at each preparati
 });
 
 test('the check of the state after every action does not change the efficient run', () => {
-  assert.deepEqual(runCampaignBalance(data, BALANCE_SEEDS[0], 'efficient', false), report);
+  assert.deepEqual(efficientRuns()[0], [BALANCE_SEEDS[0], report]);
 });
 
 test('a player who buys a spare staple before each preparation repays it with recovery teas and pays every preparation', t => {
@@ -124,4 +128,11 @@ test('a player who buys a spare staple before each preparation repays it with re
     teas.push(made);
   }
   t.diagnostic(`Recovery teas before each preparation: ${teas.join(' ')}.`);
+});
+
+test('the balance tool refuses an unknown strategy, so a typing error never prints the efficient results', () => {
+  const run = spawnSync(process.execPath, [fileURLToPath(new URL('../tools/campaign-balance.ts', import.meta.url)), 'miss-booking'], { encoding: 'utf8' });
+  assert.notEqual(run.status, 0);
+  assert.match(run.stderr, /Use the strategy efficient, miss-bookings, or debt\./);
+  assert.equal(run.stdout, '');
 });

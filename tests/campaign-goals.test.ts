@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dishWork, requiredQuests, taskEligibility, unresolvedObstacle } from '../src/model.ts';
+import { dishWork, requiredQuests, stapleCost, taskEligibility, unresolvedObstacle } from '../src/model.ts';
 import { validateGame } from '../src/engine.ts';
 import { dataProblems, questProblems } from '../src/content.ts';
 import type { Action, Quest } from '../src/model.ts';
@@ -89,7 +89,7 @@ test('the funding check rejects a preparation that the work of the quests before
   assert.match(questProblems(later).join(' '), /^task_24: the quests before it earn/);
   // The coins left after the last preparation must buy the staples of the supper.
   const supper = data.quests.find(quest => quest.finale)!;
-  const staples = supper.requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).staples * data.economy.takeCost * quantity, 0);
+  const staples = stapleCost(supper, data);
   const lean = structuredClone(data);
   lean.tasks[23].work.materials += surplus - staples + 1;
   lean.tasks[23].cost += surplus - staples + 1;

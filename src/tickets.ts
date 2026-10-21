@@ -1,5 +1,5 @@
 // The quest tickets on the drawer: who asks for which dishes, the delivery and its flight, and the quest dialog.
-import { awaitsLanterns, bookedTicket, bookedTonight, canDeliverQuest, canLightLanterns, clockText, QUEST_TICKETS, questDeliveryCells, resolveQuests, unresolvedObstacle } from './model.ts';
+import { awaitsLanterns, bookedTicket, bookedTonight, canDeliverQuest, canLightLanterns, cellsOf, clockText, QUEST_TICKETS, questDeliveryCells, resolveQuests } from './model.ts';
 import { guidanceGoal, guidanceStep, showItem, showMissingStep } from './dishes.ts';
 import type { Quest } from './model.ts';
 import { $, button, coinText, count, element, names } from './dom.ts';
@@ -61,7 +61,7 @@ export const activeQuests = () => {
   return [...tickets, ...active.filter(quest => quest.recovery)];
 };
 /** The portions of a quest that the board holds now, at most the quantity that it needs. */
-const onBoard = (code: string, quantity: number) => Math.min(quantity, state.board.filter((cell, index) => cell?.code === code && !unresolvedObstacle(state, index, data)).length);
+const onBoard = (code: string, quantity: number) => Math.min(quantity, cellsOf(state, code).length);
 /** Each quest on the counter is a paper ticket on the drawer: who asks, the quest title, the dishes with their counts, and Deliver. */
 export function renderTickets() {
   const container = $('#tickets'); container.replaceChildren();
@@ -139,7 +139,7 @@ const lightLanterns = (quest: Quest) => act({ type: 'lantern', id: quest.id });
 function deliver(quest: Quest) { return changeGame(() => {
   const slot = activeQuests().indexOf(quest);
   const card = $('#tickets').querySelector<HTMLElement>(`[data-quest="${quest.id}"]`);
-  const cells = questDeliveryCells(state, quest, data), from = cells.filter(index => index >= 0).map(index => $(`[data-cell="${index}"]`).getBoundingClientRect());
+  const cells = questDeliveryCells(state, quest), from = cells.filter(index => index >= 0).map(index => $(`[data-cell="${index}"]`).getBoundingClientRect());
   const codes = quest.requirements.flatMap(requirement => Array<string>(requirement.quantity).fill(requirement.item));
   const into = card?.getBoundingClientRect();
   arriving[slot] = performance.now();

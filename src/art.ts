@@ -74,30 +74,28 @@ export function portrait(id: string) {
   value.style.backgroundPosition = `${100*(person.sprite%2+left)/(2-side)}% ${100*(Math.floor(person.sprite/2)+top)/(2-side)}%`;
   value.setAttribute('role', 'img'); value.setAttribute('aria-label', person.name); return value;
 }
+/** A picture that screen readers skip: an svg with its class and view box, and its shapes, each a tag with its attributes. */
+export function icon(className: string, viewBox: string, ...shapes: [keyof SVGElementTagNameMap, Record<string, string>][]) {
+  const value = svg('svg');
+  if (className) value.setAttribute('class', className);
+  value.setAttribute('viewBox', viewBox); value.setAttribute('aria-hidden', 'true');
+  for (const [tag, attributes] of shapes) {
+    const shape = svg(tag);
+    for (const [name, text] of Object.entries(attributes)) shape.setAttribute(name, text);
+    value.append(shape);
+  }
+  return value;
+}
 /** The ingredient-source badge on a board tile: a plus in a disc. */
-export function sourceMark() {
-  const value = svg('svg'); value.setAttribute('class', 'source-mark'); value.setAttribute('viewBox', '0 0 24 24'); value.setAttribute('aria-hidden', 'true');
-  const face = svg('circle'); face.setAttribute('cx', '12'); face.setAttribute('cy', '12'); face.setAttribute('r', '11');
-  const plus = svg('path'); plus.setAttribute('d', 'M12 7v10M7 12h10');
-  value.append(face, plus); return value;
-}
+export const sourceMark = () => icon('source-mark', '0 0 24 24', ['circle', { cx: '12', cy: '12', r: '11' }], ['path', { d: 'M12 7v10M7 12h10' }]);
 /** The coin mark from the purse, for prices inside buttons. */
-export function coinMark() {
-  const value = svg('svg'); value.setAttribute('class', 'coin'); value.setAttribute('viewBox', '0 0 24 24'); value.setAttribute('aria-hidden', 'true');
-  const face = svg('circle'); face.setAttribute('class', 'coin-face'); face.setAttribute('cx', '12'); face.setAttribute('cy', '12'); face.setAttribute('r', '9');
-  const moon = svg('path'); moon.setAttribute('class', 'coin-moon'); moon.setAttribute('d', 'M15.7 7.6a5 5 0 1 0 0 8.8 4.6 4.6 0 0 1 0-8.8z');
-  value.append(face, moon); return value;
-}
+export const coinMark = () => icon('coin', '0 0 24 24', ['circle', { class: 'coin-face', cx: '12', cy: '12', r: '9' }],
+  ['path', { class: 'coin-moon', d: 'M15.7 7.6a5 5 0 1 0 0 8.8 4.6 4.6 0 0 1 0-8.8z' }]);
 /** A dish or a source: its cell of its food atlas. */
 export function food(code: string, extra = '') {
   const { atlas, cell } = definition(code).art;
-  const value = svg('svg');
-  value.setAttribute('class', `food ${extra}`);
-  value.setAttribute('viewBox', [cell % 4 * FOOD_CELL, Math.floor(cell / 4) * FOOD_CELL, FOOD_CELL, FOOD_CELL].join(' '));
-  const image = svg('image');
-  image.setAttribute('href', foodAtlas(atlas)); image.setAttribute('width', String(FOOD_CELL * 4)); image.setAttribute('height', String(FOOD_CELL * 2));
-  value.append(image);
-  value.setAttribute('aria-hidden', 'true'); return value;
+  return icon(`food ${extra}`, [cell % 4 * FOOD_CELL, Math.floor(cell / 4) * FOOD_CELL, FOOD_CELL, FOOD_CELL].join(' '),
+    ['image', { href: foodAtlas(atlas), width: String(FOOD_CELL * 4), height: String(FOOD_CELL * 2) }]);
 }
 // Square crops follow visible frame bounds, with a clear margin, and stay inside their source cells.
 // This brings the frame towards the tile edge without shrinking the ingredient or exposing a neighbouring sprite.
@@ -113,37 +111,16 @@ export function clutterArt(index: number, className: string, preparation = false
   value.setAttribute('aria-hidden', 'true');
   return value;
 }
-export function blockerMark() {
-  const value = svg('svg'); value.classList.add('blocker-mark'); value.setAttribute('viewBox','0 0 24 24'); value.setAttribute('aria-hidden','true');
-  const circle = svg('circle'); circle.setAttribute('cx','12'); circle.setAttribute('cy','12'); circle.setAttribute('r','10');
-  const question = svg('path'); question.setAttribute('d','M9.2 8.5a2.8 2.8 0 0 1 5.6 0c0 2-2.8 2-2.8 4M12 16v.5');
-  value.append(circle,question); return value;
-}
-export function crossMark() {
-  const cross = svg('svg'); cross.setAttribute('viewBox','0 0 24 24'); cross.setAttribute('aria-hidden','true');
-  const mark = svg('path'); mark.setAttribute('d','m6 6 12 12M18 6 6 18'); cross.append(mark); return cross;
-}
+export const blockerMark = () => icon('blocker-mark', '0 0 24 24', ['circle', { cx: '12', cy: '12', r: '10' }], ['path', { d: 'M9.2 8.5a2.8 2.8 0 0 1 5.6 0c0 2-2.8 2-2.8 4M12 16v.5' }]);
+export const crossMark = () => icon('', '0 0 24 24', ['path', { d: 'm6 6 12 12M18 6 6 18' }]);
 /** The switch badge on a finish: two arrows that turn about each other. */
-export function swapMark() {
-  const value=svg('svg');value.setAttribute('class','swap-mark');value.setAttribute('viewBox','0 0 24 24');value.setAttribute('aria-hidden','true');
-  const face=svg('circle');face.setAttribute('cx','12');face.setAttribute('cy','12');face.setAttribute('r','11');
-  const arrows=svg('path');arrows.setAttribute('d','M7.5 10a5 5 0 0 1 8.6-2.2M16.5 5.5v2.8h-2.8M16.5 14a5 5 0 0 1-8.6 2.2M7.5 18.5v-2.8h2.8');
-  value.append(face,arrows);return value;
-}
+export const swapMark = () => icon('swap-mark', '0 0 24 24', ['circle', { cx: '12', cy: '12', r: '11' }],
+  ['path', { d: 'M7.5 10a5 5 0 0 1 8.6-2.2M16.5 5.5v2.8h-2.8M16.5 14a5 5 0 0 1-8.6 2.2M7.5 18.5v-2.8h2.8' }]);
 /** A hanging lantern: the control that brings tonight's booked guest. */
-export function lanternMark() {
-  const value=svg('svg');value.setAttribute('class','lantern-mark');value.setAttribute('viewBox','0 0 24 24');value.setAttribute('aria-hidden','true');
-  const ring=svg('path');ring.setAttribute('d','M12 2.5v2M9.5 4.5h5');
-  const body=svg('path');body.setAttribute('d','M8.5 7h7l1 3v6.5l-1 2h-7l-1-2V10z');
-  const flame=svg('path');flame.setAttribute('d','M12 10.5c1.3 1.4 1.3 3 0 4-1.3-1-1.3-2.6 0-4z');
-  value.append(ring,body,flame);return value;
-}
+export const lanternMark = () => icon('lantern-mark', '0 0 24 24', ['path', { d: 'M12 2.5v2M9.5 4.5h5' }],
+  ['path', { d: 'M8.5 7h7l1 3v6.5l-1 2h-7l-1-2V10z' }], ['path', { d: 'M12 10.5c1.3 1.4 1.3 3 0 4-1.3-1-1.3-2.6 0-4z' }]);
 /** A crescent moon: a booked table for another evening. */
-export function moonMark() {
-  const value=svg('svg');value.setAttribute('class','moon-mark');value.setAttribute('viewBox','0 0 24 24');value.setAttribute('aria-hidden','true');
-  const moon=svg('path');moon.setAttribute('d','M15.5 4.5a8 8 0 1 0 4 12.8A7 7 0 0 1 15.5 4.5z');
-  value.append(moon);return value;
-}
+export const moonMark = () => icon('moon-mark', '0 0 24 24', ['path', { d: 'M15.5 4.5a8 8 0 1 0 4 12.8A7 7 0 0 1 15.5 4.5z' }]);
 /** One pose of a rat of the night, from its sheet of eight poses: four columns and two rows. */
 export function ratSprite(rat: 'thief' | 'soricescu', className: string) {
   const value=element('span',`rat-sprite rat-${rat} ${className}`);value.setAttribute('aria-hidden','true');return value;
@@ -153,10 +130,5 @@ export function ratPose(sprite: HTMLElement, pose: number) {
   sprite.style.backgroundPosition=`${pose%4*100/3}% ${Math.floor(pose/4)*100}%`;
 }
 /** A plate under a dashed dome cover: the "not yet" mark for a dish nobody has made. */
-export function coveredDish() {
-  const value=svg('svg');value.setAttribute('class','covered-dish');value.setAttribute('viewBox','0 0 48 48');value.setAttribute('aria-hidden','true');
-  const dome=svg('path');dome.setAttribute('class','covered-dish-dome');dome.setAttribute('d','M9 33a15 15 0 0 1 30 0');
-  const knob=svg('path');knob.setAttribute('d','M24 18v-2.5M21.5 15.5h5');
-  const plate=svg('path');plate.setAttribute('d','M6 33h36M10 36.5h28');
-  value.append(dome,knob,plate);return value;
-}
+export const coveredDish = () => icon('covered-dish', '0 0 48 48', ['path', { class: 'covered-dish-dome', d: 'M9 33a15 15 0 0 1 30 0' }],
+  ['path', { d: 'M24 18v-2.5M21.5 15.5h5' }], ['path', { d: 'M6 33h36M10 36.5h28' }]);

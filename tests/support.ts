@@ -11,6 +11,9 @@ import type { CampaignBalance, CampaignStrategy } from '../tools/campaign-balanc
 
 export const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
 export const validate = (candidate: unknown) => validateGame(candidate, data);
+/** A quest by its ID, and the recovery quest. */
+export const quest = (id: string) => data.quests.find(value => value.id === id)!;
+export const recovery = data.quests.find(value => value.recovery)!;
 
 /** Adds a board layout without obstacles to the shared data. openGame starts a new game on it. */
 export const addOpenLayout = () => { data.board.layouts.push({ id: 'test-open', obstacles: [] }); };
@@ -73,7 +76,7 @@ export const tags = (quest: { requirements: { item: string }[] }) => quest.requi
 /** A copy with the items of the quest on free cells. Direct supplies isolate the quest rules from production, which has its own legal-play tests. */
 export function supply(state: GameState, id: string): GameState {
   const supplied = structuredClone(state);
-  for (const { item, quantity } of data.quests.find(quest => quest.id === id)!.requirements) for (let count = 0; count < quantity; count++) {
+  for (const { item, quantity } of quest(id).requirements) for (let count = 0; count < quantity; count++) {
     const index = firstFreeBoardCell(supplied, data);
     assert.notEqual(index, -1);
     supplied.board[index] = { code: item };
@@ -86,23 +89,26 @@ export function supply(state: GameState, id: string): GameState {
  * tests set it here; tests/day.test.ts covers the choice of the evening guest.
  */
 export function tonight(state: GameState, id: string): GameState {
-  const quest = data.quests.find(quest => quest.id === id)!;
-  return quest.booked ? { ...state, evening: { ...state.evening, guest: quest.character, delivered: false } } : state;
+  const booked = quest(id);
+  return booked.booked ? { ...state, evening: { ...state.evening, guest: booked.character, delivered: false } } : state;
 }
 /** Delivers a quest from supplied items. A booked quest gets this evening, and the lanterns bring its guest. */
 export function deliver(state: GameState, id: string) {
   let next = tonight(supply(state, id), id);
-  if (canLightLanterns(next, data.quests.find(quest => quest.id === id)!, data)) next = act(next, { type: 'lantern', id });
+  if (canLightLanterns(next, quest(id), data)) next = act(next, { type: 'lantern', id });
   return act(next, { type: 'deliverQuest', id });
 }
 
+/** The data that a player has checked already. */
+const checked = new WeakSet<GameData>();
 /**
  * A player who takes only legal actions, and who makes each dish from its source, merges, and recipes. A recipe merges its second
  * part into its first. A take from a paid source needs the coins in the purse.
  */
 export function player(initial = createGame(data), content = data) {
   let state = initial;
-  assert.deepEqual(dataProblems(content), [], 'The fixture data passes its checks.');
+  if (!checked.has(content)) assert.deepEqual(dataProblems(content), [], 'The fixture data passes its checks.');
+  checked.add(content);
   function produce(code: string): number {
     const item = getItem(code, content)!;
     if (item.recipe) {

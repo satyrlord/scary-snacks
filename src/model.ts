@@ -257,6 +257,9 @@ export function menuPrice(code: string, data: GameData): number {
   const { staples, merges } = dishWork(code, data);
   return staples * data.economy.takeCost + merges * data.economy.workRate;
 }
+/** The coins that the staples of a quest cost at their sources. */
+export const stapleCost = (quest: Pick<Quest, 'requirements'>, data: GameData) =>
+  quest.requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).staples * data.economy.takeCost * quantity, 0);
 function questReady(state: GameState, quest: Quest, data: GameData): boolean {
   return (quest.afterTask === null || state.decorations.includes(quest.afterTask)) && questPredecessors(quest, data).every(id => questDone(state, id));
 }
@@ -325,17 +328,20 @@ export function journalCharacters(state: GameState, data: GameData): Character[]
   return data.characters.filter(character => hasArrived(state, character)).filter(character => !character.singleVisit
     || quests.some(view => (view.quest.character === character.id || view.quest.companions?.includes(character.id)) && (view.status === 'active' || view.status === 'waiting')));
 }
-/** The board cells that a delivery empties: the first free matching cell for each portion, or -1 if there is none. */
-export function questDeliveryCells(state: GameState, quest: Quest, data: GameData): number[] {
-  const taken: number[] = [];
-  for (const requirement of quest.requirements) for (let count = 0; count < requirement.quantity; count++) {
-    taken.push(state.board.findIndex((cell, index) => cell?.code === requirement.item && !unresolvedObstacle(state, index, data) && !taken.includes(index)));
-  }
-  return taken;
+/** The cells that hold a dish, in board order. A blocked cell holds no item, so the player can move each of them. */
+export const cellsOf = (state: Pick<GameState, 'board'>, code: string) => state.board.flatMap((cell, index) => cell?.code === code ? [index] : []);
+/** The board cells that a delivery empties: the first matching cell that is still free for each portion, or -1 if there is none. */
+export function questDeliveryCells(state: Pick<GameState, 'board'>, quest: Quest): number[] {
+  const left = new Map<string, number[]>();
+  return quest.requirements.flatMap(({ item, quantity }) => {
+    const cells = left.get(item) ?? cellsOf(state, item);
+    left.set(item, cells);
+    return Array.from({ length: quantity }, () => cells.shift() ?? -1);
+  });
 }
 export function canDeliverQuest(state: GameState, quest: Quest | string, data: GameData): boolean {
   const view = resolveQuests(state, data).find(view => view.quest.id === (typeof quest === 'string' ? quest : quest.id));
-  return view?.status === 'active' && questDeliveryCells(state, view.quest, data).every(index => index >= 0)
+  return view?.status === 'active' && questDeliveryCells(state, view.quest).every(index => index >= 0)
     && (!view.quest.booked || (bookedTonight(state, view.quest) && clockMinutes(state, data) >= data.day.booking));
 }
 /** The merges that one day holds, from opening to closing. */
@@ -357,7 +363,7 @@ export const awaitsLanterns = (state: GameState, quest: Quest, data: GameData) =
 /** The lantern control moves the clock to the booking time: tonight's booked quest, on its ticket, before the booking time, with every portion on the board. */
 export function canLightLanterns(state: GameState, quest: Quest, data: GameData): boolean {
   return awaitsLanterns(state, quest, data) && resolveQuests(state, data).find(view => view.quest === quest)?.status === 'active'
-    && questDeliveryCells(state, quest, data).every(index => index >= 0);
+    && questDeliveryCells(state, quest).every(index => index >= 0);
 }
 /** The text of a booked ticket. Only the evening that the game fixed gets a time. */
 export const bookedTicket = (state: Pick<GameState, 'evening'>, quest: Quest, data: GameData) =>

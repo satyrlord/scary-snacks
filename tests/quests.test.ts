@@ -4,9 +4,8 @@ import { canDeliverQuest, dishChains, journalCharacters, menuPrice, QUEST_TICKET
 import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import { dataProblems, dietBreaks, discoveryProblems, questProblems } from '../src/content.ts';
 import type { GameData, GameState, Quest } from '../src/model.ts';
-import { act, checkpoint, data, deliver, opened, player, rejected, status, supply, know } from './support.ts';
+import { act, checkpoint, data, deliver, opened, player, rejected, status, supply, know, recovery } from './support.ts';
 
-const recovery = data.quests.find(quest => quest.recovery)!;
 /** The campaign quests with a status. The recovery quest has its own ticket, so the tests of the tickets leave it out. */
 const ids = (state: GameState, status: string) => resolveQuests(state, data).filter(view => !view.quest.recovery && view.status === status).map(view => view.quest.id);
 const floor = data.economy.recoveryFloor;
@@ -59,7 +58,7 @@ test('a waiting quest cannot be delivered even with every item on the board', ()
   const start = createGame(data);
   const waiting = ids(start, 'waiting')[0];
   const supplied = supply(start, waiting);
-  assert.ok(questDeliveryCells(supplied, data.quests.find(quest => quest.id === waiting)!, data).every(index => index >= 0));
+  assert.ok(questDeliveryCells(supplied, data.quests.find(quest => quest.id === waiting)!).every(index => index >= 0));
   assert.equal(canDeliverQuest(supplied, waiting, data), false);
   assert.match(rejected(supplied, { type: 'deliverQuest', id: waiting }).message, /still on a ticket/);
   // A locked quest cannot be delivered either.

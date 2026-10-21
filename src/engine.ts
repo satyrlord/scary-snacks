@@ -6,7 +6,8 @@ import type { Action, Cell, GameData, GameState, NightReport, Placed, Result } f
 const ACTIVE_BLOCKERS = 3;
 /** Placement keeps this many usable cells empty: one Linden tea from scratch, for the recovery quest, needs four. */
 export const KEEP_FREE = 4;
-const copy = (state: GameState): GameState => structuredClone(state);
+// A state is JSON data, as its save is, and a JSON copy is faster than structuredClone.
+const copy = (state: GameState): GameState => JSON.parse(JSON.stringify(state));
 const itemAt = (state: GameState, index: unknown) => integer(index, 0, state.board.length - 1) ? state.board[index] : null;
 function discover(state: GameState, code: string) {
   if (!state.discovered.includes(code)) state.discovered.push(code);
@@ -246,7 +247,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const quest = data.quests.find(quest => quest.id === action.id);
       if (!quest || !canDeliverQuest(next, quest, data)) return fail(quest?.booked ? 'This table is booked for another time. Deliver when the guest arrives for the evening.' : 'This quest needs every required item on the board. Check that the quest is still on a ticket.');
       if (!integer(next.coins + quest.reward, -1_000_000_000)) return fail('Spend some coins before you deliver this quest.');
-      for (const index of questDeliveryCells(next, quest, data)) next.board[index] = null;
+      for (const index of questDeliveryCells(next, quest)) next.board[index] = null;
       next.coins += quest.reward;
       // Each day admits one booked delivery. The supper stops the clock and records the result of act 1.
       if (quest.booked) next.evening.delivered = true;

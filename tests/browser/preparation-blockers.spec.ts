@@ -3,7 +3,7 @@ import type { Locator, Page } from '@playwright/test';
 import { boardObstacles, firstFreeBoardCell, freeBoardCells, requiredQuests, pendingPreparationObstacles, unresolvedObstacle } from '../../src/model.ts';
 import { createGame, reduceGame, validateGame } from '../../src/engine.ts';
 import type { GameState } from '../../src/model.ts';
-import { data, failWrites, forward, pay, replaceSave, revealed, saved, start as open, tile, know } from './support.ts';
+import { data, failWrites, forward, pay, replaceSave, revealed, saved, startStill as start, tile, know } from './support.ts';
 
 /** The game after count preparations, ready to pay the next one, with the preparation-blocker record starting there. */
 function beforeBatch(count = 0) {
@@ -26,9 +26,6 @@ function beforeBatch(count = 0) {
 function withBatch(count = 0) {
   const result = reduceGame(beforeBatch(count), { type: 'task' }, data);
   expect(result.ok, result.message).toBe(true); return result.state;
-}
-async function start(page: Page, state: GameState, theme = 'light') {
-  await page.emulateMedia({ reducedMotion: 'reduce' }); await open(page, state, theme);
 }
 /** Pays the next preparation, closes its story, and waits for the room change. */
 async function payAndClose(page: Page) {

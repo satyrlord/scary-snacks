@@ -2,7 +2,7 @@
 import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { firstFreeBoardCell, requiredQuests, resolveQuests } from '../../src/model.ts';
+import { firstFreeBoardCell, requiredQuests, resolveQuests, supperQuest } from '../../src/model.ts';
 import { createGame, reduceGame, revealTickets, validateGame } from '../../src/engine.ts';
 import type { Action, GameData, GameState, Quest } from '../../src/model.ts';
 import { SAVE_KEY, exportSave } from '../../src/storage.ts';
@@ -13,6 +13,7 @@ export const validate=(candidate: unknown)=>validateGame(candidate,data);
 export const serialize=(state: GameState)=>exportSave(state,validate);
 export function act(state: GameState,action: Action){const result=reduceGame(state,action,data);expect(result.ok,result.message).toBe(true);return result.state;}
 export const quest=(id: string)=>data.quests.find(value=>value.id===id)!;
+export const recovery=data.quests.find(value=>value.recovery)!,supper=supperQuest(data)!;
 export const person=(id: string)=>data.characters.find(value=>value.id===id)!;
 export const stateText=(id: string)=>data.rooms.find(state=>state.id===id)!.text;
 /** Marks delivered, in data order, the quests that the preparation at this index needs. The rules tests cover their dishes. */
@@ -77,6 +78,10 @@ export async function start(page: Page,save?: GameState|string,theme?: string){
   },{key:KEY,value:save===undefined?null:typeof save==='string'?save:serialize(save),theme:theme??''});
   await page.goto('./');await opened(page);
 }
+/** Starts the game with reduced motion in the light theme, so that no animation delays the checks. */
+export async function startStill(page: Page,save?: GameState|string,theme='light'){await page.emulateMedia({reducedMotion:'reduce'});await start(page,save,theme);}
+/** The width and height of a loaded image element. */
+export const naturalSize=(image: Locator)=>image.evaluate(async node=>{const value=node as HTMLImageElement;await value.decode();return [value.naturalWidth,value.naturalHeight];});
 /** Reads the save after queued game writes finish. Lock tests can read the snapshot while a write is blocked. */
 export async function saved(page: Page,waitForWrites=true): Promise<GameState>{return page.evaluate(async({key,waitForWrites})=>{
   const read=()=>JSON.parse(localStorage.getItem(key)!).state;

@@ -282,3 +282,10 @@ test('a paper copy pads a drawing to multiples of 16, and a patch takes back onl
   assert.equal(alpha(5, 5), 255, 'the drawing keeps its own marks');
   assert.equal(alpha(25, 12), 0, 'the paper inside the mask is clear');
 });
+
+test('the repository path is the real path, so a lower-case drive letter still finds the shipping masters', { skip: process.platform !== 'win32' && 'Only Windows has drive letters.' }, () => {
+  const module = new URL('../.github/skills/generate-game-art-openai/scripts/art-image.ts', import.meta.url).href.replace(/^file:\/\/\/([A-Z]):/, (_, drive: string) => `file:///${drive.toLowerCase()}:`);
+  const run = spawnSync(process.execPath, ['--input-type=module', '-e', `const { REPO } = await import(${JSON.stringify(module)}); console.log(REPO);`], { encoding: 'utf8' });
+  assert.equal(run.status, 0, run.stderr);
+  assert.match(run.stdout.trim(), /^[A-Z]:\\/);
+});

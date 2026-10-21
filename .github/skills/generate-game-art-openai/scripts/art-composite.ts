@@ -2,14 +2,12 @@
 // A provider can change pixels outside a mask.
 // The composite preserves the previous state outside the region and its soft edge.
 // It uses generated pixels inside that region.
-import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 import sharp from 'sharp';
-import { REPO, TASK_ROOT, checkMask, isInside, pathExists, readReference, resolveWithAncestors } from './art-image.ts';
+import { REPO, TASK_ROOT, checkMask, isInside, pathExists, readReference, resolveWithAncestors, sha256 } from './art-image.ts';
 
-const sha256 = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex');
 type Box = { left: number; top: number; width: number; height: number };
 type Ellipse = { x: number; y: number; rx: number; ry: number };
 type Point = [number, number];

@@ -1,7 +1,7 @@
 // Synthetic saves at every preparation checkpoint, for manual checks without playing the whole campaign.
 // Each save has its preparations paid, the quests that the next preparation needs delivered, and the exact coins for the next reveal.
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { currentTask, dishWork, requiredQuests, supperQuest } from '../src/model.ts';
+import { currentTask, requiredQuests, stapleCost, supperQuest } from '../src/model.ts';
 import { createGame, reduceGame, revealTickets, validateGame } from '../src/engine.ts';
 import type { GameData, GameState } from '../src/model.ts';
 import { exportSave } from '../src/storage.ts';
@@ -16,7 +16,7 @@ export function checkpointState(data: GameData, count: number, start: GameState 
   let state = structuredClone(start);
   for (;;) {
     for (const quest of requiredQuests(state.taskIndex, data)) if (!state.completedQuests.includes(quest.id)) state.completedQuests.push(quest.id);
-    state.coins = currentTask(state, data)?.cost ?? supperQuest(data)!.requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).staples * data.economy.takeCost * quantity, 0);
+    state.coins = currentTask(state, data)?.cost ?? stapleCost(supperQuest(data)!, data);
     if (state.taskIndex < data.tasks.length) {
       state.pendingScenes = [];
     }

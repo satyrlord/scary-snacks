@@ -3,13 +3,11 @@ import type { Page } from '@playwright/test';
 import { firstFreeBoardCell, getItem } from '../../src/model.ts';
 import { createGame } from '../../src/engine.ts';
 import type { GameState, Quest } from '../../src/model.ts';
-import { act, checkpoint, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, forward, importSaveFile, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readNow, readTo, replaceSave, restoreWrites, saved, serialize, start, startAgain, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate, know } from './support.ts';
+import { act, checkpoint, naturalSize, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, forward, importSaveFile, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readNow, readTo, replaceSave, restoreWrites, saved, serialize, start, startAgain, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate, know } from './support.ts';
 
 /** The first campaign quest of each neighbour who lives in the village. The recovery quest stands outside the order of quests. */
 const campaign=data.quests.filter(value=>!value.recovery);
 const firstQuests=data.characters.filter(character=>!character.visitor&&campaign.some(value=>value.character===character.id)).map(character=>campaign.find(value=>value.character===character.id)!);
-/** A ticket shows at most four dishes: a longer order shows its first three and the count of the others. */
-const shownDishes=(value: Quest)=>value.requirements.length>4?3:value.requirements.length;
 const itemName=(code: string)=>getItem(code,data)!.name;
 
 async function combinedConversation(page: Page,value: Quest){
@@ -26,7 +24,7 @@ async function combinedConversation(page: Page,value: Quest){
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'])test(`Mara's parchment page shows her sketch and returns from item help at ${viewport.width}px in ${theme}`,async({page},testInfo)=>{
   await page.setViewportSize(viewport);const value=quest('mara-welcome');await start(page,deliverable(value),theme);await openQuest(page,value);
   const modal=page.locator('#modal'),sketch=modal.locator('.quest-sketch');
-  await expect(sketch).toBeVisible();expect(await sketch.evaluate(async node=>{await (node as HTMLImageElement).decode();return (node as HTMLImageElement).naturalWidth;})).toBe(768);
+  await expect(sketch).toBeVisible();expect((await naturalSize(sketch))[0]).toBe(768);
   expect(await modal.evaluate(node=>getComputedStyle(node).backgroundImage)).toContain('parchment-page-1254x1254.webp');
   expect(await modal.evaluate(node=>getComputedStyle(node).color)).toBe('rgb(59, 42, 30)');
   expect(await modal.evaluate(node=>node.scrollWidth<=node.clientWidth)).toBe(true);
@@ -77,7 +75,7 @@ for(const [id,asset] of illustratedScenes)test(`${id} shows its quest scene inst
   const value=quest(id);await start(page,onTicket(value));await openQuest(page,value);
   const sketch=page.locator('#modal .quest-sketch');await expect(sketch).toHaveCount(1);
   await expect(sketch).toHaveAttribute('src',new RegExp(`${asset}-1024x683\\.webp$`));
-  expect(await sketch.evaluate(async node=>{const image=node as HTMLImageElement;await image.decode();return [image.naturalWidth,image.naturalHeight];})).toEqual([1024,683]);
+  expect(await naturalSize(sketch)).toEqual([1024,683]);
 });
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'])test(`quest scenes keep their proportions, speakers, and journal art at ${viewport.width}px in ${theme}`,async({page},testInfo)=>{
@@ -130,7 +128,7 @@ for(const visitor of data.characters.filter(person=>person.visitor))test(`${visi
   await start(page,visitor.singleVisit?onTicket(visit):checkpoint(24),'dark');await journal(page,['chapters','conversations','neighbours']);
   await page.getByRole('button',{name:`Meet ${visitor.name}`,exact:true}).click();
   const sketch=page.locator('#modal .quest-sketch');await expect(sketch).toHaveAttribute('src',new RegExp(`sketch-${visitor.id}-768x768\\.webp$`));
-  expect(await sketch.evaluate(async node=>{const image=node as HTMLImageElement;await image.decode();return [image.naturalWidth,image.naturalHeight];})).toEqual([768,768]);
+  expect(await naturalSize(sketch)).toEqual([768,768]);
   await expect(page.locator('.quest-page-content')).toBeVisible();await expect(sketch).not.toHaveClass(/quest-scene-sketch/);
   await expect(page.locator('#story-line')).toContainText(visitor.introduction);
   await page.keyboard.press('Escape');await expect(page.getByRole('button',{name:`Meet ${visitor.name}`,exact:true})).toBeFocused();
@@ -139,8 +137,7 @@ for(const visitor of data.characters.filter(person=>person.visitor))test(`${visi
 for(const value of firstQuests)test(`${value.character} asks on a ticket, the quest dialog explains it, and Deliver pays once across reload`,async({page})=>{
   const initial=deliverable(value);await start(page,initial);const before=await saved(page),name=person(value.character).name;
   const card=ticket(page,value);await expect(card).toHaveAccessibleName(`${name}’s quest: ${value.title}`);await expect(card.locator('.ticket-name')).toHaveText(name);
-  await expect(card.locator('.ticket-item.ready')).toHaveCount(shownDishes(value));await expect(deliverButton(page,value)).toBeEnabled();
-  if(value.requirements.length>4)await expect(card.locator('.ticket-more')).toHaveText(`+${value.requirements.length-3}`);
+  await expect(card.locator('.ticket-item.ready')).toHaveCount(value.requirements.length);await expect(deliverButton(page,value)).toBeEnabled();
   await journal(page,['chapters','conversations','neighbours']);await page.getByRole('button',{name:`Meet ${name}`,exact:true}).click();
   await expect(page.locator('#modal .quest-sketch')).toHaveAttribute('src',new RegExp(`sketch-${value.character}-768x768\\.webp$`));
   await expect(page.locator('.quest-page-content')).toBeVisible();await page.keyboard.press('Escape');await page.keyboard.press('Escape');
@@ -485,14 +482,18 @@ test('a delivery flight cannot show its old toast after another tab replaces the
   await page.evaluate(()=>{
     const animations=[...document.querySelectorAll('.deliver-flight')].flatMap(element=>element.getAnimations());
     for(const animation of animations)animation.pause();
-    document.addEventListener('finish-test-delivery',()=>animations.forEach(animation=>animation.finish()),{once:true});
+    // After the flights end, the next task runs after their promise callbacks, which would show the notice.
+    document.addEventListener('finish-test-delivery',async()=>{
+      animations.forEach(animation=>animation.finish());await Promise.all(animations.map(animation=>animation.finished));
+      setTimeout(()=>document.dispatchEvent(new Event('test-delivery-finished')));
+    },{once:true});
   });
   await other.evaluate(({key,text})=>localStorage.setItem(key,text),{key:KEY,text:serialize(createGame(data))});
   await expect(page.locator('#status')).toContainText('another tab');
-  await page.evaluate(async()=>{
+  await page.evaluate(()=>new Promise<void>(resolve=>{
+    document.addEventListener('test-delivery-finished',()=>resolve(),{once:true});
     document.dispatchEvent(new Event('finish-test-delivery'));
-    await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
-  });
+  }));
   await expect(page.locator('.toast')).toHaveCount(0);expect((await saved(page)).completedQuests).toEqual([]);await other.close();
 });
 

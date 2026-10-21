@@ -91,6 +91,6 @@ export async function build(project = repository, version = appVersion(project))
 }
 
 if (import.meta.main) {
-  const manifest = await build();
-  console.log(`Built version ${appVersion()}: ${manifest.length} files (${(manifest.reduce((n, f) => n + f.bytes, 0) / 1024 / 1024).toFixed(1)} MiB). Only the authored runtime, the game data, the AVIF and WebP variants in public/assets/variants, and the licensed fonts are included.`);
+  const version = appVersion(), manifest = await build(undefined, version);
+  console.log(`Built version ${version}: ${manifest.length} files (${(manifest.reduce((n, f) => n + f.bytes, 0) / 1024 / 1024).toFixed(1)} MiB). Only the authored runtime, the game data, the AVIF and WebP variants in public/assets/variants, and the licensed fonts are included.`);
 }

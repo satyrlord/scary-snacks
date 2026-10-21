@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { requiredQuests, supperQuest } from '../../src/model.ts';
+import { requiredQuests } from '../../src/model.ts';
 import type { GameState, SceneLine } from '../../src/model.ts';
-import { KEY, act, checkpoint, data, deliverable, deliverButton, exportText, failWrites, forward, journal, opened, options, painting, payAndRead, ratio, readNow, readTo, replaceSave, revealed, saved, start, startAgainAndImport, story, supplies, supply, tile } from './support.ts';
+import { KEY, act, recovery, supper, checkpoint, data, deliverable, deliverButton, exportText, failWrites, forward, journal, opened, options, painting, payAndRead, ratio, readNow, readTo, replaceSave, revealed, saved, start, startAgainAndImport, story, supplies, supply, tile } from './support.ts';
 
 const closing=(index: number)=>`Chapter ${index+1} complete: ${data.chapters[index].title}`;
 /** The regulars whose arrival scenes the payment of a preparation queues. */
@@ -15,7 +15,6 @@ async function readWithArrivals(page: Page,index: number){
   for(const [at,person] of people.entries()){await expect(scene(page,`${person.name} arrives`)).toBeVisible();await readTo(page,at<people.length-1?'Next scene':'Back to the kitchen');}
 }
 const scene=(page: Page,title: string)=>page.getByRole('dialog',{name:title,exact:true});
-const supper=supperQuest(data)!,recovery=data.quests.find(value=>value.recovery)!;
 /** Every preparation is paid and each plate of the supper is on the board. A purse at the recovery floor keeps the recovery quest away. */
 const supperReady=()=>supply(checkpoint(data.tasks.length,{coins:data.economy.recoveryFloor}),supplies(supper));
 /** The supper painting after the finale: its picture has loaded, it names the guests, and the ending line stands under it. */
@@ -189,6 +188,11 @@ test('recovery deliveries send a bat on every third delivery in the current tab 
   expect(initial.completedQuests.length%3).toBe(0);
   await page.emulateMedia({reducedMotion:'no-preference'});await start(page,initial);
   await page.getByRole('button',{name:'Front room',exact:true}).click();await expect.poll(()=>painting(page)).toMatch(/^front-room-/);
+  // A bat leaves when its flight ends. Pause the flight, so that the count does not depend on the speed of the test.
+  await page.evaluate(()=>{
+    const animate=Element.prototype.animate;
+    Element.prototype.animate=function(...args){const animation=animate.apply(this,args);if(this.classList.contains('bat'))animation.pause();return animation;};
+  });
   const deliver=deliverButton(page,recovery),bat=page.locator('.window-sky .bat');
   for(let count=1;count<=3;count++){
     await deliver.click();const state=await saved(page);expect(state.coins).toBe(count*recovery.reward);

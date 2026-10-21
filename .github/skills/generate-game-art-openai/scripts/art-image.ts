@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { realpathSync } from 'node:fs';
 import { lstat, mkdir, readFile, realpath, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,13 +16,14 @@ import {
 import type { AssetId, ReferenceImage } from './openai-api.ts';
 import { hasPngSignature, inspectPng } from './png-facts.ts';
 
-export const REPO = fileURLToPath(new URL('../../../../', import.meta.url));
+// The real path, so that the drive letter agrees with the paths that realpath gives when the shell gives a lower-case one.
+export const REPO = realpathSync.native(fileURLToPath(new URL('../../../../', import.meta.url)));
 export const TASK_ROOT = path.join(REPO, 'analysis', 'art-generation');
 const SHIPPING_ROOT = path.join(REPO, 'public', 'assets', 'original');
 const EXPERIMENTAL_PIXELS = 2560 * 1440;
 const MINIMUM_WIDTH = 1000;
 
-const sha256 = (bytes: Buffer | string) => createHash('sha256').update(bytes).digest('hex');
+export const sha256 = (bytes: Buffer | string) => createHash('sha256').update(bytes).digest('hex');
 const writeJson = (file: string, data: unknown) =>
   writeFile(file, `${JSON.stringify(data, null, 2)}\n`, { flag: 'wx' });
 

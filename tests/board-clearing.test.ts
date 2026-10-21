@@ -164,7 +164,7 @@ test('clutter and anchored blockers reject ordinary item actions and never count
     state.board[state.board.indexOf(null, 8)] = { code: item };
     if (!state.discovered.includes(item)) know(state, item);
   }
-  const cells = questDeliveryCells(state, ride, data);
+  const cells = questDeliveryCells(state, ride);
   assert.deepEqual(ride.requirements.flatMap(({ item, quantity }) => Array<boolean>(quantity).fill(item === 'grain_2')),
     cells.map(index => index === -1));
   assert.equal(canDeliverQuest(state, ride, data), false);

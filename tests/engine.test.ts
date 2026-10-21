@@ -228,9 +228,9 @@ test('board-full failures retain state and a merge recovers space', () => {
 
 test('a delivery takes each duplicate from its own cell', () => {
   let state = openGame();
-  assert.deepEqual(questDeliveryCells(state, questWith([{ item: 'grain_1', quantity: 2 }]), data), [13, 14]);
+  assert.deepEqual(questDeliveryCells(state, questWith([{ item: 'grain_1', quantity: 2 }])), [13, 14]);
   state.board[13] = null;
-  assert.deepEqual(questDeliveryCells(state, questWith([{ item: 'grain_1', quantity: 2 }]), data), [14, -1]);
+  assert.deepEqual(questDeliveryCells(state, questWith([{ item: 'grain_1', quantity: 2 }])), [14, -1]);
 });
 
 test('invalid, unknown, and unavailable actions do not change state', () => {

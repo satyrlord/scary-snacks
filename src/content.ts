@@ -1,5 +1,5 @@
 // The checks of the authored game data. The content generator refuses to write data with a problem, and the game refuses to start on it.
-import { availableChains, dayMerges, dishChains, dishTags, dishWork, foodAtlases, integer, isRegular, menuPrice, mergePartners, MIXED, own, portraitAtlases, present, questOpening, questPredecessors, roomPaintings, scene, spoken, stable, stateNumber, storyScenes } from './model.ts';
+import { availableChains, dayMerges, dishChains, dishTags, dishWork, foodAtlases, integer, isRegular, menuPrice, mergePartners, MIXED, own, portraitAtlases, present, questOpening, questPredecessors, roomPaintings, scene, spoken, stable, stapleCost, stateNumber, storyScenes } from './model.ts';
 import type { BoardObstacle, Character, GameData, Item, Quest } from './model.ts';
 import { createGame, KEEP_FREE, validateGame } from './engine.ts';
 
@@ -140,7 +140,7 @@ export function questProblems(data: GameData): string[] {
     }
     // The coins left after the last preparation buy the staples of the supper.
     if (supper.length === 1) {
-      const staples = supper[0].requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).staples * data.economy.takeCost * quantity, 0);
+      const staples = stapleCost(supper[0], data);
       if (earned - spent < staples) problems.push(`${supper[0].id}: the quests leave ${earned - spent} coins, less than the ${staples} that its staples cost.`);
       problems.push(...supperProblems(supper[0], data));
     }
@@ -357,13 +357,13 @@ export function dataProblems(data: GameData, knownImages?: readonly string[]): s
  */
 export function discoveryProblems(data: GameData): string[] {
   const problems: string[] = [], openings = new Map<Quest, number>(), opening = (quest: Quest) => questOpening(quest, data, openings);
-  const byId = new Map(data.quests.map(quest => [quest.id, quest]));
+  const byId = new Map(data.quests.map(quest => [quest.id, quest])), predecessors = new Map(data.quests.map(quest => [quest, questPredecessors(quest, data)]));
   // The starting board, without the dishes that the first tickets put in the recipe book.
   const start = data.board.initial.filter(present);
   /** The quests that are delivered before this one opens: those that the preparations before it need, and its predecessors. */
   const delivered = (quest: Quest, found = new Set<Quest>()): Set<Quest> => {
     for (const other of data.quests) if (!other.finale && !other.recovery && opening(other) < opening(quest)) found.add(other);
-    for (const id of questPredecessors(quest, data)) {
+    for (const id of predecessors.get(quest)!) {
       const previous = byId.get(id);
       if (previous && !found.has(previous)) { found.add(previous); delivered(previous, found); }
     }
@@ -374,7 +374,7 @@ export function discoveryProblems(data: GameData): string[] {
     const done = delivered(quest), known = new Set(start);
     for (const chain of availableChains({ taskIndex: opening(quest) + 1 }, data)) known.add(`generator_${chain}`);
     const shown = data.quests.slice(0, at).filter(other => !other.recovery && opening(other) <= opening(quest)
-      && questPredecessors(other, data).every(id => done.has(byId.get(id)!)));
+      && predecessors.get(other)!.every(id => done.has(byId.get(id)!)));
     for (const other of [...done, ...shown]) for (const { item } of other.requirements) known.add(item);
     for (const { item } of quest.requirements) {
       if (!parts(data.items[item]).every(part => known.has(part))) problems.push(`${quest.id}: ${data.items[item].name} is more than one merge beyond the dishes that the player knows when the quest opens.`);
