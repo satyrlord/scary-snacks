@@ -53,11 +53,11 @@ The files in `tests/` check these areas.
 | `art-image.test.ts` | Art generation request fields, image dimensions, masks, composites, paper copies and patches, and rejected inputs. |
 
 Generator checks cover stage-1 production, paid and free takes, and a full board.
-The campaign fixture completes all 24 preparations and all 81 campaign quests without injected coins or items.
+The campaign fixture completes all 24 preparations and all 82 campaign quests without injected coins or items.
 Then the fixture serves the supper.
 The purse after the supper is inside the balance band.
 The balance band is 0 to 10% of the coins that the fixture spent on preparations, takes, and upkeep.
-The thief rat never robs the efficient fixture, so its 20 seeds give the same run. The day tests check the thief rat with given seeds.
+The thief rat robs the efficient fixture once and takes each loose ingredient, so its 20 seeds give the same run. The day tests check the thief rat with given seeds.
 The fixture reports actions, takes, merges, deliveries, recovery deliveries, income, and free cells for each preparation and chapter.
 Before each preparation, a check buys one spare ingredient so that the purse cannot pay.
 Then the check reaches the preparation through the recovery quest.

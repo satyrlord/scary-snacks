@@ -9,7 +9,7 @@ import type { GameData } from '../src/model.ts';
 
 test('the PNG masters match their provenance records',async()=>{
   const record=JSON.parse(await readFile('docs/asset-provenance.json','utf8'));
-  assert.equal(record.assets.length,93);
+  assert.equal(record.assets.length,94);
   const names=await readdir('public/assets/original');
   assert.deepEqual(names.sort(),record.assets.map((a: { file: string })=>a.file.split('/').at(-1)).sort());
   for(const asset of record.assets){assert.equal(asset.sourceGameImageInput,false);const bytes=await readFile(asset.file);assert.equal(createHash('sha256').update(bytes).digest('hex'),asset.sha256,asset.id);assert.ok(asset.width>1000);}
@@ -103,13 +103,13 @@ for(const atlas of ['visitor-portraits','guests'])test(`the four ${atlas} portra
   for(let x=0;x<info.width;x++)for(const y of [0,side-1,side,info.height-1])assert.ok(alpha(x,y)<edgeLimit,'No visible portrait crosses a row edge.');
 });
 
-test('the late regulars atlas has two portraits inside the top cells and leaves the bottom cells free',async()=>{
+test('the late regulars atlas has three portraits inside their cells and leaves the last cell free',async()=>{
   const {data,info}=await sharp('public/assets/original/regulars-3.png').ensureAlpha().raw().toBuffer({resolveWithObject:true});
   const side=info.width/2,alpha=(x: number,y: number)=>data[(y*info.width+x)*4+3];
   for(let cell=0;cell<4;cell++){
     let painted=0;
     for(let y=0;y<side;y++)for(let x=0;x<side;x++)if(alpha(cell%2*side+x,Math.floor(cell/2)*side+y)>=128)painted++;
-    assert.ok(cell<2?painted>side*side/4:painted===0,`Cell ${cell} ${cell<2?'holds a portrait':'is empty'}.`);
+    assert.ok(cell<3?painted>side*side/4:painted===0,`Cell ${cell} ${cell<3?'holds a portrait':'is empty'}.`);
   }
   for(let y=0;y<info.height;y++)for(const x of [0,side-1,side,info.width-1])assert.ok(alpha(x,y)<1,'No visible portrait crosses a column edge.');
   for(let x=0;x<info.width;x++)for(const y of [0,side-1,side,info.height-1])assert.ok(alpha(x,y)<1,'No visible portrait crosses a row edge.');

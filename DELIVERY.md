@@ -30,7 +30,7 @@ The site is public. The [release notes](docs/release-notes.md) give the release 
 
 ## Assets
 
-93 Portable Network Graphics (PNG) masters in `public/assets/original/` are the source of the game art. The game ships variants of the masters in AV1 Image File Format (AVIF) and WebP. The sizes of the variants fit the screens. The variants come only from these masters. The local folders `private/` and `analysis/` are not release inputs.
+94 Portable Network Graphics (PNG) masters in `public/assets/original/` are the source of the game art. The game ships variants of the masters in AV1 Image File Format (AVIF) and WebP. The sizes of the variants fit the screens. The variants come only from these masters. The local folders `private/` and `analysis/` are not release inputs.
 
 The transparent board-clutter atlas has six open-center overlays in square cells. The preparation-clutter atlas has 12 contextual overlays with transparent centers, in a four-by-three grid of 1448 by 1086 pixels. The built-in chat image generator made the preparation-clutter atlas. The atlas ships as one WebP variant at its original size. The mascot atlas and each portrait atlas ship one 640-by-640 WebP variant. The portrait atlases are the core, visitor, guest, and three regulars atlases.
 
@@ -40,7 +40,7 @@ The OpenAI Images API made the two rat sheets, the rat hole, and the night sky. 
 
 After a master changes, run `npm run assets:build`. [Asset variants](docs/asset-variants.json) records the files, the sizes, and the hashes.
 
-The built-in chat image generator made the parchment, 17 of 22 character sketches, and seven of 11 quest scenes. The OpenAI Images API made the sketches of Sorin, Cătălina, Mina, Bran, and Victor, and four quest scenes. The references of these sketches and scenes are project-generated chat drawings. Bran's sketch and the four scenes have white paper. A fixed conversion makes the paper transparent. A masked edit draws the mouth of Victor's sketch, and the same conversion makes that region transparent.
+The built-in chat image generator made the parchment, 17 of 23 character sketches, and seven of 11 quest scenes. The OpenAI Images API made the sketches of Sorin, Cătălina, Mina, Bran, Victor, and Bela, and four quest scenes. The references of these sketches and scenes are project-generated drawings and portraits. The sketches of Bran and Bela and the four scenes have white paper. A fixed conversion makes the paper transparent. A masked edit draws the mouth of Victor's sketch, and the same conversion makes that region transparent.
 
 The parchment is 1254px square. Each character master is square and at least 1024px. Each scene master is 1536 by 1024px. The parchment ships as one native-size WebP. Each character sketch ships as a transparent 768px square WebP. Each scene ships as a transparent 1024 by 683px WebP. Introductions use individual sketches. Quest openings, replies, and replays use their registered scene illustration. If a quest has no scene illustration, they use the sketch of the quest character. The user explicitly accepted each installed master.
 

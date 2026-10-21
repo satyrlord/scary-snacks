@@ -48,7 +48,7 @@ The next table lists the layouts of the Portable Network Graphics (PNG) masters 
 | `visitor-portraits.png` | Adrian, Monica, Janos, and Ionatan | 2 columns by 2 rows | Transparent |
 | `guests.png` | Vlad, Elisabeta, Mina, and Avram | 2 columns by 2 rows | Transparent |
 | `regulars-1.png`, `regulars-2.png` | Eight regulars, in arrival order | 2 columns by 2 rows | Transparent |
-| `regulars-3.png` | Two regulars; lower cells stay empty | 2 columns by 2 rows | Transparent |
+| `regulars-3.png` | Three regulars; the lower-right cell stays empty | 2 columns by 2 rows | Transparent |
 | `board-clutter.png` | Six blockers with open centres | 3 columns by 2 rows | Transparent |
 | `preparation-clutter.png` | Twelve blockers with open centres | 4 columns by 3 rows, 1448 by 1086 pixels | Transparent |
 | `mascots.png` | Three poses of the black cat and one bat | 2 columns by 2 rows | Transparent |

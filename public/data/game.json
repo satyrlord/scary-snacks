@@ -2529,6 +2529,19 @@
       ]
     },
     {
+      "id": "bela",
+      "name": "Bela",
+      "role": "Graveyard keeper",
+      "introduction": "I am Bela. I keep the old churchyard on the hill. I sleep through the day, so please do not knock before dusk. At night I walk between the graves and wish each one a good night. They are the quietest neighbours in the village, and the best listeners.",
+      "sprite": 2,
+      "portraitAtlas": "regulars-3",
+      "regular": true,
+      "favourites": [
+        "grain_4",
+        "herbs_4"
+      ]
+    },
+    {
       "id": "sanziana",
       "name": "Sânziana",
       "role": "Florist",
@@ -4500,6 +4513,35 @@
         {
           "speaker": "costel",
           "text": "The sparrow took three crumbs and wound itself up with pride. Tick, tick. I will keep the rest."
+        }
+      ]
+    },
+    {
+      "id": "bela-warm-cup",
+      "character": "bela",
+      "title": "A warm cup at the gate",
+      "afterTask": "task_2",
+      "requirements": [
+        {
+          "item": "grain_4",
+          "quantity": 1
+        },
+        {
+          "item": "herbs_4",
+          "quantity": 1
+        }
+      ],
+      "reward": 36,
+      "opening": [
+        {
+          "speaker": "bela",
+          "text": "I woke up early. The sun is still up, and I do not trust it. A pogăcea and a hot linden tea, please. The night between the graves is long and cold."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "bela",
+          "text": "Thank you. I will tell the graves about you. Do not worry, they never tell anyone else."
         }
       ]
     },

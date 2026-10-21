@@ -51,8 +51,8 @@ The board has six columns and seven rows. The game has these authored parts:
 - 12 chains of four to six dishes each, which are 61 dishes and drinks
 - 24 mixed dishes, each cooked from dishes of two or three chains
 - 12 ingredient sources (generators), one for each chain
-- 22 characters
-- 83 quests: 81 campaign quests, one supper quest, and one recovery quest
+- 23 characters
+- 84 quests: 82 campaign quests, one supper quest, and one recovery quest
 - 24 preparations in six chapters
 
 In this document, "dish" also means a drink. An ingredient is a dish that a source gives. Each dish has an English name. If English has no name for the dish, the dish has its Romanian regional name with diacritics. The initial layout, the prices, the progression, the characters, and the dialogue are new works.
@@ -76,7 +76,7 @@ The menu value of a quest is the sum of the prices of its portions. Every quest 
 
 Each preparation has a work scope, a material cost, a labour cost, and an estimate of active person-hours. Its coin cost is the material cost plus the labour cost. The cost does not rise with the position of the preparation in the story. As a reference scale, the cost model uses one coin for about one Romanian leu. The model includes reuse of the furniture and supplies that the bistro has. The model does not include running costs. The [economy record](docs/economy.md) gives the quantities, the portions, the primary references, and the assumptions.
 
-A campaign quest opens after a named preparation, or in a new game. A campaign quest that opens after preparation N is necessary for preparation N + 1. Each preparation needs every campaign quest that opens before it. The player delivers all 81 campaign quests before the supper quest.
+A campaign quest opens after a named preparation, or in a new game. A campaign quest that opens after preparation N is necessary for preparation N + 1. Each preparation needs every campaign quest that opens before it. The player delivers all 82 campaign quests before the supper quest.
 
 A quest asks only for dishes that the player can place. When a quest gets its ticket, the player surely knows a set of dishes. Each dish of the quest is one merge beyond that set. Its parts, or the dish one stage below it, are in the recipe book. Otherwise, its source is on the board. The player surely knows the dishes of a new game. The player also surely knows the dishes of each quest that surely had a ticket before. When a quest gets a ticket, its dishes enter the recipe book. The data check enforces this rule for every quest, including the supper.
 
@@ -120,7 +120,7 @@ The quest dialog shows who asks and why. It also shows each dish with its board 
 - The purse cannot hold the reward.
 - The quest is a booked quest, and the time is not from 20:00 on the evening of its guest.
 
-Character introductions, quest dialogs, quest completion scenes, and quest replays use parchment pages. All 22 characters have individual pencil sketches. A quest shows the sketch of its character. The nine supply quests, Ionatan's dinner, and Mina and Avram's meal are exceptions: they show their own scene illustrations. The illustration stays with the quest through speaker changes and journal replays. Introductions show the individual character sketch. Other story scenes keep their usual presentation. Victor draws these sketches while he waits for his meal. He is an anatomy student, and he studies anatomy, proportions, and perspective. He draws light but clear facial features. Awake people have open eyes, and sleepers have closed eyelids. He is secretly in love with Mara, so he draws her face with the most care.
+Character introductions, quest dialogs, quest completion scenes, and quest replays use parchment pages. All 23 characters have individual pencil sketches. A quest shows the sketch of its character. The nine supply quests, Ionatan's dinner, and Mina and Avram's meal are exceptions: they show their own scene illustrations. The illustration stays with the quest through speaker changes and journal replays. Introductions show the individual character sketch. Other story scenes keep their usual presentation. Victor draws these sketches while he waits for his meal. He is an anatomy student, and he studies anatomy, proportions, and perspective. He draws light but clear facial features. Awake people have open eyes, and sleepers have closed eyelids. He is secretly in love with Mara, so he draws her face with the most care.
 
 The dishes fly to the ticket. A temporary notice reports the delivery and the reward. While the completion scene is unread, the notice also offers "Read [Name]’s reply", which opens that scene. The next open quest gets the ticket. If no quest is open, the counter shows "No quests wait now. Pay for the next preparation." After the delivery of the last quest, the counter shows "Every quest is delivered. The bistro is yours."
 
@@ -142,9 +142,9 @@ The dinner pays its menu value. His quest does not depend on the supply quests. 
 
 The delivery records his quest identifier (ID) once and ends his visit. His farewell scene stays unread in Story. A reload, an export, and an import keep the record of his departure. A new game permits a new visit.
 
-The neighbourhood has 16 neighbours: the four core characters and 12 regulars. The six visitors are not neighbours. Each regular has a name, a trade, a portrait, an introduction, and two or three favourite dishes. Each quest of a regular asks for at least one favourite dish. Each regular refers to a horror novel, a horror film, local folklore, or a historical figure. The reference is in the name, the trade, or one habit. Vlad refers to Vlad III Dracula. Elisabeta refers to Elizabeth Báthory (Báthory Erzsébet).
+The neighbourhood has 17 neighbours: the four core characters and 13 regulars. The six visitors are not neighbours. Each regular has a name, a trade, a portrait, an introduction, and two or three favourite dishes. Each quest of a regular asks for at least one favourite dish. Each regular refers to a horror novel, a horror film, local folklore, or a historical figure. The reference is in the name, the trade, or one habit. Vlad refers to Vlad III Dracula. Elisabeta refers to Elizabeth Báthory (Báthory Erzsébet).
 
-Dochia, Victor, Ana, and Costel are present from the start. Sânziana and Dorian arrive with preparation 4. Vlad, Elisabeta, Ileana, and Cezar arrive with preparation 8, and their arrival scenes queue in that order. Cătălina and Bran arrive with preparation 12. Dorian is a rich gentleman who does not work. He sits for portraits and attends social meals.
+Dochia, Victor, Ana, Costel, and Bela are present from the start. Sânziana and Dorian arrive with preparation 4. Vlad, Elisabeta, Ileana, and Cezar arrive with preparation 8, and their arrival scenes queue in that order. Cătălina and Bran arrive with preparation 12. Dorian is a rich gentleman who does not work. He sits for portraits and attends social meals. Bela is the graveyard keeper, and he has one campaign quest. He sleeps through the day, and his smile unsettles the other guests, so the supper does not invite him.
 
 A regular arrives only when a preparation is complete. Each regular who arrives after the start has a short arrival scene. In the scene, a core character introduces the regular, and the regular answers. The payment that brings a regular queues the arrival scene. The arrival scene follows the preparation scene and the closing scene that the payment earns. The arrival scene follows the story rules for unread scenes.
 
@@ -322,11 +322,11 @@ The art plan `docs/specs/001-visible-renovation-art-plan.md` defines the 25 pain
 
 ## Identity
 
-The game has 93 generated Portable Network Graphics (PNG) masters. They give these items:
+The game has 94 generated Portable Network Graphics (PNG) masters. They give these items:
 
 - 16 food atlases: one for each chain, with its source and its dishes, and four for the mixed dishes
 - portraits, including three atlases for the regulars
-- parchment paper, 22 character sketches, nine cathedral scenes, and two visitor meal scenes
+- parchment paper, 23 character sketches, nine cathedral scenes, and two visitor meal scenes
 - 25 painted room states
 - the supper painting
 - two decoration edit paintings, which the game samples only in their authored regions

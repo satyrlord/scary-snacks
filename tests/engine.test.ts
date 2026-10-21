@@ -47,13 +47,13 @@ function addMixed(content: GameData, id: string, recipe: string[]) {
   content.items[id] = { id, name: 'Test dish', chain: 'mixed', stage: 2, next: null, art: { atlas: 'mains', cell: 7 }, price: 1, tags, recipe: recipe as [string, string] };
 }
 
-test('original data has 12 staple chains of four to six dishes, 24 mixed dishes, 12 sources, 22 characters, and 24 tasks', () => {
+test('original data has 12 staple chains of four to six dishes, 24 mixed dishes, 12 sources, 23 characters, and 24 tasks', () => {
   assert.equal(data.board.columns * data.board.rows, 42);
   assert.equal(Object.keys(data.items).length, 97);
   assert.deepEqual(data.chains.map(chain => chain.id), ['grain', 'corn', 'herbs', 'dairy', 'poultry', 'vegetables', 'fruits', 'pork', 'beans', 'lamb', 'veal', 'fish']);
-  assert.equal(data.characters.length, 22);
+  assert.equal(data.characters.length, 23);
   assert.equal(data.characters.filter(person => !person.visitor && !person.regular).length, 4);
-  assert.equal(data.characters.filter(person => person.regular).length, 12);
+  assert.equal(data.characters.filter(person => person.regular).length, 13);
   assert.equal(data.characters.filter(person => person.visitor).length, 6);
   assert.equal(data.tasks.length, 24);
   assert.equal(new Set(data.tasks.map(task => task.id)).size, 24);

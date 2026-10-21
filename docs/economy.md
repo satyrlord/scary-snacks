@@ -317,9 +317,8 @@ The balance band is the range of the purse after the supper.
 The purse must hold 0 to 10% of the coins that the fixture spent on preparations, takes, and upkeep.
 
 `tests/campaign-balance.test.ts` enforces the bounds that `PRODUCT.md` gives for the three strategies.
-The efficient fixture never leaves a loose raw ingredient at a closing.
 The efficient fixture takes two ingredients and merges them immediately.
-So the thief rat never comes, and the 20 seeds give the same run.
+Even so, the thief rat comes once in the efficient run. The thief rat takes each loose ingredient, so the 20 seeds give the same run.
 
 This check measures actions under that policy. This check does not establish a satisfactory human play experience.
 Each merge earns only the work rate. So the campaign needs more actions than a campaign with free production.

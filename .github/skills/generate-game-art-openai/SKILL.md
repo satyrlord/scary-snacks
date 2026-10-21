@@ -72,7 +72,7 @@ The helper reads each other value from the contract of the asset:
 | `food-<atlas>` for each food atlas: `grain`, `corn`, `herbs`, `dairy`, `poultry`, `vegetables`, `fruits`, `pork`, `beans`, `lamb`, `veal`, `fish`, `soups`, `mains`, `sweets`, `breads` | `2048x1024` | `transparent` | 4 columns by 2 rows; the cells after the last picture stay fully transparent |
 | `portraits` | `1536x1536` | `transparent` | 2 columns by 2 rows |
 | `regulars-1`, `regulars-2` | `1536x1536` | `transparent` | 2 columns by 2 rows |
-| `regulars-3` | `1536x1536` | `transparent` | 2 columns by 2 rows; the lower cells stay fully transparent |
+| `regulars-3` | `1536x1536` | `transparent` | 2 columns by 2 rows; the lower-right cell stays fully transparent |
 | `mascots` | `1536x1536` | `transparent` | 2 columns by 2 rows |
 | `timber-tabletop` | `1536x1536` | `opaque` | One image, square, tileable |
 | `embroidered-runner` | `1536x512` | `opaque` | One image, 3:1, repeats horizontally |

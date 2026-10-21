@@ -63,8 +63,8 @@ The data tool gives each price by the formula in `docs/economy.md`. Do not write
 The four core characters use the two-by-two portrait atlas.
 The first four visitors use the two-by-two visitor portrait atlas.
 Characters with `portraitAtlas: 'guest'` use the two-by-two guest portrait atlas.
-Ten regulars use the two-by-two atlases `regulars-1`, `regulars-2`, and `regulars-3`, in order of arrival.
-The lower cells of `regulars-3` stay transparent.
+Eleven regulars use the two-by-two atlases `regulars-1`, `regulars-2`, and `regulars-3`.
+The lower-right cell of `regulars-3` stays transparent.
 Verify each assignment against `portraitAtlas` and `sprite` in the data tool.
 The cell index increases from left to right, and then from top to bottom.
 A new item or a changed dish must have its own art, and that art must agree with the item.

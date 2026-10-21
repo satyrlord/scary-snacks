@@ -35,6 +35,7 @@ export const imageVariants = {
   'sketch-cezar': { widths: [768], formats: ['webp'] },
   'sketch-catalina': { widths: [768], formats: ['webp'] },
   'sketch-bran': { widths: [768], formats: ['webp'] },
+  'sketch-bela': { widths: [768], formats: ['webp'] },
   // Landscape scenes fill the reading column at up to 460px. The 1024px width covers twice the device pixel ratio.
   'scene-cathedral-1': { widths: [1024], formats: ['webp'] },
   'scene-cathedral-2': { widths: [1024], formats: ['webp'] },

@@ -32,7 +32,9 @@ test('the efficient run pays all 24 preparations and serves the supper with no i
   assert.deepEqual(finalState.act1, { days: finalState.clock.day, purse: finalState.coins }, 'The supper records the result of act 1.');
   assert.equal(totals.questCoins, campaign.reduce((sum, quest) => sum + quest.reward, 0) + totals.recoveries * recovery.reward);
   assert.equal(totals.preparationCoins, data.tasks.reduce((sum, task) => sum + task.cost, 0));
-  assert.equal(totals.blockerCoins, finalState.resolvedObstacles.length * data.economy.blockerCoin);
+  // A cleared preparation blocker and a cleared rat hole each give the blocker coin. Each theft makes at most one rat hole.
+  const cleared = finalState.resolvedObstacles.length * data.economy.blockerCoin;
+  assert.ok(totals.blockerCoins >= cleared && totals.blockerCoins <= cleared + report.nights.thefts * data.economy.blockerCoin);
   assert.ok(totals.takeCoins > 0 && totals.takeCoins <= totals.spawns * data.economy.takeCost);
   // The legal policy reads no scene, so each preparation scene, each chapter scene, and the finale wait in story order.
   const story = [...data.chapters.flatMap((chapter, index) => [...data.tasks.filter(task => task.chapter === index + 1).map(task => task.id), chapter.id]), data.finale.id];

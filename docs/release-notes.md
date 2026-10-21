@@ -60,7 +60,7 @@ Art candidates are not in the published assets.
 
 ## Art provenance
 
-The game ships image variants from 93 masters.
+The game ships image variants from 94 masters.
 [Asset provenance](asset-provenance.json) records each master, its references, processing, review limits, and hash.
 [Asset prompts](asset-prompts.json) preserves the exact generation prompts.
 These records describe the source of the current assets. These records do not give legal clearance.
@@ -87,12 +87,14 @@ The OpenAI Images application programming interface (API) supplies these assets 
 - The two decoration paintings, with project-generated design references.
 - The supper painting, with the final courtyard state and project-generated portraits as references.
 - The sketches of Sorin, Cătălina, Mina, Bran, and Victor, and four quest scenes, with project-generated chat drawings as references.
+- The sketch of Bela, with a project-generated sketch and his portrait candidate as references.
 - The 16 food atlases, with two accepted food atlases of the same set as style references.
 - The two rat sheets, with project-generated reference poses as identity references.
 - The rat hole and the night sky, with project-generated masters as style references.
 
 A correction edit keeps each pose of the mascot atlas inside its grid cell.
 A masked edit changes one cell of the first regulars atlas.
+A masked edit adds Bela to the last regulars atlas, and a fit places him inside his cell.
 A masked edit removes paint from one sleeve in the second regulars atlas.
 A fixed conversion makes the white paper of Bran's sketch and of the four quest scenes from the API transparent. A masked edit draws the mouth of Victor's sketch, and the same conversion makes that region transparent.
 The Sharp image library scales the two portraits of the third regulars atlas inside their cells.

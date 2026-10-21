@@ -712,7 +712,7 @@
         "run": "regulars/regulars-3-run1",
         "reference": "public/assets/original/portraits.png and public/assets/original/regulars-1.png, as references for style, framing, and scale only"
       },
-      "disposition": "The shipped master after a fit: each figure scaled to 88% and placed inside its own cell with Sharp. The user accepted the result."
+      "disposition": "The top two cells of the shipped master, after a fit: each figure scaled to 88% and placed inside its own cell with Sharp."
     },
     {
       "id": "board-blocker-open-centers",
@@ -1567,6 +1567,31 @@
         "reference": "style references: the masters food-fruits and food-vegetables"
       },
       "disposition": "The cornucopia in cell 1 of the shipped master, scaled and centred in its cell. The user accepted it."
+    },
+    {
+      "id": "regulars-3-bela",
+      "prompt": "Edit image 1, the accepted 2 by 2 portrait atlas of bistro neighbours for a cosy, slightly eerie Transylvanian bistro game. Keep the TOP-LEFT portrait (Cătălina, the bell-ringer) and the TOP-RIGHT portrait (Bran, the night-bus driver) exactly as they are, pixel for pixel. Keep the BOTTOM-RIGHT cell entirely EMPTY and fully transparent. Paint ONE new portrait, only in the BOTTOM-LEFT cell, the masked region.\n\nMatch the two existing portraits exactly in style, framing, scale, and transparency: hand-painted gouache with delicate coloured-pencil edges, an illustrated travel-journal feel, natural adult proportions, warm and dignified, gentle warm lamplight from the upper left. Framing: the figure faces the viewer, very slightly turned, head and full natural shoulders and upper arms, cut STRAIGHT ACROSS horizontally at mid-chest at about 92% of the cell height, shoulders at their full natural width (about 80 to 88% of the cell width) down to that straight cut. No oval vignette, no faded or rounded bottom. Eyes at about 36% of the cell height. The head is the same size as the heads of the two existing portraits. Transparent space above the head and on both sides; nothing crosses into another cell; no shadow on the background. Every pixel of the figure is fully opaque; everything around the figure is fully transparent, with no soft halo and no detached specks.\n\nBottom left, Bela, the village graveyard keeper, about 65. He sleeps through the day and works at night, so his complexion is pale, with faint shadows under deep-set dark eyes and bushy grey eyebrows. Long untidy grey hair and a shaggy grey beard under a battered black lambswool cap. His head tilts a little to one side, as if he listens to something that nobody else hears. A patched dark brown wool coat over a plain collarless linen shirt, a ring of large old iron keys on a cord across his chest, and a small sprig of rosemary in his buttonhole. A warm but lopsided, gap-toothed smile: friendly, and just a little unsettling. Grounded, practical village clothing; one quiet hint of an old story, never a costume or a horror effect.\n\nNo text, names, letters, numbers, logos, frames, food, animals, scenery, tombstones, background haze, blood, fangs, wounds, or supernatural effects. The complete bust stays wholly inside the bottom-left cell, with transparent margins on every side.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x1536",
+        "run": "bela/regulars-3-run1",
+        "reference": "public/assets/original/regulars-3.png, the previous atlas to edit",
+        "mask": "the bottom-left cell, 0,768,768,768"
+      },
+      "disposition": "The bottom-left cell of the shipped master, after a fit: Bela scaled to 85% and placed inside his cell with Sharp."
+    },
+    {
+      "id": "sketch-bela",
+      "prompt": "A spare, unfinished, warm sepia-brown pencil journal sketch of Bela, the village graveyard keeper. Image 1 is the accepted sketch of Cezar, the night watchman, from the same journal. Match its light, broken pencil touch ONLY: uneven pressure, incomplete contours, a few construction lines, very sparse hatching, and large unmarked areas between the strokes. Accurate anatomy, natural adult proportions, correct joints and hands, consistent perspective. The face is only lightly indicated, with no detailed portrait rendering.\n\nImage 2 is the project's portrait atlas, IDENTITY REFERENCE ONLY. Bela is the BOTTOM-LEFT man. Keep his age (about 65), his lean build, his long untidy grey hair and shaggy grey beard, his battered lambswool cap, his patched wool coat over a collarless shirt, the ring of large old iron keys on a cord across his chest, and the sprig of rosemary in his buttonhole. Do not depict the other two people.\n\nBela stands just inside the open wooden gate of a small village churchyard at dusk, his head tilted a little to one side. One hand rests on the long handle of a spade planted upright in the ground beside him. He raises the other hand in a small, polite wave toward one old leaning headstone, as if he wishes it good night. A lopsided, gap-toothed, friendly smile, suggested with only a few faint marks. Gentle and quietly comic, a little odd, never frightening.\n\nJust a few broken strokes suggest the gate, the one headstone with no lettering, and some grass. No other graves, no church building, no scenic background. Natural three-quarter view; figure, spade, gate and headstone share one coherent perspective. The spade stands on the ground and does not float. Suggest the coat with broad light contours and a few folds; the lower hem, the boots and the ground fade into unfinished marks.\n\nOne square image, 1024 by 1024 pixels, drawn on plain flat pure white paper (#FFFFFF) that fills the whole image: no paper texture, grain, stains, vignette, shadow, border or frame. Warm dark-brown pencil only. Skin, clothes, objects and background between the lines stay the same pure white as the paper: no cream, beige, grey or coloured fill, no tonal wash. Light, thin, broken pencil strokes with sparse hatching, never bold outlines. One person only. The complete figure, spade and headstone stay within about 80 percent of the square, and all marks stay at least 60 pixels inside every edge. Head in the upper half. No text, letters, numbers, signature, logo, interface, skulls, bones, ghosts, mist, blood or occult symbols.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1024x1024",
+        "run": "bela/sketch-bela-run1",
+        "reference": "public/assets/original/sketch-cezar.png for the pencil touch, and regulars-3-bela-candidate for the identity"
+      },
+      "disposition": "The shipped master, after the ink conversion."
     }
   ]
 }

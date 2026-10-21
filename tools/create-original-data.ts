@@ -117,7 +117,7 @@ function nobleDiet(): Character['diet'] {
 }
 /**
  * The regulars. Each one refers to a horror novel, a horror film, or local folklore, in the name, the trade, or one habit.
- * Each has two or three favourite dishes. Four are present from the start. The others arrive with the last preparation of chapters 1 to 3.
+ * Each has two or three favourite dishes. Five are present from the start. The others arrive with the last preparation of chapters 1 to 3.
  * A core character introduces each of them.
  */
 function regulars(): Character[] {
@@ -131,6 +131,9 @@ function regulars(): Character[] {
       'I am Ana. I work nights at the clinic, so this is my breakfast. Every Saint Andrew’s Eve I hang garlic on the ward door. The doctor laughs at me, but none of my patients has ever been bitten.'],
     ['costel', 'Costel', 'Clock and automaton maker', 'regulars-1', 3, ['Socată', 'Papanași', 'Cozonac'], 0,
       'I am Costel. I mend clocks and build small brass automata in the shop by the well. If you hear ticking under my coat, it is a mechanical sparrow. It likes bright eyes and shiny spoons, so keep an eye on both.'],
+    // Bela keeps the churchyard. He sleeps through the day, and his smile unsettles the other guests, so the supper does not invite him.
+    ['bela', 'Bela', 'Graveyard keeper', 'regulars-3', 2, ['Pogăcele', 'Linden tea'], 0,
+      'I am Bela. I keep the old churchyard on the hill. I sleep through the day, so please do not knock before dusk. At night I walk between the graves and wish each one a good night. They are the quietest neighbours in the village, and the best listeners.'],
     ['sanziana', 'Sânziana', 'Florist', 'regulars-2', 0, ['Socată', 'Plum dumplings', 'Fruit tea'], 4,
       'I am Sânziana. I sell flowers from the cart by the church. On Midsummer Eve I weave crowns of yellow bedstraw and dance in the meadow until dawn. My sisters dance too. Nobody has ever counted all of us at once.',
       [['eszter', 'The front room is ready, and the first flowers have come to see it. This is Sânziana, from the flower cart by the church.'],
@@ -388,6 +391,9 @@ const questRows: QuestRow[] = [
   ['costel-sparrow', 'costel', 'Crumbs for a clockwork bird', 2, [['Pogăcele', 1], ['Socată', 1], ['Linden tea', 1]],
     'My mechanical sparrow has learned to steal crumbs. It cannot eat them, but it enjoys the stealing. Some pogăcele and bread, please, and socată for me.',
     'The sparrow took three crumbs and wound itself up with pride. Tick, tick. I will keep the rest.'],
+  ['bela-warm-cup', 'bela', 'A warm cup at the gate', 2, [['Pogăcele', 1], ['Linden tea', 1]],
+    'I woke up early. The sun is still up, and I do not trust it. A pogăcea and a hot linden tea, please. The night between the graves is long and cold.',
+    'Thank you. I will tell the graves about you. Do not worry, they never tell anyone else.'],
   ['mara-lamp-supper', 'mara', 'Supper under the lamps', 3, [['Milk', 2], ['Linden tea', 1]],
     [['mara', 'We have lamps now. I am afraid that the light makes the plates look tired.'],
       ['eszter', 'My plates are never tired.'],

@@ -20,16 +20,16 @@ test('Dorian is a gentleman of leisure who sits for a portrait and entertains gu
   assert.match(quests.find(quest => quest.id === 'dorian-sitter')!.opening[0].text, /invited me to a candlelit supper/);
 });
 
-test('twelve regulars arrive in pairs: four at the start, then with preparations 4, 8, and 12, and the nobles also with preparation 8', () => {
+test('thirteen regulars: five at the start, then pairs with preparations 4, 8, and 12, and the nobles also with preparation 8', () => {
   assert.deepEqual(characterProblems(data), []);
-  assert.deepEqual(regulars.map(person => person.id), ['vlad', 'elisabeta', 'dochia', 'victor', 'ana', 'costel', 'sanziana', 'dorian', 'ileana', 'cezar', 'catalina', 'bran']);
+  assert.deepEqual(regulars.map(person => person.id), ['vlad', 'elisabeta', 'dochia', 'victor', 'ana', 'costel', 'bela', 'sanziana', 'dorian', 'ileana', 'cezar', 'catalina', 'bran']);
   const arrived = (count: number) => resolveNeighbours(checkpoint(count), data).filter(view => view.arrived && view.person.regular).map(view => view.person.id);
-  assert.deepEqual(arrived(0), ['dochia', 'victor', 'ana', 'costel']);
-  assert.deepEqual(arrived(3), ['dochia', 'victor', 'ana', 'costel']);
-  assert.deepEqual(arrived(4), ['dochia', 'victor', 'ana', 'costel', 'sanziana', 'dorian']);
-  assert.deepEqual(arrived(7).length, 6);
+  assert.deepEqual(arrived(0), ['dochia', 'victor', 'ana', 'costel', 'bela']);
+  assert.deepEqual(arrived(3), ['dochia', 'victor', 'ana', 'costel', 'bela']);
+  assert.deepEqual(arrived(4), ['dochia', 'victor', 'ana', 'costel', 'bela', 'sanziana', 'dorian']);
+  assert.deepEqual(arrived(7).length, 7);
   assert.deepEqual(arrived(8).slice(-4), ['vlad', 'elisabeta', 'ileana', 'cezar']);
-  assert.deepEqual(arrived(11).length, 10);
+  assert.deepEqual(arrived(11).length, 11);
   assert.deepEqual(arrived(12).slice(-2), ['catalina', 'bran']);
   for (const person of regulars) assert.ok(person.introduction.length > 40);
   const nobles = data.characters.filter(person => ['vlad', 'elisabeta'].includes(person.id));
@@ -61,7 +61,8 @@ test('a save cannot hold the arrival scene of a regular who has not arrived', ()
 test('each regular asks only after arrival, and the journal shows only arrived neighbours', () => {
   for (const person of regulars) {
     const quests = data.quests.filter(quest => quest.character === person.id);
-    assert.ok(quests.length >= 2, `${person.id} has quests.`);
+    // Bela, the graveyard keeper, has one campaign quest.
+    assert.ok(person.id === 'bela' ? quests.length === 1 : quests.length >= 2, `${person.id} has quests.`);
     const arrival = person.arrivesAfter === undefined ? -1 : data.tasks.findIndex(task => task.id === person.arrivesAfter);
     for (const quest of quests) assert.ok(data.tasks.findIndex(task => task.id === quest.afterTask) >= arrival, `${quest.id} opens after ${person.id} arrives.`);
   }

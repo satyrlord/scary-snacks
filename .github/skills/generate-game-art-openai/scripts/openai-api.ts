@@ -96,7 +96,7 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   // Ten regulars use these atlases in arrival order. The last atlas has two empty lower cells.
   'regulars-1': portraitAtlas,
   'regulars-2': portraitAtlas,
-  'regulars-3': { ...portraitAtlas, blankCells: [2, 3] },
+  'regulars-3': { ...portraitAtlas, blankCells: [3] },
   mascots: portraitAtlas,
   // The two rats of the night: one reference pose of each, then a sheet of eight poses with that pose as its identity reference.
   'rat-thief-reference': { background: 'transparent', shape: 'square', columns: 1, rows: 1, defaultSize: '1024x1024' },

@@ -1168,12 +1168,12 @@
     {
       "file": "public/assets/variants/regulars-3-640x640.webp",
       "master": "regulars-3",
-      "masterSha256": "d4c4019ed83d1d2129fdf4bb3f8e42c55320f6d4282addf3bfdcf6dcf6beccfc",
+      "masterSha256": "8db6830c2508e889745a9eb95aadd293990c1b583365bac4b12b1b7880bb9ede",
       "width": 640,
       "height": 640,
       "format": "webp",
-      "bytes": 59222,
-      "sha256": "18a5b0804093bc607e46d2fd0b7fe2c85b91b4031ea4e12bdd91f75ba3b3966c"
+      "bytes": 85918,
+      "sha256": "940bef9f48ad22682bfc45d5076612f1ae1bb3fdff9082a6098f589f9caa5002"
     },
     {
       "file": "public/assets/variants/parchment-page-1254x1254.webp",
@@ -1754,6 +1754,16 @@
       "format": "webp",
       "bytes": 56854,
       "sha256": "60e7d45281488ee01a21e711d93d86781652d16833502f1911210aa5ff628afa"
+    },
+    {
+      "file": "public/assets/variants/sketch-bela-768x768.webp",
+      "master": "sketch-bela",
+      "masterSha256": "30a3d446914f086ab84bee431e72867a24ab468cde2b33001bf6d098762f4f7a",
+      "width": 768,
+      "height": 768,
+      "format": "webp",
+      "bytes": 242356,
+      "sha256": "2dcaefc494686260cd09f1b283f3503bf9f881a7279632fe885f6003ffade2c6"
     }
   ]
 }

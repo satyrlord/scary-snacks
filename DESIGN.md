@@ -742,13 +742,13 @@ Options shows the save state. If the state needs one, Options also shows the Ret
 ## Design instructions
 
 ### Required actions
-- Use only the 93 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
+- Use only the 94 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
   - The 25 room masters are front-room-00 to front-room-12, front-room-17, front-room-24, courtyard-13 to courtyard-16, and courtyard-18 to courtyard-23.
   - The supper master is finale-supper, an edit of courtyard-23 with the guests of the supper.
   - The two decoration masters are decoration-front and decoration-courtyard.
-  - The 45 other masters are these:
+  - The 46 other masters are these:
     - board-clutter, preparation-clutter, portraits, visitor-portraits, guests, regulars-1, regulars-2, regulars-3, mascots, timber-tabletop, embroidered-runner, and parchment-page
-    - 22 character sketches
+    - 23 character sketches
     - nine cathedral scenes
     - two visitor meal scenes
   - The four night masters are these:
@@ -759,7 +759,7 @@ Options shows the save state. If the state needs one, Options also shows the Ret
     - food-grain, food-corn, food-herbs, food-dairy, food-poultry, food-vegetables, food-fruits, food-pork, food-beans, food-lamb, food-veal, food-fish, food-soups, food-mains, food-sweets, and food-breads
 - Paint each room state as a complete 3:4 painting, 1536 by 2048, opaque. Keep every pixel outside the change the same as in the state before it.
 - Ship room states and the supper painting as AVIF and WebP at 768 and 1536px wide, AVIF first. Ship the timber as AVIF and WebP at 1024 and 1536px wide. Ship the decoration paintings as WebP at 1536px wide. Ship the transparent atlases and the runner as WebP. Ship the rat sheets and the night sky as WebP at 1024px wide. Ship the rat hole as WebP at 256px square.
-- Ship the parchment as a WebP at its native 1254px square size. Ship the 22 character sketches as transparent WebP at 768px square. Ship the 11 quest scenes as transparent WebP at 1024px wide.
+- Ship the parchment as a WebP at its native 1254px square size. Ship the 23 character sketches as transparent WebP at 768px square. Ship the 11 quest scenes as transparent WebP at 1024px wide.
 - Keep the neighbours in working village dress: Mara, Ilie, and Sorin in Romanian dress, and Eszter in Székely dress.
 - Draw every control icon as a vector with a 1.7 stroke and round caps and joins.
 - Give every interactive boundary `--control-line`. Keep every target at least 44px.

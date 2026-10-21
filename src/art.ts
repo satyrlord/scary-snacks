@@ -20,6 +20,7 @@ const sketches: Record<string,string>={
   victor:'Victor rests his head on his hand at a table beside a classroom skeleton with a napkin at its neck.',
   ana:'Ana hangs a string of garlic on a door, a lantern at her feet.',
   costel:'Costel smiles at a small mechanical bird on his finger, with clockwork parts on his bench.',
+  bela:'Bela leans on his spade at the churchyard gate and waves good night to an old headstone.',
   sanziana:'Sânziana, in a flower crown, holds a bunch of flowers beside her flower cart.',
   dorian:'Dorian lounges at a small table with a glass of wine.',
   ileana:'Ileana sews at her table beside a dress on a tailor’s dummy.',
@@ -64,7 +65,7 @@ const portraitFrames: Record<string, readonly [number, number, number]> = {
   vlad: [.06,0,.88], elisabeta: [.06,0,.88], mina: [.11,.07,.8], avram: [.1,.09,.8],
   dochia: [.08,.015,.84], victor: [.08,0,.84], ana: [.08,0,.84], costel: [.07,0,.86],
   sanziana: [.07,.015,.86], dorian: [.08,0,.84], ileana: [.09,.015,.82], cezar: [.07,.01,.86],
-  catalina: [.1,.06,.82], bran: [.1,.03,.82],
+  catalina: [.1,.06,.82], bran: [.1,.03,.82], bela: [.1,.06,.82],
 };
 export function portrait(id: string) {
   const person = character(id);

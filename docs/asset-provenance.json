@@ -728,16 +728,18 @@
     {
       "id": "regulars-3",
       "file": "public/assets/original/regulars-3.png",
-      "sha256": "d4c4019ed83d1d2129fdf4bb3f8e42c55320f6d4282addf3bfdcf6dcf6beccfc",
-      "bytes": 1825057,
+      "sha256": "8db6830c2508e889745a9eb95aadd293990c1b583365bac4b12b1b7880bb9ede",
+      "bytes": 2625789,
       "width": 1536,
       "height": 1536,
       "mode": "RGBA",
       "hasTransparency": true,
-      "promptId": "regulars-3",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; each top portrait was scaled to 88% and placed inside its own cell with Sharp, without repainting",
+      "promptId": "regulars-3-bela",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; each top portrait was scaled to 88% and placed inside its own cell with Sharp, without repainting; Bela came from a masked edit of that atlas (bela/regulars-3-run1), and was scaled to 85% and placed inside the bottom-left cell with Sharp, without repainting (bela/regulars-3-run1-fit)",
       "sourceGameImageInput": false,
-      "review": "The portraits of the two regulars who arrive after preparation 12 (spec 010): Cătălina top left, Bran top right. The bottom cells stay empty for later characters. The candidate cut both figures about 60 pixels too low, into the bottom cells; each figure was scaled to 88% and placed inside its own cell (regulars/regulars-3-run1-fit). The agent reviewed both cells at full resolution and as round crops on both themes. The user accepted it.",
+      "review": "The portraits of three regulars: Cătălina top left and Bran top right, who arrive after preparation 12 (spec 010), and Bela bottom left, the graveyard keeper of spec 014. The bottom-right cell stays empty. The masked edit drew Bela about 17% larger than the other two, with his right shoulder across the cell edge. The fit scaled him to the width of the other figures and put his eyes and his straight cut on their lines. The top cells and the bottom-right cell keep the pixels of the previous master. The agent reviewed the atlas on grey and at full size. The user accepted it.",
+      "referenceAsset": "regulars-3-bela-candidate",
+      "referenceSha256": "3e43c9762ad6b4fe51bcd356e5574f0294a9d72204a2da3ecc3196bc8120956d",
       "visualAcceptance": {
         "status": "accepted",
         "by": "user"
@@ -1785,6 +1787,26 @@
       "sourceGameImageInput": false,
       "review": "The agent examined the sky at full size and at 300 by 130 pixels: it is opaque, it has no land or bats, and it stays dark enough for a small dark bat silhouette. The moon is about 16% from the right edge.",
       "visualAcceptance": "The user accepted the night sky."
+    },
+    {
+      "id": "sketch-bela",
+      "file": "public/assets/original/sketch-bela.png",
+      "sha256": "30a3d446914f086ab84bee431e72867a24ab468cde2b33001bf6d098762f4f7a",
+      "bytes": 540032,
+      "width": 1024,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "sketch-bela",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; drawn on white paper, then the paper was made transparent with the ink conversion (bela/sketch-bela-run1-ink), with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "referenceAsset": "regulars-3-bela-candidate",
+      "referenceSha256": "3e43c9762ad6b4fe51bcd356e5574f0294a9d72204a2da3ecc3196bc8120956d",
+      "review": "Bela at the gate of the churchyard, with his spade, his keys, and the rosemary, waving good night to one headstone without lettering. The agent compared it with sketch-cezar on a dark background and examined it on white: open transparent interiors, no pale fill, all marks inside the margins. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
     }
   ],
   "note": "The game uses only project-generated images. The mascots use a generated chat atlas from the references list. The core portraits use a revision of a generated candidate. front-room-00 and courtyard-13 use generated room references. The decoration paintings use generated design references. Each later room state edits the previous state of its area. Each composite retains only the changed region. The board-clutter atlas uses chat generation and cell corrections. Five pencil sketches, four quest scenes, and the second regulars atlas revise their previous versions, and the references list keeps each previous version. The 16 food atlases use alpha cuts, moves, box clears, and cell copies between candidates, without painted pixels. The two rat sheets use generated identity references from the references list. The thief rat sheet uses a cell trim, without painted pixels. This record preserves the source and review evidence of the current assets. This record does not give legal clearance.",
@@ -2070,6 +2092,19 @@
       "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality",
       "sourceGameImageInput": false,
       "use": "The identity reference of rat-soricescu. The game does not ship it."
+    },
+    {
+      "id": "regulars-3-bela-candidate",
+      "sha256": "3e43c9762ad6b4fe51bcd356e5574f0294a9d72204a2da3ecc3196bc8120956d",
+      "bytes": 3259704,
+      "width": 1536,
+      "height": 1536,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "regulars-3-bela",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a masked edit of the previous regulars-3 for the bottom-left cell",
+      "sourceGameImageInput": false,
+      "use": "The candidate of Bela's portrait. regulars-3 takes Bela from it, and sketch-bela uses it as the identity reference. The game does not ship it."
     }
   ]
 }
