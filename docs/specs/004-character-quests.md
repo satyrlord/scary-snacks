@@ -7,8 +7,8 @@ Status: Implemented.
 The game has 83 authored quests: 81 campaign quests, one supper quest, and one recovery quest.
 Quests and cleared blockers earn every coin of the campaign.
 The journal has an optional introduction for each neighbour and replay of completed quest scenes.
-Spec 005 owns the funding check and the economy fixture. Spec 007 names one quest of a core character as the contribution of each chapter. Spec 010 owns the regulars.
-Spec 012 owns the diets, the favourite dishes, the supper plates, and the recovery quest.
+Spec 005 records the funding check and the economy fixture. Spec 007 names one quest of a core character as the contribution of each chapter. Spec 010 records the regulars.
+Spec 012 records the diets, the favourite dishes, the supper plates, and the recovery quest. `PRODUCT.md` controls all of them.
 
 The engine owns eligibility, the tickets, delivery, and validation. Storage owns the envelopes and durable writes.
 The app owns the tickets, the quest dialog, the dialogue, and focus return.
@@ -39,9 +39,9 @@ The campaign rules below apply to the 81 campaign quests. `PRODUCT.md` owns the 
 
 ## Rewards
 
-Spec 005 owns the reward rule.
+Spec 005 records the reward rule.
 Every quest except the supper pays its menu value in coins. The supper pays nothing.
-Spec 012 gives the formula of the menu prices.
+`PRODUCT.md` gives the formula of the menu prices.
 
 ## Core character arcs
 
@@ -160,7 +160,7 @@ After a failed save, the notice includes the unsaved warning.
 Options offers Retry save.
 A failed save keeps the current session.
 
-The journal starts with waiting scenes in saved order, then the current or latest chapter. Each waiting scene appears once. This includes the farewells of single-visit guests until they are read. Earlier chapters, Earlier conversations, and Neighbours are collapsed groups. Completed campaign quests have one conversation entry with Request then Reply, except the quests of single-visit guests. Each page keeps all text, speakers, and the accepted illustration, with one Return action. A combined page uses one transcript. A quest with an unread reply has its whole conversation only under Unread scenes; it has no separate archived opening. The most recently delivered quest comes first in Earlier conversations. The neighbour rows open optional introductions.
+The journal starts with waiting scenes in saved order, then the current or latest chapter. Each waiting scene appears once. This includes the farewells of single-visit guests until they are read. Earlier chapters, Earlier conversations, and Neighbours are collapsed groups. Completed campaign quests have one conversation entry with Quest then Reply, except the quests of single-visit guests. Each page keeps all text, speakers, and the accepted illustration, with one Return action. A combined page uses one transcript. A quest with an unread reply has its whole conversation only under Unread scenes; it has no separate archived opening. The most recently delivered quest comes first in Earlier conversations. The neighbour rows open optional introductions.
 The supper quest keeps only its opening. The finale has its own entry. The recovery quest has no entry.
 An earned news scene appears once under Unread scenes while it waits. After reading, Local news in Earlier conversations offers its replay.
 Close, Escape, and Return from a quest scene keep the open groups and reading position, and restore the journal entry focus. Completing a combined conversation marks only its pending reply as read, moves the same entry to Earlier conversations, and opens that group. Close and Escape keep the reply unread. A read replay changes no game state. Story and delivery notices keep reply-only reading. A read single-visit farewell returns to the Unread scenes heading.

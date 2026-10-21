@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { firstFreeBoardCell, generatorOutputs, resolveQuests } from '../../src/model.ts';
 import type { GameState, SceneLine } from '../../src/model.ts';
-import { act, atBookingTime, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, journal, onTicket, opened, openQuest, options, person, portraitCell, quest, readTo, replaceSave, saved, start, startAgainAndImport, story, supplies, supply, ticket, toast } from './support.ts';
+import { act, atBookingTime, data, deliverButton, deliverable, dialogDeliver, dismissDialogs, exportText, failWrites, forward, journal, onTicket, opened, openQuest, options, person, portraitCell, quest, readNow, readTo, replaceSave, saved, start, startAgainAndImport, supplies, supply, ticket, tile, toast } from './support.ts';
 
 const dinner=quest('ionatan-castle-dinner');
 const search=quest('mina-avram-search');
@@ -10,7 +10,7 @@ const companions=['mina','avram'];
 async function scene(page: Page,lines: SceneLine[]){
   await expect(page.locator('#story-line h3')).toHaveText(lines.map(line=>person(line.speaker).name));
   await expect(page.locator('#story-line p')).toHaveText(lines.map(line=>line.text));
-  await page.locator('.story-controls .primary-button').click();
+  await forward(page).click();
 }
 /** Mina and Avram have journal introductions only while their shared quest is open. */
 async function guests(page: Page,present: boolean){
@@ -47,7 +47,7 @@ test('the shared vegetarian meal has both voices, leaves once, keeps the departu
   for(const {item,quantity} of search.requirements)await expect(dialog.getByRole('button',{name:`${quantity} ${data.items[item].name}: ${quantity} of ${quantity} on the board`,exact:true})).toBeVisible();
   const before=await saved(page);await dialog.getByRole('button',{name:/^Deliver /}).click();
   await expect(toast(page)).toHaveText(`${search.title}: delivered. Earned ${search.reward} coins.`);
-  await story(page);await page.getByRole('button',{name:`Read now: ${search.title}`,exact:true}).click();await scene(page,search.completion);
+  await readNow(page,search.title);await scene(page,search.completion);
   const after=await saved(page);expect(after.completedQuests).toEqual([...before.completedQuests,search.id]);expect(after.coins).toBe(before.coins+search.reward);expect(after.pendingScenes).toEqual([]);
   await guests(page,false);
   await page.reload();await opened(page);expect(await saved(page)).toEqual(after);await guests(page,false);
@@ -72,8 +72,7 @@ test('local news from the road arrives with the third delivery after the shared 
   await start(page,supply(state,supplies(third)));await deliverButton(page,third).click();
   await expect(toast(page)).toHaveText(`${third.title}: delivered. Earned ${third.reward} coins.`);
   expect((await saved(page)).pendingScenes).toEqual([third.id,search.followUp!.id]);
-  await story(page);await page.getByRole('button',{name:`Read now: ${third.title}`,exact:true}).click();
-  await expect(page.getByRole('dialog',{name:third.title,exact:true})).toBeVisible();
+  await readNow(page,third.title);
   await readTo(page,'Next scene');await expect(page.getByRole('dialog',{name:search.followUp!.title,exact:true})).toBeVisible();
   await scene(page,search.followUp!.dialogue);expect((await saved(page)).pendingScenes).toEqual([]);
   await journal(page,['chapters','conversations','neighbours']);await expect(page.getByRole('button',{name:`Replay ${search.followUp!.title}`,exact:true})).toBeVisible();await page.keyboard.press('Escape');await guests(page,false);
@@ -114,23 +113,22 @@ test('Vlad’s quest shows Red wine from the fruits atlas on its ticket and open
   await expect(page.getByRole('dialog')).toContainText(`Merge two ${data.items.fruits_4.name} to make Red wine.`);
 });
 
-async function dismissDialogs(page: Page){while(await page.locator('#modal').isVisible())await page.keyboard.press('Escape');}
 /** Make the dish through the source and board controls, without adding supplies to the save. */
 async function makeDish(page: Page,code: string): Promise<number>{
   const before=await saved(page),item=data.items[code],source=`generator_${item.chain}`;
   if(generatorOutputs(before,source,data).includes(code)){
-    const at=before.board.findIndex(cell=>cell?.code===source),tile=page.locator(`[data-cell="${at}"]`);
-    if(await tile.getAttribute('aria-pressed')!=='true'){
-      const empty=firstFreeBoardCell(before,data);await tile.click();await dismissDialogs(page);
+    const cell=tile(page,before.board.findIndex(value=>value?.code===source));
+    if(await cell.getAttribute('aria-pressed')!=='true'){
+      const empty=firstFreeBoardCell(before,data);await cell.click();await dismissDialogs(page);
       if((await saved(page)).board[empty]?.code===code)return empty;
     }
     const empty=firstFreeBoardCell(await saved(page),data);expect(empty).toBeGreaterThanOrEqual(0);
-    await tile.click();await dismissDialogs(page);
+    await cell.click();await dismissDialogs(page);
     expect((await saved(page)).board[empty]?.code).toBe(code);return empty;
   }
   const lower=Object.values(data.items).find(candidate=>candidate.next===code)!;
   const first=await makeDish(page,lower.id),second=await makeDish(page,lower.id);
-  await page.locator(`[data-cell="${first}"]`).click();await page.locator(`[data-cell="${second}"]`).click();await dismissDialogs(page);
+  await tile(page,first).click();await tile(page,second).click();await dismissDialogs(page);
   expect((await saved(page)).board[second]?.code).toBe(code);return second;
 }
 /** Red wine is its cell of the fruits atlas: the view box of its picture is that 256px cell of the 1024 by 512 variant. */
@@ -150,7 +148,7 @@ test('red wine made through the visible controls readies Vlad’s quest, and Del
   const initial=atBookingTime(supply(onTicket(value),dishes),value);initial.coins=100;
   await start(page,initial);await expect(deliverButton(page,value)).toBeDisabled();
   const wine=await makeDish(page,'fruits_5');
-  await expect(page.locator(`[data-cell="${wine}"]`)).toHaveAttribute('aria-label',/Red wine$/);await winePicture(page.locator(`[data-cell="${wine}"]`));
+  await expect(tile(page,wine)).toHaveAttribute('aria-label',/Red wine$/);await winePicture(tile(page,wine));
   await expect(deliverButton(page,value)).toBeEnabled();await expect(ticket(page,value).locator('.ticket-item.ready')).toHaveCount(value.requirements.length);
   const ready=await saved(page);expect(ready.discovered).toContain('fruits_5');expect(ready.coins).toBe(initial.coins-2**(data.items.fruits_5.stage-1)*data.economy.takeCost);
   await deliverButton(page,value).click();await expect(toast(page)).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);

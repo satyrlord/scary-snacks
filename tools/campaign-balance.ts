@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { canDeliverQuest, canLightLanterns, clockMinutes, currentTask, dayMerges, dishWork, firstFreeBoardCell, freeBoardCells, getItem, mergeResult, requiredQuests, resolveQuests, supperComplete, supperQuest, takeCost, taskEligibility, unresolvedObstacle } from '../src/model.ts';
+import { canDeliverQuest, canLightLanterns, currentTask, dayMerges, dishWork, firstFreeBoardCell, freeBoardCells, getItem, mergeResult, requiredQuests, resolveQuests, supperComplete, supperQuest, takeCost, taskEligibility, unresolvedObstacle } from '../src/model.ts';
 import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import type { Action, GameData, GameState, Quest, Task } from '../src/model.ts';
 
@@ -14,7 +14,7 @@ export type CampaignPreparation = CampaignTotals & {
 };
 /**
  * Efficient: cook only for quests, and light the lanterns for each booking. Miss bookings: let the first evening of each booked quest
- * pass, and cook spare herbs while nothing else is left to do. Debt: start each preparation window with a debt of 20 coins.
+ * pass, and cook spare food while nothing else is left to do: merge spare pairs, step spare dishes up, then make herb tea. Debt: start each preparation window with a debt of 20 coins.
  */
 export type CampaignStrategy = 'efficient' | 'miss-bookings' | 'debt';
 export type CampaignNights = {

@@ -5,10 +5,10 @@ import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import { dayProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import type { GameData, GameState } from '../src/model.ts';
-import { act, addOpenLayout, checkpoint, data, deliver, openGame, player, ready, rejected, supply, validate, know } from './support.ts';
+import { act, addOpenLayout, checkpoint, data, deliver, openGame, player, ready, rejected, status, supply, validate, know } from './support.ts';
 
 addOpenLayout();
-// The open layout: the Windmill at 1, the Corn crib at 4, Flour at 13 and 14, Corn at 22, Elderflowers at 27, the Herb basket at 31.
+// The open layout: the Windmill at 1, the Corn basket at 4, Flour at 13 and 14, Corn at 22, Elderflowers at 27, the Herb basket at 31, Socată at 32 and 33.
 const quest = (id: string) => data.quests.find(value => value.id === id)!;
 const recovery = data.quests.find(value => value.recovery)!;
 /** A copy with these dishes in these cells. */
@@ -211,7 +211,6 @@ test('with no open campaign quest and a debt, the recovery quest opens, and its 
 
 /** The game after the payment of preparation 8: Vlad's first booked quest has a ticket, and Elisabeta's waits. */
 const afterEight = () => act(ready(checkpoint(7)), { type: 'task' });
-const status = (state: GameState, id: string) => resolveQuests(state, data).find(view => view.quest.id === id)!.status;
 
 const freeCells = (state: GameState) => state.board.flatMap((cell, index) => !cell && !unresolvedObstacle(state, index, data) ? [index] : []);
 /** Closes the day with the merge of two Elderflowers, which the rats leave alone. */

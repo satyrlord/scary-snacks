@@ -4,7 +4,7 @@ Status: Implemented.
 
 ## Behavior
 
-The six-by-seven board starts with seven movable items and eight blocked edge cells.
+The six-by-seven board starts with nine items and eight blocked edge cells. The items are three sources and six dishes.
 Every blocker shows its blocked dish through a transparent center.
 Any legal merge into that cell clears the blocker: a matching dish of its chain, or a recipe partner of spec 012.
 The result of the merge stays in the blocked cell. The source cell becomes empty.
@@ -51,7 +51,7 @@ Every blocked tile stays in the keyboard path. Its label names the blocked dish
 and the merge rule. A small help mark and hover text show the rule.
 A tap selects the blocker. It shows the name of the blocker, the blocked dish,
 each recipe partner that the player has made, and Clear selection below the board.
-Movable matches get a steady focus outline.
+Movable matches get a dotted outline.
 Tapping a marked dish merges it into the blocker and clears it in one action.
 Help replaces item actions and preparation offers. It changes no game state until a merge.
 Escape, Clear selection, a dish that does not merge, or a second tap dismisses it.

@@ -7,9 +7,9 @@ import type { Area, BoardLayout, Chapter, Character, DayLevers, DecorationSlot, 
 
 // The levers of the economy (docs/economy.md). They are starting values: the campaign balance test measures them.
 const economy: Economy = { takeCost: 1, blockerCoin: 1, workRate: 2, recoveryFloor: 10 };
-// The levers of the bistro day (spec 013), in minutes after midnight. One day holds 150 merges. The campaign balance test measures them.
+// The levers of the bistro day, in minutes after midnight. One day holds 150 merges. The campaign balance test measures them.
 const day: DayLevers = { opening: 7 * 60, closing: 22 * 60, booking: 20 * 60, mergeMinutes: 6, upkeep: 10, ratTake: 3, ratHoles: 3, giftStage: 4, giftSpace: 5 };
-// The staple chains (spec 012). Each chain is one food family: its source gives the raw staple, and its dishes use only foods of that
+// The staple chains. Each chain is one food family: its source gives the raw staple, and its dishes use only foods of that
 // family. Each dish names its content tags. The chain atlas holds the source in cell 0 and the dishes in stage order.
 const chains: [id: string, name: string, source: string, stages: [name: string, tags: DishTag[]][], free?: true][] = [
   ['grain', 'Grain', 'Windmill', [['Flour', []], ['Dough', []], ['Loaf', []], ['Pogăcele', []], ['Langoș', []], ['Bread basket', []]]],
@@ -116,8 +116,8 @@ function nobleDiet(): Character['diet'] {
   return { name: 'Red wine and meat, no garlic', forbid: ['garlic'], require: { item: dish('Red wine'), tag: 'meat' } };
 }
 /**
- * The regulars of spec 010. Each one nods to a horror novel, a horror film, or local folklore, in the name, the trade, or one habit.
- * Each has two or three favourite dishes (spec 012). Four are present from the start. The others arrive with the last preparation of chapters 1 to 3, introduced by a core character.
+ * The regulars. Each one nods to a horror novel, a horror film, or local folklore, in the name, the trade, or one habit.
+ * Each has two or three favourite dishes. Four are present from the start. The others arrive with the last preparation of chapters 1 to 3, introduced by a core character.
  */
 function regulars(): Character[] {
   const rows: [id: string, name: string, role: string, atlas: Character['portraitAtlas'], sprite: number, favourites: string[], arrivesAfter: number,
@@ -210,7 +210,7 @@ const chapterRows: [title: string, objective: string, opening: string, payoff: s
 const chapters: Chapter[] = chapterRows.map(([title, objective, opening, payoff, contribution, closing], index) => ({
   id: `chapter-${index + 1}`, title, objective, opening, payoff, contribution, closing: closing.map(([speaker, text]) => ({ speaker, text })),
 }));
-// The finale names the outcome of each chapter, and every core character speaks. The payment of the supper quest earns it.
+// The finale names the outcome of each chapter, and every core character speaks. Serving the supper quest earns it.
 // The last line leads to the painting of the supper, and then back to the kitchen.
 const finale: Finale = { id: 'finale', title: 'Supper at the bistro', dialogue: [
   { speaker: 'mara', text: 'Look at them. The front room is full, and the courtyard too.' },
@@ -272,9 +272,9 @@ const workRows: [materials: number, labour: number, hours: number, summary: stri
   [160, 60, 2, 'Print twenty small invitations. Hang a wreath on the kitchen door. Dress the gate with a lantern and pots of red geraniums, and line the wall with more. Reuse the towels.'],
   [120, 80, 2, 'Set the existing serving table with a cloth and labels. Prepare the first warm dishes and bread. Reuse the plates.'],
   [120, 60, 1.5, 'Hang one outdoor light string. Arrange gathered wildflowers in existing vases.'],
-  [60, 60, 2, 'Top up bread, water, and food for twelve guests. Finish setting places and welcome everyone. Reuse the prepared room and tableware.'],
+  [60, 60, 2, 'Top up bread, water, and food for eleven guests. Finish setting places and welcome everyone. Reuse the prepared room and tableware.'],
 ];
-// The preparation, by number, that opens each source after the first three (spec 012). Its scene names the new source.
+// The preparation, by number, that opens each source after the first three. Its scene names the new source.
 const unlocks: Record<number, string> = { 3: 'dairy', 5: 'poultry', 6: 'vegetables', 7: 'fruits', 8: 'pork', 11: 'beans', 13: 'lamb', 16: 'veal', 20: 'fish' };
 const tasks: Task[] = taskRows.map(([title, a, at, b, bt, c, ct], index) => {
   const [materials, labour, hours, summary] = workRows[index];
@@ -588,7 +588,7 @@ const questRows: QuestRow[] = [
 const finishes: Record<string, Quest['unlocks']> = {
   'eszter-green-bowls': { slot: 'tableware', variant: 'green' }, 'ileana-blue-cloth': { slot: 'textiles', variant: 'blue' }, 'sanziana-lilacs': { slot: 'flowers', variant: 'lilacs' },
 };
-// Vlad and Elisabeta book a table for the evening, never on the same evening (spec 013).
+// Vlad and Elisabeta book a table for the evening, never on the same evening.
 const bookedGuests = ['vlad', 'elisabeta'];
 const campaign: { window: number; quest: Quest }[] = questRows.map(([id, character, title, window, requirements, opening, completion]) => ({ window, quest: {
   id, character, title, afterTask: window ? `task_${window}` : null, ...questTerms(requirements), opening: lines(character, opening), completion: lines(character, completion),
@@ -670,7 +670,7 @@ campaign.push({ window: 10, quest: { id: 'mina-avram-search', character: 'mina',
     dialogue: [{ speaker: 'sorin', text: 'There is news going round the village. Mina and Doctor Avram found Ionatan gravely ill. All three have left for Britain. They did not stop at our bistro on the way back.' },
       { speaker: 'mara', text: 'Then he is no longer alone. I hope he recovers at home. Thank you for bringing the news, Sorin.' }] } } });
 // After the last preparation, Mara cooks the community supper: one plate for each guest, to the taste of each one. Its delivery pays
-// nothing and earns the finale. The plates use every chain, and each regular gets a favourite dish.
+// nothing and earns the finale. The plates use every chain, and each regular at the supper gets a favourite dish.
 const supperPlates: [guest: string, plate: string][] = [
   ['mara', 'Cabbage rolls with mămăligă'], ['ilie', 'Bean soup in a bread bowl'], ['eszter', 'Drob'], ['sorin', 'Plum dumplings'],
   ['costel', 'Papanași'], ['victor', 'Meatball soup'], ['ana', 'Chicken noodle soup'], ['ileana', 'Stuffed peppers'], ['bran', 'Mici'],
@@ -765,8 +765,9 @@ initial[13] = 'grain_1';
 initial[14] = 'grain_1';
 initial[22] = 'corn_1';
 initial[27] = 'herbs_1';
-// A Socată waits by the Herb basket, so the linden tea of the recovery quest is one merge away from the first day.
+// Two Socată wait by the Herb basket, so a Linden tea is one merge away from the first day.
 initial[32] = 'herbs_3';
+initial[33] = 'herbs_3';
 const layouts: BoardLayout[] = [
   { id: 'workbench-clutter-1', obstacles: [
     { id: 'old-crate', position: 0, name: 'Old crate', type: 'clutter', ingredient: 'grain_3', sprite: 0 },

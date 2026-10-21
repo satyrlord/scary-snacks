@@ -25,9 +25,9 @@ Play never waits for a scene. Opening a scene again gives no reward.
    `storyProblems` rejects a duplicate ID.
 2. The `task` action queues the preparation scene in the same state change as the payment.
    A campaign `deliverQuest` action queues its completion scene in the same state change as the delivery.
-   The supper payment queues the finale. The recurring quest queues no scene.
+   Serving the supper queues the finale. The recovery quest queues no scene.
    A failed action queues nothing.
-3. One payment queues its scenes in this order: the preparation scene, then the chapter closing scene. The payment of the supper quest queues the finale.
+3. One payment queues its scenes in this order: the preparation scene, then the chapter closing scene.
    Other scenes join the end of the list in event order.
 4. The paid preparation transcript opens at once. Its "See what changed" action marks it as read and starts the room change.
    Close and Escape start the room change and leave the scene waiting.
@@ -35,13 +35,13 @@ Play never waits for a scene. Opening a scene again gives no reward.
 5. If the room change is already done, a resumed preparation scene ends with the usual end label.
    The scene does not offer "See what changed". This case occurs after a reload.
 6. A campaign delivery shows a temporary notice and leaves the quest completion scene waiting.
-   The supper payment opens the finale immediately. A recurring delivery shows its reward notice and queues no scene.
+   Serving the supper opens the finale immediately. A recovery delivery shows its reward notice and queues no scene.
    Read now opens the scene from Story. The journal lists waiting replies under Unread scenes.
-   The journal combines a recurring character’s completed quest opening and reply in one conversation.
+   The journal combines the opening and the reply of a completed quest of a neighbour or a returning visitor in one conversation.
    After reading, that same entry moves to Earlier conversations. Story and delivery notices open only the reply.
    The completion action marks the scene as read. Close and Escape leave the scene waiting.
 7. A transcript shows every turn in order, with its speaker name, portrait, and exact text.
-   A combined quest journal page has Request then Reply, one illustration, and one Return action.
+   A combined quest journal page has Quest then Reply, one illustration, and one Return action.
    Its completion changes only the pending reply through `readScene`. A read replay changes no state.
    It has one completion action, with the same destination label as the scene.
    Focus starts on the title and scroll starts at the top. Close and Escape leave it unread. Reopening starts at the top.
@@ -71,7 +71,7 @@ A save without a waiting entry for a scene treats that scene as read.
 - the ID of earned local news;
 - the arrival scene of an arrived regular;
 - the ID of a complete chapter;
-- the finale ID after the payment of the supper quest.
+- the finale ID after the supper is served.
 
 Preparation scenes, chapter scenes, and the finale keep one story order.
 In that order, each chapter scene follows the four preparations of its chapter.

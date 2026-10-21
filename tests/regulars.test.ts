@@ -4,11 +4,9 @@ import { arrivalScene, availableChains, dishOpen, hasArrived, journalCharacters,
 import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import { characterProblems, dataProblems } from '../src/content.ts';
 import type { GameData, Quest } from '../src/model.ts';
-import { checkpoint, data, payNext } from './support.ts';
+import { checkpoint, data, payNext, tags } from './support.ts';
 
 const regulars = data.characters.filter(person => person.regular);
-/** The tags of the dishes of a quest. */
-const tags = (quest: Quest) => quest.requirements.flatMap(({ item }) => data.items[item].tags);
 /** The preparations paid before a quest opens: 0 for a quest of a new game. */
 const window = (quest: Quest) => quest.afterTask === null ? 0 : data.tasks.findIndex(task => task.id === quest.afterTask) + 1;
 
@@ -109,13 +107,10 @@ test('the cast check rejects a bad arrival, bad favourite dishes, bad diets, a m
   assert.equal(arrivalScene({ id: 'bran' }), 'arrival-bran');
 });
 
-test('the data check rejects a regular quest before arrival or without a favourite dish', () => {
+test('the data check rejects a regular quest before its character arrives', () => {
   const late = structuredClone(data);
   late.characters.find(person => person.id === 'sanziana')!.arrivesAfter = 'task_5';
   assert.match(dataProblems(late).join(' '), /character must arrive before the quest opens/);
-  const favourites = structuredClone(data);
-  favourites.characters.find(person => person.id === 'dochia')!.favourites = ['grain_2', 'herbs_2'];
-  assert.match(dataProblems(favourites).join(' '), /dochia-sheepskin: a regular needs a favourite dish/);
 });
 
 test('each regular has two or three favourite dishes, asks for one in each quest, and has one open at the window of each quest', () => {

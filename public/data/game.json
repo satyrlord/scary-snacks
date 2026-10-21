@@ -36,7 +36,7 @@
       null,
       "generator_herbs",
       "herbs_3",
-      null,
+      "herbs_3",
       null,
       null,
       null,
@@ -3483,7 +3483,7 @@
       "title": "Welcome the community supper",
       "cost": 120,
       "work": {
-        "summary": "Top up bread, water, and food for twelve guests. Finish setting places and welcome everyone. Reuse the prepared room and tableware.",
+        "summary": "Top up bread, water, and food for eleven guests. Finish setting places and welcome everyone. Reuse the prepared room and tableware.",
         "materials": 60,
         "labour": 60,
         "hours": 2

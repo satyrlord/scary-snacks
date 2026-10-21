@@ -109,14 +109,6 @@ export function planAsset(assetId: unknown, size?: string) {
   };
 }
 
-function imageFormat(bytes: Buffer) {
-  if (hasPngSignature(bytes)) return 'png';
-  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'jpeg';
-  if (bytes.toString('latin1', 0, 4) === 'RIFF' && bytes.toString('latin1', 8, 12) === 'WEBP')
-    return 'webp';
-  throw new Error('Use a static PNG, JPEG, or WebP reference.');
-}
-
 export function verifyReferenceHash(bytes: Buffer, expectedHash: unknown) {
   if (typeof expectedHash !== 'string' || !/^[a-f0-9]{64}$/u.test(expectedHash) || sha256(bytes) !== expectedHash)
     throw new Error('The reference does not match its recorded image hash.');
@@ -134,7 +126,7 @@ export async function readReference(file: string): Promise<ReferenceImage & { sh
     isInside(tasks, resolved) && record !== undefined && (await pathExists(path.join(path.dirname(resolved), record)));
   if (!isShipping && !isCandidate)
     throw new Error(
-      'Use only a shipping bitmap, a candidate that this helper generated, or a composite of them as a reference.',
+      'Use only a shipping bitmap, a candidate that this helper generated, or a composite or a paper copy of them as a reference.',
     );
   const bytes = await readFile(resolved);
   if (isShipping) {
@@ -151,7 +143,8 @@ export async function readReference(file: string): Promise<ReferenceImage & { sh
     };
     verifyReferenceHash(bytes, generation?.sourceSha256);
   }
-  return { bytes, format: imageFormat(bytes), sha256: sha256(bytes) };
+  if (!hasPngSignature(bytes)) throw new Error('Use a PNG reference.');
+  return { bytes, format: 'png', sha256: sha256(bytes) };
 }
 
 const pngSize = (bytes: Buffer) => ({ width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20), colorType: bytes[25] });

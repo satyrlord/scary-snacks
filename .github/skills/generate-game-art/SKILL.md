@@ -1,6 +1,6 @@
 ---
 name: generate-game-art
-description: Generate, review, repair, or replace Scary Snacks bitmap art with the built-in chat image generator. If the agent has no image generator, give the user a complete prompt. Start here for the OpenAI Images API route also. This skill gives that request to generate-game-art-openai. Use for food, portrait, mascot, and blocker atlases, the timber, and the runner. Also use for room states, decoration paintings, separate item pictures, cell defects, and prompt and provenance records.
+description: Generate, review, repair, or replace Scary Snacks bitmap art with the built-in chat image generator. If the agent has no image generator, give the user a complete prompt. Start here for the OpenAI Images API route also. This skill gives that request to generate-game-art-openai. Use for food, portrait, mascot, and blocker atlases, the timber, and the runner. Also use for room states, decoration paintings, the supper painting, and the night sky. Also use for the rat sheets, the rat hole, the parchment, character sketches, quest scenes, cell defects, and prompt and provenance records.
 ---
 
 # Generate game art in chat
@@ -33,7 +33,8 @@ In that condition, give each edit or check that you did not complete in the repo
 ## Read the task contract
 
 Read `PRODUCT.md`, `DESIGN.md`, `docs/asset-prompts.json`, and `docs/asset-provenance.json`.
-Read `tests/assets.test.ts` and the code that shows the selected asset in `index.html`, `src/art.ts`, `src/room.ts`, and `src/style.css`.
+Read `tests/assets.test.ts` and the code that shows the selected asset.
+That code is in `index.html`, `src/art.ts`, `src/room.ts`, `src/story.ts`, `src/night.ts`, `src/board.ts`, and `src/style.css`.
 Examine the repository status before an edit.
 Examine the file to replace.
 
@@ -42,7 +43,7 @@ The next table lists the layouts of the Portable Network Graphics (PNG) masters 
 
 | File | Role | Layout | Alpha |
 | --- | --- | --- | --- |
-| `food-<atlas>.png` | The source and the dishes of one chain, or one group of mixed dishes (spec 012) | 4 columns by 2 rows, 2048 by 1024 pixels; unused cells stay empty | Transparent |
+| `food-<atlas>.png` | The source and the dishes of one chain, or one group of mixed dishes | 4 columns by 2 rows, 2048 by 1024 pixels; unused cells stay empty | Transparent |
 | `portraits.png` | The four core characters | 2 columns by 2 rows | Transparent |
 | `visitor-portraits.png` | Adrian, Monica, Janos, and Ionatan | 2 columns by 2 rows | Transparent |
 | `guests.png` | Vlad, Elisabeta, Mina, and Avram | 2 columns by 2 rows | Transparent |
@@ -55,6 +56,10 @@ The next table lists the layouts of the Portable Network Graphics (PNG) masters 
 | `embroidered-runner.png` | The runner strips beside the board | One image, 3:1. The game repeats only the region at x 161 with width 503 | Opaque |
 | `front-room-NN.png`, `courtyard-NN.png` | One painted room state | One image, 3:4, 1536 by 2048 pixels | Opaque |
 | `decoration-front.png`, `decoration-courtyard.png` | One decoration edit of a room state | One image, 3:4, 1536 by 2048 pixels | Opaque |
+| `finale-supper.png` | The supper painting: an edit of `courtyard-23` with the guests | One image, 3:4, 1536 by 2048 pixels | Opaque |
+| `rat-thief.png`, `rat-soricescu.png` | Eight poses of one rat of the night | 4 columns by 2 rows, 2048 by 1024 pixels; each cell is 512 pixels square | Transparent |
+| `rat-hole.png` | The rat hole blocker | One image, square, 1024 by 1024 pixels | Transparent |
+| `night-sky.png` | The night sky behind the window glass | One image, 2:1, 2048 by 1024 pixels | Opaque |
 | `parchment-page.png` | The paper of the quest dialogs | One tileable square, 1254 by 1254 pixels | Opaque |
 | `sketch-<character>.png` | The pencil sketch of one character | One image, square, at least 1024 pixels | Transparent |
 | `scene-<name>.png` | The pencil scene of one quest | One image, 3:2, 1536 by 1024 pixels | Transparent |

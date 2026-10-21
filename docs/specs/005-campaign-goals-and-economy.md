@@ -9,13 +9,12 @@ A repair costs more money and effort than a new menu.
 A repair also costs more than new paint on a welcome board whose wood is sound.
 The position of a preparation does not change a price.
 Quests and cleared blockers earn the coins of the campaign.
-Spec 012 gives the four levers, the paid takes, the blocker coin, the price formula, and the recovery quest.
+`PRODUCT.md` gives the four levers, the paid takes, the blocker coin, the price formula, and the recovery quest.
 The [economy record](../economy.md) gives the price table, the work scopes, the price sources, and the assumptions.
 
 ## Economy rules
 
-1. Each dish has a menu price from the formula of spec 012: the paid staples times the take cost, plus the merges times the work rate.
-   A source has no price. Flour costs 1 coin. Elderflowers cost nothing. Linden tea costs 14 coins.
+1. Each dish has a menu price from the formula in `PRODUCT.md`. A source has no price.
    The menu value of a quest is the sum of the prices of its portions.
 2. The economy record gives the price of each dish.
 3. Every quest except the supper pays its menu value. The supper pays nothing. No quest has a reward multiplier.

@@ -2,7 +2,7 @@
 
 Read this module before a plan, a request, a measurement, or a record of the route.
 API means application programming interface. PNG means Portable Network Graphics.
-JPEG means Joint Photographic Experts Group. MB means megabytes.
+MB means megabytes.
 RGB means red, green, and blue. RGBA adds an alpha channel.
 
 ## Keep the route fixed
@@ -18,7 +18,7 @@ For a helper repair, read these modules before the edit:
 - [`art-image.ts`](../scripts/art-image.ts): command arguments, safe paths, references, keys, and run records.
 - [`openai-api.ts`](../scripts/openai-api.ts): asset contracts and the API transport.
 - [`png-facts.ts`](../scripts/png-facts.ts): PNG decoding and measurements.
-- [`art-composite.ts`](../scripts/art-composite.ts): masks and region composites.
+- [`art-composite.ts`](../scripts/art-composite.ts): masks, region composites, the ink conversion, paper copies, and patches.
 
 Run `node --test tests/art-image.test.ts` after a helper repair.
 Run `npm run typecheck` to check the helper types.
@@ -45,7 +45,8 @@ It requires an edge of at most 3840 pixels and 655,360 to 8,294,400 pixels in to
 It also requires the shape of the asset:
 
 - Square for the core portrait, regular portrait, and mascot atlases, the timber, and the character sketches.
-- 2:1 for the food atlases.
+  Also square for the rat hole and the two rat reference poses.
+- 2:1 for the food atlases, the two rat sheets, and the night sky.
 - 3:1 for the runner.
 - 3:2 for the board-clutter atlas and the quest scenes.
 - 3:4 for a room state, a decoration painting, and the supper painting.
@@ -74,15 +75,17 @@ The helper accepts only these references:
 - A shipping bitmap in `public/assets/original/` that matches its provenance hash.
 - A `candidate.png` in `analysis/art-generation/` that matches its generation-record hash.
 - A `composite.png` there that matches its `composite.json` hash.
+- A `paper.png` there that matches its `paper.json` hash.
 
 The helper rejects every other path, including `private/` and the other folders under `analysis/`.
-The helper accepts at most 16 references. Each reference must be a static PNG, JPEG, or WebP image of less than 50 MB.
+The helper accepts at most 16 references. Each reference must be a PNG image of less than 50 MB.
 The prompt and each reference leave the computer. Do not put a secret or private data in them.
 Give each reference a role in the prompt, and name the cells and the features that must stay unchanged.
 
-## Make a masked edit of a room state
+## Edit a room state
 
-A room state after the base is a masked edit of the previous accepted state.
+A room state after the base is an edit of the previous accepted state.
+Only the changed region of the edit goes into the new state.
 
 1. **Make the mask.** The mask must be an RGBA PNG of the same size as the image that it edits. Transparent pixels mark the region to repaint:
 
@@ -95,10 +98,12 @@ A room state after the base is a masked edit of the previous accepted state.
    Use `--polygon <x1>,<y1>,<x2>,<y2>,<x3>,<y3>,...` for an outline in the perspective of a wall or a floor.
    You can give more than one region.
 
-2. **Send the edit.** Give the previous state as the first `--reference` and the mask as `--mask`.
+2. **Send the edit.** Give the previous state as the first `--reference`.
+   Most room states use an edit without `--mask`.
+   To guide the provider to the region, also give the mask as `--mask`.
    The mask must be inside `analysis/art-generation/`.
    The helper sends the mask with that image and records the hash of the mask in the run.
-3. **Composite the region.** The provider uses the mask only as guidance. The provider can change pixels outside the mask.
+3. **Composite the region.** The provider uses a mask only as guidance. The provider can change pixels outside the region.
    Copy only the changed region into the previous state:
 
    ```powershell
@@ -115,8 +120,8 @@ A room state after the base is a masked edit of the previous accepted state.
    Repair the defect with a corrective request or a larger mask.
 
    A newly lit lamp is a change of light.
-   For a change of light, a mask makes the model stop the light at the edge of the mask.
-   Send the edit without `--mask` instead. Then composite with the mask of the region, `--ramp`, and a wide `--feather` (64 to 128).
+   For a change of light, a mask in the request makes the model stop the light at the edge of the mask.
+   Thus send the edit without `--mask`. Then composite with the mask of the region, `--ramp`, and a wide `--feather` (64 to 128).
    Without a ramp, the weight drops to one half at the edge of the region. That drop shows as a line when the light changes.
    A ramp widens the region by the feather first, so the fade starts at full strength.
    `composite.json` then records `"ramp": true`.
@@ -124,7 +129,7 @@ A room state after the base is a masked edit of the previous accepted state.
 ## Convert a pencil drawing
 
 A sketch or a quest scene is pencil on transparency.
-A transparent background from the provider cuts the drawing out like an object, and keeps the paper inside closed shapes as a fill.
+With a transparent background, the provider makes only the area around the drawing clear. The paper inside closed shapes stays as a fill.
 Thus ask for the drawing on plain pure white paper, with no paper texture and no fills.
 Then make the paper transparent:
 
@@ -143,10 +148,41 @@ node .github/skills/generate-game-art-openai/scripts/art-image.ts inspect `
   --asset sketch-bran --input analysis/art-generation/<task>/<run>-ink/ink.png --processed
 ```
 
-Use `--processed` only with `inspect`, for a character sketch or a quest scene.
-The option requires transparency in the result, including a patch.
+Use `--processed` only with `inspect`, for the `ink.png` or the `patch.png` of a character sketch or a quest scene.
+The option requires transparency in the result.
 Without the option, the measurement requires the opaque paper that the request specifies.
-Review `ink.png` on the parchment and on a dark background. A tinted area on the paper shows as a visible patch.
+Review `ink.png` on the parchment and on a dark background. A tinted area on the paper stays visible in the result.
+
+## Repair a region of a pencil drawing
+
+Use this procedure to change one region of an accepted transparent sketch or quest scene.
+
+1. **Make a paper copy.** The drawing must be a reference that the helper accepts, for example a shipping bitmap:
+
+   ```powershell
+   node .github/skills/generate-game-art-openai/scripts/art-composite.ts paper `
+     --base public/assets/original/sketch-bran.png --out analysis/art-generation/<task>/<name>-paper
+   ```
+
+   The command puts the drawing on white paper. The command pads each side to the next multiple of 16 pixels, and does not resample a pixel.
+   `paper.json` records the drawing, its hash, the padding, and the hash of `paper.png`.
+2. **Make the mask** with `mask --size` set to the size of `paper.png`. Transparent pixels mark the region to repaint.
+3. **Send the edit.** Give `paper.png` as the first `--reference`, the mask as `--mask`, and the size of `paper.png` as `--size`.
+4. **Patch the drawing.** Run the `patch` command:
+
+   ```powershell
+   node .github/skills/generate-game-art-openai/scripts/art-composite.ts patch `
+     --base analysis/art-generation/<task>/<name>-paper/paper.png `
+     --candidate analysis/art-generation/<task>/<run>/candidate.png `
+     --mask <mask> --out analysis/art-generation/<task>/<run>-patch
+   ```
+
+   The command takes only the masked region of the candidate, and makes the paper of that region clear with the ink conversion.
+   The command composites that region into the drawing, with a feather of 8 pixels by default.
+   Every other pixel of the drawing stays unchanged.
+   The command stops if the drawing changed after the paper copy.
+   `patch.json` records the hashes of the drawing, the paper copy, the candidate, the mask, and the result.
+5. **Measure the result.** Run `inspect --processed` on `patch.png`. Review `patch.png` as you review `ink.png`.
 
 ## Send the request
 
@@ -220,7 +256,7 @@ Add these route details:
 
 - In `docs/asset-provenance.json`, set `generation` to `OpenAI Images API, gpt-image-2.5-flare, high quality`.
   For an edit, add a clause after a semicolon. The clause names the kind of edit and the composite.
-  For a pencil drawing, add a clause that names the `ink` conversion.
+  For a pencil drawing, add a clause that names the `ink` conversion or the `patch` command.
 - In `docs/asset-prompts.json`, copy the text of `prompt.txt` unchanged into the new entry.
   Add a `generation` field to that entry with the keys `model`, `quality`, `size`, and `run`. The `run` value is the run folder name.
   If the run used a reference or a mask, add the keys `reference` and `mask` with their descriptions.

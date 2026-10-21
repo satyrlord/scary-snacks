@@ -33,7 +33,7 @@ The files in `tests/` check these areas.
 | `engine.test.ts` | Stage-one production, chain merges, mixed merges in both directions, a three-chain dish from staples, swaps, refused pairs, preparation payment, room states, and game data validation, including chain lengths, recipe depth, recipe pairs, chain counts, and tags. |
 | `storage.test.ts` | Save validation, size limits, export, import, reset, failed writes, recovery, invalid data, unsupported versions that stay unchanged, the served supper, and the rejected recovery quest record. |
 | `decorations.test.ts` | Decoration slots, quest unlocks, finish choices, rejected choices, and saved choices. |
-| `economy.test.ts` | Formula prices, quest rewards, paid and free takes, a take without the coins, the blocker coin, the recovery quest and its fourth ticket, one Linden tea in four free cells, and work budgets. |
+| `economy.test.ts` | Formula prices, paid and free takes, a take without the coins, the recovery quest after the last preparation, one Linden tea in four free cells, and work budgets. |
 | `campaign-goals.test.ts` | Required quests, coins, source space, failed payments, quest order, the supper and recovery quest records, and sufficient campaign work. |
 | `campaign-balance.test.ts` | A complete campaign through valid actions, with accounts for actions, coins, and upkeep, the efficient strategy for 20 seeds (days, a purse never below zero, no merges only to move the clock, the balance band after the supper), free cells at each preparation, and the recovery quest before each preparation. |
 | `campaign-strategies.test.ts` | For 20 seeds, a strategy that misses each booking once finishes act 1, and a strategy that starts each preparation window with a debt of 20 coins reaches each preparation through the recovery quest. |
@@ -49,9 +49,9 @@ The files in `tests/` check these areas.
 | `build.test.ts` | The build file list, type removal, executable asset rejection, and linked directory rejection. |
 | `server.test.ts` | Allowed paths, configured server addresses, and Windows path case. |
 | `source-export.test.ts` | Product test coverage in the export, exported imports, document links, local folder exclusions, ignore rules, and the dead-code command of the export. |
-| `art-image.test.ts` | Art generation request fields, image dimensions, masks, composites, file formats, and rejected inputs. |
+| `art-image.test.ts` | Art generation request fields, image dimensions, masks, composites, paper copies and patches, and rejected inputs. |
 
-Generator checks cover stage-one production, paid and free takes, rejected output requests, and a full board.
+Generator checks cover stage-one production, paid and free takes, and a full board.
 The campaign fixture completes all 24 preparations and all 81 campaign quests without injected coins or items, and then serves the supper.
 The purse after the supper is inside the balance band: 0 to 10% of the coins spent on preparations, takes, and upkeep.
 The efficient fixture is never robbed, so its 20 seeds give the same run. The day tests check the thief rat with given seeds.
@@ -92,7 +92,7 @@ The files in `tests/browser/` check these areas.
 | `story.spec.ts` | Chapter goals, steps, scenes, reveals, the supper ticket and its plates, Serve, the recovery quest and its delivery flight beside an empty counter, the finale, the supper painting, journal entries, favourites, focus, and layout. |
 | `journal.spec.ts` | Journal groups, priorities, scene coverage, focus, open groups, scroll, delivery order, combined quests, and the favourite dishes of each regular. |
 | `portrait-framing.spec.ts` | Each portrait crop at ticket and dialogue sizes in both themes. |
-| `day.spec.ts` | The clock, a debt in the purse, booked tickets, the lantern control, the night of a theft and of a gift, a stop by tap and by key, reduced motion, a hidden page, the notice after a reload, and the result of act 1 on the supper card. |
+| `day.spec.ts` | The clock, a debt in the purse, booked tickets, the lantern control, the closing dialog, Skip, the night of a theft and of a gift, taps and keys that do not stop a watched night, the drawer on a phone, reduced motion, hiding the page during the closing dialog or the night, the morning dialog after a reload, unread reports after a save replacement, and the result of act 1 on the supper card. |
 
 Play checks include pointer drag, keyboard input, selection, and delivery.
 Room checks include reduced motion, failed image loads, and text that is available after an image failure.
@@ -109,7 +109,7 @@ Quest dialog checks cover 1440×900 and 390×844 in both themes.
 Visitor and shared guest quests have checks at 1366×900 and 390×844 in both themes.
 
 Quest checks include delivery from the board, delivery notices, the next ticket, combined journal conversations, export, import, and failed writes.
-A completed quest has one journal entry with the exact request and reply, one illustration, and one Return action.
+A completed quest has one journal entry with the exact quest text and reply, one illustration, and one Return action.
 Unread conversations keep their reply pending through Close and Escape. Completion marks only the reply as read. A replay gives no reward.
 The campaign quest tests require delivery to leave its completion scene waiting without opening a dialog.
 Serving the supper opens the finale. A recovery delivery queues no scene and records nothing.

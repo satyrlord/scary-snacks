@@ -1,14 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { supperComplete } from '../src/model.ts';
-import { BALANCE_SEEDS, runCampaignBalance } from '../tools/campaign-balance.ts';
-import type { CampaignBalance, CampaignStrategy } from '../tools/campaign-balance.ts';
-import { data } from './support.ts';
+import { data, nightLine, runs } from './support.ts';
 
 // The strategies that play act 1 badly on purpose: the game must still finish, and the recovery quest must reach each preparation.
-const runs = (strategy: CampaignStrategy) => BALANCE_SEEDS.map(seed => [seed, runCampaignBalance(data, seed, strategy, false)] as const);
-const nightLine = (seed: number, run: CampaignBalance) => `Seed ${seed}: ${run.nights.days} days, ${run.nights.lanterns} lanterns, ${run.nights.thefts} thefts, `
-  + `${run.nights.stolen} stolen, ${run.nights.gifts} gifts, lowest purse ${run.nights.lowestPurse}.`;
 
 test('a strategy that misses each booking once still finishes act 1 for every seed', t => {
   for (const [seed, run] of runs('miss-bookings')) {

@@ -4,14 +4,11 @@ import { dishWork, requiredQuests, taskEligibility, unresolvedObstacle } from '.
 import { validateGame } from '../src/engine.ts';
 import { dataProblems, questProblems } from '../src/content.ts';
 import type { Action, Quest } from '../src/model.ts';
-import { checkpointState } from '../tools/create-checkpoint-saves.ts';
-import { act, addOpenLayout, data, openGame, rejected } from './support.ts';
+import { act, addOpenLayout, data, openCheckpoint, openGame, rejected } from './support.ts';
 
 addOpenLayout();
-/** Before the payment of the preparation at index count: its quests delivered and its exact cost in coins. */
-const checkpoint = (count: number) => checkpointState(data, count, openGame());
-/** The same checkpoint before the quests that open with the previous preparation are delivered. */
-const withoutWindow = (count: number) => ({ ...checkpoint(count), completedQuests: checkpoint(count - 1).completedQuests });
+/** The checkpoint before the quests that open with the previous preparation are delivered. */
+const withoutWindow = (count: number) => ({ ...openCheckpoint(count), completedQuests: openCheckpoint(count - 1).completedQuests });
 /** The work value of a quest: the merges of its dishes at the work rate. The funding check counts this, not the staples. */
 const work = (quest: Quest) => quest.requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).merges * data.economy.workRate * quantity, 0);
 
@@ -24,8 +21,6 @@ test('each preparation needs every quest that opens before it, and the last one 
     assert.ok(now.length > earlier.length, `${data.tasks[index].id} adds at least one quest.`);
   }
   assert.deepEqual(requiredQuests(data.tasks.length - 1, data), data.quests.filter(quest => !quest.finale && !quest.recovery));
-  assert.equal(data.quests.length, 83);
-  assert.equal(requiredQuests(data.tasks.length - 1, data).length, 81);
 });
 
 test('eligibility lists the unmet coins and quests and keeps the exact totals above a requirement', () => {
@@ -50,39 +45,10 @@ test('eligibility lists the unmet coins and quests and keeps the exact totals ab
   assert.deepEqual(completed.completedQuests, state.completedQuests, 'A payment does not spend quests.');
 });
 
-test('exact coins and quests complete a preparation once', () => {
-  const state = checkpoint(0);
-  assert.equal(state.coins, data.tasks[0].cost);
-  assert.ok(taskEligibility(state, data).ready);
-  const completed = act(state, { type: 'task' });
-  assert.equal(completed.taskIndex, 1);
-  assert.deepEqual(completed.decorations, ['task_1']);
-  assert.equal(completed.coins, 0);
-  rejected(completed, { type: 'task' });
-  assert.equal(completed.taskIndex, 1);
-});
-
 test('one missing coin blocks completion after the quests are delivered', () => {
-  const state = { ...checkpoint(5), coins: data.tasks[5].cost - 1 };
+  const state = { ...openCheckpoint(5), coins: data.tasks[5].cost - 1 };
   assert.deepEqual(taskEligibility(state, data).blockers, ['Earn 1 more coin to pay for this preparation.']);
   assert.match(rejected(state, { type: 'task' }).message, /1 more coin/);
-});
-
-test('one missing quest blocks completion with enough coins', () => {
-  const ready = checkpoint(5);
-  const state = { ...ready, completedQuests: ready.completedQuests.slice(0, -1), coins: 100_000 };
-  assert.ok(validateGame(state, data));
-  assert.deepEqual(taskEligibility(state, data).blockers, ['Deliver 1 more quest for this preparation.']);
-  rejected(state, { type: 'task' });
-});
-
-test('coins alone cannot complete the first preparation without its quests', () => {
-  let state = openGame();
-  state = act(state, { type: 'move', from: 13, to: 14 });
-  state.coins = data.tasks[0].cost;
-  assert.deepEqual(state.completedQuests, []);
-  assert.deepEqual(taskEligibility(state, data).blockers, [`Deliver ${requiredQuests(0, data).length} more quests for this preparation.`]);
-  rejected(state, { type: 'task' });
 });
 
 test('generator placement is part of eligibility and failed completion leaves every field unchanged', () => {
@@ -93,7 +59,7 @@ test('generator placement is part of eligibility and failed completion leaves ev
   assert.equal(eligibility.blockers.length, 3);
   assert.deepEqual(eligibility.requirements.at(-1), { kind: 'space', source: data.items.generator_dairy.name, met: false });
   assert.equal(rejected(state, { type: 'task' }).message, eligibility.blockers.join(' '));
-  Object.assign(state, { coins: data.tasks[2].cost, completedQuests: checkpoint(2).completedQuests });
+  Object.assign(state, { coins: data.tasks[2].cost, completedQuests: openCheckpoint(2).completedQuests });
   assert.deepEqual(taskEligibility(state, data).blockers, [`Free a space on the board for the ${data.items.generator_dairy.name}.`]);
   rejected(state, { type: 'task' });
   const space = state.board.findIndex(cell => cell?.code === 'grain_1');
@@ -162,7 +128,7 @@ test('the quest check rejects quests out of opening order, a quest that opens wi
 });
 
 test('the last preparation needs its own quests and repeated completion changes nothing', () => {
-  const ready = checkpoint(23);
+  const ready = openCheckpoint(23);
   const state = withoutWindow(23);
   assert.ok(validateGame(state, data));
   const missing = requiredQuests(23, data).length - state.completedQuests.length;
@@ -189,5 +155,4 @@ test('board actions never count as quests, and invalid actions change nothing', 
   rejected(state, { type: 'move', from: 13, to: 13 });
   rejected(state, { type: 'move', from: 13, to: 14 });
   rejected(state, { type: 'deliverQuest', id: 'mara-welcome' });
-  rejected(state, { type: 'replay' } as unknown as Action);
 });

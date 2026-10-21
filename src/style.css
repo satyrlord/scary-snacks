@@ -223,13 +223,13 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 /* The thief rat's hole lies under the ingredient that it dropped. */
 .rat-hole-art { position: absolute; inset: 4%; background: url('../assets/variants/rat-hole-256x256.webp') center / contain no-repeat; pointer-events: none; }
 .cell.rat-hole .food { position: relative; z-index: 1; }
-/* The night on the board: the rats and the dishes that they take sit in a layer over the page, and a changed cell shows its earlier
-   look until its moment in the night. */
+/* The night on the board: the rats sit in a layer over the page, a dish that they take stays drawn in its cell, and a changed cell
+   shows its earlier look until its moment in the night. */
 .night-layer { position: fixed; inset: 0; z-index: 150; }
 .night-rat { position: fixed; left: 0; top: 0; pointer-events: none; }
 .night-flip,.night-pose { width: 100%; height: 100%; }
-.night-ghost { position: fixed; pointer-events: none; }
-.cell.night-hidden > * { visibility: hidden; }
+.cell .food.night-ghost { position: absolute; left: 15%; top: 15%; width: 70%; height: 70%; z-index: 1; }
+.cell.night-hidden > :not(.night-ghost) { visibility: hidden; }
 .cell.night-hidden::before { display: none; }
 .cell.night-hidden.obstacle { box-shadow: var(--tile-lift); }
 .preparation-art { background-image: url('../assets/variants/preparation-clutter-1448x1086.webp'); }
@@ -401,7 +401,11 @@ dialog:has(.quest-page-content) {
 .choice:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
 .danger-button { padding: 11px 15px; border-radius: var(--control-radius); border: 1px solid var(--accent); background: transparent; color: var(--accent); min-height: 44px; font-size: 14px; font-weight: 600; }
 .save-error { border: 1px solid var(--accent); border-radius: var(--control-radius); padding: 12px; font-size: 13px; line-height: 1.6; margin-bottom: 15px; }
-.story-controls { display: flex; justify-content: flex-end; margin-top: 24px; }
+.story-controls { display: flex; justify-content: flex-end; gap: 9px; margin-top: 24px; }
+/* The morning dialog: the rat of the night beside its report. */
+.night-morning { display: flex; align-items: center; gap: 16px; }
+.night-morning .modal-copy { margin: 0; }
+.morning-rat { flex: none; width: 88px; height: 88px; }
 .story-turn { display: flow-root; }
 .story-turn + .story-turn { margin-top: 18px; }
 .story-turn .portrait { float: left; width: 44px; height: 44px; margin-right: 12px; }

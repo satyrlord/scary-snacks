@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { getItem } from '../../src/model.ts';
 import { createGame } from '../../src/engine.ts';
-import { checkpoint, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, opened, openQuest, options, person, portraitCell, readTo, saved, start, startAgainAndImport, story, supplies, ticket, toast } from './support.ts';
+import { checkpoint, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, opened, openQuest, options, person, portraitCell, readNow, readTo, saved, start, startAgainAndImport, supplies, ticket, toast } from './support.ts';
 
 const visitors=data.characters.filter(value=>value.visitor&&!value.singleVisit);
 const quests=data.quests.filter(value=>visitors.some(visitor=>visitor.id===value.character));
@@ -75,7 +75,7 @@ test('the castle guest asks on a ticket, pays once, and leaves the journal after
   await page.emulateMedia({reducedMotion:'reduce'});
   await start(page,deliverable(dinner));const before=await saved(page);
   await checkPortrait(ticket(page,dinner).locator('.portrait'),guest.sprite);
-  // The Deliver buttons group the thousands as the reward line does.
+  // The Deliver buttons show the reward as the reward line does.
   await expect(deliverButton(page,dinner)).toHaveText(`Deliver · ${dinner.reward.toLocaleString('en')}`);
   await journal(page,['chapters','conversations','neighbours']);const introduction=page.getByRole('button',{name:`Meet ${guest.name}`,exact:true});
   await introduction.click();await expect(page.locator('#story-line')).toContainText(guest.introduction);await finishScene(page);expect(await saved(page)).toEqual(before);
@@ -92,7 +92,7 @@ test('the castle guest asks on a ticket, pays once, and leaves the journal after
   expect(delivered.completedQuests).toEqual([...before.completedQuests,dinner.id]);expect(delivered.coins).toBe(before.coins+dinner.reward);
   expect(delivered.board.filter(Boolean).length).toBe(before.board.filter(Boolean).length-supplies(dinner).length);
   // A guest who visits once has no journal replay after the visit.
-  await story(page);await page.getByRole('button',{name:`Read now: ${dinner.title}`,exact:true}).click();
+  await readNow(page,dinner.title);
   await expect(page.locator('#story-line')).toContainText(dinner.completion[0].text);await readTo(page,'Back to the kitchen');
   await expect(page.locator('#status')).toHaveText('The scene is finished.');await guestAbsent(page);
   const after={...delivered,pendingScenes:before.pendingScenes};

@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { firstFreeBoardCell, getItem } from '../../src/model.ts';
 import { createGame } from '../../src/engine.ts';
 import type { GameState, Quest } from '../../src/model.ts';
-import { act, checkpoint, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readTo, replaceSave, restoreWrites, saved, serialize, start, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate, know } from './support.ts';
+import { act, checkpoint, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, forward, importSaveFile, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readNow, readTo, replaceSave, restoreWrites, saved, serialize, start, startAgain, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate, know } from './support.ts';
 
 /** The first campaign quest of each neighbour who lives in the village. The recovery quest stands outside the order of quests. */
 const campaign=data.quests.filter(value=>!value.recovery);
@@ -13,7 +13,7 @@ const shownDishes=(value: Quest)=>value.requirements.length>4?3:value.requiremen
 const itemName=(code: string)=>getItem(code,data)!.name;
 
 async function combinedConversation(page: Page,value: Quest){
-  await expect(page.getByRole('heading',{name:'Request',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Quest',exact:true})).toBeVisible();
   await expect(page.getByRole('heading',{name:'Reply',exact:true})).toBeVisible();
   const lines=[...value.opening,...value.completion];
   await expect(page.locator('#story-line .story-turn h4')).toHaveText(lines.map(line=>person(line.speaker).name));
@@ -44,8 +44,7 @@ test('Mara keeps her sketch with the complete reply and the combined journal rep
   await expect(page.locator('#story-line h3')).toHaveText(value.completion.map(line=>person(line.speaker).name));
   await expect(page.locator('#story-line p')).toHaveText(value.completion.map(line=>line.text));
   await expect(sketch).toHaveAttribute('src',/sketch-mara-/);
-  const done=page.locator('.story-controls .primary-button');
-  const colors=await done.evaluate(node=>{const style=getComputedStyle(node);return {background:style.backgroundColor,ink:style.color};});
+  const colors=await forward(page).evaluate(node=>{const style=getComputedStyle(node);return {background:style.backgroundColor,ink:style.color};});
   expect(ratio(colors.background,colors.ink)).toBeGreaterThanOrEqual(4.5);
   await page.getByRole('button',{name:'Back to the kitchen',exact:true}).click();await journal(page,['chapters','conversations','neighbours']);
   await expect(page.getByRole('button',{name:`Read quest: ${value.title}`,exact:true})).toHaveCount(0);
@@ -74,7 +73,7 @@ const illustratedScenes=[
   ['ionatan-castle-dinner','scene-ionatan-dinner'],['mina-avram-search','scene-mina-avram-meal'],
 ] as const;
 
-for(const [id,asset] of illustratedScenes)test(`${id} loads its accepted scene instead of a character drawing`,async({page})=>{
+for(const [id,asset] of illustratedScenes)test(`${id} shows its quest scene instead of a character sketch`,async({page})=>{
   const value=quest(id);await start(page,onTicket(value));await openQuest(page,value);
   const sketch=page.locator('#modal .quest-sketch');await expect(sketch).toHaveCount(1);
   await expect(sketch).toHaveAttribute('src',new RegExp(`${asset}-1024x683\\.webp$`));
@@ -93,7 +92,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
     expect(await sketch.evaluate(node=>getComputedStyle(node).float)).toBe('none');
     expect(await modal.evaluate(node=>node.scrollWidth<=node.clientWidth)).toBe(true);
     await page.screenshot({path:testInfo.outputPath(`${asset}-${theme}-${viewport.width}.png`)});
-    await dialogDeliver(page,value).click();await story(page);await page.getByRole('button',{name:`Read now: ${value.title}`,exact:true}).click();
+    await dialogDeliver(page,value).click();await readNow(page,value.title);
     await expect(page.locator('#story-line h3')).toHaveText(value.completion.map(line=>person(line.speaker).name));
     await expect(page.locator('#story-line p')).toHaveText(value.completion.map(line=>line.text));
     await expect(sketch).toHaveAttribute('src',new RegExp(`${asset}-1024x683\\.webp$`));
@@ -120,7 +119,7 @@ test('a missing quest scene leaves its words and delivery usable',async({page})=
   await dialogDeliver(page,value).click();expect((await saved(page)).completedQuests).toContain(value.id);
 });
 
-test('the road news uses its existing dialogue without an unapproved scene',async({page})=>{
+test('the road news replays its dialogue without a sketch or a quest page',async({page})=>{
   await start(page,checkpoint(24));await journal(page,['chapters','conversations','neighbours']);await page.getByRole('button',{name:'Replay News from the road',exact:true}).click();
   await expect(page.locator('#story-line')).toContainText('Mina and Doctor Avram found Ionatan');
   await expect(page.locator('.quest-sketch')).toHaveCount(0);await expect(page.locator('.quest-page-content')).toHaveCount(0);
@@ -157,7 +156,7 @@ for(const value of firstQuests)test(`${value.character} asks on a ticket, the qu
   expect(after.completedQuests).toEqual([...before.completedQuests,value.id]);expect(after.coins).toBe(before.coins+value.reward);
   expect(after.board.filter(Boolean).length).toBe(before.board.filter(Boolean).length-supplies(value).length);
   await expect(ticket(page,value)).toHaveCount(0);
-  await story(page);await page.getByRole('button',{name:`Read now: ${value.title}`,exact:true}).click();
+  await readNow(page,value.title);
   await expect(page.locator('#story-line')).toContainText(value.completion[0].text);await readTo(page,'Back to the kitchen');
   await expect(page.locator('#modal')).toBeHidden();const read={...after,pendingScenes:before.pendingScenes};expect(await saved(page)).toEqual(read);
   await page.reload();await opened(page);expect(await saved(page)).toEqual(read);await expect(ticket(page,value)).toHaveCount(0);
@@ -221,8 +220,7 @@ test('after delivering, the completion scene waits in Story and the journal acro
   await page.reload();await opened(page);await expect(page.locator('#status')).toContainText('A story scene is waiting in Story.');
   expect(await saved(page)).toEqual(delivered);
   await journal(page,['chapters','conversations','neighbours']);await expect(page.getByRole('button',{name:`Read ${value.title}`,exact:true})).toContainText('New scene');await page.keyboard.press('Escape');
-  await story(page);
-  await page.getByRole('button',{name:`Read now: ${value.title}`,exact:true}).click();await expect(page.locator('#story-line')).toContainText(value.completion[0].text);
+  await readNow(page,value.title);await expect(page.locator('#story-line')).toContainText(value.completion[0].text);
   await readTo(page,'Back to the kitchen');await expect(page.locator('#modal')).toBeHidden();
   const read=await saved(page);expect(read).toEqual({...delivered,pendingScenes:before.pendingScenes});expect(read.coins).toBe(before.coins+value.reward);
   await journal(page,['chapters','conversations','neighbours']);await expect(page.getByRole('button',{name:`Replay ${value.title}`,exact:true})).toBeVisible();
@@ -249,14 +247,14 @@ for(const width of [1440,390])test(`a waiting quest has one complete journal con
 
 test('quest rewards survive export and import, while introductions and journal replay give no reward',async({page})=>{
   const value=firstQuests[0];await start(page,deliverable(value));await journal(page,['chapters','conversations','neighbours']);const initial=await saved(page);
-  // Only the neighbours present in a new game have entries; later regulars are "Not yet" outlines.
+  // Each introduction in a new game's journal, the visitors' too, gives no reward.
   for(const character of data.characters.filter(character=>!character.singleVisit&&!character.arrivesAfter)){
     await page.getByRole('button',{name:`Meet ${character.name}`,exact:true}).click();await expect(page.locator('#story-line')).toContainText(character.introduction);
     await finishScene(page);expect(await saved(page)).toEqual(initial);
   }
   await page.keyboard.press('Escape');await deliverButton(page,value).click();
   await expect(toast(page)).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);
-  await story(page);await page.getByRole('button',{name:`Read now: ${value.title}`,exact:true}).click();await readTo(page,'Back to the kitchen');
+  await readNow(page,value.title);await readTo(page,'Back to the kitchen');
   const committed=await saved(page);await journal(page,['chapters','conversations','neighbours']);
   const replay=page.getByRole('button',{name:`Replay ${value.title}`,exact:true});
   await expect(replay).toHaveCount(1);await replay.click();await combinedConversation(page,value);await finishScene(page);
@@ -379,8 +377,8 @@ test('delivery keeps a dish guide, Stop cancels it, and reload clears it',async(
 });
 
 test('a quest row with enough portions keeps dish help and has no Find control',async({page})=>{
-  // The Socată by the Herb basket goes, so the Socată row misses its portion.
-  const value=quest('sorin-first-ride'),initial=supply(createGame(data),['grain_2','grain_2']);initial.board[32]=null;
+  // Both Socată by the Herb basket go, so the Socată row misses its portion.
+  const value=quest('sorin-first-ride'),initial=supply(createGame(data),['grain_2','grain_2']);initial.board[32]=null;initial.board[33]=null;
   await start(page,initial);await openQuest(page,value);
   await expect(page.getByRole('button',{name:'Find the next step for Dough on the board'})).toHaveCount(0);
   await expect(page.getByRole('button',{name:'Find the next step for Socată on the board'})).toBeVisible();
@@ -510,13 +508,8 @@ for(const replacement of ['import','reset','another tab'] as const)test(`a visib
     await expect(page.locator('#status')).toContainText('another tab');await other.close();
   }else{
     await options(page);
-    if(replacement==='import'){
-      await page.locator('input[type="file"]').setInputFiles({name:'save.json',mimeType:'application/json',buffer:Buffer.from(serialize(createGame(data)))});
-      await page.getByRole('button',{name:'Import this saved game',exact:true}).click();
-    }else{
-      await page.getByRole('button',{name:'Start a new game',exact:true}).click();
-      await page.getByRole('button',{name:'Erase and start again',exact:true}).click();
-    }
+    if(replacement==='import')await importSaveFile(page,serialize(createGame(data)));
+    else await startAgain(page);
     await expect(page.locator('#modal')).toBeHidden();
   }
   expect((await saved(page)).completedQuests).toEqual([]);await expect(toast(page)).toHaveCount(0);

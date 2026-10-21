@@ -18,7 +18,7 @@ Four levers set the economy. They are starting values: the campaign balance chec
 | Work rate: the coins that each merge adds to a menu price | 2 |
 | Recovery floor: the purse below which the recovery quest opens while a quest is open | 10 |
 
-The bistro day (spec 013) adds these levers. They are starting values too.
+The bistro day has these levers. They are starting values too.
 
 | Lever | Value |
 | --- | ---: |
@@ -232,7 +232,7 @@ The work estimates have these limits:
   Existing towels stay in use. The estimate includes the gate decoration.
 - Final flowers: one outdoor light string, supplies to attach the string, and flowers in existing vases.
   The light string must be suitable for outdoor use.
-- Supper: twelve guests. Earlier preparations pay for food samples, drinks, and the first portions.
+- Supper: eleven guests. Earlier preparations pay for food samples, drinks, and the first portions.
   The final preparation pays only for additional supplies and service.
 
 ## Effort in play
@@ -242,7 +242,7 @@ The 24 preparations total 57 estimated person-hours and 5585 coins.
 
 A preparation can cost less than the preparation before it.
 Late menu or display work does not cost more only because the work occurs late in the story.
-The necessary quests determine the play effort: with a work rate of 2, the campaign needs about 3,000 merges and 3,300 takes.
+The necessary quests determine the play effort. The campaign balance report gives the merges and the takes.
 The game has no separate goal currency, timer, or chapter reset.
 
 ## Reference inputs
@@ -295,15 +295,9 @@ If the board is full, the fixture merges spare food: a pair, a recipe, or a matc
 After the last preparation, the fixture serves the supper.
 The balance band: the purse after the supper holds 0 to 10% of the coins that the fixture spent on preparations, takes, and upkeep.
 
-With the current levers, the efficient fixture takes 6,427 actions: 3,309 takes and 3,009 merges.
-Act 1 lasts 22 days. The fixture lights the lanterns 3 times and never needs the recovery quest.
-It spends 5,585 coins on preparations, 3,097 coins on takes, and 210 coins on upkeep. It clears blockers for 65 coins.
-The purse after the supper holds 426 coins, 4.8% of the spending, and the purse never goes below zero.
+`tests/campaign-balance.test.ts` enforces the bounds that `PRODUCT.md` gives for the three strategies.
 The efficient fixture never leaves a raw staple loose at a closing: it takes two staples and merges them at once.
-So the thief rat never comes, Șoricescu leaves 21 gifts, and the 20 seeds give the same run.
-
-The strategy that misses each booking once lasts 25 days and cooks 71 merges of spare food while it waits for an evening.
-The strategy that starts each preparation window with a debt of 20 coins lasts 28 days and delivers 149 recovery teas.
+So the thief rat never comes, and the 20 seeds give the same run.
 
 This check measures actions under that policy. This check does not establish a satisfactory human play experience.
 The campaign needs more actions than a free-production campaign, because each merge earns only the work rate. Raise the work rate to shorten it, and then reduce the provisions to keep the balance band.

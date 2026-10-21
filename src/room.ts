@@ -22,7 +22,7 @@ export const SUPPER_PICTURE='The supper in the courtyard under the string lights
 const SUPPER: RoomState = { id: 'finale-supper', area: 'courtyard', after: null, focus: { x: 50, y: 55 }, mark: { x: 50, y: 55 }, label: 'the supper', text: SUPPER_PICTURE };
 // The room opens on the player's chosen area while it is open, and otherwise on the area of the latest change.
 try{viewArea=storage?.getItem(AREA_KEY)??'';}catch{/* Follow the latest change. */}
-/** The area of the latest change: the supper's courtyard once the supper is paid. */
+/** The area of the latest change: the supper's courtyard once the supper is served. */
 const latestView = () => supperComplete(state, data) ? SUPPER.area : latestArea(roomCompleted(), data);
 onReplace(() => {
   held = null; revealToken++; preloaded = null; viewArea = latestView();
@@ -74,7 +74,7 @@ function currentView() {
   const supper=supperComplete(state,data),views=resolveRooms(roomCompleted(),data).map(view=>supper&&view.id===SUPPER.area?{...view,states:[...view.states,SUPPER],current:SUPPER,painting:SUPPER}:view);
   return {views,view:views.find(view=>view.id===viewArea&&view.open)??views.find(view=>view.id===latestView())!};
 }
-/** The payment of the supper turns the room to the supper. */
+/** Serving the supper turns the room to the supper. */
 export function showSupperRoom() { viewArea=SUPPER.area;try{storage?.setItem(AREA_KEY,viewArea);}catch{/* The room still shows the supper. */}renderRoom(); }
 export function renderRoom() { const {views,view}=currentView();viewArea=view.id;renderAreaSwitch(views,view);void drawRoom(view); }
 /**

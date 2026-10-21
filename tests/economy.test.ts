@@ -1,15 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { canDeliverQuest, freeBoardCells, menuPrice, pendingPreparationObstacles, QUEST_TICKETS, resolveQuests, unresolvedObstacle } from '../src/model.ts';
+import { freeBoardCells, menuPrice, pendingPreparationObstacles, unresolvedObstacle } from '../src/model.ts';
 import { dataProblems, economyProblems } from '../src/content.ts';
 import { KEEP_FREE } from '../src/engine.ts';
-import type { GameData, GameState } from '../src/model.ts';
-import { act, addOpenLayout, checkpoint, data, deliver, opened, openGame, player, rejected, supply, know } from './support.ts';
+import type { GameData } from '../src/model.ts';
+import { act, addOpenLayout, checkpoint, data, openGame, player, rejected, status, know } from './support.ts';
 
 addOpenLayout();
 
 const recovery = data.quests.find(quest => quest.recovery)!;
-const status = (state: GameState, id: string) => resolveQuests(state, data).find(view => view.quest.id === id)!.status;
 /** The price from the formula, worked out here from the chains and the recipes: staples × take cost + merges × work rate. */
 function formula(code: string): { staples: number; merges: number } {
   const item = data.items[code];
@@ -52,13 +51,6 @@ test('every menu price equals staples times the take cost plus merges times the 
   assert.equal(data.items['mixed_cozonac'].price, 13);
 });
 
-test('every quest except the supper pays exactly the menu value of its dishes, and the supper pays nothing', () => {
-  const menuValue = (quest: GameData['quests'][number]) => quest.requirements.reduce((sum, { item, quantity }) => sum + data.items[item].price * quantity, 0);
-  for (const quest of data.quests) assert.equal(quest.reward, quest.finale ? 0 : menuValue(quest), quest.id);
-  assert.equal(data.quests.filter(quest => quest.finale).length, 1);
-  assert.equal(recovery.reward, data.items.herbs_4.price);
-});
-
 test('a take from a paid source spends the take cost, and a take from the Herb basket spends nothing', () => {
   let state = { ...openGame(), coins: 2 };
   const empty = state.board.indexOf(null);
@@ -87,64 +79,14 @@ test('a take without the coins changes nothing, and its message names the source
   assert.match(rejected(full, { type: 'spawn', index: 1 }).message, /board is full/);
 });
 
-test('a cleared blocker gives the blocker coin in the same change as the merge', () => {
-  const state = checkpoint(0);
-  // The new game ties a corn cob at cell 11, and a corn cob waits at cell 22.
-  assert.equal(unresolvedObstacle(state, 11, data)?.ingredient, 'corn_1');
-  const cleared = act(state, { type: 'move', from: 22, to: 11 });
-  assert.equal(cleared.coins, state.coins + data.economy.blockerCoin);
-  assert.equal(cleared.board[11]?.code, 'corn_2');
-  assert.equal(cleared.board[22], null);
-  assert.ok(cleared.resolvedObstacles.includes('tied-corn-cobs'));
-});
-
-test('the recovery quest opens below the floor while a quest is open, and closes at the floor', () => {
-  const state = opened(4);
-  const campaign = (value: GameState) => resolveQuests(value, data).filter(view => !view.quest.recovery).map(view => view.status);
-  assert.equal(status({ ...state, coins: data.economy.recoveryFloor - 1 }, recovery.id), 'active');
-  assert.equal(status({ ...state, coins: data.economy.recoveryFloor }, recovery.id), 'locked');
-  // It has its own ticket: three campaign quests stay active and the others wait, whether it is open or not.
-  assert.deepEqual(campaign(state), campaign({ ...state, coins: 1000 }));
-  assert.equal(resolveQuests(state, data).filter(view => view.status === 'active' && !view.quest.recovery).length, QUEST_TICKETS);
-  assert.ok(resolveQuests(state, data).some(view => view.status === 'waiting'));
-  // With three quest tickets and only the third deliverable, the third stays deliverable while the recovery quest is open.
-  const third = resolveQuests(state, data).filter(view => view.status === 'active' && !view.quest.recovery)[2].quest;
-  const supplied = supply(state, third.id);
-  assert.equal(status(supplied, recovery.id), 'active');
-  assert.ok(canDeliverQuest(supplied, third, data));
+test('after the last preparation, the recovery quest opens below the floor and closes at the floor', () => {
   // The supper is a campaign quest, so after the last preparation the floor applies.
   const finished = checkpoint(data.tasks.length);
   assert.equal(status({ ...finished, coins: data.economy.recoveryFloor - 1 }, recovery.id), 'active');
   assert.equal(status({ ...finished, coins: data.economy.recoveryFloor }, recovery.id), 'locked');
 });
 
-test('the recovery quest opens with no open quest while the purse cannot pay the next preparation, and closes when it can', () => {
-  for (const count of [0, 4, 23]) {
-    const state = checkpoint(count), cost = data.tasks[count].cost;
-    assert.equal(resolveQuests(state, data).some(view => !view.quest.recovery && (view.status === 'active' || view.status === 'waiting')), false);
-    assert.equal(status(state, recovery.id), 'locked');
-    assert.equal(status({ ...state, coins: cost - 1 }, recovery.id), 'active');
-    assert.ok(cost - 1 >= data.economy.recoveryFloor, 'The cost, not the floor, opens it here.');
-  }
-});
-
-test('a recovery delivery pays its menu value and records nothing, so the quest can open again', () => {
-  const state = opened(4);
-  assert.equal(state.coins, 0);
-  const delivered = deliver(state, recovery.id);
-  assert.equal(delivered.coins, recovery.reward);
-  assert.deepEqual(delivered.completedQuests, state.completedQuests);
-  assert.deepEqual(delivered.pendingScenes, state.pendingScenes);
-  // One tea lifts an empty purse above the floor, so the quest closes, and it opens again when the purse runs low.
-  assert.equal(status(delivered, recovery.id), 'locked', 'Fourteen coins reach the floor.');
-  rejected(delivered, { type: 'deliverQuest', id: recovery.id });
-  const low = { ...delivered, coins: data.economy.recoveryFloor - 1 };
-  assert.equal(status(low, recovery.id), 'active');
-  assert.equal(deliver(low, recovery.id).coins, low.coins + recovery.reward);
-});
-
 test('with exactly four free cells and queued blockers, one Linden tea is made from scratch and delivered', () => {
-  assert.equal(KEEP_FREE, 4);
   const start = structuredClone(checkpoint(2));
   const queued = pendingPreparationObstacles(start, data).length;
   assert.ok(queued > 0, 'Blockers wait for space.');

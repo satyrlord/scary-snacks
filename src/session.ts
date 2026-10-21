@@ -1,5 +1,5 @@
 // The game in this tab: its data, its state, the selected space, and the saves that keep them. The other modules read these
-// bindings; only the functions here change them, and each change asks the interface to draw the game again.
+// bindings, and only the functions here change them. Each game change asks the interface to draw the game again.
 import { boardObstacles, getItem, mergeResult, takeCost } from './model.ts';
 import { createGame, reduceGame, repairSave, validateGame } from './engine.ts';
 import type { Action, GameData, GameState, Result } from './model.ts';

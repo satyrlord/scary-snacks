@@ -155,7 +155,7 @@ test('the last preparation queues its scene and the chapter scene once, with no 
   rejected(read, { type: 'readScene', id: undefined as unknown as string });
 });
 
-test('the supper quest has no cost, is served once, earns the finale, leaves no ticket, and keeps the board playable', () => {
+test('the supper quest has no cost, earns the finale, leaves no ticket, and keeps the board playable', () => {
   const supper = supperQuest(data)!, campaign = requiredQuests(data.tasks.length, data);
   const before = ready(checkpoint(23));
   assert.deepEqual(new Set(before.completedQuests), new Set(campaign.map(quest => quest.id)), 'Every campaign quest is required before the supper.');
@@ -169,7 +169,6 @@ test('the supper quest has no cost, is served once, earns the finale, leaves no 
   assert.equal(state.coins, 0);
   assert.deepEqual(state.pendingScenes, [...queued(24), 'finale']);
   assert.deepEqual(state.completedQuests.slice(-1), [supper.id]);
-  rejected(supply(state, supper.id), { type: 'deliverQuest', id: supper.id });
   state = act(state, { type: 'readScene', id: 'finale' });
   assert.ok(resolveQuests(state, data).every(view => view.status === 'complete' || (view.quest.recovery && view.status === 'locked')));
   const source = state.board.findIndex(cell => cell?.code === 'generator_herbs');

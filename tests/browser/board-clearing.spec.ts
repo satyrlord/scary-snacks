@@ -1,12 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { requiredQuests } from '../../src/model.ts';
-import { createGame, reduceGame } from '../../src/engine.ts';
-import { data, saved, start, tile, know } from './support.ts';
+import { createGame } from '../../src/engine.ts';
+import { checkpoint, data, saved, start, tile, know } from './support.ts';
 
 test('new board explains blocked spaces and counts only usable empty cells', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await start(page);
-  await expect(page.locator('#board')).toHaveAttribute('aria-label', /26 free spaces/);
+  await expect(page.locator('#board')).toHaveAttribute('aria-label', /25 free spaces/);
   await expect(tile(page, 0)).toHaveAttribute('aria-label', /Old crate, blocked Loaf/);
   await expect(tile(page, 0).locator('.clutter-overlay')).toHaveCount(1);
   await expect(tile(page, 0).locator('.food')).toBeVisible();
@@ -133,7 +132,7 @@ test('keyboard selection can merge into an anchored cell', async ({ page }) => {
   expect((await saved(page)).resolvedObstacles).toEqual(['tied-dough']);
 });
 
-test('touch can release an anchor with two taps', async ({ browser, baseURL }) => {
+test('touch merges the two Flours and releases the tied dough with one more tap', async ({ browser, baseURL }) => {
   const context = await browser.newContext({ baseURL, viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
   try {
     const page = await context.newPage();
@@ -141,7 +140,7 @@ test('touch can release an anchor with two taps', async ({ browser, baseURL }) =
     await tile(page, 13).tap();
     await tile(page, 14).tap();
     await tile(page, 6).tap();
-    await expect(tile(page, 0)).toHaveAttribute('aria-label', /Loaf/);
+    await expect(tile(page, 6)).toHaveAttribute('aria-label', /Loaf/);
     expect((await saved(page)).resolvedObstacles).toEqual(['tied-dough']);
     await expect(tile(page, 0)).toHaveClass(/clutter/);
   } finally { await context.close(); }
@@ -162,12 +161,7 @@ test('Find a match selects movable food and points to matching clutter', async (
 });
 
 test('the first preparation removes the webs without clearing the clutter blockers', async ({ page }) => {
-  const state = createGame(data);
-  state.coins = data.tasks[0].cost;
-  state.completedQuests = requiredQuests(0, data).map(quest => quest.id);
-  const paid = reduceGame(state, { type: 'task' }, data);
-  expect(paid.ok, paid.message).toBe(true);
-  await start(page, paid.state);
+  await start(page, checkpoint(1));
   await expect(tile(page, 0)).toHaveAttribute('aria-label', /Old crate, blocked Loaf/);
   await expect(tile(page, 0).locator('.clutter-overlay')).toHaveCount(0);
   await expect(tile(page, 0).locator('.clutter-art')).toHaveCount(1);

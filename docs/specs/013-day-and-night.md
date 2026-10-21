@@ -13,19 +13,15 @@ The clock counts merges, never seconds. The game has no timers and no waiting. N
 A quest has no deadline. A booked guest who does not get the meal books again for a later evening.
 The player never has to cook food that no quest needs to move the clock.
 
-This specification does not add a calendar, seasons, a yearly report, or more repeating quests. Later specifications own those features.
+The feature covers these parts:
 
-## Size of the change
-
-This change touches these parts:
-
-- the clock, the closing, the upkeep, the bookings, and the two rats in `src/engine.ts` and `src/model.ts`;
-- the quest data of Vlad and Elisabeta and the levers in `tools/create-original-data.ts`;
-- the content checks in `src/content.ts`, for the quest size and the bookings;
-- the save format, for the clock, the random seed, the rat holes, the night report, the act 1 result, and a purse below zero;
-- the kitchen interface, for the clock, the booked tickets, the lantern control, and the night notice;
-- the room, for the night sequence;
-- new art: the two rats, the rat hole, and the night sky;
+- the clock, the closing, the upkeep, the bookings, and the two rats;
+- the booked quests of Vlad and Elisabeta and the levers of the day;
+- the content checks for the quest size and the bookings;
+- the saved clock, random seed, rat holes, night report, act 1 result, and a purse below zero;
+- the clock, the booked tickets, the lantern control, and the night dialogs in the kitchen;
+- the night sequence in the room;
+- the art of the two rats, the rat hole, and the night sky;
 - the campaign balance test.
 
 ## The clock
@@ -110,8 +106,8 @@ The upkeep can take the purse below zero. The game has no defeat and no game-ove
 A purse below zero is a debt. Mara writes the debt "pe caiet", in the notebook of the village shop.
 The purse shows a debt with a minus sign, for example "−12".
 
-The rules of spec 012 for takes, payments, and the recovery quest do not change.
-The only change: the purse can hold an integer below zero. Each action that adds coins also works with a debt.
+The purse can hold an integer below zero. A paid take and a payment need the coins. Each action that adds coins also works with a debt.
+The recovery quest stays open while the purse is short.
 
 ## Bookings
 
@@ -160,7 +156,7 @@ The lantern control spends no coins. The skipped time brings the closing, the up
 So the player never has to cook food that no quest needs to wait for a guest.
 
 The opening of each booked quest names the booking time. The openings can mention the fence.
-The diets of spec 012 do not change.
+The diets of spec 012 apply to the booked quests.
 
 ## End of act 1
 
@@ -179,46 +175,53 @@ Each closing records one night report in the state. The report holds these items
 - the day that closed;
 - the upkeep;
 - which rat came;
-- each ingredient that left the board, with its cell;
+- each ingredient that left the board;
 - the trapped ingredient and its cell, or the reason for no rat hole;
-- the gift and its cell, or the reason for no gift;
+- the gift or the reason for no gift;
 - the purse after the closing.
 
-The next closing replaces the report. The state also records whether the player saw the notice of the report.
-The night sequence and the night notice use only the report.
+The next closing replaces the report. The state also records whether the player saw the morning dialog of the report.
+The closing dialog, the night sequence, and the morning dialog use only the report.
+
+## Closing dialog
+
+The closing change applies at once. Then the closing dialog opens. It says that the day is over, and it has two actions: Watch the night and Skip.
+Until the player chooses, the board shows the dishes that the night takes and hides the cells that the night changes.
+Watch the night, Close, and Escape play the night sequence. Skip opens the morning dialog at once.
 
 ## Night sequence
 
-The closing change applies at once. Then the interface plays a short night sequence of about three seconds:
+The night sequence plays in this order:
 
 - The room dims to night. A dark tint can cover the whole room painting.
 - The window of the front room shows a night sky behind the glass, as for the bat.
-- The rat of the night runs across the floor of the area that the room shows. The rat is not dimmed.
-- On a theft night, the thief rat breaks up through the board, takes its picks, and leaves. If the report has a trapped ingredient, a rat hole appears in its cell.
+- The rat of the night runs across the floor of the area that the room shows. The rat is not dimmed. On a phone with a movable drawer, the drawer lowers for this run and rises after it.
+- Then, on a theft night, the thief rat breaks up through the board, takes its picks, and leaves. If the report has a trapped ingredient, a rat hole appears in its cell.
 - On a gift night, Șoricescu climbs out of the board, puts down the gift, lifts his hat, and leaves.
 - If the report has no gift, Șoricescu climbs out, looks around, and leaves.
-- The tint goes away, and the window shows the morning sky again.
+- The tint and the night sky fade out.
 
 The tint keeps the painting readable: the player still sees the room and its decorations.
 The tint is the same in both themes. Review examines the tint at the desktop size and the phone size, in both themes, and the user accepts it.
 If the room shows the courtyard, or if the window of the front room is not mended, the room shows no night sky. The tint and the rat still show.
 If the room painting did not load, the room shows no rat.
 
-A tap or a key stops the sequence at once. That input does no other action.
-The sequence does not play while the page is hidden, or with reduced motion. The notice then shows at once.
-If the page reloads before the notice shows, the notice shows after the load, without the sequence.
+No tap and no key stops a watched sequence. That input does no action.
+The closing dialog and the sequence do not show while the page is hidden, or with reduced motion. The morning dialog then opens at once.
+If the page becomes hidden during the sequence, or the player turns on reduced motion, the sequence stops and the morning dialog opens.
+If the page reloads before the player closes the morning dialog, the morning dialog opens after the load, without the sequence.
 
-### Night notice
+### Morning dialog
 
-After the sequence, a notice reports the night. The notice marks the report as seen.
-The notice gives the upkeep and the purse, and one of these results:
+After the sequence, the morning dialog reports the night. Its one action is Open the bistro. Closing the dialog in any way marks the report as seen.
+The dialog shows the rat of the night and gives the upkeep and the purse, and one of these results:
 
 - the ingredients that the thief rat took, and the rat hole;
 - the ingredients that the thief rat took, and that the three open rat holes left no room for a new one;
 - the gift of Șoricescu, and a new dish if the gift is the first of its dish;
 - that Șoricescu found no room for his gift.
 
-If the purse holds a debt, the notice gives the debt.
+If the purse holds a debt, the dialog gives the debt.
 
 ## Art
 
@@ -257,19 +260,7 @@ Review examines each picture at its game size on a phone, in both themes. The us
 
 ## Levers
 
-These values are starting values. The campaign balance test measures them, and the user tunes them after play.
-
-| Lever | Starting value |
-| --- | ---: |
-| Opening time | 07:00 |
-| Closing time | 22:00 |
-| Merge time: the minutes that one merge adds to the clock | 6 |
-| Upkeep: the coins that each closing spends | 10 |
-| Rat take: the most loose raw ingredients that the thief rat takes in one night | 3 |
-| Rat hole limit: the most rat holes that can be open at one time | 3 |
-| Gift stage | 4 |
-| Gift space: the fewest free cells that a gift needs | 5 |
-| Booking time | 20:00 |
+`PRODUCT.md` gives the values of the levers of the day: the opening, closing, and booking times, the merge time, the upkeep, the rat take, the rat hole limit, the gift stage, and the gift space. The [economy record](../economy.md) gives the evidence for them.
 
 ## Data and state
 
@@ -280,15 +271,14 @@ These values are starting values. The campaign balance test measures them, and t
 - The state records the day number, the merges of the current day, and the random seed.
 - The state records the cell of each open rat hole and the number of gifts.
 - The state records the evening guest of the current day, the guest of the last evening, and whether the day had its booked delivery.
-- The state records the night report and whether the player saw its notice.
+- The state records the night report and whether the player saw its morning dialog.
 - The state records the act 1 result after the supper.
 - The purse can hold an integer below zero. Save validation accepts a debt.
-- The game state version and the save key change. The game does not read or convert a save in an earlier format. Each player starts a new game.
 
 ## Owner contracts
 
 `PRODUCT.md` controls the clock, bookings, rat holes, gifts, debt, saved seed, and act 1 result.
-`DESIGN.md` controls the clock, booked tickets, lantern control, night sequence, and night notice.
+`DESIGN.md` controls the clock, booked tickets, lantern control, night sequence, and night dialogs.
 The rat appears over the room, and the window glass can show the night sky.
 A night tint changes the room painting. The Untouched Plate Rule keeps food, portraits, and timber in their original colours.
 
@@ -326,9 +316,9 @@ Two more strategies play act 1 with the same seeds:
 - Evening guest: each case in the table of the evening guest gives its result. Vlad and Elisabeta never have the same evening.
 - Booked tickets: the evening guest shows "Booked for 20:00", and each other booked ticket shows "Booked for another evening". Deliver works only from the booking time to closing, once per day.
 - Lantern control: the lantern control works only on the ticket of the evening guest, before the booking time, with every portion on the board. It moves the clock to the booking time and spends no coins.
-- Night report: theft with a rat hole, theft with three open rat holes, a gift, and no gift each give their report and their notice. A reload before the notice shows the notice once, without the sequence.
+- Night report: theft with a rat hole, theft with three open rat holes, a gift, and no gift each give their report and their morning dialog. A reload before the morning dialog closes shows the morning dialog once, without the sequence.
 - End of act 1: the supper stops the clock and records the act 1 result. The supper card shows that result after the purse changes, including a debt.
 - Content: each quest fits in one day. Only the quests of Vlad and Elisabeta are booked.
 - Campaign: the balance check passes for each seed.
 - Save: a new game, reload, export, and import keep the clock, the seed, the rat holes, the gift count, the evening guest, the night report, the act 1 result, and a debt. An earlier save is not read, and an import of an earlier save is rejected.
-- Browser: the clock, a booked ticket, the lantern control, the night sequence for each result, a stop by tap, reduced motion, a hidden page, and the night notice. Phone and desktop in both themes.
+- Browser: the clock, a booked ticket, the lantern control, the closing dialog, Skip, the night sequence for each result, taps and keys that do not stop it, the drawer on a phone, reduced motion, a hidden page, and the morning dialog. Phone and desktop in both themes.

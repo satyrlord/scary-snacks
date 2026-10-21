@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { arrivalScene, deliveriesSince, journalCharacters, resolveChapters, resolveQuests, supperComplete } from '../../src/model.ts';
-import { act, checkpoint, data, deliverable, journal, quest, readTo, saved, start, supplies, supply, validate } from './support.ts';
+import { act, checkpoint, data, deliverable, forward, journal, opened, quest, ratio, readTo, saved, start, supplies, supply, validate } from './support.ts';
 
 /** Earned scenes left unread at representative campaign positions. */
 function journalState(count: number){
@@ -36,12 +36,12 @@ for(const count of [0,10,24])for(const width of [1440,390])for(const theme of ['
   await expect(list.locator('[data-journal^="opening-"]')).toHaveCount(completed.filter(view=>!view.quest.completion.length).length);
   for(const {quest} of completed)await expect(list.locator(`[data-quest="${quest.id}"]`)).toHaveCount(1);
   const visible=await list.evaluate(node=>{
-    const luminance=(value:string)=>value.match(/\d+(?:\.\d+)?/g)!.slice(0,3).map(Number).map(n=>n/255).map(n=>n<=.04045?n/12.92:((n+.055)/1.055)**2.4).reduce((sum,n,i)=>sum+n*[.2126,.7152,.0722][i],0);
-    const ratios=[...node.querySelectorAll('p,strong,summary,.journal-entry>span')].filter(value=>value.checkVisibility()).map(value=>{
+    const pairs=[...node.querySelectorAll('p,strong,summary,.journal-entry>span')].filter(value=>value.checkVisibility()).map(value=>{
       let surface:Element=value;while(getComputedStyle(surface).backgroundColor==='rgba(0, 0, 0, 0)'&&surface.parentElement)surface=surface.parentElement;
-      const ink=luminance(getComputedStyle(value).color),back=luminance(getComputedStyle(surface).backgroundColor);return(Math.max(ink,back)+.05)/(Math.min(ink,back)+.05);
-    });return {contrast:Math.min(...ratios),scroll:node.scrollWidth>node.clientWidth};
-  });expect(visible.contrast).toBeGreaterThanOrEqual(4.5);expect(visible.scroll).toBe(false);
+      return {ink:getComputedStyle(value).color,back:getComputedStyle(surface).backgroundColor};
+    });return {pairs,scroll:node.scrollWidth>node.clientWidth};
+  });expect(visible.pairs.length).toBeGreaterThan(0);expect(visible.scroll).toBe(false);
+  for(const {ink,back} of visible.pairs)expect(ratio(back,ink)).toBeGreaterThanOrEqual(4.5);
   expect(await page.locator('#modal').evaluate(node=>node.scrollWidth<=node.clientWidth)).toBe(true);
   for(const summary of await list.locator('summary').all())expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await page.screenshot({path:testInfo.outputPath('journal-priorities.png')});expect(await saved(page)).toEqual(state);
@@ -68,7 +68,7 @@ for(const width of [1440,390])test(`journal restores archive focus, open groups,
 
 test('reading the last unread conversation moves its single entry into the replay group',async({page})=>{
   const value=quest('mara-welcome'),state=act(deliverable(value),{type:'deliverQuest',id:value.id});await start(page,state);await journal(page);
-  const unread=page.locator(`[data-scene="${value.id}"]`);await unread.click();await page.locator('.story-controls .primary-button').click();
+  const unread=page.locator(`[data-scene="${value.id}"]`);await unread.click();await forward(page).click();
   await expect(page.locator('[data-group="conversations"]')).toHaveAttribute('open','');await expect(unread).toBeFocused();await expect(unread).toHaveAccessibleName(`Replay ${value.title}`);
   await expect(page.getByRole('region',{name:'Unread scenes',exact:true})).toContainText('No unread scenes.');
   await expect(page.locator(`[data-quest="${value.id}"]`)).toHaveCount(1);
@@ -79,7 +79,7 @@ test('reading the last unread conversation moves its single entry into the repla
 test('single-visit farewell is readable once from Unread and returns to its heading',async({page})=>{
   const value=quest('ionatan-castle-dinner'),state=act(deliverable(value),{type:'deliverQuest',id:value.id});await start(page,state);await journal(page);
   await expect(page.locator(`[data-scene="${value.id}"]`)).toHaveCount(1);await page.getByRole('button',{name:`Read ${value.title}`,exact:true}).click();
-  await page.locator('.story-controls .primary-button').click();await expect(page.getByRole('heading',{name:'Unread scenes',exact:true})).toBeFocused();
+  await forward(page).click();await expect(page.getByRole('heading',{name:'Unread scenes',exact:true})).toBeFocused();
   await expect(page.locator(`[data-scene="${value.id}"]`)).toHaveCount(0);await expect(page.locator(`[data-journal="opening-${value.id}"]`)).toHaveCount(0);
   expect(await saved(page)).toEqual({...state,pendingScenes:[]});
 });
@@ -102,7 +102,7 @@ test('reading one combined quest keeps another waiting scene',async({page})=>{
   await expect(page.locator('.story-turn h4')).toHaveText([...value.opening,...value.completion].map(line=>data.characters.find(person=>person.id===line.speaker)!.name));
   await expect(page.locator('.story-turn p')).toHaveText([...value.opening,...value.completion].map(line=>line.text));
   expect(await saved(page)).toEqual(state);await page.keyboard.press('Escape');await expect(entry).toBeFocused();expect(await saved(page)).toEqual(state);
-  await page.reload();await page.locator('#board button').first().waitFor();await journal(page);await entry.click();
+  await page.reload();await opened(page);await journal(page);await entry.click();
   await page.getByRole('button',{name:'Return',exact:true}).click();
   expect(await saved(page)).toEqual(act(state,{type:'readScene',id:value.id}));
   await expect(page.getByRole('dialog',{name:'Story journal',exact:true})).toBeVisible();

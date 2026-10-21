@@ -6,6 +6,7 @@ import { setLowered } from './room.ts';
 import { availableChains, boardObstacles, canDeliverQuest, dishChains, firstFreeBoardCell, integer, mergeResult, MIXED, questDeliveryCells, resolveQuests, unresolvedObstacle } from './model.ts';
 import { data, definition, itemName, matchingBlocker, onReplace, redraw, select, sourceOf, state, takePrice } from './session.ts';
 import type { Change } from './session.ts';
+import { BOARD_FULL } from './engine.ts';
 
 // The dishes discovered since the recipe book was last opened.
 let freshDishes = 0;
@@ -143,7 +144,7 @@ export const stopGuidance = () => { goal = null; };
 /** A guide ends only when a take or merge makes another copy of its requested dish. */
 export function updateGuidance(change: Change): string | null {
   if (!goal || !change) return null;
-  if (!change.result.ok) return change.result.message === 'The board is full. Merge a pair or deliver a quest.' ? nextStep(goal)?.line ?? null : null;
+  if (!change.result.ok) return change.result.message === BOARD_FULL ? nextStep(goal)?.line ?? null : null;
   const code = goal;
   if ((change.result.event === 'spawn' || change.result.event === 'merge')
     && state.board.filter(cell => cell?.code === code).length > change.before.board.filter(cell => cell?.code === code).length) {

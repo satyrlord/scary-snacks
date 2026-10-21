@@ -68,10 +68,10 @@ These records describe the source of the current assets. These records do not gi
 The built-in chat image generator supplies these assets:
 
 - The guest portrait atlas, with the visitor portraits as its style reference.
-- The board-clutter atlas, with an earlier food atlas as its style reference.
+- The board-clutter atlas, as an edit of a project-generated blocker atlas.
 - The preparation-clutter atlas, with a precise alpha correction that the user approved.
 - The visitor portraits, with the core portraits as their style reference.
-- The parchment, and the first versions of the character sketches and quest scenes.
+- The parchment, 17 character sketches, and seven quest scenes.
 
 Fixed-cell assembly gives the visitor atlas the complete Ionatan cell.
 The dress of Adrian, Monica, and Janos follows the recorded local references.
@@ -81,12 +81,12 @@ The OpenAI Images application programming interface (API) supplies these assets 
 
 - The mascots, with a project-generated chat atlas as its reference.
 - The timber tabletop and embroidered runner, from text prompts.
-- The core portraits, as a revision of a text-generated candidate.
+- The core portraits, with a project-generated candidate as their reference.
 - The three regulars atlases, with project-generated portraits as style references.
 - The 25 room states, with project-generated room paintings as the base references.
 - The two decoration paintings, with project-generated design references.
 - The supper painting, with the final courtyard state and project-generated portraits as references.
-- Revisions of five character sketches and four quest scenes, with their previous versions as references.
+- The sketches of Sorin, Cătălina, Mina, Bran, and Victor, and four quest scenes, with project-generated chat drawings as references.
 - The 16 food atlases, with two accepted food atlases of the same set as style references.
 - The two rat sheets, with project-generated reference poses as identity references.
 - The rat hole and the night sky, with project-generated masters as style references.
@@ -94,7 +94,7 @@ The OpenAI Images application programming interface (API) supplies these assets 
 A correction edit keeps each pose of the mascot atlas inside its grid cell.
 A masked edit changes one cell of the first regulars atlas.
 A masked edit removes paint from one sleeve in the second regulars atlas.
-A fixed conversion makes the white paper of a revised pencil drawing transparent.
+A fixed conversion makes the white paper of Bran's sketch and of the four quest scenes from the API transparent. A masked edit draws the mouth of Victor's sketch, and the same conversion makes that region transparent.
 The Sharp image library scales the two portraits of the third regulars atlas inside their cells.
 Alpha cuts, moves, box clears, and cell copies between candidates correct the food atlases without painted pixels.
 A cell trim keeps each pose of the thief rat sheet inside its grid cell without painted pixels.

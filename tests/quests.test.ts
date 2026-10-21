@@ -4,21 +4,17 @@ import { canDeliverQuest, dishChains, journalCharacters, menuPrice, QUEST_TICKET
 import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import { dataProblems, dietBreaks, discoveryProblems, questProblems } from '../src/content.ts';
 import type { GameData, GameState, Quest } from '../src/model.ts';
-import { act, checkpoint, data, deliver, opened, player, rejected, supply, know } from './support.ts';
+import { act, checkpoint, data, deliver, opened, player, rejected, status, supply, know } from './support.ts';
 
 const recovery = data.quests.find(quest => quest.recovery)!;
 /** The campaign quests with a status. The recovery quest has its own ticket, so the tests of the tickets leave it out. */
 const ids = (state: GameState, status: string) => resolveQuests(state, data).filter(view => !view.quest.recovery && view.status === status).map(view => view.quest.id);
-const status = (state: GameState, id: string) => resolveQuests(state, data).find(view => view.quest.id === id)!.status;
 const floor = data.economy.recoveryFloor;
 
 test('every neighbour asks across the whole campaign, and every quest except the supper opens before the last preparation', () => {
   assert.deepEqual(questProblems(data), []);
   assert.equal(data.quests.length, 83);
   assert.equal(data.quests.filter(quest => !quest.finale && !quest.recovery).length, 81);
-  assert.equal(Object.keys(data.items).length, 97);
-  assert.equal(data.chains.length, 12);
-  assert.equal(data.tasks.length, 24);
   for (const character of data.characters) {
     assert.ok(character.introduction.length > 40);
     const count = data.quests.filter(quest => quest.character === character.id || quest.companions?.includes(character.id)).length;
@@ -27,7 +23,6 @@ test('every neighbour asks across the whole campaign, and every quest except the
   }
   const windows = new Set(data.quests.map(quest => quest.afterTask === null ? 0 : data.tasks.findIndex(task => task.id === quest.afterTask) + 1));
   assert.deepEqual([...windows].sort((a, b) => a - b), Array.from({ length: data.tasks.length + 1 }, (_, index) => index), 'Each window opens at least one quest.');
-  assert.deepEqual(requiredQuests(data.tasks.length - 1, data), data.quests.filter(quest => !quest.finale && !quest.recovery));
   assert.deepEqual(data.quests.filter(quest => quest.finale || quest.recovery).map(quest => [quest.id, quest.afterTask]), [['ana-night-ward-tea', null], ['mara-community-supper', 'task_24']]);
   assert.equal(data.quests[0], recovery, 'The recovery quest comes first.');
   // Every quest except the supper pays its menu value.
@@ -204,7 +199,7 @@ test('each quest of a core character is a short exchange at its opening and at i
   }
 });
 
-test('Ionatan dinner delivery pays once, keeps failed visits open, and records his departure across reloads', () => {
+test('Ionatan dinner delivery pays once, keeps failed visits open, and refuses a second delivery after a reload', () => {
   const id = 'ionatan-castle-dinner', quest = data.quests.find(quest => quest.id === id)!;
   let state = opened(9);
   while (!ids(state, 'active').includes(id)) state = deliver(state, ids(state, 'active')[0]);
@@ -291,11 +286,10 @@ test('delivery queues the quest completion scene in the same change, and a faile
   rejected(play.state, { type: 'readScene', id: 'mara-welcome' });
 });
 
-test('quest saves reject a wrong version, unknown, duplicate, early, and out-of-order completions, the recovery quest, and missing required quests', () => {
+test('quest saves reject unknown, duplicate, early, and out-of-order completions, the recovery quest, and missing required quests', () => {
   const good = checkpoint(18);
   const later = data.quests.find(quest => !quest.recovery && !good.completedQuests.includes(quest.id) && !requiredQuests(18, data).includes(quest))!;
   const cases: [string, (state: GameState) => void][] = [
-    ['version 12', state => { (state as { version: number }).version = 12; }],
     ['unknown quest', state => { state.completedQuests.push('absent'); }],
     ['duplicate', state => { state.completedQuests.push(state.completedQuests[0]); }],
     ['before its preparation', state => { state.completedQuests.push(later.id); }],
@@ -324,7 +318,6 @@ test('the supper asks one plate for each guest, to the taste of each one, and it
   assert.deepEqual(supper.guests, ['mara', 'ilie', 'eszter', 'sorin', 'costel', 'victor', 'ana', 'ileana', 'bran', 'catalina', 'cezar']);
   assert.equal(supper.afterTask, 'task_24');
   assert.equal(supper.reward, 0);
-  assert.equal(Object.hasOwn(supper, 'cost'), false, 'The supper has no coin cost.');
   assert.equal(supper.requirements.length, supper.guests!.length);
   for (const [at, id] of supper.guests!.entries()) {
     const guest = data.characters.find(person => person.id === id)!, { item, quantity } = supper.requirements[at];

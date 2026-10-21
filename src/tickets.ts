@@ -38,7 +38,7 @@ onMotionResume(() => {
  * A short notice that reports itself and clears on its own: used where the game should not stop for a tap.
  * A notice with a reply to read stays longer, and it waits while the pointer or focus is on it.
  */
-export function toast(text: string, reply?: { label: string; read: () => void }, duration = reply ? REPLY_MS : TOAST_MS) {
+function toast(text: string, reply?: { label: string; read: () => void }, duration = reply ? REPLY_MS : TOAST_MS) {
   const note = element('div', still() ? 'toast' : 'toast entering'); note.setAttribute('aria-atomic', 'true');
   note.append(element('p', 'toast-text', text));
   let timer: ReturnType<typeof setTimeout> | undefined;

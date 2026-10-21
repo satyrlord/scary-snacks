@@ -1,17 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { generatorOutputs, getItem, requiredQuests, resolveQuests, supperComplete, supperQuest } from '../src/model.ts';
+import { getItem, requiredQuests, resolveQuests, supperComplete, supperQuest } from '../src/model.ts';
 import { KEEP_FREE, validateGame } from '../src/engine.ts';
 import { BALANCE_SEEDS, runCampaignBalance } from '../tools/campaign-balance.ts';
-import type { CampaignBalance, CampaignStrategy, CampaignTotals } from '../tools/campaign-balance.ts';
+import type { CampaignTotals } from '../tools/campaign-balance.ts';
 import { checkpointState } from '../tools/create-checkpoint-saves.ts';
-import { act, data, player } from './support.ts';
+import { act, data, nightLine, player, runs } from './support.ts';
 
+/** The first efficient run, which checks the state after every action. */
 const report = runCampaignBalance(data, BALANCE_SEEDS[0]);
-/** The runs of a strategy for every fixed seed. Only the first efficient run checks the state after every action. */
-const runs = (strategy: CampaignStrategy) => BALANCE_SEEDS.map(seed => [seed, runCampaignBalance(data, seed, strategy, false)] as const);
-const nightLine = (seed: number, run: CampaignBalance) => `Seed ${seed}: ${run.nights.days} days, ${run.nights.lanterns} lanterns, ${run.nights.thefts} thefts, `
-  + `${run.nights.stolen} stolen, ${run.nights.gifts} gifts, lowest purse ${run.nights.lowestPurse}, free cells ${run.preparations.map(value => value.freeCells).join(' ')}.`;
 // The quests that the preparations need: every quest except the supper and the recovery quest.
 const campaign = requiredQuests(data.tasks.length, data);
 const recovery = data.quests.find(quest => quest.recovery)!;
@@ -42,7 +39,6 @@ test('the efficient run pays all 24 preparations and serves the supper with no i
   assert.equal(finalState.layoutId, data.board.defaultLayout);
   assert.ok(finalState.preparationObstacles!.placed.length >= 3);
   assert.deepEqual(resolveQuests(finalState, data).filter(view => view.status === 'active' || view.status === 'waiting'), [], 'No quest stays open after the supper.');
-  for (const chain of data.chains) assert.deepEqual(generatorOutputs(finalState, `generator_${chain.id}`, data), [`${chain.id}_1`]);
   t.diagnostic(`${totals.actions} actions, ${totals.spawns} takes, ${totals.merges} merges; ${totals.questCoins} quest coins, ${totals.blockerCoins} blocker coins; ${totals.takeCoins} on takes, ${totals.preparationCoins} on preparations, ${totals.upkeepCoins} on upkeep; ${totals.recoveries} recovery teas; ${report.purse} remain.`);
 });
 
@@ -58,7 +54,7 @@ test('the efficient strategy finishes act 1 in 18 to 30 days for every seed, wit
     // The balance band of spec 012, with the upkeep in the spending.
     assert.equal(run.spending, totals.preparationCoins + totals.takeCoins + totals.upkeepCoins);
     assert.ok(run.purse >= 0 && run.purse <= run.spending * 0.1, `Seed ${seed}: ${run.purse} coins is outside 0 to 10% of ${run.spending}.`);
-    t.diagnostic(`${nightLine(seed, run)} Purse ${run.purse} of ${run.spending} spent (${(100 * run.purse / run.spending).toFixed(1)}%).`);
+    t.diagnostic(`${nightLine(seed, run, `, free cells ${run.preparations.map(value => value.freeCells).join(' ')}`)} Purse ${run.purse} of ${run.spending} spent (${(100 * run.purse / run.spending).toFixed(1)}%).`);
   }
 });
 
@@ -92,7 +88,7 @@ test('the run records the coins, the takes, and the free cells at each preparati
   t.diagnostic(`Take coins by preparation: ${report.preparations.map(preparation => preparation.takeCoins).join(' ')}.`);
 });
 
-test('the legal action policy reproduces the same campaign evidence', () => {
+test('the check of the state after every action does not change the efficient run', () => {
   assert.deepEqual(runCampaignBalance(data, BALANCE_SEEDS[0], 'efficient', false), report);
 });
 

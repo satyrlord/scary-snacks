@@ -68,7 +68,7 @@ It reads each other value from the asset:
 
 | Asset identifier | Default size | Background | Grid |
 | --- | --- | --- | --- |
-| `food-<atlas>` for each atlas of spec 012: `grain`, `corn`, `herbs`, `dairy`, `poultry`, `vegetables`, `fruits`, `pork`, `beans`, `lamb`, `veal`, `fish`, `soups`, `mains`, `sweets`, `breads` | `2048x1024` | `transparent` | 4 columns by 2 rows; the cells after the last picture stay fully transparent |
+| `food-<atlas>` for each food atlas: `grain`, `corn`, `herbs`, `dairy`, `poultry`, `vegetables`, `fruits`, `pork`, `beans`, `lamb`, `veal`, `fish`, `soups`, `mains`, `sweets`, `breads` | `2048x1024` | `transparent` | 4 columns by 2 rows; the cells after the last picture stay fully transparent |
 | `portraits` | `1536x1536` | `transparent` | 2 columns by 2 rows |
 | `regulars-1`, `regulars-2` | `1536x1536` | `transparent` | 2 columns by 2 rows |
 | `regulars-3` | `1536x1536` | `transparent` | 2 columns by 2 rows; the lower cells stay fully transparent |
@@ -79,7 +79,7 @@ It reads each other value from the asset:
 | `decoration-front`, `decoration-courtyard` | `1536x2048` | `opaque` | One image, 3:4 portrait, a decoration edit of a room state |
 | `finale-supper` | `1536x2048` | `opaque` | One image, 3:4 portrait, the supper painting: an edit of `courtyard-23` with the guests |
 | `board-clutter` | `1536x1024` | `transparent` | 3 columns by 2 rows, six blockers with open centres |
-| `rat-thief-reference`, `rat-soricescu-reference` | `1024x1024` | `transparent` | One image, square, one reference pose of a rat of the night (spec 013) |
+| `rat-thief-reference`, `rat-soricescu-reference` | `1024x1024` | `transparent` | One image, square, one reference pose of a rat of the night |
 | `rat-thief`, `rat-soricescu` | `2048x1024` | `transparent` | 4 columns by 2 rows, eight poses of one rat |
 | `rat-hole` | `1024x1024` | `transparent` | One image, square, the rat hole blocker |
 | `night-sky` | `2048x1024` | `opaque` | One image, 2:1, the night sky behind the window glass |
@@ -92,8 +92,8 @@ Use the chat route for these assets unless the approved scope includes an API co
 To print the contract of one asset, run `plan --asset <identifier>`, as [API generation](references/api-generation.md) tells you.
 
 [The art plan](../../../docs/specs/001-visible-renovation-art-plan.md) lists the room states.
-Each later state is a masked edit of the previous accepted state.
-Composite the region back with `art-composite.ts`, as [API generation](references/api-generation.md) tells you.
+Each later state is an edit of the previous accepted state, with a mask or without a mask.
+Composite only the changed region back with `art-composite.ts`, as [API generation](references/api-generation.md) tells you.
 Before a new bitmap ships, follow "Add a new bitmap" in [integration](../generate-game-art/references/integration.md).
 
 Before a change to the model or to the request contract, read the [official image generation guide](https://developers.openai.com/api/docs/guides/image-generation).

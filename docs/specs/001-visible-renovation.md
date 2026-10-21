@@ -7,7 +7,7 @@ The [room states art plan](001-visible-renovation-art-plan.md) gives the 25 stat
 ## Rules
 
 1. Each of the 24 preparations maps to a painted change that the player can identify. A result that is not physical maps to a distinct marker, for example the festive gate. No outcome depends only on a progress counter or on tiny text in an image.
-2. The new-game front room shows unfinished work, cobwebs in the broken window, and a few small spiders. Preparation 1, "Fix the broken window", clears the webs. It also sends those spiders outside alive. One friendly resident spider stays under the upper wall shelf in every state, including the restored room. This placement follows PRODUCT.md. No other web or spider stays after preparation 1.
+2. The new-game front room shows unfinished work, cobwebs in the broken window, and a few small spiders. Preparation 1, "Fix the broken window", clears the webs. It also sends those spiders outside alive. One friendly resident spider stays under the upper wall shelf in every state, including the restored room. No other web or spider stays after preparation 1.
 3. The courtyard opens after preparation 13, "Clear the courtyard", in chapter 4. Before that, the courtyard control shows only its name and its prerequisite. It shows no picture and no scene description.
 4. Room state comes only from completed stable task identifiers (IDs).
    Viewing the room gives no progress and no reward. Selecting an area gives no progress and no reward.

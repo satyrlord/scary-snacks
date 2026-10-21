@@ -1,26 +1,16 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { boardObstacles, mergePartners, requiredQuests, unresolvedObstacle } from '../../src/model.ts';
+import { boardObstacles, mergePartners, unresolvedObstacle } from '../../src/model.ts';
 import { createGame, reduceGame } from '../../src/engine.ts';
 import type { GameState } from '../../src/model.ts';
-import { checkpoint, data, saved, start as open, tile, validate, know, madeLine } from './support.ts';
+import { checkpoint, data, ratio, saved, start as open, tile, validate, know, madeLine } from './support.ts';
 
 const help = (page: Page) => page.locator('#item-detail.blocker-help');
 /** The rule of a blocked dish: the matching dish, and each recipe partner that the player has made. */
 const rule = (code: string, state: GameState) => `Tap a marked ${new Intl.ListFormat('en', { type: 'disjunction' }).format([...new Set(mergePartners(code, data)
   .filter(partner => partner === code || state.discovered.includes(partner)).map(partner => data.items[partner].name))])} to merge here.`;
-function ready() {
-  const state = createGame(data);
-  state.completedQuests = requiredQuests(0, data).map(quest => quest.id);
-  state.coins = data.tasks[0].cost;
-  return state;
-}
-function firstPreparation() {
-  const result = reduceGame(ready(), { type: 'task' }, data);
-  expect(result.ok, result.message).toBe(true); return result.state;
-}
 /** Five preparations are paid, so the Hen’s nest is on the board, with one Eggs and no other loose dish. */
-function checkpointReady() {
+function eggsOnly() {
   const state = checkpoint(5, { coins: 20 });
   for (const [index, cell] of state.board.entries()) if (cell && !data.items[cell.code].generator) state.board[index] = null;
   state.board[state.board.findIndex((cell, index) => !cell && !unresolvedObstacle(state, index, data))] = { code: 'poultry_1' };
@@ -158,7 +148,7 @@ test('a second tap on a selected blocker closes its help with the move hint', as
 });
 
 test('new preparation blocker identifies matching movable ingredients', async ({ page }) => {
-  const state = firstPreparation();
+  const state = checkpoint(1);
   const obstacle = boardObstacles(state, data).find(obstacle => obstacle.atlas === 'preparation')!;
   expect(obstacle.position).toBe(2);
   await start(page, state); await tile(page, obstacle.position).click();
@@ -201,7 +191,7 @@ test('anchor help marks matching movable food and clears with the second tap', a
 
 for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }, { width: 390, height: 800 }]) for (const theme of ['light', 'dark']) {
   test(`blocker help fits ${viewport.width}x${viewport.height} in ${theme}`, async ({ page }, testInfo) => {
-    await page.setViewportSize(viewport); const state = ready(); await start(page, state, theme);
+    await page.setViewportSize(viewport); const state = checkpoint(0, { ready: true }); await start(page, state, theme);
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
     const offer = page.locator(viewport.width < 1024 ? '#offer' : '#story');
     await expect(offer.getByRole('button', { name: /^Pay / })).toBeVisible();
@@ -217,21 +207,19 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       expect(overlay).toEqual({ color: 'rgba(184, 38, 44, 0.2)', pointerEvents: 'none', tintAboveArt: true, markAboveTint: true });
       const geometry = await help(page).evaluate(element => {
         const box = element.getBoundingClientRect();
-        const luminance = (color: string) => color.match(/\d+(?:\.\d+)?/g)!.slice(0, 3).map(Number).map(n => n / 255).map(n => n <= .04045 ? n / 12.92 : ((n + .055) / 1.055) ** 2.4).reduce((sum, n, i) => sum + n * [.2126, .7152, .0722][i], 0);
         let surface: Element = element;
         while (getComputedStyle(surface).backgroundColor === 'rgba(0, 0, 0, 0)' && surface.parentElement) surface = surface.parentElement;
-        const background = luminance(getComputedStyle(surface).backgroundColor);
         return {
           inside: box.left >= 0 && box.right <= innerWidth + 1 && box.top >= 0 && box.bottom <= innerHeight,
           overflow: element.scrollWidth > element.clientWidth + 1 || element.scrollHeight > element.clientHeight + 1,
-          text: [...element.querySelectorAll('.blocker-title,#blocker-rule')].map(node => {
-            const ink = luminance(getComputedStyle(node).color);
-            return { contrast: (Math.max(ink, background) + .05) / (Math.min(ink, background) + .05), fits: node.scrollWidth <= node.clientWidth + 1 && node.scrollHeight <= node.clientHeight + 1 };
-          }),
+          background: getComputedStyle(surface).backgroundColor,
+          text: [...element.querySelectorAll('.blocker-title,#blocker-rule')].map(node => ({
+            ink: getComputedStyle(node).color, fits: node.scrollWidth <= node.clientWidth + 1 && node.scrollHeight <= node.clientHeight + 1,
+          })),
         };
       });
-      expect(geometry.inside).toBe(true); expect(geometry.overflow).toBe(false);
-      for (const text of geometry.text) { expect(text.contrast).toBeGreaterThanOrEqual(4.5); expect(text.fits).toBe(true); }
+      expect(geometry.inside).toBe(true); expect(geometry.overflow).toBe(false); expect(geometry.text).toHaveLength(2);
+      for (const text of geometry.text) { expect(ratio(geometry.background, text.ink)).toBeGreaterThanOrEqual(4.5); expect(text.fits).toBe(true); }
       const clear = (await help(page).getByRole('button', { name: 'Clear selection', exact: true }).boundingBox())!;
       expect(clear.width).toBeGreaterThanOrEqual(44); expect(clear.height).toBeGreaterThanOrEqual(44);
       if (viewport.width < 1024) {
@@ -270,7 +258,7 @@ for (const known of [false, true]) test(`a final dish ${known ? 'names a recipe 
 
 test('a recipe partner clears a blocker: the mixed dish stays in the blocked cell and the blocker coin is paid', async ({ page }) => {
   // Eggs cook Sweet dough with the tied Dough. The help marks the Eggs, and the merge leaves Sweet dough in the blocked cell.
-  const state = checkpointReady(); await start(page, state);
+  const state = eggsOnly(); await start(page, state);
   const eggs = state.board.findIndex(cell => cell?.code === 'poultry_1'), dough = boardObstacles(state, data).find(obstacle => obstacle.id === 'tied-dough')!;
   await tile(page, dough.position).click(); await expect(page.locator('#blocker-rule')).toHaveText(rule('grain_2', state));
   await expect(page.locator('#blocker-rule')).toContainText(data.items.poultry_1.name);

@@ -13,7 +13,7 @@ import { guidanceStep, markRecipeBook, noteNewDishes, updateGuidance } from './d
 import { endSceneFlow, renderOffer, showScene, storyContent } from './story.ts';
 import { lowered, renderRoom, reveal, setLowered, syncRoomControls, takeHeldChange } from './room.ts';
 import { options } from './options.ts';
-import { nightNotice, playNight } from './night.ts';
+import { morning, playNight } from './night.ts';
 
 // Rendering replaces the controls in these regions, so focus is restored by region and position.
 const FOCUS_REGIONS = '#board,#tickets,#story,#item-detail,#offer';
@@ -29,7 +29,6 @@ function renderCoins() {
   $('#coin-label').textContent = coinWord(amount);
   $('#coin-total').textContent = debt ? `A debt of ${coinText(amount)}` : coinText(amount);
   $('#coin-count').classList.toggle('long', amount >= 1000);
-  $('#coin-count').classList.toggle('debt', debt);
 }
 /** The day and the time. Phones stack them, so the masthead keeps room for the coins. */
 function renderClock() {
@@ -95,7 +94,7 @@ onDraw(change => {
   else if (selected === null) status(guidanceStep()?.short ?? nextStep);
   else status(`${result.message} ${nextStep}`);
   // The merge that reaches the closing brings the night.
-  if (result.ok && state.clock.day !== before.clock.day) void playNight();
+  if (result.ok && state.clock.day !== before.clock.day) playNight();
 });
 // The end of a paid preparation's story reveals its change, and then opens the scene that the payment earned.
 modal.addEventListener('close',()=>{
@@ -131,8 +130,8 @@ try {
   // Phones get a shorter opening line, so that it fits the line under the board.
   status(saved.status==='loaded'?`Welcome back. The stove is still warm.${state.pendingScenes.length?' A story scene is waiting in Story.':''}`:phone.matches?'Merge the two Flours. Match blocked food to clear it.':'Tap one Flour, then the other, to merge. Merge onto matching blocked food to clear it.');
   if(saveFailed)options();
-  // A night that the player did not see before the page closed shows its notice now, without the sequence.
-  nightNotice();
+  // A night that the player did not see before the page closed opens its morning dialog now, without the sequence.
+  if(modal.open)modal.addEventListener('close',morning,{once:true});else morning();
 }catch(error){
   status(`The kitchen could not open. ${reason(error)}`);console.error(error);
   const hint=$('#hint-button');hint.textContent='Try again';hint.addEventListener('click',()=>location.reload());

@@ -2,12 +2,12 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { resolveRooms, latestArea } from '../../src/model.ts';
 import { createHash } from 'node:crypto';
-import { KEY, checkpoint, data, options, saved, serialize, start } from './support.ts';
+import { checkpoint, data, options, painting, replaceSave, revealed, saved, serialize, start, startAgain } from './support.ts';
 
 /** The save after count preparations, ready to pay the next one when ready is set. */
 const saveAfter=(count: number,ready=false)=>serialize(checkpoint(count,{ready}));
-/** The room's painting once it has decoded, by file name. */
-const shown=(page: Page)=>page.locator('#room-paintings img').last().evaluate(async e=>{const image=e as HTMLImageElement;await image.decode().catch(()=>{});return image.complete&&image.naturalWidth>0?image.currentSrc.split('/').at(-1)!:'';});
+/** Waits until the room's painting has loaded. */
+const loaded=(page: Page)=>expect.poll(()=>painting(page)).not.toBe('');
 const completedAt=(count: number)=>data.tasks.slice(0,count).map(task=>task.id);
 
 // The room checks do not depend on the theme, so each viewport uses one theme.
@@ -18,16 +18,13 @@ for(const {theme,...viewport} of [{name:'desktop',width:1440,height:1000,theme:'
     await start(page,saveAfter(0),theme);
     let previous='';
     for(let count=0;count<=24;count++){
-      if(count>0){
-        await page.evaluate(({key,save})=>{localStorage.setItem(key,save);localStorage.removeItem('scary-snacks-area');},{key:KEY,save:saveAfter(count)});
-        await page.reload();await expect(page.locator('#board button')).toHaveCount(42);
-      }
+      if(count>0)await replaceSave(page,saveAfter(count));
       const before=await saved(page);
       // The room follows the area of the latest change and shows the state of its highest completed preparation.
       const area=latestArea(completedAt(count),data),view=resolveRooms(completedAt(count),data).find(value=>value.id===area)!;
       const frame=page.locator('#room-frame');
       await expect(frame,`checkpoint ${count}`).toHaveAttribute('data-area',area);await expect(frame).toHaveAttribute('data-current',view.current!.id);await expect(frame).toHaveAttribute('data-painting',view.painting!.id);
-      expect(await shown(page),`checkpoint ${count}`).toMatch(new RegExp(`^${view.painting!.id}-(768x1024|1536x2048)\\.avif$`));
+      await expect.poll(()=>painting(page),{message:`checkpoint ${count}`}).toMatch(new RegExp(`^${view.painting!.id}-(768x1024|1536x2048)\\.avif$`));
       await expect(page.locator('#room-caption li')).toHaveText(view.states.map(state=>state.text));
       await expect(page.locator('#room-pin')).toBeVisible({visible:count>0&&view.painting===view.current});
       // Only the room is captured, with the cats masked, so a change must be in the painting's pixels.
@@ -42,7 +39,7 @@ for(const {theme,...viewport} of [{name:'desktop',width:1440,height:1000,theme:'
 }
 
 test('a failed animated area change replaces the old painting with the current room words',async({page})=>{
-  await start(page,saveAfter(23));await shown(page);
+  await start(page,saveAfter(23));await loaded(page);
   await page.route('**/assets/variants/front-room-17-*',route=>route.fulfill({status:404,body:''}));
   await page.getByRole('button',{name:'Front room',exact:true}).click();
   await expect(page.locator('#room-stage')).toHaveAttribute('data-failed','');
@@ -54,13 +51,13 @@ test('a failed animated area change replaces the old painting with the current r
 
 for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'phone',width:390,height:844}])test(`a painting that fails during story preload shows the fallback and restores focus at ${viewport.name}`,async({page})=>{
   await page.setViewportSize(viewport);
-  await start(page,saveAfter(0,true));await shown(page);
+  await start(page,saveAfter(0,true));await loaded(page);
   await page.route('**/assets/variants/front-room-01-*',route=>route.fulfill({status:404,body:''}));
   const failed=page.waitForResponse(response=>response.url().includes('/front-room-01-')&&response.status()===404);
   await page.getByRole('button',{name:/^Pay /}).click();await failed;
   await expect(page.locator('#room-stage')).not.toHaveAttribute('data-failed');
   await page.getByRole('button',{name:'Close dialog'}).click();
-  await expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done',{timeout:8000});
+  await revealed(page);
   await expect(page.locator('#room-stage')).toHaveAttribute('data-failed','');
   await expect(page.locator('#room-paintings picture')).toHaveCount(0);
   await expect(page.locator('#room-caption')).toBeVisible();await expect(page.locator('#room-pin')).toBeHidden();
@@ -68,7 +65,7 @@ for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'phone',wid
 });
 
 test('a failed load from an earlier area cannot clear the newer painting or its pin',async({page})=>{
-  await start(page,saveAfter(23));await shown(page);
+  await start(page,saveAfter(23));await loaded(page);
   let release!: ()=>void;const delayed=new Promise<void>(resolve=>{release=resolve;});
   await page.route('**/assets/variants/front-room-17-*',async route=>{await delayed;await route.fulfill({status:404,body:''});});
   const requested=page.waitForRequest('**/assets/variants/front-room-17-*');
@@ -76,7 +73,7 @@ test('a failed load from an earlier area cannot clear the newer painting or its 
   await page.getByRole('button',{name:'Courtyard',exact:true}).click();
   release();
   await expect(page.locator('#room-paintings picture')).toHaveCount(1);
-  expect(await shown(page)).toMatch(/^courtyard-23-/);
+  await expect.poll(()=>painting(page)).toMatch(/^courtyard-23-/);
   await expect(page.locator('#room-stage')).not.toHaveAttribute('data-failed');
   await expect(page.locator('#room-pin')).toHaveAccessibleName(`New: ${data.rooms.find(room=>room.id==='courtyard-23')!.text}`);
   await expect(page.locator('#room-pin')).toBeVisible();
@@ -87,8 +84,7 @@ test('room pins stay in the visible room and clear the area switch on short phon
   for(const reducedMotion of ['reduce','no-preference'] as const)for(const [width,height,count] of [[320,740,4],[390,740,4],[390,740,10],[390,740,23],[768,1024,23]]){
     await page.emulateMedia({reducedMotion});
     await page.setViewportSize({width,height});
-    await page.evaluate(([key,save])=>{localStorage.setItem(key,save);localStorage.removeItem('scary-snacks-area');},[KEY,saveAfter(count)]);
-    await page.reload();await expect(page.locator('#board button')).toHaveCount(42);await shown(page);
+    await replaceSave(page,saveAfter(count));await loaded(page);
     await expect.poll(()=>page.evaluate(()=>{
       const box=(selector: string)=>document.querySelector(selector)!.getBoundingClientRect();
       const pin=box('#room-pin'),room=box('#room-stage'),drawer=box('#drawer'),area=box('#area-switch');
@@ -100,14 +96,11 @@ test('room pins stay in the visible room and clear the area switch on short phon
 
 test('a new game restores its original room crop after a pin has moved the frame',async({page})=>{
   await page.setViewportSize({width:768,height:1024});await page.emulateMedia({reducedMotion:'reduce'});
-  await start(page,saveAfter(0));await shown(page);
+  await start(page,saveAfter(0));await loaded(page);
   const initial=(await page.locator('#room-frame').boundingBox())!;
-  await page.evaluate(({key,save})=>localStorage.setItem(key,save),{key:KEY,save:saveAfter(23)});
-  await page.reload();await expect(page.locator('#board button')).toHaveCount(42);await shown(page);
+  await replaceSave(page,saveAfter(23));await loaded(page);
   await expect(page.locator('#room-pin')).toBeVisible();
-  await options(page);
-  await page.getByRole('button',{name:'Start a new game',exact:true}).click();
-  await page.getByRole('button',{name:'Erase and start again'}).click();
+  await options(page);await startAgain(page);
   await expect(page.locator('#room-frame')).toHaveAttribute('data-current','front-room-00');
   await expect(page.locator('#room-pin')).toBeHidden();
   await expect.poll(async()=>(await page.locator('#room-frame').boundingBox())!.y).toBeCloseTo(initial.y,1);

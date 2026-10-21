@@ -20,7 +20,7 @@ Git history keeps the past.
   `storage.ts` holds the saves.
   Keep the rules and the saves free of Document Object Model (DOM) access.
   `session.ts` holds the game of the tab, its saves, and the lock between tabs. `app.ts` opens the game and draws it after each change.
-  Each interface module holds one part of the page: `board.ts`, `tickets.ts`, `story.ts`, `room.ts`, `dishes.ts`, and `options.ts`.
+  Each interface module holds one part of the page: `board.ts`, `tickets.ts`, `story.ts`, `room.ts`, `night.ts`, `dishes.ts`, and `options.ts`.
   `dom.ts`, `art.ts`, `dialog.ts`, and `preferences.ts` hold the shared interface parts.
 - `public/` holds the shipped image variants, fonts, and game data.
   `assets/variants/` holds AV1 Image File Format (AVIF) and WebP images.

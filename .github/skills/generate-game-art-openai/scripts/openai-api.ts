@@ -60,7 +60,7 @@ interface ImageRequest {
 
 // These contracts select the assets that the API helper supports.
 // The provenance record contains more assets than this table.
-// The room states, the decoration paintings, and the victory painting are opaque 3:4 portrait images.
+// The room states, the decoration paintings, and the supper painting are opaque 3:4 portrait images.
 const roomState: AssetContract = { background: 'opaque', shape: 'portrait-3x4', columns: 1, rows: 1, defaultSize: '1536x2048' };
 const portraitAtlas: AssetContract = { background: 'transparent', shape: 'square', columns: 2, rows: 2, defaultSize: '1536x1536' };
 // Each character has one pencil sketch, and each quest scene is a 3:2 pencil drawing. The request asks for plain white paper;
@@ -68,7 +68,7 @@ const portraitAtlas: AssetContract = { background: 'transparent', shape: 'square
 const sketch: AssetContract = { background: 'opaque', shape: 'square', columns: 1, rows: 1, defaultSize: '1024x1024' };
 const scene: AssetContract = { background: 'opaque', shape: 'landscape-3x2', columns: 1, rows: 1, defaultSize: '1536x1024' };
 const sceneIds = [...Array.from({ length: 9 }, (_, index) => `scene-cathedral-${index + 1}`), 'scene-ionatan-dinner', 'scene-mina-avram-meal'];
-// The food atlases of spec 012: one for each chain (its source, then its dishes in stage order) and four for the mixed dishes.
+// The food atlases: one for each chain (its source, then its dishes in stage order) and four for the mixed dishes.
 // Each is a 4-by-2 grid; the cells after the last picture stay fully transparent.
 const foodAtlases: [id: string, pictures: number][] = [
   ['grain', 7], ['corn', 5], ['herbs', 5], ['dairy', 7], ['poultry', 5], ['vegetables', 7], ['fruits', 7], ['pork', 6],
@@ -83,7 +83,7 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   ...(Object.fromEntries(sceneIds.map(id => [id, scene])) as Record<SceneId, AssetContract>),
   'decoration-front': roomState,
   'decoration-courtyard': roomState,
-  // The victory painting: the courtyard of the last state with the guests of the supper.
+  // The supper painting: the courtyard of the last state with the guests of the supper.
   'finale-supper': roomState,
   'board-clutter': {
     background: 'transparent',
@@ -98,7 +98,7 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   'regulars-2': portraitAtlas,
   'regulars-3': { ...portraitAtlas, blankCells: [2, 3] },
   mascots: portraitAtlas,
-  // The two rats of the night (spec 013): one reference pose of each, then a sheet of eight poses with that pose as its identity reference.
+  // The two rats of the night: one reference pose of each, then a sheet of eight poses with that pose as its identity reference.
   'rat-thief-reference': { background: 'transparent', shape: 'square', columns: 1, rows: 1, defaultSize: '1024x1024' },
   'rat-soricescu-reference': { background: 'transparent', shape: 'square', columns: 1, rows: 1, defaultSize: '1024x1024' },
   'rat-thief': { background: 'transparent', shape: 'landscape-2x1', columns: 4, rows: 2, defaultSize: '2048x1024' },
@@ -200,17 +200,17 @@ export function buildImageRequest({
   for (const [name, value] of Object.entries(fields)) body.set(name, String(value));
   for (const [index, image] of referenceImages.entries()) {
     if (
-      !['png', 'jpeg', 'webp'].includes(image.format) ||
+      image.format !== 'png' ||
       !Buffer.isBuffer(image.bytes) ||
       image.bytes.length === 0 ||
       image.bytes.length >= MAX_REFERENCE_BYTES
     ) {
-      throw new Error('Each reference must be a static PNG, JPEG, or WebP smaller than 50 MB.');
+      throw new Error('Each reference must be a PNG smaller than 50 MB.');
     }
     body.append(
       'image[]',
-      new Blob([new Uint8Array(image.bytes)], { type: `image/${image.format}` }),
-      `reference-${index + 1}.${image.format}`,
+      new Blob([new Uint8Array(image.bytes)], { type: 'image/png' }),
+      `reference-${index + 1}.png`,
     );
   }
   if (mask) body.set('mask', new Blob([new Uint8Array(mask.bytes)], { type: 'image/png' }), 'mask.png');

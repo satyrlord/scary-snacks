@@ -204,7 +204,7 @@ function showStory(task: { title: string; dialogue: SceneLine[]; opening?: Scene
   const content=element('div',task.questCharacter?'quest-page-content':''),reading=element('div','quest-reading'),transcript=element('div','story-transcript');
   transcript.id='story-line';
   if(task.questCharacter)reading.append(questSketch(task.questCharacter,task.questId));
-  const parts=task.opening?[{label:'Request',lines:task.opening},{label:'Reply',lines:task.dialogue}]:[{label:'',lines:task.dialogue}];
+  const parts=task.opening?[{label:'Quest',lines:task.opening},{label:'Reply',lines:task.dialogue}]:[{label:'',lines:task.dialogue}];
   for(const part of parts){
     const section=part.label?element('section','conversation-part'):transcript;
     if(part.label){section.setAttribute('aria-label',part.label);section.append(element('h3','',part.label));}

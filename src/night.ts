@@ -1,46 +1,66 @@
-// The night: the short sequence of a closing over the room and the board, and the notice that reports the night.
-// The closing has already changed the game. The sequence only shows it, and a tap or a key ends it at once.
+// The night: the closing dialog, the short sequence of a closing over the room and the board, and the morning dialog that reports the night.
+// The closing has already changed the game. The sequence only shows it. The player watches it or skips it, and a watched night plays to its end.
 import type { NightReport } from './model.ts';
-import { $, coinText, count, element, names } from './dom.ts';
+import { $, button, coinText, count, element, names } from './dom.ts';
 import { food, ratPose, ratSprite } from './art.ts';
+import { modal, showModal } from './dialog.ts';
 import { apply, changeGame, data, itemName, onReplace, state } from './session.ts';
-import { onMotionReduce, still } from './preferences.ts';
-import { toast } from './tickets.ts';
+import { movableDrawer, onMotionReduce, still } from './preferences.ts';
+import { setLowered } from './room.ts';
+import { newDishLine } from './engine.ts';
 
-// The timeline: the tint comes over 400ms, the rat of the room runs for RUN_MS, and the tint goes over 400ms after both rats leave.
-const TINT_MS = 400, RUN_MS = 2200, NOTICE_MS = 9000;
+// The timeline: the tint comes over 400ms, the rat of the room runs for RUN_MS, the rats on the board act, and the tint goes over 400ms.
+// On a phone with a movable drawer, the drawer lowers over DRAWER_MS for the rat of the room and rises again for the rats on the board.
+const TINT_MS = 400, RUN_MS = 2200, DRAWER_MS = 600;
 // The floor of each area, in percentages of the painting from its top, where the rat of the room runs.
 const FLOORS: Record<string, number> = { 'front-room': 77, courtyard: 93 };
 // Poses: 0 and 1 come out of the board, 2 to 5 act, 6 and 7 scurry.
 const OUT = [0, 1], SCURRY = [6, 7];
-let stop: ((notice: boolean) => void) | null = null;
-onReplace(() => stop?.(false));
+let stop: ((morningNext: boolean) => void) | null = null;
+let closeMorning: (() => void) | null = null;
+function clearMorning() {
+  if (closeMorning) modal.removeEventListener('close', closeMorning);
+  closeMorning = null;
+}
+onReplace(() => { clearMorning(); stop?.(false); });
 onMotionReduce(() => stop?.(true));
 
-/** The words of the night: the upkeep, then what the rat did, then the purse or the debt. */
+/** The words of the morning: the upkeep, then what the rat did, then the purse or the debt. */
 function nightText(report: NightReport) {
   const dishes = (placed: { item: string }[]) => {
     const counted = new Map<string, number>();
     for (const { item } of placed) counted.set(itemName(item), (counted.get(itemName(item)) ?? 0) + 1);
     return names.format([...counted].map(([name, number]) => number > 1 ? `${count.format(number)} ${name}` : name));
   };
-  const lines = [`Day ${report.day} is over. The upkeep took ${coinText(report.upkeep)}.`];
+  const lines = [`The upkeep took ${coinText(report.upkeep)}.`];
   if (report.rat === 'thief') {
     if (report.trapped) lines.push(`${report.taken.length ? `The thief rat took ${dishes(report.taken)}, and it dropped` : 'The thief rat dropped'} the ${itemName(report.trapped.item)} into a new rat hole.`);
-    else lines.push(`The thief rat took ${dishes(report.taken)}. Three rat holes are open, so it made no new one.`);
+    else lines.push(`The thief rat took ${dishes(report.taken)}. All ${count.format(data.day.ratHoles)} rat holes are open, so it made no new one.`);
   } else if (report.gift) {
     const name = itemName(report.gift.item);
-    lines.push(`Șoricescu lifted his hat and left ${name} as a gift.${report.gift.first ? ` ${name} is a new dish! It is in the recipe book now.` : ''}`);
+    lines.push(`Șoricescu lifted his hat and left ${name} as a gift.${report.gift.first ? ` ${newDishLine(name)}` : ''}`);
   } else lines.push(`Șoricescu found no room for his gift. He needs ${count.format(data.day.giftSpace)} free spaces.`);
   lines.push(report.purse < 0 ? `Mara writes the debt pe caiet: the shop notebook holds a debt of ${coinText(-report.purse)}.` : `The purse holds ${coinText(report.purse)}.`);
   return lines.join(' ');
 }
-/** The notice reports the night and marks it as seen. */
-export function nightNotice() {
+/** The morning dialog reports the night. Closing it in any way marks the report as seen. */
+export function morning() {
   const report = state.night;
   if (!report || report.seen) return;
-  toast(nightText(report), undefined, NOTICE_MS);
-  void changeGame(() => { apply({ type: 'seeNight' }); });
+  clearMorning();
+  const content = element('div'), body = element('div', 'night-morning'), picture = ratSprite(report.rat, 'morning-rat');
+  ratPose(picture, 5);
+  body.append(picture, element('p', 'modal-copy', nightText(report)));
+  const done = button('Open the bistro', 'primary-button', () => modal.close()), controls = element('div', 'story-controls');
+  controls.append(done); content.append(body, controls);
+  closeMorning = () => {
+    // The closing dialog can queue its close event before a hidden page opens this morning dialog.
+    if (modal.open) return;
+    clearMorning();
+    if (state.night === report && !report.seen) void changeGame(() => { apply({ type: 'seeNight' }); });
+  };
+  modal.addEventListener('close', closeMorning);
+  showModal(`Morning of day ${count.format(report.day + 1)}`, content, done);
 }
 
 /** The cell of the board on the screen. */
@@ -70,28 +90,28 @@ function boardRat(rat: NightReport['rat'], layer: HTMLElement, at: number) {
     box: () => holder.getBoundingClientRect(),
   };
 }
-/** A dish that the closing took from the board, still drawn in its cell until the rat takes it. */
-function ghost(layer: HTMLElement, item: string, index: number) {
-  const box = cellBox(index), value = food(item, 'night-ghost'), inset = box.width * .15;
-  Object.assign(value.style, { left: `${box.left + inset}px`, top: `${box.top + inset}px`, width: `${box.width - 2 * inset}px`, height: `${box.height - 2 * inset}px` });
-  layer.append(value); return value;
+/** A dish that the closing took from the board, still drawn in its cell until the rat takes it. It moves with the board. */
+function ghost(item: string, index: number) {
+  const value = food(item, 'night-ghost');
+  $(`[data-cell="${index}"]`).append(value); return value;
 }
 
 /**
- * Plays the night of the latest closing, then shows its notice. The room dims and a rat runs across its floor; on the board, the
- * thief rat takes its picks and leaves its rat hole, or Șoricescu puts down his gift. With reduced motion or a hidden page, the
- * notice shows at once. A tap or a key ends the sequence at once, and that input does nothing else.
+ * Opens the closing dialog of the latest closing. Until the player chooses, the board shows how it was before the night. Watch the
+ * night plays the whole night: the room dims and a rat runs across its floor; then, on the board, the thief rat takes its picks and
+ * leaves its rat hole, or Șoricescu puts down his gift. No input ends a watched night. Skip, and the end of the night, open the morning
+ * dialog. With reduced motion or a hidden page, the morning dialog opens at once.
  */
-export async function playNight() {
+export function playNight() {
   const report = state.night;
-  if (!report) return;
+  if (!report || report.seen) return;
   stop?.(false);
-  if (still() || document.hidden) { nightNotice(); return; }
+  if (still() || document.hidden) { morning(); return; }
   const frame = $('#room-frame'), layer = element('div', 'night-layer'), timers = new Set<ReturnType<typeof setTimeout>>();
   layer.setAttribute('aria-hidden', 'true');
-  let running = true;
+  let running = true, asking = true, dropped = false;
   const cells = (name: string) => document.querySelectorAll<HTMLElement>(`.cell.${name}`);
-  const finish = (notice: boolean) => {
+  const finish = (morningNext: boolean) => {
     if (!running) return;
     running = false; stop = null;
     for (const timer of timers) clearTimeout(timer);
@@ -99,46 +119,45 @@ export async function playNight() {
     const roomRat = frame.querySelector('.room-rat');
     for (const animation of roomRat?.getAnimations() ?? []) animation.cancel();
     layer.remove(); roomRat?.remove(); frame.classList.remove('night');
+    for (const value of document.querySelectorAll('.cell .night-ghost')) value.remove();
     for (const cell of cells('night-hidden')) cell.classList.remove('night-hidden');
+    if (dropped) setLowered(false);
     window.removeEventListener('keydown', key, true); document.removeEventListener('visibilitychange', hidden);
-    if (notice) nightNotice();
+    if (morningNext) morning();
+    else if (asking && modal.open) modal.close();
   };
   stop = finish;
   const pause = (ms: number) => new Promise<void>(resolve => { const timer = setTimeout(() => { timers.delete(timer); resolve(); }, ms); timers.add(timer); });
-  // The input that ends the sequence does nothing else: the layer takes the pointer until its click ends, and the key does not reach the page.
-  const key = (event: KeyboardEvent) => { event.preventDefault(); event.stopImmediatePropagation(); finish(true); swallowKey(event.code); };
+  // During a watched night, the layer takes every tap and no key reaches the page.
+  const key = (event: KeyboardEvent) => { event.preventDefault(); event.stopImmediatePropagation(); };
   const hidden = () => { if (document.hidden) finish(true); };
-  layer.addEventListener('pointerdown', event => { event.preventDefault(); finish(true); document.body.append(layer); layer.replaceChildren(); release(layer); });
-  window.addEventListener('keydown', key, true); document.addEventListener('visibilitychange', hidden);
+  document.addEventListener('visibilitychange', hidden);
   document.body.append(layer);
   // The changed cells show the board before the night until their moment comes.
   const changed = [...(report.trapped ? [report.trapped.position] : []), ...(report.gift ? [report.gift.position] : [])];
   for (const index of changed) $(`[data-cell="${index}"]`).classList.add('night-hidden');
-  if (report.trapped) ghost(layer, report.trapped.item, report.trapped.position);
-  const taken = new Map(report.taken.map(({ item, position }) => [position, ghost(layer, item, position)]));
+  const trapped = report.trapped && ghost(report.trapped.item, report.trapped.position);
+  const taken = new Map(report.taken.map(({ item, position }) => [position, ghost(item, position)]));
 
-  frame.classList.add('night');
-  const room = roomRun(frame, report.rat);
-  const board = report.rat === 'thief' ? thief(report, layer, taken, pause, () => running) : soricescu(report, layer, pause, () => running);
-  await Promise.all([room, board, pause(TINT_MS + RUN_MS)]);
-  if (!running) return;
-  frame.classList.remove('night');
-  await pause(TINT_MS);
-  finish(true);
-}
-/** After a tap ends the sequence, the empty layer stays until the click of that tap is over, so the click reaches no control. */
-function release(layer: HTMLElement) {
-  const done = () => layer.remove();
-  layer.addEventListener('click', done, { once: true });
-  setTimeout(done, 600);
-}
-function swallowKey(code: string) {
-  const done = () => {
-    window.removeEventListener('keydown', down, true); window.removeEventListener('keyup', up, true); window.removeEventListener('blur', done);
+  const watch = async () => {
+    asking = false; modal.close();
+    window.addEventListener('keydown', key, true);
+    frame.classList.add('night');
+    dropped = movableDrawer.matches; if (dropped) setLowered(true);
+    await pause(dropped ? DRAWER_MS : TINT_MS); if (!running) return;
+    await roomRun(frame, report.rat); if (!running) return;
+    if (dropped) { setLowered(false); dropped = false; await pause(DRAWER_MS); if (!running) return; }
+    await (report.rat === 'thief' ? thief(report, layer, taken, trapped, pause, () => running) : soricescu(report, layer, pause, () => running));
+    if (!running) return;
+    frame.classList.remove('night');
+    await pause(TINT_MS);
+    finish(true);
   };
-  const down = (event: KeyboardEvent) => { if (event.code === code) { event.preventDefault(); event.stopImmediatePropagation(); } };
-  const up = (event: KeyboardEvent) => { if (event.code === code) { down(event); done(); } };
-  window.addEventListener('keydown', down, true); window.addEventListener('keyup', up, true); window.addEventListener('blur', done);
+  const content = element('div'), controls = element('div', 'story-controls');
+  const play = button('Watch the night', 'primary-button', watch);
+  controls.append(button('Skip', 'secondary-button', () => { asking = false; finish(true); }), play);
+  content.append(element('p', 'modal-copy', `Day ${count.format(report.day)} is over. Mara blows out the lamps and locks the door. Something small stirs under the floorboards.`), controls);
+  showModal('Closing time', content, play, watch);
 }
 /** The rat of the night runs across the floor of the area that the room shows. A painting that did not load shows no rat. */
 function roomRun(frame: HTMLElement, rat: NightReport['rat']) {
@@ -147,11 +166,11 @@ function roomRun(frame: HTMLElement, rat: NightReport['rat']) {
   runner.style.top = `${floor}%`; frame.append(runner);
   let step = 0; ratPose(runner, SCURRY[0]);
   const timer = setInterval(() => ratPose(runner, SCURRY[++step % 2]), 100);
-  return runner.animate([{ left: '-12%' }, { left: '106%' }], { duration: RUN_MS, delay: TINT_MS, easing: 'linear', fill: 'both' })
+  return runner.animate([{ left: '-12%' }, { left: '106%' }], { duration: RUN_MS, easing: 'linear', fill: 'both' })
     .finished.catch(() => {}).finally(() => { clearInterval(timer); runner.remove(); });
 }
 /** The thief rat breaks up through the board at its first pick, looks around, takes each pick, and leaves by the nearest side. */
-async function thief(report: NightReport, layer: HTMLElement, taken: Map<number, SVGSVGElement>, pause: (ms: number) => Promise<void>, running: () => boolean) {
+async function thief(report: NightReport, layer: HTMLElement, taken: Map<number, SVGSVGElement>, trapped: SVGSVGElement | null, pause: (ms: number) => Promise<void>, running: () => boolean) {
   const first = report.trapped?.position ?? report.taken[0].position, rat = boardRat('thief', layer, first);
   rat.pose(OUT[0]); rat.land(); await pause(260); if (!running()) return;
   rat.pose(OUT[1]); await pause(260); if (!running()) return;
@@ -166,7 +185,7 @@ async function thief(report: NightReport, layer: HTMLElement, taken: Map<number,
     // The rat drags its first pick back into the hole, and the hole stays.
     await rat.to(report.trapped.position, 300); if (!running()) return;
     rat.pose(4); await pause(260); if (!running()) return;
-    layer.querySelector('.night-ghost')?.remove();
+    trapped?.remove();
     const cell = $(`[data-cell="${report.trapped.position}"]`);
     cell.classList.remove('night-hidden'); cell.animate([{ transform: 'scale(.9)' }, { transform: 'none' }], { duration: 260, easing: 'cubic-bezier(.3,1.6,.5,1)' });
   }

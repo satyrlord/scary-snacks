@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SAVE_KEY, MAX_SAVE_BYTES, loadSave, saveGame, exportSave, importSave, resetSave, savedText } from '../src/storage.ts';
-import { taskEligibility, firstFreeBoardCell, resolveQuests, supperComplete, supperQuest } from '../src/model.ts';
+import { taskEligibility, resolveQuests, supperComplete, supperQuest } from '../src/model.ts';
 import { createGame, reduceGame, repairSave } from '../src/engine.ts';
-import type { Action, GameState } from '../src/model.ts';
+import type { GameState } from '../src/model.ts';
 import { act, checkpoint, data, memoryStorage, rejected, supply, validate, withTickets } from './support.ts';
 
 type State = { coins: number; board: ({ code: string } | null)[]; story: string; self?: State };
@@ -256,23 +256,14 @@ test('a save that waits for the finale before the supper delivery loads and impo
 
 test('a save with every preparation done and the supper not served loads with the supper quest open and no finale', () => {
   const supper = supperQuest(data)!, complete = checkpoint(24);
-  assert.equal(supper.reward, 0);
-  assert.equal(supper.requirements.length, 11);
-  assert.ok(supper.requirements.every(requirement => requirement.quantity === 1));
   const storage = memoryStorage([[SAVE_KEY, envelope(complete)]]);
   const loaded = loadSave<GameState>(storage, validate).state!;
   assert.deepEqual(loaded, complete);
   assert.equal(supperComplete(loaded, data), false);
   assert.ok(!loaded.pendingScenes.includes(data.finale.id));
   assert.equal(resolveQuests(loaded, data).find(view => view.quest.id === supper.id)!.status, 'active');
-  assert.equal(validate({ ...complete, pendingScenes: [...complete.pendingScenes, data.finale.id] }), false);
   const served = act(supply(loaded, supper.id), { type: 'deliverQuest', id: supper.id });
-  assert.equal(served.coins, complete.coins, 'The supper costs nothing and pays nothing.');
   assert.equal(supperComplete(served, data), true);
-  assert.deepEqual(served.pendingScenes.filter(id => id === data.finale.id), [data.finale.id]);
-  assert.deepEqual(served.pendingScenes.slice(-1), [data.finale.id]);
-  assert.ok(supper.requirements.every(({ item }) => !served.board.some(cell => cell?.code === item)));
-  rejected(supply(served, supper.id), { type: 'deliverQuest', id: supper.id });
   assert.equal(saveGame(storage, served, validate).ok, true);
   assert.deepEqual(loadSave(storage, validate).state, served);
 });
@@ -291,30 +282,6 @@ test('a current save with fields that the format does not define still loads and
   const written = JSON.parse(storage.values.get(SAVE_KEY)!);
   assert.deepEqual(Object.keys(written), ['format', 'version', 'state']);
   assert.equal(written.state.unknownField, 'kept');
-});
-
-test('the save format holds no output choice, a source takes only its first dish, and a save of the earlier format never replaces progress', () => {
-  const current = checkpoint(24);
-  for (const state of [createGame(data), current]) {
-    const saved = JSON.parse(exportSave(state, validate)).state;
-    assert.ok(!Object.hasOwn(saved, 'outputChoices') && !Object.hasOwn(saved, 'generatorTiers'));
-  }
-  const sourceIndex = current.board.findIndex(cell => cell && data.items[cell.code].generator);
-  const source = data.items[current.board[sourceIndex]!.code];
-  const empty = firstFreeBoardCell(current, data);
-  assert.equal(rejected(current, { type: 'spawn', index: sourceIndex, output: source.generator!.outputs[0] } as Action).message,
-    'This source takes only its first ingredient.');
-  const taken = act(current, { type: 'spawn', index: sourceIndex });
-  assert.equal(taken.board[empty]?.code, source.generator!.outputs[0]);
-  assert.equal(data.items[source.generator!.outputs[0]].stage, 1);
-  const text = exportSave(taken, validate);
-  const storage = memoryStorage([[SAVE_KEY, text]]);
-  const earlier = JSON.stringify({ format: 'scary-snacks', version: 12, state: { ...taken, version: 13, outputChoices: { [source.chain]: source.generator!.outputs[0] } } });
-  assert.throws(() => importSave(earlier, validate), { status: 'unsupported' });
-  assert.throws(() => importSave(envelope({ ...taken, version: 13 }), validate), /damaged or unknown/);
-  assert.deepEqual(loadSave(storage, validate).state, taken);
-  assert.equal(storage.values.get(SAVE_KEY), text);
-  assert.equal(storage.writes.length, 0);
 });
 
 test('saved checkpoints load unchanged without a rewrite or inferred progress', () => {

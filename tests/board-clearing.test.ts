@@ -26,7 +26,7 @@ test('new games reserve eight obstacle cells, and know only their board and the 
   assert.equal(state.layoutId, 'workbench-clutter-1');
   assert.equal(state.version, 14);
   assert.equal(state.coins, 0);
-  assert.equal(freeBoardCells(state, data), 26);
+  assert.equal(freeBoardCells(state, data), 25);
   assert.equal(firstFreeBoardCell(state, data), 2);
   assert.deepEqual([0, 5, 6, 11, 36, 37, 40, 41].map(index => unresolvedObstacle(state, index, data)?.type),
     ['clutter', 'clutter', 'anchored', 'anchored', 'clutter', 'anchored', 'anchored', 'clutter']);
@@ -235,7 +235,7 @@ test('layout data rejects invalid content, clutter without its art cell, and a b
   const badAtlas = structuredClone(data);
   Object.assign(badAtlas.board.layouts[0].obstacles[0], { atlas: 'absent' });
   assert.ok(boardLayoutProblems(badAtlas).length);
-  // Linen tea is a last dish with no recipe, so nothing could clear it. Mămăligă is a last dish with recipe partners.
+  // Linden tea is a last dish with no recipe, so nothing could clear it. Mămăligă is a last dish with recipe partners.
   const noPartner = structuredClone(data);
   noPartner.board.layouts[0].obstacles[0].ingredient = 'herbs_4';
   assert.ok(boardLayoutProblems(noPartner).length);

@@ -10,13 +10,6 @@ $canonicalSkills = [System.IO.Path]::GetFullPath(
   (Join-Path $repositoryRoot '.github\skills')
 )
 
-if (-not $canonicalSkills.StartsWith(
-    $repositoryRoot,
-    [System.StringComparison]::OrdinalIgnoreCase
-  )) {
-  throw 'The skill folder .github/skills is outside the repository.'
-}
-
 if (-not (Test-Path -LiteralPath $canonicalSkills -PathType Container)) {
   throw 'The skill folder .github/skills is missing.'
 }

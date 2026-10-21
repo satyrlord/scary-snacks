@@ -5,12 +5,12 @@ const VERSION = 13;
 export const SAVE_KEY = `scary-snacks-save-v${VERSION}`;
 export const MAX_SAVE_BYTES = 2 * 1024 * 1024;
 
-export type SaveStatus = 'loaded' | 'empty' | 'invalid' | 'unsupported' | 'unavailable';
-export type SaveStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+type SaveStatus = 'loaded' | 'empty' | 'invalid' | 'unsupported' | 'unavailable';
+type SaveStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 /** Only a result of exactly true admits a state. */
-export type Validator = (state: unknown) => unknown;
+type Validator = (state: unknown) => unknown;
 /** Changes a parsed state before its check. */
-export type Repair = (state: unknown) => unknown;
+type Repair = (state: unknown) => unknown;
 /** Text is the stored save as read, so a caller can tell a later change by comparing text alone. */
 export type LoadResult<State> = { state: State | null; status: SaveStatus; error: string | null; text: string | null };
 /** Text is the save that the write stored. */
@@ -57,7 +57,7 @@ function parseSave<State>(text: unknown, validate: Validator | undefined, repair
   if (typeof text !== 'string') throw new SaveError('The save must be JSON text.');
   // Check string length first to avoid allocating a large UTF-8 buffer.
   if (text.length > MAX_SAVE_BYTES || new TextEncoder().encode(text).byteLength > MAX_SAVE_BYTES) {
-    throw new SaveError('The saved game is larger than the 2 MiB limit.');
+    throw new SaveError(`The saved game is larger than the ${MAX_SAVE_BYTES / 2 ** 20} MiB limit.`);
   }
   let envelope;
   try {

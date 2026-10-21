@@ -1,15 +1,12 @@
 import { test, expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
 import { requiredQuests, unresolvedObstacle } from '../../src/model.ts';
 import { createGame } from '../../src/engine.ts';
 import type { GameState } from '../../src/model.ts';
-import { act, checkpoint, data, deliverButton, newGame, opened, options, saved, serialize, start, supplies, supply, tile, toast, validate, know } from './support.ts';
+import { act, checkpoint, data, deliverButton, goal, importSaveFile, newGame, opened, options, pay, ratio, saved, serialize, start, supplies, supply, tile, toast, validate, know } from './support.ts';
 
 const first = data.tasks[0];
-const pay = (page: Page) => page.locator('#story').getByRole('button', { name: /^Pay / });
-const goal = (page: Page, kind: string) => page.locator(`#story .preparation-requirements [data-requirement="${kind}"]`);
 const needed = requiredQuests(0, data);
-/** Every quest of the first preparation is delivered but the last, whose dishes are on the board, and the coins reach the cost with its reward. */
+/** Every quest of the preparation at this index is delivered but the last, whose dishes and the extra dishes are on the board, and the coins reach its cost with that last reward. */
 function lastQuestReady(index = 0, extra: string[] = []) {
   const quests = requiredQuests(index, data), state = checkpoint(index), last = quests.at(-1)!;
   state.completedQuests.push(...quests.slice(0, -1).filter(quest => !state.completedQuests.includes(quest.id)).map(quest => quest.id)); state.coins = data.tasks[index].cost - last.reward;
@@ -90,8 +87,7 @@ test('both Story views share cost expansion and importing the game clears it',as
   await page.setViewportSize({width:1440,height:900});
   await expect(page.locator('#story .task-cost')).toBeVisible();
   expect(await saved(page)).toEqual(state);
-  await options(page);await page.locator('input[type=file]').setInputFiles({name:'save.json',mimeType:'application/json',buffer:Buffer.from(serialize(state))});
-  await page.getByRole('button',{name:'Import this saved game'}).click();
+  await options(page);await importSaveFile(page,serialize(state));
   await expect(page.locator('#story [data-work-cost]')).toHaveAttribute('aria-expanded','false');
   await expect(page.locator('#story .task-cost')).toBeHidden();expect(await saved(page)).toEqual(state);
 });
@@ -212,18 +208,16 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 1280, height: 800
         const box = element.getBoundingClientRect();
         let surface: Element = element;
         while (getComputedStyle(surface).backgroundColor === 'rgba(0, 0, 0, 0)' && surface.parentElement) surface = surface.parentElement;
-        const background = getComputedStyle(surface).backgroundColor;
-        const luminance = (color: string) => color.match(/\d+/g)!.slice(0, 3).map(Number).map(n => n / 255).map(n => n <= .04045 ? n / 12.92 : ((n + .055) / 1.055) ** 2.4).reduce((sum, n, i) => sum + n * [.2126, .7152, .0722][i], 0);
-        const back = luminance(background);
         return {
           inside: box.left >= 0 && box.right <= innerWidth && box.top >= 0 && box.bottom <= innerHeight,
           overflow: element.scrollWidth > element.clientWidth,
-          contrast: [...element.querySelectorAll('.preparation-requirements li span')].map(node => { const ink = luminance(getComputedStyle(node).color); return (Math.max(ink, back) + .05) / (Math.min(ink, back) + .05); }),
+          background: getComputedStyle(surface).backgroundColor,
+          inks: [...element.querySelectorAll('.preparation-requirements li span')].map(node => getComputedStyle(node).color),
           size: [...element.querySelectorAll('.preparation-requirements li span')].map(node => parseFloat(getComputedStyle(node).fontSize)),
         };
       });
-      expect(geometry.inside).toBe(true); expect(geometry.overflow).toBe(false);
-      expect(Math.min(...geometry.contrast)).toBeGreaterThanOrEqual(4.5);
+      expect(geometry.inside).toBe(true); expect(geometry.overflow).toBe(false); expect(geometry.inks.length).toBeGreaterThan(0);
+      for (const ink of geometry.inks) expect(ratio(geometry.background, ink)).toBeGreaterThanOrEqual(4.5);
       expect(Math.min(...geometry.size)).toBeGreaterThanOrEqual(12);
       if (viewport.width >= 1024) {
         const recipes = (await page.locator('#collection-button').boundingBox())!;

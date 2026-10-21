@@ -40,7 +40,7 @@ The OpenAI Images API made the two rat sheets, the rat hole, and the night sky. 
 
 After a master changes, run `npm run assets:build`. [Asset variants](docs/asset-variants.json) records the files, the sizes, and the hashes.
 
-The built-in chat image generator made the parchment and the first versions of the 22 character sketches and 11 quest scenes. The OpenAI Images API revised the sketches of Sorin, Cătălina, Mina, Bran, and Victor, and four quest scenes. Bran's sketch and the four scenes are drawn on white paper, and a fixed conversion makes the paper transparent. Victor's added mouth uses the same conversion. The parchment is 1254px square. Character masters are square and at least 1024px; scene masters are 1536 by 1024px. The parchment ships as one native-size WebP. Characters ship as transparent 768px square WebP, and scenes ship as transparent 1024 by 683px WebP. Introductions use individual sketches. Quest openings, replies, and replays prefer their registered scene illustration and otherwise use the owner's sketch. All installed masters have explicit user acceptance.
+The built-in chat image generator made the parchment, 17 of the 22 character sketches, and seven of the 11 quest scenes. The OpenAI Images API made the sketches of Sorin, Cătălina, Mina, Bran, and Victor, and four quest scenes, with project-generated chat drawings as references. Bran's sketch and the four scenes are drawn on white paper, and a fixed conversion makes the paper transparent. A masked edit draws the mouth of Victor's sketch, and the same conversion makes that region transparent. The parchment is 1254px square. Character masters are square and at least 1024px; scene masters are 1536 by 1024px. The parchment ships as one native-size WebP. Characters ship as transparent 768px square WebP, and scenes ship as transparent 1024 by 683px WebP. Introductions use individual sketches. Quest openings, replies, and replays prefer their registered scene illustration and otherwise use the owner's sketch. All installed masters have explicit user acceptance.
 
 [Asset provenance](docs/asset-provenance.json) records the masters and their hashes. [Prompts](docs/asset-prompts.json) records the generation instructions. The repository skill `generate-game-art` (repository only) gives the procedure to add or replace a master. The procedure covers a room painting.
 
@@ -53,17 +53,13 @@ The game makes its sounds as tones that code generates in the browser. The inter
 The generator refuses to write the game data in these conditions:
 
 - An identifier (ID) in `roomPaintings` in `src/model.ts` has no approved master.
-- `dataProblems` in `src/content.ts` reports a problem. It checks the board, preparation blocker batches, room states, decoration slots, chains, and recipes. It also checks the cast, quests, campaign funds, story, and menu prices. Every preparation needs two or three blockers with stable IDs, valid art cells, context, and ingredients from an available chain. The starting board must make a new game that passes the save validation.
+- `dataProblems` in `src/content.ts` reports a problem. It checks the board, preparation blocker batches, room states, decoration slots, chains, and recipes. It also checks the cast, quests, quest discovery, campaign funds, story, menu prices, and the levers of the day. Each quest must fit in one day, and only Vlad and Elisabeta book an evening. Every preparation needs two or three blockers with stable IDs, valid art cells, context, and ingredients from an available chain. The starting board must make a new game that passes the save validation.
 
 The data checks require a complete merge path of four to six dishes for each chain, one source unlock for each later chain, and recipes that nest one level deep and use at most three chains. Each price follows the formula, and each mixed dish has every tag of its parts. Initial blockers must use valid atlas cells. A regular's quest must open after the regular arrives and ask for a favourite dish. No quest breaks a diet, and the work value of the quests before each preparation pays for it.
 
-Data generation validates prerequisites, shared companions, finishes, follow-up scenes, the quest order, and the campaign funds.
-
 The game runs `dataProblems` when it starts, before it reads the save. The game does not have the asset records, so it does not check the decoration image names.
 
-Preparation blocker placement and the queue of blocker batches that wait use the shared blocked-cell rules of the engine. The save validator checks earned IDs, placement order, unique active positions, discovery, and the limit of three active blockers. A cell can take a new blocker after the blocker on that cell is resolved.
-
-Placement keeps four cells free for the recovery quest. The validator does not require four empty cells in a save. Ordinary production can use the space that placement leaves.
+`PRODUCT.md` gives the placement rules of the preparation blockers. The save validator checks earned IDs, placement order, unique active positions, discovery, and the limit of three active blockers. The validator does not require four empty cells in a save, because ordinary production can use the space that placement leaves.
 
 ## Manual checks
 

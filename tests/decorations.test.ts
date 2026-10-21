@@ -6,13 +6,10 @@ import { reduceGame } from '../src/engine.ts';
 import { decorationProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import type { Action, GameData, GameState } from '../src/model.ts';
-import { checkpointState } from '../tools/create-checkpoint-saves.ts';
-import { addOpenLayout, data, deliver, openGame, rejected, validate } from './support.ts';
+import { addOpenLayout, data, deliver, openCheckpoint, rejected, validate } from './support.ts';
 
 addOpenLayout();
 const provenance: { assets: { id: string }[] } = JSON.parse(await readFile(new URL('../docs/asset-provenance.json', import.meta.url), 'utf8'));
-/** The checkpoint save on the board without obstacles. */
-const checkpoint = (count: number) => checkpointState(data, count, openGame());
 
 test('every decoration has a distinct default, a preparation, a valid crop, and known images', () => {
   const images = provenance.assets.map(asset => asset.id);
@@ -34,7 +31,7 @@ test('every decoration has a distinct default, a preparation, a valid crop, and 
 
 test('slots unlock with their own preparation and resolve an implicit default', () => {
   for (const count of [0, 8, 9, 21, 22, 23, 24]) {
-    const state = checkpoint(count);
+    const state = openCheckpoint(count);
     const views = resolveDecorations(state.decorations, state.decorationChoices, data);
     assert.deepEqual(views.map(slot => slot.unlocked), [count >= 9, count >= 22, count >= 24]);
     assert.ok(views.every(slot => slot.selected.id === slot.default));
@@ -43,7 +40,7 @@ test('slots unlock with their own preparation and resolve an implicit default', 
 });
 
 test('a finish choice changes only its slot, leaves the earlier state unchanged, and a repeated choice changes nothing', () => {
-  let state = checkpoint(24);
+  let state = openCheckpoint(24);
   const original = structuredClone(state);
   for (const slot of data.decorationSlots) {
     const before = structuredClone(state);
@@ -65,13 +62,13 @@ test('every second finish has exactly one quest, and the finale has them all', (
   for (const slot of data.decorationSlots) for (const variant of slot.variants.filter(variant => variant.id !== slot.default)) {
     assert.equal(data.quests.filter(quest => quest.unlocks?.slot === slot.id && quest.unlocks.variant === variant.id).length, 1, `${slot.id}: ${variant.id}`);
   }
-  const finale = checkpoint(24);
+  const finale = openCheckpoint(24);
   assert.ok(data.decorationSlots.every(slot => slot.variants.every(variant => decorationUnlocked(finale, slot, variant.id, data))));
 });
 
 test('a finish unlocks only with the delivery of its quest, and the decorate action rejects a locked finish', () => {
   // The tableware is in place, and the quests that open with it wait.
-  const open = { ...checkpoint(9), completedQuests: checkpoint(8).completedQuests };
+  const open = { ...openCheckpoint(9), completedQuests: openCheckpoint(8).completedQuests };
   assert.equal(validate(open), true);
   const slot = data.decorationSlots.find(slot => slot.id === 'tableware')!;
   assert.equal(resolveDecorations(open.decorations, open.decorationChoices, data)[0].unlocked, true);
@@ -89,18 +86,18 @@ test('a finish unlocks only with the delivery of its quest, and the decorate act
 
 test('locked, unknown, and mismatched choices fail without any state change', () => {
   for (const [state, action] of [
-    [checkpoint(8), { type: 'decorate', slot: 'tableware', variant: 'green' }],
-    [checkpoint(24), { type: 'decorate', slot: 'unknown', variant: 'green' }],
-    [checkpoint(24), { type: 'decorate', slot: 'tableware', variant: 'lilacs' }],
-    [checkpoint(24), { type: 'decorate', slot: '__proto__', variant: 'blue' }],
+    [openCheckpoint(8), { type: 'decorate', slot: 'tableware', variant: 'green' }],
+    [openCheckpoint(24), { type: 'decorate', slot: 'unknown', variant: 'green' }],
+    [openCheckpoint(24), { type: 'decorate', slot: 'tableware', variant: 'lilacs' }],
+    [openCheckpoint(24), { type: 'decorate', slot: '__proto__', variant: 'blue' }],
   ] as [GameState, Action][]) rejected(state, action);
 });
 
 test('save validation rejects malformed choice maps and choices before unlock', () => {
   for (const choices of [null, [], 'blue', 1, { unknown: 'green' }, { tableware: 'lilacs' }, { tableware: null }, JSON.parse('{"__proto__":"green"}')]) {
-    assert.equal(validate({ ...checkpoint(24), decorationChoices: choices }), false);
+    assert.equal(validate({ ...openCheckpoint(24), decorationChoices: choices }), false);
   }
-  assert.equal(validate({ ...checkpoint(8), decorationChoices: { tableware: 'blue' } }), false);
-  assert.equal(validate({ ...checkpoint(24), decorationChoices: { tableware: 'blue' } }), false, 'A save holds only a finish that is not the default.');
-  assert.equal(validate({ ...checkpoint(24), decorationChoices: { tableware: 'green' } }), true);
+  assert.equal(validate({ ...openCheckpoint(8), decorationChoices: { tableware: 'blue' } }), false);
+  assert.equal(validate({ ...openCheckpoint(24), decorationChoices: { tableware: 'blue' } }), false, 'A save holds only a finish that is not the default.');
+  assert.equal(validate({ ...openCheckpoint(24), decorationChoices: { tableware: 'green' } }), true);
 });

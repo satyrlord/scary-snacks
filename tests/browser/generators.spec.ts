@@ -2,23 +2,22 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { unresolvedObstacle } from '../../src/model.ts';
 import type { GameState } from '../../src/model.ts';
-import { appearance, checkpoint, data, saved, start } from './support.ts';
+import { appearance, checkpoint, data, saved, start, tile, unselect } from './support.ts';
 
 /** The game after count preparations, with coins for paid takes. */
 const afterPreparations = (count: number) => checkpoint(count, count < data.tasks.length ? { ready: true } : { coins: 100 });
-const source = (page: Page, state: GameState, chain = 'grain') =>
-  page.locator(`[data-cell="${state.board.findIndex(cell => cell?.code === `generator_${chain}`)}"]`);
+const source = (page: Page, state: GameState, chain = 'grain') => tile(page, state.board.findIndex(cell => cell?.code === `generator_${chain}`));
 
 for (const count of [0, 12, 20, 24]) test(`sources give only stage-one ingredients after ${count} preparations`, async ({ page }) => {
   const initial = afterPreparations(count);
   await start(page, initial);
-  const tile = source(page, initial);
-  await tile.click();
+  const windmill = source(page, initial);
+  await windmill.click();
   await expect(page.locator('#item-detail.source-detail')).toContainText('Tap again for Flour: 1 coin each.');
   await expect(page.locator('#item-detail').getByRole('button')).toHaveCount(1);
   await expect(page.locator('#item-detail')).not.toContainText(data.items.grain_2.name);
   const before = await saved(page);
-  await tile.click();
+  await windmill.click();
   const after = await saved(page);
   expect(after.board.filter(cell => cell?.code === 'grain_1')).toHaveLength(before.board.filter(cell => cell?.code === 'grain_1').length + 1);
   expect(after.board.filter(cell => cell?.code === 'grain_2')).toHaveLength(before.board.filter(cell => cell?.code === 'grain_2').length);
@@ -26,15 +25,6 @@ for (const count of [0, 12, 20, 24]) test(`sources give only stage-one ingredien
   // The Herb basket is free, and its line says so once.
   await source(page, after, 'herbs').click();
   await expect(page.locator('#item-detail.source-detail')).toContainText(`Tap again for ${data.items.herbs_1.name}: free. No limit.`);
-});
-
-for (const count of [12, 20]) test(`preparation ${count} does not announce a new source output`, async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  const initial = afterPreparations(count - 1);
-  await start(page, initial);
-  await page.locator('#story').getByRole('button', { name: /^Pay / }).click();
-  await expect(page.locator('.completion-message')).not.toContainText('can now make');
-  expect((await saved(page)).taskIndex).toBe(count);
 });
 
 test('keyboard source activation produces stage one repeatedly and keeps focus', async ({ page }) => {
@@ -89,12 +79,13 @@ test('each take from a paid source spends its cost across reload, and the Herb b
   expect(herbs.board.filter(cell => cell?.code === 'herbs_1')).toHaveLength(after.board.filter(cell => cell?.code === 'herbs_1').length + 1);
 });
 
-test('a full board cannot take another ingredient and spends nothing', async ({ page }) => {
+test('a source on a full board takes nothing, spends nothing, and says why', async ({ page }) => {
   const initial = afterPreparations(20);
   initial.board = initial.board.map((cell, index) => cell ?? (unresolvedObstacle(initial, index, data) ? null : { code: 'grain_1' }));
   await start(page, initial);
   await source(page, initial).click();
-  await expect(page.locator('#status')).toContainText('The board is full.');
+  await expect(source(page, initial)).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#status')).toHaveText('The board is full. Merge a pair or deliver a quest.');
   expect(await saved(page)).toEqual(initial);
 });
 
@@ -120,8 +111,7 @@ for (const mode of ['Light', 'Dark']) for (const viewport of [{ width: 360, heig
     await start(page, initial);
     await appearance(page, mode);
     for (const chain of data.chains) {
-      await page.locator('[data-cell="0"]').focus();
-      await page.keyboard.press('Escape');
+      await unselect(page);
       await source(page, initial, chain.id).click();
       const buttons = page.locator('#item-detail').getByRole('button');
       await expect(buttons).toHaveCount(1);

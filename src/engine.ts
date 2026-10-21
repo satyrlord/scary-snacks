@@ -11,11 +11,14 @@ const itemAt = (state: GameState, index: unknown) => integer(index, 0, state.boa
 function discover(state: GameState, code: string) {
   if (!state.discovered.includes(code)) state.discovered.push(code);
 }
+/** The line of a dish that the player makes for the first time. */
+export const newDishLine = (name: string) => `${name} is a new dish! It is in the recipe book now.`;
+export const BOARD_FULL = 'The board is full. Merge a pair or deliver a quest.';
 /** Discovers a dish that the player makes or takes. The first one of its kind gets the new-dish notice instead of the usual line. */
 function made(state: GameState, code: string, name: string, line: string) {
   const first = !state.discovered.includes(code);
   discover(state, code);
-  return first ? `${name} is a new dish! It is in the recipe book now.` : line;
+  return first ? newDishLine(name) : line;
 }
 /** Keep production space. Place in stable cell order. */
 function placePreparationObstacles(state: GameState, data: GameData): number {
@@ -330,11 +333,10 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
     case 'spawn': {
       const cell = itemAt(next, action.index);
       const item = cell && getItem(cell.code, data);
-      if (!item?.generator) return fail('Choose an ingredient source, such as the Flour bin.');
+      if (!item?.generator) return fail('Choose an ingredient source.');
       const code = item.generator.outputs[0];
-      if (Object.hasOwn(action, 'output')) return fail('This source takes only its first ingredient.');
       const empty = firstFreeBoardCell(next, data);
-      if (empty === -1) return fail('The board is full. Merge a pair or deliver a quest.');
+      if (empty === -1) return fail(BOARD_FULL);
       // A take from a paid source spends its coins. A purse that cannot pay takes nothing.
       const cost = takeCost(item, data);
       if (cost && next.coins < cost) return fail(`The ${item.name} costs ${cost} ${cost === 1 ? 'coin' : 'coins'} for each take, and the purse cannot pay. Deliver a quest, or take free herbs from the Herb basket.`);

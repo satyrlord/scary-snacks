@@ -12,9 +12,9 @@ Spec 012 gives the 12 chains, their sources, and the mixed dishes.
 1. Three sources start on the board: the Windmill, the Corn basket, and the Herb basket.
    Preparations 3, 5, 6, 7, 8, 11, 13, 16, and 20 unlock the other nine sources.
 2. Tapping a source or pressing Enter or Space on its focused tile gives one stage-1 ingredient. A take is immediate and predictable.
-3. A take from a paid source spends the take cost of spec 012. A paid source shows that cost on its tile.
+3. A take from a paid source spends the take cost. A paid source shows that cost on its tile.
    A take from the Herb basket is free.
-4. A source never changes its output. No preparation changes the output of a source. The player has no output choice.
+4. A source gives the same stage-1 ingredient at every point in the campaign.
 5. The selected-source line names the source and says that another tap takes its ingredient. It shows Clear selection. A source cannot merge.
 6. A take fails if the selected cell has no source, the board has no free space, or the purse holds less than the take cost.
    Mara says why. Failure changes nothing and spends nothing.
@@ -25,7 +25,6 @@ Spec 012 gives the 12 chains, their sources, and the mixed dishes.
 - `tools/create-original-data.ts` authors one stage-1 output for each source. It marks the Herb basket as free.
 - `src/content.ts` checks that each source has one valid output and that the merge chains are complete.
 - `src/model.ts` returns the stage-1 output for an unlocked source and the take cost of a source. `src/engine.ts` applies each take and spends its cost.
-- The save holds no output choice. The game data holds no output milestones.
 - Follow [Shared save compatibility](README.md#shared-save-compatibility) in the specs index. Loads and imports keep valid progress; invalid data and failed writes do not replace a valid save.
 
 ## Balance with the campaign test

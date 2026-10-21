@@ -1,11 +1,13 @@
-// Shared fixtures for the Node tests: the game data, checked actions, checkpoint saves, quest deliveries, and a storage in memory.
+// Shared fixtures for the Node tests: the game data, checked actions, checkpoint saves, quest deliveries, balance runs, and a storage in memory.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { canLightLanterns, firstFreeBoardCell, generatorOutputs, getItem, requiredQuests } from '../src/model.ts';
+import { canLightLanterns, firstFreeBoardCell, generatorOutputs, getItem, requiredQuests, resolveQuests } from '../src/model.ts';
 import { createGame, reduceGame, revealTickets, validateGame } from '../src/engine.ts';
 import { dataProblems } from '../src/content.ts';
 import type { Action, GameData, GameState } from '../src/model.ts';
 import { checkpointState } from '../tools/create-checkpoint-saves.ts';
+import { BALANCE_SEEDS, runCampaignBalance } from '../tools/campaign-balance.ts';
+import type { CampaignBalance, CampaignStrategy } from '../tools/campaign-balance.ts';
 
 export const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
 export const validate = (candidate: unknown) => validateGame(candidate, data);
@@ -58,8 +60,15 @@ export const payNext = (state: GameState, content = data) => act(ready(state, co
 
 /** The checkpoint save before the payment of the preparation at index count, from checkpointState. */
 export const checkpoint = (count: number) => checkpointState(data, count);
+/** The same checkpoint save on the board without obstacles. The test file calls addOpenLayout first. */
+export const openCheckpoint = (count: number) => checkpointState(data, count, openGame());
 /** The preparation at index count is paid for, and the quests that open with it wait. */
 export const opened = (count: number): GameState => ({ ...checkpoint(count), completedQuests: checkpoint(count - 1).completedQuests, coins: 0 });
+
+/** The status of a quest in a state. */
+export const status = (state: GameState, id: string) => resolveQuests(state, data).find(view => view.quest.id === id)!.status;
+/** The tags of the dishes of a quest. */
+export const tags = (quest: { requirements: { item: string }[] }) => quest.requirements.flatMap(({ item }) => data.items[item].tags);
 
 /** A copy with the items of the quest on free cells. Direct supplies isolate the quest rules from production, which has its own legal-play tests. */
 export function supply(state: GameState, id: string): GameState {
@@ -119,6 +128,12 @@ export function player(initial = createGame(data), content = data) {
   }
   return { get state() { return state; }, act: (action: Action) => (state = act(state, action, content)), produce };
 }
+
+/** The balance runs of a strategy for every fixed seed, without the check of the state after every action. */
+export const runs = (strategy: CampaignStrategy) => BALANCE_SEEDS.map(seed => [seed, runCampaignBalance(data, seed, strategy, false)] as const);
+/** The night totals of a run for a diagnostic. Extra text goes before the full stop. */
+export const nightLine = (seed: number, run: CampaignBalance, extra = '') => `Seed ${seed}: ${run.nights.days} days, ${run.nights.lanterns} lanterns, ${run.nights.thefts} thefts, `
+  + `${run.nights.stolen} stolen, ${run.nights.gifts} gifts, lowest purse ${run.nights.lowestPurse}${extra}.`;
 
 /** A storage in memory that records each write. */
 export function memoryStorage(initial: [string, string][] = []) {

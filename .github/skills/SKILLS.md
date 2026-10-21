@@ -32,8 +32,9 @@ For the full gate, use [`run-quality-gate`](run-quality-gate/SKILL.md).
   or a checkout. Repair only when the user tells you to.
 - [`generate-game-art`](generate-game-art/SKILL.md): Generate, review, repair, or
   replace bitmap art with the built-in chat image generator.
-  The art includes the atlases, the timber, the runner, and the separate item pictures.
-  It also includes the painted room states and the two decoration paintings.
+  The art includes the atlases, the timber, the runner, the painted room states, and the two decoration paintings.
+  It also includes the supper painting, the night sky, the rat sheets, the rat hole, and the parchment.
+  It also includes the character sketches and the quest scenes.
   If the agent has no image generator, give the user a prompt to run.
   Also start here for the OpenAI Images application programming interface (API) route.
 - [`generate-game-art-openai`](generate-game-art-openai/SKILL.md): Plan, send, and measure
@@ -56,5 +57,3 @@ For the full gate, use [`run-quality-gate`](run-quality-gate/SKILL.md).
 Do not change files that the task does not need.
 
 `AGENTS.md` gives the command that lets the skill discovery tools find these packages.
-The command makes the ignored folder links `.claude/skills`, `.agents/skills`, and `.codex/skills`.
-Each folder link points to `.github/skills/`. A folder link is not a copy.

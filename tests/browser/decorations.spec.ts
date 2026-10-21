@@ -110,7 +110,7 @@ test('a finish press waits for the shared save lock and then saves once',async({
     });
   },KEY);
   await expect(other.locator('body')).toHaveAttribute('data-locked','');
-  await finish(page,'tableware').click();expect(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)!).state,KEY)).toEqual(before);
+  await finish(page,'tableware').click();expect(await saved(page,false)).toEqual(before);
   await other.evaluate(()=>document.dispatchEvent(new Event('release-test-lock')));
   await expect(layer(page,'tableware','green')).toHaveCount(1);expect((await saved(page)).decorationChoices).toEqual({tableware:'green'});await other.close();
 });

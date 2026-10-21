@@ -25,8 +25,8 @@ async function guide(page: Page, code: string) {
 
 test('a full-board guide points to a ready delivery that frees space',async({page})=>{
   const welcome=quest('mara-welcome'),seed=welcomeReady();
-  const drinks=seed.board.flatMap((cell,index)=>welcome.requirements.some(({item})=>item===cell?.code)?[index]:[]);
-  const state=fullBoard('grain_6',seed,index=>drinks.includes(index));
+  const dishes=seed.board.flatMap((cell,index)=>welcome.requirements.some(({item})=>item===cell?.code)?[index]:[]);
+  const state=fullBoard('grain_6',seed,index=>dishes.includes(index));
   know(state,'corn_4');
   await page.setViewportSize({width:390,height:844});await start(page,state);
   await guide(page,'corn_4');
@@ -43,8 +43,8 @@ test('a full-board guide points to a ready delivery that frees space',async({pag
 
 test('a full-board guide points to a campaign quest before the recovery quest',async({page})=>{
   const welcome=quest('mara-welcome'),recovery=quest('ana-night-ward-tea'),seed=welcomeReady();seed.coins=0;
-  const drinks=seed.board.flatMap((cell,index)=>welcome.requirements.some(({item})=>item===cell?.code)?[index]:[]);
-  const state=fullBoard('grain_6',seed,index=>drinks.includes(index));
+  const dishes=seed.board.flatMap((cell,index)=>welcome.requirements.some(({item})=>item===cell?.code)?[index]:[]);
+  const state=fullBoard('grain_6',seed,index=>dishes.includes(index));
   know(state,'corn_4');
   await start(page,state);await expect(deliverButton(page,recovery)).toBeEnabled();
   await guide(page,'corn_4');
@@ -81,9 +81,9 @@ test('a full-board guide offers recovery delivery while its reward leaves a debt
 
 test('a goal-chain merge takes priority over a ready delivery on a full board',async({page})=>{
   const welcome=quest('mara-welcome'),seed=welcomeReady();
-  const drinks=seed.board.flatMap((cell,index)=>welcome.requirements.some(({item})=>item===cell?.code)?[index]:[]);
+  const dishes=seed.board.flatMap((cell,index)=>welcome.requirements.some(({item})=>item===cell?.code)?[index]:[]);
   const corn=firstFreeBoardCell(seed,data);seed.board[corn]={code:'corn_1'};
-  const state=fullBoard('grain_6',seed,index=>drinks.includes(index)||index===corn||index===22);
+  const state=fullBoard('grain_6',seed,index=>dishes.includes(index)||index===corn||index===22);
   know(state,'corn_2');
   await start(page,state);await guide(page,'corn_2');
   await expect(deliverButton(page,welcome)).toBeEnabled();
@@ -116,15 +116,15 @@ test('a full-board mixed guide checks both parts for a useful merge before a rea
 
 test('a full-board guide skips a delivery that would exceed the coin limit',async({page})=>{
   const welcome=quest('mara-welcome'),seed=welcomeReady();
-  const drinks=seed.board.flatMap((cell,index)=>welcome.requirements.some(({item})=>item===cell?.code)?[index]:[]);
-  const state=fullBoard('grain_6',seed,index=>drinks.includes(index)||index===13||index===14);
+  const dishes=seed.board.flatMap((cell,index)=>welcome.requirements.some(({item})=>item===cell?.code)?[index]:[]);
+  const state=fullBoard('grain_6',seed,index=>dishes.includes(index)||index===13||index===14);
   state.coins=1_000_000_000-welcome.reward+1;
   know(state,'corn_4');
   await start(page,state);await guide(page,'corn_4');
   await expect(deliverButton(page,welcome)).toBeEnabled();
   await expect(deliverButton(page,welcome)).not.toHaveClass(/guide-target/);
-  // The two Socată of the quest merge with each other, so the guide makes room with them.
-  const [first,second]=drinks.filter(index=>state.board[index]?.code===welcome.requirements[0].item);
+  // The two Herb bunches of the quest merge with each other, so the guide makes room with them.
+  const [first,second]=dishes.filter(index=>state.board[index]?.code===welcome.requirements[0].item);
   await expect(tile(page,first)).toHaveClass(/selected/);
   await expect(tile(page,second)).toHaveClass(/guide-target/);
   expect(await saved(page)).toEqual(state);

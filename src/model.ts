@@ -19,24 +19,24 @@ export type Item = {
 };
 export type SceneLine = { speaker: string; text: string };
 /** A diet forbids tags, can require a dish and a tag in each quest, and can forbid two tags in one quest. */
-export type Diet = { name: string; forbid: DishTag[]; require?: { item: string; tag: DishTag }; apart?: [DishTag, DishTag] };
+type Diet = { name: string; forbid: DishTag[]; require?: { item: string; tag: DishTag }; apart?: [DishTag, DishTag] };
 /**
- * A person of the bistro. The core characters drive the story. A regular (spec 010) is a neighbour who arrives with the preparation that
+ * A person of the bistro. The core characters drive the story. A regular is a neighbour who arrives with the preparation that
  * arrivesAfter names, or is present from the start; arrival plays a short scene, and favourites names the dishes that they like.
+ * A character with provisions orders food for several days or for other people. Every other quest is one meal for each eater.
  */
-/** A character with provisions orders food for several days or for other people. Every other quest is one meal for each eater. */
 export type Character = {
   id: string; name: string; role: string; introduction: string; sprite: number; visitor?: boolean; singleVisit?: boolean;
   portraitAtlas?: PortraitAtlas; regular?: boolean; arrivesAfter?: string; favourites?: string[]; arrival?: SceneLine[]; diet?: Diet;
   provisions?: true;
 };
 export const portraitAtlases = ['guest', 'regulars-1', 'regulars-2', 'regulars-3'] as const;
-export type PortraitAtlas = typeof portraitAtlases[number];
+type PortraitAtlas = typeof portraitAtlases[number];
 export type Task = { id: string; chapter: number; title: string; cost: number; work: { summary: string; materials: number; labour: number; hours: number }; dialogue: SceneLine[]; unlock?: string };
 export type TaskRequirement =
   | { kind: 'coins' | 'quests'; current: number; required: number; met: boolean }
   | { kind: 'space'; source: string; met: boolean };
-export type TaskEligibility = { task: Task | null; ready: boolean; requirements: TaskRequirement[]; blockers: string[] };
+type TaskEligibility = { task: Task | null; ready: boolean; requirements: TaskRequirement[]; blockers: string[] };
 /**
  * A quest from a character. It opens after the preparation that afterTask names (null: in a new game), after afterQuest, and after
  * the earlier quests of its character. Unlocks names a decoration finish that the delivery adds. A follow-up scene is earned after
@@ -51,7 +51,7 @@ export type Quest = {
   followUp?: { id: string; title: string; afterDeliveries: number; dialogue: SceneLine[] };
 };
 /**
- * The levers of the bistro day (spec 013). Times are minutes after midnight. Each merge adds mergeMinutes to the clock, and the merge
+ * The levers of the bistro day. Times are minutes after midnight. Each merge adds mergeMinutes to the clock, and the merge
  * that reaches closing pays the upkeep and brings the night. A booked quest delivers from booking to closing.
  */
 export type DayLevers = {
@@ -69,11 +69,11 @@ export type Economy = { takeCost: number; blockerCoin: number; workRate: number;
  * Contribution is the optional neighbour quest that opens during the chapter.
  */
 export type Chapter = { id: string; title: string; objective: string; opening: string; payoff: string; contribution: string; closing: SceneLine[] };
-/** The scene that the payment of the supper quest earns. Ending is the line that returns the player to the kitchen. */
+/** The scene that serving the supper quest earns. Ending is the line that returns the player to the kitchen. */
 export type Finale = { id: string; title: string; dialogue: SceneLine[]; ending: string };
 export type ChapterView = { chapter: Chapter; number: number; tasks: Task[]; done: number; status: 'complete' | 'current' | 'locked' };
-/** Active: on one of the three tickets. Waiting: open, until a ticket is free. */
-export type QuestView = { quest: Quest; status: 'active' | 'waiting' | 'locked' | 'complete' };
+/** Active: on a ticket. Waiting: open, until a ticket is free. */
+type QuestView = { quest: Quest; status: 'active' | 'waiting' | 'locked' | 'complete' };
 /** A room of the bistro. The first area is open from the start; another opens with the preparation named by unlock. */
 export type Area = { id: string; name: string; unlock: string | null };
 export type DecorationVariant = { id: string; name: string; image: string };
@@ -81,7 +81,7 @@ export type DecorationSlot = {
   id: string; name: string; area: string; unlock: string; default: string; variants: DecorationVariant[];
   crop: { x: number; y: number; width: number; height: number };
 };
-export type DecorationView = DecorationSlot & { unlocked: boolean; selected: DecorationVariant };
+type DecorationView = DecorationSlot & { unlocked: boolean; selected: DecorationVariant };
 export type BoardObstacle = { id: string; position: number; name: string; type: 'clutter' | 'anchored' | 'rat-hole'; ingredient: string; sprite?: number; atlas?: 'preparation'; context?: string };
 export type BoardLayout = { id: string; obstacles: BoardObstacle[] };
 export type PreparationObstacleBatch = { after: string; context: string; obstacles: Omit<BoardObstacle, 'position' | 'context'>[] };
@@ -118,7 +118,7 @@ export type Cell = { code: string };
 export type Placed = { item: string; position: number };
 /**
  * The last closing. The thief rat takes loose raw ingredients: the trapped one stays blocked in a new rat hole, and a thief with no
- * trapped ingredient found three rat holes open. Șoricescu leaves a gift, and a visit with no gift found too few free cells.
+ * trapped ingredient found every rat hole open. Șoricescu leaves a gift, and a visit with no gift found too few free cells.
  */
 export type NightReport = {
   day: number; upkeep: number; rat: 'thief' | 'soricescu'; taken: Placed[]; trapped: Placed | null;
@@ -386,7 +386,7 @@ export const storyScenes = (data: GameData) => [...data.tasks.map(task => task.i
 /** The story order of preparation scenes, chapter scenes, and the finale: each chapter scene follows the preparations of its chapter. */
 export const storyOrder = (data: GameData) => [...data.chapters.flatMap((chapter, index) => [...data.tasks.filter(task => task.chapter === index + 1).map(task => task.id), chapter.id]), data.finale.id];
 /** The content that a scene ID names: a preparation, a quest completion, a chapter's closing, the finale, a regular's arrival, or local news. */
-export type SceneSource =
+type SceneSource =
   | { kind: 'task'; task: Task } | { kind: 'quest'; quest: Quest } | { kind: 'chapter'; chapter: Chapter; number: number }
   | { kind: 'finale'; finale: Finale } | { kind: 'arrival'; person: Character } | { kind: 'news'; news: NonNullable<Quest['followUp']> };
 /** The content of a scene by its ID, or null for an unknown ID. */

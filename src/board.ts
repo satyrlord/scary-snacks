@@ -106,7 +106,7 @@ export function renderBoard() {
   const matches = selected === null ? [] : dishTargets(selected);
   const guided = guidanceStep(), goal = guidanceGoal();
   const board = $('#board'); board.replaceChildren();
-  board.setAttribute('aria-label', `Merge board, ${data.board.columns} columns and ${data.board.rows} rows, ${free} free ${free === 1 ? 'space' : 'spaces'}${pending ? `, ${pending} preparation blockers waiting` : ''}`);
+  board.setAttribute('aria-label', `Merge board, ${data.board.columns} columns and ${data.board.rows} rows, ${free} free ${free === 1 ? 'space' : 'spaces'}${pending ? `, ${pending} preparation ${pending === 1 ? 'blocker' : 'blockers'} waiting` : ''}`);
   state.board.forEach((cell, index) => {
     const obstacle = unresolvedObstacle(state,index,data);
     const recommended = guided?.at.includes(index) && selected !== index;

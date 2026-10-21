@@ -5,20 +5,17 @@ import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import { questProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import type { GameData, GameState } from '../src/model.ts';
-import { act, data, deliver, opened, player, tonight, validate } from './support.ts';
+import { act, data, deliver, opened, player, status, tags, tonight, validate } from './support.ts';
 
 const search = data.quests.find(quest => quest.id === 'mina-avram-search')!;
 const predecessor = search.afterQuest!;
-const status = (state: GameState, id = search.id) => resolveQuests(state, data).find(view => view.quest.id === id)!.status;
 /** The first campaign quest on a ticket. The recovery quest is never recorded, so it leaves the quest order unchanged. */
 const ticket = (state: GameState) => resolveQuests(state, data).find(view => view.status === 'active' && !view.quest.recovery);
 /** Deliver the active tickets until the shared visit is active. */
 function untilSearch(state: GameState): GameState {
-  while (status(state) !== 'active') state = deliver(state, ticket(state)!.quest.id);
+  while (status(state, search.id) !== 'active') state = deliver(state, ticket(state)!.quest.id);
   return state;
 }
-/** The tags of the dishes of a quest. */
-const tags = (quest: { requirements: { item: string }[] }) => quest.requirements.flatMap(({ item }) => data.items[item].tags);
 
 // Vlad's dinner can be made from stage-one ingredients, chain merges, and recipe merges.
 test(`Vlad's dinner after dark is deliverable by cooking red wine and smoked bacon from stage-one ingredients`, () => {
@@ -76,18 +73,18 @@ test('Mina and Avram share one vegetarian, kosher-style quest after Ionatan has 
   assert.equal(data.quests.find(quest => quest.id === predecessor)!.afterQuest, 'vlad-guest');
   assert.equal(status(opened(8), predecessor), 'locked');
   let state = opened(9);
-  assert.equal(status(state), 'locked');
+  assert.equal(status(state, search.id), 'locked');
   while (status(state, predecessor) !== 'active') state = deliver(state, ticket(state)!.quest.id);
   assert.equal(journalCharacters(state, data).some(person => person.id === 'ionatan'), true);
   state = deliver(state, predecessor);
   assert.equal(journalCharacters(state, data).some(person => person.id === 'ionatan'), false);
-  assert.equal(status(state), 'locked', 'The shared visit also waits for the next preparation.');
+  assert.equal(status(state, search.id), 'locked', 'The shared visit also waits for the next preparation.');
   state = opened(10);
-  assert.notEqual(status(state), 'locked');
+  assert.notEqual(status(state, search.id), 'locked');
   for (const id of ['mina', 'avram']) assert.equal(journalCharacters(state, data).some(person => person.id === id), true);
   state = deliver(untilSearch(state), search.id);
   for (const id of ['mina', 'avram']) assert.equal(journalCharacters(state, data).some(person => person.id === id), false);
-  assert.equal(status(state), 'complete');
+  assert.equal(status(state, search.id), 'complete');
   assert.equal(reduceGame(state, { type: 'deliverQuest', id: search.id }, data).ok, false);
 });
 

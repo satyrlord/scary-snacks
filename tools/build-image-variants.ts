@@ -49,7 +49,7 @@ export const imageVariants = {
   'scene-mina-avram-meal': { widths: [1024], formats: ['webp'] },
   // The runner is drawn at most 14px tall through an SVG pattern, which takes one format.
   'embroidered-runner': { widths: [384], formats: ['webp'] },
-  // The food atlases of spec 012 have 512px cells. The 1024px width gives 256px cells, as in the menu atlas.
+  // The food atlases have 512px cells. The 1024px width gives 256px cells.
   'food-grain': { widths: [1024], formats: ['webp'] },
   'food-corn': { widths: [1024], formats: ['webp'] },
   'food-herbs': { widths: [1024], formats: ['webp'] },
@@ -118,7 +118,8 @@ const encoderSettings = {
 const variantDirectory = 'public/assets/variants';
 const variantRecord = 'docs/asset-variants.json';
 
-async function buildImageVariants(root = resolve(import.meta.dirname, '..')) {
+async function buildImageVariants() {
+  const root = resolve(import.meta.dirname, '..');
   const provenance = JSON.parse(await readFile(resolve(root, 'docs/asset-provenance.json'), 'utf8')) as { assets: { id: string; file: string; sha256: string }[] };
   const planned = new Set(Object.keys(imageVariants));
   const recorded = new Set(provenance.assets.map(asset => asset.id));

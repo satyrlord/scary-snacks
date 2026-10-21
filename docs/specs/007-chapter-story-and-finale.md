@@ -112,7 +112,6 @@ Follow [Shared save compatibility](README.md#shared-save-compatibility) in the s
 
 The playthrough in `tests/browser/story.spec.ts` starts from a fresh save in the built game.
 Before each payment, the test writes a save with the quests that the payment needs and the exact coins.
-`tests/campaign-balance.test.ts` covers legal play from a new game through the served supper.
 The test makes every payment through the interface.
 It reads every preparation scene, runs every reveal, and reads every chapter scene. It serves the supper and reads the finale.
 The test also checks the journal.

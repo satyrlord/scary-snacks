@@ -1,5 +1,5 @@
 // The checks of the authored game data. The content generator refuses to write data with a problem, and the game refuses to start on it.
-import { availableChains, dayMerges, dishChains, dishTags, dishWork, foodAtlases, getItem, integer, isRegular, menuPrice, mergePartners, MIXED, own, portraitAtlases, present, questOpening, questPredecessors, roomPaintings, scene, spoken, stable, stateNumber, storyScenes } from './model.ts';
+import { availableChains, dayMerges, dishChains, dishTags, dishWork, foodAtlases, integer, isRegular, menuPrice, mergePartners, MIXED, own, portraitAtlases, present, questOpening, questPredecessors, roomPaintings, scene, spoken, stable, stateNumber, storyScenes } from './model.ts';
 import type { BoardObstacle, Character, GameData, Item, Quest } from './model.ts';
 import { createGame, KEEP_FREE, validateGame } from './engine.ts';
 

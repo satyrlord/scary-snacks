@@ -88,6 +88,10 @@ export async function replaceSave(page: Page,save: GameState|string){
 }
 export const tile=(page: Page,index: number)=>page.locator(`[data-cell="${index}"]`);
 export async function unselect(page: Page){await tile(page,0).focus();await page.keyboard.press('Escape');}
+/** Merges the two Flours of a new game, at 13 and 14, into the Dough at 14, and checks that the merge saved. */
+export async function mergeFlour(page: Page){await tile(page,13).click();await tile(page,14).click();expect((await saved(page)).board[14]?.code).toBe('grain_2');}
+/** Closes each open dialog with Escape. */
+export async function dismissDialogs(page: Page){while(await page.locator('#modal').isVisible())await page.keyboard.press('Escape');}
 export const ticket=(page: Page,value: Quest)=>page.locator(`#tickets .ticket[data-quest="${value.id}"]`);
 export const deliverButton=(page: Page,value: Quest)=>ticket(page,value).locator('.deliver-button');
 /** The words of the toast that reports a delivery. It clears itself, so a test that needs the next one waits for this one to go first. */
@@ -98,6 +102,12 @@ export const dialogDeliver=(page: Page,value: Quest)=>page.getByRole('dialog',{n
 export async function openQuest(page: Page,value: Quest){
   await ticket(page,value).locator('.ticket-face').click();await expect(page.getByRole('dialog',{name:value.title,exact:true})).toBeVisible();
 }
+/** A missing requirement of the next preparation on the Story card. */
+export const goal=(page: Page,kind: string)=>page.locator(`#story .preparation-requirements [data-requirement="${kind}"]`);
+/** The Pay control of the Story card. */
+export const pay=(page: Page)=>page.locator('#story').getByRole('button',{name:/^Pay /});
+/** The one completion action of the open scene. */
+export const forward=(page: Page)=>page.locator('.story-controls .primary-button');
 export async function story(page: Page){if(!await page.locator('#story').isVisible())await page.locator('#story-button').click();}
 /** Opens the journal, and optionally opens named groups for archive or character checks. */
 export async function journal(page: Page,groups: string[] = []){
@@ -111,8 +121,12 @@ export async function appearance(page: Page,mode: string){
 }
 /** Presses the completion action of the open scene, which has this label. */
 export async function readTo(page: Page,label: string){
-  const done=page.locator('.story-controls .primary-button');
-  await expect(done).toHaveText(label);await done.click();
+  await expect(forward(page)).toHaveText(label);await forward(page).click();
+}
+/** Opens the waiting scene with this title from Story. */
+export async function readNow(page: Page,title: string){
+  await story(page);await page.locator('.story-waiting').getByRole('button',{name:`Read now: ${title}`,exact:true}).click();
+  await expect(page.getByRole('dialog',{name:title,exact:true})).toBeVisible();
 }
 /** Presses Return in a journal scene. */
 export async function finishScene(page: Page){
@@ -133,14 +147,23 @@ export async function failWrites(page: Page){
 export async function restoreWrites(page: Page){
   await page.evaluate(()=>{const frame=document.createElement('iframe');document.body.append(frame);Storage.prototype.setItem=frame.contentWindow!.localStorage.setItem;frame.remove();});
 }
+/** Exports the save from the open Options dialog, under its file name, and returns its text. */
 export async function exportText(page: Page){
   const pending=page.waitForEvent('download');await page.getByRole('button',{name:'Export saved game'}).click();
-  return readFileSync((await (await pending).path())!,'utf8');
+  const download=await pending;expect(download.suggestedFilename()).toBe('scary-snacks-save.json');
+  return readFileSync((await download.path())!,'utf8');
+}
+/** Erases the game from the open Options dialog and starts a new one. */
+export async function startAgain(page: Page){
+  await page.getByRole('button',{name:'Start a new game',exact:true}).click();await page.getByRole('button',{name:'Erase and start again',exact:true}).click();
+}
+/** Imports this save text from the open Options dialog. */
+export async function importSaveFile(page: Page,text: string){
+  await page.locator('input[type="file"]').setInputFiles({name:'save.json',mimeType:'application/json',buffer:Buffer.from(text)});
+  await page.getByRole('button',{name:'Import this saved game',exact:true}).click();
 }
 export async function startAgainAndImport(page: Page,text: string){
-  await page.getByRole('button',{name:'Start a new game',exact:true}).click();await page.getByRole('button',{name:'Erase and start again'}).click();
-  await options(page);await page.locator('input[type="file"]').setInputFiles({name:'save.json',mimeType:'application/json',buffer:Buffer.from(text)});
-  await page.getByRole('button',{name:'Import this saved game'}).click();
+  await startAgain(page);await options(page);await importSaveFile(page,text);
 }
 /** A portrait shows its own cell of a 640px atlas variant: an unfiltered square crop that stays inside the cell. */
 export async function portraitCell(target: Locator,atlas: string,sprite: number){

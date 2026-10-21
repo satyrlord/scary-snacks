@@ -36,7 +36,7 @@ export function options() {
   file.addEventListener('change',async()=>{
     const selectedFile=file.files?.[0];if(!selectedFile)return;
     try {
-      if(selectedFile.size>MAX_SAVE_BYTES)throw new Error('Select a saved game smaller than 2 MiB.');
+      if(selectedFile.size>MAX_SAVE_BYTES)throw new Error(`Select a saved game smaller than ${MAX_SAVE_BYTES / 2 ** 20} MiB.`);
       const candidate=importSave<GameState>(await selectedFile.text(),validate,repair);
       const review=element('div');review.append(element('p','modal-copy',`Replace the current game with this saved game: ${coinText(candidate.coins)} and ${count.format(candidate.taskIndex)} of ${data.tasks.length} preparations done? Export the current game first if you want to keep it.`));
       const keep=button('Keep the current game','secondary-button',options),choice=element('div','settings-actions');

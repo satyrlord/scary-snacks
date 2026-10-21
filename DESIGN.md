@@ -300,7 +300,7 @@ Light mode uses cream and parchment with plum and dark brown ink. Dark mode uses
 
 **Key Characteristics:**
 - The room is one full-height 3:4 painting for each area.
-- The kitchen is one parchment surface. It holds three paper tickets, the board on timber, and Mara's line. On wider screens, it also holds the story and the recipe book.
+- The kitchen is one parchment surface. It holds three paper tickets, the recovery ticket while that quest is open, the board on timber, and Mara's line. On wider screens, it also holds the story and the recipe book.
 - Each preparation has its own complete painted state.
 - The signature motion is the reveal. The room repaints in place, and the pin lands on the change. Where the drawer moves, it lowers first.
 - Food, portraits, mascots, rooms, timber, and the runner are gouache bitmaps made for this project. Every control icon is a vector drawn for this project.
@@ -484,13 +484,15 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 - **Bats:** a rectangular clip on the mended window glass holds the dusk. A bat crosses the clip from right to left over 2.6s, and its wings flap. `PRODUCT.md` gives when a bat crosses.
 
 ### The night
-- **Order:** the closing applies at once. Then the night plays for about three seconds. The tint comes over 400ms. The rat of the room runs across the floor over 2.2s. The rats on the board act at the same time. When both rats leave, the tint goes over 400ms, and the night notice follows.
+- **Closing dialog:** the closing applies at once. Then the dialog "Closing time" opens with one line, "Day N is over. Mara blows out the lamps and locks the door. Something small stirs under the floorboards." Its actions are Skip, a secondary button, and Watch the night, the primary button, which has focus. While the dialog is open, a dish that the night takes stays drawn in its cell, inset 15%, and a cell that the night changes shows its earlier look.
+- **Order:** Watch the night closes the dialog. The tint comes over 400ms. The rat of the room runs across the floor over 2.2s. Then the rats on the board act. When the board rat leaves, the tint goes over 400ms, and the morning dialog opens. On a phone with a movable drawer, the drawer lowers over 600ms before the rat of the room runs, and rises over 600ms before the rats on the board act.
 - **Tint:** a Night Indigo layer (`#1b2150`, multiply, 62% opacity) covers the whole room painting, its decorations, and its cats. The tint is the same in both themes. The painting and its decorations stay readable.
 - **Night sky:** the night-sky painting fills the two upper panes of the front-room window, behind the glass, and fades in with the tint. The clip is a polygon of the two pane rectangles, measured on the window of states 01 and later. The courtyard and the broken window of front-room-00 show no night sky.
 - **Rat of the room:** the scurry poses of the rat of the night, 7% of the painting wide, run from left to right on the floor line of the area (77% down the front room, 93% down the courtyard). The two poses take turns every 100ms, and the sprite bounces. The rat is above the tint. A painting that did not load shows no rat.
 - **Rats on the board:** a layer over the page holds a rat at the size of one tile. The thief rat breaks up through the board at its first pick, looks around, scurries to each pick, and grabs it: the dish shrinks and fades over 220ms. It drags its first pick into the rat hole, which then shows in its cell, looks back, and scurries off the nearest side of the board. Șoricescu climbs out at the gift cell, opens his traistă, puts down the gift, which fades in over 300ms, lifts his hat, waves, and scurries off. Without a gift, he climbs out at the bottom-left cell, looks both ways, and goes back down. Two scurry poses take turns every 90ms with a small bounce. A rat that lands squashes for 220ms. The code gives the path and the motion; the poses give only the shapes.
-- **Stop:** a tap anywhere or any key ends the night at once. The layer takes that tap until its click ends, and the key does not reach the page, so the input does nothing else.
-- **Reduced motion and a hidden page:** the night does not play. The notice shows at once.
+- **No stop:** a watched night plays to its end. The layer over the page takes every tap, and no key reaches the page.
+- **Morning dialog:** the dialog "Morning of day N" shows the rat of the night, 88px square in pose 5, beside the report: the upkeep, what the rat did, and the purse or the debt. Its one action is Open the bistro, the primary button, which has focus.
+- **Reduced motion and a hidden page:** the closing dialog and the night do not show. The morning dialog opens at once. A page that becomes hidden during the night ends it, and the morning dialog opens.
 
 ### "New" pin (signature)
 - **Style:** a Parchment capsule with a copper-glow dot. The word "New" has weight 600. The change label has weight 400 ("New: the painted dresser"). The tail of the pin touches the edge of the change, so the pin never covers the change. The touch target of the pin is 44px tall.
@@ -671,7 +673,7 @@ A neighbour row opens the introduction. Waiting arrival scenes open above, under
 
 Traveller rows follow. A traveller row has a 44px portrait and two equal text columns. The names align left, and the roles align right. Long names and roles wrap within their columns.
 
-Finished quests sit in Earlier conversations. Each quest with a reply has one entry with its title and the name of the neighbour. Its accessible name is "Replay [title]", or "Read [title]" while the reply waits. The page shows Request then Reply in one transcript. Each part has a 16px heading, and speaker names use level-four headings in the 13px speaker style. The Reply part starts after a 24px gap, an 18px inset, and the 1px line. One sketch or scene illustration and one Return action serve both parts. Return marks only a waiting reply as read. The supper quest has only its opening entry. The recovery quest has no entry.
+Finished quests sit in Earlier conversations. Each quest with a reply has one entry with its title and the name of the neighbour. Its accessible name is "Replay [title]", or "Read [title]" while the reply waits. The page shows Quest then Reply in one transcript. Each part has a 16px heading, and speaker names use level-four headings in the 13px speaker style. The Reply part starts after a 24px gap, an 18px inset, and the 1px line. One sketch or scene illustration and one Return action serve both parts. Return marks only a waiting reply as read. The supper quest has only its opening entry. The recovery quest has no entry.
 
 Return, Close, and Escape keep the open groups and the reading position, and focus the journal entry. If reading moved the entry into a group, that group opens. A read arrival focuses its neighbour. A read single-visit farewell focuses the Unread scenes heading. When the player closes the quest sheet, focus returns to the visible Story link or to the phone Story button.
 
@@ -697,8 +699,6 @@ Each notice stays for 4.2 seconds, then fades over 300ms. A notice with a reply 
 Its entrance is a 300ms fade and a scale from 92%.
 With reduced motion, the notice has no animation and leaves after the same time.
 Several notices form a vertical stack with 8px gaps.
-
-The night notice uses the same style. It gives the upkeep, what the rat did, and the purse or the debt. It stays for 9 seconds.
 
 At 1024px and above, the stack sits 20px from the right edge and the bottom edge.
 Each notice has a maximum width of 340px.

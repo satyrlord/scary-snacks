@@ -18,10 +18,10 @@ These parts implement the feature:
 - the merge rule in `src/engine.ts` and the merge queries in `src/model.ts`, for the mixed merge;
 - the content checks in `src/content.ts`, for the chain lengths, the recipes, the diets, and the favourite dishes;
 - the save format and its supported item IDs;
-- the item requirements of all 83 quests, the initial board, the blocker layout, and the 24 preparation batches;
+- the item requirements of all quests, the initial board, the blocker layout, and of the preparation batches;
 - the quest and story text that names a dish, and the preparation scenes that open a source;
 - the recipe book, the item dialog, the guide, "Find a match", and the blocker help;
-- the menu art, which is painted again for each dish and each source;
+- the menu art: one picture for each dish and each source;
 - the economy: paid takes, blocker coins, formula prices, a recovery quest, and a balance band;
 - the economy record and the campaign balance test.
 
@@ -177,7 +177,7 @@ The opening of the supper quest explains that each guest gets a plate and pays n
 
 ## Favourite dishes
 
-Each regular has two or three favourite dishes in place of two favourite chains.
+Each regular has two or three favourite dishes.
 Each quest of a regular asks for at least one favourite dish.
 Each regular has a favourite dish that is open at the window of each of their quests.
 The journal shows the favourite dishes of a regular.
@@ -204,7 +204,6 @@ The journal shows the favourite dishes of a regular.
 - `src/engine.ts` applies a mixed merge in one change. A failed merge changes nothing.
 - `src/content.ts` checks each chain, each recipe, the recipe depth, the tags, each diet, each favourite, and the opening of each quest dish.
 - [Shared save compatibility](README.md#shared-save-compatibility) gives the supported format. The game does not read or convert an earlier format. Without a current save, the player starts a new game.
-- The save format has no source output choices, and the game data has no saved-choice milestones.
 - "Show me on the board" for a mixed dish guides toward the missing part with the fewest steps.
 
 ## Art
@@ -228,16 +227,9 @@ The food art is one consistent set of 16 atlases: 85 dishes and 12 sources.
 
 The player cooks with a plan. Coins pay for staples, and quests pay for the cooking.
 
-### Levers
+### Levers and prices
 
-These values are starting values. The campaign balance test measures them, and the user tunes them after play.
-
-| Lever | Starting value |
-| --- | ---: |
-| Take cost: the coins that one take from a paid source spends | 1 |
-| Blocker coin: the coins that each cleared blocker gives | 1 |
-| Work rate: the coins that each merge adds to a menu price | 2 |
-| Recovery floor: the purse below which the recovery quest opens while a quest is open | 10 |
+`PRODUCT.md` gives the four levers of the economy (the take cost, the blocker coin, the work rate, and the recovery floor) and the formula of the menu price. The [economy record](../economy.md) gives the price of each dish and the evidence for the levers.
 
 ### Takes
 
@@ -251,21 +243,11 @@ When the purse holds less than the take cost, a paid source takes nothing, and M
 Each cleared blocker gives the blocker coin, in the same change as the merge.
 This includes the eight blockers of a new game and each preparation blocker.
 
-### Menu prices
-
-A formula gives the menu price of each dish:
-
-price = staples × take cost + merges × work rate
-
-- "Staples" is the number of stage-1 staples that the dish uses. A Herbs staple counts as zero.
-- "Merges" is the number of merges from the staples to the dish, recipe merges included.
-
-For example, Bulz uses Mămăligă (8 Corn staples, 7 merges) and Telemea (8 Dairy staples, 7 merges), plus one recipe merge.
-Its price is 16 × 1 + 15 × 2 = 46 coins.
+### Rewards
 
 Every quest except the supper pays its menu value. The supper pays nothing. No quest has a reward multiplier.
 So every delivery earns at least the work rate for each merge, and no delivery loses coins.
-`docs/economy.md` gives the formula and the price table. The preparation costs keep their work estimates in lei-equivalent coins.
+The preparation costs keep their work estimates in lei-equivalent coins.
 
 ### Recovery quest
 
@@ -299,7 +281,7 @@ The test prints the purse, the takes, the coins from blockers, and the free cell
 - Supper: each plate suits its guest, each regular gets a favourite, the plates use all 12 chains, and the delivery queues the finale once.
 - Campaign: the campaign balance test pays all 24 preparations and delivers the supper with no injected coins or items. The purse after the supper is inside the balance band. The test records the free cells at each preparation and each deadlock. From the state before each preparation, a check buys one spare staple so that the purse cannot pay, cooks Linden tea from free herbs, and reaches the preparation through the recovery quest.
 - Economy: a paid take spends the take cost, a Herbs take spends nothing, and a take without the coins changes nothing. A cleared blocker gives the blocker coin. Each menu price equals the formula. The recovery quest opens below the floor while a quest is open, and when no quest is open and the purse cannot pay the next preparation. It closes when neither case is true. It shows on the fourth ticket and moves no quest to waiting: with three quest tickets and only the third deliverable, the third stays deliverable. With four free cells and queued blockers, one Linden tea can be made from scratch and delivered. Ana's campaign quests open and close in their order whether the recovery quest is open or not, and a save that lists the recovery quest as delivered is rejected.
-- Save: a new game, reload, export, and import in the new format. An earlier save is not read, and an import of an earlier save is rejected.
+- Save: a new game, reload, export, and import in the current format. An earlier save is not read, and an import of an earlier save is rejected.
 - Browser: a mixed merge by tap, by drag, and by keyboard. The recipe book, the item dialog, the guide, and "Find a match" for a mixed dish. Phone and desktop in both themes.
 
 ## Quests and interface
@@ -312,4 +294,3 @@ The test prints the purse, the takes, the coins from blockers, and the free cell
 - A cleared blocker adds the blocker coin to the merge notice, and the purse shows the gain.
 - The recovery ticket is a fourth column of the ticket row, with a dashed edge.
 - A ticket with more than four dishes, such as the supper, shows its first three dishes and the count of the others. Its dialog lists each plate with the name of its guest. Serve takes the place of Deliver.
-- The levers keep their starting values. The user tunes them after play.
