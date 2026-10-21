@@ -134,3 +134,8 @@ In the report, give the route, the measured dimensions, the generated files, the
 Keep the review by the agent apart from the acceptance by the user.
 Do not record a visual approval that the user did not give.
 Do not commit or publish unless the user tells you to.
+When the user accepts or rejects each candidate, clean up `analysis/art-generation/`, as `AGENTS.md` tells you:
+
+1. Copy each new reference image of `docs/asset-provenance.json` to `analysis/art-generation/references/`.
+   For an API reference, copy its run folder with `candidate.png` and `generation.json`.
+2. Move the task folder to `tmp/`.

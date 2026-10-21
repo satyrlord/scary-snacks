@@ -38,8 +38,16 @@ Git history keeps the past.
   Use `tmp/` for script artifacts, scripts for one task, temporary analysis, and results.
   Configure local tools to write these files to `tmp/`.
 - Git ignores the local folders `private/`, `analysis/`, `.release/`, `.tools/`, `.impeccable/`, and `tmp/`.
-  `analysis/` holds the build manifest and the art-generation candidates.
-  Do not read `private/` or `analysis/` as an input for source code, content, art, or tests.
+- `analysis/` holds only files that later work uses again. It is not a second `tmp/`.
+  It holds `build-manifest.json`, which the build writes.
+  `analysis/art-generation/references/` holds the reference images of `docs/asset-provenance.json` that the game does not ship.
+  Each other folder in `analysis/art-generation/` holds one art task that is not complete.
+  When the user accepts or rejects each candidate of an art task, the task is complete.
+  Then copy each new reference image to `references/`, and move the task folder to `tmp/`.
+  Put logs, previews, masks, review notes, handoffs, rejected candidates, and scripts for one task in `tmp/`, not in `analysis/`.
+  Do not add other files or folders to `analysis/`.
+  Do not read `private/` or `analysis/` as an input for source code, content, or tests.
+  Art can use the images in `analysis/art-generation/` as generator inputs, as the art skills tell you.
 
 ## Public and private documents
 
