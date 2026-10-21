@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test';
 import { dayMerges } from '../../src/model.ts';
 import { createGame, reduceGame } from '../../src/engine.ts';
 import type { GameState, NightReport } from '../../src/model.ts';
-import { act, supper, checkpoint, data, KEY, mergeFlour, opened, options, quest, replaceSave, saved, serialize, start, supplies, supply, ticket, tile, toast, validate } from './support.ts';
+import { act, supper, checkpoint, data, KEY, mergeFlour, opened, options, quest, replaceSave, saved, serialize, start, supplies, supply, svgImageSizes, ticket, tile, toast, validate } from './support.ts';
 
 // A new game has two Flours at 13 and 14, a Corn cob at 22, and Elderflowers at 27.
 const report = (values: Partial<NightReport> = {}): NightReport => ({ day: 2, upkeep: 10, rat: 'soricescu', taken: [], trapped: null, gift: null, purse: 30, seen: true, ...values });
@@ -143,9 +143,7 @@ test('a rat hole shows its trapped ingredient above the hole painting', async ({
   const hole = tile(page, 22);
   await expect(hole).toHaveClass(/rat-hole/);
   await expect(hole).toHaveAccessibleName(/blocked Corn cob/);
-  await hole.locator('.food image').evaluate(async node => {
-    const image = new Image(); image.src = node.getAttribute('href')!; await image.decode();
-  });
+  expect(await svgImageSizes(hole.locator('.food image'))).toHaveLength(1);
   const shown = await sharp(await hole.screenshot({ animations: 'disabled' })).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   await hole.locator('.food').evaluate(node => { (node as SVGElement).style.visibility = 'hidden'; });
   const hidden = await sharp(await hole.screenshot({ animations: 'disabled' })).removeAlpha().raw().toBuffer();

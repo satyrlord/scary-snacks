@@ -82,6 +82,8 @@ export async function start(page: Page,save?: GameState|string,theme?: string){
 export async function startStill(page: Page,save?: GameState|string,theme='light'){await page.emulateMedia({reducedMotion:'reduce'});await start(page,save,theme);}
 /** The width and height of a loaded image element. */
 export const naturalSize=(image: Locator)=>image.evaluate(async node=>{const value=node as HTMLImageElement;await value.decode();return [value.naturalWidth,value.naturalHeight];});
+/** Decodes the picture of each svg image that the locator finds, and gives the natural size of each. */
+export const svgImageSizes=(images: Locator)=>images.evaluateAll(elements=>Promise.all(elements.map(async element=>{const image=new Image();image.src=element.getAttribute('href')!;await image.decode();return [image.naturalWidth,image.naturalHeight];})));
 /** Reads the save after queued game writes finish. Lock tests can read the snapshot while a write is blocked. */
 export async function saved(page: Page,waitForWrites=true): Promise<GameState>{return page.evaluate(async({key,waitForWrites})=>{
   const read=()=>JSON.parse(localStorage.getItem(key)!).state;

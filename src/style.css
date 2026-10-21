@@ -236,7 +236,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .cell.empty::after { content: ''; width: 4px; height: 4px; background: var(--muted); opacity: .3; border-radius: 50%; }
 .cell.selected { box-shadow: inset 0 0 0 3px var(--selected), var(--tile-lift); }
 .cell:focus-visible { outline-offset: -3px; }
-.cell:not(.selected):hover { box-shadow: inset 0 0 0 2px var(--selected), var(--tile-lift); }
+@media (hover: hover) { .cell:not(.selected):hover { box-shadow: inset 0 0 0 2px var(--selected), var(--tile-lift); } }
 .cell:is(.blocker-target,.merge-target,.guide-target) { outline: 2px dotted color-mix(in srgb, var(--muted) 50%, transparent); outline-offset: -4px; }
 .cell:is(.blocker-target,.merge-target,.guide-target):focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
 .source-mark { position: absolute; right: 3px; bottom: 3px; width: 17px; height: 17px; pointer-events: none; }
@@ -676,7 +676,8 @@ dialog:has(.quest-page-content) {
 @media (forced-colors: active) {
   .cell,.primary-button,.secondary-button,.ticket-item,.ticket,.area-choice,.room-pin { border: 1px solid ButtonBorder; }
   .cell.obstacle { border: 2px dashed ButtonText; }
-  .cell.selected,.cell:hover { outline: 3px solid Highlight; outline-offset: -3px; }
+  .cell.selected { outline: 3px solid Highlight; outline-offset: -3px; }
+  @media (hover: hover) { .cell:hover { outline: 3px solid Highlight; outline-offset: -3px; } }
   .cell:is(.blocker-target,.merge-target,.guide-target),.deliver-button.guide-target { outline: 3px dotted Highlight; outline-offset: -3px; }
   .cell:is(.blocker-target,.merge-target,.guide-target):focus-visible,.deliver-button.guide-target:focus-visible { outline: 3px solid Highlight; }
   .ticket-item.ready::after,#recipes-button[data-fresh]::after,#story-button[data-ready]::after,.pin-dot { forced-color-adjust: none; background: Highlight; }

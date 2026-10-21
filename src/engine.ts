@@ -245,7 +245,9 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
   switch (action.type) {
     case 'deliverQuest': {
       const quest = data.quests.find(quest => quest.id === action.id);
-      if (!quest || !canDeliverQuest(next, quest, data)) return fail(quest?.booked ? 'This table is booked for another time. Deliver when the guest arrives for the evening.' : 'This quest needs every required item on the board. Check that the quest is still on a ticket.');
+      // A booked quest with every portion on the board waits only for its evening.
+      if (!quest || !canDeliverQuest(next, quest, data)) return fail(quest?.booked && questDeliveryCells(next, quest).every(index => index >= 0)
+        ? 'This table is booked for another time. Deliver when the guest arrives for the evening.' : 'This quest needs every required item on the board. Check that the quest is still on a ticket.');
       if (!integer(next.coins + quest.reward, -1_000_000_000)) return fail('Spend some coins before you deliver this quest.');
       for (const index of questDeliveryCells(next, quest)) next.board[index] = null;
       next.coins += quest.reward;

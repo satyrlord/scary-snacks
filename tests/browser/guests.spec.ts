@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { firstFreeBoardCell, generatorOutputs, resolveQuests } from '../../src/model.ts';
 import type { GameState, SceneLine } from '../../src/model.ts';
-import { act, atBookingTime, data, deliverButton, deliverable, dialogDeliver, dismissDialogs, exportText, failWrites, forward, journal, onTicket, opened, openQuest, options, person, portraitCell, quest, readNow, readTo, replaceSave, saved, start, startAgainAndImport, supplies, supply, ticket, tile, toast } from './support.ts';
+import { act, atBookingTime, data, deliverButton, deliverable, dialogDeliver, dismissDialogs, exportText, failWrites, forward, journal, onTicket, opened, openQuest, options, person, portraitCell, quest, readNow, readTo, replaceSave, saved, start, startAgainAndImport, supplies, supply, svgImageSizes, ticket, tile, toast } from './support.ts';
 
 const dinner=quest('ionatan-castle-dinner');
 const search=quest('mina-avram-search');
@@ -137,7 +137,7 @@ async function winePicture(target: Locator){
   const picture=target.locator('svg.food').filter({has:target.page().locator('image[href*="food-fruits-"]')}).first();
   await expect(picture).toHaveAttribute('viewBox',`${cell%4*256} ${Math.floor(cell/4)*256} 256 256`);
   const image=picture.locator('image');await expect(image).toHaveAttribute('href',/assets\/variants\/food-fruits-1024x512\.webp$/);
-  expect(await image.evaluate(async element=>{const image=new Image();image.src=element.getAttribute('href')!;await image.decode();return [image.naturalWidth,image.naturalHeight];})).toEqual([1024,512]);
+  expect(await svgImageSizes(image)).toEqual([[1024,512]]);
 }
 
 test('red wine made through the visible controls readies Vlad’s quest, and Deliver pays it once',async({page})=>{

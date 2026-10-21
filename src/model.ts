@@ -291,8 +291,8 @@ export function questPredecessors(quest: Quest, data: GameData): string[] {
 /** The number of quest tickets on the counter. The recovery quest has its own ticket after them. */
 export const QUEST_TICKETS = 3;
 /**
- * The recovery quest is open in two cases: a campaign quest is open and the purse holds less than the recovery floor, or no
- * campaign quest is open and the purse cannot pay the next preparation. So a player who spends coins on spare food is never stuck.
+ * The recovery quest is open in two cases: another quest (the supper included) is open and the purse holds less than the recovery
+ * floor, or no other quest is open and the purse cannot pay the next preparation. So a player who spends coins on spare food is never stuck.
  */
 function recoveryOpen(state: GameState, data: GameData, open = data.quests.some(quest => !quest.recovery && !questDone(state, quest.id) && questReady(state, quest, data))): boolean {
   const task = currentTask(state, data);

@@ -1,6 +1,6 @@
 // Options: appearance, motion, sound, the saved game with its export, import, and recovery, a fresh start, and the version.
 import type { GameState } from './model.ts';
-import { exportSave, importSave, loadSave, resetSave, saveGame, MAX_SAVE_BYTES } from './storage.ts';
+import { exportSave, importSave, loadSave, resetSave, MAX_SAVE_BYTES } from './storage.ts';
 import { $, button, coinText, count, element, reason, status } from './dom.ts';
 import { modal, showModal } from './dialog.ts';
 import { adopt, changeGame, data, newGame, onRecovery, persist, recoveryRequired, repair, saveFailed, saveMessage, state, validate } from './session.ts';
@@ -23,8 +23,8 @@ function segmented(name: string, legend: string, note: string, values: string[][
 /** Options: appearance, motion, sound, the saved game, About Scary Snacks, a fresh start, and the version. */
 export function options() {
   const content=element('div');content.append(element('p','modal-copy save-status',saveMessage));
-  // Writes never replace an unreadable save, so only a new game (an explicit reset) lets this browser save again.
-  if(saveFailed&&recoveryRequired)content.append(element('p','save-error',['invalid','unsupported'].includes(loadSave(storage,validate,repair).status)?`${saveMessage} To save in this browser again, start a new game below. That replaces the unreadable save.`:saveMessage));
+  // Writes never replace an unreadable save, so only an import or a new game (an explicit replacement) lets this browser save again.
+  if(saveFailed&&recoveryRequired)content.append(element('p','save-error',['invalid','unsupported'].includes(loadSave(storage,validate,repair).status)?`${saveMessage} To save in this browser again, import a saved game or start a new game below. That replaces the unreadable save.`:saveMessage));
   if(recoveryRequired)content.append(button('Retry saved game','primary-button',()=>location.reload()));
   else if(saveFailed&&storage)content.append(button('Retry save','secondary-button',()=>changeGame(()=>{persist();options();status(saveFailed?`This session is not saved. ${saveMessage}`:'Your progress is saved in this browser.');})));
   content.append(segmented('appearance','Appearance','System follows your device’s light or dark setting.',THEMES,theme,value=>setTheme(value,true)),
@@ -40,8 +40,9 @@ export function options() {
       const candidate=importSave<GameState>(await selectedFile.text(),validate,repair);
       const review=element('div');review.append(element('p','modal-copy',`Replace the current game with this saved game: ${coinText(candidate.coins)} and ${count.format(candidate.taskIndex)} of ${data.tasks.length} preparations done? Export the current game first if you want to keep it.`));
       const keep=button('Keep the current game','secondary-button',options),choice=element('div','settings-actions');
+      // A confirmed import is an explicit replacement, like a new game, so it also replaces an unreadable save.
       choice.append(button('Import this saved game','primary-button',()=>changeGame(()=>{
-        const result=saveGame(storage,candidate,validate);if(!result.ok){showModal('Import failed',element('p','save-error',result.error ?? ''));return;}
+        const result=resetSave(storage,candidate,validate);if(!result.ok){showModal('Import failed',element('p','save-error',result.error ?? ''));return;}
         adopt(candidate,result);modal.close();status('Saved game imported.');
       },true)),keep);review.append(choice);showModal('Import saved game',review,keep);
     }catch(error){showModal('Cannot import this file',element('p','save-error',reason(error)));}

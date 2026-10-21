@@ -151,7 +151,7 @@ export function saveGame(storage: SaveStorage | null, state: unknown, validate: 
   return { ok: true, error: null, text };
 }
 
-/** Explicit reset: replace the current save in one write, including an unreadable current save. */
+/** Explicit replacement, a new game or a confirmed import: replace the current save in one write, including an unreadable current save. */
 export function resetSave(storage: SaveStorage | null, state: unknown, validate: Validator | undefined): WriteResult {
   let text;
   try { text = exportSave(state, validate); }

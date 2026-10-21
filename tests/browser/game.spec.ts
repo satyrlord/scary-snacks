@@ -375,6 +375,30 @@ test('delivering a ready quest pays its reward with a toast, and a waiting quest
   await expect(ticket(page,welcome)).toHaveCount(0);await expect(page.locator('#tickets .ticket')).toHaveCount(3);await expect(ticket(page,recovery)).toHaveCount(0);
 });
 
+for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'])test(`a refused delivery keeps its ticket visible at ${viewport.width}px in ${theme}`,async({page},testInfo)=>{
+  const initial=checkpoint(1,{coins:1_000_000_000}),value=resolveQuests(initial,data).find(view=>view.status==='active'&&!view.quest.recovery)!.quest;
+  const supplied=supply(initial,supplies(value));
+  await page.setViewportSize(viewport);await page.emulateMedia({reducedMotion:'no-preference'});await start(page,supplied,theme);
+  await deliverButton(page,value).click();await expect(page.locator('#status')).toHaveText('Spend some coins before you deliver this quest.');
+  expect(await saved(page)).toEqual(supplied);
+  expect(await ticket(page,value).evaluate(card=>card.classList.contains('arriving'))).toBe(false);
+  await expect(ticket(page,value)).toBeVisible();await expect(deliverButton(page,value)).toBeEnabled();
+  await expect(page.locator('.deliver-flight,.toast')).toHaveCount(0);
+  await page.screenshot({path:testInfo.outputPath(`refused-delivery-${viewport.width}-${theme}.png`)});
+});
+
+test('a ticket that only moves up after a delivery does not arrive again',async({page})=>{
+  const initial=checkpoint(1),views=resolveQuests(initial,data);
+  expect(views.some(view=>view.status==='waiting')).toBe(false);
+  const [first,...rest]=views.filter(view=>view.status==='active'&&!view.quest.recovery).map(view=>view.quest);
+  // No quest takes the delivered ticket, so the other tickets move up.
+  expect(resolveQuests(act(supply(initial,supplies(first)),{type:'deliverQuest',id:first.id}),data).filter(view=>view.status==='active'&&!view.quest.recovery).map(view=>view.quest)).toEqual(rest);
+  await start(page,supply(initial,supplies(first)));await deliverButton(page,first).click();
+  await expect(toast(page)).toContainText(first.title);
+  expect(await page.locator('#tickets .ticket:not(.recovery-ticket)').evaluateAll(cards=>cards.map(card=>(card as HTMLElement).dataset.quest))).toEqual(rest.map(value=>value.id));
+  await expect(page.locator('#tickets .ticket.arriving')).toHaveCount(0);
+});
+
 /** Two of the first undiscovered dish's ingredient on the board, so one merge makes a new dish. */
 function beforeNewDish(){
   const initial=createGame(data),dish=Object.values(data.items).find(item=>!item.generator&&item.stage>1&&!initial.discovered.includes(item.id)&&initial.discovered.includes(`${item.chain}_${item.stage-1}`))!;
@@ -825,6 +849,16 @@ test('a rejected sound start restores the toggle and permits a retry',async({pag
   await expect(toggle).toBeFocused();
   await toggle.click();
   await expect(page.getByRole('button',{name:'Turn sound off',exact:true})).toBeFocused();
+});
+
+test('a confirmed import replaces an unreadable save and ends the recovery',async({page})=>{
+  await page.goto('./');await page.evaluate(key=>localStorage.setItem(key,'{broken'),KEY);await page.reload();
+  await expect(page.getByRole('button',{name:'Retry saved game'})).toBeVisible();
+  await expect(page.locator('#modal .save-error')).toContainText('import a saved game or start a new game');
+  await importSaveFile(page,serialize(checkpoint(9)));
+  await expect(page.locator('#modal')).not.toBeVisible();await expect(page.locator('#status')).toHaveText('Saved game imported.');
+  expect((await saved(page)).taskIndex).toBe(9);
+  await options(page);await expect(page.getByRole('button',{name:'Retry saved game',exact:true})).toHaveCount(0);
 });
 
 test('a valid save from another tab restores play after load recovery',async({page,context})=>{

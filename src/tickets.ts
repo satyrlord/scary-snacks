@@ -1,7 +1,7 @@
 // The quest tickets on the drawer: who asks for which dishes, the delivery and its flight, and the quest dialog.
 import { awaitsLanterns, bookedTicket, bookedTonight, canDeliverQuest, canLightLanterns, cellsOf, clockText, QUEST_TICKETS, questDeliveryCells, resolveQuests } from './model.ts';
 import { guidanceGoal, guidanceStep, showItem, showMissingStep } from './dishes.ts';
-import type { Quest } from './model.ts';
+import type { GameState, Quest } from './model.ts';
 import { $, button, coinText, count, element, names } from './dom.ts';
 import { coinMark, food, lanternMark, moonMark, portrait, questSketch } from './art.ts';
 import { modal, showModal } from './dialog.ts';
@@ -15,21 +15,25 @@ import { showScene } from './story.ts';
 const FLIGHT_MS = 600, RISE_AT = 700, ARRIVAL_MS = 1300;
 const TOAST_MS = 4200, REPLY_MS = 8000, TOAST_OUT_MS = 300;
 const toastStack = $('#toast-stack');
-// The time at which each ticket slot took a new quest, so its arrival survives renders.
-const arriving: number[] = [];
+// The time at which each quest took a ticket in a delivery, so its arrival survives renders. A ticket that only moves up does not arrive.
+const arriving = new Map<string, number>();
+// The delivery in progress: its quest, time, and earlier state. A refused delivery keeps that state and has no arrival.
+let delivery: { id: string; at: number; before: GameState } | null = null;
 // A delivery notice belongs to the game that made it.
 let deliveryToken = 0;
 // Recovery deliveries have no saved record. Their share of the bat cadence lasts for this game in this tab.
 let recurringDeliveries = 0;
 /** The quest on each ticket. A quest keeps its ticket, and the next open quest takes the first free ticket, in authored order. */
 let ticketQuests: string[] = [];
+/** Every quest on the counter: the quest tickets, and the recovery ticket. */
+let shownQuests: string[] = [];
 onReplace(() => {
-  deliveryToken++; recurringDeliveries = 0; arriving.fill(0); ticketQuests = [];
+  deliveryToken++; recurringDeliveries = 0; arriving.clear(); ticketQuests = []; shownQuests = [];
   for (const flight of document.querySelectorAll('.deliver-flight')) flight.remove();
   toastStack.replaceChildren();
 });
 onMotionResume(() => {
-  arriving.fill(0);
+  arriving.clear();
   for(const notice of toastStack.children)notice.classList.remove('entering');
   for(const card of document.querySelectorAll('.ticket'))card.classList.remove('arriving');
 });
@@ -56,9 +60,13 @@ export const activeQuests = () => {
   const active = resolveQuests(state, data).filter(view => view.status === 'active').map(view => view.quest);
   const open = active.filter(quest => !quest.recovery), waiting = open.filter(quest => !ticketQuests.includes(quest.id));
   const kept = ticketQuests.map(id => open.find(quest => quest.id === id) ?? waiting.shift()).filter(quest => quest !== undefined);
-  const tickets = [...kept, ...waiting]; ticketQuests = tickets.map(quest => quest.id);
+  const tickets = [...kept, ...waiting];
   // The recovery quest has its own ticket after the quest tickets, so it never moves a quest to waiting.
-  return [...tickets, ...active.filter(quest => quest.recovery)];
+  const shown = [...tickets, ...active.filter(quest => quest.recovery)];
+  // A quest that takes a ticket in a delivery arrives on it. So does a delivered quest that opens again: the recovery quest.
+  if (delivery && state !== delivery.before) for (const quest of shown) if (quest.id === delivery.id || !shownQuests.includes(quest.id)) arriving.set(quest.id, delivery.at);
+  ticketQuests = tickets.map(quest => quest.id); shownQuests = shown.map(quest => quest.id);
+  return shown;
 };
 /** The portions of a quest that the board holds now, at most the quantity that it needs. */
 const onBoard = (code: string, quantity: number) => Math.min(quantity, cellsOf(state, code).length);
@@ -68,14 +76,15 @@ export function renderTickets() {
   const guided = guidanceStep(), goal = guidanceGoal(), tickets = activeQuests();
   const recovery = tickets.some(quest => quest.recovery);
   container.style.setProperty('--tickets', String(QUEST_TICKETS + Number(recovery)));
-  tickets.forEach((quest, slot) => {
+  tickets.forEach(quest => {
     const person = character(quest.character), ready = canDeliverQuest(state, quest, data);
     const card = element('article', `ticket${quest.recovery ? ' recovery-ticket' : ''}`);
     card.setAttribute('aria-label', `${person.name}’s quest: ${quest.title}`);
     card.dataset.quest = quest.id;
-    // A ticket that has just taken a delivered quest's place arrives in the same slot; the delay survives renders.
-    const since = arriving[slot] ? performance.now() - arriving[slot] : Infinity;
+    // A quest that has just taken a delivered quest's ticket arrives on it; the delay survives renders.
+    const at = arriving.get(quest.id), since = at === undefined ? Infinity : performance.now() - at;
     if (since < ARRIVAL_MS) { card.classList.add('arriving'); card.style.setProperty('--rise-delay', `${RISE_AT - Math.round(since)}ms`); }
+    else arriving.delete(quest.id);
     const labels = quest.requirements.map(({ item, quantity }) => `${quantity} ${itemName(item)}, ${onBoard(item, quantity)} on the board`);
     // The face of the ticket is one target that opens the quest: the portrait, the name and title, and the dishes.
     const face = button('', 'ticket-face', () => showQuest(quest)), picture = portrait(person.id), words = element('span', 'ticket-words');
@@ -137,14 +146,14 @@ const lightLanterns = (quest: Quest) => act({ type: 'lantern', id: quest.id });
  * Serving the supper opens the finale at once.
  */
 function deliver(quest: Quest) { return changeGame(() => {
-  const slot = activeQuests().indexOf(quest);
   const card = $('#tickets').querySelector<HTMLElement>(`[data-quest="${quest.id}"]`);
   const cells = questDeliveryCells(state, quest), from = cells.filter(index => index >= 0).map(index => $(`[data-cell="${index}"]`).getBoundingClientRect());
   const codes = quest.requirements.flatMap(requirement => Array<string>(requirement.quantity).fill(requirement.item));
   const into = card?.getBoundingClientRect();
-  arriving[slot] = performance.now();
+  delivery = { id: quest.id, at: performance.now(), before: state };
   const result = apply({ type:'deliverQuest', id:quest.id });
-  if (!result.ok) { arriving[slot] = 0; renderTickets(); return; }
+  delivery = null;
+  if (!result.ok) return;
   if (quest.recovery) recurringDeliveries++;
   if ((state.completedQuests.length + recurringDeliveries) % 3 === 0) batFlight();
   const message = `${result.message}${saveFailed ? ' This session is not saved. Use Retry save in Options, or export before leaving.' : ''}`;

@@ -106,3 +106,8 @@ test('build rejects linked asset directories', async t => {
   await symlink(join(root, 'public/assets/unlisted'), join(root, 'public/assets/variants/linked'), 'junction');
   await assert.rejects(build(root), /Unapproved image variant: public\/assets\/variants\/linked/);
 });
+
+test('the runtime list names every source module and the stylesheet, so a deployed page never imports a missing file', async () => {
+  const sources = (await readdir(new URL('../src/', import.meta.url))).map(name => `src/${name}`).sort();
+  assert.deepEqual(runtimeFiles.filter(file => file.startsWith('src/')).sort(), sources);
+});

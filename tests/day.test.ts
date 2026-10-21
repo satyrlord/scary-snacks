@@ -5,11 +5,10 @@ import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import { dayProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import type { GameData, GameState } from '../src/model.ts';
-import { act, addOpenLayout, checkpoint, data, deliver, openGame, player, ready, rejected, status, supply, validate, know, quest } from './support.ts';
+import { act, addOpenLayout, checkpoint, data, deliver, openGame, player, ready, rejected, status, supply, validate, know, quest, recovery } from './support.ts';
 
 addOpenLayout();
 // The open layout: the Windmill at 1, the Corn basket at 4, Flour at 13 and 14, Corn at 22, Elderflowers at 27, the Herb basket at 31, Socată at 32 and 33.
-const recovery = data.quests.find(value => value.recovery)!;
 /** A copy with these dishes in these cells. */
 function withBoard(state: GameState, cells: [number, string | null][]): GameState {
   const next = structuredClone(state);
@@ -284,6 +283,11 @@ test('the lanterns bring tonight’s booked guest at once, before the booking ti
   assert.equal(lit.coins, supplied.coins);
   rejected(lit, { type: 'lantern', id: 'vlad-after-dark' });
   act(lit, { type: 'deliverQuest', id: 'vlad-after-dark' });
+});
+
+test('a booked delivery at its evening with a missing dish asks for the dishes, not for another evening', () => {
+  const shared = both(), evening = { ...shared, clock: { ...shared.clock, merges: (data.day.booking - data.day.opening) / data.day.mergeMinutes } };
+  assert.match(rejected(evening, { type: 'deliverQuest', id: 'vlad-after-dark' }).message, /needs every required item/);
 });
 
 test('the supper stops the clock and records the result of act 1, which keeps its purse after the purse changes', () => {
