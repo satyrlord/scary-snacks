@@ -1,5 +1,5 @@
 // The story: the chapter card with the next preparation and its payment, the scenes, and the story journal.
-import { deliveriesSince, journalCharacters, resolveChapters, resolveNeighbours, resolveQuests, sceneSource, supperComplete, supperQuest, taskEligibility } from './model.ts';
+import { dateText, deliveriesSince, journalCharacters, resolveChapters, resolveNeighbours, resolveQuests, sceneSource, supperComplete, supperQuest, taskEligibility } from './model.ts';
 import type { Character, ChapterView, SceneLine, Task, TaskRequirement } from './model.ts';
 import { $, button, coinText, count, element, names } from './dom.ts';
 import { coinMark, icon, portrait, questSketch } from './art.ts';
@@ -33,10 +33,10 @@ export function storyContent(inSheet: boolean) {
   const supper = supperQuest(data)!;
   if (!task && !supperComplete(state,data)) body.append(element('h3', '', supper.title), element('p', '', `Every preparation is done. ${character(supper.character).name}’s last quest waits on the counter: cook the supper there, one plate for each guest.`));
   else if (!task) {
-    // The result of act 1 keeps the days and the purse of the supper, whatever the purse holds now.
-    const { days, purse } = state.act1!;
+    // The result of act 1 keeps the purse of the supper, whatever the purse holds now.
+    const { purse } = state.act1!;
     body.append(element('h3', '', 'The table is ready.'), element('p', '', 'The community supper is open, and every campaign quest is delivered. The board and the recipe book stay yours.'),
-      element('p', 'act-result', `The bistro worked for ${count.format(days)} ${days === 1 ? 'day' : 'days'}. ${purse < 0 ? `The shop notebook holds a debt of ${coinText(-purse)}.` : `The purse holds ${coinText(purse)}.`}`));
+      element('p', 'act-result', `The bistro worked from ${dateText(1, data, 'plain')} to ${dateText(data.calendar.supper, data, 'plain')}. ${purse < 0 ? `The shop notebook holds a debt of ${coinText(-purse)}.` : `The purse holds ${coinText(purse)}.`}`));
   }
   else {
     body.append(element('h3', '', task.title));
@@ -47,8 +47,9 @@ export function storyContent(inSheet: boolean) {
       const remaining = element('ul', 'task-requirements'); remaining.setAttribute('aria-label', 'Preparation requirements');
       for (const requirement of eligibility.requirements.filter(value => !value.met)) {
         const row = element('li'); row.dataset.requirement = requirement.kind;
-        const amount = requirement.kind === 'space' ? 0 : requirement.required - requirement.current;
+        const amount = requirement.kind === 'space' || requirement.kind === 'date' ? 0 : requirement.required - requirement.current;
         row.append(element('span', '', requirement.kind === 'space' ? `Free a board space for the ${requirement.source}.`
+          : requirement.kind === 'date' ? `Opens on ${dateText(requirement.day, data)}.`
           : requirement.kind === 'coins' ? `Earn ${count.format(amount)} more ${amount === 1 ? 'coin' : 'coins'}.`
           : `Deliver ${count.format(amount)} more ${amount === 1 ? 'quest' : 'quests'}.`));
         remaining.append(row);
@@ -85,6 +86,7 @@ export function storyContent(inSheet: boolean) {
 /** Exact totals stay in payment descriptions and in Cost details when the main list shows only unmet needs. */
 function requirementTotal(requirement: TaskRequirement) {
   if (requirement.kind === 'space') return `Board space for the ${requirement.source}: ${requirement.met ? 'available' : '1 needed'}.`;
+  if (requirement.kind === 'date') return `Opening date: ${dateText(requirement.day, data)}, ${requirement.met ? 'open' : 'not yet'}.`;
   const label = requirement.kind === 'coins' ? 'Coins' : 'Quests delivered';
   return `${label}: ${count.format(requirement.current)} / ${count.format(requirement.required)}.`;
 }

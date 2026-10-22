@@ -11,6 +11,7 @@ test('a strategy that misses each booking once still finishes act 1 for every se
     assert.equal(run.finalState.taskIndex, data.tasks.length);
     // With every booked meal cooked, the bistro has no work, and the strategy delivers repeating quests until the night.
     assert.ok(run.totals.repeats > 0, `Seed ${seed}: the strategy delivers repeating quests.`);
+    assert.ok(run.nights.payments.at(-1)! <= data.calendar.supper - 1 && !run.nights.held, `Seed ${seed}: the last preparation comes before the closing of 30 April.`);
     t.diagnostic(`${nightLine(seed, run)} ${run.totals.repeats} repeating quests. ${run.nights.fillerMerges} merges only to move the clock while a guest waits. Purse ${run.purse}.`);
   }
 });

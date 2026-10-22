@@ -74,7 +74,8 @@ const illustratedScenes=[
   ['adrian-first-pack','scene-cathedral-1'],['monica-first-pack','scene-cathedral-2'],['janos-first-pack','scene-cathedral-3'],
   ['adrian-second-pack','scene-cathedral-4'],['monica-second-pack','scene-cathedral-5'],['janos-second-pack','scene-cathedral-6'],
   ['adrian-third-pack','scene-cathedral-7'],['monica-third-pack','scene-cathedral-8'],['janos-third-pack','scene-cathedral-9'],
-  ['ionatan-castle-dinner','scene-ionatan-dinner'],['mina-avram-search','scene-mina-avram-meal'],
+  ['mara-easter-baskets','scene-easter-baskets'],['bela-snowman','scene-bela-snowman'],['costel-icicle-clock','scene-icicle-clock'],
+  ['mara-chimney-sweep','scene-chimney-sweep'],['mara-blajini','scene-blajini'],
 ] as const;
 
 for(const [id,asset] of illustratedScenes)test(`${id} shows its quest scene instead of a character sketch`,async({page})=>{
@@ -86,7 +87,7 @@ for(const [id,asset] of illustratedScenes)test(`${id} shows its quest scene inst
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'])test(`quest scenes keep their proportions, speakers, and journal art at ${viewport.width}px in ${theme}`,async({page},testInfo)=>{
   await page.setViewportSize(viewport);await page.emulateMedia({reducedMotion:'reduce'});
-  const examples=[['adrian-first-pack','scene-cathedral-1'],['ionatan-castle-dinner','scene-ionatan-dinner'],['mina-avram-search','scene-mina-avram-meal']] as const;
+  const examples=[['adrian-first-pack','scene-cathedral-1'],['janos-third-pack','scene-cathedral-9']] as const;
   await start(page,deliverable(quest(examples[0][0])),theme);
   for(const [id,asset] of examples){
     const value=quest(id);await replaceSave(page,deliverable(value));await openQuest(page,value);
@@ -123,15 +124,9 @@ test('a missing quest scene leaves its words and delivery usable',async({page})=
   await dialogDeliver(page,value).click();expect((await saved(page)).completedQuests).toContain(value.id);
 });
 
-test('the road news replays its dialogue without a sketch or a quest page',async({page})=>{
-  await start(page,checkpoint(24));await journal(page,['chapters','conversations','neighbours']);await page.getByRole('button',{name:'Replay News from the road',exact:true}).click();
-  await expect(page.locator('#story-line')).toContainText('Mina and Doctor Avram found Ionatan');
-  await expect(page.locator('.quest-sketch')).toHaveCount(0);await expect(page.locator('.quest-page-content')).toHaveCount(0);
-});
-
-for(const visitor of data.characters.filter(person=>person.visitor))test(`${visitor.id}'s introduction shows the individual sketch outside quest scenes`,async({page})=>{
-  const visit=data.quests.find(value=>value.character===visitor.id||value.companions?.includes(visitor.id))!;
-  await start(page,visitor.singleVisit?onTicket(visit):checkpoint(24),'dark');await journal(page,['chapters','conversations','neighbours']);
+// Ionatan, Mina, and Avram visit in act 2, so only the travellers have introductions in act 1.
+for(const visitor of data.characters.filter(person=>person.visitor&&!person.singleVisit))test(`${visitor.id}'s introduction shows the individual sketch outside quest scenes`,async({page})=>{
+  await start(page,checkpoint(24),'dark');await journal(page,['chapters','conversations','neighbours']);
   await page.getByRole('button',{name:`Meet ${visitor.name}`,exact:true}).click();
   const sketch=page.locator('#modal .quest-sketch');await expect(sketch).toHaveAttribute('src',new RegExp(`sketch-${visitor.id}-672x672\\.webp$`));
   expect(await naturalSize(sketch)).toEqual([672,672]);
@@ -180,15 +175,15 @@ test('the delivery toast sits bottom-right on desktop, reports the reward withou
 });
 
 test('a desktop ticket shows who asks and the quest title, and its portrait opens the quest with a name at each change of speaker',async({page})=>{
-  const value=quest('mina-avram-search');await start(page,onTicket(value));const card=ticket(page,value);
-  await expect(card.locator('.ticket-name')).toHaveText('Mina');await expect(card.locator('.ticket-title')).toHaveText(value.title);await expect(card.locator('.ticket-title')).toBeVisible();
+  const value=quest('monica-third-pack');await start(page,onTicket(value));const card=ticket(page,value);
+  await expect(card.locator('.ticket-name')).toHaveText(person(value.character).name);await expect(card.locator('.ticket-title')).toHaveText(value.title);await expect(card.locator('.ticket-title')).toBeVisible();
   await card.locator('.portrait').click();const dialog=page.getByRole('dialog',{name:value.title,exact:true});await expect(dialog).toBeVisible();
   const turns=value.opening.filter((line,at)=>line.speaker!==value.opening[at-1]?.speaker).map(line=>`${person(line.speaker).name}:`);
   await expect(dialog.locator('.quest-speaker')).toHaveText(turns);await expect(dialog.locator('.quest-line')).toHaveCount(value.opening.length);
 });
 
 for(const width of [390,320])test(`a ready phone ticket with four dishes opens a whole Deliver label in its dialog at ${width}px`,async({page})=>{
-  await page.setViewportSize({width,height:844});const value=quest('mina-avram-search');await start(page,deliverable(value));
+  await page.setViewportSize({width,height:844});const value=quest('monica-third-pack');await start(page,deliverable(value));
   const card=ticket(page,value),face=card.locator('.ticket-face');
   await expect(deliverButton(page,value)).toBeHidden();await expect(card.getByRole('button')).toHaveCount(1);
   await expect(card.locator('.ticket-name')).toBeVisible();await expect(card.locator('.ticket-name')).toHaveText(person(value.character).name);
@@ -407,7 +402,7 @@ test('a quest row with enough portions keeps dish help and has no Find control',
 
 for(const viewport of [{width:320,height:740},{width:390,height:844}])for(const theme of ['light','dark'] as const){
   test(`missing dish controls fit a four-dish quest at ${viewport.width}px in ${theme}`,async({page})=>{
-    const value=quest('mina-avram-search'),initial=onTicket(value);
+    const value=quest('monica-third-pack'),initial=onTicket(value);
     await page.setViewportSize(viewport);await start(page,initial,theme);await openQuest(page,value);
     const missing=value.requirements.filter(({item,quantity})=>initial.board.filter(cell=>cell?.code===item).length<quantity);
     await expect(page.locator('.quest-find')).toHaveCount(missing.length);
@@ -552,7 +547,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:390,height:800}])for(const theme of ['light','dark'] as const)test(`a ticket with four dishes fits ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
   await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});
-  const value=quest('mina-avram-search');expect(value.requirements).toHaveLength(4);await start(page,onTicket(value));
+  const value=quest('monica-third-pack');expect(value.requirements).toHaveLength(4);await start(page,onTicket(value));
   await expect(ticket(page,value).locator('.ticket-items')).toHaveClass(/many/);await page.screenshot({path:testInfo.outputPath('tickets.png')});
   for(const card of await page.locator('#tickets .ticket').all()){
     expect(await card.evaluate(element=>element.scrollWidth<=element.clientWidth+1)).toBe(true);

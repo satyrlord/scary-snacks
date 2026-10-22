@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { checkpoint, data, journal, onTicket, quest, replaceSave, start } from './support.ts';
+import { checkpoint, data, journal, start } from './support.ts';
 
 test('every portrait crop stays inside its own cell at ticket and story sizes',async({page},testInfo)=>{
   await start(page,checkpoint(data.tasks.length));
@@ -7,17 +7,13 @@ test('every portrait crop stays inside its own cell at ticket and story sizes',a
   const line=await page.locator('.mara-line .portrait').evaluate(element=>{
     const style=getComputedStyle(element);return {size:style.backgroundSize,position:style.backgroundPosition};
   });
-  const portraits: {name:string;className:string;size:string;position:string}[]=[];
-  for(const state of [null,onTicket(quest('ionatan-castle-dinner')),onTicket(quest('mina-avram-search'))]){
-    if(state)await replaceSave(page,state);
-    await journal(page,['chapters','conversations','neighbours']);
-    const visible=await page.locator('#modal .portrait').evaluateAll(elements=>elements.map(element=>({
-      name:element.getAttribute('aria-label')!,className:element.className,size:getComputedStyle(element).backgroundSize,position:getComputedStyle(element).backgroundPosition,
-    })));
-    for(const portrait of visible)if(!portraits.some(value=>value.name===portrait.name))portraits.push(portrait);
-    await page.keyboard.press('Escape');
-  }
-  expect(portraits.map(value=>value.name).sort()).toEqual(data.characters.map(value=>value.name).sort());
+  // Ionatan, Mina, and Avram visit in act 2, so the journal of act 1 has no introduction of them.
+  await journal(page,['chapters','conversations','neighbours']);
+  const portraits: {name:string;className:string;size:string;position:string}[]=await page.locator('#modal .portrait').evaluateAll(elements=>elements.map(element=>({
+    name:element.getAttribute('aria-label')!,className:element.className,size:getComputedStyle(element).backgroundSize,position:getComputedStyle(element).backgroundPosition,
+  }))).then(visible=>visible.filter((portrait,at)=>visible.findIndex(value=>value.name===portrait.name)===at));
+  await page.keyboard.press('Escape');
+  expect(portraits.map(value=>value.name).sort()).toEqual(data.characters.filter(value=>!value.singleVisit).map(value=>value.name).sort());
   // Clone portraits that the actual journal rendered, retaining their production styles and atlas mapping.
   await page.evaluate(portraits=>{
     const gallery=document.createElement('div');gallery.id='portrait-framing-gallery';

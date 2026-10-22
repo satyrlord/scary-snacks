@@ -25,7 +25,7 @@ Git history keeps the past.
 - `public/` holds the shipped image variants, fonts, and game data.
   `assets/variants/` holds AV1 Image File Format (AVIF) and WebP images.
   `assets/fonts/` holds the fonts, and `data/game.json` holds the game data.
-  `public/assets/original/` holds the 66 Portable Network Graphics (PNG) masters of those variants. The build does not ship the masters.
+  `public/assets/original/` holds the 74 Portable Network Graphics (PNG) masters of those variants. The build does not ship the masters.
 - `tools/` holds the Node.js tools. They build the game, serve it, and write the game data.
   They also make the image variants, write the checkpoint saves, check the campaign balance, and export the source.
   `tools/create-original-data.ts` writes `public/data/game.json`.
@@ -108,9 +108,11 @@ For a change that the user can see, give browser evidence.
 
 ## Assets, security, and deployment
 
-The 66 PNG masters in `public/assets/original/` have records in `docs/asset-provenance.json` and `docs/asset-prompts.json`.
+The 74 PNG masters in `public/assets/original/` have records in `docs/asset-provenance.json` and `docs/asset-prompts.json`.
 After a master changes, run `npm run assets:build`.
 The command uses Sharp, a development dependency, to make the AVIF and WebP variants in `public/assets/variants/`.
+The command encodes only the masters that are new or changed. It keeps each variant that agrees with its record, and it removes the variants that no plan names.
+After a change to Sharp or to the encoder settings, the command encodes all masters again. To encode all masters in other conditions, run `npm run assets:build -- --all`.
 The command records the variants in `docs/asset-variants.json`.
 The asset test compares each master and each variant with its record.
 The asset test fails on a variant that the current master did not make.

@@ -2,7 +2,8 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { requiredQuests } from '../../src/model.ts';
 import type { GameState, SceneLine } from '../../src/model.ts';
-import { KEY, act, recovery, supper, checkpoint, data, deliverable, deliverButton, exportText, failWrites, forward, journal, opened, openQuest, options, painting, payAndRead, ratio, readNow, readTo, replaceSave, revealed, saved, start, startAgainAndImport, story, supplies, supply, tile } from './support.ts';
+import { deliverRequired } from '../../tools/create-checkpoint-saves.ts';
+import { KEY, act, recovery, supper, supperEvening, deliverMarch, checkpoint, data, deliverable, deliverButton, exportText, failWrites, forward, journal, opened, openQuest, options, painting, payAndRead, ratio, readNow, readTo, replaceSave, revealed, saved, start, startAgainAndImport, story, supplies, supply, tile } from './support.ts';
 
 const closing=(index: number)=>`Chapter ${index+1} complete: ${data.chapters[index].title}`;
 /** The regulars whose arrival scenes the payment of a preparation queues. */
@@ -16,7 +17,7 @@ async function readWithArrivals(page: Page,index: number){
 }
 const scene=(page: Page,title: string)=>page.getByRole('dialog',{name:title,exact:true});
 /** Every preparation is paid and each plate of the supper is on the board. A purse at the recovery floor keeps the recovery quest away. */
-const supperReady=()=>supply(checkpoint(data.tasks.length,{coins:data.economy.recoveryFloor}),supplies(supper));
+const supperReady=()=>supply(supperEvening(checkpoint(data.tasks.length,{coins:data.economy.recoveryFloor})),supplies(supper));
 /** Phone tickets open the quest to serve; desktop tickets serve directly. */
 async function serveSupper(page: Page){
   if(page.viewportSize()!.width<1024){await openQuest(page,supper);await scene(page,supper.title).getByRole('button',{name:`Serve ${supper.title}`,exact:true}).click();}
@@ -141,6 +142,8 @@ test('serving the supper pays nothing and opens the finale and the supper painti
   const initial=supply(payable(23),supplies(supper));await start(page,initial);await payAndRead(page);await expect(scene(page,closing(5))).toBeVisible({timeout:8000});
   const paid=await saved(page);expect(paid.pendingScenes).toEqual(['chapter-6']);expect(paid.coins).toBe(0);
   await readTo(page,'Back to the kitchen');await expect(page.locator('#modal')).toBeHidden();
+  // The supper is served on the evening of 1 May.
+  await expect(deliverButton(page,supper)).toBeDisabled();await replaceSave(page,supperEvening(await saved(page)));
   // The supper waits on the counter. The purse is empty while it is open, so Ana's recovery quest takes the ticket after it.
   await expect(page.locator('#story .task-content')).toContainText(supper.title);
   expect(await page.locator('#tickets .ticket').evaluateAll(cards=>cards.map(card=>(card as HTMLElement).dataset.quest))).toEqual([supper.id,recovery.id]);
@@ -239,7 +242,7 @@ test('a fresh save plays through every payment, chapter scene, the supper, and t
   await start(page);let state: GameState=await saved(page);
   for(const [index,task] of data.tasks.entries()){
     // The quests that the payment needs are delivered and its coins earned; the rules tests cover how. The interface pays, tells, reveals, and closes each chapter.
-    for(const value of requiredQuests(index,data))if(!state.completedQuests.includes(value.id))state.completedQuests.push(value.id);
+    deliverRequired(state,data);deliverMarch(state);
     state.coins=task.cost;
     await replaceSave(page,state);
     const chapter=data.chapters[task.chapter-1];
@@ -266,9 +269,9 @@ test('a fresh save plays through every payment, chapter scene, the supper, and t
     }else await expect(page.locator('#modal')).toBeHidden();
     state=await saved(page);expect(state.taskIndex).toBe(index+1);expect(state.pendingScenes).toEqual([]);
   }
-  expect(new Set(state.completedQuests)).toEqual(new Set(requiredQuests(data.tasks.length,data).map(value=>value.id)));
+  expect(new Set(state.completedQuests.filter(id=>!data.quests.find(value=>value.id===id)!.march))).toEqual(new Set(requiredQuests(data.tasks.length,data).map(value=>value.id)));
   // Each plate of the supper is on the board; the rules tests cover how they are cooked.
-  state=supply(state,supplies(supper));await replaceSave(page,state);
+  state=supply(supperEvening(state),supplies(supper));await replaceSave(page,state);
   await deliverButton(page,supper).click();await expect(scene(page,data.finale.title)).toBeVisible();
   await transcript(page,data.finale.dialogue);await readTo(page,'See the supper');
   await (await supperPainting(page)).getByRole('button',{name:'Back to the kitchen',exact:true}).click();await expect(page.locator('#modal')).toBeHidden();
@@ -393,13 +396,13 @@ test('a regular’s arrival scene waits in Story after a reload and then opens t
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`the supper ticket, its plates, and the supper painting fit ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
   await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});
-  // Without its plates, the supper ticket shows its first three plates and the count of the others. Serve waits for them.
-  await start(page,checkpoint(data.tasks.length,{coins:data.economy.recoveryFloor}),theme);
+  // On the evening of the supper without its plates, the supper ticket shows its first three plates and the count of the others. Serve waits for them.
+  await start(page,supperEvening(checkpoint(data.tasks.length,{coins:data.economy.recoveryFloor})),theme);
   expect(supper.requirements).toHaveLength(11);expect(supper.reward).toBe(0);expect(supper.guests).toHaveLength(11);
   const card=page.locator(`#tickets .ticket[data-quest="${supper.id}"]`),button=card.locator('.deliver-button');
   await expect(page.locator('#tickets .ticket')).toHaveCount(1);await expect(card).toBeInViewport();
   await expect(card.locator('.ticket-item:not(.ticket-more)')).toHaveCount(3);await expect(card.locator('.ticket-more')).toHaveText('+8');
-  await expect(card.locator('.ticket-face')).toHaveAccessibleName(`${supper.title}: ${supper.requirements.map(({item,quantity})=>`${quantity} ${data.items[item].name}, 0 on the board`).join('; ')}`);
+  await expect(card.locator('.ticket-face')).toHaveAccessibleName(`${supper.title}: ${supper.requirements.map(({item,quantity})=>`${quantity} ${data.items[item].name}, 0 on the board`).join('; ')}. Booked for 20:00`);
   await expect(button).toBeDisabled();await expect(button).toHaveText('Serve');await expect(button.locator('.coin')).toHaveCount(0);
   if(viewport.width>=1024)await expect(button).toHaveAccessibleName(`Serve ${supper.title}`);else await expect(button).toBeHidden();
   const fits=async()=>{

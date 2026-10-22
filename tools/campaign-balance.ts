@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { canDeliverQuest, canLightLanterns, currentTask, dayMerges, dishWork, firstFreeBoardCell, freeBoardCells, getItem, mergeResult, requiredQuests, resolveQuests, stapleCost, supperComplete, supperQuest, takeCost, taskEligibility, unresolvedObstacle } from '../src/model.ts';
+import { canDeliverQuest, canLightLanterns, currentTask, dayMerges, dishWork, firstFreeBoardCell, freeBoardCells, getItem, holding, laterDay, mergeResult, questDeliveryCells, questHoliday, requiredQuests, resolveQuests, stapleCost, supperComplete, supperQuest, takeCost, taskEligibility, unresolvedObstacle } from '../src/model.ts';
 import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import type { Action, GameData, GameState, Quest, Task } from '../src/model.ts';
 
@@ -18,9 +18,15 @@ export type CampaignPreparation = CampaignTotals & {
  */
 export type CampaignStrategy = 'efficient' | 'miss-bookings' | 'debt';
 export type CampaignNights = {
-  days: number; lanterns: number; thefts: number; stolen: number; gifts: number; lowestPurse: number;
+  days: number; lanterns: number; closings: number; rats: number; thefts: number; stolen: number; gifts: number; lowestPurse: number;
   /** The merges of food that no quest needs, made only to move the clock. */
   fillerMerges: number;
+  /** The merges for repeating quests, and the days whose merges were all for repeating quests. */
+  repeatMerges: number; repeatDays: number[];
+  /** The day of each payment, and whether a day ever held. */
+  payments: number[]; held: boolean;
+  /** The day on which each campaign quest opened and was delivered. */
+  opened: Record<string, number>; delivered: Record<string, number>;
 };
 export type CampaignBalance = {
   chapters: CampaignChapter[]; preparations: CampaignPreparation[]; totals: CampaignTotals; nights: CampaignNights; finalState: GameState;
@@ -47,8 +53,11 @@ const TIDY_FREE = 24;
  */
 export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignStrategy = 'efficient', checkEveryAction = true): CampaignBalance {
   let state = createGame(data, seed);
-  const totals = emptyTotals(), nights: CampaignNights = { days: 1, lanterns: 0, thefts: 0, stolen: 0, gifts: 0, lowestPurse: 0, fillerMerges: 0 };
-  let previousChapter = emptyTotals(), previousPreparation = emptyTotals(), injected = 0, guarding = false, filling = false;
+  const totals = emptyTotals(), nights: CampaignNights = { days: 1, lanterns: 0, closings: 0, rats: 0, thefts: 0, stolen: 0, gifts: 0, lowestPurse: 0, fillerMerges: 0,
+    repeatMerges: 0, repeatDays: [], payments: [], held: false, opened: {}, delivered: {} };
+  let previousChapter = emptyTotals(), previousPreparation = emptyTotals(), injected = 0, guarding = false, filling = false, repeatWork = false, holidayDelivery = false;
+  // The merges of the current day: all of them, and those for repeating quests.
+  let dayWork = { merges: 0, repeat: 0 };
   const chapters: CampaignChapter[] = [];
   const preparations: CampaignPreparation[] = [];
   // The cells that hold food for the current delivery or a part of the current merge.
@@ -56,7 +65,7 @@ export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignS
   // The miss strategy lets the first evening of each booked quest pass: the quest and the day that it skips.
   const missed = new Map<string, number>();
   const recovery = data.quests.find(quest => quest.recovery)!;
-  const remaining = () => dayMerges(data) - state.clock.merges;
+  const remaining = () => dayMerges(state.clock.day, data) - state.clock.merges;
   const recoveryActive = () => resolveQuests(state, data).some(view => view.quest === recovery && view.status === 'active');
 
   function act(action: Action) {
@@ -66,19 +75,30 @@ export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignS
     state = result.state;
     if (checkEveryAction || state.clock.day !== before.clock.day || action.type === 'task') assert.equal(validateGame(state, data), true, `Valid state after ${action.type}.`);
     totals.actions++;
-    if (result.event === 'merge') { totals.merges++; if (filling) nights.fillerMerges++; }
+    if (result.event === 'merge') {
+      totals.merges++; dayWork.merges++;
+      if (filling) nights.fillerMerges++;
+      if (repeatWork) { nights.repeatMerges++; dayWork.repeat++; }
+    }
+    if (holding(state, data)) nights.held = true;
+    for (const view of resolveQuests(state, data)) if ((view.status === 'active' || view.status === 'waiting') && !(view.quest.id in nights.opened)) nights.opened[view.quest.id] = state.clock.day;
     if (action.type === 'spawn') { totals.spawns++; totals.takeCoins += before.coins - state.coins; }
     if (action.type === 'deliverQuest') {
+      nights.delivered[action.id] = before.clock.day;
       totals.quests++; totals.questCoins += state.coins - before.coins;
       if (action.id === recovery.id) totals.recoveries++;
       else if (data.quests.find(quest => quest.id === action.id)?.repeating) { totals.repeats++; totals.repeatCoins += state.coins - before.coins; }
     }
-    if (action.type === 'task') totals.preparationCoins += before.coins - state.coins;
+    // The last payment on a day that holds closes the day in the same change, with its upkeep.
+    if (action.type === 'task') { totals.preparationCoins += before.coins - state.coins - (state.clock.day !== before.clock.day ? state.night!.upkeep : 0); nights.payments.push(before.clock.day); }
     if (action.type === 'lantern') nights.lanterns++;
     if (state.clock.day !== before.clock.day) {
       const night = state.night!;
       totals.upkeepCoins += night.upkeep;
-      nights.days = state.clock.day;
+      nights.days = state.clock.day; nights.closings++;
+      if (dayWork.merges && dayWork.repeat === dayWork.merges) nights.repeatDays.push(before.clock.day);
+      dayWork = { merges: 0, repeat: 0 };
+      if (night.rat) nights.rats++;
       if (night.rat === 'thief') { nights.thefts++; nights.stolen += night.taken.length + (night.trapped ? 1 : 0); }
       if (night.gift) nights.gifts++;
       // The thief rat empties cells: a kept cell that lost its food is free again.
@@ -89,6 +109,11 @@ export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignS
     nights.lowestPurse = Math.min(nights.lowestPurse, state.coins);
     assert.equal(state.coins, totals.questCoins + totals.blockerCoins - totals.preparationCoins - totals.takeCoins - totals.upkeepCoins + injected, 'Every coin comes from a recorded legal action.');
     assert.ok(totals.actions < 400_000, 'The campaign must converge within the fixture action limit.');
+    // In the middle of a long order, a holiday quest whose dishes wait on the board is delivered as soon as its holiday comes.
+    if (!holidayDelivery && state.clock.day !== before.clock.day) {
+      const due = resolveQuests(state, data).find(view => view.status === 'active' && questHoliday(view.quest, data) && canDeliverQuest(state, view.quest, data))?.quest;
+      if (due) { holidayDelivery = true; act({ type: 'deliverQuest', id: due.id }); holidayDelivery = false; }
+    }
   }
   const staples = (quest: Quest) => stapleCost(quest, data);
   const movable = (index: number) => !!state.board[index] && !unresolvedObstacle(state, index, data) && !getItem(state.board[index]!.code, data)!.generator;
@@ -186,8 +211,10 @@ export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignS
   function deliver(quest: Quest) {
     // A short purse makes its recovery teas before the quest, while the board still has room for them.
     while (state.coins < staples(quest) && recoveryActive()) recover();
+    repeatWork = !!quest.repeating;
     prepare(quest);
-    if (quest.booked && canLightLanterns(state, quest, data)) act({ type: 'lantern', id: quest.id });
+    repeatWork = false;
+    if (canLightLanterns(state, quest, data)) act({ type: 'lantern', id: quest.id });
     if (!canDeliverQuest(state, quest, data)) { kept.clear(); return false; }
     act({ type: 'deliverQuest', id: quest.id });
     kept.clear();
@@ -255,7 +282,13 @@ export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignS
   }
 
   function complete(task: Task) {
-    while (state.coins < task.cost) recover();
+    // A short purse delivers an open quest that no preparation needs, such as a March quest, or else a recovery tea.
+    while (state.coins < task.cost) {
+      if (recoveryActive()) { recover(); continue; }
+      const other = resolveQuests(state, data).find(view => view.status === 'active' && !view.quest.recovery && !laterDay(state, view.quest, data))?.quest;
+      assert.ok(other, `Preparation ${state.taskIndex + 1}: the purse is short, and no quest can pay for it.`);
+      deliver(other);
+    }
     // Only the space for a new source can block a preparation whose coins and quests are ready.
     while (!taskEligibility(state, data).ready && taskEligibility(state, data).requirements.every(requirement => requirement.met || requirement.kind === 'space')) makeRoom();
     act({ type: 'task' });
@@ -277,22 +310,33 @@ export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignS
     const requirements = taskEligibility(state, data).requirements;
     if (requirements.every(requirement => requirement.met || requirement.kind === 'space' || requirement.kind === 'coins')
       && requirements.find(requirement => requirement.kind === 'quests')!.met) { complete(task); continue; }
+    const ticketQuests = () => resolveQuests(state, data).filter(view => view.status === 'active' && !view.quest.recovery).map(view => view.quest);
+    // A holiday quest goes first on its holiday, and a holiday meal is cooked ahead, so a long order never pushes it past its holiday.
+    const due = ticketQuests().find(quest => questHoliday(quest, data) && !laterDay(state, quest, data));
+    if (due) { deliver(due); continue; }
+    const ahead = ticketQuests().filter(quest => questHoliday(quest, data) && laterDay(state, quest, data) && questDeliveryCells(state, quest).some(index => index < 0));
+    if (ahead.length) { prepare(...ahead); kept.clear(); continue; }
     tidy();
-    const tickets = resolveQuests(state, data).filter(view => view.status === 'active' && !view.quest.recovery).map(view => view.quest);
+    const tickets = ticketQuests();
     assert.ok(tickets.length, `The campaign cannot resolve these blockers: ${taskEligibility(state, data).blockers.join(' ')}`);
     // The miss strategy lets the first evening of each booked quest pass.
     if (strategy === 'miss-bookings') for (const quest of tickets) if (quest.booked && tonight(quest) && !missed.has(quest.id)) missed.set(quest.id, state.clock.day);
     const booked = tickets.find(quest => quest.booked && tonight(quest));
     if (booked) { deliver(booked); continue; }
-    const open = tickets.filter(quest => !quest.booked);
-    if (open.length) { deliver(open.reduce((cheapest, quest) => staples(quest) < staples(cheapest) ? quest : cheapest)); continue; }
-    // Only booked quests for later evenings are left. Their cooking is needed anyway, and its merges bring the night.
-    // With every booked meal cooked, the bistro has no work, and a repeating quest opens on the next turn of this loop.
+    // A campaign quest before a repeating quest: the repeating quests only fill the days.
+    const open = tickets.filter(quest => !quest.booked && !laterDay(state, quest, data));
+    const campaign = open.filter(quest => !quest.repeating);
+    if (open.length) { deliver((campaign.length ? campaign : open).reduce((cheapest, quest) => staples(quest) < staples(cheapest) ? quest : cheapest)); continue; }
+    // Only quests for later days are left: booked quests for later evenings, holiday quests before their holiday, and outdoor quests
+    // on a day without a terrace. Their cooking is needed anyway, and its merges bring the night. With every such meal cooked, the
+    // bistro has no work, and a repeating quest opens on the next turn of this loop.
     // Only the miss strategy, which lets tonight's guest wait, cooks spare food to pass the evening.
     const day = state.clock.day;
     prepare(...tickets);
     if (state.clock.day === day && !resolveQuests(state, data).some(view => view.quest.repeating && view.status === 'active')) {
       assert.notEqual(strategy, 'efficient', `Day ${day}: the efficient strategy has cooked every quest, and the booked guest comes on a later evening.`);
+      // An open recovery quest keeps the repeating quests closed, so a short purse makes its teas while it waits.
+      if (strategy === 'debt' && recoveryActive()) { recover(); kept.clear(); continue; }
       // A missed guest's lanterns bring the closing near, so the wait is short.
       for (const quest of tickets) if (canLightLanterns(state, quest, data)) act({ type: 'lantern', id: quest.id });
       fill(day);
@@ -301,8 +345,18 @@ export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignS
   }
 
   assert.equal(state.taskIndex, data.tasks.length);
-  assert.equal(state.completedQuests.length, requiredQuests(data.tasks.length, data).length, 'The last preparation needs every campaign quest.');
+  assert.equal(state.completedQuests.filter(id => !data.quests.find(quest => quest.id === id)!.march).length, requiredQuests(data.tasks.length, data).length, 'The last preparation needs every campaign quest.');
+  // The supper waits for its day. Until then, the bistro fills the days with the repeating quests.
   const supper = supperQuest(data)!;
+  while (state.clock.day < data.calendar.supper) {
+    const tickets = resolveQuests(state, data).filter(view => view.status === 'active' && !view.quest.recovery).map(view => view.quest);
+    const ready = tickets.find(quest => !laterDay(state, quest, data));
+    if (ready) { deliver(ready); continue; }
+    const day = state.clock.day;
+    prepare(...tickets);
+    kept.clear();
+    assert.ok(state.clock.day !== day || resolveQuests(state, data).some(view => view.quest.repeating && view.status === 'active'), `Day ${day}: the supper is cooked, and no repeating quest fills the day.`);
+  }
   assert.ok(deliver(supper), 'The supper is served.');
   assert.ok(supperComplete(state, data), 'The supper is served.');
   assert.equal(validateGame(state, data), true);

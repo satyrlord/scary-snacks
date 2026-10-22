@@ -1,20 +1,27 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { canDeliverQuest, firstFreeBoardCell, freeBoardCells, questDeliveryCells, requiredQuests, resolveQuests, unresolvedObstacle } from '../src/model.ts';
+import { canDeliverQuest, firstFreeBoardCell, freeBoardCells, questDeliveryCells, questHoliday, requiredQuests, resolveQuests, unresolvedObstacle } from '../src/model.ts';
 import { createGame, reduceGame, validateGame } from '../src/engine.ts';
 import { boardLayoutProblems } from '../src/content.ts';
 import type { Action, GameState } from '../src/model.ts';
 import { exportSave, importSave, loadSave, saveGame, SAVE_KEY } from '../src/storage.ts';
+import { moveTo } from '../tools/create-checkpoint-saves.ts';
 import { act, data, memoryStorage, rejected, validate, know } from './support.ts';
 
 const start = () => createGame(data);
 const refusal = 'Merge a matching dish or a recipe partner into this blocked space.';
+/** A new game with its first preparations paid and their quests delivered, on the earliest day of those deliveries. */
+function paidUpTo(count: number): GameState {
+  const state = start();
+  Object.assign(state, { taskIndex: count, preparationObstacles: { start: count, placed: [] } });
+  state.decorations = data.tasks.slice(0, count).map(task => task.id);
+  state.completedQuests = requiredQuests(count, data).map(quest => quest.id);
+  moveTo(state, Math.max(...requiredQuests(count, data).map(quest => questHoliday(quest, data)?.day ?? quest.opens ?? 1)), data);
+  return state;
+}
 /** A new-game board after the Dairy source opens with preparation 3, with no preparation blockers. */
 function dairyOpen(): GameState {
-  const state = start();
-  Object.assign(state, { taskIndex: 3, preparationObstacles: { start: 3, placed: [] } });
-  state.decorations = data.tasks.slice(0, 3).map(task => task.id);
-  state.completedQuests = requiredQuests(3, data).map(quest => quest.id);
+  const state = paidUpTo(3);
   state.board[2] = { code: 'generator_dairy' };
   know(state, 'generator_dairy');
   assert.equal(validate(state), true);
@@ -24,9 +31,9 @@ function dairyOpen(): GameState {
 test('new games reserve eight obstacle cells, and know only their board and the dishes of their tickets', () => {
   const state = start();
   assert.equal(state.layoutId, 'workbench-clutter-1');
-  assert.equal(state.version, 14);
+  assert.equal(state.version, 15);
   assert.equal(state.coins, 0);
-  assert.equal(freeBoardCells(state, data), 25);
+  assert.equal(freeBoardCells(state, data), 24);
   assert.equal(firstFreeBoardCell(state, data), 2);
   assert.deepEqual([0, 5, 6, 11, 36, 37, 40, 41].map(index => unresolvedObstacle(state, index, data)?.type),
     ['clutter', 'clutter', 'anchored', 'anchored', 'clutter', 'anchored', 'anchored', 'clutter']);
@@ -77,10 +84,7 @@ test('a recipe partner clears a blocker, leaves the mixed dish in the blocked ce
 });
 
 test('a recipe partner clears a blocker, the clear discovers only the mixed dish, and the game still saves', () => {
-  const state = start();
-  Object.assign(state, { taskIndex: 5, preparationObstacles: { start: 5, placed: [] } });
-  state.decorations = data.tasks.slice(0, 5).map(task => task.id);
-  state.completedQuests = requiredQuests(5, data).map(quest => quest.id);
+  const state = paidUpTo(5);
   state.board[2] = { code: 'generator_dairy' }; state.board[3] = { code: 'generator_poultry' }; state.board[7] = { code: 'poultry_1' };
   know(state, 'generator_dairy', 'generator_poultry', 'poultry_1');
   const result = reduceGame(state, { type: 'move', from: 7, to: 6 }, data);
@@ -179,7 +183,7 @@ test('blocked null cells do not provide placement or preparation space', () => {
   assert.equal(freeBoardCells(state, data), 0);
   assert.equal(firstFreeBoardCell(state, data), -1);
   assert.match(rejected(state, { type: 'spawn', index: 1 }).message, /board is full/);
-  const merged = act(state, { type: 'move', from: 2, to: 3 });
+  const merged = act(state, { type: 'move', from: 2, to: 7 });
   assert.equal(firstFreeBoardCell(merged, data), 2);
   const produced = act(merged, { type: 'spawn', index: 1 });
   assert.equal(produced.board[2]?.code, 'grain_1');

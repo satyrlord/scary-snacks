@@ -4,7 +4,7 @@ import { availableChains, firstFreeBoardCell, requiredQuests, resolveChapters, r
 import { createGame, validateGame } from '../src/engine.ts';
 import { dataProblems, storyProblems } from '../src/content.ts';
 import type { GameData } from '../src/model.ts';
-import { act, data, payNext, ready, rejected, supply, withTickets } from './support.ts';
+import { afterMarch, deliver, act, data, payNext, ready, rejected, supply, withTickets } from './support.ts';
 
 const titles = ['Open the shutters', 'A kitchen for everyone', 'Around one table', 'The courtyard', 'Recipes to share', 'The first community supper'];
 const boundaries = [4, 8, 12, 16, 20, 24];
@@ -160,12 +160,13 @@ test('the supper quest has no cost, earns the finale, leaves only a repeating ti
   const before = ready(checkpoint(23));
   assert.deepEqual(new Set(before.completedQuests), new Set(campaign.map(quest => quest.id)), 'Every campaign quest is required before the supper.');
   for (const quest of campaign) rejected({ ...before, completedQuests: before.completedQuests.filter(id => id !== quest.id) }, { type: 'task' });
-  const paid = act(before, { type: 'task' });
+  // The March quests of Dochia that opened are delivered too, so only the supper is left.
+  const paid = afterMarch(act(before, { type: 'task' }));
   assert.equal(paid.coins, 0);
   assert.equal(resolveQuests(paid, data).find(view => view.quest.id === supper.id)!.status, 'active');
   assert.match(rejected(paid, { type: 'deliverQuest', id: supper.id }).message, /every required item/);
   // An empty purse serves the supper: it takes no coins and pays none.
-  let state = act(supply(paid, supper.id), { type: 'deliverQuest', id: supper.id });
+  let state = deliver(paid, supper.id);
   assert.equal(state.coins, 0);
   assert.deepEqual(state.pendingScenes, [...queued(24), 'finale']);
   assert.deepEqual(state.completedQuests.slice(-1), [supper.id]);
@@ -195,7 +196,7 @@ test('saved scene queues hold only earned scenes, once each, in story order', ()
   }
   const { pendingScenes: _scenes, ...missing } = middle;
   assert.equal(validateGame(missing, data), false);
-  const finished = checkpoint(24), supped = { ...finished, completedQuests: [...finished.completedQuests, supperQuest(data)!.id], act1: { days: 1, purse: finished.coins } };
+  const finished = checkpoint(24), supped = deliver(afterMarch(finished), supperQuest(data)!.id);
   assert.equal(validateGame({ ...finished, pendingScenes: ['finale'] }, data), false, 'The finale waits for the supper.');
   assert.equal(validateGame({ ...supped, pendingScenes: ['finale'] }, data), true);
   assert.equal(validateGame({ ...supped, pendingScenes: ['finale', 'chapter-6'] }, data), false);
@@ -228,10 +229,10 @@ test('a payment queues its preparation scene in the same change, and reading it 
   rejected(read, { type: 'readScene', id: data.tasks[1].id });
 });
 
-test('three chains are open in a new game, and each preparation that opens a chain names its new source in its scene', () => {
-  assert.deepEqual(availableChains({ taskIndex: 0 }, data), ['grain', 'corn', 'herbs']);
+test('three chains and the pickle barrel of winter are open in a new game, and each preparation that opens a chain names its new source in its scene', () => {
+  assert.deepEqual(availableChains({ taskIndex: 0, clock: { day: 1 } }, data), ['grain', 'pickles', 'corn', 'herbs']);
   const opens = Object.fromEntries(data.tasks.flatMap(task => task.unlock ? [[task.id, task.unlock]] : []));
-  assert.deepEqual(opens, { task_3: 'dairy', task_5: 'poultry', task_6: 'vegetables', task_7: 'fruits', task_8: 'pork', task_11: 'beans', task_13: 'lamb', task_16: 'veal', task_20: 'fish' });
+  assert.deepEqual(opens, { task_3: 'dairy', task_5: 'poultry', task_6: 'vegetables', task_7: 'fruits', task_8: 'pork', task_11: 'beans', task_12: 'fish', task_13: 'lamb', task_16: 'veal' });
   for (const [id, chain] of Object.entries(opens)) {
     const source = data.items[`generator_${chain}`].name.toLowerCase();
     assert.ok(data.tasks.find(task => task.id === id)!.dialogue.some(line => line.text.toLowerCase().includes(source)), `${id} names the ${source}.`);

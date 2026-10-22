@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { act, checkpoint, data, dialogDeliver, openQuest, quest, saved, startStill, supplies, supply, supper, ticket } from './support.ts';
+import { act, checkpoint, supperEvening, data, dialogDeliver, openQuest, quest, saved, startStill, supplies, supply, supper, ticket } from './support.ts';
 
 const staff = quest('sorin-staff-meal'), bela = quest('bela-cold-night');
 /** After the supper, the bistro has no other work: the staff meal is open, and its dishes are on the board. */
 function afterSupper() {
-  const served = act(supply(checkpoint(data.tasks.length), supplies(supper)), { type: 'deliverQuest', id: supper.id });
+  const served = act(supply(supperEvening(checkpoint(data.tasks.length)), supplies(supper)), { type: 'deliverQuest', id: supper.id });
   return supply(served, supplies(staff));
 }
 

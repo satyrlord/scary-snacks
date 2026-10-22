@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { boardObstacles, freeBoardCells, pendingPreparationObstacles, requiredQuests, unresolvedObstacle } from '../src/model.ts';
+import { availableChains, boardObstacles, freeBoardCells, pendingPreparationObstacles, requiredQuests, unresolvedObstacle } from '../src/model.ts';
 import { KEEP_FREE, reduceGame } from '../src/engine.ts';
 import { dataProblems } from '../src/content.ts';
 import { exportSave, importSave, loadSave, saveGame } from '../src/storage.ts';
 import type { GameData, GameState } from '../src/model.ts';
-import { act, addOpenLayout, data, openGame, rejected, validate, know, withTickets } from './support.ts';
+import { moveTo } from '../tools/create-checkpoint-saves.ts';
+import { act, addOpenLayout, data, openGame, payDay, rejected, validate, know, withTickets } from './support.ts';
 
 addOpenLayout();
 // Isolate blocker rules from earning the required quests.
@@ -15,8 +16,9 @@ function ready(taskIndex = 0): GameState {
   state.completedQuests = requiredQuests(taskIndex, data).map(quest => quest.id);
   state.decorations = data.tasks.slice(0, taskIndex).map(task => task.id);
   state.preparationObstacles = { start: taskIndex, placed: [] };
-  const chains = new Set(['grain', 'corn', 'herbs', ...data.tasks.slice(0, taskIndex).flatMap(task => task.unlock ? [task.unlock] : [])]);
-  for (const chain of chains) if (!state.board.some(cell => cell?.code === `generator_${chain}`)) {
+  moveTo(state, payDay(taskIndex), data);
+  const chains = new Set(availableChains(state, data));
+  for (const chain of chains) if (!data.chains.find(value => value.id === chain)!.season && !state.board.some(cell => cell?.code === `generator_${chain}`)) {
     state.board[state.board.indexOf(null)] = { code: `generator_${chain}` };
   }
   state.discovered = Object.values(data.items).filter(item => chains.has(item.chain)).map(item => item.id);
@@ -199,9 +201,10 @@ test('pending and partly cleared batches survive export, reload, failed writes, 
   const durable = structuredClone(state);
   for (let count = 0; count <= KEEP_FREE; count++) state = mergeOne(state);
   assert.equal(active(state)[0].position, 0);
-  const obstacle = unresolvedObstacle(state, 0, data)!;
-  state.board[7] = { code: obstacle.ingredient };
-  state = act(state, { type: 'move', from: 7, to: 0 });
+  // A Flour on the full board becomes the dish of the blocker, so the clear frees one more cell.
+  const obstacle = unresolvedObstacle(state, 0, data)!, spare = state.board.findIndex(cell => cell?.code === 'grain_1');
+  state.board[spare] = { code: obstacle.ingredient };
+  state = act(state, { type: 'move', from: spare, to: 0 });
   assert.equal(state.resolvedObstacles.length, 1);
   assert.deepEqual(importSave(exportSave(state, validate), validate), state);
   reject = true;

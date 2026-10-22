@@ -1,7 +1,30 @@
 // The checks of the authored game data. The content generator refuses to write data with a problem, and the game refuses to start on it.
-import { availableChains, canJoinCycle, dayMerges, dishChains, dishTags, dishWork, foodAtlases, integer, isRegular, menuPrice, mergePartners, MIXED, own, portraitAtlases, present, questOpening, questPredecessors, roomPaintings, scene, spoken, stable, stapleCost, stateNumber, storyScenes } from './model.ts';
-import type { BoardObstacle, Character, GameData, Item, Quest } from './model.ts';
+import { availableChains, calendarDate, campaignQuest, canJoinCycle, chainSeason, dishChains, dishTags, dishWork, foodAtlases, integer, isRegular, menuPrice, mergePartners, MIXED, own, portraitAtlases, present, questHoliday, questOpening, questPredecessors, requiredQuests, roomPaintings, scene, spoken, stable, stapleCost, stateNumber, storyScenes, terraceDay, yearDay } from './model.ts';
+import type { BoardObstacle, Character, DishTag, GameData, Item, Quest } from './model.ts';
 import { createGame, KEEP_FREE, validateGame } from './engine.ts';
+
+/** The day of act 1 of a date of year 1. */
+const actDay = (month: number, date: number, data: GameData) => yearDay(month, date) - data.calendar.start + 1;
+/**
+ * The days in which the player can deliver a quest. The range starts on the holiday of a holiday quest, or on the opening date of the
+ * quest, or else on the opening date of the chapter of its preparation. The range ends on the day before the chapter that follows the
+ * chapter of the preparation that needs the quest. A repeating quest has its own range of days, or the whole act.
+ */
+function questRange(quest: Quest, data: GameData): { from: number; to: number } {
+  const supper = data.calendar.supper;
+  if (quest.finale) return { from: supper, to: supper };
+  if (quest.repeating || quest.recovery) return quest.during ?? { from: 1, to: supper };
+  const index = data.tasks.findIndex(task => task.id === quest.afterTask), chapter = index < 0 ? 1 : data.tasks[index].chapter;
+  const needed = data.tasks[index + 1]?.chapter ?? data.chapters.length;
+  const from = questHoliday(quest, data)?.day ?? Math.max(quest.opens ?? 1, data.chapters[chapter - 1].opens);
+  return { from, to: (data.chapters[needed]?.opens ?? supper) - 1 };
+}
+/** The tags that a diet that keeps Lent forbids in a range of days: none outside Lent, and fish only if the range does not start on a fish day. */
+function lentTags(range: { from: number; to: number }, data: GameData): DishTag[] {
+  const lent = data.calendar.lent;
+  if (range.to < lent.from || range.from > lent.to) return [];
+  return lent.fish.includes(range.from) ? ['meat', 'dairy', 'egg'] : ['meat', 'dairy', 'egg', 'fish'];
+}
 
 /** A known dish that is not a source. */
 const isDish = (code: unknown, data: GameData): code is string => typeof code === 'string' && own(data.items, code) && !data.items[code].generator;
@@ -11,16 +34,19 @@ function dietProblems(person: Character, data: GameData): string[] {
   if (diet === undefined) return [];
   const tag = (value: unknown) => (dishTags as readonly unknown[]).includes(value);
   if (!diet || typeof diet.name !== 'string' || !diet.name.trim() || !Array.isArray(diet.forbid) || !diet.forbid.every(tag)
-    || (diet.require !== undefined && (!isDish(diet.require.item, data) || !tag(diet.require.tag)))
+    || (diet.lent !== undefined && diet.lent !== true) || (diet.require !== undefined && (!isDish(diet.require.item, data) || !tag(diet.require.tag)))
     || (diet.apart !== undefined && (!Array.isArray(diet.apart) || diet.apart.length !== 2 || !diet.apart.every(tag) || diet.apart[0] === diet.apart[1]))) return [`${person.id}: invalid diet.`];
   return [];
 }
-/** The dishes that one person cannot eat in one quest: a forbidden tag, a missing required dish or tag, or two tags kept apart. */
-export function dietBreaks(person: Character, dishes: readonly string[], data: GameData, wholeQuest = true): boolean {
+/**
+ * The dishes that one person cannot eat in one quest: a forbidden tag, a missing required dish or tag, or two tags kept apart. A diet
+ * that keeps Lent also forbids the Lent tags of the days of the quest.
+ */
+export function dietBreaks(person: Character, dishes: readonly string[], data: GameData, wholeQuest = true, range?: { from: number; to: number }): boolean {
   const diet = person.diet;
   if (!diet) return false;
   const tags = dishes.flatMap(code => data.items[code].tags);
-  if (diet.forbid.some(tag => tags.includes(tag))) return true;
+  if ([...diet.forbid, ...(diet.lent && range ? lentTags(range, data) : [])].some(tag => tags.includes(tag))) return true;
   if (diet.apart && diet.apart.every(tag => tags.includes(tag))) return true;
   return wholeQuest && !!diet.require && (!dishes.includes(diet.require.item) || !tags.includes(diet.require.tag));
 }
@@ -83,16 +109,23 @@ export function questProblems(data: GameData): string[] {
       ids.add(quest.id);
       if (!data.characters.some(character => character.id === quest.character) || !quest.title) problems.push(`${quest.id}: unknown character or missing title.`);
       if (quest.afterTask !== null && !data.tasks.some(task => task.id === quest.afterTask)) problems.push(`${quest.id}: unknown opening preparation.`);
+      if (quest.afterQuest !== undefined) {
+        const previous = data.quests.find(other => other.id === quest.afterQuest);
+        if (previous && (previous.recovery || previous.repeating || (!quest.act && (previous.act || (previous.march && !quest.march))))) {
+          problems.push(`${quest.id}: its prior quest must record a delivery in the same campaign.`);
+        }
+      }
+      // A companion is another character who eats the meal: a neighbour shares a meal with a friend, and a visitor travels with company.
       if (quest.companions !== undefined && (!Array.isArray(quest.companions) || !quest.companions.length
         || new Set(quest.companions).size !== quest.companions.length
-        // A companion is a visitor. The staff of the bistro also eat together, so a repeating quest can share a core character.
-        || !quest.companions.every(id => id !== quest.character && data.characters.some(character => character.id === id
-          && (character.visitor || (quest.repeating && !character.regular)))))) problems.push(`${quest.id}: invalid companions.`);
+        || !quest.companions.every(id => id !== quest.character && data.characters.some(character => character.id === id)))) problems.push(`${quest.id}: invalid companions.`);
       if (quest.finale !== undefined && quest.finale !== true) problems.push(`${quest.id}: invalid supper flag.`);
       if (quest.recovery !== undefined && (quest.recovery !== true || quest.finale || quest.followUp || quest.unlocks || quest.afterTask !== null || quest.afterQuest !== undefined)) problems.push(`${quest.id}: invalid recovery quest.`);
-      // A repeating quest opens in no window. It can follow one campaign quest.
+      // A repeating quest opens in no window. It can follow one campaign quest, and it can have a range of days.
       if (quest.repeating !== undefined && (quest.repeating !== true || quest.finale || quest.recovery || quest.booked || quest.followUp || quest.unlocks || quest.afterTask !== null
-        || (quest.afterQuest !== undefined && !data.quests.some(other => other.id === quest.afterQuest && !other.repeating && !other.recovery && !other.finale)))) problems.push(`${quest.id}: invalid repeating quest.`);
+        || (quest.afterQuest !== undefined && !data.quests.some(other => other.id === quest.afterQuest && campaignQuest(other))))) problems.push(`${quest.id}: invalid repeating quest.`);
+      if (quest.during !== undefined && (!quest.repeating || !integer(quest.during.from, 1, data.calendar.supper) || !integer(quest.during.to, quest.during.from, data.calendar.supper))) problems.push(`${quest.id}: invalid range of days.`);
+      if (quest.act !== undefined && (![2, 3].includes(quest.act) || !campaignQuest({ ...quest, act: undefined }) || quest.march || quest.unlocks)) problems.push(`${quest.id}: invalid later act.`);
       if (!Array.isArray(quest.requirements) || !quest.requirements.length || quest.requirements.reduce((count, requirement) => count + requirement.quantity, 0) > data.board.initial.length) problems.push(`${quest.id}: invalid delivery size.`);
       for (const requirement of quest.requirements) {
         if (!isDish(requirement.item, data) || !integer(requirement.quantity, 1, data.board.initial.length)) problems.push(`${quest.id}: invalid requirement.`);
@@ -129,27 +162,27 @@ export function questProblems(data: GameData): string[] {
     for (const id of graph.keys()) visit(id);
     if (problems.length) return problems;
     // The tickets show open quests in authored order, so an earlier quest never opens after a later one.
-    // The repeating quests open in no window, so they come last, in their cycle order.
-    const known = new Map<Quest, number>(), openings = data.quests.map(quest => quest.repeating ? Infinity : questOpening(quest, data, known));
-    if (openings.some((opening, at) => at && opening < openings[at - 1])) problems.push('Quests must be in the order in which they open.');
+    // The repeating quests open in no window, so they come after the campaign, in their cycle order. The quests of later acts come last.
+    const known = new Map<Quest, number>(), openings = data.quests.map(quest => quest.act || quest.repeating ? Infinity : questOpening(quest, data, known));
+    if (openings.some((opening, at) => at && opening < openings[at - 1]) || data.quests.some((quest, at) => at && !quest.act && data.quests[at - 1].act)) problems.push('Quests must be in the order in which they open.');
     // Every campaign quest opens before the last preparation, so the campaign needs it. Only the supper opens after the last preparation.
-    if (openings.some((opening, at) => opening >= data.tasks.length - 1 && !data.quests[at].finale && !data.quests[at].repeating)) problems.push('Every quest must open before the last preparation.');
+    if (openings.some((opening, at) => opening >= data.tasks.length - 1 && !data.quests[at].finale && !data.quests[at].repeating && !data.quests[at].act)) problems.push('Every quest must open before the last preparation.');
     // At least three simple repeating quests take turns, and one can join the cycle in a new game.
     const repeating = data.quests.filter(quest => quest.repeating);
     if (repeating.length < 3) problems.push('The game needs at least three repeating quests.');
     for (const quest of repeating) if (questMerges(quest, data) > REPEAT_MERGES) problems.push(`${quest.id}: a repeating quest needs at most ${REPEAT_MERGES} merges.`);
-    if (!repeating.some(quest => canJoinCycle({ taskIndex: 0, decorations: [], completedQuests: [] }, quest, data))) problems.push('A repeating quest must be able to join the cycle in a new game.');
+    if (!repeating.some(quest => canJoinCycle(createGame(data), quest, data))) problems.push('A repeating quest must be able to join the cycle in a new game.');
     const supper = data.quests.filter(quest => quest.finale), recovery = data.quests.filter(quest => quest.recovery);
     if (supper.length !== 1) problems.push('The finale needs exactly one supper quest.');
     else if (openings[data.quests.indexOf(supper[0])] !== data.tasks.length - 1) problems.push('The supper quest opens after the last preparation.');
     // The recovery quest asks only for dishes of free sources, so a player with an empty purse can always cook it.
     if (recovery.length !== 1) problems.push('The game needs exactly one recovery quest.');
-    else if (!recovery[0].requirements.every(({ item }) => dishChains(item, data).every(chain => data.items[`generator_${chain}`]?.generator?.free) && availableChains({ taskIndex: 0 }, data).includes(data.items[item].chain))) {
+    else if (!recovery[0].requirements.every(({ item }) => dishChains(item, data).every(chain => data.items[`generator_${chain}`]?.generator?.free) && availableChains({ taskIndex: 0, clock: { day: 1 } }, data).includes(data.items[item].chain))) {
       problems.push(`${recovery[0].id}: the recovery quest asks only for open dishes of free sources.`);
     }
     let earned = 0, spent = 0;
     for (const [index, task] of data.tasks.entries()) {
-      earned += data.quests.filter((quest, at) => openings[at] === index - 1 && !quest.recovery && !quest.repeating).reduce((sum, quest) => sum + workValue(quest, data), 0);
+      earned += data.quests.filter((quest, at) => openings[at] === index - 1 && campaignQuest(quest)).reduce((sum, quest) => sum + workValue(quest, data), 0);
       spent += task.cost;
       if (earned < spent) problems.push(`${task.id}: the quests before it earn ${earned} coins of work, less than the ${spent} that the preparations cost.`);
     }
@@ -163,11 +196,13 @@ export function questProblems(data: GameData): string[] {
       for (const dependency of graph.get(id) ?? []) if (!found.has(dependency)) { found.add(dependency); ancestors(dependency, found); }
       return found;
     };
-    const starting = availableChains({ taskIndex: 0 }, data);
+    const starting = availableChains({ taskIndex: 0, clock: { day: 1 } }, data);
+    // A quest of a later act keeps the rules of its characters: the favourites, the size of a meal, and the diets. The calendar, the
+    // arrivals, and the open chains of act 1 do not apply to it.
     for (const quest of data.quests) {
-      const before = ancestors(`quest:${quest.id}`);
+      const later = !!quest.act, before = ancestors(`quest:${quest.id}`), range = later ? undefined : questRange(quest, data);
       const person = data.characters.find(person => person.id === quest.character)!;
-      if (person.arrivesAfter && !quest.recovery && !before.has(`task:${person.arrivesAfter}`)) problems.push(`${quest.id}: the character must arrive before the quest opens.`);
+      if (!later && person.arrivesAfter && !quest.recovery && !before.has(`task:${person.arrivesAfter}`)) problems.push(`${quest.id}: the character must arrive before the quest opens.`);
       const dishes = quest.requirements.map(requirement => requirement.item);
       if (person.regular && !quest.finale && !dishes.some(code => person.favourites?.includes(code))) problems.push(`${quest.id}: a regular needs a favourite dish.`);
       // A repeating quest or a quest without provisions is one meal for each eater. The supper has one plate for each guest.
@@ -177,15 +212,20 @@ export function questProblems(data: GameData): string[] {
         const portions = [...counts.values()].reduce((sum, count) => sum + count, 0), eaters = 1 + (quest.companions?.length ?? 0);
         if (portions > MEAL.portions * eaters || [...counts.values()].some(count => count > MEAL.same)) problems.push(`${quest.id}: asks for more than one meal for each eater.`);
       }
-      if (!quest.finale && [person, ...(quest.companions ?? []).map(id => data.characters.find(value => value.id === id)!)].some(eater => dietBreaks(eater, dishes, data))) problems.push(`${quest.id}: breaks a diet.`);
+      if (!quest.finale && [person, ...(quest.companions ?? []).map(id => data.characters.find(value => value.id === id)!)].some(eater => dietBreaks(eater, dishes, data, true, range))) problems.push(`${quest.id}: breaks a diet.`);
       if (cathedral(person)) {
         const portions = quest.requirements.reduce((sum, requirement) => sum + requirement.quantity, 0);
         const provisions = portions >= 12 && portions <= 16 && dishes.every(code => !data.items[code].recipe && data.items[code].stage >= 3);
         const meals = portions >= 4 && portions <= 6 && dishes.every(code => !!data.items[code].recipe);
         if (!provisions && !meals) problems.push(`${quest.id}: a cathedral supply quest has 12 to 16 portions of chain dishes from stage 3, or 4 to 6 mixed dishes.`);
       }
-      for (const code of dishes) {
-        const open = (chain: string) => starting.includes(chain) || data.tasks.some(task => task.unlock === chain && before.has(`task:${task.id}`));
+      // A seasonal chain is open for a quest whose days are inside its season. The engine keeps a repeating quest to the days of its source.
+      for (const code of later ? [] : dishes) {
+        const open = (chain: string) => {
+          const season = chainSeason(chain, data);
+          if (season) return quest.repeating || (range!.from >= season.from && range!.to <= season.to);
+          return starting.includes(chain) || data.tasks.some(task => task.unlock === chain && before.has(`task:${task.id}`));
+        };
         if (!dishChains(code, data).every(open)) problems.push(`${quest.id}: required chain is not available before activation.`);
       }
     }
@@ -205,7 +245,7 @@ function supperProblems(quest: Quest, data: GameData): string[] {
     if (person.regular && !person.favourites?.includes(item)) problems.push(`${quest.id}: ${person.name} gets a favourite dish.`);
   }
   const used = new Set(quest.requirements.flatMap(({ item }) => dishChains(item, data)));
-  if (!data.chains.every(chain => used.has(chain.id))) problems.push(`${quest.id}: the plates use every chain.`);
+  if (!data.chains.every(chain => chain.season || used.has(chain.id))) problems.push(`${quest.id}: the plates use every chain that is open all year.`);
   return problems;
 }
 /** Check the chapters, their scenes, their neighbour contributions, and the finale before the content can ship. */
@@ -224,7 +264,7 @@ export function storyProblems(data: GameData): string[] {
       if (!scene(chapter.closing, data)) problems.push(`${label}: invalid closing scene.`);
       const tasks = data.tasks.flatMap((task, at) => task.chapter === index + 1 ? [at] : []);
       if (!tasks.length) { problems.push(`${label} has no preparation.`); continue; }
-      const quest = data.quests.find(quest => quest.id === chapter.contribution);
+      const quest = data.quests.find(quest => quest.id === chapter.contribution && campaignQuest(quest));
       if (!quest) { problems.push(`${label}: unknown neighbour contribution.`); continue; }
       // The contribution opens after the previous chapter closes and before this chapter's last preparation.
       const opening = questOpening(quest, data, known);
@@ -272,17 +312,20 @@ export function economyProblems(data: GameData): string[] {
 export function dayProblems(data: GameData): string[] {
   const problems: string[] = [];
   try {
-    const { opening, closing, booking, mergeMinutes, upkeep, ratTake, ratHoles, giftStage, giftSpace } = data.day;
-    if (![opening, closing, booking, upkeep, ratHoles].every(value => integer(value)) || ![mergeMinutes, ratTake, giftStage].every(value => integer(value, 1))
-      || !(opening < booking && booking < closing && closing <= 24 * 60) || (closing - opening) % mergeMinutes || (booking - opening) % mergeMinutes) {
-      return ['The day needs whole levers, and the booking time between opening and closing, on the merge grid.'];
+    const { opening, closing, booking, sunday, mergeMinutes, upkeep, ratTake, ratHoles, giftStage, giftSpace } = data.day;
+    if (![opening, closing, booking, upkeep, ratHoles, sunday?.opening, sunday?.closing].every(value => integer(value)) || ![mergeMinutes, ratTake, giftStage].every(value => integer(value, 1))
+      || !(opening < booking && booking < closing && closing <= 24 * 60) || (closing - opening) % mergeMinutes || (booking - opening) % mergeMinutes
+      || !(sunday.opening < sunday.closing && sunday.closing <= booking) || (sunday.closing - sunday.opening) % mergeMinutes) {
+      return ['The day needs whole levers, the booking time between opening and closing, and a shorter Sunday that closes before the booking time, on the merge grid.'];
     }
     if (!integer(giftSpace, KEEP_FREE + 1)) problems.push(`A gift needs at least ${KEEP_FREE + 1} free cells, so the recovery quest keeps its space.`);
-    for (const chain of data.chains) if (!own(data.items, `${chain.id}_${giftStage}`)) problems.push(`${chain.id}: needs a stage-${giftStage} dish for a gift.`);
-    const merges = dayMerges(data);
+    for (const chain of data.chains) if (!chain.season && !own(data.items, `${chain.id}_${giftStage}`)) problems.push(`${chain.id}: needs a stage-${giftStage} dish for a gift.`);
+    // A meal fits in one weekday. Provisions and the supper can take more than one day.
+    const merges = (closing - opening) / mergeMinutes;
     for (const quest of data.quests) {
       const work = quest.requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).merges * quantity, 0);
-      if (work > merges) problems.push(`${quest.id}: needs ${work} merges, more than the ${merges} of one day.`);
+      const provisions = quest.finale || data.characters.find(person => person.id === quest.character)?.provisions;
+      if (!provisions && work > merges) problems.push(`${quest.id}: needs ${work} merges, more than the ${merges} of one day.`);
       if (quest.booked !== undefined && (quest.booked !== true || quest.finale || quest.recovery)) problems.push(`${quest.id}: invalid booking.`);
     }
     // Two guests book the evenings, and they never share one. Every quest of a booked guest is booked.
@@ -292,11 +335,82 @@ export function dayProblems(data: GameData): string[] {
   } catch { problems.push('The day records are malformed.'); }
   return problems;
 }
+/**
+ * Check the calendar of act 1: the weather, the holidays, Lent, the terrace season, and the chapter dates. Then check the dates of the
+ * quests: each date is inside act 1 and inside the chapter of its preparation, a holiday quest opens at most three days before its
+ * holiday, a March quest opens in March, and an outdoor quest opens after the courtyard. Last, the dated graph finds the earliest day of
+ * each preparation and quest: the last preparation can come before the closing of the day before the supper, and each March quest can
+ * open in March.
+ */
+export function calendarProblems(data: GameData): string[] {
+  const problems: string[] = [];
+  try {
+    const calendar = data.calendar, supper = calendar.supper, day = (month: number, date: number) => actDay(month, date, data);
+    if (!integer(calendar.start, 1, 365) || !integer(supper, 2, 365) || !Array.isArray(calendar.weather) || calendar.weather.length !== supper
+      || !calendar.weather.every(value => ['fair', 'rain', 'snow'].includes(value))) return ['The calendar needs a start, a supper day, and the weather of each day.'];
+    // Snow ends before 15 March, and from 1 April rain never lasts three days.
+    if (calendar.weather.some((value, at) => value === 'snow' && at + 1 >= day(3, 15))) problems.push('Snow occurs only before 15 March.');
+    if (calendar.weather.some((value, at) => at + 1 >= day(4, 1) + 2 && value === 'rain' && calendar.weather[at - 1] === 'rain' && calendar.weather[at - 2] === 'rain')) problems.push('From 1 April, rain lasts at most two days in a row.');
+    const ids = new Set<string>();
+    for (const holiday of calendar.holidays) {
+      if (!stable(holiday.id) || ids.has(holiday.id) || typeof holiday.name !== 'string' || !holiday.name.trim() || !integer(holiday.day, 1, supper)
+        || (holiday.noEvening !== undefined && holiday.noEvening !== true)) problems.push(`${holiday.id}: invalid holiday.`);
+      else if (calendar.weather[holiday.day - 1] !== 'fair') problems.push(`${holiday.id}: a holiday has fair weather.`);
+      ids.add(holiday.id);
+    }
+    const { lent, terrace } = calendar;
+    if (!integer(lent.from, 1, supper) || !integer(lent.to, lent.from, supper) || !Array.isArray(lent.fish) || !lent.fish.every(value => integer(value, lent.from, lent.to))
+      || !integer(terrace.from, 1) || !integer(terrace.to, terrace.from)) problems.push('Lent, its fish days, and the terrace season need ranges of days.');
+    if (!terraceDay(supper - 1, data) || !terraceDay(supper, data)) problems.push('The day before the supper and the supper day are terrace days.');
+    const { views, decorations } = calendar, inside = (crop: { x: number; y: number; width: number; height: number }) =>
+      [crop.x, crop.y, crop.width, crop.height].every(Number.isFinite) && crop.x >= 0 && crop.y >= 0 && crop.width > 0 && crop.height > 0 && crop.x + crop.width <= 100 && crop.y + crop.height <= 100;
+    if (!views.length || views[0].from > 1 || !views.every((view, at) => stable(view.id) && integer(view.from, -1000, supper) && (!at || view.from > views[at - 1].from))) problems.push('The window views need rising dates from the start of act 1.');
+    for (const decoration of decorations) if (!stable(decoration.id) || !decoration.name || !data.areas.some(area => area.id === decoration.area) || !stable(decoration.image)
+      || !integer(decoration.from, 1, supper) || !integer(decoration.to, decoration.from, supper) || !inside(decoration.crop)) problems.push(`${decoration.id}: invalid holiday decoration.`);
+    if (data.chapters[0]?.opens !== 1 || !data.chapters.every((chapter, at) => integer(chapter.opens, 1, supper - 1) && (!at || chapter.opens > data.chapters[at - 1].opens))) problems.push('The chapter dates start on day 1 and rise.');
+    if (problems.length) return problems;
+    const chapterOf = (quest: Quest) => quest.afterTask === null ? 1 : data.tasks.find(task => task.id === quest.afterTask)!.chapter;
+    const courtyard = data.tasks.findIndex(task => task.id === data.areas.find(area => area.id === 'courtyard')?.unlock);
+    for (const quest of data.quests.filter(quest => !quest.act)) {
+      const holiday = quest.holiday === undefined ? undefined : questHoliday(quest, data);
+      if (quest.opens !== undefined && (!integer(quest.opens, 1, supper) || quest.repeating || quest.recovery || quest.finale || quest.opens < data.chapters[chapterOf(quest) - 1].opens)) problems.push(`${quest.id}: an opening date is inside act 1 and inside the chapter of its preparation.`);
+      if (quest.holiday !== undefined && (!holiday || quest.opens === undefined || quest.opens > holiday.day || holiday.day - quest.opens > 3 || quest.booked || quest.march)) problems.push(`${quest.id}: a holiday quest opens at most three days before its holiday.`);
+      if (quest.march !== undefined && (quest.march !== true || quest.opens === undefined || calendarDate(quest.opens, data).month !== 3 || !campaignQuest({ ...quest, march: undefined }) || quest.booked)) problems.push(`${quest.id}: a March quest opens in March.`);
+      if (quest.march && data.quests.some(other => other.character === quest.character && !other.act && !other.march && !other.recovery && !other.repeating)) problems.push(`${quest.id}: every act 1 quest of a March character is a March quest.`);
+      if (quest.outdoor !== undefined && (quest.outdoor !== true || quest.repeating || quest.recovery || questOpening(quest, data) < courtyard)) problems.push(`${quest.id}: an outdoor quest opens after the courtyard opens.`);
+    }
+    if (problems.length) return problems;
+    // The earliest day of each payment and each delivery. A payment follows the earlier payment, the opening of its chapter, and the
+    // deliveries that it needs. A quest opens after its payment, its opening date, and its predecessors. A delivery waits for the holiday
+    // of the quest, and an outdoor delivery for a terrace day.
+    const terraceFrom = (from: number) => { for (let at = from; at <= supper; at++) if (terraceDay(at, data)) return at; return Infinity; };
+    const delivered = new Map<Quest, number>(), paid: number[] = [];
+    const deliveredOn = (quest: Quest): number => {
+      const known = delivered.get(quest);
+      if (known !== undefined) return known;
+      const index = data.tasks.findIndex(task => task.id === quest.afterTask);
+      const open = Math.max(index < 0 ? 1 : paidOn(index), quest.opens ?? 1, ...questPredecessors(quest, data).map(id => deliveredOn(data.quests.find(other => other.id === id)!)));
+      if (quest.march && open > day(3, 31)) problems.push(`${quest.id}: a March quest must be able to open in March.`);
+      const holiday = Math.max(open, questHoliday(quest, data)?.day ?? 1), result = quest.outdoor ? terraceFrom(holiday) : holiday;
+      delivered.set(quest, result);
+      return result;
+    };
+    const paidOn = (index: number): number => paid[index] ??= Math.max(index ? paidOn(index - 1) : 1, data.chapters[data.tasks[index].chapter - 1].opens,
+      ...requiredQuests(index, data).map(deliveredOn));
+    if (paidOn(data.tasks.length - 1) > supper - 1) problems.push(`The last preparation cannot come before the closing of day ${supper - 1}.`);
+    for (const quest of data.quests.filter(quest => quest.march)) deliveredOn(quest);
+  } catch { problems.push('The calendar records are malformed.'); }
+  return problems;
+}
 /** Check authored choices before packaging their data and approved images. Without knownImages, the image names are not checked. */
 export function decorationProblems(data: GameData, knownImages?: readonly string[]): string[] {
   const problems: string[] = [];
   const slots = data.decorationSlots;
   if (new Set(slots.map(slot => slot.id)).size !== slots.length) problems.push('Decoration slot IDs must be unique.');
+  // The window views and the holiday decorations show approved images.
+  for (const image of [...data.calendar.views.map(view => view.id), ...data.calendar.decorations.map(decoration => decoration.image)]) {
+    if (knownImages && !knownImages.includes(image)) problems.push(`${image}: missing image.`);
+  }
   for (const slot of slots) {
     const area = data.areas.find(area => area.id === slot.area);
     const unlock = data.tasks.findIndex(task => task.id === slot.unlock);
@@ -357,7 +471,7 @@ export function dataProblems(data: GameData, knownImages?: readonly string[]): s
     }
     const items = itemProblems(data);
     if (items.length) return items;
-    const problems = [...characterProblems(data), ...boardLayoutProblems(data), ...roomProblems(data), ...decorationProblems(data, knownImages),
+    const problems = [...characterProblems(data), ...calendarProblems(data), ...boardLayoutProblems(data), ...roomProblems(data), ...decorationProblems(data, knownImages),
       ...questProblems(data), ...discoveryProblems(data), ...storyProblems(data), ...economyProblems(data), ...dayProblems(data)];
     // The save validation relies on the other checks, so it judges the new game only after they pass.
     if (!problems.length && !validateGame(createGame(data), data)) problems.push('The starting board does not make a valid new game.');
@@ -377,7 +491,7 @@ export function discoveryProblems(data: GameData): string[] {
   const start = data.board.initial.filter(present);
   /** The quests that are delivered before this one opens: those that the preparations before it need, and its predecessors. */
   const delivered = (quest: Quest, found = new Set<Quest>()): Set<Quest> => {
-    for (const other of data.quests) if (!other.finale && !other.recovery && !other.repeating && opening(other) < opening(quest)) found.add(other);
+    for (const other of data.quests) if (campaignQuest(other) && opening(other) < opening(quest)) found.add(other);
     for (const id of predecessors.get(quest)!) {
       const previous = byId.get(id);
       if (previous && !found.has(previous)) { found.add(previous); delivered(previous, found); }
@@ -386,9 +500,10 @@ export function discoveryProblems(data: GameData): string[] {
   };
   const parts = (item: Item) => item.recipe ?? [item.stage > 1 ? `${item.chain}_${item.stage - 1}` : `generator_${item.chain}`];
   for (const [at, quest] of data.quests.entries()) {
+    if (quest.act) continue;
     const done = delivered(quest), known = new Set(start);
-    for (const chain of availableChains({ taskIndex: opening(quest) + 1 }, data)) known.add(`generator_${chain}`);
-    const shown = data.quests.slice(0, at).filter(other => !other.recovery && !other.repeating && opening(other) <= opening(quest)
+    for (const chain of availableChains({ taskIndex: opening(quest) + 1, clock: { day: questRange(quest, data).from } }, data)) known.add(`generator_${chain}`);
+    const shown = data.quests.slice(0, at).filter(other => campaignQuest(other) && opening(other) <= opening(quest)
       && predecessors.get(other)!.every(id => done.has(byId.get(id)!)));
     for (const other of [...done, ...shown]) for (const { item } of other.requirements) known.add(item);
     for (const { item } of quest.requirements) {
@@ -441,8 +556,12 @@ function itemProblems(data: GameData): string[] {
     if (!data.items[`generator_${chain}`]?.generator || length < 4 || length > 6 || !Array.from({ length }, (_, index) => `${chain}_${index + 1}`).every(code => own(data.items, code))) {
       problems.push(`${chain}: needs a source and four to six food stages.`);
     }
-    const sources = data.board.initial.filter(code => code === `generator_${chain}`).length + data.tasks.filter(task => task.unlock === chain).length;
-    if (sources !== 1) problems.push(`${chain}: its source must be available exactly once.`);
+    // A seasonal source comes by its season: no preparation opens it, and a new game holds it only in its season.
+    const sources = data.board.initial.filter(code => code === `generator_${chain}`).length, unlocks = data.tasks.filter(task => task.unlock === chain).length;
+    const season = chainSeason(chain, data);
+    if (season ? unlocks || sources !== Number(season.from <= 1 && season.to >= 1) || !data.items[`generator_${chain}`]?.generator?.free
+      || !integer(season.from, -1000) || !integer(season.to, season.from) || typeof season.departure !== 'string' || !season.departure.trim()
+      : sources + unlocks !== 1) problems.push(`${chain}: its source must be available exactly once.`);
   }
   for (const task of data.tasks) if (task.unlock !== undefined && !chains.has(task.unlock)) problems.push(`${task.id}: unknown source unlock.`);
   return problems;
@@ -489,7 +608,7 @@ export function boardLayoutProblems(data: GameData): string[] {
       problems.push('Each preparation needs two or three contextual blockers in story order.');
       continue;
     }
-    const chains = availableChains({ taskIndex: index + 1 }, data);
+    const chains = availableChains({ taskIndex: index + 1, clock: { day: 1 } }, data);
     for (const obstacle of batch.obstacles) {
       if (!validObstacle(obstacle, chains, data) || obstacleIds.has(obstacle.id)) {
         problems.push(`Preparation ${batch.after} has an invalid blocker.`);

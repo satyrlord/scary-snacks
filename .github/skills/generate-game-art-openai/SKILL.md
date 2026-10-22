@@ -86,7 +86,7 @@ The helper reads each other value from the contract of the asset:
 | `rat-hole` | `1024x1024` | `transparent` | One image, square, the rat hole blocker |
 | `night-sky` | `2048x1024` | `opaque` | One image, 2:1, the night sky behind the window glass |
 | `sketch-sheet-1` to `sketch-sheet-3` | `2688x1344` | `opaque`, then `ink` and `sepia` | 4 columns by 2 rows, eight character sketches in one request |
-| `scene-sheet-1` to `scene-sheet-3` | `2304x1536` | `opaque`, then `ink` and `sepia` | 2 columns by 2 rows, four quest scenes in one request |
+| `scene-sheet-1` to `scene-sheet-4` | `2304x1536` | `opaque`, then `ink` and `sepia` | 2 columns by 2 rows, four quest scenes in one request |
 | `window-view-late-winter`, `window-view-early-spring`, `window-view-spring` | `1152x1536` | `opaque` | One image, 3:4 portrait, the seasonal view behind the six panes of the front-room window |
 
 The helper does not accept `visitor-portraits`, `guests`, `preparation-clutter`, or `parchment-page`.

@@ -30,9 +30,9 @@ test('renovation cost follows its materials and labour, with less work and money
   }
 });
 
-test('the starting levers are one coin a take, one coin a blocker, two coins a merge, and a recovery floor of ten', () => {
+test('the starting levers are one coin a take, one coin a blocker, two coins a merge, and a recovery floor of ten, and the herbs and the seasonal sources are free', () => {
   assert.deepEqual(data.economy, { takeCost: 1, blockerCoin: 1, workRate: 2, recoveryFloor: 10 });
-  assert.deepEqual(Object.values(data.items).filter(item => item.generator?.free).map(item => item.id), ['generator_herbs']);
+  assert.deepEqual(Object.values(data.items).filter(item => item.generator?.free).map(item => item.id), ['generator_herbs', 'generator_pickles', 'generator_greens']);
 });
 
 test('every menu price equals staples times the take cost plus merges times the work rate, and Herbs staples count zero', () => {

@@ -59,7 +59,7 @@ Then do these steps:
    "Required actions" in `DESIGN.md` gives the formats and the widths of each asset kind.
    The comments in `tools/build-image-variants.ts` give the reasons.
    Compare the required widths with the master dimensions before you generate variants.
-4. Run `npm run assets:build`.
+4. Run `npm run assets:build`. The command encodes only the new and changed masters, and keeps the other variants.
 5. Add the code that shows a variant, with a path relative to the file that loads it.
    For a room state, also add its identifier to `roomPaintings` in `src/model.ts`.
 6. Update the other asset statements in `PRODUCT.md`, `DESIGN.md`, and `DELIVERY.md`.

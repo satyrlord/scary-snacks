@@ -2,20 +2,22 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { getItem, requiredQuests, resolveQuests, supperComplete, supperQuest } from '../src/model.ts';
+import { getItem, isSunday, questHoliday, requiredQuests, resolveQuests, supperComplete, supperQuest, terraceDay, weather, yearDay } from '../src/model.ts';
 import { KEEP_FREE, validateGame } from '../src/engine.ts';
 import { BALANCE_SEEDS, runCampaignBalance } from '../tools/campaign-balance.ts';
 import type { CampaignTotals } from '../tools/campaign-balance.ts';
 import { checkpointState } from '../tools/create-checkpoint-saves.ts';
-import { act, data, nightLine, player, runs, recovery } from './support.ts';
+import { act, afterMarch, data, nightLine, player, runs, recovery } from './support.ts';
 
 /** The first efficient run, which checks the state after every action. */
 const report = runCampaignBalance(data, BALANCE_SEEDS[0]);
 /** The efficient runs for every seed, without the check of the state after every action. Two tests share them. */
 let efficient: ReturnType<typeof runs> | undefined;
 const efficientRuns = () => efficient ??= runs('efficient');
-// The quests that the preparations need: every quest except the supper and the recovery quest.
-const campaign = requiredQuests(data.tasks.length, data);
+// The quests that the preparations need: every campaign quest of act 1. The March quests of Dochia are not needed, but the efficient
+// strategy delivers them in March.
+const campaign = requiredQuests(data.tasks.length, data), march = data.quests.filter(quest => quest.march);
+const endOfMarch = yearDay(3, 31) - data.calendar.start + 1;
 
 test('the efficient run pays all 24 preparations and serves the supper with no injected coins or items', t => {
   const { totals, finalState } = report;
@@ -23,14 +25,14 @@ test('the efficient run pays all 24 preparations and serves the supper with no i
   assert.equal(finalState.taskIndex, data.tasks.length);
   assert.equal(validateGame(finalState, data), true);
   assert.ok(supperComplete(finalState, data));
-  assert.deepEqual(new Set(finalState.completedQuests), new Set([...campaign.map(quest => quest.id), supper.id]), 'The last preparation needs every campaign quest.');
+  assert.deepEqual(new Set(finalState.completedQuests), new Set([...campaign.map(quest => quest.id), ...march.map(quest => quest.id), supper.id]), 'Every campaign quest and every March quest.');
   assert.equal(finalState.completedQuests.at(-1), supper.id);
-  assert.equal(totals.quests, campaign.length + 1 + totals.recoveries + totals.repeats, 'Each campaign quest, the supper, each recovery tea, and each repeating quest.');
+  assert.equal(totals.quests, campaign.length + march.length + 1 + totals.recoveries + totals.repeats, 'Each campaign quest, each March quest, the supper, each recovery tea, and each repeating quest.');
   // Every coin comes from a quest or a cleared blocker, and goes to a preparation, a take, or the upkeep.
   assert.equal(finalState.coins, totals.questCoins + totals.blockerCoins - totals.preparationCoins - totals.takeCoins - totals.upkeepCoins);
   assert.equal(totals.upkeepCoins, (finalState.clock.day - 1) * data.day.upkeep, 'Each closing pays the upkeep.');
-  assert.deepEqual(finalState.act1, { days: finalState.clock.day, purse: finalState.coins }, 'The supper records the result of act 1.');
-  assert.equal(totals.questCoins, campaign.reduce((sum, quest) => sum + quest.reward, 0) + totals.recoveries * recovery.reward + totals.repeatCoins);
+  assert.deepEqual(finalState.act1, { purse: finalState.coins }, 'The supper records the result of act 1.');
+  assert.equal(totals.questCoins, [...campaign, ...march].reduce((sum, quest) => sum + quest.reward, 0) + totals.recoveries * recovery.reward + totals.repeatCoins);
   assert.equal(totals.preparationCoins, data.tasks.reduce((sum, task) => sum + task.cost, 0));
   // A cleared preparation blocker and a cleared rat hole each give the blocker coin. Each theft makes at most one rat hole.
   const cleared = finalState.resolvedObstacles.length * data.economy.blockerCoin;
@@ -40,7 +42,7 @@ test('the efficient run pays all 24 preparations and serves the supper with no i
   const story = [...data.chapters.flatMap((chapter, index) => [...data.tasks.filter(task => task.chapter === index + 1).map(task => task.id), chapter.id]), data.finale.id];
   assert.deepEqual(finalState.pendingScenes.filter(id => story.includes(id)), story);
   assert.deepEqual(new Set(finalState.pendingScenes.filter(id => !story.includes(id))),
-    new Set([...campaign.map(quest => quest.id), ...data.quests.flatMap(quest => quest.followUp ? [quest.followUp.id] : []),
+    new Set([...campaign.map(quest => quest.id), ...march.map(quest => quest.id), ...data.quests.flatMap(quest => quest.followUp && !quest.act ? [quest.followUp.id] : []),
       ...data.characters.flatMap(person => person.arrival ? [`arrival-${person.id}`] : [])]));
   assert.equal(finalState.layoutId, data.board.defaultLayout);
   assert.ok(finalState.preparationObstacles!.placed.length >= 3);
@@ -50,7 +52,8 @@ test('the efficient run pays all 24 preparations and serves the supper with no i
   t.diagnostic(`${totals.actions} actions, ${totals.spawns} takes, ${totals.merges} merges; ${totals.questCoins} quest coins, ${totals.blockerCoins} blocker coins; ${totals.takeCoins} on takes, ${totals.preparationCoins} on preparations, ${totals.upkeepCoins} on upkeep; ${totals.recoveries} recovery teas; ${report.purse} remain.`);
 });
 
-test('the efficient strategy finishes act 1 in 18 to 30 days for every seed, with the purse in its band and never below zero', t => {
+test('the efficient strategy pays the last preparation before the closing of 30 April and serves the supper on 1 May, with the purse in its band and never below zero', t => {
+  const sundays = Array.from({ length: data.calendar.supper - 1 }, (_, index) => index + 1).filter(day => isSunday(day, data)).length;
   for (const [seed, run] of efficientRuns()) {
     const { totals, nights, finalState } = run;
     assert.equal(finalState.taskIndex, data.tasks.length, `Seed ${seed}: all 24 preparations.`);
@@ -58,11 +61,31 @@ test('the efficient strategy finishes act 1 in 18 to 30 days for every seed, wit
     assert.equal(nights.lowestPurse, 0, `Seed ${seed}: the purse never goes below zero.`);
     assert.equal(nights.fillerMerges, 0, `Seed ${seed}: no dish only to move the clock.`);
     assert.ok(nights.lanterns > 0, `Seed ${seed}: the lanterns bring the booked guests.`);
-    assert.ok(nights.days >= 18 && nights.days <= 30, `Seed ${seed}: act 1 lasts ${nights.days} days.`);
+    // The calendar: each payment comes on or after the opening of its chapter, and no day holds.
+    assert.equal(finalState.clock.day, data.calendar.supper, `Seed ${seed}: the supper is on 1 May.`);
+    for (const [index, day] of nights.payments.entries()) assert.ok(day >= data.chapters[data.tasks[index].chapter - 1].opens, `Seed ${seed}: ${data.tasks[index].id} waits for its chapter.`);
+    assert.ok(nights.payments.at(-1)! <= data.calendar.supper - 1 && !nights.held, `Seed ${seed}: the last preparation comes before the closing of 30 April without the hold.`);
+    assert.equal(nights.closings, data.calendar.supper - 1, `Seed ${seed}: the purse pays the upkeep at each closing.`);
+    assert.equal(nights.rats, sundays, `Seed ${seed}: a rat comes on each Sunday night.`);
+    // The repeating quests fill at most a fifth of the merges, and never more than two days in a row.
+    assert.ok(nights.repeatMerges <= totals.merges * 0.2, `Seed ${seed}: ${nights.repeatMerges} of ${totals.merges} merges for repeating quests.`);
+    assert.ok(!nights.repeatDays.some((day, at) => nights.repeatDays[at + 2] === day + 2), `Seed ${seed}: three days in a row with only repeating work: ${nights.repeatDays.join(' ')}.`);
+    // Each holiday quest on its holiday, each March quest in March, and no outdoor quest that waits more than two rain days.
+    for (const quest of data.quests) {
+      const holiday = questHoliday(quest, data), delivered = nights.delivered[quest.id];
+      if (holiday) assert.equal(delivered, holiday.day, `Seed ${seed}: ${quest.id} on its holiday.`);
+      if (quest.march) assert.ok(delivered <= endOfMarch, `Seed ${seed}: ${quest.id} in March.`);
+      if (quest.outdoor && !quest.finale) {
+        const from = Math.max(nights.opened[quest.id], data.calendar.terrace.from);
+        const waits = Array.from({ length: Math.max(0, delivered - from) }, (_, index) => from + index).filter(day => !terraceDay(day, data) && weather(day, data) !== 'fair').length;
+        assert.ok(waits <= 2, `Seed ${seed}: ${quest.id} waits ${waits} days for fair weather.`);
+      }
+    }
     // The balance band, with the upkeep in the spending.
     assert.equal(run.spending, totals.preparationCoins + totals.takeCoins + totals.upkeepCoins);
     assert.ok(run.purse >= 0 && run.purse <= run.spending * 0.2, `Seed ${seed}: ${run.purse} coins is outside 0 to 20% of ${run.spending}.`);
-    t.diagnostic(`${nightLine(seed, run, `, free cells ${run.preparations.map(value => value.freeCells).join(' ')}`)} Purse ${run.purse} of ${run.spending} spent (${(100 * run.purse / run.spending).toFixed(1)}%).`);
+    t.diagnostic(`${nightLine(seed, run, `, free cells ${run.preparations.map(value => value.freeCells).join(' ')}`)} Purse ${run.purse} of ${run.spending} spent (${(100 * run.purse / run.spending).toFixed(1)}%).`
+      + ` Payments on days ${nights.payments.join(' ')}. Repeating merges ${(100 * nights.repeatMerges / totals.merges).toFixed(1)}%. Days with only repeating work: ${nights.repeatDays.join(' ') || 'none'}.`);
   }
 });
 
@@ -82,8 +105,9 @@ test('the run records the coins, the takes, and the free cells at each preparati
     assert.equal(sum(report.chapters, key), sum(report.preparations, key), `${key} is the same by chapter and by preparation.`);
     assert.ok(sum(report.preparations, key) <= totals[key], key);
   }
-  for (const key of ['questCoins', 'preparationCoins', 'blockerCoins', 'recoveries'] as const) assert.equal(sum(report.preparations, key), totals[key], `${key} is fully recorded by preparation.`);
-  assert.equal(totals.quests - sum(report.preparations, 'quests'), 1, 'Only the supper is delivered after the last preparation.');
+  for (const key of ['preparationCoins', 'recoveries'] as const) assert.equal(sum(report.preparations, key), totals[key], `${key} is fully recorded by preparation.`);
+  // After the last preparation, the repeating quests fill the days until the supper.
+  assert.equal(totals.quests - sum(report.preparations, 'quests'), 1 + totals.repeats - sum(report.preparations, 'repeats'), 'Only the supper and repeating quests come after the last preparation.');
   for (const preparation of report.preparations) {
     const authored = data.tasks.find(task => task.id === preparation.id)!;
     assert.deepEqual(preparation.work, authored.work);
@@ -103,7 +127,8 @@ test('the check of the state after every action does not change the efficient ru
 test('a player who buys a spare staple before each preparation repays it with recovery teas and pays every preparation', t => {
   const teas: number[] = [];
   for (let count = 0; count < data.tasks.length; count++) {
-    let state = checkpointState(data, count);
+    // The March quests that opened are delivered, so no other quest is open.
+    let state = afterMarch(checkpointState(data, count));
     const task = data.tasks[count];
     assert.equal(state.coins, task.cost);
     // One spare staple from a paid source leaves the purse short of the preparation.

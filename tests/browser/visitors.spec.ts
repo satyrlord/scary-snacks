@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { getItem } from '../../src/model.ts';
 import { createGame } from '../../src/engine.ts';
-import { checkpoint, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, journal, opened, openQuest, options, person, portraitCell, readNow, readTo, saved, start, startAgainAndImport, supplies, ticket, toast } from './support.ts';
+import { checkpoint, data, deliverable, dialogDeliver, exportText, finishScene, journal, opened, openQuest, options, person, portraitCell, saved, start, startAgainAndImport, supplies, ticket, toast } from './support.ts';
 
 const visitors=data.characters.filter(value=>value.visitor&&!value.singleVisit);
 const quests=data.quests.filter(value=>visitors.some(visitor=>visitor.id===value.character));
@@ -66,63 +66,8 @@ async function guestAbsent(page: Page){
   await expect(page.getByRole('img',{name:guest.name,exact:true})).toHaveCount(0);await page.keyboard.press('Escape');
 }
 
-test('the castle guest stays hidden until the required preparation is complete',async({page})=>{
-  const state=checkpoint(data.tasks.findIndex(task=>task.id===dinner.afterTask),{ready:true});
+test('the castle guest dines in act 2, so he stays hidden through act 1',async({page})=>{
+  expect(dinner.act).toBe(2);
+  const state=checkpoint(data.tasks.length);
   await start(page,state);await guestAbsent(page);expect(await saved(page)).toEqual(state);
-});
-
-test('the castle guest asks on a ticket, pays once, and leaves the journal after his farewell',async({page})=>{
-  await page.emulateMedia({reducedMotion:'reduce'});
-  await start(page,deliverable(dinner));const before=await saved(page);
-  await checkPortrait(ticket(page,dinner).locator('.portrait'),guest.sprite);
-  // The Deliver buttons show the reward as the reward line does.
-  await expect(deliverButton(page,dinner)).toHaveText(`Deliver · ${dinner.reward.toLocaleString('en')}`);
-  await journal(page,['chapters','conversations','neighbours']);const introduction=page.getByRole('button',{name:`Meet ${guest.name}`,exact:true});
-  await introduction.click();await expect(page.locator('#story-line')).toContainText(guest.introduction);await finishScene(page);expect(await saved(page)).toEqual(before);
-  await page.keyboard.press('Escape');await openQuest(page,dinner);const dialog=page.getByRole('dialog',{name:dinner.title,exact:true});
-  await expect(dialog).toContainText(dinner.opening[0].text);await checkPortrait(dialog.locator('.portrait'),guest.sprite);
-  for(const requirement of dinner.requirements){
-    const name=getItem(requirement.item,data)!.name;
-    await expect(dialog.getByRole('button',{name:`${requirement.quantity} ${name}: ${requirement.quantity} of ${requirement.quantity} on the board`,exact:true})).toBeVisible();
-  }
-  await expect(dialog.locator('.quest-reward')).toHaveText(`Reward: ${dinner.reward.toLocaleString('en')} coins`);
-  await expect(dialogDeliver(page,dinner)).toHaveText(`Deliver · ${dinner.reward.toLocaleString('en')}`);await dialogDeliver(page,dinner).click();
-  await expect(page.locator('#modal')).toBeHidden();await expect(toast(page)).toHaveText(`${dinner.title}: delivered. Earned ${dinner.reward} coins.`);
-  const delivered=await saved(page);expect(delivered.pendingScenes).toEqual([...before.pendingScenes,dinner.id]);
-  expect(delivered.completedQuests).toEqual([...before.completedQuests,dinner.id]);expect(delivered.coins).toBe(before.coins+dinner.reward);
-  expect(delivered.board.filter(Boolean).length).toBe(before.board.filter(Boolean).length-supplies(dinner).length);
-  // A guest who visits once has no journal replay after the visit.
-  await readNow(page,dinner.title);
-  await expect(page.locator('#story-line')).toContainText(dinner.completion[0].text);await readTo(page,'Back to the kitchen');
-  await expect(page.locator('#status')).toHaveText('The scene is finished.');await guestAbsent(page);
-  const after={...delivered,pendingScenes:before.pendingScenes};
-  await page.reload();await opened(page);expect(await saved(page)).toEqual(after);await guestAbsent(page);
-  await options(page);const text=await exportText(page);expect(JSON.parse(text).state).toEqual(after);
-  await startAgainAndImport(page,text);expect(await saved(page)).toEqual(after);await guestAbsent(page);
-});
-
-test('a failed castle dinner save keeps the guest gone for the session and restores only durable progress on reload',async({page})=>{
-  await start(page,deliverable(dinner));const before=await saved(page);
-  await failWrites(page);await deliverButton(page,dinner).click();
-  await expect(toast(page)).toHaveText(`${dinner.title}: delivered. Earned ${dinner.reward} coins. This session is not saved. Use Retry save in Options, or export before leaving.`);
-  await guestAbsent(page);await expect(page.locator('#coin-total')).toHaveText(`${(before.coins+dinner.reward).toLocaleString('en')} coins`);expect(await saved(page)).toEqual(before);
-  await options(page);await expect(page.getByRole('button',{name:'Retry save',exact:true})).toBeVisible();await page.keyboard.press('Escape');
-  await page.reload();await opened(page);await expect(deliverButton(page,dinner)).toBeEnabled();expect(await saved(page)).toEqual(before);
-});
-
-for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`the castle guest and dinner fit ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
-  await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});await start(page,deliverable(dinner));await journal(page,['chapters','conversations','neighbours']);
-  const before=await saved(page),entry=page.getByRole('button',{name:`Meet ${guest.name}`,exact:true});
-  await entry.scrollIntoViewIfNeeded();await checkPortrait(entry.locator('.portrait'),guest.sprite);await entry.click();
-  await expect(page.locator('#story-line')).toContainText(guest.introduction);await checkPortrait(page.locator('.story-turn .portrait'),guest.sprite);
-  await expect(page.locator('.quest-sketch')).toHaveAttribute('src',/sketch-ionatan-672x672\.webp$/);
-  const returnButton=page.getByRole('button',{name:'Return',exact:true});await returnButton.scrollIntoViewIfNeeded();await expect(returnButton).toBeInViewport();
-  expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
-  await page.screenshot({path:testInfo.outputPath('ionatan-introduction.png')});await finishScene(page);
-  await page.keyboard.press('Escape');await openQuest(page,dinner);const dialog=page.locator('.quest-view');
-  await checkPortrait(dialog.locator('.portrait'),guest.sprite);await expect(dialog).toContainText(dinner.opening[0].text);
-  await expect(dialog.locator('.quest-scene-sketch')).toHaveAttribute('src',/scene-ionatan-dinner-1024x683\.webp$/);
-  expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
-  await page.screenshot({path:testInfo.outputPath('ionatan-dinner.png')});
-  await dialogDeliver(page,dinner).scrollIntoViewIfNeeded();await expect(dialogDeliver(page,dinner)).toBeEnabled();await expect(dialogDeliver(page,dinner)).toBeInViewport();expect(await saved(page)).toEqual(before);
 });

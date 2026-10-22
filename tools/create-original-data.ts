@@ -1,16 +1,50 @@
 // Original setting, dialogue, progression, and economy authored for this browser game.
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { menuPrice, MIXED, roomPaintings } from '../src/model.ts';
+import { menuPrice, MIXED, roomPaintings, yearDay } from '../src/model.ts';
 import { dataProblems } from '../src/content.ts';
-import type { Area, BoardLayout, Chapter, Character, DayLevers, DecorationSlot, DishTag, Economy, Finale, FoodAtlas, GameData, Item, PreparationObstacleBatch, Quest, RoomState, Task } from '../src/model.ts';
+import type { Area, BoardLayout, Calendar, Chain, Chapter, Character, DayLevers, DecorationSlot, DishTag, Economy, Finale, FoodAtlas, GameData, Holiday, Item, PreparationObstacleBatch, Quest, RoomState, Task, Weather } from '../src/model.ts';
 
 // The levers of the economy (docs/economy.md). They are starting values: the campaign balance test measures them.
 const economy: Economy = { takeCost: 1, blockerCoin: 1, workRate: 2, recoveryFloor: 10 };
-// The levers of the bistro day, in minutes after midnight. One day holds 150 merges. The campaign balance test measures them.
-const day: DayLevers = { opening: 7 * 60, closing: 22 * 60, booking: 20 * 60, mergeMinutes: 6, upkeep: 10, ratTake: 3, ratHoles: 3, giftStage: 4, giftSpace: 5 };
+// The levers of the bistro day, in minutes after midnight. A weekday holds 60 merges, and a Sunday holds 28. The campaign balance test measures them.
+const day: DayLevers = { opening: 7 * 60, closing: 22 * 60, booking: 20 * 60, sunday: { opening: 10 * 60, closing: 17 * 60 }, mergeMinutes: 15, upkeep: 20,
+  ratTake: 3, ratHoles: 3, giftStage: 4, giftSpace: 5 };
+// Act 1 runs from Saturday 15 February to Thursday 1 May of year 1. A day of act 1 is a number: 15 February is day 1.
+const START = yearDay(2, 15);
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/** The day of act 1 of a date such as "27 Feb". A date in December is in year 0. */
+const on = (date: string) => {
+  const [number, month] = date.split(' '), index = MONTHS.indexOf(month) + 1;
+  if (!index) throw new Error(`Unknown date: ${date}.`);
+  return yearDay(index, Number(number)) - (index === 12 ? 365 : 0) - START + 1;
+};
+// The weather of each day: snow before mid-March, short spring rains in April, and fair weather on each holiday and on the last two days.
+const snow = ['15 Feb', '18 Feb', '19 Feb', '26 Feb', '11 Mar', '12 Mar', '14 Mar'], rain = ['17 Mar', '18 Mar', '26 Mar', '4 Apr', '10 Apr', '11 Apr', '15 Apr', '16 Apr', '24 Apr', '26 Apr', '29 Apr'];
+const SUPPER = on('1 May');
+const weather: Weather[] = Array.from({ length: SUPPER }, (_, index) => snow.some(date => on(date) === index + 1) ? 'snow' : rain.some(date => on(date) === index + 1) ? 'rain' : 'fair');
+// The holidays of act 1 that have a quest. On Saint George's Eve, garlic hangs on every door, so no booked guest dines.
+const holidays: Holiday[] = ([
+  ['dragobete', 'Dragobete', '24 Feb'], ['carnival', 'Carnival Sunday', '2 Mar'], ['womens-day', 'Women’s Day', '8 Mar'], ['mucenici', 'the Forty Martyrs', '9 Mar'],
+  ['annunciation', 'the Annunciation', '25 Mar'], ['palm-sunday', 'Palm Sunday', '13 Apr'], ['holy-thursday', 'Holy Thursday', '17 Apr'],
+  ['holy-saturday', 'Holy Saturday', '19 Apr'], ['easter', 'Easter', '20 Apr'], ['easter-monday', 'Easter Monday', '21 Apr'],
+  ['saint-george-eve', 'Saint George’s Eve', '22 Apr'], ['blajini', 'the Easter of the Blajini', '28 Apr'],
+] as const).map(([id, name, date]) => ({ id, name, day: on(date), ...(id === 'saint-george-eve' ? { noEvening: true as const } : {}) }));
+// The window of the front room shows the village in late winter, at the thaw, and in blossom.
+const views = [{ id: 'window-view-late-winter', from: 1 }, { id: 'window-view-early-spring', from: on('10 Mar') }, { id: 'window-view-spring', from: on('6 Apr') }];
+// Each holiday decoration was painted into a room state, so it keeps the light of the room. Its box is in pixels of the 1536 by 2048 painting.
+const box = (x: number, y: number, width: number, height: number) => ({ x: x / 15.36, y: y / 20.48, width: width / 15.36, height: height / 20.48 });
+const decorations: Calendar['decorations'] = [
+  { id: 'martisor', name: 'A mărțișor, the red and white string, on the window latch', area: 'front-room', image: 'holiday-front', from: on('1 Mar'), to: on('9 Mar'), crop: box(1195, 600, 90, 220) },
+  { id: 'catkins', name: 'Willow catkins in a jar on the windowsill', area: 'front-room', image: 'holiday-front', from: on('13 Apr'), to: on('19 Apr'), crop: box(1444, 770, 92, 192) },
+  { id: 'red-eggs', name: 'A bowl of red eggs on the windowsill', area: 'front-room', image: 'holiday-front', from: on('17 Apr'), to: on('27 Apr'), crop: box(1356, 880, 88, 82) },
+  { id: 'green-branches', name: 'Green branches tied to the gate', area: 'courtyard', image: 'holiday-courtyard', from: on('22 Apr'), to: on('1 May'), crop: box(1291, 850, 110, 320) },
+];
+const calendar: Calendar = { start: START, supper: SUPPER, weather, holidays,
+  lent: { from: on('3 Mar'), to: on('19 Apr'), fish: [on('25 Mar'), on('13 Apr')] }, terrace: { from: on('1 Apr'), to: on('31 Oct') }, views, decorations };
 // The staple chains. Each chain is one food family: its source gives the raw staple, and its dishes use only foods of that
 // family. Each dish names its content tags. The chain atlas holds the source in cell 0 and the dishes in stage order.
+// The two seasonal chains have free sources that come and go with their season.
 const chains: [id: string, name: string, source: string, stages: [name: string, tags: DishTag[]][], free?: true][] = [
   ['grain', 'Grain', 'Windmill', [['Flour', []], ['Dough', []], ['Loaf', []], ['Pogăcele', []], ['Langoș', []], ['Bread basket', []]]],
   ['corn', 'Corn', 'Corn basket', [['Corn cob', []], ['Shelled corn', []], ['Cornmeal', []], ['Mămăligă', []]]],
@@ -24,7 +58,14 @@ const chains: [id: string, name: string, source: string, stages: [name: string, 
   ['lamb', 'Lamb', 'Shepherd’s bag', [['Lamb', ['meat']], ['Lamb cuts', ['meat']], ['Lamb chops', ['meat']], ['Lamb stew', ['meat', 'garlic']], ['Roast lamb', ['meat']]]],
   ['veal', 'Veal', 'Butcher’s block', [['Veal', ['meat']], ['Diced veal', ['meat']], ['Minced veal', ['meat']], ['Meatballs', ['meat']], ['Veal stew', ['meat']], ['Roast veal', ['meat']]]],
   ['fish', 'Fish', 'Fish trap', [['Fresh trout', ['fish']], ['Fried trout', ['fish']], ['Smoked trout', ['fish']], ['Saramură', ['fish', 'garlic']]]],
+  ['pickles', 'Preserved vegetables', 'Pickle barrel', [['Gherkins', []], ['Pickled green tomatoes', []], ['Mixed pickles', []], ['Cabbage-stuffed pickled peppers', []]], true],
+  ['greens', 'Spring greens', 'Forage basket', [['Nettles', []], ['Wild garlic and sorrel', ['garlic']], ['Nettle soup', []], ['Nettle purée with garlic', ['garlic']]], true],
 ];
+// The seasons of the seasonal chains: the pickle barrel holds the stores of the cellar, and the forage basket the greens of the hill.
+const seasons: Record<string, Chain['season']> = {
+  pickles: { from: on('1 Dec'), to: on('20 Mar'), departure: 'The pickle barrel is empty until next winter.' },
+  greens: { from: on('21 Mar'), to: on('31 May'), departure: 'The forage basket waits for next spring.' },
+};
 // The mixed dishes: a slug, the name, the two parts by name, the tags that the dish adds to those of its parts, and its atlas cell.
 // A part that is itself mixed must come earlier in this list.
 const mixedRows: [slug: string, name: string, parts: [string, string], added: DishTag[], atlas: FoodAtlas, cell: number][] = [
@@ -52,6 +93,11 @@ const mixedRows: [slug: string, name: string, parts: [string, string], added: Di
   ['saramura-mamaliga', 'Saramură with mămăligă', ['Saramură', 'Mămăligă'], [], 'mains', 6],
   ['cozonac', 'Cozonac', ['Sweet dough', 'Fruit bowl'], [], 'sweets', 1],
   ['chimney-cake', 'Chimney cake', ['Sweet dough', 'Milk'], [], 'sweets', 2],
+  // The dishes of the holidays: the pastries of the Forty Martyrs, the Easter bread and eggs, and the colivă of the graves.
+  ['mucenici', 'Mucenici', ['Dough', 'Herb bunch'], [], 'breads', 4],
+  ['pasca', 'Pască', ['Sweet dough', 'Cottage cheese'], [], 'breads', 5],
+  ['red-eggs', 'Red eggs', ['Eggs', 'Vegetable basket'], [], 'breads', 6],
+  ['coliva', 'Colivă', ['Flour', 'Fruit bowl'], [], 'breads', 7],
 ];
 const items: Record<string, Item> = {};
 for (const [chain, , source, stages, free] of chains) {
@@ -79,7 +125,7 @@ for (const item of Object.values(items)) if (!item.generator) item.price = menuP
 const characters: Character[] = [
   { id: 'mara', name: 'Mara', role: 'Bistro owner', sprite: 0,
     introduction: 'I am Mara. I keep the bistro open and make room for neighbours who want a meal or a quiet seat. Help me try a few servings as we prepare the house.' },
-  { id: 'ilie', name: 'Ilie', role: 'Baker', sprite: 1,
+  { id: 'ilie', name: 'Ilie', role: 'Baker', sprite: 1, diet: { name: 'Keeps Lent', forbid: [], lent: true },
     introduction: 'I am Ilie, the baker. I bring bread and the notebook where my family kept its dishes. There is room on those pages for what we learn here.' },
   { id: 'eszter', name: 'Eszter', role: 'Potter', sprite: 2,
     introduction: 'I am Eszter. I make the bowls and plates. A useful dish should sit well on the table and leave room for the person beside you.' },
@@ -163,7 +209,7 @@ function regulars(): Character[] {
   ];
   return rows.map(([id, name, role, portraitAtlas, sprite, favourites, after, introduction, arrival]) => ({
     id, name, role, introduction, sprite, portraitAtlas, regular: true, favourites: favourites.map(dish),
-    ...(id === 'catalina' ? { diet: { name: 'Orthodox fast, fish allowed', forbid: ['meat', 'dairy', 'egg'] } } : {}),
+    ...(id === 'catalina' ? { diet: { name: 'Orthodox fast, fish allowed outside Lent', forbid: ['meat', 'dairy', 'egg'], lent: true as const } } : {}),
     // Dochia packs food for her days on the hill, and Sânziana buys for her sisters, so their quests are provisions, not one meal.
     ...(id === 'dochia' || id === 'sanziana' ? { provisions: true as const } : {}),
     ...(after ? { arrivesAfter: `task_${after}`, arrival: arrival!.map(([speaker, text]) => ({ speaker, text })) } : {}),
@@ -211,8 +257,10 @@ const chapterRows: [title: string, objective: string, opening: string, payoff: s
       ['eszter', 'The flowers are short, the lights are on, and every dish on the serving table has its label.'],
       ['mara', 'Then we are ready. Let us open the doors.']]],
 ];
+// The calendar paces the story: the first preparation of each chapter waits for the opening date of its chapter.
+const chapterDates = ['15 Feb', '27 Feb', '13 Mar', '27 Mar', '9 Apr', '20 Apr'];
 const chapters: Chapter[] = chapterRows.map(([title, objective, opening, payoff, contribution, closing], index) => ({
-  id: `chapter-${index + 1}`, title, objective, opening, payoff, contribution, closing: closing.map(([speaker, text]) => ({ speaker, text })),
+  id: `chapter-${index + 1}`, title, objective, opening, payoff, contribution, closing: closing.map(([speaker, text]) => ({ speaker, text })), opens: on(chapterDates[index]),
 }));
 // The finale names the outcome of each chapter, and every core character speaks. Serving the supper quest earns it.
 // The last line leads to the painting of the supper, and then back to the kitchen.
@@ -236,7 +284,7 @@ const taskRows = [
   ['Choose the tableware', 'eszter', 'These bowls came from three firings. None is exactly the same blue.', 'mara', 'That is why I like them. Each place will feel considered.', 'ilie', 'And each bowl is deep enough for a generous serving.'],
   ['Sand the long table', 'sorin', 'Four people can move this table. Three people can offer advice.', 'mara', 'Today all four of us are moving it. Then the old red chairs.', 'eszter', 'Under that sheet they were painted with birds. A little gold, and they will sing again.'],
   ['Make a recipe corner', 'ilie', 'I brought a notebook for recipes, and my cousin sent legume sacks: beans and lentils for the bean dishes.', 'eszter', 'Let people add a memory beside a dish, if they want.', 'mara', 'We will leave pencils here. The menu can grow with the neighbourhood.'],
-  ['Open the shared table', 'mara', 'The long table is ready for anyone who wants company.', 'sorin', 'I can stop here between deliveries and still have room for my bag.', 'ilie', 'Your bag may have a chair. Your bicycle must wait outside.'],
+  ['Open the shared table', 'mara', 'The long table is ready for anyone who wants company.', 'sorin', 'I can stop here between deliveries. And I set a fish trap in the stream, so trout goes on the menu.', 'ilie', 'Your bag may have a chair. Your bicycle must wait outside, and so must the fish.'],
   ['Clear the courtyard', 'sorin', 'There is a whole courtyard under these leaves. Miez found it before we did.', 'eszter', 'Our black cat has chosen the sunny wall for a nap.', 'mara', 'Let us make the path clear first, then place the tables. Dochia sends lamb down the hill in her shepherd’s bag now.'],
   ['Plant the herb pots', 'eszter', 'The pots have drainage holes and room for roots.', 'ilie', 'Lovage and parsley close to the kitchen will be useful.', 'mara', 'And rosemary under the window, where the warmth reaches it.'],
   ['Repair the door hood', 'sorin', 'New shingles, every one. Rain will run off the front, not down the door.', 'mara', 'Good. Nobody should have a surprise shower with lunch.', 'eszter', 'I will move the pots before we test it with a watering can.'],
@@ -244,7 +292,7 @@ const taskRows = [
   ['Collect family recipes', 'ilie', 'Every page describes a different way to finish the same dish.', 'mara', 'We can keep the names of the people who shared them, with their permission.', 'eszter', 'And write down what we tried, so the next cook can follow it.'],
   ['Prepare the tasting plates', 'eszter', 'Small plates are ready. There is room for notes beside each one.', 'sorin', 'I volunteered to carry them. Tasting was not mentioned, but I remain hopeful.', 'mara', 'Finish the delivery, and we will sit down together.'],
   ['Stock the drinks cabinet', 'mara', 'Socată and fruit tea on one shelf. The traditional spirits on another.', 'ilie', 'Put clear labels on everything, including the cherry compote.', 'sorin', 'Tea for me. There is one more hill on the route home.'],
-  ['Print the supper menu', 'eszter', 'The menu shows a picture of each dish. Anyone can ask what is in it.', 'mara', 'The long table is out for the supper. The small ones stay for anyone who wants a quieter seat.', 'ilie', 'Bring a pencil. Sorin set a fish trap in the stream, so trout goes on the menu too.'],
+  ['Print the supper menu', 'eszter', 'The menu shows a picture of each dish. Anyone can ask what is in it.', 'mara', 'The long table is out for the supper. The small ones stay for anyone who wants a quieter seat.', 'ilie', 'Bring a pencil. A menu always grows by one line after it is printed.'],
   ['Send the invitations', 'sorin', 'I can deliver the paper invitations along my usual route.', 'mara', 'Tell people they can come alone or bring company.', 'eszter', 'I will dress the gate so the whole street knows. There is room at the table.'],
   ['Prepare the serving station', 'ilie', 'Plates first, then the warm dishes. Bread belongs at both ends.', 'mara', 'And water where everyone can reach it.', 'eszter', 'I have made a little stand for each dish label.'],
   ['Add the final flowers', 'eszter', 'Short stems, so nobody has to talk through a bouquet.', 'sorin', 'The courtyard lights are on. Two bats are circling above the roof.', 'mara', 'A good evening for them, too. Let us leave their corner of the garden quiet.'],
@@ -279,7 +327,7 @@ const workRows: [materials: number, labour: number, hours: number, summary: stri
   [54, 54, 2, 'Top up bread, water, and food for eleven guests. Finish setting places and welcome everyone. Reuse the prepared room and tableware.'],
 ];
 // The preparation, by number, that opens each source after the first three. Its scene names the new source.
-const unlocks: Record<number, string> = { 3: 'dairy', 5: 'poultry', 6: 'vegetables', 7: 'fruits', 8: 'pork', 11: 'beans', 13: 'lamb', 16: 'veal', 20: 'fish' };
+const unlocks: Record<number, string> = { 3: 'dairy', 5: 'poultry', 6: 'vegetables', 7: 'fruits', 8: 'pork', 11: 'beans', 12: 'fish', 13: 'lamb', 16: 'veal' };
 const tasks: Task[] = taskRows.map(([title, a, at, b, bt, c, ct], index) => {
   const [materials, labour, hours, summary] = workRows[index];
   return {
@@ -297,7 +345,10 @@ const questTerms = (rows: [string, number][]) => ({ requirements: rows.map(([nam
 // A quest scene is one line by its character, or an exchange of [speaker, text] turns. The requirement rows list the dishes, so the words need not.
 type Speech = string | [speaker: string, text: string][];
 const lines = (character: string, speech: Speech) => typeof speech === 'string' ? [{ speaker: character, text: speech }] : speech.map(([speaker, text]) => ({ speaker, text }));
-type QuestRow = [id: string, character: string, title: string, window: number, requirements: [string, number][], opening: Speech, completion: Speech];
+// The calendar of a quest: its opening date, its holiday, a March quest, a later act, an outdoor quest, and the companions who share the meal.
+type QuestExtra = { opens?: string; holiday?: string; march?: true; act?: 2 | 3; outdoor?: true; companions?: string[] };
+type QuestRow = [id: string, character: string, title: string, window: number, requirements: [string, number][], opening: Speech, completion: Speech, extra?: QuestExtra];
+const questExtra = ({ opens, ...rest }: QuestExtra = {}) => ({ ...rest, ...(opens ? { opens: on(opens) } : {}) });
 // Each quest of a regular asks for at least one favourite dish.
 const questRows: QuestRow[] = [
   ['mara-welcome', 'mara', 'A welcome drink', 0, [['Herb bunch', 2], ['Linden tea', 1]],
@@ -335,23 +386,23 @@ const questRows: QuestRow[] = [
     [['eszter', 'There. Bowl, cup, plate, and nothing crowds anything.'],
       ['mara', 'You moved it eleven times.'],
       ['eszter', 'Twelve. The last time was the right one.']]],
-  ['ilie-courtyard', 'ilie', 'Bread for outside', 12, [['Langoș', 1], ['Socată', 1]],
+  ['ilie-courtyard', 'ilie', 'Bread for outside', 13, [['Langoș', 1], ['Socată', 1], ['Linden tea', 1]],
     [['ilie', 'We have a courtyard now. My family never ate outside. My grandmother said that the air makes bread stale.'],
       ['sorin', 'Your grandmother never had a langoș in the sun.'],
       ['ilie', 'Bring one, then, and a socată. I will find the place where it stays soft.']],
     [['ilie', 'By the kitchen door, in the shade. Still warm, and still soft.'],
-      ['ilie', 'I will add a line to her notebook. In small letters.']]],
-  ['sorin-path', 'sorin', 'A courtyard break', 13, [['Roasted vegetables', 2], ['Socată', 1]],
+      ['ilie', 'I will add a line to her notebook. In small letters.']], { outdoor: true }],
+  ['sorin-path', 'sorin', 'A courtyard break', 13, [['Roasted vegetables', 2], ['Nettles', 1]],
     [['sorin', 'Before a guest walks the courtyard, I walk it with a full tray. Gate, door, tables.'],
       ['eszter', 'And if you trip?'],
-      ['sorin', 'Then you will hear it. Put roasted vegetables on the tray. If the route is bad, I want to drop something cheap.']],
+      ['sorin', 'Then you will hear it. Put roasted vegetables on the tray, and nettles from the wall. If the route is bad, I want to drop something cheap.']],
     [['sorin', 'Not one loose stone. The tray reached every chair.'],
       ['eszter', 'And then you ate the test.'],
-      ['sorin', 'A test needs a result.']]],
-  ['ilie-family', 'ilie', 'A dish from the notebook', 16, [['Cheese board', 1], ['Lentils', 1]],
-    [['ilie', 'My great-aunt’s cheese board is in the family notebook. She wrote "a good amount of cheese".'],
-      ['eszter', 'How much is a good amount?'],
-      ['ilie', 'Nobody knows. Bring one, and we will decide for the family.']],
+      ['sorin', 'A test needs a result.']], { outdoor: true }],
+  ['ilie-family', 'ilie', 'A dish from the notebook', 16, [['Zacuscă', 2], ['Lentils', 1]],
+    [['ilie', 'My great-aunt’s zacuscă is in the family notebook. She wrote "a good amount of peppers".'],
+      ['eszter', 'How many peppers is a good amount?'],
+      ['ilie', 'Nobody knows. Bring a jar, and lentils beside it, and we will decide for the family.']],
     [['ilie', 'This is a good amount. I will write it in numbers, beside her words, for the tasting.'],
       ['ilie', 'The next cook will not have to guess. She would hate that. She loved a mystery.']]],
   ['eszter-tasting', 'eszter', 'Match the tasting plates', 17, [['Plum dumplings', 1], ['Cozonac', 2]],
@@ -360,13 +411,19 @@ const questRows: QuestRow[] = [
       ['eszter', 'Then the dumpling is too large. My plates are correct.']],
     [['eszter', 'Room for the dumpling and its label. I was right.'],
       ['sorin', 'The plates were right. I will clear the test.']]],
+  ['sanziana-palm-sunday', 'sanziana', 'Willow catkins', 17, [['Fried trout', 2], ['Fruit tea', 2], ['Plum dumplings', 2]],
+    'On Sunday I sell willow catkins at the church gate. Fish is allowed on Palm Sunday, so I buy it for my sisters. My sisters share very well. Nobody has ever seen them eat.',
+    'The catkins are blessed, and the trout are gone. A branch of catkins is for your window. It keeps the storms away, or at least it says so.', { opens: '10 Apr', holiday: 'palm-sunday' }],
+  ['bran-pilgrims', 'bran', 'Holy Week on the night bus', 17, [['Langoș', 2], ['Bean soup in a bread bowl', 1]],
+    'In Holy Week, pilgrims fill the night bus. They sing all the way to the monastery, and they ate all my langoș. Two more, please, and a bean soup in a bread bowl.',
+    'The pilgrims blessed the bus, the horse, and my scarf. The scarf did not need it, but thank you.'],
   ['mara-supper', 'mara', 'The supper service', 20, [['Cheese board', 1], ['Fresh trout', 2]],
     [['mara', 'I have a bad dream about the supper. The fish reaches the table while the cheese waits.'],
       ['ilie', 'In my family, the cheese always went first.'],
       ['mara', 'Tonight, both go together. Let us practise one service.']],
     [['mara', 'Together, at last. Now I can watch the guests, not the kitchen door.'],
       ['ilie', 'The cheese still went first. By one step.']]],
-  ['sorin-welcome', 'sorin', 'Welcome from the gate', 20, [['Zacuscă', 1], ['Diced veal', 2]],
+  ['sorin-welcome', 'sorin', 'Welcome from the gate', 20, [['Zacuscă', 1], ['Minced veal', 2]],
     [['sorin', 'I know every door on my round. On the supper night, I want to meet each one of them at the gate.'],
       ['sorin', 'A meal ready for the first guests who arrive tired from the hill.']],
     [['sorin', 'For years, people on my round asked me in for a meal. Tonight, I give each of them one back.'],
@@ -383,18 +440,30 @@ const questRows: QuestRow[] = [
   ['ana-night-shift', 'ana', 'Breakfast at midnight', 0, [['Pogăcele', 2], ['Linden tea', 1]],
     'My shift starts at ten tonight. Pogăcele and linden tea will keep me awake until the sun comes up.',
     'Lovely. If anything knocks on the ward door tonight, it will smell garlic and good bread, and it will go home.'],
-  ['eszter-first-plate', 'eszter', 'The first plate', 1, [['Mămăligă', 1], ['Pogăcele', 1], ['Linden tea', 1]],
+  ['eszter-first-plate', 'eszter', 'The first plate', 1, [['Mămăligă', 1], ['Pickled green tomatoes', 1], ['Linden tea', 1]],
     [['eszter', 'The new window lets the light in. For the first time, I can see my glazes properly.'],
       ['eszter', 'I made a plate. Put food on it, and tell me honestly if the colour suits it.']],
     [['mara', 'Honestly? It suits it.'],
       ['eszter', 'Good. It looks hungry when it is empty. That is exactly right.']]],
+  ['ilie-roof-snow', 'ilie', 'Snow on the roof', 1, [['Mămăligă', 2], ['Linden tea', 2], ['Langoș', 1]],
+    [['ilie', 'The snow on the roof is a hand deep. My grandmother said that a roof remembers every winter that nobody cleared.'],
+      ['sorin', 'Everyone on my round admires the snow, and nobody shovels it. It is a commons.'],
+      ['ilie', 'Then today we are the commons. Food first, and then the ladder.']],
+    [['sorin', 'The roof is clear. Three neighbours stopped to watch, and all three gave advice.'],
+      ['ilie', 'Advice is free. That is why there is so much of it.']], { companions: ['sorin'] }],
   ['costel-sparrow', 'costel', 'Crumbs for a clockwork bird', 2, [['Pogăcele', 1], ['Socată', 1], ['Linden tea', 1]],
     'My mechanical sparrow has learned to steal crumbs. It cannot eat them, but it enjoys the stealing. Some pogăcele and bread, please, and socată for me.',
     'The sparrow took three crumbs and wound itself up with pride. Tick, tick. I will keep the rest.'],
   ['bela-warm-cup', 'bela', 'A warm cup at the gate', 2, [['Pogăcele', 1], ['Linden tea', 1]],
     'I woke up early. The sun is still up, and I do not trust it. A pogăcea and a hot linden tea, please. The night between the graves is long and cold.',
     'Thank you. I will tell the graves about you. Do not worry, they never tell anyone else.'],
-  ['mara-lamp-supper', 'mara', 'Supper under the lamps', 3, [['Milk', 2], ['Linden tea', 1]],
+  ['bela-snowman', 'bela', 'A snowman among the graves', 2, [['Pogăcele', 1], ['Linden tea', 1], ['Mămăligă', 1]],
+    'Somebody built a snowman in the churchyard. Each morning, it faces a different grave. A pogăcea, a mămăligă, and a hot linden tea, please. I will watch it tonight.',
+    'At midnight it turned toward the old miller’s grave. I think that they are friends. I gave it my scarf.'],
+  ['ana-mittens', 'ana', 'Mittens for the ward', 2, [['Linden tea', 2], ['Pogăcele', 1]],
+    'The heating of the night ward broke again. I knit mittens for the patients between rounds. Linden tea and a pogăcea, please, for the knitting hand.',
+    'Eleven pairs of mittens. One patient asked for a third mitten. I did not ask why. I knitted it.'],
+  ['mara-lamp-supper', 'mara', 'Supper under the lamps', 3, [['Milk', 1], ['Sour cream', 1], ['Linden tea', 1]],
     [['mara', 'We have lamps now. I am afraid that the light makes the plates look tired.'],
       ['eszter', 'My plates are never tired.'],
       ['mara', 'Then let us sit down like guests for once, and find out.']],
@@ -402,7 +471,7 @@ const questRows: QuestRow[] = [
       ['eszter', 'And the plate looks rested.']]],
   ['dochia-lunch', 'dochia', 'Lunch for the hill', 3, [['Sour cream', 4], ['Pogăcele', 4], ['Mămăligă', 1], ['Linden tea', 1]],
     'The sheep eat grass all day and never complain. I eat sour cream, and I complain about the grass. Pack me sour cream, pogăcele, and a mămăligă.',
-    'The sheep will smell the sour cream and follow me home. That saves me a walk.'],
+    'The sheep will smell the sour cream and follow me home. That saves me a walk.', { march: true, opens: '4 Mar' }],
   ['sanziana-cart', 'sanziana', 'An empty flower cart', 4, [['Papanași', 3], ['Socată', 4], ['Smoked cheese', 1]],
     'I sold every flower on the cart before noon. Papanași and socată, please, and I can pick more before the bees wake up.',
     'The bees are already waiting by the cart. They like your papanași too.'],
@@ -415,42 +484,49 @@ const questRows: QuestRow[] = [
   ['costel-clock', 'costel', 'Time for something sweet', 7, [['Papanași', 2], ['Plums', 1]],
     'The church clock stopped at half past three. Until I mend it, it is always teatime. Two papanași, please, and a plum for the pendulum. A clock likes things in pairs.',
     'The clock runs again. I set it five minutes fast, so nobody is ever late for dessert.'],
+  ['costel-mucenici', 'costel', 'Forty small glasses', 6, [['Mucenici', 2], ['Socată', 1]],
+    'Sunday is the day of the Forty Martyrs. The custom asks for mucenici, and forty small glasses of wine for each man. I tried it once. My pocket clock counted the glasses and stopped at nine. Mucenici and a socată, please.',
+    'The mucenici were perfect, and my clock still works. This year, I counted socată.', { opens: '6 Mar', holiday: 'mucenici' }],
   ['ileana-fitting', 'ileana', 'Lunch between fittings', 8, [['Fruit tea', 1], ['Cherry compote', 1], ['Minced pork', 1]],
     'I have three wedding dresses to finish before Thursday. Fruit tea, cherry compote, and whatever the butcher and the market sent, please, before I sew a sleeve shut by mistake.',
     'All three dresses are done. Joimărița can inspect my house whenever she likes.'],
-  ['eszter-green-bowls', 'eszter', 'A second glaze', 9, [['Bulz', 1], ['Pickled cabbage', 2]],
+  ['eszter-green-bowls', 'eszter', 'A second glaze', 9, [['Bulz', 2], ['Pickled cabbage', 1]],
     [['eszter', 'I fired a second set of bowls with a green glaze. Ilie says that blue is traditional.'],
       ['ilie', 'My grandmother had blue bowls.'],
       ['eszter', 'Your grandmother never saw this green. Fill them, and let the food decide.']],
     [['eszter', 'The food likes both. Keep the green bowls with the blue ones.'],
       ['eszter', 'Tap the bowls on the upper shelf to change them whenever you like.']]],
-  ['ana-ward-tea', 'ana', 'Tea for the ward', 9, [['Linden tea', 1], ['Chicken noodle soup', 1], ['Roast chicken', 1]],
+  ['ana-ward-tea', 'ana', 'Tea for the ward', 11, [['Linden tea', 1], ['Chicken noodle soup', 1], ['Roast chicken', 1]],
     'The night patients cannot sleep. A linden tea for them, please, and a proper supper for the porter.',
     'The whole ward is asleep. Even the porter. Especially the porter.'],
-  ['cezar-round', 'cezar', 'The end of the round', 9, [['Tochitură', 1], ['Roasted vegetables', 1], ['Socată', 1]],
-    'My round ends at dawn. Tochitură and roasted vegetables would make a fine breakfast. Or supper. Whichever this is.',
+  ['cezar-round', 'cezar', 'The end of the round', 9, [['Tochitură', 2], ['Roasted vegetables', 1]],
+    'My round ends at dawn. Tochitură and roasted vegetables would make a fine breakfast. Or supper. Whichever this is. A second tochitură, please, for the walk home.',
     'Very good. I will eat it on the way home. My feet know the way.'],
   ['sanziana-meadow', 'sanziana', 'A picnic in the meadow', 10, [['Roasted vegetables', 2], ['Plum dumplings', 3], ['Fruit tea', 2]],
     'My sisters are having a picnic in the meadow. Roasted vegetables for two, and plum dumplings for the rest. I will not tell you how many the rest are.',
-    'My sisters thank you, all of them. You may hear singing in the meadow tonight. Please do not go and count us.'],
-  ['dochia-march', 'dochia', 'The last cold week', 11, [['Bulz', 2], ['Langoș', 1], ['Smoked cheese', 1], ['Fruit tea', 2]],
-    'Spring is close, and I am down to three sheepskins. Bulz, smoked cheese, langoș, and fruit tea, and I will give up another without a fight.',
-    'Done. If it snows tomorrow, I am blaming you.'],
-  ['dorian-gallery', 'dorian', 'The exhibition', 12, [['Cheese board', 2], ['Cozonac', 1]],
-    'A gallery is showing my portrait on Friday. I have invited a few friends to admire it. Two cheese boards and a cozonac for the guests, please.',
+    'My sisters thank you, all of them. You may hear singing in the meadow tonight. Please do not go and count us.', { act: 2 }],
+  ['dochia-march', 'dochia', 'The last cold week', 7, [['Bulz', 2], ['Langoș', 1], ['Smoked cheese', 1], ['Linden tea', 2]],
+    'Spring is close, and I am down to three sheepskins. Bulz, smoked cheese, langoș, and linden tea, and I will give up another without a fight.',
+    'Done. If it snows tomorrow, I am blaming you.', { march: true, opens: '7 Mar' }],
+  ['dorian-gallery', 'dorian', 'The exhibition', 12, [['Cheese board', 1], ['Cozonac', 1], ['Red wine', 1]],
+    'A gallery is showing my portrait on Friday. I have invited a few friends to admire it. A cheese board, a cozonac, and red wine for the guests, please.',
     'Everyone admired the portrait. One guest said that its eyes followed her around the room. I hope that she found them attentive.'],
+  ['ilie-annunciation', 'ilie', 'The first fish', 12, [['Fresh trout', 2], ['White beans', 1]],
+    [['ilie', 'Tuesday is the Annunciation. In Lent it is the first day with fish, and my grandmother never missed it.'],
+      ['mara', 'The fish trap gave us two trout this morning.'],
+      ['ilie', 'Then two trout over the coals, and white beans beside them. The cuckoo sings for the first time on this day, too.']],
+    [['ilie', 'The cuckoo sang while I ate. I counted eleven calls.'],
+      ['mara', 'What does eleven mean?'],
+      ['ilie', 'That I ate slowly.']], { opens: '22 Mar', holiday: 'annunciation' }],
   ['catalina-hail', 'catalina', 'Bell-ringer’s appetite', 12, [['Zacuscă toast', 2], ['Plum dumplings', 1]],
     'A hail cloud came over the hill this morning. I rang it away, and now my arms are hungry. Zacuscă toast and plum dumplings, please. It is a fasting day.',
-    'Not one hailstone fell on the village. The bell and I can rest until the next cloud.'],
-  ['bran-last-bus', 'bran', 'The last bus', 13, [['Langoș', 1], ['Bulz', 1]],
-    'The last bus leaves the square at midnight. Nobody gets on after the bridge, but I stop anyway. A langoș and a bulz for the road, please.',
+    'Not one hailstone fell on the village. The bell and I can rest until the next cloud.', { act: 2 }],
+  ['bran-last-bus', 'bran', 'The last bus', 13, [['Langoș', 1], ['Bulz', 1], ['Lamb', 1]],
+    'The last bus leaves the square at midnight. Nobody gets on after the bridge, but I stop anyway. A langoș and a bulz for the road, please, and a piece of lamb. The lamb is for the horse. Do not ask.',
     'Thank you. The road through the woods is long, and I like company. Even the quiet kind.'],
-  ['ileana-thursday', 'ileana', 'Before Thursday', 14, [['Zacuscă toast', 2], ['Langoș', 1]],
+  ['ileana-thursday', 'ileana', 'Before Thursday', 18, [['Zacuscă toast', 2], ['Langoș', 1]],
     'Thursday is close, and my brother has not touched his spindle. I am taking him zacuscă toast and a langoș, so that he has no excuse.',
-    'He spun all night. Nothing was burned, and nobody had a visitor. A good week.'],
-  ['victor-thesis', 'victor', 'The thesis supper', 14, [['Cabbage rolls', 2], ['Linden tea', 1]],
-    'I finished my thesis at three in the morning, during a thunderstorm. Bring the best of the menu, please. We are celebrating.',
-    'My thesis passed. The examiners said it has a life of its own. I am choosing to take that as praise.'],
+    'He spun all night. Nothing was burned, and nobody had a visitor. A good week.', { opens: '14 Apr', holiday: 'holy-thursday' }],
   ['vlad-after-dark', 'vlad', 'Dinner after dark', 8, [['Red wine', 2], ['Smoked bacon', 1]],
     'Book my table for eight in the evening. I dine only after sunset, an old family habit. Smoked bacon and two carafes of red wine, if you please. No garlic, naturally.',
     'Excellent. The wine is exactly the right shade of red. I am very particular about red.'],
@@ -460,25 +536,28 @@ const questRows: QuestRow[] = [
   ['vlad-guest', 'vlad', 'A guest at the castle', 8, [['Red wine', 1], ['Roast pork', 1], ['Tochitură', 1]],
     'A guest from abroad comes to my castle soon, on a matter of property. Book my table for eight in the evening, on a night when the countess is not here. I must give him roast pork, tochitură, and plenty of red wine. First impressions matter.',
     'Splendid. My guest will feel very welcome. Nobody ever wants to leave my castle. Nobody ever does.'],
-  ['cezar-castle-lights', 'cezar', 'Lights on the hill', 16, [['Veal', 2], ['Bean soup', 1]],
-    'Somebody keeps lighting candles in the castle on the hill. It is not my district, but I like to watch with a warm plate. Veal from the new butcher’s block and a bean soup, please.',
+  ['cezar-castle-lights', 'cezar', 'Lights on the hill', 16, [['Veal', 1], ['Bean soup', 1], ['Tochitură', 1]],
+    'Somebody keeps lighting candles in the castle on the hill. It is not my district, but I like to watch with a warm plate. Veal from the new butcher’s block, a bean soup, and a tochitură, please.',
     'The candles went out at midnight. I stayed awake for all of it. Well, for most of it.'],
+  ['dorian-portrait', 'dorian', 'Spring light', 16, [['Cozonac', 1], ['Cheese board', 1], ['Red wine', 1]],
+    'The painter wants spring light for a new portrait. Tell me honestly, Mara: does my old portrait look tired lately? Cozonac, a cheese board, and red wine, please, while you decide.',
+    'The painter says that I look exactly as I did forty years ago. He meant it kindly, so I paid him twice. The old portrait sighed. I heard it from the stairs.'],
   ['ana-saint-andrew', 'ana', 'Saint Andrew’s Eve', 17, [['Smoked cheese', 1], ['Langoș', 1], ['Linden tea', 1]],
     'Tonight is Saint Andrew’s Eve. I will hang the garlic early, and then I want a proper supper: smoked cheese, a langoș, and a linden tea.',
-    'The garlic is up and the plates are clean. Let anything knock tonight. We are fed, and we smell of garlic.'],
+    'The garlic is up and the plates are clean. Let anything knock tonight. We are fed, and we smell of garlic.', { act: 3 }],
   ['costel-doll', 'costel', 'The dancing doll', 18, [['Cozonac', 1], ['Plum brandy', 1], ['Papanași', 1]],
     'I have finished a dancing doll for the village fair. She dances very well, but she stares a little. Cozonac, papanași, and a plum brandy to celebrate?',
     'She danced through the whole fair. Only one child cried, and that was because the cozonac ran out.'],
-  ['bran-horse', 'bran', 'A ride through the woods', 18, [['Zacuscă toast', 1], ['Smoked cheese', 1], ['Langoș', 1]],
-    'On my day off, I ride through the woods. The horse wants apples. I want zacuscă toast, smoked cheese, and langoș.',
+  ['bran-horse', 'bran', 'A ride through the woods', 18, [['Zacuscă toast', 1], ['Diced veal', 1], ['Langoș', 1]],
+    'On my day off, I ride through the woods. The horse wants apples. I want zacuscă toast, diced veal, and langoș.',
     'A fine ride. People ran off the road when they saw us, but I think that was the horse. It is very tall.'],
   ['catalina-cloud-rider', 'catalina', 'The cloud rider', 18, [['Green beans', 2], ['Plum dumplings', 1]],
     'A stranger with a long beard and a book is asking about the weather. I do not like it. Green beans and plum dumplings, so that I can keep watch from the tower.',
     'He rode off on a very dark cloud. The weather is fine now. Thank you for the plum dumplings.'],
   ['sanziana-midsummer', 'sanziana', 'Midsummer Eve', 19, [['Plum dumplings', 2], ['Zacuscă', 2], ['Socată', 2], ['Bean dip', 2]],
     'It is almost Midsummer Eve. We dance until dawn, so we need plum dumplings and zacuscă. Dancing is hungry work.',
-    'We danced until sunrise and wove a crown for you. It hangs on the gate. Do not wear it after dark.'],
-  ['dorian-birthday', 'dorian', 'A quiet birthday', 20, [['Cozonac', 1], ['Cheese board', 1], ['Red wine', 1]],
+    'We danced until sunrise and wove a crown for you. It hangs on the gate. Do not wear it after dark.', { act: 2 }],
+  ['dorian-birthday', 'dorian', 'A quiet birthday', 18, [['Cozonac', 1], ['Cheese board', 1], ['Red wine', 1]],
     'It is my birthday. I will not say which one. Cozonac, a cheese board, and a glass of red wine, please, and no candles. There are never enough.',
     'Thank you. The portrait in my attic sends its regards. It had a much harder day than I did.'],
   ['elisabeta-bath', 'elisabeta', 'An evening at the manor', 15, [['Roast lamb', 1], ['Tochitură', 1], ['Red wine', 1]],
@@ -489,7 +568,7 @@ const questRows: QuestRow[] = [
     'The towels are done. Each corner has a little red rooster. They keep watch better than Cezar.'],
   ['bran-pumpkins', 'bran', 'The pumpkin fair', 21, [['Langoș', 1], ['Minced veal', 1], ['Cabbage rolls', 1]],
     'The town has a pumpkin fair this weekend. Last year I carved the best pumpkin head. People said that I understand heads very well. A langoș, minced veal, and cabbage rolls, please.',
-    'The langoș is for the bus. The rest is for me. The pumpkin head is for anyone who needs one.'],
+    'The langoș is for the bus. The rest is for me. The pumpkin head is for anyone who needs one.', { act: 3 }],
   ['cezar-sleepwalk', 'cezar', 'A supper to remember', 22, [['Tochitură', 1], ['Mici', 1], ['Cabbage rolls', 1]],
     'Last night I woke up in your courtyard with an empty plate. I do not remember eating. Tochitură, mici, and cabbage rolls, please, so that I remember this time.',
     'I remember every bite. Thank you. If you see me in the courtyard tonight, please wave.'],
@@ -502,6 +581,44 @@ const questRows: QuestRow[] = [
   ['sanziana-lilacs', 'sanziana', 'Lilacs for the dresser', 23, [['Plum dumplings', 2], ['Roasted vegetables', 2], ['Fruit tea', 2], ['Zacuscă', 1], ['Cherry compote', 2]],
     'Wildflowers are lovely, but lilacs smell like the evening. Bring plum dumplings, roasted vegetables, and fruit tea, and I will bring an armful.',
     'The lilacs are ready. When the supper starts, tap the jug on the dresser in the front room to change the flowers whenever you like.'],
+  ['mara-easter-baskets', 'mara', 'Baskets for the blessing', 19, [['Pască', 2], ['Red eggs', 2], ['Cozonac', 2], ['Drob', 1]],
+    [['mara', 'Tonight the baskets go to the church for the blessing at midnight: pască, red eggs, cozonac, and drob, under an embroidered towel.'],
+      ['eszter', 'I wove the towels. Sorin carries the candle.'],
+      ['ilie', 'And I guard the baskets until midnight. I will not taste. Lent is not over.']],
+    [['sorin', 'The priest blessed every basket, and the candle stayed lit the whole way home.'],
+      ['ilie', 'I did not taste. I smelled. Smelling is not in the rules.'],
+      ['mara', 'Tomorrow, Ilie. Tomorrow you eat first.']], { opens: '16 Apr', holiday: 'holy-saturday', companions: ['eszter', 'sorin'] }],
+  ['catalina-silent-bells', 'catalina', 'The silent bells', 19, [['Bean dip', 1], ['Green beans', 1], ['Plum dumplings', 1]],
+    'From Holy Thursday until Easter night, the bells rest, and the wooden toaca calls the village. I have nothing to ring, and my hands do not know what to do. Bean dip, green beans, and plum dumplings, please.',
+    'I tapped the toaca very politely. Then I sat on my hands until Easter. At midnight I rang so loud that the next valley woke up.', { opens: '17 Apr' }],
+  ['sorin-mud', 'sorin', 'Mud on the forest road', 19, [['Roasted vegetables', 1], ['Chicken broth', 1], ['Langoș', 1]],
+    [['sorin', 'The April rain turned the forest road to mud. It came up to my pedals, and then to my knees.'],
+      ['ilie', 'Take the town road.'],
+      ['sorin', 'The town road has the same mud and more dogs. Something warm, please, before I go back out.']],
+    [['sorin', 'Delivered. The bicycle is still in the forest. It decided to stay.'],
+      ['ilie', 'I will lend you the cart.'],
+      ['sorin', 'The cart has more sense. It refused.']]],
+  ['mara-easter-lunch', 'mara', 'Easter lunch', 20, [['Roast lamb', 1], ['Drob', 1], ['Red eggs', 2], ['Cozonac', 1]],
+    [['mara', 'Christ is risen, Ilie. The fast is over, and the staff eat together today.'],
+      ['ilie', 'Truly he is risen. Seven weeks of beans, Mara. Last night I dreamed of lamb, and the lamb was very polite about it.'],
+      ['mara', 'Then lamb, drob, red eggs, and cozonac. You eat first.']],
+    [['ilie', 'I ate first, and then second. Then I knocked eggs with Sorin and lost every time.'],
+      ['mara', 'He holds his egg with the point down. It is a trick.'],
+      ['ilie', 'It is a sin. A small one. It is Easter.']], { opens: '17 Apr', holiday: 'easter', companions: ['ilie'] }],
+  ['eszter-sprinkling', 'eszter', 'Sprinkling day', 21, [['Red eggs', 2], ['Chimney cake', 2], ['Plum brandy', 1]],
+    [['eszter', 'On Easter Monday, the young men visit with cologne and sprinkle the girls, so that they do not wilt. Then the girls give them red eggs.'],
+      ['sorin', 'I have a bottle of cologne. A large one.'],
+      ['eszter', 'A drop is enough, Sorin. One drop.']],
+    [['eszter', 'I smell like a whole flower market. The cats will not come near me.'],
+      ['sorin', 'Nobody will wilt this year.'],
+      ['eszter', 'Nobody in the valley. Here is your egg.']], { opens: '20 Apr', holiday: 'easter-monday', companions: ['sorin'] }],
+  ['mara-blajini', 'mara', 'The Easter of the Blajini', 23, [['Colivă', 1], ['Bread basket', 1], ['Red eggs', 1]],
+    [['mara', 'Today is the Easter of the Blajini. Mamaia Paraschiva always took food to the graves and floated the eggshells down the river.'],
+      ['bela', 'Good evening. I opened the churchyard gate early for you. Forgive me, but what is a Blajin?'],
+      ['mara', 'Gentle little people at the edge of the world. They live so far away that they never hear when Easter comes. The shells tell them.']],
+    [['bela', 'The shells went down the river in a neat line. The graves were very pleased with the colivă.'],
+      ['mara', 'You can tell?'],
+      ['bela', 'After thirty years, you can always tell.']], { opens: '25 Apr', holiday: 'blajini' }],
   ['ilie-stove', 'ilie', 'A test for the stove', 0, [['Langoș', 2], ['Cornmeal', 1]],
     [['ilie', 'My grandmother cooked on this stove. She said that it sulks if you rush it.'],
       ['eszter', 'Stoves do not sulk.'],
@@ -510,7 +627,7 @@ const questRows: QuestRow[] = [
       ['eszter', 'Fine. It sulks.']]],
   ['dochia-sheepskin', 'dochia', 'One sheepskin fewer', 0, [['Mămăligă', 2], ['Pogăcele', 2], ['Langoș', 1], ['Linden tea', 1]],
     'The wind on the hill is still cold, so I am wearing all nine sheepskins. Mămăligă, bread, and a hot linden tea would warm me enough to take one off.',
-    'There. One sheepskin fewer. Eight to go before summer, and the weather is watching me.'],
+    'There. One sheepskin fewer. Eight to go before summer, and the weather is watching me.', { march: true, opens: '1 Mar' }],
   ['eszter-cups', 'eszter', 'Cups for the counter', 0, [['Pogăcele', 1], ['Langoș', 2]],
     [['eszter', 'I brought my first cups down from the workshop. I threw every one of them on my own wheel.'],
       ['ilie', 'One has a crooked handle.'],
@@ -520,74 +637,110 @@ const questRows: QuestRow[] = [
   ['costel-ticking', 'costel', 'A ticking in the wall', 0, [['Socată', 1], ['Langoș', 1], ['Bread basket', 1]],
     'Something in your wall ticks, and it is not one of my clocks. Socată, a langoș, and a whole bread basket, and I will listen to it properly.',
     'It is a beetle with excellent timing. I have offered it an apprenticeship.'],
-  ['mara-cellar', 'mara', 'A look at the cellar', 0, [['Bread basket', 1], ['Langoș', 1], ['Mămăligă', 1]],
+  ['mara-cellar', 'mara', 'A look at the cellar', 0, [['Bread basket', 1], ['Langoș', 1], ['Gherkins', 1]],
     [['mara', 'Before we spend a coin, I want to see what the cellar kept for us.'],
       ['sorin', 'I can hold the lamp. From the top of the stairs.'],
       ['mara', 'Then we need a snack. Courage is easier with bread.']],
-    [['mara', 'Three empty barrels, one good ladder, and a very polite spider.'],
+    [['mara', 'Two empty barrels, one barrel of Mamaia’s pickles, one good ladder, and a very polite spider.'],
       ['sorin', 'It waved. I waved back. It seemed the right thing to do.']]],
   ['victor-skeleton', 'victor', 'Lunch for the skeleton', 1, [['Langoș', 1], ['Mămăligă', 1], ['Linden tea', 1]],
     'The university lent me a skeleton to study at home. I set a place for him out of habit. Langoș, mămăligă, and linden tea, please. He will not eat his share.',
     'He did not eat a bite, so I had both. I think we are becoming friends.'],
-  ['ana-garlic', 'ana', 'Garlic duty', 2, [['Pogăcele', 1], ['Linden tea', 1], ['Langoș', 1]],
-    'It is my turn to hang garlic on every door of the ward. That is a lot of doors. Langoș, pogăcele, and a linden tea, please, before I start.',
-    'Every door has its garlic. The ward smells terrible, and nothing knocked all night. Perfect.'],
+  ['ana-garlic', 'ana', 'Garlic duty', 21, [['Pogăcele', 1], ['Linden tea', 1], ['Langoș', 1]],
+    'Tuesday is Saint George’s Eve, when the witches and the strigoi walk. It is my turn to hang garlic on every door of the ward. That is a lot of doors. Langoș, pogăcele, and a linden tea, please, before I start.',
+    'Every door has its garlic. The ward smells terrible, and nothing knocked all night. Perfect.', { opens: '20 Apr', holiday: 'saint-george-eve' }],
   ['sorin-tyre', 'sorin', 'A patched tyre', 3, [['Langoș', 1], ['Cottage cheese', 2]],
     [['sorin', 'Something bit my front tyre on the forest road. Probably a nail.'],
       ['ilie', 'Probably?'],
       ['sorin', 'The tyre has two small holes, side by side. I will think about it while I patch it, and eat while I think.']],
     [['sorin', 'Patched. I found a nail by the road, and I have decided that it was that nail.'],
       ['ilie', 'Take the town road tomorrow.']]],
-  ['dochia-shearing', 'dochia', 'Shearing day', 3, [['Telemea', 4], ['Pogăcele', 2], ['Socată', 1], ['Mămăligă', 1], ['Loaf', 2], ['Linden tea', 2]],
-    'Today I shear the sheep, and the sheep have opinions. Telemea, pogăcele, a mămăligă, and a socată, please. I need my strength.',
-    'All the sheep are shorn. Now they look cold and I look warm. I will give one sheepskin back. Maybe.'],
+  ['mara-chimney-sweep', 'mara', 'The chimney sweep', 3, [['Langoș', 2], ['Telemea', 1], ['Socată', 1]],
+    [['mara', 'The chimney sweep comes today. In my grandmother’s house, we touched a button of his coat for luck.'],
+      ['sorin', 'I asked him on my round. He keeps a spare button for nervous owners.'],
+      ['mara', 'I am not nervous. Bring food for the man on the roof, and something for us.']],
+    [['mara', 'He found a burnt page in the flue: half a recipe in Mamaia Paraschiva’s hand, and the words "more pepper than you think".'],
+      ['sorin', 'And did you touch his button?'],
+      ['mara', 'I only pointed at it. He says that pointing counts for half, so I pointed twice.']], { companions: ['sorin'] }],
+  ['costel-icicle-clock', 'costel', 'The icicle clock', 3, [['Langoș', 1], ['Papanași', 1], ['Socată', 1]],
+    'I built a clock that drips the hours from an icicle. Outside, it is very accurate. Near your stove, it runs fast. A langoș, papanași, and a socată, please, while I time it.',
+    'By the stove, it is already Thursday. I will hang it by the door, where time behaves.'],
+  ['victor-dragobete', 'victor', 'A sweet for two', 3, [['Langoș', 1], ['Milk', 1], ['Linden tea', 1]],
+    'Monday is Dragobete, when the birds choose their mates. I need a sweet langoș with sugar, cut in two, and a cup of warm milk with two straws. It is for two people. No, I will not say who the second person is.',
+    'The second person was busy at the stove all day, so I ate both halves and used both straws. Please do not tell anyone. Especially the stove.', { opens: '21 Feb', holiday: 'dragobete' }],
+  ['dochia-lambing', 'dochia', 'Lambing time', 7, [['Telemea', 4], ['Pogăcele', 2], ['Socată', 1], ['Mămăligă', 1], ['Loaf', 2], ['Linden tea', 2]],
+    'The first lambs came in the night, two of them in the snow. I will sleep in the fold until the rest arrive. Telemea, bread, and hot tea, please. It is a long watch.',
+    'Seven lambs, all on their feet. The smallest one sleeps inside my coat. That makes ten sheepskins, and the weather is furious.', { march: true, opens: '14 Mar' }],
   ['ilie-pickles', 'ilie', 'Jars for winter', 4, [['Bulz', 2], ['Cheese pie', 1]],
     [['ilie', 'My grandmother pickled everything that stood still long enough. I want to fill the cellar jars her way.'],
       ['mara', 'Her way takes all afternoon.'],
       ['ilie', 'That is why I need a proper lunch first.']],
     [['ilie', 'Full and labelled, in her order. Cabbage, then peppers, then plums.'],
-      ['ilie', 'One label says "Do not open before winter". I did not write that one.']]],
+      ['ilie', 'One label says "Do not open before winter". I did not write that one.']], { act: 3 }],
   ['costel-key', 'costel', 'A key that hums', 4, [['Papanași', 1], ['Smoked cheese', 1], ['Cheese pie', 1]],
     'I found an old key under the counter, and it hums near the cellar door. Papanași, smoked cheese, and cheese pie, and I will find out what it wants.',
     'It wanted oil. It stopped humming and started purring. I am keeping it on a ribbon.'],
+  ['eszter-carnival', 'eszter', 'The last feast', 4, [['Papanași', 1], ['Bulz', 1], ['Cheese pie', 1]],
+    [['eszter', 'Sunday is the last feast before Lent. At home we had farsang: masks, music, and doughnuts until nobody could stand.'],
+      ['mara', 'We have no doughnuts.'],
+      ['eszter', 'Papanași are the doughnuts of the farsang, with better manners. Bring one, and a proper feast around it.']],
+    [['eszter', 'My mother would approve. She would also ask where the music was.'],
+      ['sorin', 'I hummed.'],
+      ['eszter', 'She would not count that.']], { opens: '27 Feb', holiday: 'carnival' }],
   ['eszter-kiln', 'eszter', 'Waiting for the kiln', 5, [['Sweet dough', 2], ['Chicken', 1]],
     [['eszter', 'My best glaze yet is in the kiln. If I open it early, it cracks.'],
       ['eszter', 'So bring me something to eat standing up. My hands need a job.']],
     [['eszter', 'It opened, and nothing cracked. Look at that blue.'],
       ['sorin', 'She was patient for almost the whole hour. I counted.']]],
-  ['mara-candles', 'mara', 'Candles in the window', 8, [['Pickled cabbage', 1], ['Sausages', 1], ['Socată', 1]],
+  ['ilie-clean-monday', 'ilie', 'Clean Monday', 5, [['Bread basket', 1], ['Mămăligă', 1], ['Linden tea', 1]],
+    [['ilie', 'Today Lent starts. My grandmother scrubbed every pot on the first Monday, so that nothing of the feast was left in them.'],
+      ['mara', 'Every pot? We have thirty.'],
+      ['ilie', 'Thirty-one. Fasting food for the scrubber, please: bread, mămăligă, and tea.']],
+    [['ilie', 'Every pot is clean, and so am I, more or less.'],
+      ['mara', 'Seven weeks of fasting now?'],
+      ['ilie', 'Seven weeks. I will be very polite to the cheese.']], { opens: '3 Mar' }],
+  ['sorin-womens-day', 'sorin', 'Sweets for the night ward', 5, [['Papanași', 2], ['Linden tea', 2], ['Pogăcele', 1]],
+    [['sorin', 'Saturday is Women’s Day. In the town, men bring flowers. On my round, the florist has no flowers until spring.'],
+      ['mara', 'So you bring sweets.'],
+      ['sorin', 'To the whole night ward. Ana says that nurses accept sweets on behalf of everyone.']],
+    [['ana', 'The nurses thank you, Sorin. The doctor tried to accept a papanaș on behalf of the nurses. We stopped him.'],
+      ['sorin', 'Next year I will bring more, and a lock for the box.']], { opens: '5 Mar', holiday: 'womens-day', companions: ['ana'] }],
+  ['mara-candles', 'mara', 'Candles in the window', 8, [['Pickled cabbage', 2], ['Sausages', 2], ['Socată', 2]],
     [['mara', 'In this village, a candle in the window means that the door is open to anyone.'],
       ['sorin', 'On my round, only three houses still do it. The others stopped years ago.'],
       ['mara', 'Then we will be the fourth. Let us light ours and have supper beside it.']],
     [['mara', 'Two neighbours waved, and one of them came in.'],
-      ['sorin', 'And an owl stared all evening. Nobody invited it. It came anyway.']]],
-  ['sorin-postbag', 'sorin', 'A heavy post bag', 9, [['Roasted vegetables', 2], ['Langoș', 1]],
+      ['sorin', 'And an owl stared all evening. Nobody invited it. It came anyway.']], { companions: ['sorin'] }],
+  ['sorin-postbag', 'sorin', 'A heavy post bag', 10, [['Roasted vegetables', 1], ['Langoș', 2]],
     [['sorin', 'Everyone in the valley is sending letters this week, and every one of them lives up a hill.'],
       ['sorin', 'One letter has no name. Only an address: "the house that is not there".'],
       ['mara', 'Eat first. Then decide what to do with it.']],
     [['sorin', 'Every letter is delivered. I left the strange one at the crossroads, and by morning it was gone.'],
       ['mara', 'Was there a reply?'],
       ['sorin', 'A dry leaf, folded like a letter. I am not delivering that.']]],
-  ['dochia-fair', 'dochia', 'The sheep fair', 14, [['Cheese board', 1], ['Zacuscă toast', 2], ['Bulz', 2], ['Lamb', 4], ['Mămăligă', 1], ['White beans', 2]],
-    'Tomorrow is the sheep fair, and my ram wants to win. He will not, but I bring food so that he loses with dignity. Enough for the ram, the judges, and me, please.',
-    'He won second prize. First prize went to a goat, which is not even a sheep. We are appealing.'],
+  ['dochia-climb', 'dochia', 'The high pasture', 13, [['Cheese board', 1], ['Pogăcele', 2], ['Bulz', 2], ['Lamb', 4], ['Mămăligă', 1], ['White beans', 2]],
+    'The snow is leaving the high pasture, and the flock wants to climb before I do. Pack enough for the shepherds, the dogs, and me. The ram carries nothing. He says that it is beneath him.',
+    'We reached the high pasture. At the top I took off my last sheepskin, and the wind put it back on me. Next March, then.', { march: true, opens: '28 Mar' }],
   ['dorian-sitter', 'dorian', 'Company after dark', 14, [['Cozonac', 1], ['Cheese board', 1], ['Red wine', 1]],
     'A gentleman from the castle has invited me to a candlelit supper. Cozonac, a cheese board, and red wine, please. His evenings tend to last until dawn.',
     'A charming evening. My host had no mirrors, so I checked my cravat in a spoon. One must make an effort for good company.'],
   ['cezar-long-night', 'cezar', 'The longest night', 14, [['Tochitură', 1], ['Bean soup', 1], ['Sharing board', 1]],
     'Tonight is the longest night of the year, and I walk all of it. Tochitură, bean soup, and a sharing board, please. One bite for every hour.',
-    'The sun came up at last. I counted fourteen hours, two owls, and one shadow that walked home with me. It was polite.'],
-  ['eszter-kiln-party', 'eszter', 'The kiln party', 14, [['Plum dumplings', 1], ['Lamb cuts', 1], ['Fruit tea', 1]],
+    'The sun came up at last. I counted fourteen hours, two owls, and one shadow that walked home with me. It was polite.', { act: 3 }],
+  ['eszter-kiln-party', 'eszter', 'The kiln party', 14, [['Plum dumplings', 1], ['Lamb cuts', 1], ['Linden tea', 1]],
     [['eszter', 'The new kiln is finished. Potters celebrate by watching it heat up.'],
       ['ilie', 'For how long?'],
       ['eszter', 'Three hours. Bring food for two. You are invited.']],
     [['ilie', 'We watched it for three hours.'],
       ['eszter', 'And?'],
       ['ilie', 'The best party of the year. Do not tell anyone that I said that.']]],
-  ['ilie-cellar', 'ilie', 'The cellar shelves', 14, [['Bean soup', 2], ['Lamb chops', 1]],
+  ['victor-thesis', 'victor', 'The thesis supper', 14, [['Lamb chops', 1], ['Wild garlic and sorrel', 1], ['Linden tea', 1]],
+    'I finished my thesis at three in the morning, during a thunderstorm. Bring the best of the menu, please. We are celebrating.',
+    'My thesis passed. The examiners said it has a life of its own. I am choosing to take that as praise.'],
+  ['ilie-cellar', 'ilie', 'The cellar shelves', 14, [['Lentils', 1], ['Pickled cabbage', 1], ['Mămăligă', 1]],
     [['ilie', 'I built new shelves in the cellar, to my grandfather’s plan. Something keeps moving the jars to the left.'],
       ['mara', 'Mice?'],
-      ['ilie', 'Mice do not line them up. I will eat down there and watch.']],
+      ['ilie', 'Mice do not line them up. I will eat a fasting supper down there and watch.']],
     [['ilie', 'The jars stayed still while I ate. When I went upstairs, they moved again.'],
       ['ilie', 'We have agreed to share. My jars on the right, and whoever it is on the left.']]],
 ];
@@ -597,8 +750,8 @@ const finishes: Record<string, Quest['unlocks']> = {
 };
 // Vlad and Elisabeta book a table for the evening, never on the same evening.
 const bookedGuests = ['vlad', 'elisabeta'];
-const campaign: { window: number; quest: Quest }[] = questRows.map(([id, character, title, window, requirements, opening, completion]) => ({ window, quest: {
-  id, character, title, afterTask: window ? `task_${window}` : null, ...questTerms(requirements), opening: lines(character, opening), completion: lines(character, completion),
+const campaign: { window: number; quest: Quest }[] = questRows.map(([id, character, title, window, requirements, opening, completion, extra]) => ({ window, quest: {
+  id, character, title, afterTask: window ? `task_${window}` : null, ...questExtra(extra), ...questTerms(requirements), opening: lines(character, opening), completion: lines(character, completion),
   ...(finishes[id] ? { unlocks: finishes[id] } : {}), ...(bookedGuests.includes(character) ? { booked: true } : {}) } }));
 // The travellers return three times each, in one shared sequence, at fixed places in the campaign.
 const visitorRows: QuestRow[] = [
@@ -613,19 +766,19 @@ const visitorRows: QuestRow[] = [
       ['mara', 'A cook? Did he say where he trained?'],
       ['monica', 'We did not stop to ask. This time, we bring him something better than Adrian.']],
     'We will leave the sausages on the stairs for him. A cook that busy never gets a hot meal.'],
-  ['janos-first-pack', 'janos', 'A long reading', 9, [['Langoș', 3], ['Bread basket', 1], ['Red wine', 2], ['Pogăcele', 6]],
+  ['janos-first-pack', 'janos', 'A long reading', 9, [['Langoș', 2], ['Bread basket', 2], ['Red wine', 2], ['Pogăcele', 6]],
     [['janos', 'The cook ate all the sausages and fell asleep on his cleaver. We walked straight past him.'],
       ['janos', 'Deeper under the cathedral, a king of bones sits on a stone throne. He still wears his crown, and he still asks for taxes.'],
       ['ilie', 'In coins?'],
       ['janos', 'In bread, it seems. I want to read the marks on his throne, and that is a long reading.']],
     'Sit a while, and listen, I will tell him. Then I will read him his own family history. Nobody stays awake for that.'],
-  ['adrian-second-pack', 'adrian', 'Supper for the watch', 13, [['Bread basket', 1], ['Loaf', 5], ['Pogăcele', 6]],
+  ['adrian-second-pack', 'adrian', 'Supper for the watch', 13, [['Bread basket', 2], ['Loaf', 4], ['Pogăcele', 6]],
     [['adrian', 'The bone king fell asleep at chapter two, as Janos promised. Under his throne, the cathedral has catacombs.'],
       ['adrian', 'A small goblin lives down there. He begs for mercy whenever he sees us, and he keeps promising us a gift.'],
       ['sorin', 'What is the gift?'],
       ['adrian', 'So far, a rock. We will keep watch down there for several nights, so we need proper suppers.']],
     'Most of the bread is for us. One bread basket is for the goblin. Perhaps he will give us a better rock.'],
-  ['monica-second-pack', 'monica', 'The longer path', 14, [['Bread basket', 1], ['Cherry compote', 6], ['Lamb stew', 7]],
+  ['monica-second-pack', 'monica', 'The longer path', 14, [['Bread basket', 2], ['Cherry compote', 5], ['Lamb stew', 7]],
     [['monica', 'The goblin kept his promise. The rock is a map now. He scratched it himself.'],
       ['monica', 'It shows caves under the cathedral catacombs, and a stream that runs all the way up to your village well.'],
       ['mara', 'So that is why the well water tastes of matches on some mornings.'],
@@ -660,12 +813,13 @@ for (const [index, [id, character, title, window, requirements, opening, complet
   campaign.push({ window, quest: { id, character, title, afterTask: `task_${window}`, ...(index ? { afterQuest: visitorRows[index - 1][0] } : {}),
     ...questTerms(requirements), opening: lines(character, opening), completion: lines(character, completion) } });
 }
-campaign.push({ window: 9, quest: { id: 'ionatan-castle-dinner', character: 'ionatan', title: 'Dinner before the castle', afterTask: 'task_9', afterQuest: 'vlad-guest',
-  ...questTerms([['Plum brandy', 1], ['Sharing board', 1], ['Tochitură', 1]]),
+// Ionatan reaches the castle on Saint George's Eve of the old calendar, in May, and Mina finds him in August, so both visits belong to act 2.
+campaign.push({ window: 9, quest: { id: 'ionatan-castle-dinner', character: 'ionatan', title: 'Dinner before the castle', afterTask: 'task_9', afterQuest: 'vlad-guest', act: 2,
+  ...questTerms([['Red wine', 1], ['Sharing board', 1], ['Tochitură', 1]]),
   opening: [{ speaker: 'ionatan', text: 'I have come from abroad to close a real-estate deal with a local noble at the nearby castle. Before I continue, I would like a proper dinner.' }],
   completion: [{ speaker: 'ionatan', text: 'An excellent dinner. Here is the payment, with my thanks. My papers are in order, and I must leave for the castle now. My journey takes me on from there, so I will not return. Farewell.' }] } });
-campaign.push({ window: 10, quest: { id: 'mina-avram-search', character: 'mina', companions: ['avram'], title: 'A meal before the search', afterTask: 'task_10',
-  afterQuest: 'ionatan-castle-dinner', ...questTerms([['Zacuscă', 2], ['Roasted vegetables', 2], ['Smoked cheese', 1], ['Fruit tea', 1]]),
+campaign.push({ window: 10, quest: { id: 'mina-avram-search', character: 'mina', companions: ['avram'], title: 'A meal before the search', afterTask: 'task_10', act: 2,
+  afterQuest: 'ionatan-castle-dinner', ...questTerms([['Zacuscă', 2], ['Roasted vegetables', 2], ['Telemea', 1], ['Fruit tea', 1]]),
   opening: [{ speaker: 'mina', text: 'Ionatan is my fiancé. He came from Britain to sign a property contract at the castle, but he has not written back. Have you seen him?' },
     { speaker: 'mara', text: 'He had dinner here and left for the castle. He has not returned to the bistro.' },
     { speaker: 'avram', text: 'Then Mina and I will follow that road together. Before we leave, could you prepare a meal for two?' },
@@ -683,7 +837,7 @@ const supperPlates: [guest: string, plate: string][] = [
   ['costel', 'Papanași'], ['victor', 'Meatball soup'], ['ana', 'Chicken noodle soup'], ['ileana', 'Stuffed peppers'], ['bran', 'Mici'],
   ['catalina', 'Saramură with mămăligă'], ['cezar', 'Tochitură'],
 ];
-campaign.push({ window: 24, quest: { id: 'mara-community-supper', character: 'mara', title: 'The community supper', afterTask: 'task_24', finale: true,
+campaign.push({ window: 24, quest: { id: 'mara-community-supper', character: 'mara', title: 'The community supper', afterTask: 'task_24', finale: true, outdoor: true,
   requirements: supperPlates.map(([, plate]) => ({ item: dish(plate), quantity: 1 })), reward: 0, guests: supperPlates.map(([guest]) => guest),
   opening: lines('mara', [['mara', 'Every quest is delivered, and every table is set. Only the supper itself is left to cook: one plate for each guest, to each one’s taste.'],
     ['sorin', 'I asked on my round. Vlad and Elisabeta sent their regrets. They do not eat supper, they said. Not this kind.'],
@@ -699,22 +853,36 @@ const recovery: Quest = { id: 'ana-night-ward-tea', character: 'ana', title: 'Te
     ['mara', 'And if the purse is still thin tomorrow?'],
     ['ana', 'Then I come back tomorrow. Patients never run out of nights.']]),
   completion: [] };
-// While the bistro has no other work, three neighbours ask again and again for a simple meal, in this cycle order. Bela and Cezar
-// ask only after the campaign quest that the player first knows them by, so their lines need no introduction.
-const repeatingRows: [id: string, character: string, title: string, after: string | null, requirements: [string, number][], opening: string, companions?: string[]][] = [
+// While the bistro has no other work, neighbours ask again and again for a simple meal, in this cycle order. A neighbour who is not
+// there from the start asks only after the campaign quest that the player first knows them by, so the line needs no introduction.
+// Ilie's plain bowl joins the cycle only during Lent. Ana's pickles and Victor's nettles join only while their seasonal source is on the board.
+const repeatingRows: [id: string, character: string, title: string, after: string | null, requirements: [string, number][], opening: string, companions?: string[], during?: [string, string]][] = [
   ['sorin-staff-meal', 'sorin', 'Staff meal', null, [['Loaf', 2], ['Socată', 2]],
     'The kitchen is quiet for a moment. Mara says that the staff eat when the kitchen is quiet. Two loaves and two socată, and we sit down for once.', ['mara']],
   ['bela-cold-night', 'bela', 'Another cold night', 'bela-warm-cup', [['Mămăligă', 1], ['Linden tea', 1]],
     'The graves send their regards. Mămăligă and a hot linden tea, please, before the night gets cold.'],
-  ['cezar-before-rounds', 'cezar', 'Before the rounds', 'cezar-long-night', [['Bean soup', 1], ['Loaf', 1]],
+  ['cezar-before-rounds', 'cezar', 'Before the rounds', 'cezar-castle-lights', [['Bean soup', 1], ['Loaf', 1]],
     'My round starts soon. My feet already know the way, but my stomach does not. A bean soup and a loaf, please.'],
+  ['ana-pickles', 'ana', 'Pickles for the night shift', 'ana-mittens', [['Pogăcele', 1], ['Mixed pickles', 1]],
+    'Pickles keep the night nurses awake. Nobody can sleep with a mouth full of pickle. A pogăcea and mixed pickles, please.'],
+  ['ilie-lenten-bowl', 'ilie', 'A plain bowl', 'ilie-cellar', [['Green beans', 1], ['Mămăligă', 1], ['Socată', 1]],
+    'A plain bowl for a fasting man, please: green beans, mămăligă, and a socată. My grandmother would call it a feast.', undefined, ['3 Mar', '19 Apr']],
+  ['victor-nettles', 'victor', 'Nettles for the nerves', 'victor-thesis', [['Nettle soup', 1], ['Loaf', 1], ['Linden tea', 1]],
+    'I read that nettles are good for the nerves. Mine have an exam on Friday. A nettle soup, a loaf, and a linden tea, please.'],
+  ['costel-tower-tea', 'costel', 'Tea for the tower', 'costel-clock', [['Papanași', 1], ['Socată', 2]],
+    'The church clock wants winding again, and the tower stairs are long. Papanași and two socată, please: one for me and one for the clock. I drink both.'],
 ];
-const repeating: Quest[] = repeatingRows.map(([id, character, title, after, requirements, opening, companions]) => ({ id, character, title, afterTask: null,
-  ...(after ? { afterQuest: after } : {}), repeating: true, ...(companions ? { companions } : {}), ...questTerms(requirements), opening: lines(character, opening), completion: [] }));
+const repeating: Quest[] = repeatingRows.map(([id, character, title, after, requirements, opening, companions, during]) => ({ id, character, title, afterTask: null,
+  ...(after ? { afterQuest: after } : {}), repeating: true, ...(companions ? { companions } : {}), ...(during ? { during: { from: on(during[0]), to: on(during[1]) } } : {}),
+  ...questTerms(requirements), opening: lines(character, opening), completion: [] }));
 // The tickets show open quests in authored order, so the quests are listed in the order in which they open.
-// A booked guest comes last in the window: the quests before the evening bring the dishes of the dinner into the recipe book.
-const quests: Quest[] = [recovery, ...campaign.sort((first, second) => first.window - second.window
-  || Number(!!first.quest.booked) - Number(!!second.quest.booked)).map(({ quest }) => quest), ...repeating];
+// A dated quest comes first in its window, so a holiday quest gets its ticket before the holiday. A March quest opens weeks after its
+// preparation, so it comes after the other quests of its window. A booked guest comes last in the window: the quests before the
+// evening bring the dishes of the dinner into the recipe book. The quests of later acts come last.
+const rank = (quest: Quest) => quest.booked ? 3 : quest.march ? 2 : quest.opens === undefined ? 1 : 0;
+const quests: Quest[] = [recovery, ...campaign.filter(({ quest }) => !quest.act).sort((first, second) => first.window - second.window
+  || rank(first.quest) - rank(second.quest))
+  .map(({ quest }) => quest), ...repeating, ...campaign.filter(({ quest }) => quest.act).map(({ quest }) => quest)];
 // The renovation: every preparation repaints one room, so the bistro visibly improves as the player spends coins.
 // Each area is a series of 3:4 portrait paintings (docs/specs/001-visible-renovation-art-plan.md). A state shows every change paid for in its area.
 const areas: Area[] = [
@@ -779,6 +947,8 @@ const decorationSlots: DecorationSlot[] = [
 ];
 initial[1] = 'generator_grain';
 initial[4] = 'generator_corn';
+// The pickle barrel holds the stores of the grandmother's cellar until 20 March.
+initial[3] = 'generator_pickles';
 initial[31] = 'generator_herbs';
 initial[13] = 'grain_1';
 initial[14] = 'grain_1';
@@ -913,7 +1083,8 @@ const preparations: PreparationObstacleBatch[] = [
 ];
 const data: GameData = {
   board: { columns: 6, rows: 7, initial, defaultLayout: 'workbench-clutter-1', layouts, preparations },
-  chains: chains.map(([id, name]) => ({ id, name })), items, characters, chapters, finale, tasks, areas, rooms, decorationSlots, economy, day, quests,
+  chains: chains.map(([id, name]) => ({ id, name, ...(seasons[id] ? { season: seasons[id] } : {}) })), items, characters, chapters, finale, tasks, areas, rooms, decorationSlots,
+  economy, day, calendar, quests,
 };
 // A room shows only paintings whose masters the user accepted; the build ships their variants.
 const provenance: { assets: { id: string }[] } = JSON.parse(await readFile(new URL('../docs/asset-provenance.json', import.meta.url), 'utf8'));

@@ -2,14 +2,16 @@ import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { boardObstacles, firstFreeBoardCell, freeBoardCells, requiredQuests, pendingPreparationObstacles, unresolvedObstacle } from '../../src/model.ts';
 import { createGame, reduceGame, validateGame } from '../../src/engine.ts';
+import { deliverRequired } from '../../tools/create-checkpoint-saves.ts';
 import type { GameState } from '../../src/model.ts';
 import { data, failWrites, forward, pay, replaceSave, revealed, saved, startStill as start, tile, know } from './support.ts';
 
 /** The game after count preparations, ready to pay the next one, with the preparation-blocker record starting there. */
 function beforeBatch(count = 0) {
+  // Each payment comes on the earliest day that its quests and its chapter permit.
   let state = createGame(data);
   for (let index = 0; index < count; index++) {
-    state.completedQuests = requiredQuests(index, data).map(quest => quest.id);
+    deliverRequired(state, data);
     state.coins = data.tasks[index].cost;
     const paid = reduceGame(state, { type: 'task' }, data);
     expect(paid.ok, paid.message).toBe(true); state = paid.state;
@@ -18,7 +20,7 @@ function beforeBatch(count = 0) {
   state.preparationObstacles = { start: count, placed: [] };
   state.resolvedObstacles = state.resolvedObstacles.filter(id => data.board.layouts.find(layout => layout.id === state.layoutId)!.obstacles.some(obstacle => obstacle.id === id));
   state.pendingScenes = [];
-  state.completedQuests = requiredQuests(count, data).map(quest => quest.id);
+  deliverRequired(state, data);
   state.coins = data.tasks[count].cost;
   expect(validateGame(state, data)).toBe(true); return state;
 }

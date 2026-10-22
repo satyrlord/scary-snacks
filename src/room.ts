@@ -1,6 +1,6 @@
 // The room: the painting of an area as the completed preparations leave it, the reveal of a paid change, the area switch,
 // the decoration finishes, the kitchen drawer over the room, and the cats.
-import { decorationUnlocked, latestArea, resolveDecorations, resolveRooms, supperComplete } from './model.ts';
+import { decorationUnlocked, holidayDecorations, latestArea, resolveDecorations, resolveRooms, supperComplete, weather, windowView } from './model.ts';
 import type { DecorationSlot, DecorationVariant, RoomState, RoomView, Task } from './model.ts';
 import { $, button, element, status, svg } from './dom.ts';
 import { swapMark } from './art.ts';
@@ -100,11 +100,15 @@ function drawRoom(view: RoomView, fade = 0) {
   }
   const area=painting===SUPPER?'':view.id,decorations=resolveDecorations(roomCompleted(),state.decorationChoices,data).filter(slot=>slot.unlocked&&slot.area===area);
   drawDecorations($('#room-decorations'),area,roomCompleted(),state.decorationChoices);renderFinishes(area);
-  const caption=$('#room-caption'),key=`${view.id}:${view.states.map(room=>room.id).join()}:${decorations.map(slot=>slot.selected.id).join()}`;
+  // The day gives the weather, the view behind the window, and the holiday decorations. The broken window shows no view and no decoration.
+  const day=state.clock.day,holidays=painting.id==='front-room-00'?[]:holidayDecorations(day,area,data);
+  frame.dataset.weather=weather(day,data);$('.window-view').dataset.view=windowView(day,data).id;
+  drawHolidays(holidays);
+  const caption=$('#room-caption'),key=`${view.id}:${view.states.map(room=>room.id).join()}:${decorations.map(slot=>slot.selected.id).join()}:${holidays.map(decoration=>decoration.id).join()}`;
   if(caption.dataset.key!==key){
     caption.dataset.key=key;const list=element('ol','room-changes');
     for(const room of view.states)list.append(element('li','',room.text));
-    const finishes=element('p','',decorations.map(slot=>`${slot.name}: ${slot.selected.name}.`).join(' '));
+    const finishes=element('p','',[...decorations.map(slot=>`${slot.name}: ${slot.selected.name}.`),...holidays.map(decoration=>`${decoration.name}.`)].join(' '));
     caption.replaceChildren(element('p','room-missing','The painting of this room could not load, so here it is in words.'),element('p','room-name',view.name),list,finishes);
   }
   if(frame.dataset.painting===painting.id&&!fade){pin.hidden=!marked||$('#room-stage').hasAttribute('data-failed');fitPin();return Promise.resolve();}
@@ -220,18 +224,26 @@ export function fitPin() {
   left=candidates.find(value=>!meets(new DOMRect(value,box.top,box.width,box.height)))??left;
   pin.style.setProperty('--shift',`${Math.round(left-box.left)}px`);
 }
-/** A finish over the room painting, cropped to its slot in scene coordinates. Saves only supply validated choice IDs. */
-function decorationImage(slot: DecorationSlot, variant: DecorationVariant) {
-  const crop=slot.crop,scaleX=15.36,scaleY=20.48,value=svg('svg');
-  value.setAttribute('viewBox','0 0 1536 2048');
-  value.setAttribute('class','decoration-layer');value.setAttribute('aria-hidden','true');
-  value.dataset.slot=slot.id;value.dataset.variant=variant.id;
+/** An image of the size of a room painting, cropped to a region in percentages of the painting. */
+function croppedImage(crop: DecorationSlot['crop'], image: string) {
+  const scaleX=15.36,scaleY=20.48,value=svg('svg');
+  value.setAttribute('viewBox','0 0 1536 2048');value.setAttribute('aria-hidden','true');
   const bounds=svg('svg');bounds.setAttribute('x',String(crop.x*scaleX));bounds.setAttribute('y',String(crop.y*scaleY));
   bounds.setAttribute('width',String(crop.width*scaleX));bounds.setAttribute('height',String(crop.height*scaleY));
   bounds.setAttribute('viewBox',[crop.x*scaleX,crop.y*scaleY,crop.width*scaleX,crop.height*scaleY].join(' '));
-  const image=svg('image');
-  image.setAttribute('href',new URL(`../assets/variants/${variant.image}-1536x2048.webp`,import.meta.url).href);
-  image.setAttribute('width','1536');image.setAttribute('height','2048');bounds.append(image);value.append(bounds);return value;
+  const picture=svg('image');
+  picture.setAttribute('href',new URL(`../assets/variants/${image}-1536x2048.webp`,import.meta.url).href);
+  picture.setAttribute('width','1536');picture.setAttribute('height','2048');bounds.append(picture);value.append(bounds);return value;
+}
+/** A finish over the room painting, cropped to its slot in scene coordinates. Saves only supply validated choice IDs. */
+function decorationImage(slot: DecorationSlot, variant: DecorationVariant) {
+  const value=croppedImage(slot.crop,variant.image);
+  value.setAttribute('class','decoration-layer');value.dataset.slot=slot.id;value.dataset.variant=variant.id;return value;
+}
+/** The holiday decorations of the day in the area that the room shows. */
+function drawHolidays(holidays: ReturnType<typeof holidayDecorations>) {
+  const holder=$('#room-holidays'),key=holidays.map(decoration=>decoration.id).join();if(holder.dataset.key===key)return;
+  holder.dataset.key=key;holder.replaceChildren(...holidays.map(decoration=>{const value=croppedImage(decoration.crop,decoration.image);value.dataset.holiday=decoration.id;return value;}));
 }
 function drawDecorations(holder: HTMLElement,area: string,completed: string[],choices: Record<string,string>) {
   const slots=resolveDecorations(completed,choices,data).filter(slot=>slot.unlocked&&slot.area===area&&slot.selected.id!==slot.default);

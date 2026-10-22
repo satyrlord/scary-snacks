@@ -7,13 +7,14 @@ import { dataProblems, roomProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import { imageVariants } from '../tools/build-image-variants.ts';
 import type { Action, GameData, GameState, Quest } from '../src/model.ts';
+import { deliverRequired } from '../tools/create-checkpoint-saves.ts';
 import { act, addOpenLayout, data, openGame, player, rejected, validate, know } from './support.ts';
 addOpenLayout();
 // Large funds and quests marked delivered isolate production, placement, and room art from the campaign effort.
 const funded = () => ({ ...openGame(), coins: 100000 });
 function withQuests(state: GameState, content = data) {
   const next = structuredClone(state);
-  for (const quest of requiredQuests(next.taskIndex, content)) if (!next.completedQuests.includes(quest.id)) next.completedQuests.push(quest.id);
+  deliverRequired(next, content);
   return next;
 }
 /** Pay count preparations, each with the quests that it needs. */
@@ -47,10 +48,10 @@ function addMixed(content: GameData, id: string, recipe: string[]) {
   content.items[id] = { id, name: 'Test dish', chain: 'mixed', stage: 2, next: null, art: { atlas: 'mains', cell: 7 }, price: 1, tags, recipe: recipe as [string, string] };
 }
 
-test('original data has 12 staple chains of four to six dishes, 24 mixed dishes, 12 sources, 23 characters, and 24 tasks', () => {
+test('original data has 14 chains of four to six dishes, 28 mixed dishes, 14 sources, 23 characters, and 24 tasks', () => {
   assert.equal(data.board.columns * data.board.rows, 42);
-  assert.equal(Object.keys(data.items).length, 97);
-  assert.deepEqual(data.chains.map(chain => chain.id), ['grain', 'corn', 'herbs', 'dairy', 'poultry', 'vegetables', 'fruits', 'pork', 'beans', 'lamb', 'veal', 'fish']);
+  assert.equal(Object.keys(data.items).length, 111);
+  assert.deepEqual(data.chains.map(chain => chain.id), ['grain', 'corn', 'herbs', 'dairy', 'poultry', 'vegetables', 'fruits', 'pork', 'beans', 'lamb', 'veal', 'fish', 'pickles', 'greens']);
   assert.equal(data.characters.length, 23);
   assert.equal(data.characters.filter(person => !person.visitor && !person.regular).length, 4);
   assert.equal(data.characters.filter(person => person.regular).length, 13);
@@ -61,7 +62,7 @@ test('original data has 12 staple chains of four to six dishes, 24 mixed dishes,
     assert.equal(task.dialogue.length, 3);
     assert.ok(task.dialogue.every(line => data.characters.some(person => person.id === line.speaker) && line.text.length > 0));
   }
-  const lengths: Record<string, number> = { grain: 6, corn: 4, herbs: 4, dairy: 6, poultry: 4, vegetables: 6, fruits: 6, pork: 5, beans: 5, lamb: 5, veal: 6, fish: 4 };
+  const lengths: Record<string, number> = { grain: 6, corn: 4, herbs: 4, dairy: 6, poultry: 4, vegetables: 6, fruits: 6, pork: 5, beans: 5, lamb: 5, veal: 6, fish: 4, pickles: 4, greens: 4 };
   for (const chain of data.chains) {
     const length = lengths[chain.id];
     assert.equal(Object.values(data.items).filter(item => item.chain === chain.id && !item.generator).length, length, chain.id);
@@ -73,7 +74,7 @@ test('original data has 12 staple chains of four to six dishes, 24 mixed dishes,
     assert.deepEqual(data.items[`generator_${chain.id}`].generator?.outputs, [`${chain.id}_1`]);
   }
   const mixed = Object.values(data.items).filter(item => item.chain === 'mixed');
-  assert.equal(mixed.length, 24);
+  assert.equal(mixed.length, 28);
   for (const item of mixed) {
     assert.match(item.id, /^mixed_[a-z-]+$/);
     assert.equal(item.recipe?.length, 2);
@@ -82,14 +83,14 @@ test('original data has 12 staple chains of four to six dishes, 24 mixed dishes,
   }
 });
 
-test('dish and drink names use only English and Romanian letters', () => {
-  for (const item of Object.values(data.items)) if (!item.generator) assert.match(item.name, /^[A-Za-zĂÂÎȘȚăâîșț ]+$/, item.name);
+test('dish and drink names use only English and Romanian letters, with the é of purée and a hyphen in a compound word', () => {
+  for (const item of Object.values(data.items)) if (!item.generator) assert.match(item.name, /^[A-Za-zĂÂÎȘȚăâîșțé ]+(-[a-z]+)?[A-Za-zĂÂÎȘȚăâîșțé ]*$/, item.name);
 });
 
 test('fresh games are valid, identical, and independent', () => {
   const state = openGame();
   assert.equal(validateGame(state, data), true);
-  assert.equal(state.version, 14);
+  assert.equal(state.version, 15);
   assert.deepEqual(state, openGame());
   assert.deepEqual([state.coins, state.taskIndex, state.completedQuests, state.pendingScenes], [0, 0, [], []]);
   state.board[0] = { code: 'grain_1' };
@@ -97,10 +98,10 @@ test('fresh games are valid, identical, and independent', () => {
   assert.equal(currentTask(openGame(), data)?.id, 'task_1');
 });
 
-test('a new game opens Grain, Corn, and Herbs with their sources, staples, and two Socată in fixed cells, and eight blockers', () => {
+test('a new game opens Grain, Corn, and Herbs with their sources, staples, and two Socată in fixed cells, the pickle barrel of winter, and eight blockers', () => {
   const state = createGame(data);
   const codes = Object.fromEntries(state.board.flatMap((cell, index) => cell ? [[index, cell.code]] : []));
-  assert.deepEqual(codes, { 1: 'generator_grain', 4: 'generator_corn', 13: 'grain_1', 14: 'grain_1', 22: 'corn_1', 27: 'herbs_1', 31: 'generator_herbs', 32: 'herbs_3', 33: 'herbs_3' });
+  assert.deepEqual(codes, { 1: 'generator_grain', 3: 'generator_pickles', 4: 'generator_corn', 13: 'grain_1', 14: 'grain_1', 22: 'corn_1', 27: 'herbs_1', 31: 'generator_herbs', 32: 'herbs_3', 33: 'herbs_3' });
   assert.equal(data.board.layouts.find(layout => layout.id === data.board.defaultLayout)!.obstacles.length, 8);
 });
 
@@ -110,10 +111,11 @@ test('every source keeps its stage-one output through all preparations', () => {
     state = act(withQuests(state), { type: 'task' });
     for (const chain of data.chains) {
       const source = `generator_${chain.id}`;
-      assert.deepEqual(generatorOutputs(state, source, data), state.board.some(cell => cell?.code === source) ? [`${chain.id}_1`] : []);
+      if (state.board.some(cell => cell?.code === source)) assert.deepEqual(generatorOutputs(state, source, data), [`${chain.id}_1`]);
+      else if (!chain.season) assert.deepEqual(generatorOutputs(state, source, data), []);
     }
   }
-  assert.equal(data.chains.filter(chain => state.board.some(cell => cell?.code === `generator_${chain.id}`)).length, 12);
+  assert.equal(data.chains.filter(chain => !chain.season && state.board.some(cell => cell?.code === `generator_${chain.id}`)).length, 12);
 });
 
 test('a source takes only its first ingredient after late preparations', () => {
@@ -243,7 +245,7 @@ test('invalid, unknown, and unavailable actions do not change state', () => {
 test('save validation rejects invalid numeric fields, codes, closed dishes, quest records, and unsupported versions', () => {
   // Some corruptions write a value that the GameState type does not admit.
   const corruptions: ((state: any) => void)[] = [
-    state => { state.version = 1; }, state => { state.version = 13; }, state => { state.version = 15; }, state => { state.coins = -1_000_000_001; },
+    state => { state.version = 1; }, state => { state.version = 14; }, state => { state.version = 16; }, state => { state.coins = -1_000_000_001; },
     state => { state.coins = 0.5; }, state => { state.taskIndex = 25; },
     state => { state.board.pop(); }, state => { state.board[0] = { code: '__proto__' }; },
     state => { state.board[0] = { code: 'grain_1', hidden: true }; },
@@ -383,7 +385,7 @@ test('a preparation paid with exactly its cost empties the purse and adds one ro
 test('fresh, mid-campaign, and completed saves resolve the same rooms after reload and export', () => {
   for (const count of [0, 12, 13, data.tasks.length]) {
     const state = pay(funded(), count);
-    const reloaded = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 13, state: JSON.parse(JSON.stringify(state)) }), validate);
+    const reloaded = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 14, state: JSON.parse(JSON.stringify(state)) }), validate);
     const exported = importSave<GameState>(exportSave(reloaded, validate), validate);
     assert.deepEqual(resolveRooms(reloaded.decorations, data), roomsAt(count), `reload at ${count}`);
     assert.deepEqual(resolveRooms(exported.decorations, data), roomsAt(count), `export at ${count}`);
@@ -478,7 +480,7 @@ test('the recipe check rejects a recipe nested two levels, a pair with two resul
 
 test('a mixed dish can be a part of two recipes, and the authored recipes pass the check', () => {
   const uses = Object.values(data.items).filter(item => item.recipe?.includes('mixed_sweet-dough')).map(item => item.id).sort();
-  assert.deepEqual(uses, ['mixed_chimney-cake', 'mixed_cozonac']);
+  assert.deepEqual(uses, ['mixed_chimney-cake', 'mixed_cozonac', 'mixed_pasca']);
   assert.deepEqual(dataProblems(data), []);
   for (const item of Object.values(data.items)) if (item.recipe) {
     const chains = new Set(item.recipe.flatMap(part => data.items[part].recipe ? data.items[part].recipe!.map(inner => data.items[inner].chain) : [data.items[part].chain]));

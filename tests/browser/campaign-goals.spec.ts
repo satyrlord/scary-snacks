@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { requiredQuests, unresolvedObstacle } from '../../src/model.ts';
-import { createGame } from '../../src/engine.ts';
+import { createGame, revealTickets } from '../../src/engine.ts';
+import { moveTo } from '../../tools/create-checkpoint-saves.ts';
 import type { GameState } from '../../src/model.ts';
 import { act, checkpoint, data, dialogDeliver, goal, importSaveFile, newGame, opened, openQuest, options, pay, ratio, saved, serialize, start, supplies, supply, ticket, tile, toast, validate, know } from './support.ts';
 
@@ -9,7 +10,10 @@ const needed = requiredQuests(0, data);
 /** Every quest of the preparation at this index is delivered but the last, whose dishes and the extra dishes are on the board, and the coins reach its cost with that last reward. */
 function lastQuestReady(index = 0, extra: string[] = []) {
   const quests = requiredQuests(index, data), state = checkpoint(index), last = quests.at(-1)!;
+  // The quests are delivered on their dates, and the payment waits for the opening of its chapter.
+  moveTo(state, Math.max(state.clock.day, data.chapters[data.tasks[index].chapter - 1].opens, ...quests.map(quest => data.calendar.holidays.find(holiday => holiday.id === quest.holiday)?.day ?? quest.opens ?? 1)), data);
   state.completedQuests.push(...quests.slice(0, -1).filter(quest => !state.completedQuests.includes(quest.id)).map(quest => quest.id)); state.coins = data.tasks[index].cost - last.reward;
+  revealTickets(state, data);
   return { state: supply(state, [...supplies(last), ...extra]), last };
 }
 
@@ -31,7 +35,7 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 800 
       `Materials and supplies${first.work.materials} coins`, `Labour${first.work.labour} coins`, `Total${first.cost} coins`,
     ]);
     await expect(costs.getByRole('list', { name: 'Preparation requirement totals' }).locator('li')).toHaveText([
-      `Coins: 0 / ${first.cost}.`, `Quests delivered: 0 / ${needed.length}.`,
+      `Coins: 0 / ${first.cost}.`, `Quests delivered: 0 / ${needed.length}.`, 'Opening date: Saturday 15 February, open.',
     ]);
     await expect(costs.locator('.small-copy')).toContainText(`${first.work.hours} person-hours`);
     expect(await costs.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
@@ -164,15 +168,15 @@ test('delivering the last required quest makes the phone offer ready', async ({ 
 test('a ready preparation keeps guide Stop visible after delivery clears the selected dish', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  // The last quest of the eleventh preparation takes the Smoked cheese that the guide to the Sharing board selects: it is Smoked cheese and Sausages.
-  const fixture = lastQuestReady(10, ['pork_3']), state = fixture.state, sharing = data.items['mixed_sharing-board'];
-  expect(sharing.recipe).toEqual(['dairy_5', 'pork_3']); expect(supplies(fixture.last)).toContain('dairy_5'); expect(supplies(fixture.last)).not.toContain(sharing.id);
+  // The last quest of the 21st preparation takes the Minced veal that the guide to the Mici selects: they are Minced veal and Minced pork.
+  const fixture = lastQuestReady(20, ['pork_2']), state = fixture.state, sharing = data.items['mixed_mici'];
+  expect(sharing.recipe).toEqual(['veal_3', 'pork_2']); expect(supplies(fixture.last)).toContain('veal_3'); expect(supplies(fixture.last)).not.toContain(sharing.id);
   know(state,sharing.id);
   await start(page, state);
   await page.locator('#recipes-button').click();
   await page.getByRole('button', { name: sharing.name, exact: true }).click();
   await page.getByRole('button', { name: 'Show me on the board' }).click();
-  await expect(page.locator('#board .selected')).toHaveAttribute('aria-label', new RegExp(`: ${data.items.dairy_5.name}`));
+  await expect(page.locator('#board .selected')).toHaveAttribute('aria-label', new RegExp(`: ${data.items.veal_3.name}`));
   await openQuest(page,fixture.last);await dialogDeliver(page, fixture.last).click();
   await expect(page.locator('#board .selected')).toHaveCount(0);
   await expect(page.locator('#hint-button')).toHaveAccessibleName(`Stop guide for ${sharing.name}`);

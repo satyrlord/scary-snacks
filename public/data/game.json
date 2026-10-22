@@ -6,7 +6,7 @@
       null,
       "generator_grain",
       null,
-      null,
+      "generator_pickles",
       "generator_corn",
       null,
       null,
@@ -744,6 +744,24 @@
     {
       "id": "fish",
       "name": "Fish"
+    },
+    {
+      "id": "pickles",
+      "name": "Preserved vegetables",
+      "season": {
+        "from": -75,
+        "to": 34,
+        "departure": "The pickle barrel is empty until next winter."
+      }
+    },
+    {
+      "id": "greens",
+      "name": "Spring greens",
+      "season": {
+        "from": 35,
+        "to": 106,
+        "departure": "The forage basket waits for next spring."
+      }
     }
   ],
   "items": {
@@ -1831,6 +1849,152 @@
         "garlic"
       ]
     },
+    "generator_pickles": {
+      "id": "generator_pickles",
+      "name": "Pickle barrel",
+      "chain": "pickles",
+      "stage": 0,
+      "next": null,
+      "art": {
+        "atlas": "pickles",
+        "cell": 0
+      },
+      "price": 0,
+      "tags": [],
+      "generator": {
+        "outputs": [
+          "pickles_1"
+        ],
+        "free": true
+      }
+    },
+    "pickles_1": {
+      "id": "pickles_1",
+      "name": "Gherkins",
+      "chain": "pickles",
+      "stage": 1,
+      "next": "pickles_2",
+      "art": {
+        "atlas": "pickles",
+        "cell": 1
+      },
+      "price": 0,
+      "tags": []
+    },
+    "pickles_2": {
+      "id": "pickles_2",
+      "name": "Pickled green tomatoes",
+      "chain": "pickles",
+      "stage": 2,
+      "next": "pickles_3",
+      "art": {
+        "atlas": "pickles",
+        "cell": 2
+      },
+      "price": 2,
+      "tags": []
+    },
+    "pickles_3": {
+      "id": "pickles_3",
+      "name": "Mixed pickles",
+      "chain": "pickles",
+      "stage": 3,
+      "next": "pickles_4",
+      "art": {
+        "atlas": "pickles",
+        "cell": 3
+      },
+      "price": 6,
+      "tags": []
+    },
+    "pickles_4": {
+      "id": "pickles_4",
+      "name": "Cabbage-stuffed pickled peppers",
+      "chain": "pickles",
+      "stage": 4,
+      "next": null,
+      "art": {
+        "atlas": "pickles",
+        "cell": 4
+      },
+      "price": 14,
+      "tags": []
+    },
+    "generator_greens": {
+      "id": "generator_greens",
+      "name": "Forage basket",
+      "chain": "greens",
+      "stage": 0,
+      "next": null,
+      "art": {
+        "atlas": "greens",
+        "cell": 0
+      },
+      "price": 0,
+      "tags": [],
+      "generator": {
+        "outputs": [
+          "greens_1"
+        ],
+        "free": true
+      }
+    },
+    "greens_1": {
+      "id": "greens_1",
+      "name": "Nettles",
+      "chain": "greens",
+      "stage": 1,
+      "next": "greens_2",
+      "art": {
+        "atlas": "greens",
+        "cell": 1
+      },
+      "price": 0,
+      "tags": []
+    },
+    "greens_2": {
+      "id": "greens_2",
+      "name": "Wild garlic and sorrel",
+      "chain": "greens",
+      "stage": 2,
+      "next": "greens_3",
+      "art": {
+        "atlas": "greens",
+        "cell": 2
+      },
+      "price": 2,
+      "tags": [
+        "garlic"
+      ]
+    },
+    "greens_3": {
+      "id": "greens_3",
+      "name": "Nettle soup",
+      "chain": "greens",
+      "stage": 3,
+      "next": "greens_4",
+      "art": {
+        "atlas": "greens",
+        "cell": 3
+      },
+      "price": 6,
+      "tags": []
+    },
+    "greens_4": {
+      "id": "greens_4",
+      "name": "Nettle purée with garlic",
+      "chain": "greens",
+      "stage": 4,
+      "next": null,
+      "art": {
+        "atlas": "greens",
+        "cell": 4
+      },
+      "price": 14,
+      "tags": [
+        "garlic"
+      ]
+    },
     "mixed_bulz": {
       "id": "mixed_bulz",
       "name": "Bulz",
@@ -2297,6 +2461,79 @@
         "mixed_sweet-dough",
         "dairy_1"
       ]
+    },
+    "mixed_mucenici": {
+      "id": "mixed_mucenici",
+      "name": "Mucenici",
+      "chain": "mixed",
+      "stage": 1,
+      "next": null,
+      "art": {
+        "atlas": "breads",
+        "cell": 4
+      },
+      "price": 8,
+      "tags": [],
+      "recipe": [
+        "grain_2",
+        "herbs_2"
+      ]
+    },
+    "mixed_pasca": {
+      "id": "mixed_pasca",
+      "name": "Pască",
+      "chain": "mixed",
+      "stage": 2,
+      "next": null,
+      "art": {
+        "atlas": "breads",
+        "cell": 5
+      },
+      "price": 19,
+      "tags": [
+        "egg",
+        "dairy"
+      ],
+      "recipe": [
+        "mixed_sweet-dough",
+        "dairy_3"
+      ]
+    },
+    "mixed_red-eggs": {
+      "id": "mixed_red-eggs",
+      "name": "Red eggs",
+      "chain": "mixed",
+      "stage": 1,
+      "next": null,
+      "art": {
+        "atlas": "breads",
+        "cell": 6
+      },
+      "price": 7,
+      "tags": [
+        "egg"
+      ],
+      "recipe": [
+        "poultry_1",
+        "vegetables_2"
+      ]
+    },
+    "mixed_coliva": {
+      "id": "mixed_coliva",
+      "name": "Colivă",
+      "chain": "mixed",
+      "stage": 1,
+      "next": null,
+      "art": {
+        "atlas": "breads",
+        "cell": 7
+      },
+      "price": 7,
+      "tags": [],
+      "recipe": [
+        "grain_1",
+        "fruits_2"
+      ]
     }
   },
   "characters": [
@@ -2312,6 +2549,11 @@
       "name": "Ilie",
       "role": "Baker",
       "sprite": 1,
+      "diet": {
+        "name": "Keeps Lent",
+        "forbid": [],
+        "lent": true
+      },
       "introduction": "I am Ilie, the baker. I bring bread and the notebook where my family kept its dishes. There is room on those pages for what we learn here."
     },
     {
@@ -2664,12 +2906,13 @@
         "mixed_saramura-mamaliga"
       ],
       "diet": {
-        "name": "Orthodox fast, fish allowed",
+        "name": "Orthodox fast, fish allowed outside Lent",
         "forbid": [
           "meat",
           "dairy",
           "egg"
-        ]
+        ],
+        "lent": true
       },
       "arrivesAfter": "task_12",
       "arrival": [
@@ -2734,7 +2977,8 @@
           "speaker": "eszter",
           "text": "Let it stay. Every good room has one quiet guest."
         }
-      ]
+      ],
+      "opens": 1
     },
     {
       "id": "chapter-2",
@@ -2756,7 +3000,8 @@
           "speaker": "ilie",
           "text": "A menu is a promise. Tomorrow we find out if we can keep it."
         }
-      ]
+      ],
+      "opens": 13
     },
     {
       "id": "chapter-3",
@@ -2778,7 +3023,8 @@
           "speaker": "mara",
           "text": "Then the table is open. Anyone who wants company can find it here."
         }
-      ]
+      ],
+      "opens": 27
     },
     {
       "id": "chapter-4",
@@ -2800,7 +3046,8 @@
           "speaker": "mara",
           "text": "Then we can serve outside. Thank you, Sorin. You found every loose stone before a guest did."
         }
-      ]
+      ],
+      "opens": 41
     },
     {
       "id": "chapter-5",
@@ -2826,7 +3073,8 @@
           "speaker": "mara",
           "text": "That is the menu I wanted. Not ours. Everyone’s."
         }
-      ]
+      ],
+      "opens": 54
     },
     {
       "id": "chapter-6",
@@ -2848,7 +3096,8 @@
           "speaker": "mara",
           "text": "Then we are ready. Let us open the doors."
         }
-      ]
+      ],
+      "opens": 65
     }
   ],
   "finale": {
@@ -3193,13 +3442,14 @@
         },
         {
           "speaker": "sorin",
-          "text": "I can stop here between deliveries and still have room for my bag."
+          "text": "I can stop here between deliveries. And I set a fish trap in the stream, so trout goes on the menu."
         },
         {
           "speaker": "ilie",
-          "text": "Your bag may have a chair. Your bicycle must wait outside."
+          "text": "Your bag may have a chair. Your bicycle must wait outside, and so must the fish."
         }
-      ]
+      ],
+      "unlock": "fish"
     },
     {
       "id": "task_13",
@@ -3407,10 +3657,9 @@
         },
         {
           "speaker": "ilie",
-          "text": "Bring a pencil. Sorin set a fish trap in the stream, so trout goes on the menu too."
+          "text": "Bring a pencil. A menu always grows by one line after it is printed."
         }
-      ],
-      "unlock": "fish"
+      ]
     },
     {
       "id": "task_21",
@@ -3994,12 +4243,245 @@
     "opening": 420,
     "closing": 1320,
     "booking": 1200,
-    "mergeMinutes": 6,
-    "upkeep": 10,
+    "sunday": {
+      "opening": 600,
+      "closing": 1020
+    },
+    "mergeMinutes": 15,
+    "upkeep": 20,
     "ratTake": 3,
     "ratHoles": 3,
     "giftStage": 4,
     "giftSpace": 5
+  },
+  "calendar": {
+    "start": 46,
+    "supper": 76,
+    "weather": [
+      "snow",
+      "fair",
+      "fair",
+      "snow",
+      "snow",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "snow",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "snow",
+      "snow",
+      "fair",
+      "snow",
+      "fair",
+      "fair",
+      "rain",
+      "rain",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "rain",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "rain",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "rain",
+      "rain",
+      "fair",
+      "fair",
+      "fair",
+      "rain",
+      "rain",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "fair",
+      "rain",
+      "fair",
+      "rain",
+      "fair",
+      "fair",
+      "rain",
+      "fair",
+      "fair"
+    ],
+    "holidays": [
+      {
+        "id": "dragobete",
+        "name": "Dragobete",
+        "day": 10
+      },
+      {
+        "id": "carnival",
+        "name": "Carnival Sunday",
+        "day": 16
+      },
+      {
+        "id": "womens-day",
+        "name": "Women’s Day",
+        "day": 22
+      },
+      {
+        "id": "mucenici",
+        "name": "the Forty Martyrs",
+        "day": 23
+      },
+      {
+        "id": "annunciation",
+        "name": "the Annunciation",
+        "day": 39
+      },
+      {
+        "id": "palm-sunday",
+        "name": "Palm Sunday",
+        "day": 58
+      },
+      {
+        "id": "holy-thursday",
+        "name": "Holy Thursday",
+        "day": 62
+      },
+      {
+        "id": "holy-saturday",
+        "name": "Holy Saturday",
+        "day": 64
+      },
+      {
+        "id": "easter",
+        "name": "Easter",
+        "day": 65
+      },
+      {
+        "id": "easter-monday",
+        "name": "Easter Monday",
+        "day": 66
+      },
+      {
+        "id": "saint-george-eve",
+        "name": "Saint George’s Eve",
+        "day": 67,
+        "noEvening": true
+      },
+      {
+        "id": "blajini",
+        "name": "the Easter of the Blajini",
+        "day": 73
+      }
+    ],
+    "lent": {
+      "from": 17,
+      "to": 64,
+      "fish": [
+        39,
+        58
+      ]
+    },
+    "terrace": {
+      "from": 46,
+      "to": 259
+    },
+    "views": [
+      {
+        "id": "window-view-late-winter",
+        "from": 1
+      },
+      {
+        "id": "window-view-early-spring",
+        "from": 24
+      },
+      {
+        "id": "window-view-spring",
+        "from": 51
+      }
+    ],
+    "decorations": [
+      {
+        "id": "martisor",
+        "name": "A mărțișor, the red and white string, on the window latch",
+        "area": "front-room",
+        "image": "holiday-front",
+        "from": 15,
+        "to": 23,
+        "crop": {
+          "x": 77.79947916666667,
+          "y": 29.296875,
+          "width": 5.859375,
+          "height": 10.7421875
+        }
+      },
+      {
+        "id": "catkins",
+        "name": "Willow catkins in a jar on the windowsill",
+        "area": "front-room",
+        "image": "holiday-front",
+        "from": 58,
+        "to": 64,
+        "crop": {
+          "x": 94.01041666666667,
+          "y": 37.59765625,
+          "width": 5.989583333333334,
+          "height": 9.375
+        }
+      },
+      {
+        "id": "red-eggs",
+        "name": "A bowl of red eggs on the windowsill",
+        "area": "front-room",
+        "image": "holiday-front",
+        "from": 62,
+        "to": 72,
+        "crop": {
+          "x": 88.28125,
+          "y": 42.96875,
+          "width": 5.729166666666667,
+          "height": 4.00390625
+        }
+      },
+      {
+        "id": "green-branches",
+        "name": "Green branches tied to the gate",
+        "area": "courtyard",
+        "image": "holiday-courtyard",
+        "from": 67,
+        "to": 76,
+        "crop": {
+          "x": 84.04947916666667,
+          "y": 41.50390625,
+          "width": 7.161458333333334,
+          "height": 15.625
+        }
+      }
+    ]
   },
   "quests": [
     {
@@ -4213,43 +4695,6 @@
       ]
     },
     {
-      "id": "dochia-sheepskin",
-      "character": "dochia",
-      "title": "One sheepskin fewer",
-      "afterTask": null,
-      "requirements": [
-        {
-          "item": "corn_4",
-          "quantity": 2
-        },
-        {
-          "item": "grain_4",
-          "quantity": 2
-        },
-        {
-          "item": "grain_5",
-          "quantity": 1
-        },
-        {
-          "item": "herbs_4",
-          "quantity": 1
-        }
-      ],
-      "reward": 148,
-      "opening": [
-        {
-          "speaker": "dochia",
-          "text": "The wind on the hill is still cold, so I am wearing all nine sheepskins. Mămăligă, bread, and a hot linden tea would warm me enough to take one off."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "dochia",
-          "text": "There. One sheepskin fewer. Eight to go before summer, and the weather is watching me."
-        }
-      ]
-    },
-    {
       "id": "eszter-cups",
       "character": "eszter",
       "title": "Cups for the counter",
@@ -4338,11 +4783,11 @@
           "quantity": 1
         },
         {
-          "item": "corn_4",
+          "item": "pickles_1",
           "quantity": 1
         }
       ],
-      "reward": 162,
+      "reward": 140,
       "opening": [
         {
           "speaker": "mara",
@@ -4360,11 +4805,50 @@
       "completion": [
         {
           "speaker": "mara",
-          "text": "Three empty barrels, one good ladder, and a very polite spider."
+          "text": "Two empty barrels, one barrel of Mamaia’s pickles, one good ladder, and a very polite spider."
         },
         {
           "speaker": "sorin",
           "text": "It waved. I waved back. It seemed the right thing to do."
+        }
+      ]
+    },
+    {
+      "id": "dochia-sheepskin",
+      "character": "dochia",
+      "title": "One sheepskin fewer",
+      "afterTask": null,
+      "march": true,
+      "opens": 15,
+      "requirements": [
+        {
+          "item": "corn_4",
+          "quantity": 2
+        },
+        {
+          "item": "grain_4",
+          "quantity": 2
+        },
+        {
+          "item": "grain_5",
+          "quantity": 1
+        },
+        {
+          "item": "herbs_4",
+          "quantity": 1
+        }
+      ],
+      "reward": 148,
+      "opening": [
+        {
+          "speaker": "dochia",
+          "text": "The wind on the hill is still cold, so I am wearing all nine sheepskins. Mămăligă, bread, and a hot linden tea would warm me enough to take one off."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "dochia",
+          "text": "There. One sheepskin fewer. Eight to go before summer, and the weather is watching me."
         }
       ]
     },
@@ -4420,7 +4904,7 @@
           "quantity": 1
         },
         {
-          "item": "grain_4",
+          "item": "pickles_2",
           "quantity": 1
         },
         {
@@ -4428,7 +4912,7 @@
           "quantity": 1
         }
       ],
-      "reward": 58,
+      "reward": 38,
       "opening": [
         {
           "speaker": "eszter",
@@ -4447,6 +4931,54 @@
         {
           "speaker": "eszter",
           "text": "Good. It looks hungry when it is empty. That is exactly right."
+        }
+      ]
+    },
+    {
+      "id": "ilie-roof-snow",
+      "character": "ilie",
+      "title": "Snow on the roof",
+      "afterTask": "task_1",
+      "companions": [
+        "sorin"
+      ],
+      "requirements": [
+        {
+          "item": "corn_4",
+          "quantity": 2
+        },
+        {
+          "item": "herbs_4",
+          "quantity": 2
+        },
+        {
+          "item": "grain_5",
+          "quantity": 1
+        }
+      ],
+      "reward": 118,
+      "opening": [
+        {
+          "speaker": "ilie",
+          "text": "The snow on the roof is a hand deep. My grandmother said that a roof remembers every winter that nobody cleared."
+        },
+        {
+          "speaker": "sorin",
+          "text": "Everyone on my round admires the snow, and nobody shovels it. It is a commons."
+        },
+        {
+          "speaker": "ilie",
+          "text": "Then today we are the commons. Food first, and then the ladder."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "sorin",
+          "text": "The roof is clear. Three neighbours stopped to watch, and all three gave advice."
+        },
+        {
+          "speaker": "ilie",
+          "text": "Advice is free. That is why there is so much of it."
         }
       ]
     },
@@ -4546,9 +5078,9 @@
       ]
     },
     {
-      "id": "ana-garlic",
-      "character": "ana",
-      "title": "Garlic duty",
+      "id": "bela-snowman",
+      "character": "bela",
+      "title": "A snowman among the graves",
       "afterTask": "task_2",
       "requirements": [
         {
@@ -4560,21 +5092,85 @@
           "quantity": 1
         },
         {
-          "item": "grain_5",
+          "item": "corn_4",
           "quantity": 1
         }
       ],
-      "reward": 82,
+      "reward": 58,
+      "opening": [
+        {
+          "speaker": "bela",
+          "text": "Somebody built a snowman in the churchyard. Each morning, it faces a different grave. A pogăcea, a mămăligă, and a hot linden tea, please. I will watch it tonight."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "bela",
+          "text": "At midnight it turned toward the old miller’s grave. I think that they are friends. I gave it my scarf."
+        }
+      ]
+    },
+    {
+      "id": "ana-mittens",
+      "character": "ana",
+      "title": "Mittens for the ward",
+      "afterTask": "task_2",
+      "requirements": [
+        {
+          "item": "herbs_4",
+          "quantity": 2
+        },
+        {
+          "item": "grain_4",
+          "quantity": 1
+        }
+      ],
+      "reward": 50,
       "opening": [
         {
           "speaker": "ana",
-          "text": "It is my turn to hang garlic on every door of the ward. That is a lot of doors. Langoș, pogăcele, and a linden tea, please, before I start."
+          "text": "The heating of the night ward broke again. I knit mittens for the patients between rounds. Linden tea and a pogăcea, please, for the knitting hand."
         }
       ],
       "completion": [
         {
           "speaker": "ana",
-          "text": "Every door has its garlic. The ward smells terrible, and nothing knocked all night. Perfect."
+          "text": "Eleven pairs of mittens. One patient asked for a third mitten. I did not ask why. I knitted it."
+        }
+      ]
+    },
+    {
+      "id": "victor-dragobete",
+      "character": "victor",
+      "title": "A sweet for two",
+      "afterTask": "task_3",
+      "holiday": "dragobete",
+      "opens": 7,
+      "requirements": [
+        {
+          "item": "grain_5",
+          "quantity": 1
+        },
+        {
+          "item": "dairy_1",
+          "quantity": 1
+        },
+        {
+          "item": "herbs_4",
+          "quantity": 1
+        }
+      ],
+      "reward": 61,
+      "opening": [
+        {
+          "speaker": "victor",
+          "text": "Monday is Dragobete, when the birds choose their mates. I need a sweet langoș with sugar, cut in two, and a cup of warm milk with two straws. It is for two people. No, I will not say who the second person is."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "victor",
+          "text": "The second person was busy at the stove all day, so I ate both halves and used both straws. Please do not tell anyone. Especially the stove."
         }
       ]
     },
@@ -4586,14 +5182,18 @@
       "requirements": [
         {
           "item": "dairy_1",
-          "quantity": 2
+          "quantity": 1
+        },
+        {
+          "item": "dairy_2",
+          "quantity": 1
         },
         {
           "item": "herbs_4",
           "quantity": 1
         }
       ],
-      "reward": 16,
+      "reward": 19,
       "opening": [
         {
           "speaker": "mara",
@@ -4616,43 +5216,6 @@
         {
           "speaker": "eszter",
           "text": "And the plate looks rested."
-        }
-      ]
-    },
-    {
-      "id": "dochia-lunch",
-      "character": "dochia",
-      "title": "Lunch for the hill",
-      "afterTask": "task_3",
-      "requirements": [
-        {
-          "item": "dairy_2",
-          "quantity": 4
-        },
-        {
-          "item": "grain_4",
-          "quantity": 4
-        },
-        {
-          "item": "corn_4",
-          "quantity": 1
-        },
-        {
-          "item": "herbs_4",
-          "quantity": 1
-        }
-      ],
-      "reward": 140,
-      "opening": [
-        {
-          "speaker": "dochia",
-          "text": "The sheep eat grass all day and never complain. I eat sour cream, and I complain about the grass. Pack me sour cream, pogăcele, and a mămăligă."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "dochia",
-          "text": "The sheep will smell the sour cream and follow me home. That saves me a walk."
         }
       ]
     },
@@ -4698,47 +5261,177 @@
       ]
     },
     {
-      "id": "dochia-shearing",
-      "character": "dochia",
-      "title": "Shearing day",
+      "id": "mara-chimney-sweep",
+      "character": "mara",
+      "title": "The chimney sweep",
       "afterTask": "task_3",
+      "companions": [
+        "sorin"
+      ],
       "requirements": [
         {
-          "item": "dairy_4",
-          "quantity": 4
+          "item": "grain_5",
+          "quantity": 2
         },
         {
-          "item": "grain_4",
-          "quantity": 2
+          "item": "dairy_4",
+          "quantity": 1
         },
         {
           "item": "herbs_3",
           "quantity": 1
+        }
+      ],
+      "reward": 120,
+      "opening": [
+        {
+          "speaker": "mara",
+          "text": "The chimney sweep comes today. In my grandmother’s house, we touched a button of his coat for luck."
+        },
+        {
+          "speaker": "sorin",
+          "text": "I asked him on my round. He keeps a spare button for nervous owners."
+        },
+        {
+          "speaker": "mara",
+          "text": "I am not nervous. Bring food for the man on the roof, and something for us."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "mara",
+          "text": "He found a burnt page in the flue: half a recipe in Mamaia Paraschiva’s hand, and the words \"more pepper than you think\"."
+        },
+        {
+          "speaker": "sorin",
+          "text": "And did you touch his button?"
+        },
+        {
+          "speaker": "mara",
+          "text": "I only pointed at it. He says that pointing counts for half, so I pointed twice."
+        }
+      ]
+    },
+    {
+      "id": "costel-icicle-clock",
+      "character": "costel",
+      "title": "The icicle clock",
+      "afterTask": "task_3",
+      "requirements": [
+        {
+          "item": "grain_5",
+          "quantity": 1
+        },
+        {
+          "item": "mixed_papanasi",
+          "quantity": 1
+        },
+        {
+          "item": "herbs_3",
+          "quantity": 1
+        }
+      ],
+      "reward": 68,
+      "opening": [
+        {
+          "speaker": "costel",
+          "text": "I built a clock that drips the hours from an icicle. Outside, it is very accurate. Near your stove, it runs fast. A langoș, papanași, and a socată, please, while I time it."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "costel",
+          "text": "By the stove, it is already Thursday. I will hang it by the door, where time behaves."
+        }
+      ]
+    },
+    {
+      "id": "dochia-lunch",
+      "character": "dochia",
+      "title": "Lunch for the hill",
+      "afterTask": "task_3",
+      "march": true,
+      "opens": 18,
+      "requirements": [
+        {
+          "item": "dairy_2",
+          "quantity": 4
+        },
+        {
+          "item": "grain_4",
+          "quantity": 4
         },
         {
           "item": "corn_4",
           "quantity": 1
         },
         {
-          "item": "grain_3",
-          "quantity": 2
-        },
-        {
           "item": "herbs_4",
-          "quantity": 2
+          "quantity": 1
         }
       ],
-      "reward": 208,
+      "reward": 140,
       "opening": [
         {
           "speaker": "dochia",
-          "text": "Today I shear the sheep, and the sheep have opinions. Telemea, pogăcele, a mămăligă, and a socată, please. I need my strength."
+          "text": "The sheep eat grass all day and never complain. I eat sour cream, and I complain about the grass. Pack me sour cream, pogăcele, and a mămăligă."
         }
       ],
       "completion": [
         {
           "speaker": "dochia",
-          "text": "All the sheep are shorn. Now they look cold and I look warm. I will give one sheepskin back. Maybe."
+          "text": "The sheep will smell the sour cream and follow me home. That saves me a walk."
+        }
+      ]
+    },
+    {
+      "id": "eszter-carnival",
+      "character": "eszter",
+      "title": "The last feast",
+      "afterTask": "task_4",
+      "holiday": "carnival",
+      "opens": 13,
+      "requirements": [
+        {
+          "item": "mixed_papanasi",
+          "quantity": 1
+        },
+        {
+          "item": "mixed_bulz",
+          "quantity": 1
+        },
+        {
+          "item": "mixed_cheese-pie",
+          "quantity": 1
+        }
+      ],
+      "reward": 90,
+      "opening": [
+        {
+          "speaker": "eszter",
+          "text": "Sunday is the last feast before Lent. At home we had farsang: masks, music, and doughnuts until nobody could stand."
+        },
+        {
+          "speaker": "mara",
+          "text": "We have no doughnuts."
+        },
+        {
+          "speaker": "eszter",
+          "text": "Papanași are the doughnuts of the farsang, with better manners. Bring one, and a proper feast around it."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "eszter",
+          "text": "My mother would approve. She would also ask where the music was."
+        },
+        {
+          "speaker": "sorin",
+          "text": "I hummed."
+        },
+        {
+          "speaker": "eszter",
+          "text": "She would not count that."
         }
       ]
     },
@@ -4850,47 +5543,6 @@
       ]
     },
     {
-      "id": "ilie-pickles",
-      "character": "ilie",
-      "title": "Jars for winter",
-      "afterTask": "task_4",
-      "requirements": [
-        {
-          "item": "mixed_bulz",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_cheese-pie",
-          "quantity": 1
-        }
-      ],
-      "reward": 120,
-      "opening": [
-        {
-          "speaker": "ilie",
-          "text": "My grandmother pickled everything that stood still long enough. I want to fill the cellar jars her way."
-        },
-        {
-          "speaker": "mara",
-          "text": "Her way takes all afternoon."
-        },
-        {
-          "speaker": "ilie",
-          "text": "That is why I need a proper lunch first."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "ilie",
-          "text": "Full and labelled, in her order. Cabbage, then peppers, then plums."
-        },
-        {
-          "speaker": "ilie",
-          "text": "One label says \"Do not open before winter\". I did not write that one."
-        }
-      ]
-    },
-    {
       "id": "costel-key",
       "character": "costel",
       "title": "A key that hums",
@@ -4920,6 +5572,106 @@
         {
           "speaker": "costel",
           "text": "It wanted oil. It stopped humming and started purring. I am keeping it on a ribbon."
+        }
+      ]
+    },
+    {
+      "id": "ilie-clean-monday",
+      "character": "ilie",
+      "title": "Clean Monday",
+      "afterTask": "task_5",
+      "opens": 17,
+      "requirements": [
+        {
+          "item": "grain_6",
+          "quantity": 1
+        },
+        {
+          "item": "corn_4",
+          "quantity": 1
+        },
+        {
+          "item": "herbs_4",
+          "quantity": 1
+        }
+      ],
+      "reward": 130,
+      "opening": [
+        {
+          "speaker": "ilie",
+          "text": "Today Lent starts. My grandmother scrubbed every pot on the first Monday, so that nothing of the feast was left in them."
+        },
+        {
+          "speaker": "mara",
+          "text": "Every pot? We have thirty."
+        },
+        {
+          "speaker": "ilie",
+          "text": "Thirty-one. Fasting food for the scrubber, please: bread, mămăligă, and tea."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ilie",
+          "text": "Every pot is clean, and so am I, more or less."
+        },
+        {
+          "speaker": "mara",
+          "text": "Seven weeks of fasting now?"
+        },
+        {
+          "speaker": "ilie",
+          "text": "Seven weeks. I will be very polite to the cheese."
+        }
+      ]
+    },
+    {
+      "id": "sorin-womens-day",
+      "character": "sorin",
+      "title": "Sweets for the night ward",
+      "afterTask": "task_5",
+      "holiday": "womens-day",
+      "companions": [
+        "ana"
+      ],
+      "opens": 19,
+      "requirements": [
+        {
+          "item": "mixed_papanasi",
+          "quantity": 2
+        },
+        {
+          "item": "herbs_4",
+          "quantity": 2
+        },
+        {
+          "item": "grain_4",
+          "quantity": 1
+        }
+      ],
+      "reward": 82,
+      "opening": [
+        {
+          "speaker": "sorin",
+          "text": "Saturday is Women’s Day. In the town, men bring flowers. On my round, the florist has no flowers until spring."
+        },
+        {
+          "speaker": "mara",
+          "text": "So you bring sweets."
+        },
+        {
+          "speaker": "sorin",
+          "text": "To the whole night ward. Ana says that nurses accept sweets on behalf of everyone."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ana",
+          "text": "The nurses thank you, Sorin. The doctor tried to accept a papanaș on behalf of the nurses. We stopped him."
+        },
+        {
+          "speaker": "sorin",
+          "text": "Next year I will bring more, and a lock for the box."
         }
       ]
     },
@@ -4986,6 +5738,37 @@
         {
           "speaker": "sorin",
           "text": "She was patient for almost the whole hour. I counted."
+        }
+      ]
+    },
+    {
+      "id": "costel-mucenici",
+      "character": "costel",
+      "title": "Forty small glasses",
+      "afterTask": "task_6",
+      "holiday": "mucenici",
+      "opens": 20,
+      "requirements": [
+        {
+          "item": "mixed_mucenici",
+          "quantity": 2
+        },
+        {
+          "item": "herbs_3",
+          "quantity": 1
+        }
+      ],
+      "reward": 22,
+      "opening": [
+        {
+          "speaker": "costel",
+          "text": "Sunday is the day of the Forty Martyrs. The custom asks for mucenici, and forty small glasses of wine for each man. I tried it once. My pocket clock counted the glasses and stopped at nine. Mucenici and a socată, please."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "costel",
+          "text": "The mucenici were perfect, and my clock still works. This year, I counted socată."
         }
       ]
     },
@@ -5101,6 +5884,92 @@
       ]
     },
     {
+      "id": "dochia-march",
+      "character": "dochia",
+      "title": "The last cold week",
+      "afterTask": "task_7",
+      "march": true,
+      "opens": 21,
+      "requirements": [
+        {
+          "item": "mixed_bulz",
+          "quantity": 2
+        },
+        {
+          "item": "grain_5",
+          "quantity": 1
+        },
+        {
+          "item": "dairy_5",
+          "quantity": 1
+        },
+        {
+          "item": "herbs_4",
+          "quantity": 2
+        }
+      ],
+      "reward": 212,
+      "opening": [
+        {
+          "speaker": "dochia",
+          "text": "Spring is close, and I am down to three sheepskins. Bulz, smoked cheese, langoș, and linden tea, and I will give up another without a fight."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "dochia",
+          "text": "Done. If it snows tomorrow, I am blaming you."
+        }
+      ]
+    },
+    {
+      "id": "dochia-lambing",
+      "character": "dochia",
+      "title": "Lambing time",
+      "afterTask": "task_7",
+      "march": true,
+      "opens": 28,
+      "requirements": [
+        {
+          "item": "dairy_4",
+          "quantity": 4
+        },
+        {
+          "item": "grain_4",
+          "quantity": 2
+        },
+        {
+          "item": "herbs_3",
+          "quantity": 1
+        },
+        {
+          "item": "corn_4",
+          "quantity": 1
+        },
+        {
+          "item": "grain_3",
+          "quantity": 2
+        },
+        {
+          "item": "herbs_4",
+          "quantity": 2
+        }
+      ],
+      "reward": 208,
+      "opening": [
+        {
+          "speaker": "dochia",
+          "text": "The first lambs came in the night, two of them in the snow. I will sleep in the fold until the rest arrive. Telemea, bread, and hot tea, please. It is a long watch."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "dochia",
+          "text": "Seven lambs, all on their feet. The smallest one sleeps inside my coat. That makes ten sheepskins, and the weather is furious."
+        }
+      ]
+    },
+    {
       "id": "mara-table",
       "character": "mara",
       "title": "A place at the table",
@@ -5183,21 +6052,24 @@
       "character": "mara",
       "title": "Candles in the window",
       "afterTask": "task_8",
+      "companions": [
+        "sorin"
+      ],
       "requirements": [
         {
           "item": "vegetables_3",
-          "quantity": 1
+          "quantity": 2
         },
         {
           "item": "pork_3",
-          "quantity": 1
+          "quantity": 2
         },
         {
           "item": "herbs_3",
-          "quantity": 1
+          "quantity": 2
         }
       ],
-      "reward": 26,
+      "reward": 52,
       "opening": [
         {
           "speaker": "mara",
@@ -5420,14 +6292,14 @@
       "requirements": [
         {
           "item": "mixed_bulz",
-          "quantity": 1
+          "quantity": 2
         },
         {
           "item": "vegetables_3",
-          "quantity": 2
+          "quantity": 1
         }
       ],
-      "reward": 66,
+      "reward": 102,
       "opening": [
         {
           "speaker": "eszter",
@@ -5458,39 +6330,6 @@
       }
     },
     {
-      "id": "ana-ward-tea",
-      "character": "ana",
-      "title": "Tea for the ward",
-      "afterTask": "task_9",
-      "requirements": [
-        {
-          "item": "herbs_4",
-          "quantity": 1
-        },
-        {
-          "item": "mixed_chicken-noodle-soup",
-          "quantity": 1
-        },
-        {
-          "item": "poultry_4",
-          "quantity": 1
-        }
-      ],
-      "reward": 52,
-      "opening": [
-        {
-          "speaker": "ana",
-          "text": "The night patients cannot sleep. A linden tea for them, please, and a proper supper for the porter."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "ana",
-          "text": "The whole ward is asleep. Even the porter. Especially the porter."
-        }
-      ]
-    },
-    {
       "id": "cezar-round",
       "character": "cezar",
       "title": "The end of the round",
@@ -5498,22 +6337,18 @@
       "requirements": [
         {
           "item": "mixed_tochitura",
-          "quantity": 1
+          "quantity": 2
         },
         {
           "item": "vegetables_4",
           "quantity": 1
-        },
-        {
-          "item": "herbs_3",
-          "quantity": 1
         }
       ],
-      "reward": 98,
+      "reward": 162,
       "opening": [
         {
           "speaker": "cezar",
-          "text": "My round ends at dawn. Tochitură and roasted vegetables would make a fine breakfast. Or supper. Whichever this is."
+          "text": "My round ends at dawn. Tochitură and roasted vegetables would make a fine breakfast. Or supper. Whichever this is. A second tochitură, please, for the walk home."
         }
       ],
       "completion": [
@@ -5524,21 +6359,71 @@
       ]
     },
     {
-      "id": "sorin-postbag",
-      "character": "sorin",
-      "title": "A heavy post bag",
+      "id": "janos-first-pack",
+      "character": "janos",
+      "title": "A long reading",
       "afterTask": "task_9",
+      "afterQuest": "monica-first-pack",
       "requirements": [
         {
-          "item": "vegetables_4",
+          "item": "grain_5",
           "quantity": 2
         },
         {
-          "item": "grain_5",
-          "quantity": 1
+          "item": "grain_6",
+          "quantity": 2
+        },
+        {
+          "item": "fruits_5",
+          "quantity": 2
+        },
+        {
+          "item": "grain_4",
+          "quantity": 6
         }
       ],
-      "reward": 90,
+      "reward": 504,
+      "opening": [
+        {
+          "speaker": "janos",
+          "text": "The cook ate all the sausages and fell asleep on his cleaver. We walked straight past him."
+        },
+        {
+          "speaker": "janos",
+          "text": "Deeper under the cathedral, a king of bones sits on a stone throne. He still wears his crown, and he still asks for taxes."
+        },
+        {
+          "speaker": "ilie",
+          "text": "In coins?"
+        },
+        {
+          "speaker": "janos",
+          "text": "In bread, it seems. I want to read the marks on his throne, and that is a long reading."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "janos",
+          "text": "Sit a while, and listen, I will tell him. Then I will read him his own family history. Nobody stays awake for that."
+        }
+      ]
+    },
+    {
+      "id": "sorin-postbag",
+      "character": "sorin",
+      "title": "A heavy post bag",
+      "afterTask": "task_10",
+      "requirements": [
+        {
+          "item": "vegetables_4",
+          "quantity": 1
+        },
+        {
+          "item": "grain_5",
+          "quantity": 2
+        }
+      ],
+      "reward": 114,
       "opening": [
         {
           "speaker": "sorin",
@@ -5569,232 +6454,115 @@
       ]
     },
     {
-      "id": "janos-first-pack",
-      "character": "janos",
-      "title": "A long reading",
-      "afterTask": "task_9",
-      "afterQuest": "monica-first-pack",
+      "id": "ana-ward-tea",
+      "character": "ana",
+      "title": "Tea for the ward",
+      "afterTask": "task_11",
       "requirements": [
         {
-          "item": "grain_5",
-          "quantity": 3
+          "item": "herbs_4",
+          "quantity": 1
         },
         {
-          "item": "grain_6",
+          "item": "mixed_chicken-noodle-soup",
+          "quantity": 1
+        },
+        {
+          "item": "poultry_4",
+          "quantity": 1
+        }
+      ],
+      "reward": 52,
+      "opening": [
+        {
+          "speaker": "ana",
+          "text": "The night patients cannot sleep. A linden tea for them, please, and a proper supper for the porter."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ana",
+          "text": "The whole ward is asleep. Even the porter. Especially the porter."
+        }
+      ]
+    },
+    {
+      "id": "ilie-annunciation",
+      "character": "ilie",
+      "title": "The first fish",
+      "afterTask": "task_12",
+      "holiday": "annunciation",
+      "opens": 36,
+      "requirements": [
+        {
+          "item": "fish_1",
+          "quantity": 2
+        },
+        {
+          "item": "beans_1",
+          "quantity": 1
+        }
+      ],
+      "reward": 3,
+      "opening": [
+        {
+          "speaker": "ilie",
+          "text": "Tuesday is the Annunciation. In Lent it is the first day with fish, and my grandmother never missed it."
+        },
+        {
+          "speaker": "mara",
+          "text": "The fish trap gave us two trout this morning."
+        },
+        {
+          "speaker": "ilie",
+          "text": "Then two trout over the coals, and white beans beside them. The cuckoo sings for the first time on this day, too."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ilie",
+          "text": "The cuckoo sang while I ate. I counted eleven calls."
+        },
+        {
+          "speaker": "mara",
+          "text": "What does eleven mean?"
+        },
+        {
+          "speaker": "ilie",
+          "text": "That I ate slowly."
+        }
+      ]
+    },
+    {
+      "id": "dorian-gallery",
+      "character": "dorian",
+      "title": "The exhibition",
+      "afterTask": "task_12",
+      "requirements": [
+        {
+          "item": "dairy_6",
+          "quantity": 1
+        },
+        {
+          "item": "mixed_cozonac",
           "quantity": 1
         },
         {
           "item": "fruits_5",
-          "quantity": 2
-        },
-        {
-          "item": "grain_4",
-          "quantity": 6
+          "quantity": 1
         }
       ],
-      "reward": 456,
+      "reward": 153,
       "opening": [
         {
-          "speaker": "janos",
-          "text": "The cook ate all the sausages and fell asleep on his cleaver. We walked straight past him."
-        },
-        {
-          "speaker": "janos",
-          "text": "Deeper under the cathedral, a king of bones sits on a stone throne. He still wears his crown, and he still asks for taxes."
-        },
-        {
-          "speaker": "ilie",
-          "text": "In coins?"
-        },
-        {
-          "speaker": "janos",
-          "text": "In bread, it seems. I want to read the marks on his throne, and that is a long reading."
+          "speaker": "dorian",
+          "text": "A gallery is showing my portrait on Friday. I have invited a few friends to admire it. A cheese board, a cozonac, and red wine for the guests, please."
         }
       ],
       "completion": [
         {
-          "speaker": "janos",
-          "text": "Sit a while, and listen, I will tell him. Then I will read him his own family history. Nobody stays awake for that."
-        }
-      ]
-    },
-    {
-      "id": "ionatan-castle-dinner",
-      "character": "ionatan",
-      "title": "Dinner before the castle",
-      "afterTask": "task_9",
-      "afterQuest": "vlad-guest",
-      "requirements": [
-        {
-          "item": "fruits_6",
-          "quantity": 1
-        },
-        {
-          "item": "mixed_sharing-board",
-          "quantity": 1
-        },
-        {
-          "item": "mixed_tochitura",
-          "quantity": 1
-        }
-      ],
-      "reward": 222,
-      "opening": [
-        {
-          "speaker": "ionatan",
-          "text": "I have come from abroad to close a real-estate deal with a local noble at the nearby castle. Before I continue, I would like a proper dinner."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "ionatan",
-          "text": "An excellent dinner. Here is the payment, with my thanks. My papers are in order, and I must leave for the castle now. My journey takes me on from there, so I will not return. Farewell."
-        }
-      ]
-    },
-    {
-      "id": "sanziana-meadow",
-      "character": "sanziana",
-      "title": "A picnic in the meadow",
-      "afterTask": "task_10",
-      "requirements": [
-        {
-          "item": "vegetables_4",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_plum-dumplings",
-          "quantity": 3
-        },
-        {
-          "item": "mixed_fruit-tea",
-          "quantity": 2
-        }
-      ],
-      "reward": 72,
-      "opening": [
-        {
-          "speaker": "sanziana",
-          "text": "My sisters are having a picnic in the meadow. Roasted vegetables for two, and plum dumplings for the rest. I will not tell you how many the rest are."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "sanziana",
-          "text": "My sisters thank you, all of them. You may hear singing in the meadow tonight. Please do not go and count us."
-        }
-      ]
-    },
-    {
-      "id": "mina-avram-search",
-      "character": "mina",
-      "companions": [
-        "avram"
-      ],
-      "title": "A meal before the search",
-      "afterTask": "task_10",
-      "afterQuest": "ionatan-castle-dinner",
-      "requirements": [
-        {
-          "item": "vegetables_5",
-          "quantity": 2
-        },
-        {
-          "item": "vegetables_4",
-          "quantity": 2
-        },
-        {
-          "item": "dairy_5",
-          "quantity": 1
-        },
-        {
-          "item": "mixed_fruit-tea",
-          "quantity": 1
-        }
-      ],
-      "reward": 190,
-      "opening": [
-        {
-          "speaker": "mina",
-          "text": "Ionatan is my fiancé. He came from Britain to sign a property contract at the castle, but he has not written back. Have you seen him?"
-        },
-        {
-          "speaker": "mara",
-          "text": "He had dinner here and left for the castle. He has not returned to the bistro."
-        },
-        {
-          "speaker": "avram",
-          "text": "Then Mina and I will follow that road together. Before we leave, could you prepare a meal for two?"
-        },
-        {
-          "speaker": "mina",
-          "text": "No meat or fish, please. Eggs and dairy are fine."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "mina",
-          "text": "Thank you for the meal and for telling us which road he took. We must find out why his letters stopped."
-        },
-        {
-          "speaker": "avram",
-          "text": "We shall leave for the castle together now. I have my medical bag, should he need help."
-        },
-        {
-          "speaker": "mara",
-          "text": "I hope you find him safe. Take care on the road."
-        }
-      ],
-      "followUp": {
-        "id": "mina-avram-news",
-        "title": "News from the road",
-        "afterDeliveries": 3,
-        "dialogue": [
-          {
-            "speaker": "sorin",
-            "text": "There is news going round the village. Mina and Doctor Avram found Ionatan gravely ill. All three have left for Britain. They did not stop at our bistro on the way back."
-          },
-          {
-            "speaker": "mara",
-            "text": "Then he is no longer alone. I hope he recovers at home. Thank you for bringing the news, Sorin."
-          }
-        ]
-      }
-    },
-    {
-      "id": "dochia-march",
-      "character": "dochia",
-      "title": "The last cold week",
-      "afterTask": "task_11",
-      "requirements": [
-        {
-          "item": "mixed_bulz",
-          "quantity": 2
-        },
-        {
-          "item": "grain_5",
-          "quantity": 1
-        },
-        {
-          "item": "dairy_5",
-          "quantity": 1
-        },
-        {
-          "item": "mixed_fruit-tea",
-          "quantity": 2
-        }
-      ],
-      "reward": 200,
-      "opening": [
-        {
-          "speaker": "dochia",
-          "text": "Spring is close, and I am down to three sheepskins. Bulz, smoked cheese, langoș, and fruit tea, and I will give up another without a fight."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "dochia",
-          "text": "Done. If it snows tomorrow, I am blaming you."
+          "speaker": "dorian",
+          "text": "Everyone admired the portrait. One guest said that its eyes followed her around the room. I hope that she found them attentive."
         }
       ]
     },
@@ -5802,7 +6570,8 @@
       "id": "ilie-courtyard",
       "character": "ilie",
       "title": "Bread for outside",
-      "afterTask": "task_12",
+      "afterTask": "task_13",
+      "outdoor": true,
       "requirements": [
         {
           "item": "grain_5",
@@ -5811,9 +6580,13 @@
         {
           "item": "herbs_3",
           "quantity": 1
+        },
+        {
+          "item": "herbs_4",
+          "quantity": 1
         }
       ],
-      "reward": 52,
+      "reward": 66,
       "opening": [
         {
           "speaker": "ilie",
@@ -5840,79 +6613,22 @@
       ]
     },
     {
-      "id": "dorian-gallery",
-      "character": "dorian",
-      "title": "The exhibition",
-      "afterTask": "task_12",
-      "requirements": [
-        {
-          "item": "dairy_6",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_cozonac",
-          "quantity": 1
-        }
-      ],
-      "reward": 201,
-      "opening": [
-        {
-          "speaker": "dorian",
-          "text": "A gallery is showing my portrait on Friday. I have invited a few friends to admire it. Two cheese boards and a cozonac for the guests, please."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "dorian",
-          "text": "Everyone admired the portrait. One guest said that its eyes followed her around the room. I hope that she found them attentive."
-        }
-      ]
-    },
-    {
-      "id": "catalina-hail",
-      "character": "catalina",
-      "title": "Bell-ringer’s appetite",
-      "afterTask": "task_12",
-      "requirements": [
-        {
-          "item": "mixed_zacusca-toast",
-          "quantity": 2
-        },
-        {
-          "item": "mixed_plum-dumplings",
-          "quantity": 1
-        }
-      ],
-      "reward": 120,
-      "opening": [
-        {
-          "speaker": "catalina",
-          "text": "A hail cloud came over the hill this morning. I rang it away, and now my arms are hungry. Zacuscă toast and plum dumplings, please. It is a fasting day."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "catalina",
-          "text": "Not one hailstone fell on the village. The bell and I can rest until the next cloud."
-        }
-      ]
-    },
-    {
       "id": "sorin-path",
       "character": "sorin",
       "title": "A courtyard break",
       "afterTask": "task_13",
+      "outdoor": true,
       "requirements": [
         {
           "item": "vegetables_4",
           "quantity": 2
         },
         {
-          "item": "herbs_3",
+          "item": "greens_1",
           "quantity": 1
         }
       ],
-      "reward": 50,
+      "reward": 44,
       "opening": [
         {
           "speaker": "sorin",
@@ -5924,7 +6640,7 @@
         },
         {
           "speaker": "sorin",
-          "text": "Then you will hear it. Put roasted vegetables on the tray. If the route is bad, I want to drop something cheap."
+          "text": "Then you will hear it. Put roasted vegetables on the tray, and nettles from the wall. If the route is bad, I want to drop something cheap."
         }
       ],
       "completion": [
@@ -5955,13 +6671,17 @@
         {
           "item": "mixed_bulz",
           "quantity": 1
+        },
+        {
+          "item": "lamb_1",
+          "quantity": 1
         }
       ],
-      "reward": 92,
+      "reward": 93,
       "opening": [
         {
           "speaker": "bran",
-          "text": "The last bus leaves the square at midnight. Nobody gets on after the bridge, but I stop anyway. A langoș and a bulz for the road, please."
+          "text": "The last bus leaves the square at midnight. Nobody gets on after the bridge, but I stop anyway. A langoș and a bulz for the road, please, and a piece of lamb. The lamb is for the horse. Do not ask."
         }
       ],
       "completion": [
@@ -5980,18 +6700,18 @@
       "requirements": [
         {
           "item": "grain_6",
-          "quantity": 1
+          "quantity": 2
         },
         {
           "item": "grain_3",
-          "quantity": 5
+          "quantity": 4
         },
         {
           "item": "grain_4",
           "quantity": 6
         }
       ],
-      "reward": 276,
+      "reward": 360,
       "opening": [
         {
           "speaker": "adrian",
@@ -6018,75 +6738,19 @@
       ]
     },
     {
-      "id": "ileana-thursday",
-      "character": "ileana",
-      "title": "Before Thursday",
-      "afterTask": "task_14",
-      "requirements": [
-        {
-          "item": "mixed_zacusca-toast",
-          "quantity": 2
-        },
-        {
-          "item": "grain_5",
-          "quantity": 1
-        }
-      ],
-      "reward": 162,
-      "opening": [
-        {
-          "speaker": "ileana",
-          "text": "Thursday is close, and my brother has not touched his spindle. I am taking him zacuscă toast and a langoș, so that he has no excuse."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "ileana",
-          "text": "He spun all night. Nothing was burned, and nobody had a visitor. A good week."
-        }
-      ]
-    },
-    {
-      "id": "victor-thesis",
-      "character": "victor",
-      "title": "The thesis supper",
-      "afterTask": "task_14",
-      "requirements": [
-        {
-          "item": "mixed_cabbage-rolls",
-          "quantity": 2
-        },
-        {
-          "item": "herbs_4",
-          "quantity": 1
-        }
-      ],
-      "reward": 46,
-      "opening": [
-        {
-          "speaker": "victor",
-          "text": "I finished my thesis at three in the morning, during a thunderstorm. Bring the best of the menu, please. We are celebrating."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "victor",
-          "text": "My thesis passed. The examiners said it has a life of its own. I am choosing to take that as praise."
-        }
-      ]
-    },
-    {
-      "id": "dochia-fair",
+      "id": "dochia-climb",
       "character": "dochia",
-      "title": "The sheep fair",
-      "afterTask": "task_14",
+      "title": "The high pasture",
+      "afterTask": "task_13",
+      "march": true,
+      "opens": 42,
       "requirements": [
         {
           "item": "dairy_6",
           "quantity": 1
         },
         {
-          "item": "mixed_zacusca-toast",
+          "item": "grain_4",
           "quantity": 2
         },
         {
@@ -6106,17 +6770,17 @@
           "quantity": 2
         }
       ],
-      "reward": 330,
+      "reward": 258,
       "opening": [
         {
           "speaker": "dochia",
-          "text": "Tomorrow is the sheep fair, and my ram wants to win. He will not, but I bring food so that he loses with dignity. Enough for the ram, the judges, and me, please."
+          "text": "The snow is leaving the high pasture, and the flock wants to climb before I do. Pack enough for the shepherds, the dogs, and me. The ram carries nothing. He says that it is beneath him."
         }
       ],
       "completion": [
         {
           "speaker": "dochia",
-          "text": "He won second prize. First prize went to a goat, which is not even a sheep. We are appealing."
+          "text": "We reached the high pasture. At the top I took off my last sheepskin, and the wind put it back on me. Next March, then."
         }
       ]
     },
@@ -6154,39 +6818,6 @@
       ]
     },
     {
-      "id": "cezar-long-night",
-      "character": "cezar",
-      "title": "The longest night",
-      "afterTask": "task_14",
-      "requirements": [
-        {
-          "item": "mixed_tochitura",
-          "quantity": 1
-        },
-        {
-          "item": "mixed_bean-soup",
-          "quantity": 1
-        },
-        {
-          "item": "mixed_sharing-board",
-          "quantity": 1
-        }
-      ],
-      "reward": 153,
-      "opening": [
-        {
-          "speaker": "cezar",
-          "text": "Tonight is the longest night of the year, and I walk all of it. Tochitură, bean soup, and a sharing board, please. One bite for every hour."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "cezar",
-          "text": "The sun came up at last. I counted fourteen hours, two owls, and one shadow that walked home with me. It was polite."
-        }
-      ]
-    },
-    {
       "id": "eszter-kiln-party",
       "character": "eszter",
       "title": "The kiln party",
@@ -6201,11 +6832,11 @@
           "quantity": 1
         },
         {
-          "item": "mixed_fruit-tea",
+          "item": "herbs_4",
           "quantity": 1
         }
       ],
-      "reward": 16,
+      "reward": 22,
       "opening": [
         {
           "speaker": "eszter",
@@ -6236,21 +6867,58 @@
       ]
     },
     {
+      "id": "victor-thesis",
+      "character": "victor",
+      "title": "The thesis supper",
+      "afterTask": "task_14",
+      "requirements": [
+        {
+          "item": "lamb_3",
+          "quantity": 1
+        },
+        {
+          "item": "greens_2",
+          "quantity": 1
+        },
+        {
+          "item": "herbs_4",
+          "quantity": 1
+        }
+      ],
+      "reward": 26,
+      "opening": [
+        {
+          "speaker": "victor",
+          "text": "I finished my thesis at three in the morning, during a thunderstorm. Bring the best of the menu, please. We are celebrating."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "victor",
+          "text": "My thesis passed. The examiners said it has a life of its own. I am choosing to take that as praise."
+        }
+      ]
+    },
+    {
       "id": "ilie-cellar",
       "character": "ilie",
       "title": "The cellar shelves",
       "afterTask": "task_14",
       "requirements": [
         {
-          "item": "mixed_bean-soup",
-          "quantity": 2
+          "item": "beans_2",
+          "quantity": 1
         },
         {
-          "item": "lamb_3",
+          "item": "vegetables_3",
+          "quantity": 1
+        },
+        {
+          "item": "corn_4",
           "quantity": 1
         }
       ],
-      "reward": 60,
+      "reward": 36,
       "opening": [
         {
           "speaker": "ilie",
@@ -6262,7 +6930,7 @@
         },
         {
           "speaker": "ilie",
-          "text": "Mice do not line them up. I will eat down there and watch."
+          "text": "Mice do not line them up. I will eat a fasting supper down there and watch."
         }
       ],
       "completion": [
@@ -6285,18 +6953,18 @@
       "requirements": [
         {
           "item": "grain_6",
-          "quantity": 1
+          "quantity": 2
         },
         {
           "item": "fruits_3",
-          "quantity": 6
+          "quantity": 5
         },
         {
           "item": "lamb_4",
           "quantity": 7
         }
       ],
-      "reward": 308,
+      "reward": 392,
       "opening": [
         {
           "speaker": "monica",
@@ -6363,27 +7031,27 @@
       "afterTask": "task_16",
       "requirements": [
         {
-          "item": "dairy_6",
-          "quantity": 1
+          "item": "vegetables_5",
+          "quantity": 2
         },
         {
           "item": "beans_2",
           "quantity": 1
         }
       ],
-      "reward": 98,
+      "reward": 96,
       "opening": [
         {
           "speaker": "ilie",
-          "text": "My great-aunt’s cheese board is in the family notebook. She wrote \"a good amount of cheese\"."
+          "text": "My great-aunt’s zacuscă is in the family notebook. She wrote \"a good amount of peppers\"."
         },
         {
           "speaker": "eszter",
-          "text": "How much is a good amount?"
+          "text": "How many peppers is a good amount?"
         },
         {
           "speaker": "ilie",
-          "text": "Nobody knows. Bring one, and we will decide for the family."
+          "text": "Nobody knows. Bring a jar, and lentils beside it, and we will decide for the family."
         }
       ],
       "completion": [
@@ -6405,24 +7073,96 @@
       "requirements": [
         {
           "item": "veal_1",
-          "quantity": 2
+          "quantity": 1
         },
         {
           "item": "mixed_bean-soup",
           "quantity": 1
+        },
+        {
+          "item": "mixed_tochitura",
+          "quantity": 1
         }
       ],
-      "reward": 27,
+      "reward": 96,
       "opening": [
         {
           "speaker": "cezar",
-          "text": "Somebody keeps lighting candles in the castle on the hill. It is not my district, but I like to watch with a warm plate. Veal from the new butcher’s block and a bean soup, please."
+          "text": "Somebody keeps lighting candles in the castle on the hill. It is not my district, but I like to watch with a warm plate. Veal from the new butcher’s block, a bean soup, and a tochitură, please."
         }
       ],
       "completion": [
         {
           "speaker": "cezar",
           "text": "The candles went out at midnight. I stayed awake for all of it. Well, for most of it."
+        }
+      ]
+    },
+    {
+      "id": "dorian-portrait",
+      "character": "dorian",
+      "title": "Spring light",
+      "afterTask": "task_16",
+      "requirements": [
+        {
+          "item": "mixed_cozonac",
+          "quantity": 1
+        },
+        {
+          "item": "dairy_6",
+          "quantity": 1
+        },
+        {
+          "item": "fruits_5",
+          "quantity": 1
+        }
+      ],
+      "reward": 153,
+      "opening": [
+        {
+          "speaker": "dorian",
+          "text": "The painter wants spring light for a new portrait. Tell me honestly, Mara: does my old portrait look tired lately? Cozonac, a cheese board, and red wine, please, while you decide."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "dorian",
+          "text": "The painter says that I look exactly as I did forty years ago. He meant it kindly, so I paid him twice. The old portrait sighed. I heard it from the stairs."
+        }
+      ]
+    },
+    {
+      "id": "sanziana-palm-sunday",
+      "character": "sanziana",
+      "title": "Willow catkins",
+      "afterTask": "task_17",
+      "holiday": "palm-sunday",
+      "opens": 55,
+      "requirements": [
+        {
+          "item": "fish_2",
+          "quantity": 2
+        },
+        {
+          "item": "mixed_fruit-tea",
+          "quantity": 2
+        },
+        {
+          "item": "mixed_plum-dumplings",
+          "quantity": 2
+        }
+      ],
+      "reward": 32,
+      "opening": [
+        {
+          "speaker": "sanziana",
+          "text": "On Sunday I sell willow catkins at the church gate. Fish is allowed on Palm Sunday, so I buy it for my sisters. My sisters share very well. Nobody has ever seen them eat."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "sanziana",
+          "text": "The catkins are blessed, and the trout are gone. A branch of catkins is for your window. It keeps the storms away, or at least it says so."
         }
       ]
     },
@@ -6468,35 +7208,31 @@
       ]
     },
     {
-      "id": "ana-saint-andrew",
-      "character": "ana",
-      "title": "Saint Andrew’s Eve",
+      "id": "bran-pilgrims",
+      "character": "bran",
+      "title": "Holy Week on the night bus",
       "afterTask": "task_17",
       "requirements": [
         {
-          "item": "dairy_5",
-          "quantity": 1
-        },
-        {
           "item": "grain_5",
-          "quantity": 1
+          "quantity": 2
         },
         {
-          "item": "herbs_4",
+          "item": "mixed_bean-soup-bread-bowl",
           "quantity": 1
         }
       ],
-      "reward": 106,
+      "reward": 129,
       "opening": [
         {
-          "speaker": "ana",
-          "text": "Tonight is Saint Andrew’s Eve. I will hang the garlic early, and then I want a proper supper: smoked cheese, a langoș, and a linden tea."
+          "speaker": "bran",
+          "text": "In Holy Week, pilgrims fill the night bus. They sing all the way to the monastery, and they ate all my langoș. Two more, please, and a bean soup in a bread bowl."
         }
       ],
       "completion": [
         {
-          "speaker": "ana",
-          "text": "The garlic is up and the plates are clean. Let anything knock tonight. We are fed, and we smell of garlic."
+          "speaker": "bran",
+          "text": "The pilgrims blessed the bus, the horse, and my scarf. The scarf did not need it, but thank you."
         }
       ]
     },
@@ -6547,6 +7283,37 @@
       ]
     },
     {
+      "id": "ileana-thursday",
+      "character": "ileana",
+      "title": "Before Thursday",
+      "afterTask": "task_18",
+      "holiday": "holy-thursday",
+      "opens": 59,
+      "requirements": [
+        {
+          "item": "mixed_zacusca-toast",
+          "quantity": 2
+        },
+        {
+          "item": "grain_5",
+          "quantity": 1
+        }
+      ],
+      "reward": 162,
+      "opening": [
+        {
+          "speaker": "ileana",
+          "text": "Thursday is close, and my brother has not touched his spindle. I am taking him zacuscă toast and a langoș, so that he has no excuse."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ileana",
+          "text": "He spun all night. Nothing was burned, and nobody had a visitor. A good week."
+        }
+      ]
+    },
+    {
       "id": "costel-doll",
       "character": "costel",
       "title": "The dancing doll",
@@ -6590,7 +7357,7 @@
           "quantity": 1
         },
         {
-          "item": "dairy_5",
+          "item": "veal_2",
           "quantity": 1
         },
         {
@@ -6598,11 +7365,11 @@
           "quantity": 1
         }
       ],
-      "reward": 150,
+      "reward": 108,
       "opening": [
         {
           "speaker": "bran",
-          "text": "On my day off, I ride through the woods. The horse wants apples. I want zacuscă toast, smoked cheese, and langoș."
+          "text": "On my day off, I ride through the woods. The horse wants apples. I want zacuscă toast, diced veal, and langoș."
         }
       ],
       "completion": [
@@ -6642,39 +7409,177 @@
       ]
     },
     {
-      "id": "sanziana-midsummer",
-      "character": "sanziana",
-      "title": "Midsummer Eve",
-      "afterTask": "task_19",
+      "id": "dorian-birthday",
+      "character": "dorian",
+      "title": "A quiet birthday",
+      "afterTask": "task_18",
       "requirements": [
         {
-          "item": "mixed_plum-dumplings",
-          "quantity": 2
+          "item": "mixed_cozonac",
+          "quantity": 1
         },
         {
-          "item": "vegetables_5",
-          "quantity": 2
+          "item": "dairy_6",
+          "quantity": 1
         },
         {
-          "item": "herbs_3",
-          "quantity": 2
-        },
-        {
-          "item": "beans_4",
-          "quantity": 2
+          "item": "fruits_5",
+          "quantity": 1
         }
       ],
-      "reward": 156,
+      "reward": 153,
       "opening": [
         {
-          "speaker": "sanziana",
-          "text": "It is almost Midsummer Eve. We dance until dawn, so we need plum dumplings and zacuscă. Dancing is hungry work."
+          "speaker": "dorian",
+          "text": "It is my birthday. I will not say which one. Cozonac, a cheese board, and a glass of red wine, please, and no candles. There are never enough."
         }
       ],
       "completion": [
         {
-          "speaker": "sanziana",
-          "text": "We danced until sunrise and wove a crown for you. It hangs on the gate. Do not wear it after dark."
+          "speaker": "dorian",
+          "text": "Thank you. The portrait in my attic sends its regards. It had a much harder day than I did."
+        }
+      ]
+    },
+    {
+      "id": "mara-easter-baskets",
+      "character": "mara",
+      "title": "Baskets for the blessing",
+      "afterTask": "task_19",
+      "holiday": "holy-saturday",
+      "companions": [
+        "eszter",
+        "sorin"
+      ],
+      "opens": 61,
+      "requirements": [
+        {
+          "item": "mixed_pasca",
+          "quantity": 2
+        },
+        {
+          "item": "mixed_red-eggs",
+          "quantity": 2
+        },
+        {
+          "item": "mixed_cozonac",
+          "quantity": 2
+        },
+        {
+          "item": "mixed_drob",
+          "quantity": 1
+        }
+      ],
+      "reward": 85,
+      "opening": [
+        {
+          "speaker": "mara",
+          "text": "Tonight the baskets go to the church for the blessing at midnight: pască, red eggs, cozonac, and drob, under an embroidered towel."
+        },
+        {
+          "speaker": "eszter",
+          "text": "I wove the towels. Sorin carries the candle."
+        },
+        {
+          "speaker": "ilie",
+          "text": "And I guard the baskets until midnight. I will not taste. Lent is not over."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "sorin",
+          "text": "The priest blessed every basket, and the candle stayed lit the whole way home."
+        },
+        {
+          "speaker": "ilie",
+          "text": "I did not taste. I smelled. Smelling is not in the rules."
+        },
+        {
+          "speaker": "mara",
+          "text": "Tomorrow, Ilie. Tomorrow you eat first."
+        }
+      ]
+    },
+    {
+      "id": "catalina-silent-bells",
+      "character": "catalina",
+      "title": "The silent bells",
+      "afterTask": "task_19",
+      "opens": 62,
+      "requirements": [
+        {
+          "item": "beans_4",
+          "quantity": 1
+        },
+        {
+          "item": "beans_3",
+          "quantity": 1
+        },
+        {
+          "item": "mixed_plum-dumplings",
+          "quantity": 1
+        }
+      ],
+      "reward": 36,
+      "opening": [
+        {
+          "speaker": "catalina",
+          "text": "From Holy Thursday until Easter night, the bells rest, and the wooden toaca calls the village. I have nothing to ring, and my hands do not know what to do. Bean dip, green beans, and plum dumplings, please."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "catalina",
+          "text": "I tapped the toaca very politely. Then I sat on my hands until Easter. At midnight I rang so loud that the next valley woke up."
+        }
+      ]
+    },
+    {
+      "id": "sorin-mud",
+      "character": "sorin",
+      "title": "Mud on the forest road",
+      "afterTask": "task_19",
+      "requirements": [
+        {
+          "item": "vegetables_4",
+          "quantity": 1
+        },
+        {
+          "item": "poultry_3",
+          "quantity": 1
+        },
+        {
+          "item": "grain_5",
+          "quantity": 1
+        }
+      ],
+      "reward": 78,
+      "opening": [
+        {
+          "speaker": "sorin",
+          "text": "The April rain turned the forest road to mud. It came up to my pedals, and then to my knees."
+        },
+        {
+          "speaker": "ilie",
+          "text": "Take the town road."
+        },
+        {
+          "speaker": "sorin",
+          "text": "The town road has the same mud and more dogs. Something warm, please, before I go back out."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "sorin",
+          "text": "Delivered. The bicycle is still in the forest. It decided to stay."
+        },
+        {
+          "speaker": "ilie",
+          "text": "I will lend you the cart."
+        },
+        {
+          "speaker": "sorin",
+          "text": "The cart has more sense. It refused."
         }
       ]
     },
@@ -6717,6 +7622,64 @@
         {
           "speaker": "adrian",
           "text": "That covers the stay. If you hear a bell ring under the hill, it is only the archbishop. Probably."
+        }
+      ]
+    },
+    {
+      "id": "mara-easter-lunch",
+      "character": "mara",
+      "title": "Easter lunch",
+      "afterTask": "task_20",
+      "holiday": "easter",
+      "companions": [
+        "ilie"
+      ],
+      "opens": 62,
+      "requirements": [
+        {
+          "item": "lamb_5",
+          "quantity": 1
+        },
+        {
+          "item": "mixed_drob",
+          "quantity": 1
+        },
+        {
+          "item": "mixed_red-eggs",
+          "quantity": 2
+        },
+        {
+          "item": "mixed_cozonac",
+          "quantity": 1
+        }
+      ],
+      "reward": 80,
+      "opening": [
+        {
+          "speaker": "mara",
+          "text": "Christ is risen, Ilie. The fast is over, and the staff eat together today."
+        },
+        {
+          "speaker": "ilie",
+          "text": "Truly he is risen. Seven weeks of beans, Mara. Last night I dreamed of lamb, and the lamb was very polite about it."
+        },
+        {
+          "speaker": "mara",
+          "text": "Then lamb, drob, red eggs, and cozonac. You eat first."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ilie",
+          "text": "I ate first, and then second. Then I knocked eggs with Sorin and lost every time."
+        },
+        {
+          "speaker": "mara",
+          "text": "He holds his egg with the point down. It is a trick."
+        },
+        {
+          "speaker": "ilie",
+          "text": "It is a sin. A small one. It is Easter."
         }
       ]
     },
@@ -6772,11 +7735,11 @@
           "quantity": 1
         },
         {
-          "item": "veal_2",
+          "item": "veal_3",
           "quantity": 2
         }
       ],
-      "reward": 54,
+      "reward": 66,
       "opening": [
         {
           "speaker": "sorin",
@@ -6803,35 +7766,91 @@
       ]
     },
     {
-      "id": "dorian-birthday",
-      "character": "dorian",
-      "title": "A quiet birthday",
-      "afterTask": "task_20",
+      "id": "eszter-sprinkling",
+      "character": "eszter",
+      "title": "Sprinkling day",
+      "afterTask": "task_21",
+      "holiday": "easter-monday",
+      "companions": [
+        "sorin"
+      ],
+      "opens": 65,
       "requirements": [
         {
-          "item": "mixed_cozonac",
-          "quantity": 1
+          "item": "mixed_red-eggs",
+          "quantity": 2
         },
         {
-          "item": "dairy_6",
-          "quantity": 1
+          "item": "mixed_chimney-cake",
+          "quantity": 2
         },
         {
-          "item": "fruits_5",
+          "item": "fruits_6",
           "quantity": 1
         }
       ],
-      "reward": 153,
+      "reward": 128,
       "opening": [
         {
-          "speaker": "dorian",
-          "text": "It is my birthday. I will not say which one. Cozonac, a cheese board, and a glass of red wine, please, and no candles. There are never enough."
+          "speaker": "eszter",
+          "text": "On Easter Monday, the young men visit with cologne and sprinkle the girls, so that they do not wilt. Then the girls give them red eggs."
+        },
+        {
+          "speaker": "sorin",
+          "text": "I have a bottle of cologne. A large one."
+        },
+        {
+          "speaker": "eszter",
+          "text": "A drop is enough, Sorin. One drop."
         }
       ],
       "completion": [
         {
-          "speaker": "dorian",
-          "text": "Thank you. The portrait in my attic sends its regards. It had a much harder day than I did."
+          "speaker": "eszter",
+          "text": "I smell like a whole flower market. The cats will not come near me."
+        },
+        {
+          "speaker": "sorin",
+          "text": "Nobody will wilt this year."
+        },
+        {
+          "speaker": "eszter",
+          "text": "Nobody in the valley. Here is your egg."
+        }
+      ]
+    },
+    {
+      "id": "ana-garlic",
+      "character": "ana",
+      "title": "Garlic duty",
+      "afterTask": "task_21",
+      "holiday": "saint-george-eve",
+      "opens": 65,
+      "requirements": [
+        {
+          "item": "grain_4",
+          "quantity": 1
+        },
+        {
+          "item": "herbs_4",
+          "quantity": 1
+        },
+        {
+          "item": "grain_5",
+          "quantity": 1
+        }
+      ],
+      "reward": 82,
+      "opening": [
+        {
+          "speaker": "ana",
+          "text": "Tuesday is Saint George’s Eve, when the witches and the strigoi walk. It is my turn to hang garlic on every door of the ward. That is a lot of doors. Langoș, pogăcele, and a linden tea, please, before I start."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ana",
+          "text": "Every door has its garlic. The ward smells terrible, and nothing knocked all night. Perfect."
         }
       ]
     },
@@ -6861,39 +7880,6 @@
         {
           "speaker": "ileana",
           "text": "The towels are done. Each corner has a little red rooster. They keep watch better than Cezar."
-        }
-      ]
-    },
-    {
-      "id": "bran-pumpkins",
-      "character": "bran",
-      "title": "The pumpkin fair",
-      "afterTask": "task_21",
-      "requirements": [
-        {
-          "item": "grain_5",
-          "quantity": 1
-        },
-        {
-          "item": "veal_3",
-          "quantity": 1
-        },
-        {
-          "item": "mixed_cabbage-rolls",
-          "quantity": 1
-        }
-      ],
-      "reward": 72,
-      "opening": [
-        {
-          "speaker": "bran",
-          "text": "The town has a pumpkin fair this weekend. Last year I carved the best pumpkin head. People said that I understand heads very well. A langoș, minced veal, and cabbage rolls, please."
-        }
-      ],
-      "completion": [
-        {
-          "speaker": "bran",
-          "text": "The langoș is for the bus. The rest is for me. The pumpkin head is for anyone who needs one."
         }
       ]
     },
@@ -7068,6 +8054,57 @@
       ]
     },
     {
+      "id": "mara-blajini",
+      "character": "mara",
+      "title": "The Easter of the Blajini",
+      "afterTask": "task_23",
+      "holiday": "blajini",
+      "opens": 70,
+      "requirements": [
+        {
+          "item": "mixed_coliva",
+          "quantity": 1
+        },
+        {
+          "item": "grain_6",
+          "quantity": 1
+        },
+        {
+          "item": "mixed_red-eggs",
+          "quantity": 1
+        }
+      ],
+      "reward": 108,
+      "opening": [
+        {
+          "speaker": "mara",
+          "text": "Today is the Easter of the Blajini. Mamaia Paraschiva always took food to the graves and floated the eggshells down the river."
+        },
+        {
+          "speaker": "bela",
+          "text": "Good evening. I opened the churchyard gate early for you. Forgive me, but what is a Blajin?"
+        },
+        {
+          "speaker": "mara",
+          "text": "Gentle little people at the edge of the world. They live so far away that they never hear when Easter comes. The shells tell them."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "bela",
+          "text": "The shells went down the river in a neat line. The graves were very pleased with the colivă."
+        },
+        {
+          "speaker": "mara",
+          "text": "You can tell?"
+        },
+        {
+          "speaker": "bela",
+          "text": "After thirty years, you can always tell."
+        }
+      ]
+    },
+    {
       "id": "catalina-supper-bell",
       "character": "catalina",
       "title": "The supper bell",
@@ -7151,6 +8188,7 @@
       "title": "The community supper",
       "afterTask": "task_24",
       "finale": true,
+      "outdoor": true,
       "requirements": [
         {
           "item": "mixed_cabbage-rolls-mamaliga",
@@ -7290,7 +8328,7 @@
       "character": "cezar",
       "title": "Before the rounds",
       "afterTask": null,
-      "afterQuest": "cezar-long-night",
+      "afterQuest": "cezar-castle-lights",
       "repeating": true,
       "requirements": [
         {
@@ -7310,6 +8348,480 @@
         }
       ],
       "completion": []
+    },
+    {
+      "id": "ana-pickles",
+      "character": "ana",
+      "title": "Pickles for the night shift",
+      "afterTask": null,
+      "afterQuest": "ana-mittens",
+      "repeating": true,
+      "requirements": [
+        {
+          "item": "grain_4",
+          "quantity": 1
+        },
+        {
+          "item": "pickles_3",
+          "quantity": 1
+        }
+      ],
+      "reward": 28,
+      "opening": [
+        {
+          "speaker": "ana",
+          "text": "Pickles keep the night nurses awake. Nobody can sleep with a mouth full of pickle. A pogăcea and mixed pickles, please."
+        }
+      ],
+      "completion": []
+    },
+    {
+      "id": "ilie-lenten-bowl",
+      "character": "ilie",
+      "title": "A plain bowl",
+      "afterTask": null,
+      "afterQuest": "ilie-cellar",
+      "repeating": true,
+      "during": {
+        "from": 17,
+        "to": 64
+      },
+      "requirements": [
+        {
+          "item": "beans_3",
+          "quantity": 1
+        },
+        {
+          "item": "corn_4",
+          "quantity": 1
+        },
+        {
+          "item": "herbs_3",
+          "quantity": 1
+        }
+      ],
+      "reward": 38,
+      "opening": [
+        {
+          "speaker": "ilie",
+          "text": "A plain bowl for a fasting man, please: green beans, mămăligă, and a socată. My grandmother would call it a feast."
+        }
+      ],
+      "completion": []
+    },
+    {
+      "id": "victor-nettles",
+      "character": "victor",
+      "title": "Nettles for the nerves",
+      "afterTask": null,
+      "afterQuest": "victor-thesis",
+      "repeating": true,
+      "requirements": [
+        {
+          "item": "greens_3",
+          "quantity": 1
+        },
+        {
+          "item": "grain_3",
+          "quantity": 1
+        },
+        {
+          "item": "herbs_4",
+          "quantity": 1
+        }
+      ],
+      "reward": 30,
+      "opening": [
+        {
+          "speaker": "victor",
+          "text": "I read that nettles are good for the nerves. Mine have an exam on Friday. A nettle soup, a loaf, and a linden tea, please."
+        }
+      ],
+      "completion": []
+    },
+    {
+      "id": "costel-tower-tea",
+      "character": "costel",
+      "title": "Tea for the tower",
+      "afterTask": null,
+      "afterQuest": "costel-clock",
+      "repeating": true,
+      "requirements": [
+        {
+          "item": "mixed_papanasi",
+          "quantity": 1
+        },
+        {
+          "item": "herbs_3",
+          "quantity": 2
+        }
+      ],
+      "reward": 28,
+      "opening": [
+        {
+          "speaker": "costel",
+          "text": "The church clock wants winding again, and the tower stairs are long. Papanași and two socată, please: one for me and one for the clock. I drink both."
+        }
+      ],
+      "completion": []
+    },
+    {
+      "id": "sanziana-meadow",
+      "character": "sanziana",
+      "title": "A picnic in the meadow",
+      "afterTask": "task_10",
+      "act": 2,
+      "requirements": [
+        {
+          "item": "vegetables_4",
+          "quantity": 2
+        },
+        {
+          "item": "mixed_plum-dumplings",
+          "quantity": 3
+        },
+        {
+          "item": "mixed_fruit-tea",
+          "quantity": 2
+        }
+      ],
+      "reward": 72,
+      "opening": [
+        {
+          "speaker": "sanziana",
+          "text": "My sisters are having a picnic in the meadow. Roasted vegetables for two, and plum dumplings for the rest. I will not tell you how many the rest are."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "sanziana",
+          "text": "My sisters thank you, all of them. You may hear singing in the meadow tonight. Please do not go and count us."
+        }
+      ]
+    },
+    {
+      "id": "catalina-hail",
+      "character": "catalina",
+      "title": "Bell-ringer’s appetite",
+      "afterTask": "task_12",
+      "act": 2,
+      "requirements": [
+        {
+          "item": "mixed_zacusca-toast",
+          "quantity": 2
+        },
+        {
+          "item": "mixed_plum-dumplings",
+          "quantity": 1
+        }
+      ],
+      "reward": 120,
+      "opening": [
+        {
+          "speaker": "catalina",
+          "text": "A hail cloud came over the hill this morning. I rang it away, and now my arms are hungry. Zacuscă toast and plum dumplings, please. It is a fasting day."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "catalina",
+          "text": "Not one hailstone fell on the village. The bell and I can rest until the next cloud."
+        }
+      ]
+    },
+    {
+      "id": "ana-saint-andrew",
+      "character": "ana",
+      "title": "Saint Andrew’s Eve",
+      "afterTask": "task_17",
+      "act": 3,
+      "requirements": [
+        {
+          "item": "dairy_5",
+          "quantity": 1
+        },
+        {
+          "item": "grain_5",
+          "quantity": 1
+        },
+        {
+          "item": "herbs_4",
+          "quantity": 1
+        }
+      ],
+      "reward": 106,
+      "opening": [
+        {
+          "speaker": "ana",
+          "text": "Tonight is Saint Andrew’s Eve. I will hang the garlic early, and then I want a proper supper: smoked cheese, a langoș, and a linden tea."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ana",
+          "text": "The garlic is up and the plates are clean. Let anything knock tonight. We are fed, and we smell of garlic."
+        }
+      ]
+    },
+    {
+      "id": "sanziana-midsummer",
+      "character": "sanziana",
+      "title": "Midsummer Eve",
+      "afterTask": "task_19",
+      "act": 2,
+      "requirements": [
+        {
+          "item": "mixed_plum-dumplings",
+          "quantity": 2
+        },
+        {
+          "item": "vegetables_5",
+          "quantity": 2
+        },
+        {
+          "item": "herbs_3",
+          "quantity": 2
+        },
+        {
+          "item": "beans_4",
+          "quantity": 2
+        }
+      ],
+      "reward": 156,
+      "opening": [
+        {
+          "speaker": "sanziana",
+          "text": "It is almost Midsummer Eve. We dance until dawn, so we need plum dumplings and zacuscă. Dancing is hungry work."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "sanziana",
+          "text": "We danced until sunrise and wove a crown for you. It hangs on the gate. Do not wear it after dark."
+        }
+      ]
+    },
+    {
+      "id": "bran-pumpkins",
+      "character": "bran",
+      "title": "The pumpkin fair",
+      "afterTask": "task_21",
+      "act": 3,
+      "requirements": [
+        {
+          "item": "grain_5",
+          "quantity": 1
+        },
+        {
+          "item": "veal_3",
+          "quantity": 1
+        },
+        {
+          "item": "mixed_cabbage-rolls",
+          "quantity": 1
+        }
+      ],
+      "reward": 72,
+      "opening": [
+        {
+          "speaker": "bran",
+          "text": "The town has a pumpkin fair this weekend. Last year I carved the best pumpkin head. People said that I understand heads very well. A langoș, minced veal, and cabbage rolls, please."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "bran",
+          "text": "The langoș is for the bus. The rest is for me. The pumpkin head is for anyone who needs one."
+        }
+      ]
+    },
+    {
+      "id": "ilie-pickles",
+      "character": "ilie",
+      "title": "Jars for winter",
+      "afterTask": "task_4",
+      "act": 3,
+      "requirements": [
+        {
+          "item": "mixed_bulz",
+          "quantity": 2
+        },
+        {
+          "item": "mixed_cheese-pie",
+          "quantity": 1
+        }
+      ],
+      "reward": 120,
+      "opening": [
+        {
+          "speaker": "ilie",
+          "text": "My grandmother pickled everything that stood still long enough. I want to fill the cellar jars her way."
+        },
+        {
+          "speaker": "mara",
+          "text": "Her way takes all afternoon."
+        },
+        {
+          "speaker": "ilie",
+          "text": "That is why I need a proper lunch first."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ilie",
+          "text": "Full and labelled, in her order. Cabbage, then peppers, then plums."
+        },
+        {
+          "speaker": "ilie",
+          "text": "One label says \"Do not open before winter\". I did not write that one."
+        }
+      ]
+    },
+    {
+      "id": "cezar-long-night",
+      "character": "cezar",
+      "title": "The longest night",
+      "afterTask": "task_14",
+      "act": 3,
+      "requirements": [
+        {
+          "item": "mixed_tochitura",
+          "quantity": 1
+        },
+        {
+          "item": "mixed_bean-soup",
+          "quantity": 1
+        },
+        {
+          "item": "mixed_sharing-board",
+          "quantity": 1
+        }
+      ],
+      "reward": 153,
+      "opening": [
+        {
+          "speaker": "cezar",
+          "text": "Tonight is the longest night of the year, and I walk all of it. Tochitură, bean soup, and a sharing board, please. One bite for every hour."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "cezar",
+          "text": "The sun came up at last. I counted fourteen hours, two owls, and one shadow that walked home with me. It was polite."
+        }
+      ]
+    },
+    {
+      "id": "ionatan-castle-dinner",
+      "character": "ionatan",
+      "title": "Dinner before the castle",
+      "afterTask": "task_9",
+      "afterQuest": "vlad-guest",
+      "act": 2,
+      "requirements": [
+        {
+          "item": "fruits_5",
+          "quantity": 1
+        },
+        {
+          "item": "mixed_sharing-board",
+          "quantity": 1
+        },
+        {
+          "item": "mixed_tochitura",
+          "quantity": 1
+        }
+      ],
+      "reward": 174,
+      "opening": [
+        {
+          "speaker": "ionatan",
+          "text": "I have come from abroad to close a real-estate deal with a local noble at the nearby castle. Before I continue, I would like a proper dinner."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ionatan",
+          "text": "An excellent dinner. Here is the payment, with my thanks. My papers are in order, and I must leave for the castle now. My journey takes me on from there, so I will not return. Farewell."
+        }
+      ]
+    },
+    {
+      "id": "mina-avram-search",
+      "character": "mina",
+      "companions": [
+        "avram"
+      ],
+      "title": "A meal before the search",
+      "afterTask": "task_10",
+      "act": 2,
+      "afterQuest": "ionatan-castle-dinner",
+      "requirements": [
+        {
+          "item": "vegetables_5",
+          "quantity": 2
+        },
+        {
+          "item": "vegetables_4",
+          "quantity": 2
+        },
+        {
+          "item": "dairy_4",
+          "quantity": 1
+        },
+        {
+          "item": "mixed_fruit-tea",
+          "quantity": 1
+        }
+      ],
+      "reward": 166,
+      "opening": [
+        {
+          "speaker": "mina",
+          "text": "Ionatan is my fiancé. He came from Britain to sign a property contract at the castle, but he has not written back. Have you seen him?"
+        },
+        {
+          "speaker": "mara",
+          "text": "He had dinner here and left for the castle. He has not returned to the bistro."
+        },
+        {
+          "speaker": "avram",
+          "text": "Then Mina and I will follow that road together. Before we leave, could you prepare a meal for two?"
+        },
+        {
+          "speaker": "mina",
+          "text": "No meat or fish, please. Eggs and dairy are fine."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "mina",
+          "text": "Thank you for the meal and for telling us which road he took. We must find out why his letters stopped."
+        },
+        {
+          "speaker": "avram",
+          "text": "We shall leave for the castle together now. I have my medical bag, should he need help."
+        },
+        {
+          "speaker": "mara",
+          "text": "I hope you find him safe. Take care on the road."
+        }
+      ],
+      "followUp": {
+        "id": "mina-avram-news",
+        "title": "News from the road",
+        "afterDeliveries": 3,
+        "dialogue": [
+          {
+            "speaker": "sorin",
+            "text": "There is news going round the village. Mina and Doctor Avram found Ionatan gravely ill. All three have left for Britain. They did not stop at our bistro on the way back."
+          },
+          {
+            "speaker": "mara",
+            "text": "Then he is no longer alone. I hope he recovers at home. Thank you for bringing the news, Sorin."
+          }
+        ]
+      }
     }
   ]
 }

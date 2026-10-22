@@ -40,10 +40,16 @@ const questScenes: Record<string,readonly [string,string]>={
   'janos-third-pack':['scene-cathedral-9','Janos carries loose pages past the sleeping archbishop and the closed door.'],
   'ionatan-castle-dinner':['scene-ionatan-dinner','Ionatan dines beside his papers, with a distant castle visible through the window.'],
   'mina-avram-search':['scene-mina-avram-meal','Mina and Avram share a meal as Mara points toward the road and distant castle.'],
+  'mara-easter-baskets':['scene-easter-baskets','Eszter packs red eggs into a basket, Mara lowers a pască onto an embroidered towel, and Sorin waits by the door with a covered basket and a church candle.'],
+  'bela-snowman':['scene-bela-snowman','Bela drinks tea on a bench in the snowy churchyard while the snowman turns toward the old miller’s grave.'],
+  'costel-icicle-clock':['scene-icicle-clock','Costel eats a papanaș at his table while an icicle on the bracket of his clock drips beside the warm stove.'],
+  'mara-chimney-sweep':['scene-chimney-sweep','The chimney sweep holds up a burnt page, Mara points at him and laughs, and Sorin brings food on a tray.'],
+  'mara-blajini':['scene-blajini','Mara floats red eggshells down the river while Bela holds the churchyard gate open with his lantern.'],
 };
 // Mara has a second sketch, at the stove, for the quests where she cooks.
 const questDrawings: Record<string,readonly [string,string]>={
   'mara-cellar':['mara-stove','Mara stirs a pot at the stove and smiles over her shoulder.'],
+  'mara-easter-lunch':['mara-stove','Mara stirs a pot at the stove and smiles over her shoulder.'],
 };
 /** The quest scene takes precedence over its owner's drawing and stays through speaker changes. */
 export function questSketch(person: string, questId?: string) {

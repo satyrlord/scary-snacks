@@ -14,6 +14,90 @@
       "smartSubsample": true
     }
   },
+  "cellPlans": {
+    "sketch-sheet-1": {
+      "columns": 4,
+      "rows": 2,
+      "names": [
+        "sketch-adrian",
+        "sketch-avram",
+        "sketch-bran",
+        "sketch-costel",
+        "sketch-eszter",
+        "sketch-ilie",
+        "sketch-sorin",
+        "sketch-vlad"
+      ]
+    },
+    "sketch-sheet-2": {
+      "columns": 4,
+      "rows": 2,
+      "names": [
+        "sketch-ana",
+        "sketch-bela",
+        "sketch-catalina",
+        "sketch-cezar",
+        "sketch-dochia",
+        "sketch-dorian",
+        "sketch-elisabeta",
+        "sketch-ileana"
+      ]
+    },
+    "sketch-sheet-3": {
+      "columns": 4,
+      "rows": 2,
+      "names": [
+        "sketch-ionatan",
+        "sketch-janos",
+        "sketch-mara",
+        "sketch-mina",
+        "sketch-monica",
+        "sketch-sanziana",
+        "sketch-victor",
+        "sketch-mara-stove"
+      ]
+    },
+    "scene-sheet-1": {
+      "columns": 2,
+      "rows": 2,
+      "names": [
+        "scene-cathedral-1",
+        "scene-cathedral-2",
+        "scene-cathedral-3",
+        "scene-cathedral-4"
+      ]
+    },
+    "scene-sheet-2": {
+      "columns": 2,
+      "rows": 2,
+      "names": [
+        "scene-cathedral-5",
+        "scene-cathedral-6",
+        "scene-cathedral-7",
+        "scene-cathedral-8"
+      ]
+    },
+    "scene-sheet-3": {
+      "columns": 2,
+      "rows": 2,
+      "names": [
+        "scene-cathedral-9",
+        "scene-ionatan-dinner",
+        "scene-mina-avram-meal",
+        "scene-easter-baskets"
+      ]
+    },
+    "scene-sheet-4": {
+      "columns": 2,
+      "rows": 2,
+      "names": [
+        "scene-bela-snowman",
+        "scene-icicle-clock",
+        "scene-chimney-sweep",
+        "scene-blajini"
+      ]
+    }
+  },
   "variants": [
     {
       "file": "public/assets/variants/portraits-640x640.webp",
@@ -1376,16 +1460,6 @@
       "sha256": "7183d72522615dce71d5f385023ee317011a58c38e7ef4ac2d6c4bdcb241e97c"
     },
     {
-      "file": "public/assets/variants/food-breads-1024x512.webp",
-      "master": "food-breads",
-      "masterSha256": "ea0279208f7df53d973741c65eaa2c441b16dff5df2b59802dd5dcb6a1bb97c7",
-      "width": 1024,
-      "height": 512,
-      "format": "webp",
-      "bytes": 103040,
-      "sha256": "87fc3368ef06ee979d33497983151e40c306d7c2226f8b76cab211f358aacc33"
-    },
-    {
       "file": "public/assets/variants/rat-thief-1024x512.webp",
       "master": "rat-thief",
       "masterSha256": "31e467d648e3938b5081f3f6de4fcf1ef634762aceb430a69f8ec7ee1856419a",
@@ -1774,6 +1848,136 @@
       "format": "webp",
       "bytes": 566176,
       "sha256": "300c133881b1c01f52b28af7d573752909001b15d6d6f8eafb142272e154321b"
+    },
+    {
+      "file": "public/assets/variants/scene-easter-baskets-1024x683.webp",
+      "master": "scene-sheet-3",
+      "masterSha256": "463f6a5e73bd07aa6c1f2676de56549efcd155d55228d7309b0498c0d6bc08e7",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 565440,
+      "sha256": "26ae7d0377171e382e0a0102c6b23c5a1d11e65d35a6dcaf313084145ab81d31"
+    },
+    {
+      "file": "public/assets/variants/scene-bela-snowman-1024x683.webp",
+      "master": "scene-sheet-4",
+      "masterSha256": "f4a052747075330ab9b5f2123cf70f7d6d81a9e6f2996304e42de6b66874c043",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 371946,
+      "sha256": "e54631f484a2ac0b8129244ee33fad6fa485ef528c08f7f31ceedfe5895c471a"
+    },
+    {
+      "file": "public/assets/variants/scene-icicle-clock-1024x683.webp",
+      "master": "scene-sheet-4",
+      "masterSha256": "f4a052747075330ab9b5f2123cf70f7d6d81a9e6f2996304e42de6b66874c043",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 439976,
+      "sha256": "1b0c047383d3b727e5f510f44b387f30e28f3fa8634238559300861f652b22cb"
+    },
+    {
+      "file": "public/assets/variants/scene-chimney-sweep-1024x683.webp",
+      "master": "scene-sheet-4",
+      "masterSha256": "f4a052747075330ab9b5f2123cf70f7d6d81a9e6f2996304e42de6b66874c043",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 412410,
+      "sha256": "892afc1c32a9bb588437aee12a4e2a40a47aba00509175fe5dd137ebb4c343ba"
+    },
+    {
+      "file": "public/assets/variants/scene-blajini-1024x683.webp",
+      "master": "scene-sheet-4",
+      "masterSha256": "f4a052747075330ab9b5f2123cf70f7d6d81a9e6f2996304e42de6b66874c043",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 664168,
+      "sha256": "72d338ef426c5964cf9d6d1a393cff3cfd0e1daab5ed07fdb9b03c4accaadbc9"
+    },
+    {
+      "file": "public/assets/variants/food-breads-1024x512.webp",
+      "master": "food-breads",
+      "masterSha256": "da6f7facac43ac49a775755fef55df0ddfd5dbc99b904ae9e797be8808b5d9a6",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 210924,
+      "sha256": "9a72dccbc2dcd58680c120fb5a9fe0f4e558ebb39851db057daea2a59a85d14c"
+    },
+    {
+      "file": "public/assets/variants/food-pickles-1024x512.webp",
+      "master": "food-pickles",
+      "masterSha256": "24a18e48b29a523c612e45746382cfcd4cdb1322ef0d88527cf668f98bfc75ed",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 109654,
+      "sha256": "88eec438b240b34022b768a0e235e187731ac78b6f3d927e1b7589327ae969af"
+    },
+    {
+      "file": "public/assets/variants/food-greens-1024x512.webp",
+      "master": "food-greens",
+      "masterSha256": "72f8f92894bc9856061e927633f3749c73c6bbed1cd951be701eec487b549103",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 119800,
+      "sha256": "672487fd1a4f978b2b9ed64b073c964144420cc5742b0d3f11e2822add7b5ce0"
+    },
+    {
+      "file": "public/assets/variants/window-view-late-winter-576x768.webp",
+      "master": "window-view-late-winter",
+      "masterSha256": "83efd367faeb298b929b74fcadbadccea0cbb569f4d57e46dcb8d86cb7bbb16e",
+      "width": 576,
+      "height": 768,
+      "format": "webp",
+      "bytes": 190212,
+      "sha256": "5d344bf72b2bfad51afccc3cbf57357c4693f5c4f2fe49a3530572241742de4b"
+    },
+    {
+      "file": "public/assets/variants/window-view-early-spring-576x768.webp",
+      "master": "window-view-early-spring",
+      "masterSha256": "a6c75e4a91641c1b898669b9c1898bb8be701073364cc449d812a35c56d1c24d",
+      "width": 576,
+      "height": 768,
+      "format": "webp",
+      "bytes": 195242,
+      "sha256": "cd054dbbb933c901a5c4b475a04b771524a9879bbe2726ab280635eafba01004"
+    },
+    {
+      "file": "public/assets/variants/window-view-spring-576x768.webp",
+      "master": "window-view-spring",
+      "masterSha256": "914d8dd84b0cda6f36c63edfa43653c7ac93642694359afd0ae3127ebc49a1f0",
+      "width": 576,
+      "height": 768,
+      "format": "webp",
+      "bytes": 212838,
+      "sha256": "9cbba632b650c73b826f383accf64d4e5c77534f74ae29a485feeec2bda385b6"
+    },
+    {
+      "file": "public/assets/variants/holiday-front-1536x2048.webp",
+      "master": "holiday-front",
+      "masterSha256": "49798f3f74ad799d088f7ddffb7487e2cc0910cd6e039a157b5b454937d40b79",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 17212,
+      "sha256": "2847c2d4e1a7790c5171f5b735071f068dc0c66b3b24fbbf7425873a12274618"
+    },
+    {
+      "file": "public/assets/variants/holiday-courtyard-1536x2048.webp",
+      "master": "holiday-courtyard",
+      "masterSha256": "8b267b588298da70288242676aa710d25d23c70cf09ff98a82e5a3d6784e8b94",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 20958,
+      "sha256": "97921278995d6cb02190de91c8d7bdb37e15732df89240c1e270b65b266b27a8"
     }
   ]
 }

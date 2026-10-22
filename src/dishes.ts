@@ -3,10 +3,10 @@ import { $, button, element, pulse, status } from './dom.ts';
 import { coveredDish, food, icon } from './art.ts';
 import { modal, showModal } from './dialog.ts';
 import { setLowered } from './room.ts';
-import { availableChains, boardObstacles, canDeliverQuest, cellsOf, dishChains, firstFreeBoardCell, integer, mergeResult, MIXED, resolveQuests } from './model.ts';
+import { availableChains, boardObstacles, canDeliverQuest, cellsOf, chainSeason, dateText, dishChains, firstFreeBoardCell, integer, mergeResult, MIXED, resolveQuests, sourceCell } from './model.ts';
 import { data, definition, itemName, matchingBlocker, onReplace, redraw, select, sourceOf, state, takePrice } from './session.ts';
 import type { Change } from './session.ts';
-import { BOARD_FULL } from './engine.ts';
+import { BOARD_FULL, KEEP_FREE } from './engine.ts';
 
 // The dishes discovered since the recipe book was last opened.
 let freshDishes = 0;
@@ -50,23 +50,33 @@ function cooksInto(code: string) {
 function detailContent(code: string) {
   const def = definition(code), name = itemName(code);
   const onBoard = cells(code).length;
+  const missingSources = dishChains(code, data).filter(chain => chainSeason(chain, data) && sourceCell(state, chain) < 0);
   const content = document.createDocumentFragment();
   const how = def.recipe ? `Merge ${itemName(def.recipe[0])} and ${itemName(def.recipe[1])} to make ${name}.`
     : def.stage > 1 ? `Merge two ${itemName(`${def.chain}_${def.stage - 1}`)} to make ${name}.`
+    : missingSources.includes(def.chain) ? `The ${sourceOf(def.chain).name} supplies ${name}.`
     : `Tap the ${sourceOf(def.chain).name} to take ${name}, ${takePrice(sourceOf(def.chain).id)}.`;
   content.append(food(code), element('p','item-how', how));
+  for (const chain of missingSources) {
+    const season = chainSeason(chain, data)!, source = sourceOf(chain).name;
+    const note = state.clock.day > season.to ? `${season.departure} You can still merge dishes left on the board.`
+      : state.clock.day < season.from ? `The ${source} arrives from ${dateText(season.from, data)}.`
+      : `The ${source} needs ${KEEP_FREE + 1} free board spaces before it can arrive.`;
+    content.append(element('p','seasonal-source-note',note));
+  }
   const open = availableChains(state, data), closed = dishChains(code, data).filter(chain => !open.includes(chain));
   if (closed.length) {
-    const sources = closed.map(chain => { const task = data.tasks.find(value => value.unlock === chain); return `the ${sourceOf(chain).name} arrives with ${task ? `the preparation “${task.title}”` : 'a later preparation'}`; });
+    const sources = closed.filter(chain => !chainSeason(chain, data)).map(chain => { const task = data.tasks.find(value => value.unlock === chain); return `the ${sourceOf(chain).name} arrives with ${task ? `the preparation “${task.title}”` : 'a later preparation'}`; });
     const text = sources.join(', and ');
-    content.append(element('p','',`${text[0].toUpperCase()}${text.slice(1)}.`), pathOf(code));
+    if (text) content.append(element('p','',`${text[0].toUpperCase()}${text.slice(1)}.`));
+    content.append(pathOf(code));
     return content;
   }
   const have = onBoard ? `You have ${onBoard} on the board.` : 'You have none yet.';
   content.append(element('p','',have), pathOf(code));
   const parts = cooksInto(code);
   if (parts) content.append(parts);
-  content.append(button('Show me on the board','secondary-button',() => showWay(code)));
+  if (!missingSources.length || nextStep(code, true)) content.append(button('Show me on the board','secondary-button',() => showWay(code)));
   return content;
 }
 type Step = { at: number[]; line: string; short: string; ready?: boolean; ticket?: string };
@@ -111,8 +121,9 @@ function nextStep(code: string, includeReady = false, goalName = itemName(code),
       return { at:[pair[0], blocker.position], line:`Merge ${itemName(id)} into its blocked space to make ${made}${toward(made)}.`, short:`For ${name}: clear blocked ${itemName(id)}` };
     }
   }
-  if (firstFreeBoardCell(state,data) === -1) return allowRoom ? roomStep(name) : null;
   const source = sourceOf(def.chain), at = cells(source.id), staple = itemName(source.generator!.outputs[0]);
+  if (!at.length) return null;
+  if (firstFreeBoardCell(state,data) === -1) return allowRoom ? roomStep(name) : null;
   return at.length ? { at, line:`Tap the ${source.name} to take ${staple} for ${name}, ${takePrice(source.id)}.`, short:`For ${name}: take ${staple}` } : null;
 }
 /** Make room only after no legal merge can advance any part of the requested dish. */
@@ -169,13 +180,24 @@ function showWay(code: string, needAnother = false) {
 export function showMissingStep(code: string) { showWay(code,true); }
 export function showItem(code: string, back?: () => void) { const content=element('div','item-detail');content.append(detailContent(code));showModal(itemName(code),content,undefined,back); }
 /** Undiscovered dishes stay covered, so the book never spoils what the kitchen has not made yet. */
-function recipeBook(returnTo?: string, scrollTop = 0) {
+function recipeBook(returnTo?: string, scrollTop = 0, helpOpen = false) {
   freshDishes=0;markRecipeBook();
-  const content=element('div');content.append(element('p','modal-copy','A playful menu inspired by regional foods and drinks. Two matching dishes merge into the next dish of their chain, and dishes from different chains cook a mixed dish. Merge paths are game rules, not cooking recipes. Dishes you have not made yet stay covered.'));
+  const content=element('div','recipe-content'),tools=element('div','recipe-tools');
+  const label=element('label','','Jump to a section'),picker=element('select');picker.id='recipe-section';label.htmlFor=picker.id;
+  const placeholder=element('option','','Choose a section');placeholder.value='';picker.append(placeholder);
+  const help=element('details','recipe-help');help.append(element('summary','','How the recipe book works'),element('p','modal-copy','A playful menu inspired by regional foods and drinks. Two matching dishes merge into the next dish of their chain, and dishes from different chains cook a mixed dish. Merge paths are game rules, not cooking recipes. Dishes you have not made yet stay covered.'));
+  help.open=helpOpen;tools.append(label,picker,help);content.append(tools);
+  const sections=element('div','recipe-sections');content.append(sections);
+  picker.addEventListener('change',()=>{
+    const heading=sections.querySelector<HTMLElement>(`#recipe-${picker.value}`);
+    if(heading){heading.scrollIntoView({block:'start'});heading.focus({preventScroll:true});}
+  });
   let focus: HTMLElement | undefined;
   for(const {id,name} of [...data.chains,{id:MIXED,name:'Mixed dishes'}]) {
     const codes=id===MIXED?mixedDishes():chainDishes(id);
-    const section=element('section','recipe-chain'),heading=element('h3','',name);section.append(heading);
+    const section=element('section',id===MIXED?'recipe-chain recipe-mixed':'recipe-chain'),heading=element('h3','',name);section.append(heading);
+    heading.id=`recipe-${id}`;heading.tabIndex=-1;
+    const option=element('option','',name);option.value=id;picker.append(option);
     // A section is complete once all its dishes are discovered. The mark is derived, never saved, and earns nothing.
     if(codes.every(code=>state.discovered.includes(code))){
       heading.setAttribute('aria-label',`${name}, complete`);
@@ -185,16 +207,16 @@ function recipeBook(returnTo?: string, scrollTop = 0) {
     for(const code of codes) {
       if(!state.discovered.includes(code)){const slot=element('div','recipe-item not-yet');slot.append(coveredDish(),element('span','','Not yet'));grid.append(slot);continue;}
       const value=button('','recipe-item',()=>{
-        const position=modal.scrollTop;
-        showItem(code,()=>recipeBook(code,position));
+        const position=$('#modal-body').scrollTop,helpOpen=help.open;
+        showItem(code,()=>recipeBook(code,position,helpOpen));
       });
       value.append(food(code),element('span','',itemName(code)));grid.append(value);
       if(code===returnTo)focus=value;
     }
-    section.append(grid);content.append(section);
+    section.append(grid);sections.append(section);
   }
-  showModal('The recipe book',content,focus);
-  if(focus)modal.scrollTop=scrollTop;
+  showModal('The recipe book',content,focus??$('#close-modal'));
+  $('#modal-body').scrollTop=scrollTop;
 }
 $('#collection-button').addEventListener('click',()=>data&&recipeBook());
 $('#recipes-button').addEventListener('click',()=>data&&recipeBook());

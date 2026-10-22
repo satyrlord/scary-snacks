@@ -20,7 +20,8 @@ function beforeFirstPreparation(){
     const lower=Object.values(data.items).find(candidate=>candidate.next===code)!;const first=produce(lower.id),second=produce(lower.id);state=act(state,{type:'move',from:first,to:second});return second;
   };
   for(;;){
-    const open=resolveQuests(state,data).filter(view=>!view.quest.recovery&&(view.status==='active'||view.status==='waiting'));
+    // Only the quests that the first preparation needs: the play can reach March, when a March quest of Dochia opens.
+    const needed=requiredQuests(0,data),open=resolveQuests(state,data).filter(view=>needed.includes(view.quest)&&(view.status==='active'||view.status==='waiting'));
     for(const {item,quantity} of open[0].quest.requirements)for(let count=0;count<quantity;count++)produce(item);
     if(open.length===1)break;
     state=act(state,{type:'deliverQuest',id:open[0].quest.id});
@@ -148,8 +149,10 @@ test('after the last preparation the room is ready for the supper, with the slee
 });
 
 test('the last required quest enables Pay, and the preparation paid with earned coins is revealed in the room once its story ends, and survives reload',async({page})=>{
-  const initial=beforeFirstPreparation(),last=resolveQuests(initial,data).find(view=>view.status==='active')!.quest;
+  const played=beforeFirstPreparation(),last=resolveQuests(played,data).find(view=>view.status==='active'&&requiredQuests(0,data).includes(view.quest))!.quest;
   const needed=requiredQuests(0,data).length,next=requiredQuests(1,data),cost=data.tasks[0].cost;
+  // The upkeep of the nights can leave the purse short. The last reward completes the cost.
+  const initial={...played,coins:Math.max(played.coins,cost-last.reward)};
   await start(page,initial);
   await expect(goal(page,'quests')).toHaveText('Deliver 1 more quest.');
   // The quests before the last one can earn the whole cost already.
@@ -172,7 +175,10 @@ test('the last required quest enables Pay, and the preparation paid with earned 
   await expect(page.locator('#status')).toHaveText(stateText('front-room-01'));
   // The next preparation counts its own quests, and the tickets carry the quests that the first preparation opened.
   await expect(goal(page,'quests')).toHaveText(`Deliver ${next.length-needed} more quests.`);await expect(pay(page)).toBeDisabled();
-  for(const value of next.slice(needed))await expect(deliverButton(page,value)).toBeVisible();
+  // A quest that waits for an earlier quest of its character gets its ticket later.
+  const active=resolveQuests(after,data).filter(view=>view.status==='active').map(view=>view.quest);
+  expect(active.some(value=>next.slice(needed).includes(value))).toBe(true);
+  for(const value of next.slice(needed).filter(value=>active.includes(value)))await expect(deliverButton(page,value)).toBeVisible();
   // The reveal neither pays nor earns again.
   expect(await saved(page)).toEqual(after);await expect(page.locator('#coins')).toHaveText(String(after.coins));
   await page.reload();await opened(page);
@@ -403,7 +409,9 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
 test('a ticket that only moves up after a delivery does not arrive again',async({page})=>{
   const initial=checkpoint(1),views=resolveQuests(initial,data);
   expect(views.some(view=>view.status==='waiting')).toBe(false);
-  const [first,...rest]=views.filter(view=>view.status==='active'&&!view.quest.recovery).map(view=>view.quest);
+  // The delivered quest opens no later quest of its character, so the tickets after it only move up.
+  const active=views.filter(view=>view.status==='active'&&!view.quest.recovery).map(view=>view.quest);
+  const first=active.find(value=>!data.quests.some(other=>other!==value&&other.character===value.character&&other.afterTask===value.afterTask))!,rest=active.filter(value=>value!==first);
   // No quest takes the delivered ticket, so the other tickets move up.
   expect(resolveQuests(act(supply(initial,supplies(first)),{type:'deliverQuest',id:first.id}),data).filter(view=>view.status==='active'&&!view.quest.recovery).map(view=>view.quest)).toEqual(rest);
   await start(page,supply(initial,supplies(first)));await deliverButton(page,first).click();
@@ -442,13 +450,13 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
     const {state,code}=lastBookDish();await page.setViewportSize(viewport);await start(page,state,theme);
     const opener=page.locator(viewport.width<1024?'#recipes-button':'#collection-button');
     await opener.click();const modal=page.locator('#modal'),entry=modal.getByRole('button',{name:data.items[code].name,exact:true});
-    await entry.scrollIntoViewIfNeeded();const before=await modal.evaluate(element=>element.scrollTop);
+    await entry.scrollIntoViewIfNeeded();const before=await page.locator('#modal-body').evaluate(element=>element.scrollTop);
     expect(before).toBeGreaterThan(0);
     await entry.click();await expect(page.locator('#modal-title')).toHaveText(data.items[code].name);
     if(theme==='light')await page.getByRole('button',{name:'Close dialog'}).click();else await page.keyboard.press('Escape');
     await expect(page.locator('#modal-title')).toHaveText('The recipe book');
     await expect(entry).toBeFocused();
-    expect(Math.abs((await modal.evaluate(element=>element.scrollTop))-before)).toBeLessThanOrEqual(2);
+    expect(Math.abs((await page.locator('#modal-body').evaluate(element=>element.scrollTop))-before)).toBeLessThanOrEqual(2);
     expect(await saved(page)).toEqual(state);
   });
 }
@@ -930,10 +938,10 @@ for(const writer of ['this tab','another tab'] as const)test(`a corrupt live sav
 });
 
 test('a previous-format campaign stays untouched beside a new campaign',async({page})=>{
-  // The previous format: its own key and envelope, and state version 13 without the day.
-  const oldKey='scary-snacks-save-v12';expect(KEY).toBe('scary-snacks-save-v13');
-  const {clock:_clock,seed:_seed,ratHoles:_holes,gifts:_gifts,evening:_evening,night:_night,act1:_act1,...earlier}=checkpoint(24);
-  const old=JSON.stringify({format:'scary-snacks',version:12,state:{...earlier,version:13}});
+  // The previous format: its own key and envelope, and state version 14 without the opened March quests.
+  const oldKey='scary-snacks-save-v13';expect(KEY).toBe('scary-snacks-save-v14');
+  const {march:_march,...earlier}=checkpoint(24);
+  const old=JSON.stringify({format:'scary-snacks',version:13,state:{...earlier,version:14}});
   await page.addInitScript(({key,value})=>{
     if(!sessionStorage.getItem('previous-save-seeded')){
       localStorage.setItem(key,value);sessionStorage.setItem('previous-save-seeded','true');

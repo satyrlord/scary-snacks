@@ -13,7 +13,7 @@ const MAX_REFERENCE_BYTES = 50_000_000;
 // State 00 of the front room shows the new game. Each other state shows its area after one preparation.
 const gameData: GameData = JSON.parse(readFileSync(new URL('../../../../public/data/game.json', import.meta.url), 'utf8'));
 type RoomStateId = `front-room-${string}` | `courtyard-${string}`;
-type PencilSheetId = 'sketch-sheet-1' | 'sketch-sheet-2' | 'sketch-sheet-3' | 'scene-sheet-1' | 'scene-sheet-2' | 'scene-sheet-3';
+type PencilSheetId = 'sketch-sheet-1' | 'sketch-sheet-2' | 'sketch-sheet-3' | 'scene-sheet-1' | 'scene-sheet-2' | 'scene-sheet-3' | 'scene-sheet-4';
 type FoodAtlasId = `food-${string}`;
 type WindowViewId = 'window-view-late-winter' | 'window-view-early-spring' | 'window-view-spring';
 export type AssetId =
@@ -76,7 +76,7 @@ const windowViewIds: WindowViewId[] = ['window-view-late-winter', 'window-view-e
 // Each is a 4-by-2 grid; the cells after the last picture stay fully transparent.
 const foodAtlases: [id: string, pictures: number][] = [
   ['grain', 7], ['corn', 5], ['herbs', 5], ['dairy', 7], ['poultry', 5], ['vegetables', 7], ['fruits', 7], ['pork', 6],
-  ['beans', 6], ['lamb', 6], ['veal', 7], ['fish', 5], ['soups', 8], ['mains', 7], ['sweets', 5], ['breads', 4],
+  ['beans', 6], ['lamb', 6], ['veal', 7], ['fish', 5], ['soups', 8], ['mains', 7], ['sweets', 5], ['breads', 8],
   // The seasonal chains of spec 017: the pickle barrel and the forage basket.
   ['pickles', 5], ['greens', 5],
 ];
@@ -92,6 +92,7 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   'scene-sheet-1': sceneSheet,
   'scene-sheet-2': sceneSheet,
   'scene-sheet-3': sceneSheet,
+  'scene-sheet-4': sceneSheet,
   ...(Object.fromEntries(windowViewIds.map(id => [id, windowView])) as Record<WindowViewId, AssetContract>),
   'decoration-front': roomState,
   'decoration-courtyard': roomState,

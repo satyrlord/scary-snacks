@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { arrivalScene, deliveriesSince, journalCharacters, resolveChapters, resolveQuests, supperComplete } from '../../src/model.ts';
-import { act, supper, checkpoint, data, deliverable, forward, journal, opened, quest, ratio, readTo, saved, start, supplies, supply, validate } from './support.ts';
+import { act, supper, supperEvening, checkpoint, data, deliverable, forward, journal, opened, quest, ratio, readTo, saved, start, supplies, supply, validate } from './support.ts';
 
 /** Earned scenes left unread at representative campaign positions. */
 function journalState(count: number){
@@ -9,7 +9,6 @@ function journalState(count: number){
     const arrival=data.characters.find(person=>person.arrival&&data.tasks.findIndex(task=>task.id===person.arrivesAfter)<count)!;
     const chapter=data.chapters[Math.floor(count/4)-1].id,task=data.tasks[count-1].id;
     state.pendingScenes=[...(count%4?[chapter,task]:[task,chapter]),arrivalScene(arrival),state.completedQuests[0]];
-    if(count===24)state.pendingScenes.push('ionatan-castle-dinner','mina-avram-news');
   }
   expect(validate(state)).toBe(true);return state;
 }
@@ -76,16 +75,8 @@ test('reading the last unread conversation moves its single entry into the repla
   expect(await saved(page)).toEqual({...state,pendingScenes:[]});
 });
 
-test('single-visit farewell is readable once from Unread and returns to its heading',async({page})=>{
-  const value=quest('ionatan-castle-dinner'),state=act(deliverable(value),{type:'deliverQuest',id:value.id});await start(page,state);await journal(page);
-  await expect(page.locator(`[data-scene="${value.id}"]`)).toHaveCount(1);await page.getByRole('button',{name:`Read ${value.title}`,exact:true}).click();
-  await forward(page).click();await expect(page.getByRole('heading',{name:'Unread scenes',exact:true})).toBeFocused();
-  await expect(page.locator(`[data-scene="${value.id}"]`)).toHaveCount(0);await expect(page.locator(`[data-journal="opening-${value.id}"]`)).toHaveCount(0);
-  expect(await saved(page)).toEqual({...state,pendingScenes:[]});
-});
-
 test('earlier conversations follow delivery order, and the latest chapter remains after the supper',async({page})=>{
-  let state=supply(checkpoint(24,{coins:data.economy.recoveryFloor}),supplies(supper));
+  let state=supply(supperEvening(checkpoint(24,{coins:data.economy.recoveryFloor})),supplies(supper));
   state=act(state,{type:'deliverQuest',id:supper.id});state=act(state,{type:'readScene',id:data.finale.id});
   await start(page,state);await journal(page,['conversations']);
   await expect(page.locator('[data-current-chapter]')).toHaveAttribute('data-chapter',data.chapters.at(-1)!.id);

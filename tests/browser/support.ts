@@ -2,7 +2,8 @@
 import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { firstFreeBoardCell, requiredQuests, resolveQuests, supperQuest } from '../../src/model.ts';
+import { eveningOpen, firstFreeBoardCell, resolveQuests, supperQuest } from '../../src/model.ts';
+import { checkpointState, deliverRequired, moveTo } from '../../tools/create-checkpoint-saves.ts';
 import { createGame, reduceGame, revealTickets, validateGame } from '../../src/engine.ts';
 import type { Action, GameData, GameState, Quest } from '../../src/model.ts';
 import { SAVE_KEY, exportSave } from '../../src/storage.ts';
@@ -16,17 +17,23 @@ export const quest=(id: string)=>data.quests.find(value=>value.id===id)!;
 export const recovery=data.quests.find(value=>value.recovery)!,supper=supperQuest(data)!;
 export const person=(id: string)=>data.characters.find(value=>value.id===id)!;
 export const stateText=(id: string)=>data.rooms.find(state=>state.id===id)!.text;
-/** Marks delivered, in data order, the quests that the preparation at this index needs. The rules tests cover their dishes. */
-function deliverRequired(state: GameState,index: number){for(const value of requiredQuests(index,data))if(!state.completedQuests.includes(value.id))state.completedQuests.push(value.id);}
+/** Delivers each March quest of Dochia that opened, so it holds no ticket. A delivery in March can open the next one. */
+export function deliverMarch(state: GameState){
+  for(let open=state.march.filter(id=>!state.completedQuests.includes(id));open.length;open=state.march.filter(id=>!state.completedQuests.includes(id))){
+    state.completedQuests.push(...open);moveTo(state,state.clock.day,data);
+  }
+}
 /**
- * The game after count preparations, each paid with exactly its cost after its quests, and every scene read. Ready also delivers the
- * quests of the next preparation and sets the coins to its cost; otherwise the coins are as given.
+ * The game after count preparations, each paid with exactly its cost after its quests on the earliest day that permits them, and every
+ * scene read. Ready also delivers the quests of the next preparation and sets the coins to its cost; otherwise the coins are as given.
+ * The March quests that opened are delivered unless march is false.
  */
-export function checkpoint(count: number,{ready=false,coins=0}: {ready?: boolean; coins?: number}={}){
-  let state=createGame(data);
-  for(let index=0;index<count;index++){deliverRequired(state,index);state.coins=data.tasks[index].cost;state=act(state,{type:'task'});}
+export function checkpoint(count: number,{ready=false,coins=0,march=true}: {ready?: boolean; coins?: number; march?: boolean}={}){
+  const state=count?checkpointState(data,count-1):createGame(data);
+  if(count){deliverRequired(state,data);state.coins=data.tasks[count-1].cost;Object.assign(state,act(state,{type:'task'}));}
   state.pendingScenes=[];state.coins=coins;
-  if(ready&&count<data.tasks.length){deliverRequired(state,count);state.coins=data.tasks[count].cost;}
+  if(ready&&count<data.tasks.length){deliverRequired(state,data);state.coins=data.tasks[count].cost;}
+  if(march)deliverMarch(state);
   // Marking quests delivered moves the tickets on; the quests that now hold one put their dishes in the recipe book.
   revealTickets(state,data);
   expect(validate(state)).toBe(true);return state;
@@ -34,22 +41,35 @@ export function checkpoint(count: number,{ready=false,coins=0}: {ready?: boolean
 /** The earliest checkpoint at which this quest is on a ticket: the open quests before it are delivered. */
 export function onTicket(target: Quest){
   for(let count=0;count<=data.tasks.length;count++){
-    const state=checkpoint(count);
+    const state=checkpoint(count,{march:!target.march});
     // The recovery quest is never recorded as delivered, and it never holds a quest ticket.
+    // A dated quest is delivered on its date, so the day moves to it.
     for(const earlier of data.quests.slice(0,data.quests.indexOf(target)).filter(value=>!value.recovery)){
+      // A quest that waits only for its opening date opens when the day moves to it.
+      if(earlier.opens&&state.clock.day<earlier.opens&&!earlier.act&&!earlier.march&&resolveQuests(state,data).find(value=>value.quest===earlier)!.status==='locked')moveTo(state,earlier.opens,data);
       const view=resolveQuests(state,data).find(value=>value.quest.id===earlier.id)!;
-      if(view.status==='active'||view.status==='waiting')state.completedQuests.push(earlier.id);
+      if(view.status!=='active'&&view.status!=='waiting')continue;
+      moveTo(state,Math.max(state.clock.day,earlier.opens??1,data.calendar.holidays.find(holiday=>holiday.id===earlier.holiday)?.day??1),data);
+      state.completedQuests.push(earlier.id);
     }
+    if(target.opens&&state.clock.day<target.opens&&!target.act&&!target.march&&resolveQuests(state,data).find(value=>value.quest===target)!.status==='locked')moveTo(state,target.opens,data);
     revealTickets(state,data);
     if(resolveQuests(state,data).find(value=>value.quest.id===target.id)!.status==='active'){expect(validate(state)).toBe(true);return state;}
   }
   throw new Error(`${target.id} never reaches a ticket.`);
 }
 export const supplies=(value: Quest)=>value.requirements.flatMap(({item,quantity})=>Array<string>(quantity).fill(item));
+/** A copy at 20:00 on 1 May, the evening of the supper, so Serve works when the plates are on the board. */
+export function supperEvening(state: GameState): GameState{
+  const next=structuredClone(state);moveTo(next,data.calendar.supper,data);
+  next.clock.merges=(data.day.booking-data.day.opening)/data.day.mergeMinutes;return next;
+}
 /** A copy in which a booked quest has this evening at the booking time, so Deliver serves it. The day tests cover the choice of the evening. */
 export function atBookingTime(state: GameState,value: Quest): GameState{
   if(!value.booked)return state;
-  return {...state,evening:{...state.evening,guest:value.character,delivered:false},clock:{...state.clock,merges:(data.day.booking-data.day.opening)/data.day.mergeMinutes}};
+  // A Sunday and Saint George's Eve have no evening guest, so the booking waits for the next evening.
+  const next=structuredClone(state);while(!eveningOpen(next.clock.day,data))moveTo(next,next.clock.day+1,data);
+  return {...next,evening:{...next.evening,guest:value.character,delivered:false},clock:{...next.clock,merges:(data.day.booking-data.day.opening)/data.day.mergeMinutes}};
 }
 /** The new game that the page saved: a new game with the seed that the page drew. */
 export async function newGame(page: Page){return createGame(data,(await saved(page)).seed);}

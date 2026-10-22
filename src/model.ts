@@ -5,7 +5,7 @@
 export const dishTags = ['meat', 'pork', 'dairy', 'egg', 'fish', 'alcohol', 'garlic'] as const;
 export type DishTag = typeof dishTags[number];
 /** The food atlases: one for each chain, and four for the mixed dishes. Each is a grid of four columns and two rows. */
-export const foodAtlases = ['grain', 'corn', 'herbs', 'dairy', 'poultry', 'vegetables', 'fruits', 'pork', 'beans', 'lamb', 'veal', 'fish', 'soups', 'mains', 'sweets', 'breads'] as const;
+export const foodAtlases = ['grain', 'corn', 'herbs', 'dairy', 'poultry', 'vegetables', 'fruits', 'pork', 'beans', 'lamb', 'veal', 'fish', 'pickles', 'greens', 'soups', 'mains', 'sweets', 'breads'] as const;
 export type FoodAtlas = typeof foodAtlases[number];
 /** The chain of every mixed dish. A mixed dish has no stage path: its recipe names its two parts. */
 export const MIXED = 'mixed';
@@ -18,8 +18,11 @@ export type Item = {
   generator?: { outputs: string[]; free?: true }; recipe?: [string, string];
 };
 export type SceneLine = { speaker: string; text: string };
-/** A diet forbids tags, can require a dish and a tag in each quest, and can forbid two tags in one quest. */
-type Diet = { name: string; forbid: DishTag[]; require?: { item: string; tag: DishTag }; apart?: [DishTag, DishTag] };
+/**
+ * A diet forbids tags, can require a dish and a tag in each quest, and can forbid two tags in one quest. A diet that keeps Lent also
+ * forbids meat, dairy, egg, and fish during Lent, except fish on the fish days.
+ */
+type Diet = { name: string; forbid: DishTag[]; require?: { item: string; tag: DishTag }; apart?: [DishTag, DishTag]; lent?: true };
 /**
  * A person of the bistro. The core characters drive the story. A regular is a neighbour who arrives with the preparation that
  * arrivesAfter names, or is present from the start; arrival plays a short scene, and favourites names the dishes that they like.
@@ -35,7 +38,8 @@ type PortraitAtlas = typeof portraitAtlases[number];
 export type Task = { id: string; chapter: number; title: string; cost: number; work: { summary: string; materials: number; labour: number; hours: number }; dialogue: SceneLine[]; unlock?: string };
 export type TaskRequirement =
   | { kind: 'coins' | 'quests'; current: number; required: number; met: boolean }
-  | { kind: 'space'; source: string; met: boolean };
+  | { kind: 'space'; source: string; met: boolean }
+  | { kind: 'date'; day: number; met: boolean };
 type TaskEligibility = { task: Task | null; ready: boolean; requirements: TaskRequirement[]; blockers: string[] };
 /**
  * A quest from a character. It opens after the preparation that afterTask names (null: in a new game), after afterQuest, and after
@@ -44,22 +48,44 @@ type TaskEligibility = { task: Task | null; ready: boolean; requirements: TaskRe
  * nothing, and earns the finale. The recovery quest is open only while the purse runs low (recoveryOpen); its delivery pays its
  * reward and is never recorded, and it stands outside the order of its character's quests. A repeating quest opens only while the
  * bistro has no other work (openRepeating); like the recovery quest, it is never recorded. Its afterQuest is the campaign quest
- * that it follows.
+ * that it follows, and during limits it to a range of days.
+ * A campaign quest with opens does not open before that day. A holiday quest delivers from the day of its holiday. A March quest
+ * opens only in March, and no preparation needs it. A quest of a later act never opens in act 1. An outdoor quest delivers only on a
+ * terrace day.
  */
 export type Quest = {
   id: string; character: string; title: string; afterTask: string | null; afterQuest?: string;
   requirements: { item: string; quantity: number }[]; reward: number; opening: SceneLine[]; completion: SceneLine[];
   companions?: string[]; unlocks?: { slot: string; variant: string }; finale?: true; guests?: string[]; recovery?: true; booked?: true; repeating?: true;
   followUp?: { id: string; title: string; afterDeliveries: number; dialogue: SceneLine[] };
+  opens?: number; holiday?: string; march?: true; act?: 2 | 3; outdoor?: true; during?: { from: number; to: number };
 };
 /**
  * The levers of the bistro day. Times are minutes after midnight. Each merge adds mergeMinutes to the clock, and the merge
- * that reaches closing pays the upkeep and brings the night. A booked quest delivers from booking to closing.
+ * that reaches closing pays the upkeep. A booked quest delivers from booking to closing. A Sunday opens later, closes earlier, and has
+ * no booking time.
  */
 export type DayLevers = {
-  opening: number; closing: number; booking: number; mergeMinutes: number; upkeep: number;
+  opening: number; closing: number; booking: number; sunday: { opening: number; closing: number }; mergeMinutes: number; upkeep: number;
   ratTake: number; ratHoles: number; giftStage: number; giftSpace: number;
 };
+export type Weather = 'fair' | 'rain' | 'snow';
+/** A holiday of act 1. On a holiday with noEvening, no booked guest dines. */
+export type Holiday = { id: string; name: string; day: number; noEvening?: true };
+/**
+ * The calendar of act 1. A day is a number: day 1 is Saturday 15 February of year 1, and start is its day of year 1. The supper is on
+ * the last day of act 1. Weather holds the weather of each day. Lent, its fish days, and the terrace season are ranges of days.
+ * Each window view shows from its day until the next view. Each holiday decoration shows in its range of days, cropped from the image
+ * of its area, which matches the room paintings of that area.
+ */
+export type Calendar = {
+  start: number; supper: number; weather: Weather[]; holidays: Holiday[];
+  lent: { from: number; to: number; fish: number[] }; terrace: { from: number; to: number };
+  views: { id: string; from: number }[];
+  decorations: { id: string; name: string; area: string; image: string; from: number; to: number; crop: { x: number; y: number; width: number; height: number } }[];
+};
+/** A chain of dishes. A seasonal chain has a free source that is on the board only in its season, a range of days. */
+export type Chain = { id: string; name: string; season?: { from: number; to: number; departure: string } };
 /**
  * The levers of the economy. A take from a paid source spends takeCost. Each cleared blocker gives blockerCoin. A menu price is
  * staples × takeCost + merges × workRate. The recovery quest opens while a quest is open and the purse is below recoveryFloor.
@@ -70,7 +96,7 @@ export type Economy = { takeCost: number; blockerCoin: number; workRate: number;
  * objective is its goal, payoff says what the chapter changed, and closing is the scene that plays when its last preparation completes.
  * Contribution is the optional neighbour quest that opens during the chapter.
  */
-export type Chapter = { id: string; title: string; objective: string; opening: string; payoff: string; contribution: string; closing: SceneLine[] };
+export type Chapter = { id: string; title: string; objective: string; opening: string; payoff: string; contribution: string; closing: SceneLine[]; opens: number };
 /** The scene that serving the supper quest earns. Ending is the line that returns the player to the kitchen. */
 export type Finale = { id: string; title: string; dialogue: SceneLine[]; ending: string };
 export type ChapterView = { chapter: Chapter; number: number; tasks: Task[]; done: number; status: 'complete' | 'current' | 'locked' };
@@ -106,8 +132,8 @@ export const roomPaintings: readonly string[] = [
 ];
 export type GameData = {
   board: { columns: number; rows: number; initial: (string | null)[]; defaultLayout: string; layouts: BoardLayout[]; preparations: PreparationObstacleBatch[] };
-  chains: { id: string; name: string }[]; items: Record<string, Item>; characters: Character[]; chapters: Chapter[]; finale: Finale; tasks: Task[];
-  areas: Area[]; rooms: RoomState[]; decorationSlots: DecorationSlot[]; economy: Economy; day: DayLevers;
+  chains: Chain[]; items: Record<string, Item>; characters: Character[]; chapters: Chapter[]; finale: Finale; tasks: Task[];
+  areas: Area[]; rooms: RoomState[]; decorationSlots: DecorationSlot[]; economy: Economy; day: DayLevers; calendar: Calendar;
   quests: Quest[];
 };
 /**
@@ -119,15 +145,17 @@ export type Cell = { code: string };
 /** A dish and the board cell where it was. */
 export type Placed = { item: string; position: number };
 /**
- * The last closing. The thief rat takes loose raw ingredients: the trapped one stays blocked in a new rat hole, and a thief with no
- * trapped ingredient found every rat hole open. Șoricescu leaves a gift, and a visit with no gift found too few free cells.
+ * The last closing. A rat comes only on Sunday night. The thief rat takes loose raw ingredients: the trapped one stays blocked in a new
+ * rat hole, and a thief with no trapped ingredient found every rat hole open. Șoricescu leaves a gift, and a visit with no gift found too
+ * few free cells. A closing without a rat has no morning dialog, so its report is seen at once. Departed names the seasonal chains whose
+ * source left the board.
  */
 export type NightReport = {
-  day: number; upkeep: number; rat: 'thief' | 'soricescu'; taken: Placed[]; trapped: Placed | null;
-  gift: (Placed & { first: boolean }) | null; purse: number; seen: boolean;
+  day: number; upkeep: number; rat: 'thief' | 'soricescu' | null; taken: Placed[]; trapped: Placed | null;
+  gift: (Placed & { first: boolean }) | null; departed: string[]; purse: number; seen: boolean;
 };
 export type GameState = {
-  version: 14; board: (Cell | null)[];
+  version: 15; board: (Cell | null)[];
   /** The purse. Below zero, it is a debt in the notebook of the village shop. */
   coins: number; taskIndex: number;
   discovered: string[]; decorations: string[];
@@ -153,10 +181,12 @@ export type GameState = {
   /** The booked guest of this evening, the guest of the last evening, and whether this day had its booked delivery. */
   evening: { guest: string | null; last: string | null; delivered: boolean };
   night: NightReport | null;
-  /** The days and the purse when the supper was served. */
-  act1: { days: number; purse: number } | null;
+  /** The purse when the supper was served. */
+  act1: { purse: number } | null;
   /** The last delivered repeating quest and the open one. A missing record means neither. */
   repeating?: { last: string | null; open: string | null };
+  /** The March quests that opened. An open March quest stays open after March. */
+  march: string[];
 };
 export type Action =
   | { type: 'move'; from: number; to: number }
@@ -178,6 +208,52 @@ export const spoken = (line: unknown, data: GameData) => !!line && typeof line =
 /** A scene has at least one line, and each line is spoken. */
 export const scene = (lines: unknown, data: GameData): lines is SceneLine[] => Array.isArray(lines) && lines.length > 0 && lines.every(line => spoken(line, data));
 export const present = <T>(value: T): value is NonNullable<T> => Boolean(value);
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MONTH_DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+/** The day of the year of a date: 1 January is 1. Each year has 365 days. */
+export const yearDay = (month: number, date: number) => MONTH_DAYS.slice(0, month - 1).reduce((sum, days) => sum + days, 0) + date;
+/** The date of a day: its year, its month (1 to 12), its day of the month, and its weekday (0 is Sunday). Year 1 starts on a Wednesday. */
+export function calendarDate(day: number, data: Pick<GameData, 'calendar'>) {
+  const offset = data.calendar.start + day - 2, year = 1 + Math.floor(offset / 365);
+  let rest = offset - (year - 1) * 365, month = 0;
+  while (rest >= MONTH_DAYS[month]) rest -= MONTH_DAYS[month++];
+  return { year, month: month + 1, date: rest + 1, weekday: ((3 + offset) % 7 + 7) % 7 };
+}
+/** A date as text: short "Sat 15 Feb", long "Saturday 15 February", or plain "15 February". */
+export function dateText(day: number, data: Pick<GameData, 'calendar'>, form: 'short' | 'long' | 'plain' = 'long') {
+  const { month, date, weekday } = calendarDate(day, data);
+  return form === 'short' ? `${WEEKDAYS[weekday].slice(0, 3)} ${date} ${MONTHS[month - 1].slice(0, 3)}`
+    : form === 'long' ? `${WEEKDAYS[weekday]} ${date} ${MONTHS[month - 1]}` : `${date} ${MONTHS[month - 1]}`;
+}
+export const isSunday = (day: number, data: Pick<GameData, 'calendar'>) => calendarDate(day, data).weekday === 0;
+/** The opening hours of a day. A Sunday opens later, closes earlier, and has no booking time. */
+export function dayHours(day: number, data: Pick<GameData, 'calendar' | 'day'>): { opening: number; closing: number; booking: number | null } {
+  const { opening, closing, booking, sunday } = data.day;
+  return isSunday(day, data) ? { ...sunday, booking: null } : { opening, closing, booking };
+}
+/** The merges that one day holds, from opening to closing. */
+export const dayMerges = (day: number, data: Pick<GameData, 'calendar' | 'day'>) => {
+  const hours = dayHours(day, data);
+  return (hours.closing - hours.opening) / data.day.mergeMinutes;
+};
+/** A day has an evening guest only with a booking time, on a day other than the supper and a holiday without evenings. */
+export const eveningOpen = (day: number, data: GameData) => dayHours(day, data).booking !== null && day !== data.calendar.supper
+  && !data.calendar.holidays.some(holiday => holiday.day === day && holiday.noEvening);
+export const weather = (day: number, data: Pick<GameData, 'calendar'>) => data.calendar.weather[day - 1] ?? 'fair';
+/** A terrace day: a fair day in the terrace season. The courtyard seats guests only then. */
+export const terraceDay = (day: number, data: Pick<GameData, 'calendar'>) =>
+  day >= data.calendar.terrace.from && day <= data.calendar.terrace.to && weather(day, data) === 'fair';
+const inMarch = (day: number, data: Pick<GameData, 'calendar'>) => calendarDate(day, data).month === 3;
+/** The window view of a day: the latest view that starts on or before it. */
+export const windowView = (day: number, data: Pick<GameData, 'calendar'>) => data.calendar.views.findLast(view => view.from <= day) ?? data.calendar.views[0];
+/** The holiday decorations of an area on a day. */
+export const holidayDecorations = (day: number, area: string, data: Pick<GameData, 'calendar'>) =>
+  data.calendar.decorations.filter(decoration => decoration.area === area && day >= decoration.from && day <= decoration.to);
+/** The holiday of a holiday quest. */
+export const questHoliday = (quest: Quest, data: GameData) => quest.holiday === undefined ? undefined : data.calendar.holidays.find(holiday => holiday.id === quest.holiday);
+/** The season of a seasonal chain, or undefined for a chain that is open all year. */
+export const chainSeason = (chain: string, data: GameData) => data.chains.find(value => value.id === chain)?.season;
 /** A rat hole as a blocker. It has no ID of its own: a cleared rat hole leaves the list, so it never enters the cleared blockers. */
 const ratHole = (hole: Placed): BoardObstacle => ({ id: `rat-hole-${hole.position}`, position: hole.position, name: 'Rat hole', type: 'rat-hole',
   ingredient: hole.item, context: 'The thief rat dropped it here in the night.' });
@@ -212,10 +288,25 @@ export function firstFreeBoardCell(state: GameState, data: GameData): number {
 export function freeBoardCells(state: GameState, data: GameData): number {
   return state.board.reduce((count, cell, index) => count + (cell === null && !unresolvedObstacle(state, index, data) ? 1 : 0), 0);
 }
-export const availableChains = (state: Pick<GameState, 'taskIndex'>, data: GameData) => [...new Set([
+/**
+ * The open chains: the sources of a new game, the sources that the paid preparations opened, and each seasonal chain from the first
+ * day of its season. A seasonal chain stays open after its season, so its dishes stay on the board.
+ */
+export const availableChains = (state: Pick<GameState, 'taskIndex'> & { clock: { day: number } }, data: GameData) => [...new Set([
   ...data.board.initial.filter(present).filter(code => data.items[code].generator).map(code => data.items[code].chain),
   ...data.tasks.slice(0, state.taskIndex).flatMap(task => task.unlock ? [task.unlock] : []),
+  ...data.chains.flatMap(chain => chain.season && state.clock.day >= chain.season.from ? [chain.id] : []),
 ])];
+/** The cell of the source of a chain on the board, or -1. */
+export const sourceCell = (state: Pick<GameState, 'board'>, chain: string) => state.board.findIndex(cell => cell?.code === `generator_${chain}`);
+/**
+ * A seasonal source stays after its season while an undelivered campaign quest of act 1, or the open repeating quest, asks for a dish
+ * of its chain.
+ */
+export function sourceNeeded(state: Pick<GameState, 'completedQuests' | 'repeating'>, chain: string, data: GameData): boolean {
+  return data.quests.some(quest => !quest.act && !quest.recovery && (quest.repeating ? state.repeating?.open === quest.id : !state.completedQuests.includes(quest.id))
+    && quest.requirements.some(({ item }) => dishChains(item, data).includes(chain)));
+}
 /** The chains that a dish uses: its own chain, or every chain of the parts of a mixed dish. */
 export function dishChains(code: string, data: GameData): string[] {
   const item = getItem(code, data);
@@ -264,8 +355,18 @@ export function menuPrice(code: string, data: GameData): number {
 /** The coins that the staples of a quest cost at their sources. */
 export const stapleCost = (quest: Pick<Quest, 'requirements'>, data: GameData) =>
   quest.requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).staples * data.economy.takeCost * quantity, 0);
+/** The preparation, the earlier quests, and the opening date of a quest are behind the player. */
+export function prerequisitesMet(state: Pick<GameState, 'decorations' | 'completedQuests' | 'clock'>, quest: Quest, data: GameData): boolean {
+  return (quest.afterTask === null || state.decorations.includes(quest.afterTask)) && questPredecessors(quest, data).every(id => questDone(state, id))
+    && (quest.opens === undefined || state.clock.day >= quest.opens);
+}
+/** A March quest opens in March once its prerequisites are met. The engine records it in the same change. */
+export const marchOpens = (state: Pick<GameState, 'decorations' | 'completedQuests' | 'clock' | 'march'>, quest: Quest, data: GameData) =>
+  !!quest.march && !state.march.includes(quest.id) && inMarch(state.clock.day, data) && prerequisitesMet(state, quest, data);
+/** A quest of a later act never opens in act 1. A March quest is open once it opened in March. */
 function questReady(state: GameState, quest: Quest, data: GameData): boolean {
-  return (quest.afterTask === null || state.decorations.includes(quest.afterTask)) && questPredecessors(quest, data).every(id => questDone(state, id));
+  if (quest.act) return false;
+  return quest.march ? state.march.includes(quest.id) : prerequisitesMet(state, quest, data);
 }
 /** An item by its code, or undefined for a code that the data does not know. */
 export function getItem(code: string, data: GameData): Item | undefined {
@@ -285,22 +386,30 @@ export function resolveNeighbours(state: GameState, data: GameData) {
     .map(person => ({ person, arrived: hasArrived(state, person),
       delivered: state.completedQuests.filter(id => data.quests.find(quest => quest.id === id)?.character === person.id).length }));
 }
-const questDone = (state: GameState, id: string) => state.completedQuests.includes(id);
+const questDone = (state: Pick<GameState, 'completedQuests'>, id: string) => state.completedQuests.includes(id);
 /**
  * The earlier quests of the same character, and afterQuest. The recovery quest needs none, and a repeating quest needs only the
- * campaign quest that it follows. Neither is a predecessor of another quest.
+ * campaign quest that it follows. Neither is a predecessor of another quest. A quest of a later act is no predecessor, and a March
+ * quest is a predecessor only of a later March quest.
  */
 export function questPredecessors(quest: Quest, data: GameData): string[] {
   if (quest.recovery) return [];
   if (quest.repeating) return quest.afterQuest ? [quest.afterQuest] : [];
-  const earlier = data.quests.slice(0, data.quests.indexOf(quest)).filter(previous => previous.character === quest.character && !previous.recovery && !previous.repeating);
+  const earlier = data.quests.slice(0, data.quests.indexOf(quest)).filter(previous => previous.character === quest.character && !previous.recovery && !previous.repeating
+    && !previous.act && (!previous.march || !!quest.march));
   return [...new Set([...(quest.afterQuest ? [quest.afterQuest] : []), ...earlier.map(previous => previous.id)])];
 }
-/** A repeating quest joins the cycle once its character has arrived, the chain of each dish is open, and the quest that it follows is delivered. */
-export function canJoinCycle(state: Pick<GameState, 'taskIndex' | 'decorations' | 'completedQuests'>, quest: Quest, data: GameData): boolean {
+/** A repeating quest is in the cycle once its character has arrived, the chain of each dish is open, and the quest that it follows is delivered. */
+export function cycleMember(state: Pick<GameState, 'taskIndex' | 'decorations' | 'completedQuests' | 'clock'>, quest: Quest, data: GameData): boolean {
   const person = data.characters.find(person => person.id === quest.character), chains = availableChains(state, data);
   return !!quest.repeating && !!person && hasArrived(state, person) && quest.requirements.every(({ item }) => dishOpen(item, chains, data))
     && (!quest.afterQuest || state.completedQuests.includes(quest.afterQuest));
+}
+/** A member of the cycle joins it in its season: inside its range of days, and while the source of each seasonal chain of its dishes is on the board. */
+export function canJoinCycle(state: Pick<GameState, 'taskIndex' | 'decorations' | 'completedQuests' | 'clock' | 'board'>, quest: Quest, data: GameData): boolean {
+  const day = state.clock.day;
+  return cycleMember(state, quest, data) && (!quest.during || (day >= quest.during.from && day <= quest.during.to))
+    && quest.requirements.every(({ item }) => dishChains(item, data).every(chain => !chainSeason(chain, data) || sourceCell(state, chain) >= 0));
 }
 /** The repeating quests take turns: the next one after the last delivered one, in data order, that can join the cycle. */
 function nextRepeating(state: GameState, data: GameData): Quest | undefined {
@@ -318,10 +427,10 @@ function nextRepeating(state: GameState, data: GameData): Quest | undefined {
  */
 function openRepeating(state: GameState, views: QuestView[], data: GameData): Quest | undefined {
   if (state.repeating?.open) return data.quests.find(quest => quest.id === state.repeating!.open);
-  // A booked quest for another evening has work while the board lacks a portion: the player can cook it now, but cannot deliver it
-  // before its evening. These meals share no portion. Every other open quest has work.
+  // A quest for a later day has work while the board lacks a portion: the player can cook it now, but cannot deliver it on this day.
+  // These meals share no portion. Every other open quest has work.
   const open = views.filter(view => view.status === 'active' || view.status === 'waiting').map(view => view.quest);
-  const later = open.filter(quest => quest.booked && !bookedTonight(state, quest));
+  const later = open.filter(quest => laterDay(state, quest, data));
   const busy = open.length > later.length || questDeliveryCells(state, { requirements: later.flatMap(quest => quest.requirements) }).some(index => index < 0);
   return busy || taskEligibility(state, data).ready ? undefined : nextRepeating(state, data);
 }
@@ -357,10 +466,12 @@ export const supperQuest = (data: GameData) => data.quests.find(quest => quest.f
 export function supperComplete(state: Pick<GameState, 'completedQuests'>, data: GameData): boolean {
   return state.completedQuests.includes(supperQuest(data)?.id ?? '');
 }
+/** A campaign quest of act 1 that a preparation can need: not the supper, the recovery quest, a repeating quest, a March quest, or a later act. */
+export const campaignQuest = (quest: Quest) => !quest.finale && !quest.recovery && !quest.repeating && !quest.march && !quest.act;
 /** The quests that the preparation at this index needs: every campaign quest that opens before it. */
 export function requiredQuests(taskIndex: number, data: GameData): Quest[] {
   const known = new Map<Quest, number>();
-  return data.quests.filter(quest => !quest.finale && !quest.recovery && !quest.repeating && questOpening(quest, data, known) < taskIndex);
+  return data.quests.filter(quest => campaignQuest(quest) && questOpening(quest, data, known) < taskIndex);
 }
 /** A guest who visits once has a journal introduction only while their quest is open. */
 export function journalCharacters(state: GameState, data: GameData): Character[] {
@@ -381,33 +492,71 @@ export function questDeliveryCells(state: Pick<GameState, 'board'>, quest: Pick<
 }
 export function canDeliverQuest(state: GameState, quest: Quest | string, data: GameData): boolean {
   const view = resolveQuests(state, data).find(view => view.quest.id === (typeof quest === 'string' ? quest : quest.id));
-  return view?.status === 'active' && questDeliveryCells(state, view.quest).every(index => index >= 0)
-    && (!view.quest.booked || (bookedTonight(state, view.quest) && clockMinutes(state, data) >= data.day.booking));
+  return view?.status === 'active' && questDeliveryCells(state, view.quest).every(index => index >= 0) && deliverableNow(state, view.quest, data);
 }
-/** The merges that one day holds, from opening to closing. */
-export const dayMerges = (data: GameData) => (data.day.closing - data.day.opening) / data.day.mergeMinutes;
+/**
+ * The time and the day permit a delivery: tonight's booked quest and the supper from the booking time, a holiday quest from its
+ * holiday, and an outdoor quest on a terrace day.
+ */
+function deliverableNow(state: GameState, quest: Quest, data: GameData): boolean {
+  const day = state.clock.day, evening = clockMinutes(state, data) >= data.day.booking, holiday = questHoliday(quest, data);
+  if (quest.booked && !(bookedTonight(state, quest) && evening)) return false;
+  if (quest.finale && !(day === data.calendar.supper && evening)) return false;
+  return (!holiday || day >= holiday.day) && (!quest.outdoor || terraceDay(day, data));
+}
+/**
+ * An open quest that the player can cook now but cannot deliver on this day: a booked quest for another evening, the supper before its
+ * day, a holiday quest before its holiday, and an outdoor quest on a day that is not a terrace day.
+ */
+export function laterDay(state: GameState, quest: Quest, data: GameData): boolean {
+  const day = state.clock.day, holiday = questHoliday(quest, data);
+  return (!!quest.booked && !bookedTonight(state, quest)) || (!!quest.finale && day < data.calendar.supper)
+    || (!!holiday && day < holiday.day) || (!!quest.outdoor && !terraceDay(day, data));
+}
 /** The time of day, in minutes after midnight. */
-export const clockMinutes = (state: Pick<GameState, 'clock'>, data: GameData) => data.day.opening + state.clock.merges * data.day.mergeMinutes;
+export const clockMinutes = (state: Pick<GameState, 'clock'>, data: Pick<GameData, 'calendar' | 'day'>) => dayHours(state.clock.day, data).opening + state.clock.merges * data.day.mergeMinutes;
 /** A time of day as "hh:mm". */
 export const clockText = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
-/** A loose raw ingredient: a stage-1 dish of a paid chain. Herbs and cooked dishes are safe overnight. A blocked cell holds no item. */
+/**
+ * A loose raw ingredient: a stage-1 dish of a paid chain or a seasonal chain. Herbs and cooked dishes are safe overnight. A blocked
+ * cell holds no item.
+ */
 export function looseRaw(code: string, data: GameData): boolean {
   const item = getItem(code, data);
-  return !!item && !item.generator && item.chain !== MIXED && item.stage === 1 && !data.items[`generator_${item.chain}`]?.generator?.free;
+  return !!item && !item.generator && item.chain !== MIXED && item.stage === 1 && (!data.items[`generator_${item.chain}`]?.generator?.free || !!chainSeason(item.chain, data));
 }
 export const looseRawCells = (state: GameState, data: GameData) => state.board.flatMap((cell, index) => cell && looseRaw(cell.code, data) ? [index] : []);
 /** A booked quest is tonight's while its guest has the evening and the day has had no booked delivery. */
 export const bookedTonight = (state: Pick<GameState, 'evening'>, quest: Quest) => !!quest.booked && state.evening.guest === quest.character && !state.evening.delivered;
-/** Tonight's booked quest before the booking time: its ticket has the lantern control in place of Deliver. */
-export const awaitsLanterns = (state: GameState, quest: Quest, data: GameData) => bookedTonight(state, quest) && clockMinutes(state, data) < data.day.booking;
-/** The lantern control moves the clock to the booking time: tonight's booked quest, on its ticket, before the booking time, with every portion on the board. */
+/**
+ * Tonight's booked quest, or the supper on its day, before the booking time: its ticket has the lantern control in place of Deliver.
+ */
+export const awaitsLanterns = (state: GameState, quest: Quest, data: GameData) =>
+  (bookedTonight(state, quest) || (!!quest.finale && state.clock.day === data.calendar.supper)) && clockMinutes(state, data) < data.day.booking;
+/** The lantern control moves the clock to the booking time: a quest that awaits the lanterns, on its ticket, with every portion on the board. */
 export function canLightLanterns(state: GameState, quest: Quest, data: GameData): boolean {
   return awaitsLanterns(state, quest, data) && resolveQuests(state, data).find(view => view.quest === quest)?.status === 'active'
     && questDeliveryCells(state, quest).every(index => index >= 0);
 }
-/** The text of a booked ticket. Only the evening that the game fixed gets a time. */
-export const bookedTicket = (state: Pick<GameState, 'evening'>, quest: Quest, data: GameData) =>
-  !quest.booked ? null : bookedTonight(state, quest) ? `Booked for ${clockText(data.day.booking)}` : 'Booked for another evening';
+/**
+ * The note of a ticket that says when it delivers: the evening of a booked quest or the supper, the holiday of a holiday quest, or the
+ * weather of an outdoor quest. Null for a ticket that delivers whenever its dishes are on the board.
+ */
+export function ticketNote(state: GameState, quest: Quest, data: GameData): string | null {
+  const day = state.clock.day, booking = `Booked for ${clockText(data.day.booking)}`, holiday = questHoliday(quest, data);
+  if (quest.finale) return day === data.calendar.supper ? booking : `Booked for ${dateText(data.calendar.supper, data, 'plain')}`;
+  if (quest.booked) return bookedTonight(state, quest) ? booking : 'Booked for another evening';
+  if (holiday && day !== holiday.day) return day < holiday.day ? `For ${holiday.name}, ${dateText(holiday.day, data)}` : `Late for ${holiday.name}`;
+  return quest.outdoor && !terraceDay(day, data) ? 'Waits for fair weather' : null;
+}
+/** 30 April holds until the last preparation, and 1 May until the supper: no merge closes the day. */
+export function holdsDay(state: Pick<GameState, 'clock' | 'taskIndex' | 'completedQuests'>, data: GameData): boolean {
+  const { day } = state.clock, supper = data.calendar.supper;
+  return (day === supper - 1 && state.taskIndex < data.tasks.length) || (day === supper && !supperComplete(state, data));
+}
+/** A day that holds stops its clock one merge before the closing. */
+export const holding = (state: Pick<GameState, 'clock' | 'taskIndex' | 'completedQuests'>, data: GameData) =>
+  holdsDay(state, data) && state.clock.merges === dayMerges(state.clock.day, data) - 1;
 /**
  * The index of the latest preparation that a quest and its predecessors wait for: -1 when it opens in a new game.
  * Known keeps the openings that one check found, so each quest is resolved once and long quest lines stay linear.
@@ -485,6 +634,12 @@ export function taskEligibility(state: GameState, data: GameData): TaskEligibili
     { kind: 'quests', current: delivered, required: quests.length, met: delivered === quests.length },
   ];
   const blockers: string[] = [];
+  // The first preparation of a chapter waits for the opening date of its chapter.
+  if (data.tasks.find(value => value.chapter === task.chapter) === task) {
+    const opens = data.chapters[task.chapter - 1].opens, met = state.clock.day >= opens;
+    requirements.push({ kind: 'date', day: opens, met });
+    if (!met) blockers.push(`This preparation opens on ${dateText(opens, data)}.`);
+  }
   const coins = task.cost - state.coins, missing = quests.length - delivered;
   if (coins > 0) blockers.push(`Earn ${coins} more ${coins === 1 ? 'coin' : 'coins'} to pay for this preparation.`);
   if (missing > 0) blockers.push(`Deliver ${missing} more ${missing === 1 ? 'quest' : 'quests'} for this preparation.`);
@@ -497,7 +652,7 @@ export function taskEligibility(state: GameState, data: GameData): TaskEligibili
   return { task, ready: blockers.length === 0, requirements, blockers };
 }
 /** A source makes only the first item of its chain while its chain is available. */
-export function generatorOutputs(state: Pick<GameState, 'taskIndex'>, generatorCode: string, data: GameData): string[] {
+export function generatorOutputs(state: Pick<GameState, 'taskIndex' | 'clock'>, generatorCode: string, data: GameData): string[] {
   const item = getItem(generatorCode, data);
   if (!item?.generator || !availableChains(state, data).includes(item.chain)) return [];
   return item.generator.outputs;

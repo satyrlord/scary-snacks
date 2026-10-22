@@ -1,6 +1,6 @@
 # 015: Calendar and act 1 dates
 
-Status: Proposed.
+Status: Implemented, with spec 017.
 
 ## Outcome and scope
 
@@ -88,7 +88,7 @@ The rats come only on Sunday night, so the night stays an event.
 
 - After the closing of a Sunday, the night of spec 013 applies in full: the thief rat or Șoricescu, the closing dialog, the night sequence, and the morning dialog.
 - After each other closing, the purse pays the upkeep, and the next day starts. No rat comes, and no dialog opens.
-  A toast reports the upkeep and the new date. For example: "The bistro closed for the night. Upkeep: 10 coins. Good morning, Tuesday 18 February."
+  A toast reports the upkeep and the new date. For example: "The bistro closed for the night. Upkeep: 20 coins. Good morning, Tuesday 18 February."
   The toast is the temporary notice of `DESIGN.md`, as for a delivery. The toast is not a modal dialog.
   The toast does not stop play, does not take focus, and needs no action. The toast leaves by itself after the usual time.
 - On a Sunday night, the thief rat looks at the loose raw ingredients at the Sunday closing.
@@ -102,17 +102,8 @@ Act 1 has 11 Sunday nights. So the count of rat visits stays near the count of n
 The merge time sets the number of merges in a day. The merge time is a lever.
 The days of act 1 are fixed, so the merge time sets the work that act 1 needs.
 
-| Merge time | Weekday | Sunday | Merges in act 1 | Merges of content to add |
-| --- | ---: | ---: | ---: | ---: |
-| 6 minutes | 150 | 70 | approximately 10,500 | approximately 7,500 |
-| 10 minutes | 90 | 42 | approximately 6,300 | approximately 3,300 |
-| 15 minutes | 60 | 28 | approximately 4,200 | approximately 1,200 |
-
-The current campaign needs approximately 3,000 merges.
-The last column gives the merges that new quests must add before repeating quests fill the rest. The lantern control shortens some days, so the figures are approximate.
-
 The merge time is 15 minutes. A weekday holds 60 merges, and a Sunday holds 28 merges.
-The content work then stays near the size of the holiday quests of spec 017 and some new campaign quests.
+The lantern control shortens a day when the player lights the lanterns before 20:00.
 The largest provisions do not fit in one day.
 So the data check applies the one-day limit only to meals. Provisions and the supper can take more than one day.
 
@@ -172,7 +163,7 @@ A booked guest must not block the hold. While 30 April holds, each booked delive
 Then the game fixes the evening guest again at once, by the rules of spec 013. Deliver works again for the new evening guest, because the clock is after 20:00.
 So the player can deliver every booked quest that remains, one after the other, during the hold.
 Spec 017 makes 30 April and 1 May terrace days, so an outdoor quest also never blocks the hold.
-On 30 April, the payment of preparation 24 closes the day in the same change. The closing then applies as in spec 013, and 1 May starts.
+On 30 April, the payment of preparation 24 while the day holds closes the day in the same change. The closing then applies as in spec 013, and 1 May starts.
 On 1 May, Serve on the supper stops the clock, as before.
 
 While 30 April holds, Mara's line says "Walpurgis Night lasts until the bistro is ready."
@@ -189,10 +180,8 @@ Act 1 needs more quests to fill 76 days. The repeating quests fill only the gaps
 - Seasonal repeating quests of spec 017 join the cycle only in their season.
 
 The repeating quests fill at most 20% of the merges of act 1.
-The content plan has these sizes. The balance test gives the final counts.
-
-- Approximately 10 to 12 new campaign quests, in addition to the holiday quests of spec 017.
-- A cycle of 6 to 8 repeating quests, including the seasonal repeating quests.
+Act 1 has 88 campaign quests, five March quests, and the supper quest.
+The cycle has seven repeating quests, including the seasonal repeating quests.
 
 Some current quests do not fit the season of act 1. Spec 017 gives the rule. This spec moves them out of act 1.
 
@@ -203,8 +192,7 @@ The section "Act 1 quest plan" gives each new, changed, and moved quest.
 ### Rules of the plan
 
 The plan gives the character, the place in the campaign, the date, the dishes, and the story of each quest.
-The dishes are provisional. The data check enforces the discovery rule, the diets, the Lent rule of spec 017, and the quest-size rule.
-If a check fails, the content work changes the dishes and keeps the story.
+The data check enforces the discovery rule, the diets, the Lent rule of spec 017, and the quest-size rule.
 The update-game-content skill writes the dialogue. The user approves the dialogue.
 
 "After N" means that the quest opens after preparation N. A quest after preparation N is necessary for preparation N + 1, as before.
@@ -213,18 +201,18 @@ The merges are approximate, at stage merges of 1, 3, 7, 15, and 31 for stages 2 
 
 ### Work in each chapter
 
-| Chapter | Dates | Merges that the days hold | Planned campaign merges | Share |
-| --- | --- | ---: | ---: | ---: |
-| 1 | 15 to 26 February | 656 | approximately 505 | 77% |
-| 2 | 27 February to 12 March | 776 | approximately 565 | 73% |
-| 3 | 13 to 26 March | 776 | approximately 685 | 88% |
-| 4 | 27 March to 8 April | 716 | approximately 565 | 79% |
-| 5 | 9 to 19 April | 628 | approximately 500 | 80% |
-| 6 | 20 to 30 April | 596 | approximately 445 | 75% |
+| Chapter | Dates | Merges that the days hold |
+| --- | --- | ---: |
+| 1 | 15 to 26 February | 656 |
+| 2 | 27 February to 12 March | 776 |
+| 3 | 13 to 26 March | 776 |
+| 4 | 27 March to 8 April | 716 |
+| 5 | 9 to 19 April | 628 |
+| 6 | 20 to 30 April | 596 |
 
-The planned merges include Dochia's March quests, which the efficient strategy delivers.
-Repeating quests, blocker merges, and the lantern control use the rest of each chapter.
-The balance test measures the true shares.
+The efficient strategy delivers Dochia's March quests in March.
+Campaign quests, repeating quests, and blocker merges use the days. The lantern control can skip part of a day.
+The balance test measures the merges and the share for repeating quests.
 
 ### Quests that leave act 1
 
@@ -248,6 +236,10 @@ The March quests of Dochia keep their order among themselves. Spec 017 gives the
 | `bran-pumpkins`, "The pumpkin fair" | Bran | 3 |
 | `ana-saint-andrew`, "Saint Andrew's Eve" | Ana | 3 |
 | `cezar-long-night`, "The longest night" | Cezar | 3 |
+| `ionatan-castle-dinner`, "Dinner before the castle" | Ionatan | 2 |
+| `mina-avram-search`, "A meal before the search" | Mina and Avram | 2 |
+
+Ionatan reaches the castle on Saint George's Eve of the old calendar, in May, and Mina finds him in August. So their visits follow the chronology of the novel and belong to act 2. Vlad's "A guest at the castle" stays in act 1 and announces Ionatan.
 
 ### Changed quests
 
@@ -255,25 +247,29 @@ The March quests of Dochia keep their order among themselves. Spec 017 gives the
 | --- | --- | --- |
 | `ana-garlic`, "Garlic duty" | From after 2 to after 21. Holiday quest of Saint George's Eve, Tuesday 22 April. Opening date 20 April. | The text tells the garlic custom of the eve. |
 | `ileana-thursday`, "Before Thursday" | From after 14 to after 18. Holiday quest of Holy Thursday, 17 April. Opening date 14 April. | The text tells the custom of Joimărița. |
-| `ilie-cellar`, "The cellar shelves" | New dishes: 1 Bean stew, 1 Pickled cabbage, and 1 Mămăligă. | The quest opens during Lent, and Ilie keeps Lent. |
-| `ilie-family`, "A dish from the notebook" | Stays after 16, as the neighbour help of chapter 5. New dishes: 1 Zacuscă and 1 Lentils. The great-aunt's recipe becomes her zacuscă, with "a good amount of peppers". | The quest opens during Lent, and Ilie keeps Lent. The closing scene of chapter 5 does not name the dish. |
+| `ilie-cellar`, "The cellar shelves" | New dishes: 1 Lentils, 1 Pickled cabbage, and 1 Mămăligă. | The quest opens during Lent, and Ilie keeps Lent. |
+| `ilie-family`, "A dish from the notebook" | Stays after 16, as the neighbour help of chapter 5. New dishes: 2 Zacuscă and 1 Lentils. The great-aunt's recipe becomes her zacuscă, with "a good amount of peppers". | The quest opens during Lent, and Ilie keeps Lent. The closing scene of chapter 5 does not name the dish. |
 | `dorian-birthday`, "A quiet birthday" | From after 20 to after 18. | The move balances chapters 5 and 6. |
 | `ilie-courtyard`, "Bread for outside" | From after 12 to after 13. | The quest is an outdoor quest. The courtyard opens with preparation 13, and the terrace season starts on 1 April. After 12, the quest blocks preparation 13 and the last March quest of Dochia. |
-| `cezar-before-rounds`, "Before the rounds" | Joins the cycle after the delivery of `cezar-round`, "The end of the round". | `cezar-long-night` leaves act 1. |
+| `cezar-before-rounds`, "Before the rounds" | Joins the cycle after the delivery of `cezar-castle-lights`, "Lights on the hill". | `cezar-long-night` leaves act 1, and that quest puts Bean soup in the recipe book. |
+| `sorin-postbag`, "A heavy post bag" | From after 9 to after 10. | Ionatan leaves act 1, so preparation 11 needs a new quest. |
+| `ana-ward-tea`, "Tea for the ward" | From after 9 to after 11. | "The last cold week" becomes a March quest, so preparation 12 needs a new quest. |
+| Quests of chapters 1 to 4 | New dishes keep the discovery rule and the work value: `mara-cellar` asks for Gherkins and `eszter-first-plate` for Pickled green tomatoes; `mara-lamp-supper` for Sour cream; `bran-last-bus` for Lamb; `sorin-path` for Nettles; `victor-thesis` for Lamb chops and Wild garlic and sorrel; `bran-horse` for Diced veal; `sorin-welcome` for Minced veal; larger meals for `cezar-round`, `eszter-green-bowls`, `mara-candles` (with Sorin), `cezar-castle-lights`, `ilie-courtyard`, and the supply packs of Adrian, Monica, and Janos. | The March quests of Dochia no longer put dishes in the recipe book, and Ionatan and Mina leave act 1. |
+| `dorian-gallery`, "The exhibition" | 1 Cheese board, 1 Cozonac, and 1 Red wine. | Each meal fits in one weekday of 60 merges. |
 | The five quests of Dochia | March quests. Spec 017 gives their dates, and two of them get new text. | The legend of Baba Dochia belongs to March. |
 
 ### New holiday quests
 
 Spec 017 gives the customs of the holidays.
 
-| ID | Characters | After | Opening date | Holiday | Provisional dishes | Story |
+| ID | Characters | After | Opening date | Holiday | Dishes | Story |
 | --- | --- | ---: | --- | --- | --- | --- |
-| `victor-dragobete` | Victor | 3 | Friday 21 February | Monday 24 February, Dragobete | 2 Papanași and 1 Linden tea | Victor asks for a sweet for two and does not say who the second person is. He eats both sweets. |
-| `eszter-carnival` | Eszter | 4 | Thursday 27 February | Sunday 2 March, Carnival Sunday | 2 Papanași, 1 Bulz, and 1 Cheese pie | The last feast before Lent. Eszter says that papanași are the doughnuts of her farsang, with better manners. |
-| `sorin-womens-day` | Sorin and Ana | 5 | Wednesday 5 March | Saturday 8 March, Women's Day | 2 Chimney cakes, 2 Linden teas, and 1 Papanași | Sorin brings sweets to the night ward. Ana accepts them for all the nurses. |
-| `costel-mucenici` | Costel | 7 | Thursday 6 March | Sunday 9 March, the Forty Martyrs | 2 Mucenici and 1 Red wine | The custom gives forty small glasses. Costel's clock counts them and stops at nine. |
-| `ilie-annunciation` | Ilie | 12 | Saturday 22 March | Tuesday 25 March, the Annunciation | 1 Saramură with mămăligă, 1 Fish soup, and 1 Linden tea | The first fish of Lent. Ilie's grandmother never missed it. |
-| `sanziana-palm-sunday` | Sânziana | 17 | Thursday 10 April | Sunday 13 April, Palm Sunday | 2 Smoked trout, 2 Fruit teas, and 2 Plum dumplings | Sânziana sells willow catkins at the church gate and buys fish for her sisters. |
+| `victor-dragobete` | Victor | 3 | Friday 21 February | Monday 24 February, Dragobete | 1 Langoș, 1 Milk, and 1 Linden tea | Victor asks for a sweet langoș cut in two and a cup of milk with two straws, and does not say who the second person is. The second person was busy at the stove all day, so he eats both halves. |
+| `eszter-carnival` | Eszter | 4 | Thursday 27 February | Sunday 2 March, Carnival Sunday | 1 Papanași, 1 Bulz, and 1 Cheese pie | The last feast before Lent. Eszter says that papanași are the doughnuts of her farsang, with better manners. |
+| `sorin-womens-day` | Sorin and Ana | 5 | Wednesday 5 March | Saturday 8 March, Women's Day | 2 Papanași, 2 Linden teas, and 1 Pogăcele | Sorin brings sweets to the night ward. Ana accepts them for all the nurses. |
+| `costel-mucenici` | Costel | 6 | Thursday 6 March | Sunday 9 March, the Forty Martyrs | 2 Mucenici and 1 Socată | The custom gives forty small glasses. Costel's clock counts them and stops at nine. |
+| `ilie-annunciation` | Ilie | 12 | Saturday 22 March | Tuesday 25 March, the Annunciation | 2 Fresh trout and 1 White beans | The first fish of Lent. Ilie's grandmother never missed it. |
+| `sanziana-palm-sunday` | Sânziana | 17 | Thursday 10 April | Sunday 13 April, Palm Sunday | 2 Fried trout, 2 Fruit teas, and 2 Plum dumplings | Sânziana sells willow catkins at the church gate and buys fish for her sisters. |
 | `mara-easter-baskets` | Mara, Eszter, and Sorin | 19 | Wednesday 16 April | Saturday 19 April, Holy Saturday | 2 Pască, 2 Red eggs, 2 Cozonac, and 1 Drob | The baskets for the blessing at midnight. Ilie guards the baskets and does not taste, because Lent is not over. |
 | `mara-easter-lunch` | Mara and Ilie | 20 | Thursday 17 April | Sunday 20 April, Easter | 1 Roast lamb, 1 Drob, 2 Red eggs, and 1 Cozonac | The staff break the fast together. Ilie eats first, for the first time in seven weeks. |
 | `eszter-sprinkling` | Eszter and Sorin | 21 | Sunday 20 April | Monday 21 April, Easter Monday | 2 Red eggs, 2 Chimney cakes, and 1 Plum brandy | Sorin comes to sprinkle Eszter with cologne, as the Hungarian custom asks. He uses too much. |
@@ -283,17 +279,17 @@ Spec 017 gives the customs of the holidays.
 
 ### New campaign quests
 
-| ID | Characters | After | Opening date | Provisional dishes | Story |
+| ID | Characters | After | Opening date | Dishes | Story |
 | --- | --- | ---: | --- | --- | --- |
 | `ilie-roof-snow` | Ilie and Sorin | 1 | None | 2 Mămăligă, 2 Linden teas, and 1 Langoș | Ilie and Sorin clear the snow from the roof. Sorin calls the snow a commons: everybody admires it, and nobody shovels it. |
 | `bela-snowman` | Bela | 2 | None | 1 Pogăcele, 1 Linden tea, and 1 Mămăligă | Somebody built a snowman in the graveyard. Each morning, it faces a different grave. |
 | `ana-mittens` | Ana | 2 | None | 2 Linden teas and 1 Pogăcele | The heating of the night ward broke. Ana knits mittens for the patients between rounds. |
-| `mara-chimney-sweep` | Mara and Sorin | 3 | None | 2 Langoș and 1 Socată | The chimney sweep comes. Mara touches his button for luck. In the flue, he finds a burnt page of Paraschiva's notebook. |
+| `mara-chimney-sweep` | Mara and Sorin | 3 | None | 2 Langoș, 1 Telemea, and 1 Socată | The chimney sweep comes. Mara touches his button for luck. In the flue, he finds a burnt page of Paraschiva's notebook. |
 | `costel-icicle-clock` | Costel | 3 | None | 1 Langoș, 1 Papanași, and 1 Socată | Costel built a clock that drips the hours from an icicle. Near the stove, the clock runs fast. |
 | `ilie-clean-monday` | Ilie | 5 | Monday 3 March | 1 Bread basket, 1 Mămăligă, and 1 Linden tea | The first day of Lent. Ilie scrubs every pot, as his grandmother did, and eats only fasting food. |
-| `dorian-portrait` | Dorian | 16 | None | 1 Cozonac and 1 Cheese board | The painter wants spring light for a new portrait. Dorian asks Mara if his old portrait looks tired lately. |
+| `dorian-portrait` | Dorian | 16 | None | 1 Cozonac, 1 Cheese board, and 1 Red wine | The painter wants spring light for a new portrait. Dorian asks Mara if his old portrait looks tired lately. |
 | `bran-pilgrims` | Bran | 17 | None | 2 Langoș and 1 Bean soup in a bread bowl | In Holy Week, pilgrims fill the night bus. They ate all of Bran's langoș. |
-| `catalina-silent-bells` | Cătălina | 19 | Thursday 17 April | 1 Bean stew, 1 Green beans, and 1 Plum dumplings | From Holy Thursday to the night of Easter, the bells rest, and the wooden toaca calls the village. Cătălina has nothing to ring and is restless. |
+| `catalina-silent-bells` | Cătălina | 19 | Thursday 17 April | 1 Bean dip, 1 Green beans, and 1 Plum dumplings | From Holy Thursday to the night of Easter, the bells rest, and the wooden toaca calls the village. Cătălina has nothing to ring and is restless. |
 | `sorin-mud` | Sorin | 19 | None | 1 Roasted vegetables, 1 Chicken broth, and 1 Langoș | The April rain turns the forest road to mud up to the pedals. |
 
 `catalina-silent-bells` comes after `catalina-cloud-rider`, so the two quests of Cătălina keep their order.
@@ -302,14 +298,14 @@ Spec 017 gives the customs of the holidays.
 
 The cycle of spec 014 has seven repeating quests. Four are new. Three are seasonal and join the cycle only in their season.
 
-| ID | Character | Joins the cycle | Provisional dishes | Story |
+| ID | Character | Joins the cycle | Dishes | Story |
 | --- | --- | --- | --- | --- |
-| `ana-pickles` | Ana | In the season of the pickle barrel | 1 Pogăcele and 1 stage-3 dish of the pickle barrel | Pickles keep the night nurses awake. |
-| `ilie-lenten-bowl` | Ilie | During Lent, after the Beans source opens | 1 Green beans, 1 Mămăligă, and 1 Socată | A plain bowl for a fasting man. |
-| `victor-nettles` | Victor | In the season of the forage basket | 1 stage-3 dish of the forage basket, 1 Loaf, and 1 Linden tea | Nettles are good for the nerves, Victor read. |
+| `ana-pickles` | Ana | After `ana-mittens`, while the pickle barrel is on the board | 1 Pogăcele and 1 Mixed pickles | Pickles keep the night nurses awake. |
+| `ilie-lenten-bowl` | Ilie | After `ilie-cellar`, during Lent | 1 Green beans, 1 Mămăligă, and 1 Socată | A plain bowl for a fasting man. |
+| `victor-nettles` | Victor | After `victor-thesis`, while the forage basket is on the board | 1 Nettle soup, 1 Loaf, and 1 Linden tea | Nettles are good for the nerves, Victor read. |
 | `costel-tower-tea` | Costel | After the delivery of `costel-clock` | 1 Papanași and 2 Socată | Tea for the man who winds the church clock. |
 
-The stage-3 dishes of the seasonal chains wait for the approval of the chains in spec 017.
+A repeating quest joins after the campaign quest that puts its dishes in the recipe book.
 
 ## End of act 1
 
@@ -329,7 +325,7 @@ A debt shows as "The shop notebook holds a debt of 40 coins."
 - the opening date of each dated quest.
 
 The [economy record](../economy.md) gives the evidence for the levers.
-The upkeep of 10 coins applies at 75 closings in place of approximately 22 closings. The balance test sets a new upkeep value.
+The upkeep is 20 coins at 75 closings. The balance test measured it: with this value, the purse after the supper is inside the balance band, and the efficient purse never goes below zero.
 
 ## Data and state
 
@@ -337,7 +333,7 @@ The upkeep of 10 coins applies at 75 closings in place of approximately 22 closi
 - `src/model.ts` gives the date and the weekday of a day number, the opening hours of a day, and the date text.
 - `src/engine.ts` applies the Sunday hours, the rats on Sunday night only, the chapter dates, the quest dates, the supper date, and the hold.
 - `src/content.ts` checks the dated dependency graph of act 1. The check finds the earliest date of each preparation and each quest.
-  The check uses the chapter dates, the opening dates, the holiday dates, and the terrace days. The check ignores later-act quests and March quests.
+  The check uses the chapter dates, the opening dates, the holiday dates, and the terrace days. No preparation depends on a later-act quest or a March quest.
   The check fails if preparation 24 cannot come before the closing of 30 April, or if a March quest cannot open before 1 April.
 - `src/content.ts` also checks that the chapter dates rise and that each quest date is inside act 1.
   The module also checks that each dated quest opens on or after the opening date of its chapter.
@@ -393,4 +389,4 @@ The test also prints the days with work only from repeating quests.
 
 ## Open decisions
 
-- The dialogue of the new and changed quests. The plan uses only current characters, so the cast rule adds no new name.
+- The user approves the dialogue of the new and changed quests. The plan uses only current characters, so the cast rule adds no new name.

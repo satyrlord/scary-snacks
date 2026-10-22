@@ -61,8 +61,7 @@ test('a save cannot hold the arrival scene of a regular who has not arrived', ()
 test('each regular asks only after arrival, and the journal shows only arrived neighbours', () => {
   for (const person of regulars) {
     const quests = data.quests.filter(quest => quest.character === person.id && !quest.repeating);
-    // Bela, the graveyard keeper, has one campaign quest.
-    assert.ok(person.id === 'bela' ? quests.length === 1 : quests.length >= 2, `${person.id} has quests.`);
+    assert.ok(quests.length >= 2, `${person.id} has quests.`);
     const arrival = person.arrivesAfter === undefined ? -1 : data.tasks.findIndex(task => task.id === person.arrivesAfter);
     for (const quest of quests) assert.ok(data.tasks.findIndex(task => task.id === quest.afterTask) >= arrival, `${quest.id} opens after ${person.id} arrives.`);
   }
@@ -124,7 +123,7 @@ test('each regular has two or three favourite dishes, asks for one in each quest
       assert.ok(quest.requirements.some(({ item }) => favourites.includes(item)), `${quest.id} asks for a favourite dish.`);
       // A repeating quest opens in no window. It follows a campaign quest of its character.
       if (quest.repeating) continue;
-      const chains = availableChains({ taskIndex: window(quest) }, data);
+      const chains = availableChains({ taskIndex: window(quest), clock: { day: 1 } }, data);
       assert.ok(favourites.some(code => dishOpen(code, chains, data)), `${person.id} has a favourite dish open when ${quest.id} opens.`);
     }
   }

@@ -1,11 +1,11 @@
 // Shared fixtures for the Node tests: the game data, checked actions, checkpoint saves, quest deliveries, balance runs, and a storage in memory.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { canLightLanterns, firstFreeBoardCell, generatorOutputs, getItem, requiredQuests, resolveQuests } from '../src/model.ts';
+import { canLightLanterns, firstFreeBoardCell, generatorOutputs, getItem, questHoliday, requiredQuests, resolveQuests } from '../src/model.ts';
 import { createGame, reduceGame, revealTickets, validateGame } from '../src/engine.ts';
 import { dataProblems } from '../src/content.ts';
 import type { Action, GameData, GameState } from '../src/model.ts';
-import { checkpointState } from '../tools/create-checkpoint-saves.ts';
+import { checkpointState, deliverRequired, moveTo } from '../tools/create-checkpoint-saves.ts';
 import { BALANCE_SEEDS, runCampaignBalance } from '../tools/campaign-balance.ts';
 import type { CampaignBalance, CampaignStrategy } from '../tools/campaign-balance.ts';
 
@@ -42,10 +42,13 @@ export function rejected(state: GameState, action: Action, content = data) {
   return result;
 }
 
-/** A copy with the exact cost of the next preparation in coins, and every quest that it needs marked delivered. */
+/**
+ * A copy with the exact cost of the next preparation in coins, and every quest that it needs marked delivered, on the earliest morning
+ * that permits those deliveries and the payment.
+ */
 export function ready(state: GameState, content = data): GameState {
   const next = structuredClone(state);
-  for (const quest of requiredQuests(next.taskIndex, content)) if (!next.completedQuests.includes(quest.id)) next.completedQuests.push(quest.id);
+  deliverRequired(next, content);
   next.coins = content.tasks[next.taskIndex].cost;
   revealTickets(next, content);
   return next;
@@ -68,6 +71,19 @@ export const openCheckpoint = (count: number) => checkpointState(data, count, op
 /** The preparation at index count is paid for, and the quests that open with it wait. */
 export const opened = (count: number): GameState => ({ ...checkpoint(count), completedQuests: checkpoint(count - 1).completedQuests, coins: 0 });
 
+/** The earliest day on which the preparation at this index can be paid: the opening of its chapter, and the dates of the quests that it needs. */
+export const payDay = (taskIndex: number, content = data) => Math.max(content.chapters[(content.tasks[taskIndex] ?? content.tasks.at(-1)!).chapter - 1].opens,
+  ...requiredQuests(taskIndex, content).map(quest => questHoliday(quest, content)?.day ?? quest.opens ?? 1));
+/**
+ * A copy on the first weekday of April, after the March quests of Dochia: each one that opened is delivered, in the order of opening.
+ * The tests of the other quests use it, so the March quests take no ticket.
+ */
+export function afterMarch(state: GameState): GameState {
+  const next = structuredClone(state);
+  moveTo(next, Math.max(next.clock.day, data.calendar.lent.fish[0] + 8), data);
+  next.completedQuests.push(...next.march.filter(id => !next.completedQuests.includes(id)));
+  return withTickets(next);
+}
 /** The status of a quest in a state. */
 export const status = (state: GameState, id: string) => resolveQuests(state, data).find(view => view.quest.id === id)!.status;
 /** The tags of the dishes of a quest. */
@@ -92,9 +108,10 @@ export function tonight(state: GameState, id: string): GameState {
   const booked = quest(id);
   return booked.booked ? { ...state, evening: { ...state.evening, guest: booked.character, delivered: false } } : state;
 }
-/** Delivers a quest from supplied items. A booked quest gets this evening, and the lanterns bring its guest. */
+/** Delivers a quest from supplied items. A booked quest gets this evening, the supper waits for its day, and the lanterns bring the guests. */
 export function deliver(state: GameState, id: string) {
   let next = tonight(supply(state, id), id);
+  if (quest(id).finale) moveTo(next, data.calendar.supper, data);
   if (canLightLanterns(next, quest(id), data)) next = act(next, { type: 'lantern', id });
   return act(next, { type: 'deliverQuest', id });
 }

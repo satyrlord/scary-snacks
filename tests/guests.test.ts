@@ -1,26 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { deliveriesSince, journalCharacters, resolveQuests } from '../src/model.ts';
-import { createGame, reduceGame, validateGame } from '../src/engine.ts';
+import { journalCharacters } from '../src/model.ts';
+import { createGame } from '../src/engine.ts';
 import { questProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import type { GameData, GameState } from '../src/model.ts';
-import { act, data, deliver, opened, player, status, tags, tonight, validate } from './support.ts';
+import { afterMarch, checkpoint, data, deliver, opened, player, status, tags, tonight, validate } from './support.ts';
 
 const search = data.quests.find(quest => quest.id === 'mina-avram-search')!;
 const predecessor = search.afterQuest!;
-/** The first campaign quest on a ticket. The recovery quest is never recorded, so it leaves the quest order unchanged. */
-const ticket = (state: GameState) => resolveQuests(state, data).find(view => view.status === 'active' && !view.quest.recovery);
-/** Deliver the active tickets until the shared visit is active. */
-function untilSearch(state: GameState): GameState {
-  while (status(state, search.id) !== 'active') state = deliver(state, ticket(state)!.quest.id);
-  return state;
-}
 
 // Vlad's dinner can be made from stage-one ingredients, chain merges, and recipe merges.
 test(`Vlad's dinner after dark is deliverable by cooking red wine and smoked bacon from stage-one ingredients`, () => {
   // Vlad comes last in his window: his ticket shows once the quests before him are delivered.
-  const play = player(deliver(deliver(opened(8), 'mara-table'), 'ileana-fitting'));
+  const play = player(deliver(deliver(afterMarch(opened(8)), 'mara-table'), 'ileana-fitting'));
   play.state.coins = 1000;
   assert.equal(data.items.fruits_5.name, 'Red wine');
   assert.equal(data.items.fruits_4.next, 'fruits_5');
@@ -41,26 +34,27 @@ test(`Vlad's dinner after dark is deliverable by cooking red wine and smoked bac
   assert.deepEqual(importSave<GameState>(exportSave(after, validate), validate), after);
 });
 
-test('Ionatan has one dinner, and the journal shows him only once his visit opens', () => {
+test('Ionatan dines on his way to the castle in May, after act 1, so act 1 never opens his dinner or shows him in the journal', () => {
   const person = data.characters.find(person => person.id === 'ionatan')!;
   assert.equal(person.visitor, true);
   const quests = data.quests.filter(quest => quest.character === person.id);
   assert.deepEqual(quests.map(quest => quest.id), [predecessor]);
-  assert.equal(quests[0].afterTask, 'task_9');
-  assert.deepEqual(quests[0].requirements, [['fruits_6', 1], ['mixed_sharing-board', 1], ['mixed_tochitura', 1]]
+  assert.deepEqual([quests[0].afterTask, quests[0].afterQuest, quests[0].act], ['task_9', 'vlad-guest', 2]);
+  assert.deepEqual(quests[0].requirements, [['fruits_5', 1], ['mixed_sharing-board', 1], ['mixed_tochitura', 1]]
     .map(([item, quantity]) => ({ item, quantity })));
   const shown = (state: GameState) => journalCharacters(state, data).map(character => character.id);
   assert.deepEqual(shown(createGame(data)), data.characters.filter(character => !character.singleVisit && !character.arrivesAfter).map(character => character.id));
-  assert.equal(shown(opened(8)).includes(person.id), false);
-  assert.equal(shown(opened(9)).includes(person.id), true);
+  const finished = checkpoint(data.tasks.length);
+  assert.equal(status(finished, predecessor), 'locked');
+  for (const id of ['ionatan', 'mina', 'avram']) assert.equal(shown(finished).includes(id), false);
 });
 
-test('Mina and Avram share one vegetarian, kosher-style quest after Ionatan has dined and left', () => {
+test('Mina and Avram share one vegetarian, kosher-style quest after Ionatan, in act 2', () => {
   assert.equal(search.character, 'mina');
   assert.deepEqual(search.companions, ['avram']);
   assert.equal(predecessor, 'ionatan-castle-dinner');
-  assert.equal(search.afterTask, 'task_10');
-  assert.deepEqual(search.requirements, [['vegetables_5', 2], ['vegetables_4', 2], ['dairy_5', 1], ['mixed_fruit-tea', 1]].map(([item, quantity]) => ({ item, quantity })));
+  assert.deepEqual([search.afterTask, search.act], ['task_10', 2]);
+  assert.deepEqual(search.requirements, [['vegetables_5', 2], ['vegetables_4', 2], ['dairy_4', 1], ['mixed_fruit-tea', 1]].map(([item, quantity]) => ({ item, quantity })));
   // Mina eats no meat or fish. Avram eats no pork, and keeps meat and dairy apart.
   const shared = data.quests.filter(quest => ['mina', 'avram'].some(id => quest.character === id || quest.companions?.includes(id)));
   assert.deepEqual(shared, [search]);
@@ -69,81 +63,19 @@ test('Mina and Avram share one vegetarian, kosher-style quest after Ionatan has 
     assert.ok(!(tags(quest).includes('meat') && tags(quest).includes('dairy')), quest.id);
   }
   for (const id of ['ionatan', 'mina', 'avram']) assert.equal(data.characters.find(person => person.id === id)!.singleVisit, true);
-  // Ionatan comes after Vlad's guest, and his own visit ends with his delivery.
-  assert.equal(data.quests.find(quest => quest.id === predecessor)!.afterQuest, 'vlad-guest');
-  assert.equal(status(opened(8), predecessor), 'locked');
-  let state = opened(9);
-  assert.equal(status(state, search.id), 'locked');
-  while (status(state, predecessor) !== 'active') state = deliver(state, ticket(state)!.quest.id);
-  assert.equal(journalCharacters(state, data).some(person => person.id === 'ionatan'), true);
-  state = deliver(state, predecessor);
-  assert.equal(journalCharacters(state, data).some(person => person.id === 'ionatan'), false);
-  assert.equal(status(state, search.id), 'locked', 'The shared visit also waits for the next preparation.');
-  state = opened(10);
-  assert.notEqual(status(state, search.id), 'locked');
-  for (const id of ['mina', 'avram']) assert.equal(journalCharacters(state, data).some(person => person.id === id), true);
-  state = deliver(untilSearch(state), search.id);
-  for (const id of ['mina', 'avram']) assert.equal(journalCharacters(state, data).some(person => person.id === id), false);
-  assert.equal(status(state, search.id), 'complete');
-  assert.equal(reduceGame(state, { type: 'deliverQuest', id: search.id }, data).ok, false);
-});
-
-test('the road news follows the shared visit after exactly three later deliveries, once, and survives export', () => {
-  let state = untilSearch(opened(10));
-  state = deliver(state, search.id);
-  const news = search.followUp!.id;
-  assert.equal(search.followUp!.afterDeliveries, 3);
-  for (let count = 0; count < 3; count++) {
-    assert.equal(deliveriesSince(state, search.id), count);
-    assert.equal(state.pendingScenes.includes(news), false, `No news after ${count} later deliveries.`);
-    assert.equal(validateGame({ ...state, pendingScenes: [...state.pendingScenes, news] }, data), false, 'A save cannot hold the news early.');
-    let next = ticket(state);
-    if (!next) {
-      // Every quest of this window is delivered, so the next preparation opens more.
-      state = act({ ...state, coins: data.tasks[state.taskIndex].cost }, { type: 'task' });
-      next = ticket(state)!;
-    }
-    state = deliver(state, next.quest.id);
-  }
-  assert.equal(deliveriesSince(state, search.id), 3);
-  assert.equal(state.pendingScenes.filter(id => id === news).length, 1);
+  assert.equal(status(checkpoint(data.tasks.length), search.id), 'locked');
+  // The news of the road comes three deliveries after their meal, and only local speakers tell it.
   const report = search.followUp!.dialogue.map(line => line.text).join(' ');
+  assert.equal(search.followUp!.afterDeliveries, 3);
   assert.match(report, /gravely ill/);
-  assert.match(report, /Britain/);
-  assert.match(report, /did not stop/);
   assert.ok(search.followUp!.dialogue.every(line => !['mina', 'avram', 'ionatan'].includes(line.speaker)));
-  state = importSave<GameState>(exportSave(state, validate), validate);
-  assert.ok(state.pendingScenes.includes(news));
-  state = act(state, { type: 'readScene', id: news });
-  state = deliver(state, ticket(state)!.quest.id);
-  assert.equal(state.pendingScenes.includes(news), false, 'A later delivery does not queue the news again.');
-});
-
-test('waiting news keeps its place between the chapter closings around it through saves and reading', () => {
-  let state = deliver(untilSearch(opened(10)), search.id);
-  const news = search.followUp!.id, earlier = data.chapters[2].id, later = data.chapters[3].id;
-  // Preparation and quest scenes also wait. This test follows the chapter scenes and the news.
-  const story = (value: GameState) => value.pendingScenes.filter(id => !data.tasks.some(task => task.id === id) && !data.quests.some(quest => quest.id === id) && !id.startsWith('arrival-'));
-  while (state.taskIndex < 16) {
-    const next = ticket(state);
-    state = next ? deliver(state, next.quest.id) : act({ ...state, coins: data.tasks[state.taskIndex].cost }, { type: 'task' });
-  }
-  assert.deepEqual(story(state), [earlier, news, later]);
-  state = importSave<GameState>(exportSave(state, validate), validate);
-  assert.deepEqual(story(state), [earlier, news, later]);
-  state = act(state, { type: 'readScene', id: news });
-  state = importSave<GameState>(exportSave(state, validate), validate);
-  assert.deepEqual(story(state), [earlier, later], 'Reading the news preserves the chapter scenes.');
-  state = act(state, { type: 'readScene', id: earlier });
-  state = act(state, { type: 'readScene', id: later });
-  assert.deepEqual(story(state), []);
 });
 
 test('guest metadata rejects broken companions, single visits, and news scenes', () => {
   const cases: [string, (content: GameData) => void][] = [
     ['companion is the character', content => { content.quests.find(quest => quest.id === search.id)!.companions = ['mina']; }],
     ['repeated companion', content => { content.quests.find(quest => quest.id === search.id)!.companions = ['avram', 'avram']; }],
-    ['regular as companion', content => { content.quests.find(quest => quest.id === search.id)!.companions = ['vlad']; }],
+    ['unknown companion', content => { content.quests.find(quest => quest.id === search.id)!.companions = ['nobody']; }],
     ['empty news', content => { content.quests.find(quest => quest.id === search.id)!.followUp!.dialogue = []; }],
     ['news without later deliveries', content => { content.quests.find(quest => quest.id === search.id)!.followUp!.afterDeliveries = 0; }],
     ['news with an unknown speaker', content => { content.quests.find(quest => quest.id === search.id)!.followUp!.dialogue[0].speaker = 'nobody'; }],

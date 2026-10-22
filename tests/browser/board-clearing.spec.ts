@@ -5,16 +5,17 @@ import { checkpoint, data, saved, start, tile, know } from './support.ts';
 test('new board explains blocked spaces and counts only usable empty cells', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await start(page);
-  await expect(page.locator('#board')).toHaveAttribute('aria-label', /25 free spaces/);
+  // The pickle barrel of winter takes one cell of the new board.
+  await expect(page.locator('#board')).toHaveAttribute('aria-label', /24 free spaces/);
   await expect(tile(page, 0)).toHaveAttribute('aria-label', /Old crate, blocked Loaf/);
   await expect(tile(page, 0).locator('.clutter-overlay')).toHaveCount(1);
   await expect(tile(page, 0).locator('.food')).toBeVisible();
-  await expect(tile(page, 6)).toHaveAttribute('aria-label', /blocked Dough. Merge Dough into this space to clear it/);
+  await expect(tile(page, 6)).toHaveAttribute('aria-label', /blocked Dough. Merge Dough or Herb bunch into this space to clear it/);
   await tile(page, 0).focus();
   await page.keyboard.press('ArrowDown');
   await expect(tile(page, 6)).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(page.locator('#status')).toHaveText('Tied dough: tap a marked Dough to merge here.');
+  await expect(page.locator('#status')).toHaveText('Tied dough: tap a marked Dough or Herb bunch to merge here.');
   await expect(page.locator('.cell.clutter')).toHaveCount(4);
   await expect(page.locator('.cell.anchored')).toHaveCount(4);
 });
@@ -44,7 +45,8 @@ test('a selected dish marks movable matches and matching blockers only', async (
   await start(page, state);
   await tile(page, 18).click();
   const marked = await page.locator('#board .merge-target').evaluateAll(elements => elements.map(element => Number((element as HTMLElement).dataset.cell)));
-  expect(marked).toEqual([6, 19, 41]);
+  // Dough matches the tied dough, the other Dough, and the linen bundle, and it makes Mucenici with the Herb bunch of the covered crock.
+  expect(marked).toEqual([6, 19, 36, 41]);
   await expect(tile(page, 19)).toHaveAttribute('aria-label', /Tap to merge the selected Dough here$/);
   await expect(tile(page, 6)).toHaveAttribute('aria-label', /Tap to merge the selected Dough here and clear this blocker$/);
   await expect(tile(page, 19)).toHaveCSS('outline-style', 'dotted');

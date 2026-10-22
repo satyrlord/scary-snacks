@@ -1,6 +1,6 @@
 # 017: Seasons and holidays
 
-Status: Proposed.
+Status: Implemented, with spec 015.
 
 ## Outcome and scope
 
@@ -101,8 +101,8 @@ A holiday quest pays its menu value, as other campaign quests. A holiday gives n
 
 ### New dishes
 
-The holidays need these dishes: colivă, ritual bread rings (colaci), mucenici, pască, red eggs, and Christmas Eve wafers (turte).
-Each new dish is a mixed dish of spec 012 or a dish of a seasonal chain. The update-game-content skill authors the recipes.
+Act 1 needs these dishes: mucenici (Dough and Herb bunch, a lenten pastry), pască (Sweet dough and Cottage cheese), red eggs (Eggs and Vegetable basket), and colivă (Flour and Fruit bowl).
+Each is a mixed dish of spec 012 in the lower row of the breads atlas. The prologue of spec 016 adds the ritual bread rings (colaci) and the Christmas Eve wafers (turte).
 Existing dishes cover the other holiday meals: cabbage rolls, sausages, cozonac, drob, roast lamb, chimney cake, papanași, and red wine.
 The papanași of Carnival Sunday stand in for the doughnuts of the farsang.
 
@@ -148,7 +148,8 @@ The Fish source opens with preparation 12, at the end of chapter 3. So the Fish 
 Preparation 20 opens no source. The scene of preparation 12 names the Fish source.
 
 The data check uses the date range of each quest. A quest of a character who keeps the fast obeys the Lent diet if its date range touches Lent.
-The date range starts on the opening date of the quest, or else on the opening date of its chapter. The range ends on the day before the opening date of the next chapter.
+The date range starts on the opening date of the quest, or else on the opening date of the chapter of its preparation.
+The range ends on the day before the chapter that follows the chapter of the preparation that needs the quest.
 A holiday quest is different. Deliver works only from its holiday date, so the check uses the holiday date and the days after it.
 For example, the Easter lunch opens on Holy Thursday, but Ilie eats the lunch on Easter Sunday, after Lent.
 
@@ -292,7 +293,7 @@ Spec 015 gives the changes to the prerequisites and to the join rule of Cezar's 
   The module also checks the weather rules, the Lent diets, the seasonal chains of each quest, the holiday dates, and the outdoor quests.
 - The feature adds no saved field. The date of spec 015 gives the season, the weather, and the holiday. The board holds the seasonal sources.
 - The implementation changes the game state version and the envelope version. The game does not read a save of an earlier version.
-- Save validation rejects a seasonal source on the board outside its season, unless an undelivered campaign quest or an open repeating quest needs its chain.
+- Save validation accepts at most one source of each seasonal chain. After its season, a source stays until the first closing at which no quest needs its chain, so a save that is between the last delivery and that closing holds the source with no quest that needs it.
 
 ## Owner contracts
 
@@ -340,7 +341,7 @@ For each seed, the test must show these results:
 - Saint George's Eve: 22 April has no evening guest. Each booked ticket shows "Booked for another evening".
 - Room: the window view changes on its dates and fills the six panes. At night, the night sky covers the two upper panes. A holiday decoration shows only in its dates.
   Rain and snow show on their days and do not move with reduced motion.
-- Save: a save outside the season of a seasonal source fails validation if the source is on the board and no undelivered campaign quest or open repeating quest needs its chain.
+- Save: a save with two sources of one seasonal chain fails validation. A save between the last delivery that needs a source and the next closing keeps the source.
 - Browser: the tests cover a holiday ticket before, on, and after its holiday, an outdoor ticket on a rain day, the placement of a seasonal source, a window view, rain, snow, and a decoration. Phone and desktop in both themes. Reduced motion.
 
 ## Open decisions

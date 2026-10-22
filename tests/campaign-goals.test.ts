@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dishWork, requiredQuests, stapleCost, taskEligibility, unresolvedObstacle } from '../src/model.ts';
+import { campaignQuest, dishWork, requiredQuests, stapleCost, taskEligibility, unresolvedObstacle } from '../src/model.ts';
 import { validateGame } from '../src/engine.ts';
 import { dataProblems, questProblems } from '../src/content.ts';
 import type { Action, Quest } from '../src/model.ts';
@@ -14,13 +14,14 @@ const work = (quest: Quest) => quest.requirements.reduce((sum, { item, quantity 
 
 test('each preparation needs every campaign quest that opens before it, and the last one needs every campaign quest', () => {
   assert.deepEqual(questProblems(data), []);
-  assert.deepEqual(requiredQuests(0, data).map(quest => quest.id), data.quests.filter(quest => quest.afterTask === null && !quest.afterQuest && !quest.recovery && !quest.repeating).map(quest => quest.id));
+  assert.deepEqual(requiredQuests(0, data).map(quest => quest.id), data.quests.filter(quest => quest.afterTask === null && !quest.afterQuest && campaignQuest(quest)).map(quest => quest.id));
   for (let index = 1; index < data.tasks.length; index++) {
     const earlier = requiredQuests(index - 1, data), now = requiredQuests(index, data);
     assert.deepEqual(now.slice(0, earlier.length), earlier, 'Each preparation keeps the quests of the one before it.');
     assert.ok(now.length > earlier.length, `${data.tasks[index].id} adds at least one quest.`);
   }
-  assert.deepEqual(requiredQuests(data.tasks.length - 1, data), data.quests.filter(quest => !quest.finale && !quest.recovery && !quest.repeating));
+  // The March quests of Dochia and the quests of later acts are not needed.
+  assert.deepEqual(requiredQuests(data.tasks.length - 1, data), data.quests.filter(campaignQuest));
 });
 
 test('eligibility lists the unmet coins and quests and keeps the exact totals above a requirement', () => {
@@ -32,6 +33,7 @@ test('eligibility lists the unmet coins and quests and keeps the exact totals ab
   assert.deepEqual(eligibility.requirements, [
     { kind: 'coins', current: 0, required: data.tasks[0].cost, met: false },
     { kind: 'quests', current: 0, required: quests.length, met: false },
+    { kind: 'date', day: 1, met: true },
   ]);
   assert.deepEqual(eligibility.blockers, [`Earn ${data.tasks[0].cost} more coins to pay for this preparation.`, `Deliver ${quests.length} more quests for this preparation.`]);
   assert.equal(rejected(state, { type: 'task' }).message, eligibility.blockers.join(' '));
@@ -39,7 +41,7 @@ test('eligibility lists the unmet coins and quests and keeps the exact totals ab
   const ready = taskEligibility(state, data);
   assert.ok(ready.ready);
   assert.deepEqual(ready.blockers, []);
-  assert.deepEqual(ready.requirements.map(requirement => 'current' in requirement ? requirement.current : null), [data.tasks[0].cost + 100, quests.length]);
+  assert.deepEqual(ready.requirements.map(requirement => 'current' in requirement ? requirement.current : null), [data.tasks[0].cost + 100, quests.length, null]);
   const completed = act(state, { type: 'task' });
   assert.equal(completed.coins, 100);
   assert.deepEqual(completed.completedQuests, state.completedQuests, 'A payment does not spend quests.');
@@ -98,7 +100,7 @@ test('the funding check rejects a preparation that the work of the quests before
 
 test('the quest check rejects quests out of opening order, a quest that opens with the last preparation, a second or misplaced supper, and a broken recovery quest', () => {
   const late = structuredClone(data);
-  late.quests.findLast(quest => !quest.finale && !quest.recovery && !quest.repeating)!.afterTask = data.tasks.at(-1)!.id;
+  late.quests.findLast(campaignQuest)!.afterTask = data.tasks.at(-1)!.id;
   assert.ok(questProblems(late).includes('Every quest must open before the last preparation.'));
   const swapped = structuredClone(data);
   const first = swapped.quests.findIndex(quest => quest.afterTask === 'task_1');

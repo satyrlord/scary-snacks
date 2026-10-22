@@ -55,14 +55,12 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .skip-link { position: absolute; left: 16px; top: -100px; z-index: 100; background: var(--surface); padding: 12px; }
 .skip-link:focus { top: 10px; }
 .visually-hidden,.room-caption,.game-layout:is([data-offer],[data-selected]) .mara-line { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-/* The coin figures share the wordmark baseline. */
 .masthead { display: flex; gap: 20px; align-items: baseline; }
-.brand { display: flex; align-items: baseline; gap: 24px; min-width: 0; }
+.brand { display: flex; align-items: baseline; min-width: 0; }
 /* The cat is an empty box, so its bottom edge sits on the wordmark baseline. */
 .wordmark { display: flex; flex-shrink: 0; align-items: baseline; gap: 8px; font: 600 48px/1 'Grenze Gotisch', serif; letter-spacing: 0; color: var(--ink); white-space: nowrap; }
 /* Cropped to the sitting cat's alpha bounds (252,119)–(638,753) in the 1536px mascot atlas. */
 .wordmark .mascot { height: 1.2em; aspect-ratio: 386/634; flex-shrink: 0; background-size: 397.93% 242.27%; background-position: 21.913% 13.193%; filter: var(--cat-glow); }
-.tagline { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--muted); font-size: 13px; white-space: nowrap; }
 .header-controls { margin-left: auto; flex-shrink: 0; display: flex; align-items: center; gap: 16px; }
 /* The day and the time beside the purse. */
 .day-clock { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.2; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -73,6 +71,9 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .coin-moon { fill: var(--coin-rim); stroke: none; }
 #coins { font: 600 24px/1 Inter,sans-serif; }
 .coin-label { font-size: 13px; }
+/* A debt is written in ink, as in Mara's notebook, not in the gold of savings. */
+.coin-count.debt { color: var(--ink); }
+.coin-count.debt .coin-label { color: var(--muted); }
 .coin-delta { position: absolute; left: 28px; bottom: 100%; font: 600 13px/1 Inter,sans-serif; color: var(--gold); opacity: 0; pointer-events: none; animation: coin-rise .9s cubic-bezier(.16,1,.3,1); }
 .coin-count.gained .coin { animation: coin-flip .7s cubic-bezier(.16,1,.3,1); }
 @keyframes coin-rise { 0% { opacity: 0; transform: translateY(14px); } 25% { opacity: 1; } 100% { opacity: 0; transform: translateY(-4px); } }
@@ -105,7 +106,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .swap-mark { position: absolute; top: -10px; right: -10px; width: 26px; height: 26px; }
 .swap-mark circle { fill: var(--surface); stroke: var(--coin-rim); stroke-width: 1.5; }.swap-mark path { stroke: var(--ink); stroke-width: 1.8; }
 .room-finish[inert] { visibility: hidden; }
-.room-stage[data-failed] :is(.room-decorations,.room-finishes) { display: none; }
+.room-stage[data-failed] :is(.room-decorations,.room-finishes,.room-holidays,.room-weather,.window-sky) { display: none; }
 /* Miez sits on the left end of the front room's windowsill (its top 47.2% down the painting); the sitting cat's paws are 95.5% down its sprite cell. */
 .sill-cat { position: absolute; left: 62.65%; bottom: 52.4%; width: 11.73%; aspect-ratio: 1; min-width: 44px; }
 .miez { padding: 0; border: 0; border-radius: var(--control-radius); background: transparent; }
@@ -116,6 +117,32 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 /* The outer bounds of the mended window. Only the bat layer uses the six glass panes, so the wood hides its flight. */
 .window-sky { position: absolute; left: 71%; top: 24.5%; width: 19.4%; height: 21%; overflow: hidden; pointer-events: none; }
 .window-flight { position: absolute; inset: 0; clip-path: url('#window-panes-mended'); }
+/* The village of the season behind the six panes, at the dusk of the paintings. The night sky covers the two upper panes at night. */
+.window-view { position: absolute; inset: 0; clip-path: url('#window-panes-mended'); background: center / cover no-repeat; }
+.window-view[data-view='window-view-late-winter'] { background-image: url('../assets/variants/window-view-late-winter-576x768.webp'); }
+.window-view[data-view='window-view-early-spring'] { background-image: url('../assets/variants/window-view-early-spring-576x768.webp'); }
+.window-view[data-view='window-view-spring'] { background-image: url('../assets/variants/window-view-spring-576x768.webp'); }
+/* Rain runs down the glass of the front room and falls over the courtyard; snow falls outside the glass and over the courtyard.
+   The code draws them, so they never touch the colours of the paintings. Reduced motion leaves them as still marks. */
+.window-weather,.room-weather { position: absolute; inset: 0; display: none; pointer-events: none; }
+.window-weather { clip-path: url('#window-panes-mended'); }
+.room-frame[data-weather='rain'] .window-weather,.room-frame[data-weather='snow'] .window-weather,
+.room-frame[data-area='courtyard'][data-weather='rain'] .room-weather,.room-frame[data-area='courtyard'][data-weather='snow'] .room-weather { display: block; }
+.room-frame[data-weather='rain'] :is(.window-weather,.room-weather) {
+  background-image: linear-gradient(176deg, transparent 46%, #dfe8f466 48%, transparent 50%), linear-gradient(172deg, transparent 47%, #dfe8f44d 49%, transparent 51%);
+  background-size: 23px 61px, 37px 83px; animation: rain-fall .7s linear infinite;
+}
+.room-frame[data-weather='rain'] .window-weather { background-size: 9px 31px, 14px 47px; animation-duration: 2.4s; }
+.room-frame[data-weather='snow'] :is(.window-weather,.room-weather) {
+  background-image: radial-gradient(circle, #fffffff2 0 1.4px, transparent 2px), radial-gradient(circle, #ffffffb3 0 1px, transparent 1.6px);
+  background-size: 41px 47px, 27px 31px; background-position: 0 0, 13px 17px; animation: snow-fall 9s linear infinite;
+}
+.room-frame[data-weather='snow'] .window-weather { background-size: 17px 19px, 11px 13px; }
+@keyframes rain-fall { to { background-position: -8px 122px, -12px 166px; } }
+@keyframes snow-fall { to { background-position: 18px 188px, 31px 141px; } }
+/* A holiday decoration is cropped from the image of its area, which was painted into a room state, so it keeps the light of the room. */
+.room-holidays { position: absolute; inset: 0; pointer-events: none; }
+.room-holidays svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .window-sky .bat { position: absolute; left: 0; top: 0; width: 34%; aspect-ratio: 1; animation: flap .16s ease-in-out infinite alternate; }
 @keyframes flap { to { scale: 1 .62; } }
 /* The night over the room: a tint that keeps the painting readable, the same in both themes, and a night sky behind the two upper
@@ -467,7 +494,22 @@ dialog:has(.quest-page-content) {
 .journal-group .neighbour-entry,.journal-group .neighbour-introduction { margin-bottom: 8px; }
 .journal-group .neighbour-introduction { width: 100%; }
 .journal-group .quest-journal:first-of-type,.journal-group .chapter-journal:first-of-type { border-top: 0; }
-.recipe-chain { border-top: 1px solid var(--line); padding: 16px 0; }
+/* The book has a fixed heading and one scrolling body. Item help keeps the normal dialog. */
+dialog:has(.recipe-content) { width: 1120px; overflow: hidden; }
+dialog[open]:has(.recipe-content) { display: flex; flex-direction: column; }
+dialog:has(.recipe-content) .modal-heading { flex-shrink: 0; }
+dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 6px; }
+.recipe-tools { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 8px 16px; align-items: center; padding-bottom: 16px; }
+.recipe-tools label { font-size: 14px; font-weight: 600; }
+.recipe-tools select { min-width: 0; min-height: 44px; padding: 8px 12px; font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--control-line); border-radius: var(--control-radius); }
+.recipe-tools select:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.recipe-help { grid-column: 1 / -1; }
+.recipe-help summary { width: fit-content; min-height: 44px; align-content: center; cursor: pointer; color: var(--accent); font-size: 14px; }
+.recipe-help .modal-copy { max-width: 72ch; margin: 8px 0 0; }
+.recipe-sections { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 28px; }
+.recipe-chain { min-width: 0; border-top: 1px solid var(--line); padding: 16px 0; }
+.recipe-mixed { grid-column: 1 / -1; }
+.recipe-mixed .recipe-grid { grid-template-columns: repeat(6,minmax(0,1fr)); }
 .recipe-chain h3 { margin-bottom: 12px; }
 /* A complete chain: a check and the word, so the mark does not depend on color. */
 .chain-complete { display: inline-flex; align-items: center; gap: 4px; margin-left: 10px; vertical-align: 2px; font-size: 12px; line-height: 1.5; font-weight: 600; letter-spacing: 0; color: var(--ready); }
@@ -481,6 +523,14 @@ dialog:has(.quest-page-content) {
 .covered-dish { display: block; color: var(--muted); }
 .covered-dish-dome { stroke-dasharray: 3 3.4; }
 .recipe-item .covered-dish { width: 68px; height: 68px; margin: auto; }
+@media (max-width: 800px) {
+  .recipe-sections { grid-template-columns: minmax(0,1fr); }
+  .recipe-mixed .recipe-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+}
+@media (max-width: 380px) {
+  .recipe-tools { grid-template-columns: minmax(0,1fr); gap: 6px; }
+  .recipe-grid,.recipe-mixed .recipe-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
 .chain.named .covered-dish { width: 44px; height: 44px; }
 /* New dishes since the recipe book was last opened: the recipe book card says how many; the bar's Recipes button carries a candle dot. */
 #recipes-button,#story-button { position: relative; }
@@ -525,18 +575,17 @@ dialog:has(.quest-page-content) {
   .side>.recipe-book { padding-top: 10px; }
   .recipe-book strong { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
 }
-@media (min-width: 1024px) and (max-width: 1599px) { .tagline { display: none; } }
-/* Large saved totals use two rows, so the exact figures do not reach the wordmark. */
+/* The ledger: the date on a small line above the purse, the coin figures on the wordmark baseline, and Options beside both rows.
+   One arrangement at every width, so the controls never reach the wordmark and a large total does not move the masthead. */
 @media (min-width: 1024px) {
-  .header-controls:has(.long) { display: grid; grid-template-columns: auto auto; gap: 2px 12px; }
-  .header-controls:has(.long) .day-clock { grid-column: 1; display: block; text-align: right; }
-  .header-controls:has(.long) .clock-dot { display: inline; }
-  .header-controls:has(.long) .coin-count { grid-column: 1; justify-content: end; padding-right: 0; border-right: 0; }
-  .header-controls:has(.long) .options-button { grid-column: 2; grid-row: 1 / 3; }
+  .masthead { align-items: last baseline; }
+  .header-controls { display: grid; grid-template-columns: auto auto; gap: 2px 16px; }
+  .day-clock { grid-column: 1; text-align: right; }
+  .coin-count { grid-column: 1; align-self: last baseline; justify-content: end; padding-right: 0; border-right: 0; }
+  .options-button { grid-column: 2; grid-row: 1 / 3; align-self: center; }
 }
 @media (min-width: 1024px) and (max-width: 1365px) {
-  .options-button { padding: 0 10px; }.options-button span { display: none; }.header-controls { gap: 8px; }.coin-count { padding-right: 8px; }
-  .day-clock { display: grid; justify-items: end; }.clock-dot { display: none; }
+  .options-button { padding: 0 10px; }.options-button span { display: none; }.header-controls { column-gap: 10px; }
   .detail-description { display: none; }
   /* Narrower panels use tighter sections. */
   .drawer .side>*+* { margin-top: 10px; padding-top: 10px; }.side>.recipe-book { padding-top: 6px; }
@@ -567,10 +616,10 @@ dialog:has(.quest-page-content) {
   :root { --head-h: 48px; --bar-h: 56px; --safe: env(safe-area-inset-bottom, 0px); }
   .masthead { position: relative; z-index: 12; height: var(--head-h); align-items: center; padding: 0 14px; gap: 12px; background: var(--page); }
   .wordmark { font-size: clamp(28px, 9.4vw, 38px); gap: 5px; }
-  .tagline,.masthead .options-button,.recipe-book { display: none; }
+  .masthead .options-button,.recipe-book { display: none; }
   .coin-count { gap: 5px; padding-right: 0; border-right: 0; }.coin { width: 20px; height: 20px; }#coins { font-size: 21px; }.coin-label { font-size: 12px; }
   /* Phones stack the day over the time, so the masthead keeps room for the coins. */
-  .day-clock { display: grid; justify-items: end; font-size: 12px; }.clock-dot { display: none; }
+  .day-clock { font-size: 12px; }.clock-face { display: grid; justify-items: end; }.clock-dot { display: none; }
   .game-layout {
     --gap: 3px; --runner-h: 8px; --drawer-chrome: calc(160px + var(--feedback-space, 0px)); --frame-w: 100cqw;
     --cell: clamp(44px, min(calc((100vw - 40px) / 6), calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7)), 60px);
@@ -641,7 +690,9 @@ dialog:has(.quest-page-content) {
 /* Narrow phones keep room for the clock; the coin mark carries the unit and screen readers hear the exact total. */
 @media (max-width: 480px) { .wordmark { font-size: 32px; }.header-controls { gap: 8px; }.coin-label { display: none; } }
 @media (max-width: 410px) { .masthead { padding-inline: 12px; gap: 8px; }.wordmark { font-size: 28px; } }
-@media (max-width: 359px) { .header-controls { flex-direction: column; align-items: end; gap: 0; }.day-clock { display: block; }.clock-dot { display: inline; } }
+/* A large total on a narrow phone puts the clock on one line above the purse. */
+@media (max-width: 410px) { .header-controls:has(.long) { flex-direction: column; align-items: end; gap: 0; }.header-controls:has(.long) .clock-face { display: block; }.header-controls:has(.long) .clock-dot { display: inline; } }
+@media (max-width: 359px) { .header-controls { flex-direction: column; align-items: end; gap: 0; }.clock-face { display: block; }.clock-dot { display: inline; } }
 @media (max-width: 410px) { .tickets:has(.recovery-ticket) { padding-inline: 4px; }.ticket-row:has(.recovery-ticket) { gap: 4px; } }
 /* Narrow phones give the strip's words the room: a smaller dish, and below 361px no dish at all. */
 @media (max-width: 410px) { .detail-head .food { width: 34px; height: 34px; } }

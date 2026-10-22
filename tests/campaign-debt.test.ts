@@ -5,9 +5,10 @@ import { data, nightLine, runs } from './support.ts';
 
 // A strategy that plays act 1 badly on purpose: the recovery quest must reach each preparation. Each strategy has its own file, so the runs go in parallel.
 
-test('a strategy that starts each preparation window with a debt of 20 coins reaches each preparation through the recovery quest', t => {
+test('a strategy that starts each preparation window with a debt of 20 coins reaches each preparation through the recovery quest, and the hold keeps the supper on 1 May', t => {
   for (const [seed, run] of runs('debt')) {
     assert.ok(supperComplete(run.finalState, data), `Seed ${seed}: the supper is served.`);
+    assert.equal(run.finalState.clock.day, data.calendar.supper, `Seed ${seed}: the supper is on 1 May.`);
     assert.ok(run.nights.lowestPurse <= -20, `Seed ${seed}: the windows start in debt.`);
     assert.equal(run.nights.fillerMerges, 0, `Seed ${seed}: no dish only to move the clock.`);
     for (const preparation of run.preparations) assert.ok(preparation.recoveries > 0, `Seed ${seed}, ${preparation.id}: the recovery quest pays the debt.`);

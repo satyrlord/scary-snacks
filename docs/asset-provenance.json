@@ -1051,24 +1051,6 @@
       }
     },
     {
-      "id": "food-breads",
-      "file": "public/assets/original/food-breads.png",
-      "sha256": "ea0279208f7df53d973741c65eaa2c441b16dff5df2b59802dd5dcb6a1bb97c7",
-      "bytes": 3785756,
-      "width": 2048,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "food-breads-pie",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; three moves centre the toast, the board, and the tea; cell 1 takes the cheese pie of a second request after an alpha cut at 200 and a centring move (box copy 0,0,512,1024); an alpha cut at 96 removes faint smudges; no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts",
-      "sourceGameImageInput": false,
-      "review": "The food atlas of the breads, boards, and drinks for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Cheese pie, Zacuscă toast, Sharing board, and Fruit tea, in stage order. The agent measured the soft-alpha fringe (0.004 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
       "id": "rat-thief",
       "file": "public/assets/original/rat-thief.png",
       "sha256": "31e467d648e3938b5081f3f6de4fcf1ef634762aceb430a69f8ec7ee1856419a",
@@ -1237,9 +1219,175 @@
         "status": "accepted",
         "by": "user"
       }
+    },
+    {
+      "id": "scene-sheet-4",
+      "file": "public/assets/original/scene-sheet-4.png",
+      "sha256": "f4a052747075330ab9b5f2123cf70f7d6d81a9e6f2996304e42de6b66874c043",
+      "bytes": 4051744,
+      "width": 2304,
+      "height": 1536,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "scene-sheet-4-sweep",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; four quest scenes drawn on white paper in one request with the white-paper copies of scene-sheet-3, scene-sheet-2, sketch-sheet-2, and sketch-sheet-1 as references; a masked edit of a white-paper copy of that candidate redrew the whole sheet, and the master keeps its top-left, top-right, and bottom-right cells; a masked edit of the whole bottom-left cell drew a new scene, with an earlier composite of this sheet and the white-paper copy of scene-sheet-3 as references, and a composite took that whole cell; then the paper was made transparent with the ink conversion, then a fixed colour mapping set one sepia line colour and kept the alpha of each pixel, the gold of the flames, and the red chalk of the eggshells; a box clear set the alpha of 209 pixels to 0 in the box 2100,750,204,19, where willow tips of the bottom-right cell crossed the edge into the top-right cell, and an edge fade lowered the alpha over the top 70 rows of the willow in the box 1975,768,329,70 from 0 to the full value, so the willow fades into the paper at the top edge of its cell, both without painted pixels",
+      "sourceGameImageInput": false,
+      "review": "Bela’s snowman, Costel’s icicle clock, the chimney sweep, and the Easter of the Blajini. The agent checked each identity, the snowman that turns toward the grave with the millstone, the small clock with the icicle on its bracket, the hands and the two rows of buttons of the sweep, Mara’s pointing hand, the gold flames, the red chalk on the eggshells, the edges, and the cell lines. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-breads",
+      "file": "public/assets/original/food-breads.png",
+      "sha256": "da6f7facac43ac49a775755fef55df0ddfd5dbc99b904ae9e797be8808b5d9a6",
+      "bytes": 5664055,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-breads-mucenici",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; the bottom row of food-breads-holiday was composited into the earlier atlas with a box mask and no feather; then cell 5 of food-breads-mucenici was copied in (box copy 0,512,512,512); no pixel is painted, with tools in .github/skills/generate-game-art-openai/scripts",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the breads, boards, drinks, and holiday dishes, a 2048 by 1024 grid of 4 by 2 cells: Cheese pie, Zacuscă toast, Sharing board, Fruit tea, Mucenici, Pască, Red eggs, and Colivă. The top row is the earlier atlas unchanged. The agent measured the soft-alpha fringe of the new cells (0.007 to 0.009 of the solid pixels), confirmed that no picture touches a cell line, and examined it on light and dark backgrounds and at 64 pixels. The first mucenici were round rings; the corrective request made them figures of eight. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-pickles",
+      "file": "public/assets/original/food-pickles.png",
+      "sha256": "24a18e48b29a523c612e45746382cfcd4cdb1322ef0d88527cf668f98bfc75ed",
+      "bytes": 3589493,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-pickles-barrel",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; cells 2 to 5 of food-pickles-first and cell 1 of food-pickles-barrel, reduced to 77% and centred in its cell (Lanczos, a reduction only); an alpha cut at 8 clears faint pixels; no pixel is painted",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the pickle barrel for spec 017: the Pickle barrel, Gherkins, Pickled green tomatoes, Mixed pickles, and Cabbage-stuffed pickled peppers; cells 6 to 8 are clear. The agent measured the soft-alpha fringe (0.008 to 0.010, and 0.097 on the fine dill of the gherkins with no haze), confirmed that no picture crosses a cell line, and examined it on light and dark backgrounds and at 64 pixels. The user asked for a barrel of mixed pickles with cabbage at a true scale, and accepted the corrected atlas.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "food-greens",
+      "file": "public/assets/original/food-greens.png",
+      "sha256": "72f8f92894bc9856061e927633f3749c73c6bbed1cd951be701eec487b549103",
+      "bytes": 3657976,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-greens-puree",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; cells 1 to 4 of food-greens-first after an alpha cut at 8, and cell 5 of food-greens-puree after an alpha cut at 32 that removes a detached haze (box copy 0,512,512,512); no pixel is painted",
+      "sourceGameImageInput": false,
+      "review": "The food atlas of the forage basket for spec 017: the Forage basket, Nettles, Wild garlic and sorrel, Nettle soup, and Nettle purée with garlic; cells 6 to 8 are clear. The agent measured the soft-alpha fringe (0.008 to 0.028, and 0.098 on the serrated nettle leaves with no haze), confirmed that no picture crosses a cell line, and examined it on light and dark backgrounds and at 64 pixels. The user rejected the first purée as a shapeless heap and accepted the violet bowl of the corrective request.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "window-view-late-winter",
+      "file": "public/assets/original/window-view-late-winter.png",
+      "sha256": "83efd367faeb298b929b74fcadbadccea0cbb569f4d57e46dcb8d86cb7bbb16e",
+      "bytes": 4059455,
+      "width": 1152,
+      "height": 1536,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "window-view-late-winter",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; one request with front-room-12 as the style reference and window-view-late-winter-draft for the composition; no change after generation",
+      "sourceGameImageInput": false,
+      "referenceAsset": "window-view-late-winter-draft",
+      "referenceSha256": "091783bfb47050df59b3b9ce61c33fa58185d44b14927bf200baf4f31f6ebb24",
+      "review": "The late-winter view behind the six panes of the front-room window for spec 017: the dusk village under snow, the church right of centre, and lit windows. The agent placed it in the panes of front-room-12 with the cover fit and the pane clip of the game, and examined it at the phone width of 390 pixels. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "window-view-early-spring",
+      "file": "public/assets/original/window-view-early-spring.png",
+      "sha256": "a6c75e4a91641c1b898669b9c1898bb8be701073364cc449d812a35c56d1c24d",
+      "bytes": 4028611,
+      "width": 1152,
+      "height": 1536,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "window-view-early-spring",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; one request with front-room-12 as the style reference, window-view-late-winter for the composition and the snowy hills, and window-view-early-spring-draft for the thaw in the village; no change after generation",
+      "sourceGameImageInput": false,
+      "referenceAsset": "window-view-early-spring-draft",
+      "referenceSha256": "50075744e0172db28110b8fbae4606dfca56a0d41a14eadb04ce3a269c791a4c",
+      "review": "The early-spring view for spec 017: the same village at the thaw, with the hills still under snow, patches of old snow in the village, and the first green. The agent examined it in the panes of front-room-12. The user rejected the first view, whose hills had lost their snow, and accepted this one.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "window-view-spring",
+      "file": "public/assets/original/window-view-spring.png",
+      "sha256": "914d8dd84b0cda6f36c63edfa43653c7ac93642694359afd0ae3127ebc49a1f0",
+      "bytes": 4085049,
+      "width": 1152,
+      "height": 1536,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "window-view-spring",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; one request with front-room-12 as the style reference and window-view-early-spring for the composition; no change after generation",
+      "sourceGameImageInput": false,
+      "review": "The spring view for spec 017: green hills, a thin line of old snow on the farthest ridge, and white and pale pink blossom in the village. The agent examined it in the panes of front-room-12. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "holiday-front",
+      "file": "public/assets/original/holiday-front.png",
+      "sha256": "49798f3f74ad799d088f7ddffb7487e2cc0910cd6e039a157b5b454937d40b79",
+      "bytes": 64745,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "holiday-front-sill",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; two masked edits of front-room-17, one for the mărțișor on the window latch and one for the eggs and the catkins on the right end of the sill; each decoration is cut out by its difference from front-room-17 (low 24, high 48, parts of at least 150 pixels, holes up to 400 pixels filled) and placed at its box on transparency; no pixel is painted",
+      "sourceGameImageInput": false,
+      "review": "The front-room decorations of spec 017 at the size of the room states: the mărțișor (box 1195,600,90,220), the bowl of red eggs (box 1356,880,88,82), and the jar of willow catkins (box 1444,770,92,192). The window, its latch, and the right end of its sill are the same from front-room-01 on, so the agent examined each cut over front-room-12, front-room-17, and front-room-24, and the mărțișor over the late-winter view. The user rejected a first sheet of separate stickers as pasted on, and accepted these painted-in decorations.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "holiday-courtyard",
+      "file": "public/assets/original/holiday-courtyard.png",
+      "sha256": "8b267b588298da70288242676aa710d25d23c70cf09ff98a82e5a3d6784e8b94",
+      "bytes": 78088,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "holiday-courtyard",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a masked edit of courtyard-23 for the green branches on the upper hinge of the left gate leaf, cut out by its difference from courtyard-23 (box 1291,850,110,320) and placed at its box on transparency; no pixel is painted",
+      "sourceGameImageInput": false,
+      "review": "The green branches of Saint George and Arminden for spec 017, tied with a red string to the upper hinge of the left gate leaf, at the size of the room states. The left gate leaf is the same from courtyard-13 on, so the agent examined the cut over courtyard-13, 18, 21, and 23. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
     }
   ],
-  "note": "The game uses only project-generated images. The mascots use a generated chat atlas from the references list. The core portraits use a revision of a generated candidate. front-room-00 and courtyard-13 use generated room references. The decoration paintings use generated design references. Each later room state edits the previous state of its area. Each composite retains only the changed region. The board-clutter atlas uses chat generation and cell corrections. The second regulars atlas revises its previous version, and the references list keeps that version. Each pencil sheet is drawn in one request, so that its drawings share one hand. The 16 food atlases use alpha cuts, moves, box clears, and cell copies between candidates, without painted pixels. The two rat sheets use generated identity references from the references list. The thief rat sheet uses a cell trim, without painted pixels. This record preserves the source and review evidence of the current assets. This record does not give legal clearance.",
+  "note": "The game uses only project-generated images. The mascots use a generated chat atlas from the references list. The core portraits use a revision of a generated candidate. front-room-00 and courtyard-13 use generated room references. The decoration paintings use generated design references. Each later room state edits the previous state of its area. Each composite retains only the changed region. The board-clutter atlas uses chat generation and cell corrections. The second regulars atlas revises its previous version, and the references list keeps that version. Each pencil sheet is drawn in one request, so that its drawings share one hand. The 18 food atlases use alpha cuts, moves, box clears, and cell copies between candidates, without painted pixels. The window views use a front-room painting as their style reference. Each holiday decoration is a masked edit of a room state, cut out by its difference from that state. The two rat sheets use generated identity references from the references list. The thief rat sheet uses a cell trim, without painted pixels. This record preserves the source and review evidence of the current assets. This record does not give legal clearance.",
   "references": [
     {
       "id": "counter-band",
@@ -1418,6 +1566,71 @@
       "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a 2 by 2 sheet drawn on white paper, with two earlier pilot sheets of this task as references",
       "sourceGameImageInput": false,
       "use": "The 2 by 2 pilot sheet whose style the user chose. sketch-sheet-1 copies its style. The game does not ship it."
+    },
+    {
+      "id": "food-breads-holiday",
+      "sha256": "c6bd9a0a8aa3cf908e1be16d3055a1b2412f1e6e3a68bcdc4f69e5d8b4b36696",
+      "bytes": 5634588,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-breads-holiday",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; the bottom row of one request composited into the earlier food-breads atlas with a box mask and no feather",
+      "sourceGameImageInput": false,
+      "use": "The first atlas of the holiday dishes, with round mucenici. food-breads-mucenici takes the other cells from it. The game does not ship it."
+    },
+    {
+      "id": "food-pickles-first",
+      "sha256": "0b8866170a83efcb8510f1d009f155f5523fcbc05b7c8262d946a6c285e1fe79",
+      "bytes": 2757957,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-pickles",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; one request with the vegetables and herbs atlases as style references",
+      "sourceGameImageInput": false,
+      "use": "The first pickle atlas. food-pickles takes cells 2 to 5 from it, and the barrel request uses it as a reference. The game does not ship it."
+    },
+    {
+      "id": "food-greens-first",
+      "sha256": "f98a3e3f9c82101573de92b52c86c1bcace032182f548a132bb0aa357800ceac",
+      "bytes": 2806053,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "food-greens",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; one request with the herbs and vegetables atlases as style references",
+      "sourceGameImageInput": false,
+      "use": "The first forage atlas. food-greens takes cells 1 to 4 from it, and the purée request uses it as a reference. The game does not ship it."
+    },
+    {
+      "id": "window-view-late-winter-draft",
+      "sha256": "091783bfb47050df59b3b9ce61c33fa58185d44b14927bf200baf4f31f6ebb24",
+      "bytes": 1718745,
+      "width": 768,
+      "height": 1024,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "window-view-late-winter-draft",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; one request at 768 by 1024 with front-room-12 as the style reference",
+      "sourceGameImageInput": false,
+      "use": "The composition of the late-winter view, too small to ship. window-view-late-winter repeats it at full size. The game does not ship it."
+    },
+    {
+      "id": "window-view-early-spring-draft",
+      "sha256": "50075744e0172db28110b8fbae4606dfca56a0d41a14eadb04ce3a269c791a4c",
+      "bytes": 3917780,
+      "width": 1152,
+      "height": 1536,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "window-view-early-spring-draft",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; one request with front-room-12 and window-view-late-winter as references",
+      "sourceGameImageInput": false,
+      "use": "The rejected first early-spring view. Its thaw in the village is the reference for window-view-early-spring. The game does not ship it."
     }
   ]
 }

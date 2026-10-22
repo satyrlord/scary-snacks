@@ -1,5 +1,5 @@
 // The deterministic rules of the bistro game: the new game, the actions, and the acceptance of an untrusted save.
-import { arrivalScene, availableChains, boardObstacles, canDeliverQuest, canJoinCycle, canLightLanterns, decorationUnlocked, deliveriesSince, dayMerges, dishOpen, earnedScenes, firstFreeBoardCell, freeBoardCells, getItem, integer, looseRaw, looseRawCells, mergePartners, mergeResult, own, pendingPreparationObstacles, present, questDeliveryCells, questPredecessors, requiredQuests, resolveChapters, resolveQuests, storyOrder, supperComplete, takeCost, taskEligibility, unresolvedObstacle } from './model.ts';
+import { arrivalScene, availableChains, boardObstacles, canDeliverQuest, canLightLanterns, chainSeason, clockMinutes, clockText, cycleMember, dateText, decorationUnlocked, deliveriesSince, dayMerges, dishOpen, earnedScenes, eveningOpen, firstFreeBoardCell, freeBoardCells, getItem, holding, holdsDay, integer, isSunday, looseRaw, looseRawCells, marchOpens, mergePartners, mergeResult, own, pendingPreparationObstacles, prerequisitesMet, present, questDeliveryCells, questHoliday, questPredecessors, requiredQuests, resolveChapters, resolveQuests, sourceCell, sourceNeeded, storyOrder, supperComplete, takeCost, taskEligibility, ticketNote, unresolvedObstacle } from './model.ts';
 import type { Action, Cell, GameData, GameState, NightReport, Placed, Result } from './model.ts';
 
 /** At most this many preparation blockers wait on the board at one time. */
@@ -48,16 +48,37 @@ function bottomLeftFreeCell(state: GameState, data: GameData): number {
   return state.board.map((cell, index) => index).filter(index => state.board[index] === null && !unresolvedObstacle(state, index, data))
     .sort((a, b) => distance(a) - distance(b) || b - a)[0] ?? -1;
 }
+/** Places each seasonal source that is in season and not on the board, in the first free cell, while the board keeps its free cells. */
+function placeSeasonalSources(state: GameState, data: GameData): string[] {
+  const placed: string[] = [];
+  for (const chain of data.chains) {
+    const season = chain.season, day = state.clock.day;
+    if (!season || day < season.from || day > season.to || sourceCell(state, chain.id) >= 0 || freeBoardCells(state, data) <= KEEP_FREE) continue;
+    const code = `generator_${chain.id}`;
+    state.board[firstFreeBoardCell(state, data)] = { code };
+    discover(state, code);
+    placed.push(data.items[code].name);
+  }
+  return placed;
+}
+/** Records each March quest that opens in this change, so that it stays open after March. */
+function recordMarch(state: GameState, data: GameData) {
+  for (const quest of data.quests) if (marchOpens(state, quest, data)) state.march.push(quest.id);
+}
 /**
- * The closing, in the change of the merge that reaches the closing time: the upkeep, then the thief rat or Șoricescu, then the next
- * day, then the night report. The evening guest of the new day follows in the same change.
+ * The closing, in the change of the merge that reaches the closing time: the upkeep, then the departure of each seasonal source whose
+ * season ends, then, on Sunday night only, the thief rat or Șoricescu, then the next day and its seasonal sources, then the night
+ * report. The evening guest of the new day follows in the same change.
  */
 function close(state: GameState, data: GameData) {
-  const levers = data.day;
+  const levers = data.day, day = state.clock.day;
   state.coins -= levers.upkeep;
+  const departed = data.chains.filter(chain => chain.season && day >= chain.season.to && sourceCell(state, chain.id) >= 0 && !sourceNeeded(state, chain.id, data)).map(chain => chain.id);
+  for (const chain of departed) state.board[sourceCell(state, chain)] = null;
   const loose = looseRawCells(state, data);
   let report: Omit<NightReport, 'purse' | 'seen'>;
-  if (loose.length) {
+  if (!isSunday(day, data)) report = { day, upkeep: levers.upkeep, rat: null, taken: [], trapped: null, gift: null, departed };
+  else if (loose.length) {
     const picks: number[] = [];
     while (picks.length < levers.ratTake && loose.length) {
       const draw = random(state.seed);
@@ -69,30 +90,32 @@ function close(state: GameState, data: GameData) {
     // The first pick drops into a new rat hole, while fewer holes are open than the limit.
     const trapped = state.ratHoles.length < levers.ratHoles ? placed.shift()! : null;
     if (trapped) state.ratHoles.push(trapped);
-    report = { day: state.clock.day, upkeep: levers.upkeep, rat: 'thief', taken: placed, trapped, gift: null };
+    report = { day, upkeep: levers.upkeep, rat: 'thief', taken: placed, trapped, gift: null, departed };
   } else {
-    // A tidy kitchen earns a gift, if it leaves the free cells that the recovery quest needs.
+    // A tidy kitchen earns a gift, if it leaves the free cells that the recovery quest needs. The seasonal chains give no gift.
     let gift: NightReport['gift'] = null;
     if (freeBoardCells(state, data) >= levers.giftSpace) {
-      const chains = availableChains(state, data), open = data.chains.filter(chain => chains.includes(chain.id));
+      const chains = availableChains(state, data), open = data.chains.filter(chain => chains.includes(chain.id) && !chain.season);
       const item = `${open[state.gifts % open.length].id}_${levers.giftStage}`, position = bottomLeftFreeCell(state, data);
       state.board[position] = { code: item };
       gift = { item, position, first: !state.discovered.includes(item) };
       discover(state, item);
       state.gifts++;
     }
-    report = { day: state.clock.day, upkeep: levers.upkeep, rat: 'soricescu', taken: [], trapped: null, gift };
+    report = { day, upkeep: levers.upkeep, rat: 'soricescu', taken: [], trapped: null, gift, departed };
   }
-  state.clock = { day: state.clock.day + 1, merges: 0 };
+  state.clock = { day: day + 1, merges: 0 };
   state.evening = { guest: null, last: state.evening.guest ?? state.evening.last, delivered: false };
-  state.night = { ...report, purse: state.coins, seen: false };
+  state.night = { ...report, purse: state.coins, seen: report.rat === null };
+  placeSeasonalSources(state, data);
 }
 /**
- * Fixes the evening guest when no guest has this evening and a booked quest has a ticket: the only booked guest, or the guest who did
- * not have the last evening, or the first in authored order. The guest then keeps the evening until the next closing.
+ * Fixes the evening guest when no guest has this evening, the day has an evening, and a booked quest has a ticket: the only booked
+ * guest, or the guest who did not have the last evening, or the first in authored order. The guest then keeps the evening until the
+ * next closing.
  */
 function fixEvening(state: GameState, data: GameData) {
-  if (state.evening.guest || state.act1) return;
+  if (state.evening.guest || state.act1 || !eveningOpen(state.clock.day, data)) return;
   const guests = [...new Set(resolveQuests(state, data).filter(view => view.status === 'active' && view.quest.booked).map(view => view.quest.character))];
   if (guests.length) state.evening.guest = guests.find(guest => guest !== state.evening.last) ?? guests[0];
 }
@@ -104,23 +127,32 @@ export function revealTickets(state: GameState, data: GameData) {
 export function createGame(data: GameData, seed = 0): GameState {
   const layoutId = data.board.defaultLayout;
   const state: GameState = {
-    version: 14, layoutId, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] }, pendingScenes: [],
+    version: 15, layoutId, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] }, pendingScenes: [],
     board: data.board.initial.map(code => code ? { code } : null), coins: 0, taskIndex: 0,
     discovered: [...new Set(data.board.initial.filter(present))],
     decorations: [], decorationChoices: {}, completedQuests: [],
-    clock: { day: 1, merges: 0 }, seed, ratHoles: [], gifts: 0, evening: { guest: null, last: null, delivered: false }, night: null, act1: null,
+    clock: { day: 1, merges: 0 }, seed, ratHoles: [], gifts: 0, evening: { guest: null, last: null, delivered: false }, night: null, act1: null, march: [],
   };
   revealTickets(state, data);
   return state;
 }
-/** Delivered quests are known, unique, campaign quests or the supper, and opened in delivery order, and every completed preparation had its quests. */
+/**
+ * Delivered quests are known, unique, campaign quests of act 1 or the supper, opened in delivery order on or after their dates, and
+ * every completed preparation had its quests. The opened March quests are unique March quests whose prerequisites are met, and no
+ * March quest waits to be recorded.
+ */
 function validateQuestProgress(state: GameState, data: GameData): boolean {
-  const complete = state.completedQuests;
+  const complete = state.completedQuests, march = state.march;
   if (!Array.isArray(complete) || complete.length > data.quests.length || new Set(complete).size !== complete.length) return false;
+  if (!Array.isArray(march) || new Set(march).size !== march.length
+    || !march.every(id => data.quests.some(quest => quest.id === id && quest.march && prerequisitesMet(state, quest, data)))
+    || data.quests.some(quest => marchOpens(state, quest, data))) return false;
   const done = new Set<string>();
   for (const id of complete) {
     const quest = data.quests.find(quest => quest.id === id);
-    if (!quest || quest.recovery || quest.repeating || (quest.afterTask !== null && !state.decorations.includes(quest.afterTask))
+    if (!quest || quest.recovery || quest.repeating || quest.act || (quest.march && !march.includes(id))
+      || (quest.afterTask !== null && !state.decorations.includes(quest.afterTask))
+      || (quest.opens !== undefined && state.clock.day < quest.opens) || state.clock.day < (questHoliday(quest, data)?.day ?? 0)
       || !questPredecessors(quest, data).every(previous => done.has(previous))) return false;
     done.add(id);
   }
@@ -131,23 +163,30 @@ const record = (value: unknown, keys: string[]): value is Record<string, unknown
 const placed = (value: unknown, size: number): value is Placed => record(value, ['item', 'position']) && typeof value.item === 'string' && integer(value.position, 0, size - 1);
 /**
  * The day fields of a save: the clock, the seed, the rat holes, the gifts, the evening, the night report, and the act 1 result.
+ * The calendar never passes the supper day, and that day comes only after the last preparation.
  * The board and blocker checks that follow also cover the cells of the rat holes.
  */
 function validDay(state: GameState, data: GameData): boolean {
-  const size = state.board.length, levers = data.day, clock = state.clock;
-  if (!record(clock, ['day', 'merges']) || !integer(clock.day, 1) || !integer(clock.merges, 0, dayMerges(data) - 1) || !integer(state.seed, 0, 2 ** 32 - 1) || !integer(state.gifts)) return false;
+  const size = state.board.length, levers = data.day, clock = state.clock, supper = data.calendar.supper;
+  if (!record(clock, ['day', 'merges']) || !integer(clock.day, 1, supper) || !integer(clock.merges, 0, dayMerges(clock.day, data) - 1)
+    || (clock.day === supper && state.taskIndex < data.tasks.length) || !integer(state.seed, 0, 2 ** 32 - 1) || !integer(state.gifts)) return false;
+  if (state.taskIndex > 0 && clock.day < data.chapters[data.tasks[state.taskIndex - 1].chapter - 1].opens) return false;
   if (!Array.isArray(state.ratHoles) || state.ratHoles.length > levers.ratHoles
     || !state.ratHoles.every(hole => placed(hole, size) && looseRaw(hole.item, data) && state.discovered?.includes(hole.item))) return false;
   const booked = new Set(data.quests.filter(quest => quest.booked).map(quest => quest.character)), guest = (value: unknown) => value === null || booked.has(value as string);
   const evening = state.evening;
   if (!record(evening, ['guest', 'last', 'delivered']) || !guest(evening.guest) || !guest(evening.last) || typeof evening.delivered !== 'boolean'
-    || (evening.delivered && evening.guest === null)) return false;
+    || (evening.delivered && evening.guest === null) || (evening.guest !== null && !eveningOpen(clock.day, data))) return false;
   const night = state.night;
   if (night !== null) {
-    if (!record(night, ['day', 'upkeep', 'rat', 'taken', 'trapped', 'gift', 'purse', 'seen']) || night.day !== clock.day - 1 || !integer(night.upkeep)
-      || !integer(night.purse, -1_000_000_000) || typeof night.seen !== 'boolean' || !Array.isArray(night.taken)) return false;
+    if (!record(night, ['day', 'upkeep', 'rat', 'taken', 'trapped', 'gift', 'departed', 'purse', 'seen']) || night.day !== clock.day - 1 || !integer(night.upkeep)
+      || !integer(night.purse, -1_000_000_000) || typeof night.seen !== 'boolean' || !Array.isArray(night.taken) || !Array.isArray(night.departed)
+      || new Set(night.departed).size !== night.departed.length || !night.departed.every(chain => typeof chain === 'string' && chainSeason(chain, data))
+      || (night.rat === null) === isSunday(night.day, data)) return false;
     const raw = (value: unknown) => placed(value, size) && looseRaw(value.item, data);
-    if (night.rat === 'thief') {
+    if (night.rat === null) {
+      if (night.taken.length || night.trapped !== null || night.gift !== null || !night.seen) return false;
+    } else if (night.rat === 'thief') {
       const count = night.taken.length + (night.trapped ? 1 : 0);
       if (!night.taken.every(raw) || (night.trapped !== null && !raw(night.trapped)) || night.gift !== null || count < 1 || count > levers.ratTake) return false;
     } else if (night.rat === 'soricescu') {
@@ -156,9 +195,10 @@ function validDay(state: GameState, data: GameData): boolean {
         || typeof gift.first !== 'boolean' || getItem(gift.item, data)?.stage !== levers.giftStage))) return false;
     } else return false;
   } else if (clock.day > 1) return false;
-  // The supper records the result of act 1 once, on the day that it was served.
+  // The supper records the result of act 1 once, on its day at or after the booking time.
   const act1 = state.act1;
-  if (act1 === null ? supperComplete(state, data) : !supperComplete(state, data) || !record(act1, ['days', 'purse']) || act1.days !== clock.day || !integer(act1.purse, -1_000_000_000)) return false;
+  if (act1 === null ? supperComplete(state, data) : !supperComplete(state, data) || !record(act1, ['purse']) || !integer(act1.purse, -1_000_000_000)
+    || clock.day !== supper || clockMinutes(state, data) < levers.booking) return false;
   return true;
 }
 /** A save that waits for the finale before the supper delivery drops the finale, so the delivery earns it. Other saves stay as they are. */
@@ -172,11 +212,11 @@ export function repairSave(candidate: unknown, data: GameData): unknown {
 export function validateGame(candidate: unknown, data: GameData): candidate is GameState {
   try {
     const state = candidate as GameState;
-    if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== 14) return false;
+    if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== 15) return false;
     if (!Array.isArray(state.board) || state.board.length !== data.board.columns * data.board.rows) return false;
     if (!integer(state.coins, -1_000_000_000)) return false;
+    if (!integer(state.taskIndex, 0, data.tasks.length) || !Array.isArray(state.completedQuests)) return false;
     if (!validDay(state, data)) return false;
-    if (!integer(state.taskIndex, 0, data.tasks.length)) return false;
     const chains = availableChains(state, data);
     {
       // Pending scenes are unique and earned, and story scenes keep story order, so an imported save cannot open a later scene.
@@ -209,9 +249,12 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
         || blocked.some(obstacle => state.board[obstacle.position] !== null)
         || (progress?.placed.filter(placement => !state.resolvedObstacles.includes(placement.id)).length ?? 0) > ACTIVE_BLOCKERS) return false;
     }
+    // Each open chain has one source on the board. A seasonal source can wait for room in its season, and after its season it stays
+    // until the first closing at which no quest needs its chain, so a save holds at most one.
     const cells = state.board.filter(present);
     for (const chain of chains) {
-      if (cells.filter(cell => getItem(cell.code, data)?.generator && getItem(cell.code, data)?.chain === chain).length !== 1) return false;
+      const sources = cells.filter(cell => getItem(cell.code, data)?.generator && getItem(cell.code, data)?.chain === chain).length;
+      if (chainSeason(chain, data) ? sources > 1 : sources !== 1) return false;
     }
     if (!Array.isArray(state.discovered) || state.discovered.length > Object.keys(data.items).length
       || new Set(state.discovered).size !== state.discovered.length
@@ -230,10 +273,10 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
       if (!slot || !state.decorations.includes(slot.unlock) || typeof value !== 'string' || value === slot.default
         || !slot.variants.some(variant => variant.id === value) || !decorationUnlocked(state, slot, value, data)) return false;
     }
-    // The saved repeating quests are known and can join the cycle. A repeating quest that the save has not opened yet shows its dishes after the next action.
+    // The saved repeating quests are known members of the cycle. A repeating quest that the save has not opened yet shows its dishes after the next action.
     const repeating = state.repeating;
     if (repeating !== undefined && (!record(repeating, ['last', 'open']) || ![repeating.last, repeating.open].every(id => id === null
-      || (typeof id === 'string' && data.quests.some(quest => quest.id === id && canJoinCycle(state, quest, data)))))) return false;
+      || (typeof id === 'string' && data.quests.some(quest => quest.id === id && cycleMember(state, quest, data)))))) return false;
     if (!resolveQuests(state, data).every(view => view.status !== 'active' || (view.quest.repeating && view.quest.id !== repeating?.open)
       || view.quest.requirements.every(({ item }) => state.discovered.includes(item)))) return false;
     return true;
@@ -255,15 +298,23 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
   switch (action.type) {
     case 'deliverQuest': {
       const quest = data.quests.find(quest => quest.id === action.id);
-      // A booked quest with every portion on the board waits only for its evening.
-      if (!quest || !canDeliverQuest(next, quest, data)) return fail(quest?.booked && questDeliveryCells(next, quest).every(index => index >= 0)
-        ? 'This table is booked for another time. Deliver when the guest arrives for the evening.' : 'This quest needs every required item on the board. Check that the quest is still on a ticket.');
+      // A quest with every portion on the board can wait only for its time: an evening, a holiday, the supper day, or fair weather.
+      if (!quest || !canDeliverQuest(next, quest, data)) {
+        const note = quest && questDeliveryCells(next, quest).every(index => index >= 0) ? ticketNote(next, quest, data) : null;
+        return fail(!note ? 'This quest needs every required item on the board. Check that the quest is still on a ticket.'
+          : quest!.booked ? 'This table is booked for another time. Deliver when the guest arrives for the evening.'
+          : quest!.finale ? `The supper is booked for ${dateText(data.calendar.supper, data, 'plain')} at ${clockText(data.day.booking)}. Serve it then.`
+          : quest!.outdoor && !questHoliday(quest!, data) ? 'This quest is served in the courtyard. Deliver it on a fair day from 1 April.'
+          : `${note}. Deliver it from that day.`);
+      }
       if (!integer(next.coins + quest.reward, -1_000_000_000)) return fail('Spend some coins before you deliver this quest.');
       for (const index of questDeliveryCells(next, quest)) next.board[index] = null;
       next.coins += quest.reward;
-      // Each day admits one booked delivery. The supper stops the clock and records the result of act 1.
-      if (quest.booked) next.evening.delivered = true;
-      if (quest.finale) next.act1 = { days: next.clock.day, purse: next.coins };
+      // Each day admits one booked delivery. While 30 April holds, a booked delivery ends its guest's evening, and the next guest
+      // comes at once. The supper stops the clock and records the result of act 1.
+      if (quest.booked && holdsDay(next, data)) next.evening = { guest: null, last: quest.character, delivered: false };
+      else if (quest.booked) next.evening.delivered = true;
+      if (quest.finale) next.act1 = { purse: next.coins };
       // The recovery quest and a repeating quest keep no record and have no reply, so they can open again.
       // A repeating delivery moves the cycle to the next quest.
       if (quest.repeating) next.repeating = { last: quest.id, open: null };
@@ -282,7 +333,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const quest = data.quests.find(quest => quest.id === action.id);
       if (!quest || !canLightLanterns(next, quest, data)) return fail('Light the lanterns for tonight’s booked guest before the booking time, with every dish on the board.');
       next.clock.merges = (data.day.booking - data.day.opening) / data.day.mergeMinutes;
-      message = `The lanterns are lit. ${data.characters.find(person => person.id === quest.character)!.name} arrives for the evening.`;
+      message = quest.finale ? 'The lanterns are lit. The guests arrive for the supper.' : `The lanterns are lit. ${data.characters.find(person => person.id === quest.character)!.name} arrives for the evening.`;
       break;
     }
     case 'seeNight': {
@@ -387,18 +438,25 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
     default: return fail('This action is not available.');
   }
   if (['task', 'move', 'spawn', 'deliverQuest'].includes(action.type)) {
+    for (const source of placeSeasonalSources(next, data)) message += ` The ${source} is on the board.`;
     const placed = placePreparationObstacles(next, data);
     if (action.type === 'task') message += ` ${data.board.preparations[next.taskIndex - 1].context}`;
     if (placed) message += ` ${placed} preparation ${placed === 1 ? 'blocker' : 'blockers'} placed.`;
     const pending = pendingPreparationObstacles(next, data).length;
     if (action.type === 'task' && pending) message += ` ${pending} ${pending === 1 ? 'blocker waits' : 'blockers wait'} for safe space.`;
   }
-  // Each merge is kitchen work and moves the clock, until the supper stops it. The merge that reaches the closing time closes the day.
-  if (event === 'merge' && !next.act1 && ++next.clock.merges >= dayMerges(data)) {
+  // Each merge is kitchen work and moves the clock, until the supper stops it. The merge that reaches the closing time closes the day,
+  // except on a day that holds: its clock stays one merge before the closing. On 30 April, the last payment ends the hold and closes the day.
+  const last = dayMerges(next.clock.day, data) - 1, held = holding(state, data);
+  if (event === 'merge' && !next.act1 && holdsDay(next, data) && next.clock.merges + 1 >= last) {
+    next.clock.merges = last;
+    message += next.clock.day === data.calendar.supper ? ' The village waits for the supper.' : ' Walpurgis Night lasts until the bistro is ready.';
+  } else if ((event === 'merge' && !next.act1 && ++next.clock.merges > last) || (action.type === 'task' && held && !holdsDay(next, data))) {
     close(next, data);
     if (!integer(next.coins, -1_000_000_000) || !integer(next.clock.day, 1) || !integer(next.gifts)) return fail('This closing exceeds a supported save limit. The merge was not applied.');
     message += ' The bistro closes for the night.';
   }
+  recordMarch(next, data);
   fixEvening(next, data);
   // A repeating quest that opens in this change is saved, so it stays open until its delivery.
   const repeating = resolveQuests(next, data).find(view => view.quest.repeating && view.status !== 'locked')?.quest.id ?? null;

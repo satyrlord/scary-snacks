@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { bookedTonight, menuPrice, requiredQuests, resolveQuests, unresolvedObstacle } from '../src/model.ts';
 import { dataProblems, questProblems } from '../src/content.ts';
 import type { GameState } from '../src/model.ts';
-import { act, checkpoint, data, deliver, payNext, quest, ready, rejected, recovery, status, supply, validate } from './support.ts';
+import { afterMarch, act, checkpoint, data, deliver, payNext, quest, ready, rejected, recovery, status, supply, validate } from './support.ts';
 
 const cycle = data.quests.filter(value => value.repeating);
 const open = (state: GameState) => resolveQuests(state, data).filter(view => view.status === 'active' || view.status === 'waiting').map(view => view.quest.id);
@@ -94,10 +94,10 @@ test('a repeating delivery pays its menu value, records nothing, and opens the n
   // Bela follows his campaign quest, which the player delivered in chapter 1.
   assert.deepEqual(state.repeating, { last: staff.id, open: 'bela-cold-night' });
   state = act(supply(state, 'bela-cold-night'), { type: 'deliverQuest', id: 'bela-cold-night' });
-  // Cezar follows a campaign quest after preparation 14, so the cycle skips him and returns to the staff meal.
+  // Cezar follows a campaign quest after preparation 16, so the cycle skips him. Ana's pickles come while the pickle barrel is on the board.
   assert.equal(state.completedQuests.includes(quest('cezar-before-rounds').afterQuest!), false);
-  assert.deepEqual(state.repeating, { last: 'bela-cold-night', open: staff.id });
-  assert.deepEqual(cycle.map(value => value.id), ['sorin-staff-meal', 'bela-cold-night', 'cezar-before-rounds']);
+  assert.deepEqual(state.repeating, { last: 'bela-cold-night', open: 'ana-pickles' });
+  assert.deepEqual(cycle.map(value => value.id), ['sorin-staff-meal', 'bela-cold-night', 'cezar-before-rounds', 'ana-pickles', 'ilie-lenten-bowl', 'victor-nettles', 'costel-tower-tea']);
 });
 
 test('a campaign quest takes the ticket of a repeating quest, which waits and gets a ticket again', () => {
@@ -119,13 +119,13 @@ test('the repeating quests do not change the two cases of the recovery quest', (
   // Another quest is open and the purse is short: the recovery quest opens beside a saved repeating quest.
   assert.equal(status({ ...idle(), coins: 5 }, recovery.id), 'active');
   // After the supper, no next preparation needs coins, and a repeating quest is not another quest.
-  const after = act(supply(checkpoint(24), quest(data.quests.find(value => value.finale)!.id).id), { type: 'deliverQuest', id: data.quests.find(value => value.finale)!.id });
+  const after = act(supply(afterMarch(checkpoint(24)), quest(data.quests.find(value => value.finale)!.id).id), { type: 'deliverQuest', id: data.quests.find(value => value.finale)!.id });
   assert.equal(status({ ...after, coins: 0 }, recovery.id), 'locked');
 });
 
 test('after the supper, the repeating quests continue, the clock stays stopped, and the result of act 1 stays', () => {
   const supper = data.quests.find(value => value.finale)!;
-  let state = act(supply(checkpoint(24), supper.id), { type: 'deliverQuest', id: supper.id });
+  let state = act(supply(afterMarch(checkpoint(24)), supper.id), { type: 'deliverQuest', id: supper.id });
   const result = state.act1, clock = state.clock;
   assert.equal(state.repeating?.open, 'sorin-staff-meal');
   state = act(supply(state, 'sorin-staff-meal'), { type: 'deliverQuest', id: 'sorin-staff-meal' });
@@ -148,10 +148,11 @@ test('the data check rejects a large or broken repeating quest and a cycle that 
     value.reward = value.requirements.reduce((sum, { item, quantity }) => sum + content.items[item].price * quantity, 0);
   }), /more than one meal/, 'A character who orders campaign provisions still gets one meal in a repeating quest.');
   assert.match(change(content => { delete content.quests.find(value => value.id === 'cezar-before-rounds')!.afterQuest; }), /cezar-before-rounds: .* more than one merge beyond/);
-  assert.match(change(content => { staff(content).afterQuest = 'cezar-long-night'; }), /join the cycle in a new game/);
+  assert.match(change(content => { staff(content).afterQuest = 'cezar-castle-lights'; }), /join the cycle in a new game/);
+  assert.match(change(content => { staff(content).afterQuest = 'cezar-long-night'; }), /invalid repeating quest/, 'A repeating quest follows a campaign quest of act 1.');
   assert.match(change(content => { staff(content).afterQuest = 'unknown'; }), /invalid repeating quest/);
-  assert.match(change(content => { staff(content).companions = ['vlad']; }), /invalid companions/);
-  assert.match(change(content => { content.quests = content.quests.filter(value => value.id !== 'bela-cold-night'); }), /at least three repeating quests/);
+  assert.match(change(content => { staff(content).companions = ['nobody']; }), /invalid companions/);
+  assert.match(change(content => { content.quests = content.quests.filter(value => !value.repeating || ['sorin-staff-meal', 'bela-cold-night'].includes(value.id)); }), /at least three repeating quests/);
 });
 
 test('a save keeps the repeating record, loads without it, and rejects a broken one', () => {

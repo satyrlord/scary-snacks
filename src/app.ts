@@ -1,5 +1,5 @@
 // The game page: it opens the game, draws every part of the interface after each change, and plays the effects of a change.
-import { clockMinutes, clockText, unresolvedObstacle } from './model.ts';
+import { clockMinutes, clockText, dateText, unresolvedObstacle } from './model.ts';
 import { dataProblems } from './content.ts';
 import { $, coinText, coinWord, compact, count, element, reason, status } from './dom.ts';
 import { portrait } from './art.ts';
@@ -8,7 +8,7 @@ import { changeGame, data, definition, onDraw, open, persist, saveFailed, select
 import { SAVE_KEY } from './storage.ts';
 import { drawerLayout, onMotionResume, phone, playTone } from './preferences.ts';
 import { introduceFirstDelivery, renderBoard, renderDetail } from './board.ts';
-import { renderTickets } from './tickets.ts';
+import { renderTickets, toast } from './tickets.ts';
 import { guidanceStep, markRecipeBook, noteNewDishes, updateGuidance } from './dishes.ts';
 import { endSceneFlow, renderOffer, showScene, storyContent } from './story.ts';
 import { lowered, renderRoom, reveal, setLowered, syncRoomControls, takeHeldChange } from './room.ts';
@@ -21,24 +21,25 @@ const TONE_EVENTS = ['merge', 'deliverQuest', 'task'];
 let actionFeedback = '';
 
 /**
- * Phones abbreviate large totals so the coins never reach the wordmark; screen readers always hear the exact amount.
- * A purse below zero is a debt, with a minus sign.
+ * Large totals use the short form, from 10,000 on phones and from a million on wider screens, so the coins never reach the wordmark;
+ * screen readers always hear the exact amount. A purse below zero is a debt, with a minus sign, in ink, and "owed".
  */
 function renderCoins() {
-  const amount = Math.abs(state.coins), short = phone.matches && amount >= 10000, debt = state.coins < 0;
+  const amount = Math.abs(state.coins), short = amount >= (phone.matches ? 10_000 : 1_000_000), debt = state.coins < 0;
   $('#coins').textContent = `${debt ? '−' : ''}${short ? compact.format(amount) : count.format(amount)}`;
-  $('#coin-label').textContent = coinWord(amount);
+  $('#coin-label').textContent = debt ? 'owed' : coinWord(amount);
   $('#coin-total').textContent = debt ? `A debt of ${coinText(amount)}` : coinText(amount);
   $('#coin-count').classList.toggle('long', amount >= 1000);
+  $('#coin-count').classList.toggle('debt', debt);
 }
-/** The day and the time. Phones stack them, so the masthead keeps room for the coins. */
+/** The date and the time. Screen readers hear the full date; phones stack the short date over the time, so the masthead keeps room for the coins. */
 function renderClock() {
-  const day = `Day ${phone.matches && state.clock.day >= 10000 ? compact.format(state.clock.day) : count.format(state.clock.day)}`, time = clockText(clockMinutes(state, data)), clock = $('#day-clock');
-  clock.setAttribute('aria-label', `Day ${count.format(state.clock.day)}, ${time}`);
-  clock.classList.toggle('long', state.clock.day >= 1000);
-  if (clock.textContent === `${day} · ${time}`) return;
-  const dot = element('span', 'clock-dot', ' · ');
-  clock.replaceChildren(element('span', 'clock-day', day), dot, element('span', 'clock-time', time));
+  const day = dateText(state.clock.day, data, 'short'), time = clockText(clockMinutes(state, data)), clock = $('#day-clock');
+  if (clock.querySelector('.clock-face')?.textContent === `${day} · ${time}`) return;
+  const face = element('span', 'clock-face');
+  face.setAttribute('aria-hidden', 'true');
+  face.append(element('span', 'clock-day', day), element('span', 'clock-dot', ' · '), element('span', 'clock-time', time));
+  clock.replaceChildren(element('span', 'visually-hidden', `${dateText(state.clock.day, data)}, ${time}`), face);
 }
 function celebrateCoins(gain: number) {
   const purse = $('#coin-count');
@@ -96,9 +97,18 @@ onDraw(change => {
   else if (!result.ok) status(nextStep);
   else if (selected === null) status(guidanceStep()?.short ?? nextStep);
   else status(`${result.message} ${nextStep}`);
-  // The merge that reaches the closing brings the night.
-  if (result.ok && state.clock.day !== before.clock.day) playNight();
+  // The closing of a Sunday brings the night. Another closing only leaves a notice, so play goes on.
+  if (result.ok && state.clock.day !== before.clock.day) {
+    if (state.night?.rat) playNight();
+    else if (state.night) toast(closingText(state.night.upkeep, state.night.departed, before));
+  }
 });
+/** The notice of a closing without rats: the upkeep, the seasonal sources that left or came, and the new date. */
+function closingText(upkeep: number, departed: string[], before: typeof state) {
+  const came = data.chains.filter(chain => chain.season && !before.board.some(cell => cell?.code === `generator_${chain.id}`) && state.board.some(cell => cell?.code === `generator_${chain.id}`));
+  return [`The bistro closed for the night. Upkeep: ${coinText(upkeep)}.`, ...departed.map(id => data.chains.find(chain => chain.id === id)!.season!.departure),
+    ...came.map(chain => `The ${definition(`generator_${chain.id}`).name} is on the board.`), `Good morning, ${dateText(state.clock.day, data)}.`].join(' ');
+}
 // The end of a paid preparation's story reveals its change, and then opens the scene that the payment earned.
 modal.addEventListener('close',()=>{
   if(modal.open)return;

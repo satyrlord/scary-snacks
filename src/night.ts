@@ -1,5 +1,6 @@
 // The night: the closing dialog, the short sequence of a closing over the room and the board, and the morning dialog that reports the night.
 // The closing has already changed the game. The sequence only shows it. The player watches it or skips it, and a watched night plays to its end.
+import { dateText } from './model.ts';
 import type { NightReport } from './model.ts';
 import { $, button, coinText, count, element, names } from './dom.ts';
 import { food, ratPose, ratSprite } from './art.ts';
@@ -25,7 +26,7 @@ function clearMorning() {
 onReplace(() => { clearMorning(); stop?.(false); });
 onMotionReduce(() => stop?.(true));
 
-/** The words of the morning: the upkeep, then what the rat did, then the purse or the debt. */
+/** The words of the morning: the upkeep, then what the rat did, then the seasonal sources that left, then the purse or the debt. */
 function nightText(report: NightReport) {
   const dishes = (placed: { item: string }[]) => {
     const counted = new Map<string, number>();
@@ -40,6 +41,7 @@ function nightText(report: NightReport) {
     const name = itemName(report.gift.item);
     lines.push(`Șoricescu lifted his hat and left ${name} as a gift.${report.gift.first ? ` ${newDishLine(name)}` : ''}`);
   } else lines.push(`Șoricescu found no room for his gift. He needs ${count.format(data.day.giftSpace)} free spaces.`);
+  for (const chain of report.departed) lines.push(data.chains.find(value => value.id === chain)!.season!.departure);
   lines.push(report.purse < 0 ? `Mara writes the debt pe caiet: the shop notebook holds a debt of ${coinText(-report.purse)}.` : `The purse holds ${coinText(report.purse)}.`);
   return lines.join(' ');
 }
@@ -48,7 +50,7 @@ export function morning() {
   const report = state.night;
   if (!report || report.seen) return;
   clearMorning();
-  const content = element('div'), body = element('div', 'night-morning'), picture = ratSprite(report.rat, 'morning-rat');
+  const content = element('div'), body = element('div', 'night-morning'), picture = ratSprite(report.rat ?? 'soricescu', 'morning-rat');
   ratPose(picture, 5);
   body.append(picture, element('p', 'modal-copy', nightText(report)));
   const done = button('Open the bistro', 'primary-button', () => modal.close()), controls = element('div', 'story-controls');
@@ -60,13 +62,13 @@ export function morning() {
     if (state.night === report && !report.seen) void changeGame(() => { apply({ type: 'seeNight' }); });
   };
   modal.addEventListener('close', closeMorning);
-  showModal(`Morning of day ${count.format(report.day + 1)}`, content, done);
+  showModal(`Good morning, ${dateText(report.day + 1, data)}`, content, done);
 }
 
 /** The cell of the board on the screen. */
 const cellBox = (index: number) => $(`[data-cell="${index}"]`).getBoundingClientRect();
 /** A rat on the board: a holder that moves, a flip that turns it, and the sprite that shows the pose and bounces. */
-function boardRat(rat: NightReport['rat'], layer: HTMLElement, at: number) {
+function boardRat(rat: 'thief' | 'soricescu', layer: HTMLElement, at: number) {
   const holder = element('div', 'night-rat'), flip = element('div', 'night-flip'), sprite = ratSprite(rat, 'night-pose');
   flip.append(sprite); holder.append(flip); layer.append(holder);
   const box = cellBox(at);
@@ -104,7 +106,8 @@ function ghost(item: string, index: number) {
  */
 export function playNight() {
   const report = state.night;
-  if (!report || report.seen) return;
+  if (!report?.rat || report.seen) return;
+  const rat = report.rat;
   stop?.(false);
   if (still() || document.hidden) { morning(); return; }
   const frame = $('#room-frame'), layer = element('div', 'night-layer'), timers = new Set<ReturnType<typeof setTimeout>>();
@@ -145,9 +148,9 @@ export function playNight() {
     frame.classList.add('night');
     dropped = movableDrawer.matches; if (dropped) setLowered(true);
     await pause(dropped ? DRAWER_MS : TINT_MS); if (!running) return;
-    await roomRun(frame, report.rat); if (!running) return;
+    await roomRun(frame, rat); if (!running) return;
     if (dropped) { setLowered(false); dropped = false; await pause(DRAWER_MS); if (!running) return; }
-    await (report.rat === 'thief' ? thief(report, layer, taken, trapped, pause, () => running) : soricescu(report, layer, pause, () => running));
+    await (rat === 'thief' ? thief(report, layer, taken, trapped, pause, () => running) : soricescu(report, layer, pause, () => running));
     if (!running) return;
     frame.classList.remove('night');
     await pause(TINT_MS);
@@ -156,11 +159,11 @@ export function playNight() {
   const content = element('div'), controls = element('div', 'story-controls');
   const play = button('Watch the night', 'primary-button', watch);
   controls.append(button('Skip', 'secondary-button', () => { asking = false; finish(true); }), play);
-  content.append(element('p', 'modal-copy', `Day ${count.format(report.day)} is over. Mara blows out the lamps and locks the door. Something small stirs under the floorboards.`), controls);
+  content.append(element('p', 'modal-copy', `${dateText(report.day, data)} is over. Mara blows out the lamps and locks the door. Something small stirs under the floorboards.`), controls);
   showModal('Closing time', content, play, watch);
 }
 /** The rat of the night runs across the floor of the area that the room shows. A painting that did not load shows no rat. */
-function roomRun(frame: HTMLElement, rat: NightReport['rat']) {
+function roomRun(frame: HTMLElement, rat: 'thief' | 'soricescu') {
   if ($('#room-stage').hasAttribute('data-failed')) return Promise.resolve();
   const runner = ratSprite(rat, 'room-rat scurrying'), floor = FLOORS[frame.dataset.area ?? ''] ?? 90;
   runner.style.top = `${floor}%`; frame.append(runner);

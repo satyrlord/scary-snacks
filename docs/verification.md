@@ -41,6 +41,7 @@ The files in `tests/` check these areas.
 | `campaign-missed-bookings.test.ts` | For 20 seeds, a strategy that misses each booking once finishes act 1. The strategy delivers repeating quests while the bistro has no work. |
 | `campaign-debt.test.ts` | For 20 seeds, a strategy starts each preparation window with a debt of 20 coins. The strategy reaches each preparation through the recovery quest. |
 | `day.test.ts` | The clock, the closing order, the thief rat and its seed, and rat holes. Șoricescu's gift, the gift space and the recovery quest, debt, and the evening guest. Booked tickets, the lantern control, and the result of act 1. The day levers and the booked quests, and saves of the day fields. |
+| `calendar.test.ts` | Dates, chapter openings, holidays, weather, seasonal sources, outdoor quests, the held days, bookings, and saved calendar progress. |
 | `quests.test.ts` | Quest data, three tickets and the recovery ticket, authored order, delivery requirements, and failed deliveries. The coin limit on delivery, visitor order, cathedral sizes, and one-meal sizes. The one-merge rule for quest dishes, diets, favourites, and the supper plates. |
 | `guests.test.ts` | Red wine quests, Ionatan's dinner and journal entry, the shared vegetarian meal, visitor departure, and later local news. |
 | `regulars.test.ts` | Arrival pairs, arrival scenes, quest timing, favourite dishes, diets, the neighbours list, and cast validation. |
@@ -50,17 +51,21 @@ The files in `tests/` check these areas.
 | `story.test.ts` | Chapters, scenes, source openings, the served supper, the finale, queues, failed payments, and play after the finale. |
 | `checkpoint-saves.test.ts` | Manual checkpoint saves, the next payment, and the final scenes. |
 | `assets.test.ts` | Masters, variants, hashes, occupied and unused food cells, portrait cells, blocker cells, references, asset paths, fonts, and license texts. |
+| `image-variants.test.ts` | Reuse of unchanged variants and fresh encoding after changes to masters, files, widths, cell positions, grids, or encoder settings. |
 | `build.test.ts` | The build file list, type removal, executable asset rejection, and linked directory rejection. |
 | `server.test.ts` | Allowed paths, configured server addresses, and Windows path case. |
 | `source-export.test.ts` | Product test coverage in the export, exported imports, document links, local folder exclusions, and ignore rules. The dead-code command of the export. |
 | `art-image.test.ts` | Art generation request fields, image dimensions, masks, composites, paper copies and patches, and rejected inputs. |
 
 Generator checks cover stage-1 production, paid and free takes, and a full board.
-The campaign fixture completes all 24 preparations and all 82 campaign quests without injected coins or items.
+The efficient campaign fixture completes all 24 preparations, all 88 campaign quests, and the five March quests without injected coins or items.
 Then the fixture serves the supper.
 The purse after the supper is inside the balance band.
 The balance band is 0 to 20% of the coins that the fixture spent on preparations, takes, and upkeep.
-The thief rat robs the efficient fixture once and takes each loose ingredient, so its 20 seeds give the same run. The day tests check the thief rat with given seeds.
+The fixture checks 20 seeds. Each run has 75 closings and 11 Sunday rat visits. The day tests also check theft with given seeds.
+Each holiday quest is delivered on its holiday, and each March quest is delivered in March.
+Repeating quests use at most 20% of the merges. No three consecutive days have only repeating work.
+An outdoor quest waits at most two rain days. The last preparation needs no hold on 30 April.
 The fixture reports actions, takes, merges, deliveries, recovery deliveries, income, and free cells for each preparation and chapter.
 Before each preparation, a check buys one spare ingredient so that the purse cannot pay.
 Then the check reaches the preparation through the recovery quest.
@@ -102,6 +107,8 @@ The files in `tests/browser/` check these areas.
 | `journal.spec.ts` | Journal groups, priorities, scene coverage, focus, open groups, scroll, delivery order, combined quests, and the favourite dishes of each regular. |
 | `portrait-framing.spec.ts` | Each portrait crop at ticket and dialogue sizes in both themes. |
 | `day.spec.ts` | The clock, a debt in the purse, booked tickets, the lantern control, the closing dialog, and Skip. The night of a theft and of a gift. Taps and keys that do not stop a watched night. The drawer on a phone, reduced motion, and a hidden page during the closing dialog or the night. The morning dialog after a reload, and unread reports after a save replacement. The result of act 1 on the supper card. |
+| `calendar.spec.ts` | Desktop and phone dates, chapter opening text, holidays, seasonal notices, window views, decorations, and the supper date. |
+| `recipes.spec.ts` | Recipe book sections, return focus and scroll, outside dismissal, and help for absent seasonal sources. |
 
 Play checks include pointer drag, keyboard input, selection, and delivery.
 Room checks include reduced motion, failed image loads, and text that is available after an image failure.

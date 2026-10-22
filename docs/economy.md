@@ -22,22 +22,24 @@ The bistro day has these levers. These levers are also starting values.
 
 | Lever | Value |
 | --- | ---: |
-| Opening time | 07:00 |
-| Closing time | 22:00 |
-| Booking time | 20:00 |
-| Merge time: the minutes that one merge adds to the clock | 6 |
-| Upkeep: the coins that each closing spends | 10 |
+| Opening time, Monday to Saturday | 07:00 |
+| Closing time, Monday to Saturday | 22:00 |
+| Booking time, Monday to Saturday | 20:00 |
+| Opening time, Sunday | 10:00 |
+| Closing time, Sunday | 17:00 |
+| Merge time: the minutes that one merge adds to the clock | 15 |
+| Upkeep: the coins that each closing spends | 20 |
 | Rat take: the most loose raw ingredients that the thief rat takes in one night | 3 |
 | Rat hole limit: the most rat holes that can be open at one time | 3 |
 | Gift stage | 4 |
 | Gift space: the fewest free cells that a gift needs | 5 |
 
-So a day holds 150 merges. The largest provisions fill most of one day. The data check refuses a quest that needs more merges than one day holds.
+So a weekday holds 60 merges, and a Sunday holds 28 merges. Act 1 has 76 fixed days and 75 closings. The data check refuses a meal that needs more merges than one weekday holds. Provisions and the supper can take more than one day.
 
 A quest without provisions is one meal. One meal has at most three portions for each eater and at most two portions of one dish.
-The work rate of 2 lets these small meals pay for the preparations. The merge time of 6 minutes keeps act 1 at approximately three weeks.
+The work rate of 2 lets these small meals pay for the preparations. The merge time of 15 minutes keeps the campaign quests at approximately 80% of the merges that the days of act 1 hold. The repeating quests fill the rest. The upkeep of 20 coins at 75 closings keeps the purse after the supper inside the balance band.
 
-A take from the Herb basket is free. A take from each other source spends the take cost.
+A take from the Herb basket, the pickle barrel, or the forage basket is free. A take from each other source spends the take cost.
 The bistro buys its ingredients. For example, the Windmill sells grain, and the butcher sells pork and veal.
 
 ## Menu prices
@@ -293,7 +295,8 @@ Run one of these commands:
 
 For each of the 20 fixed seeds, the report gives these values:
 
-- The days, the lantern uses, the thefts, the stolen ingredients, and the gifts.
+- The days, the closings, the Sunday rats, the lantern uses, the thefts, the stolen ingredients, and the gifts.
+- The day of each payment, the merges for repeating quests, and the days with work only from repeating quests.
 - The lowest purse and the merges that only move the clock.
 - The purse after the supper, the spending, and the free cells at each preparation.
 
@@ -303,10 +306,11 @@ The test file gives these values for each preparation and each chapter.
 The campaign fixture is the play code in `tools/campaign-balance.ts`.
 The fixture plays a new game with one repeatable policy, with no injected coins or items.
 The fixture pays each preparation when payment becomes available.
-If the fixture cannot pay, the fixture delivers tonight's booked quest first.
-The fixture lights the lanterns if the meal is ready before 20:00.
-Then the fixture delivers the unbooked ticket whose ingredients cost the least.
-If only booked quests for later evenings remain, the fixture cooks them.
+If the fixture cannot pay, the fixture delivers a holiday quest on its holiday first, and it cooks a holiday meal ahead.
+In the middle of a long order, the fixture delivers a holiday quest whose dishes are on the board as soon as its holiday comes.
+Then the fixture delivers tonight's booked quest, and it lights the lanterns if the meal is ready before 20:00.
+Then the fixture delivers the unbooked campaign ticket whose ingredients cost the least, before a repeating quest.
+If only quests for later days remain, the fixture cooks them.
 Then the bistro has no work, and the fixture delivers the repeating quests until the night.
 Before a quest, the fixture delivers the recovery quest while the purse is short.
 Within 30 merges of the closing, the fixture delivers the recovery quest while the purse is below the upkeep.
@@ -315,13 +319,13 @@ While fewer than 24 cells are free, the fixture clears the cheapest blocker betw
 The fixture makes each required dish from spare food on the board, or from stage-1 ingredients, merges, and recipes.
 If the board is full, the fixture merges spare food. The merge uses a pair, a recipe, or a match for a blocked dish.
 A full board without such a merge is a deadlock, and the fixture fails.
-After the last preparation, the fixture serves the supper.
+After the last preparation, the fixture delivers the repeating quests until 1 May, and then it serves the supper.
 The balance band is the range of the purse after the supper.
 The purse must hold 0 to 20% of the coins that the fixture spent on preparations, takes, and upkeep.
 
 `tests/campaign-balance.test.ts` enforces the bounds that `PRODUCT.md` gives for the three strategies.
-The efficient fixture takes two ingredients and merges them immediately.
-Even so, the thief rat comes once in the efficient run. The thief rat takes each loose ingredient, so the 20 seeds give the same run.
+The efficient fixture takes two ingredients and merges them immediately, so its board holds no loose raw ingredient on Sunday night.
+Șoricescu comes on each Sunday night of the efficient run, and the random seed is not used, so the 20 seeds give the same run.
 
 This check measures actions under that policy. This check does not establish a satisfactory human play experience.
 Each merge earns only the work rate. So the campaign needs more actions than a campaign with free production.

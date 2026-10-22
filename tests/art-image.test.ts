@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
+import { readFile } from 'node:fs/promises';
 import { crc32, deflateSync } from 'node:zlib';
 import sharp from 'sharp';
 import { checkMask, planAsset, verifyReferenceHash } from '../.github/skills/generate-game-art-openai/scripts/art-image.ts';
@@ -82,6 +83,13 @@ test('image measurement refuses color-key transparency instead of reporting an o
   assert.equal(alpha.valid, true);
   assert.equal(alpha.transparentPixels, 1);
   assert.equal(alpha.opaquePixels, 1);
+});
+
+test('the bread atlas helper accepts all eight authored dishes including the holiday dishes', async () => {
+  const plan = planAsset('food-breads');
+  const result = inspectPng(await readFile('public/assets/original/food-breads.png'), plan);
+  assert.equal(result.valid, true, JSON.stringify(result));
+  assert.equal(plan.blankCells, undefined);
 });
 
 test('image measurement accepts a subject with strong alpha below 255 and rejects a subject with only weak alpha', () => {

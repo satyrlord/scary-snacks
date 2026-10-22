@@ -142,6 +142,7 @@ node .github/skills/generate-game-art-openai/scripts/art-composite.ts ink `
   --candidate analysis/art-generation/<task>/<run>/candidate.png --out analysis/art-generation/<task>/<run>-ink
 ```
 
+The input is a `candidate.png`, or a `composite.png` that joins regions of pencil candidates on the same white paper.
 The command finds the paper colour and makes the paper clear.
 Each pencil mark keeps the colour that it shows over the paper, and faint red chalk stays red.
 `ink.json` records the hashes of the candidate and the result, the paper colour, and the alpha floor.

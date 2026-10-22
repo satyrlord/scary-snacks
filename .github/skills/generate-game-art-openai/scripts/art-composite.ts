@@ -130,13 +130,14 @@ export async function paperToAlpha(drawing: Buffer, floor = 0.04) {
 }
 
 // Every pencil line has one sepia colour, from SEPIA_DARK to SEPIA_LIGHT. The transparency of a line gives its light and dark.
-export const SEPIA_DARK = [108, 48, 12], SEPIA_LIGHT = [205, 178, 150];
+export const SEPIA_DARK = [108, 48, 12];
+const SEPIA_LIGHT = [205, 178, 150];
 const luminance = (r: number, g: number, b: number) => 0.299 * r + 0.587 * g + 0.114 * b;
 /** Red chalk: a red with little yellow in it, laid with some weight. A faint orange-brown pencil stroke is never red. */
-export const isRedChalk = (r: number, g: number, b: number, a: number) =>
+const isRedChalk = (r: number, g: number, b: number, a: number) =>
   a >= 60 && r > 120 && r > 1.6 * g && r > 1.6 * b && (r - Math.max(g, b)) / r > 0.45 && g / Math.max(1, r) < 0.55 && Math.abs(g - b) < 40;
 /** Gold: a bright, saturated, nearly opaque yellow, as in a flame or a crown. A faint pencil stroke is never gold. */
-export function isGold(r: number, g: number, b: number, a: number) {
+function isGold(r: number, g: number, b: number, a: number) {
   const max = Math.max(r, g, b), min = Math.min(r, g, b);
   if (a < 150 || max < 200 || (max - min) / max < 0.6 || max !== r) return false;
   const hue = 60 * ((g - b) / (max - min));
@@ -244,9 +245,9 @@ async function main() {
     await writeFile(path.join(out, 'composite.json'), `${JSON.stringify(record, null, 2)}\n`, { flag: 'wx' });
     console.log(JSON.stringify({ composite: path.join(out, 'composite.png'), ...record }));
   } else if (command === 'ink' && values.candidate && values.out) {
-    // The drawing must be a candidate.png from a helper run, so its record names the request.
+    // The drawing must be a candidate.png from a helper run or a composite.png of candidates, so its record names the requests.
     const candidate = await readReference(values.candidate);
-    if (path.basename(values.candidate) !== 'candidate.png') throw new Error('Convert a candidate.png from a helper run.');
+    if (!['candidate.png', 'composite.png'].includes(path.basename(values.candidate))) throw new Error('Convert a candidate.png from a helper run or a composite.png.');
     const out = await newOutput(values.out);
     const { bytes, paper, floor } = await paperToAlpha(candidate.bytes);
     await mkdir(out, { recursive: true });

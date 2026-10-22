@@ -110,7 +110,9 @@ for (const mode of ['Light', 'Dark']) for (const viewport of [{ width: 360, heig
     const initial = afterPreparations(20);
     await start(page, initial);
     await appearance(page, mode);
-    for (const chain of data.chains) {
+    // Each tap takes an ingredient, so the board has room for one tap on each source that is open all year. The seasonal sources
+    // share the free line of the Herb basket.
+    for (const chain of data.chains.filter(value => !value.season)) {
       await unselect(page);
       await source(page, initial, chain.id).click();
       const buttons = page.locator('#item-detail').getByRole('button');
