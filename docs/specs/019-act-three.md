@@ -17,6 +17,7 @@ The feature covers these parts:
 
 - the dates, the chapters, and the 18 preparations of act 3;
 - the three areas of act 3: the orchard, the cathedral kitchen, and the bistro cellar;
+- the pickles of the family, which the bistro cellar makes free;
 - the orchard benefits and the apple tree;
 - the scrolls and the six parts of the sleeper's order;
 - the dinner of the sleeper on All Hallows' Eve, and the finale painting;
@@ -80,7 +81,7 @@ The opening dates are levers.
 | 13 | Orchard | Fire the brandy still | Orchard stage 3. |
 | 14 | Bistro cellar | Hang the smoked hams | |
 | 15 | Orchard | Hang lanterns in the branches | |
-| 16 | Bistro cellar | Fit the cold-room door | |
+| 16 | Bistro cellar | Fit the cold-room door | The pickles of the family. A take from the pickle barrel becomes free. |
 | 17 | Cathedral kitchen | Lay the long table | |
 | 18 | Cathedral kitchen | Set the sleeper's chair | |
 
@@ -102,6 +103,7 @@ The update-game-content skill writes the dialogue.
 - The sleeper snores in act 2, and the visitors keep the watch at the red door. In act 3, they keep the last watch.
 - Ambrozie tells Mara in act 2 that a stolen page is paid back in service. The dinner of the sleeper is that service.
 - The drying racks and the bulion of act 2 prepare the bistro cellar.
+- In act 1 and act 2, the bistro buys its pickle barrels from Ambrozie. From preparation 16, the family keeps its own pickles in the cellar.
 
 ## The scrolls and the order
 
@@ -154,6 +156,18 @@ The cathedral kitchen and its dining hall are under the cathedral. Nobody has co
 ### The bistro cellar
 
 The bistro cellar holds the barrels of wine and plum brandy, the smoked hams, and the jars of preserves for the winter.
+
+#### The pickles of the family
+
+Preparation 16, "Fit the cold-room door", completes the cellar. From that payment, the pickles of the family fill the cold room, and the bistro no longer buys the barrels of the cathedral.
+
+- A take from the pickle barrel is free.
+- In the menu price, a pickle ingredient counts the cellar value, not the take cost and not zero. So the free take is profit, as in the garden and the orchard.
+- The cellar value is 2 coins. For example, Gherkins cost 2 coins, and Mixed pickles cost 14 coins: 4 × 2 + 3 × 2.
+- The pickle barrel follows the rules of a seasonal source for its season, its placement, and its departure.
+
+The season of the barrel is 1 December to 20 March. So the barrel is not on the board in act 3, and the player first sees the free pickles when the barrel comes back on 1 December, in act 4.
+The cellar value is a lever. The balance test of act 4 measures it.
 
 ## The finale painting
 
@@ -231,7 +245,8 @@ The wooden platter is a Transylvanian platter of roasts on a wooden board.
 - Act 3 continues the save of act 2: the purse, the board, the recipe book, and the finishes.
 - The act comes from the saved day number, as in act 2. It needs no separate saved field.
 - The state records the preparations of act 3 in the completed preparations, and the delivered parts of the order, including the dinner, in the completed quests. The save version changes, as each completed spec requires.
-- `tools/create-original-data.ts` authors the dates, the chapters, the preparations, the parts, the quests, the dishes, and the scenes.
+- `tools/create-original-data.ts` authors the dates, the chapters, the preparations, the parts, the quests, the dishes, the cellar value, and the scenes.
+- The free pickles come from the completed preparations, so they need no saved field.
 - The data check enforces the size of each part and the meat and the drink in each part.
 - The balance test of act 3 measures the merge time, the orchard values, the quantities of the parts, and the prices of the preparations.
 
@@ -239,11 +254,13 @@ The wooden platter is a Transylvanian platter of roasts on a wooden board.
 
 - The dependency check permits preparations 16 to 18 while part 6 is open. It rejects data that makes a preparation depend on part 6.
 - A player reaches the held position of 30 October with preparations 1 to 17 paid, parts 1 to 5 delivered, and part 6 open. With every dish of part 6 on the board, Serve before preparation 18 changes nothing. The player can pay preparation 18 without serving part 6. The payment releases the hold and starts 31 October once.
+- The cellar pickles: before the payment of preparation 16, the recipe book gives Mixed pickles 10 coins. After it, the recipe book gives 14 coins. In a test state with the pickle barrel on the board, a take before the payment spends the take cost, and a take after it is free, also with a debt.
 - On 31 October, Serve before 20:00 changes nothing. With every dish ready, the lantern control sets the time to 20:00. Serve then delivers part 6 and opens the finale once. A reload after the payment and after Serve keeps the date and progress and repeats neither action.
 
 ## Open decisions
 
 The user approved the story, the scrolls, the order, the orchard, the areas, the preparations, the apple tree, the feast dishes, the visitors, the finale painting, and the name of the night.
+The user also approved the pickles of the family: free takes and a cellar value in the price after the bistro cellar is complete.
 
 - The dialogue of each scene. The update-game-content skill writes it, one chapter at a time, and the user approves each chapter.
 - The quests of the core four and of each regular. The update-game-content skill proposes them with the dialogue of their chapter.
