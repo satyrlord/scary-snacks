@@ -5,6 +5,7 @@ import { $, button, coinText, count, element, reason, status } from './dom.ts';
 import { modal, showModal } from './dialog.ts';
 import { adopt, changeGame, data, newGame, onRecovery, persist, recoveryRequired, repair, saveFailed, saveMessage, state, validate } from './session.ts';
 import { MOTIONS, THEMES, motion, motionNote, setMotion, setTheme, soundToggle, storage, theme } from './preferences.ts';
+import { showScene } from './story.ts';
 
 function downloadSave() {
   try { const url=URL.createObjectURL(new Blob([exportSave(state,validate)],{type:'application/json'}));const link=element('a');link.href=url;link.download='scary-snacks-save.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000); }
@@ -38,7 +39,8 @@ export function options() {
     try {
       if(selectedFile.size>MAX_SAVE_BYTES)throw new Error(`Select a saved game smaller than ${MAX_SAVE_BYTES / 2 ** 20} MiB.`);
       const candidate=importSave<GameState>(await selectedFile.text(),validate,repair);
-      const review=element('div');review.append(element('p','modal-copy',`Replace the current game with this saved game: ${coinText(candidate.coins)} and ${count.format(candidate.taskIndex)} of ${data.tasks.length} preparations done? Export the current game first if you want to keep it.`));
+      const progress=candidate.prologue?`the prologue, at ${data.prologue.events[candidate.prologue.event-1].title.replace(/^The /,'the ')}`:`${coinText(candidate.coins)} and ${count.format(candidate.taskIndex)} of ${data.tasks.length} preparations done`;
+      const review=element('div');review.append(element('p','modal-copy',`Replace the current game with this saved game: ${progress}? Export the current game first if you want to keep it.`));
       const keep=button('Keep the current game','secondary-button',options),choice=element('div','settings-actions');
       // A confirmed import is an explicit replacement, like a new game, so it also replaces an unreadable save.
       choice.append(button('Import this saved game','primary-button',()=>changeGame(()=>{
@@ -55,6 +57,8 @@ export function options() {
     choice.append(button('Erase and start again','danger-button',()=>changeGame(()=>{
       const fresh=newGame(),result=resetSave(storage,fresh,validate);if(!result.ok){showModal('Reset failed',element('p','save-error',result.error ?? ''));return;}
       adopt(fresh,result);modal.close();status('The kitchen is ready for a fresh start.');
+      // A new game opens the first scene of the prologue at once.
+      showScene(fresh.pendingScenes[0]);
     },true)),keep);
     const confirm=element('div');confirm.append(element('p','modal-copy','This erases the dishes, coins, story progress, discoveries, and decoration finishes saved in this browser. Export a copy first if you want to keep this game.'),choice);showModal('Start a new game?',confirm,keep);
   }));content.append(reset);

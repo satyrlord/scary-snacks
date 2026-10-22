@@ -1,5 +1,5 @@
 // The deterministic rules of the bistro game: the new game, the actions, and the acceptance of an untrusted save.
-import { arrivalScene, availableChains, boardObstacles, canDeliverQuest, canLightLanterns, chainSeason, clockMinutes, clockText, cycleMember, dateText, decorationUnlocked, deliveriesSince, dayMerges, dishOpen, earnedScenes, eveningOpen, firstFreeBoardCell, freeBoardCells, getItem, holding, holdsDay, integer, isSunday, looseRaw, looseRawCells, marchOpens, mergePartners, mergeResult, own, pendingPreparationObstacles, prerequisitesMet, present, questDeliveryCells, questHoliday, questPredecessors, requiredQuests, resolveChapters, resolveQuests, sourceCell, sourceNeeded, storyOrder, supperComplete, takeCost, taskEligibility, ticketNote, unresolvedObstacle } from './model.ts';
+import { arrivalScene, availableChains, boardLayout, boardObstacles, canDeliverQuest, canLightLanterns, chainSeason, clockMinutes, clockText, currentEvent, cycleMember, dateText, decorationUnlocked, deliveriesSince, dayMerges, dishOpen, earnedPrologue, earnedScenes, eventComplete, eventDishes, eveningOpen, findQuest, firstFreeBoardCell, freeBoardCells, getItem, holding, holdsDay, integer, isSunday, looseRaw, looseRawCells, marchOpens, mergePartners, mergeResult, own, pendingPreparationObstacles, prerequisitesMet, present, prologueQuests, prologueScenes, questDeliveryCells, questEvent, questHoliday, questPredecessors, requiredQuests, resolveChapters, resolveQuests, sourceCell, sourceNeeded, storyOrder, supperComplete, takeCost, taskEligibility, ticketNote, unresolvedObstacle } from './model.ts';
 import type { Action, Cell, GameData, GameState, NightReport, Placed, Result } from './model.ts';
 
 /** At most this many preparation blockers wait on the board at one time. */
@@ -123,16 +123,47 @@ function fixEvening(state: GameState, data: GameData) {
 export function revealTickets(state: GameState, data: GameData) {
   for (const view of resolveQuests(state, data)) if (view.status === 'active') for (const { item } of view.quest.requirements) discover(state, item);
 }
-/** A new game. The session gives it a random seed, so the rules themselves stay deterministic. */
+/**
+ * Puts the authored board of an event on the board, in place of the old board. The sources and the prepared dishes of the new board
+ * are discovered. The blockers discover nothing.
+ */
+function startEvent(state: GameState, number: number, data: GameData) {
+  const event = data.prologue.events[number - 1];
+  state.prologue = { event: number };
+  state.board = event.board.map(code => code ? { code } : null);
+  state.layoutId = event.layout.id; state.resolvedObstacles = [];
+  for (const code of event.board.filter(present)) discover(state, code);
+}
+/** The start of act 1: the initial board of act 1, the starting gift in the purse, and the first morning. The recipe book keeps the prologue discoveries. */
+function startActOne(state: GameState, data: GameData) {
+  state.prologue = null;
+  state.board = data.board.initial.map(code => code ? { code } : null);
+  state.layoutId = data.board.defaultLayout; state.resolvedObstacles = [];
+  state.coins = data.prologue.gift; state.clock = { day: 1, merges: 0 };
+  for (const code of data.board.initial.filter(present)) discover(state, code);
+}
+/** A new game, at the first event of the prologue with its opening scene earned. The session gives it a random seed, so the rules themselves stay deterministic. */
 export function createGame(data: GameData, seed = 0): GameState {
-  const layoutId = data.board.defaultLayout;
   const state: GameState = {
-    version: 15, layoutId, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] }, pendingScenes: [],
-    board: data.board.initial.map(code => code ? { code } : null), coins: 0, taskIndex: 0,
-    discovered: [...new Set(data.board.initial.filter(present))],
+    version: 16, prologue: null, layoutId: data.board.defaultLayout, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] },
+    pendingScenes: [data.prologue.events[0].opening.id], board: [], coins: 0, taskIndex: 0, discovered: [],
     decorations: [], decorationChoices: {}, completedQuests: [],
     clock: { day: 1, merges: 0 }, seed, ratHoles: [], gifts: 0, evening: { guest: null, last: null, delivered: false }, night: null, act1: null, march: [],
   };
+  startEvent(state, 1, data);
+  revealTickets(state, data);
+  return state;
+}
+/**
+ * The start of act 1 after a prologue that served each quest and discovered only its boards and its quest dishes. The data check uses
+ * it to confirm that the initial board of act 1 makes a valid game.
+ */
+export function actOneGame(data: GameData, seed = 0): GameState {
+  const state = createGame(data, seed);
+  for (const event of data.prologue.events) for (const code of [...event.board.filter(present), ...event.quests.flatMap(quest => quest.requirements.map(({ item }) => item))]) discover(state, code);
+  state.completedQuests = prologueQuests(data).map(quest => quest.id);
+  state.pendingScenes = [];
+  startActOne(state, data);
   revealTickets(state, data);
   return state;
 }
@@ -142,8 +173,9 @@ export function createGame(data: GameData, seed = 0): GameState {
  * March quest waits to be recorded.
  */
 function validateQuestProgress(state: GameState, data: GameData): boolean {
-  const complete = state.completedQuests, march = state.march;
-  if (!Array.isArray(complete) || complete.length > data.quests.length || new Set(complete).size !== complete.length) return false;
+  const served = prologueQuests(data).length, complete = state.completedQuests.slice(served), march = state.march;
+  if (!Array.isArray(complete) || complete.length > data.quests.length || new Set(state.completedQuests).size !== state.completedQuests.length
+    || !servedInOrder(state.completedQuests, data.prologue.events.length, data)) return false;
   if (!Array.isArray(march) || new Set(march).size !== march.length
     || !march.every(id => data.quests.some(quest => quest.id === id && quest.march && prerequisitesMet(state, quest, data)))
     || data.quests.some(quest => marchOpens(state, quest, data))) return false;
@@ -157,6 +189,43 @@ function validateQuestProgress(state: GameState, data: GameData): boolean {
     done.add(id);
   }
   return !state.taskIndex || requiredQuests(state.taskIndex - 1, data).every(quest => done.has(quest.id));
+}
+/** The served event quests start with each quest of the events before until, in event order. The quests of one event can be in any order. */
+function servedInOrder(complete: readonly string[], until: number, data: GameData): boolean {
+  let at = 0;
+  for (const event of data.prologue.events.slice(0, until)) {
+    const part = complete.slice(at, at += event.quests.length);
+    if (!event.quests.every(quest => part.includes(quest.id))) return false;
+  }
+  return true;
+}
+/**
+ * The fields of a prologue save. The quests of the earlier events are served, then some quests of the current event, so the current
+ * event is the first with a quest to serve, or the last. The pending scenes are the last part of the earned scenes in story order, and
+ * the end of the last event leaves its closing scene pending. The board holds each source of the event once and only dishes of the
+ * event board. The recipe book holds the sources and the prepared dishes of the events so far, and only dishes of their boards. The
+ * purse, the clock, the preparations, and the night stay as a new game has them.
+ */
+function validPrologue(state: GameState, data: GameData): boolean {
+  const progress = state.prologue, events = data.prologue.events;
+  if (!record(progress, ['event']) || !integer(progress.event, 1, events.length)) return false;
+  const number = progress.event, event = events[number - 1], complete = state.completedQuests, before = events.slice(0, number - 1).flatMap(value => value.quests).length;
+  if (!Array.isArray(complete) || new Set(complete).size !== complete.length || !servedInOrder(complete, number - 1, data)
+    || !complete.slice(before).every(id => event.quests.some(quest => quest.id === id)) || (number < events.length && eventComplete(state, event))) return false;
+  const earned = earnedPrologue(state, data), pending = state.pendingScenes;
+  if (!Array.isArray(pending) || pending.length > earned.length || !pending.every((id, at) => id === earned[earned.length - pending.length + at])
+    || (eventComplete(state, event) && !pending.length)) return false;
+  if (state.coins !== 0 || state.taskIndex !== 0 || state.clock.day !== 1 || state.clock.merges !== 0 || state.night !== null || state.act1 !== null || state.gifts !== 0
+    || !Array.isArray(state.ratHoles) || state.ratHoles.length || !Array.isArray(state.march) || state.march.length
+    || (state.repeating !== undefined && (!record(state.repeating, ['last', 'open']) || state.repeating.last !== null || state.repeating.open !== null))
+    || !record(state.evening, ['guest', 'last', 'delivered']) || state.evening.guest !== null || state.evening.last !== null || state.evening.delivered !== false
+    || state.layoutId !== event.layout.id) return false;
+  const sources = event.board.filter(code => !!code && data.items[code].generator), dishes = eventDishes(event, data);
+  if (!state.board.every(cell => cell === null || (record(cell, ['code']) && (sources.includes(cell.code as string) || dishes.has(cell.code as string))))
+    || !sources.every(code => state.board.filter(cell => cell?.code === code).length === 1)) return false;
+  const reached = events.slice(0, number), known = new Set(reached.flatMap(value => [...value.board.filter(present), ...eventDishes(value, data)]));
+  return Array.isArray(state.discovered) && state.discovered.every(code => known.has(code))
+    && reached.every(value => value.board.filter(present).every(code => state.discovered.includes(code)));
 }
 const record = (value: unknown, keys: string[]): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value)
   && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
@@ -212,25 +281,26 @@ export function repairSave(candidate: unknown, data: GameData): unknown {
 export function validateGame(candidate: unknown, data: GameData): candidate is GameState {
   try {
     const state = candidate as GameState;
-    if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== 15) return false;
+    if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== 16) return false;
     if (!Array.isArray(state.board) || state.board.length !== data.board.columns * data.board.rows) return false;
     if (!integer(state.coins, -1_000_000_000)) return false;
     if (!integer(state.taskIndex, 0, data.tasks.length) || !Array.isArray(state.completedQuests)) return false;
     if (!validDay(state, data)) return false;
-    const chains = availableChains(state, data);
-    {
+    const prologue = state.prologue !== null, chains = availableChains(state, data);
+    if (prologue ? !validPrologue(state, data) : state.prologue !== null) return false;
+    if (!prologue) {
       // Pending scenes are unique and earned, and story scenes keep story order, so an imported save cannot open a later scene.
       const pending = state.pendingScenes, scenes = storyOrder(data), earned = earnedScenes(state, data);
       if (!Array.isArray(pending) || new Set(pending).size !== pending.length || !pending.every(id => earned.includes(id))) return false;
       const ordered = pending.filter(id => scenes.includes(id));
       if (!ordered.every((id, at) => at === 0 || scenes.indexOf(ordered[at - 1]) < scenes.indexOf(id))) return false;
+      if (!validateQuestProgress(state, data)) return false;
     }
-    if (!validateQuestProgress(state, data)) return false;
     const validItem = (cell: Cell | null) => cell && typeof cell === 'object' && !Array.isArray(cell)
-      && Object.keys(cell).length === 1 && own(data.items, cell.code) && dishOpen(cell.code, chains, data);
+      && Object.keys(cell).length === 1 && own(data.items, cell.code) && (prologue || dishOpen(cell.code, chains, data));
     if (!state.board.every(cell => cell === null || validItem(cell))) return false;
     {
-      const layout = data.board.layouts.find(layout => layout.id === state.layoutId);
+      const layout = prologue ? boardLayout(state.layoutId, data) : data.board.layouts.find(layout => layout.id === state.layoutId);
       const progress = state.preparationObstacles;
       if (progress !== undefined) {
         if (!progress || typeof progress !== 'object' || Array.isArray(progress)
@@ -250,15 +320,17 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
         || (progress?.placed.filter(placement => !state.resolvedObstacles.includes(placement.id)).length ?? 0) > ACTIVE_BLOCKERS) return false;
     }
     // Each open chain has one source on the board. A seasonal source can wait for room in its season, and after its season it stays
-    // until the first closing at which no quest needs its chain, so a save holds at most one.
+    // until the first closing at which no quest needs its chain, so a save holds at most one. The prologue checked its own sources.
     const cells = state.board.filter(present);
-    for (const chain of chains) {
+    for (const chain of prologue ? [] : chains) {
       const sources = cells.filter(cell => getItem(cell.code, data)?.generator && getItem(cell.code, data)?.chain === chain).length;
       if (chainSeason(chain, data) ? sources > 1 : sources !== 1) return false;
     }
+    // In act 1, the recipe book keeps the dishes of the prologue boards, also of chains that act 1 opens later.
+    const kept = prologue ? null : new Set(data.prologue.events.flatMap(event => [...event.board.filter(present), ...eventDishes(event, data)]));
     if (!Array.isArray(state.discovered) || state.discovered.length > Object.keys(data.items).length
       || new Set(state.discovered).size !== state.discovered.length
-      || !state.discovered.every(code => own(data.items, code) && dishOpen(code, chains, data))
+      || !state.discovered.every(code => own(data.items, code) && (!kept || dishOpen(code, chains, data) || kept.has(code)))
       || !cells.every(cell => state.discovered.includes(cell.code))) return false;
     // A blocker does not discover its dish, but clearing one needs a dish that merges with it: a matching dish or a recipe partner.
     if (boardObstacles(state, data).some(obstacle => state.resolvedObstacles.includes(obstacle.id)
@@ -297,7 +369,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
   let message = '';
   switch (action.type) {
     case 'deliverQuest': {
-      const quest = data.quests.find(quest => quest.id === action.id);
+      const quest = findQuest(action.id, data);
       // A quest with every portion on the board can wait only for its time: an evening, a holiday, the supper day, or fair weather.
       if (!quest || !canDeliverQuest(next, quest, data)) {
         const note = quest && questDeliveryCells(next, quest).every(index => index >= 0) ? ticketNote(next, quest, data) : null;
@@ -317,7 +389,19 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       if (quest.finale) next.act1 = { purse: next.coins };
       // The recovery quest and a repeating quest keep no record and have no reply, so they can open again.
       // A repeating delivery moves the cycle to the next quest.
-      if (quest.repeating) next.repeating = { last: quest.id, open: null };
+      const number = questEvent(quest, data);
+      if (number) {
+        // An event quest has no reply. The last delivery of an event earns its closing scene and starts the next event, with its opening scene.
+        next.completedQuests.push(quest.id);
+        const event = data.prologue.events[number - 1];
+        if (eventComplete(next, event)) {
+          next.pendingScenes.push(event.closing.id);
+          if (number < data.prologue.events.length) {
+            next.pendingScenes.push(data.prologue.events[number].opening.id);
+            startEvent(next, number + 1, data);
+          }
+        }
+      } else if (quest.repeating) next.repeating = { last: quest.id, open: null };
       else if (!quest.recovery) {
         next.completedQuests.push(quest.id);
         // The supper earns the finale in place of a reply.
@@ -325,7 +409,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
         // A follow-up scene waits for a count of later deliveries; it is earned by the delivery that reaches the count.
         for (const earlier of data.quests) if (earlier.followUp && deliveriesSince(next, earlier.id) === earlier.followUp.afterDeliveries) next.pendingScenes.push(earlier.followUp.id);
       }
-      message = quest.finale ? `${quest.title}: served.` : `${quest.title}: delivered. Earned ${quest.reward} ${quest.reward === 1 ? 'coin' : 'coins'}.`;
+      message = quest.finale || number ? `${quest.title}: served.` : `${quest.title}: delivered. Earned ${quest.reward} ${quest.reward === 1 ? 'coin' : 'coins'}.`;
       break;
     }
     case 'lantern': {
@@ -356,9 +440,17 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
     }
     case 'readScene': {
       // The completion action ends a waiting scene. A stale or repeated event changes nothing.
-      const at = next.pendingScenes.indexOf(action.id);
+      const at = next.pendingScenes.indexOf(action.id), scenes = prologueScenes(data);
       if (at === -1) return fail('This story scene is already in the journal.');
+      // The prologue scenes are read in story order, so only the first pending one can end.
+      if (scenes.some(scene => scene.id === action.id) && next.pendingScenes.findIndex(id => scenes.some(scene => scene.id === id)) !== at) return fail('Read the earlier story scene first.');
       next.pendingScenes.splice(at, 1);
+      // The last scene of the prologue starts act 1.
+      if (action.id === scenes.at(-1)!.id) {
+        startActOne(next, data);
+        message = 'Mara arrives at the bistro. Act 1 begins.';
+        break;
+      }
       // A guest who visits once has no journal replay after the visit.
       const guest = data.characters.find(person => person.id === data.quests.find(quest => quest.id === action.id)?.character);
       message = guest?.singleVisit ? 'The scene is finished.' : 'The scene is in the story journal.';
@@ -381,12 +473,13 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
         const name = getItem(result, data)!.name;
         message = made(next, result, name, `Made ${name}.`);
         if (obstacle) {
-          const coin = data.economy.blockerCoin;
+          // A cleared blocker of the prologue gives no coin.
+          const coin = next.prologue ? 0 : data.economy.blockerCoin;
           if (!integer(next.coins + coin, -1_000_000_000)) return fail('Spend some coins before you clear this blocker.');
           if (obstacle.type === 'rat-hole') next.ratHoles = next.ratHoles.filter(hole => hole.position !== action.to);
           else next.resolvedObstacles.push(obstacle.id);
           next.coins += coin;
-          message += ` The blocker is cleared: +${coin} ${coin === 1 ? 'coin' : 'coins'}.`;
+          message += coin ? ` The blocker is cleared: +${coin} ${coin === 1 ? 'coin' : 'coins'}.` : ' The blocker is cleared.';
         }
         event = 'merge';
       } else {
@@ -403,8 +496,8 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const code = item.generator.outputs[0];
       const empty = firstFreeBoardCell(next, data);
       if (empty === -1) return fail(BOARD_FULL);
-      // A take from a paid source spends its coins. A purse that cannot pay takes nothing.
-      const cost = takeCost(item, data);
+      // A take from a paid source spends its coins. A purse that cannot pay takes nothing. Each take of the prologue is free.
+      const cost = next.prologue ? 0 : takeCost(item, data);
       if (cost && next.coins < cost) return fail(`The ${item.name} costs ${cost} ${cost === 1 ? 'coin' : 'coins'} for each take, and the purse cannot pay. Deliver a quest, or take free herbs from the Herb basket.`);
       next.coins -= cost;
       next.board[empty] = { code };
@@ -413,6 +506,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       break;
     }
     case 'task': {
+      if (next.prologue) return fail('The preparations of the bistro start in act 1.');
       const eligibility = taskEligibility(next, data);
       const task = eligibility.task;
       if (!eligibility.ready || !task) return fail(eligibility.blockers.join(' '));
@@ -436,6 +530,11 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       break;
     }
     default: return fail('This action is not available.');
+  }
+  // The prologue has no seasonal sources, no preparation blockers, and no clock.
+  if (state.prologue) {
+    revealTickets(next, data);
+    return { state: next, ok: true, message, event };
   }
   if (['task', 'move', 'spawn', 'deliverQuest'].includes(action.type)) {
     for (const source of placeSeasonalSources(next, data)) message += ` The ${source} is on the board.`;

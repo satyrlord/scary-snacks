@@ -60,7 +60,7 @@ Art candidates are not in the published assets.
 
 ## Art provenance
 
-The game ships image variants from 74 masters.
+The game ships image variants from 82 masters.
 [Asset provenance](asset-provenance.json) records each master, its references, processing, review limits, and hash.
 [Asset prompts](asset-prompts.json) preserves the exact generation prompts.
 These records describe the source of the current assets. These records do not give legal clearance.
@@ -86,12 +86,16 @@ The OpenAI Images application programming interface (API) supplies these assets 
 - The 25 room states, with project-generated room paintings as the base references.
 - The two decoration paintings, with project-generated design references.
 - The supper painting, with the final courtyard state and project-generated portraits as references.
-- The three sheets of character sketches and the four sheets of quest scenes, with earlier sheets of the same task as style references.
+- The three sheets of character sketches and the five sheets of quest scenes, with earlier sheets of the same task as style references.
 - The 18 food atlases, with two accepted food atlases of the same set as style references.
 - The three window views, with a front-room painting as their style reference.
 - The two holiday images, as masked edits of room states.
 - The two rat sheets, with project-generated reference poses as identity references.
 - The rat hole and the night sky, with project-generated masters as style references.
+- The four states of the family kitchen of the prologue, with a front-room painting as the style reference of the first state, and the later states as masked edits of earlier states.
+- The family photographs, from a text prompt.
+- The family portraits, with project-generated portrait atlases as style references.
+- The notebook pages, with a front-room painting as their style reference. The prayer on one page has a typeset copy as its letter reference. Noto Serif, an Open Font License font of the computer that made the copy, sets that copy. The game does not ship the font.
 
 A correction edit keeps each pose of the mascot atlas inside its grid cell.
 A masked edit changes one cell of the first regulars atlas.

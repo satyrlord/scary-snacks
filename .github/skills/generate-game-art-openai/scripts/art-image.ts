@@ -123,12 +123,12 @@ export async function readReference(file: string): Promise<ReferenceImage & { sh
   const shipping = await resolveWithAncestors(SHIPPING_ROOT);
   const tasks = await resolveWithAncestors(TASK_ROOT);
   const isShipping = isInside(shipping, resolved);
-  const record = { 'candidate.png': 'generation.json', 'composite.png': 'composite.json', 'paper.png': 'paper.json' }[path.basename(resolved)];
+  const record = { 'candidate.png': 'generation.json', 'composite.png': 'composite.json', 'paper.png': 'paper.json', 'halo.png': 'halo.json', 'text.png': 'text.json' }[path.basename(resolved)];
   const isCandidate =
     isInside(tasks, resolved) && record !== undefined && (await pathExists(path.join(path.dirname(resolved), record)));
   if (!isShipping && !isCandidate)
     throw new Error(
-      'Use only a shipped bitmap, a candidate that this helper generated, or a composite or a paper copy of them as a reference.',
+      'Use only a shipped bitmap, a candidate that this helper generated, a composite, a paper copy, or a cleared halo of them, or a typeset text as a reference.',
     );
   const bytes = await readFile(resolved);
   if (isShipping) {

@@ -1,11 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { journalCharacters } from '../src/model.ts';
-import { createGame } from '../src/engine.ts';
 import { questProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import type { GameData, GameState } from '../src/model.ts';
-import { afterMarch, checkpoint, data, deliver, opened, player, status, tags, tonight, validate } from './support.ts';
+import { actOne, afterMarch, checkpoint, data, deliver, opened, player, status, tags, tonight, validate } from './support.ts';
 
 const search = data.quests.find(quest => quest.id === 'mina-avram-search')!;
 const predecessor = search.afterQuest!;
@@ -43,7 +42,7 @@ test('Ionatan dines on his way to the castle in May, after act 1, so act 1 never
   assert.deepEqual(quests[0].requirements, [['fruits_5', 1], ['mixed_sharing-board', 1], ['mixed_tochitura', 1]]
     .map(([item, quantity]) => ({ item, quantity })));
   const shown = (state: GameState) => journalCharacters(state, data).map(character => character.id);
-  assert.deepEqual(shown(createGame(data)), data.characters.filter(character => !character.singleVisit && !character.arrivesAfter).map(character => character.id));
+  assert.deepEqual(shown(actOne()), data.characters.filter(character => !character.singleVisit && !character.arrivesAfter && !character.family).map(character => character.id));
   const finished = checkpoint(data.tasks.length);
   assert.equal(status(finished, predecessor), 'locked');
   for (const id of ['ionatan', 'mina', 'avram']) assert.equal(shown(finished).includes(id), false);

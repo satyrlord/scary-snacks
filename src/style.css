@@ -111,6 +111,11 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .sill-cat { position: absolute; left: 62.65%; bottom: 52.4%; width: 11.73%; aspect-ratio: 1; min-width: 44px; }
 .miez { padding: 0; border: 0; border-radius: var(--control-radius); background: transparent; }
 .sill-cat>.mascot { width: 100%; height: 100%; }
+/* In the family kitchen, Miez sits on the left half of the windowsill (its top 41% down the painting) and sleeps on the radiator below it
+   (its top 44.8% down). In the farewell state, he sits on the floor beside the empty cat basket (its foot 89.5% down). */
+.room-frame[data-area='family-kitchen'] .sill-cat { left: 31%; bottom: 58.6%; }
+.room-frame[data-area='family-kitchen'] .sill-cat:has(.cat-sleeping) { left: 41%; bottom: 54.8%; }
+.room-frame[data-current='family-kitchen-farewell'] .sill-cat,.room-frame[data-current='family-kitchen-farewell'] .sill-cat:has(.cat-sleeping) { left: 35%; bottom: 10.5%; }
 /* In the room ready for the supper, a second black cat sleeps on the counter's free left end, its body on the counter top 83.5% down. */
 .counter-cat { position: absolute; left: 1.05%; bottom: 15.6%; width: 11.73%; aspect-ratio: 1; pointer-events: none; }
 .room-frame .mascot { filter: var(--cat-glow); }
@@ -158,7 +163,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .rat-soricescu { background-image: url('../assets/variants/rat-soricescu-1024x512.webp'); }
 .scurrying { animation: scurry .18s ease-in-out infinite alternate; }
 @keyframes scurry { to { translate: 0 -8%; } }
-.room-frame:not([data-area='front-room']) :is(.sill-cat,.window-sky,.counter-cat),
+.room-frame:not([data-area='front-room']) :is(.window-sky,.counter-cat),
+.room-frame:not([data-area='front-room'],[data-area='family-kitchen']) .sill-cat,
 .room-frame[data-painting='front-room-00'] .window-sky,
 .room-frame:not([data-current='front-room-24']) .counter-cat { display: none; }
 /* The New pin: a small copper-glow marker whose point touches the latest change. Near the top of the painting it hangs below the change instead. */
@@ -301,7 +307,6 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 #item-detail.action-feedback { flex-wrap: nowrap; gap: 10px; }
 .detail-feedback { flex: 1; min-width: 0; font-size: 13px; line-height: 1.35; }
 .action-feedback>.clear-selection { flex-shrink: 0; }
-.detail-onboarding { font-size: 12px; line-height: 1.35; color: var(--muted); }
 .blocker-copy { flex: 1; min-width: 0; }
 .blocker-title { display: block; font-size: 13px; line-height: 1.3; }
 .blocker-rule { font-size: 12px; line-height: 1.4; color: var(--ink); }
@@ -390,6 +395,9 @@ body:has(#modal[open] .pay-button) #offer { visibility: hidden; }
 .regulars-1-portrait { background-image: url('../assets/variants/regulars-1-640x640.webp'); }
 .regulars-2-portrait { background-image: url('../assets/variants/regulars-2-640x640.webp'); }
 .regulars-3-portrait { background-image: url('../assets/variants/regulars-3-640x640.webp'); }
+/* The prologue has no purse and one area, and Miez joins the family after the funeral. */
+.coin-count[hidden],.area-switch[hidden],.miez[hidden] { display: none; }
+.family-portrait { background-image: url('../assets/variants/family-portraits-640x640.webp'); }
 .mascot { display: block; background-image: url('../assets/variants/mascots-640x640.webp'); background-size: 200% 200%; background-repeat: no-repeat; }
 .cat-sitting { background-position: 0 0; }.cat-sleeping { background-position: 100% 0; }.bat { background-position: 0 100%; }
 .phone-bar { display: none; }

@@ -6,16 +6,17 @@ import { boardLayoutProblems } from '../src/content.ts';
 import type { Action, GameState } from '../src/model.ts';
 import { exportSave, importSave, loadSave, saveGame, SAVE_KEY } from '../src/storage.ts';
 import { moveTo } from '../tools/create-checkpoint-saves.ts';
-import { act, data, memoryStorage, rejected, validate, know } from './support.ts';
+import { actOne, act, data, memoryStorage, prologueServed, rejected, unknown, validate, know } from './support.ts';
 
-const start = () => createGame(data);
+// The blockers give coins, so these tests start act 1 with an empty purse and a recipe book of the board alone.
+const start = () => ({ ...unknown(actOne()), coins: 0 });
 const refusal = 'Merge a matching dish or a recipe partner into this blocked space.';
 /** A new game with its first preparations paid and their quests delivered, on the earliest day of those deliveries. */
 function paidUpTo(count: number): GameState {
   const state = start();
   Object.assign(state, { taskIndex: count, preparationObstacles: { start: count, placed: [] } });
   state.decorations = data.tasks.slice(0, count).map(task => task.id);
-  state.completedQuests = requiredQuests(count, data).map(quest => quest.id);
+  state.completedQuests = [...prologueServed, ...requiredQuests(count, data).map(quest => quest.id)];
   moveTo(state, Math.max(...requiredQuests(count, data).map(quest => questHoliday(quest, data)?.day ?? quest.opens ?? 1)), data);
   return state;
 }
@@ -28,20 +29,20 @@ function dairyOpen(): GameState {
   return state;
 }
 
-test('new games reserve eight obstacle cells, and know only their board and the dishes of their tickets', () => {
-  const state = start();
+test('act 1 starts with eight obstacle cells, and knows its board, the dishes of its tickets, and the prologue discoveries', () => {
+  const state = actOne();
   assert.equal(state.layoutId, 'workbench-clutter-1');
-  assert.equal(state.version, 15);
-  assert.equal(state.coins, 0);
+  assert.equal(state.version, 16);
+  assert.equal(state.coins, data.prologue.gift);
   assert.equal(freeBoardCells(state, data), 24);
   assert.equal(firstFreeBoardCell(state, data), 2);
   assert.deepEqual([0, 5, 6, 11, 36, 37, 40, 41].map(index => unresolvedObstacle(state, index, data)?.type),
     ['clutter', 'clutter', 'anchored', 'anchored', 'clutter', 'anchored', 'anchored', 'clutter']);
   assert.deepEqual([0, 5, 6, 11, 36, 37, 40, 41].map(index => unresolvedObstacle(state, index, data)?.ingredient),
     ['grain_3', 'corn_2', 'grain_2', 'corn_1', 'herbs_2', 'herbs_1', 'corn_2', 'grain_2']);
-  // A blocker never discovers its dish. A quest that holds a ticket puts its dishes in the recipe book.
+  // A quest that holds a ticket puts its dishes in the recipe book, and the recipe book keeps the prologue discoveries.
   const tickets = resolveQuests(state, data).filter(view => view.status === 'active').flatMap(view => view.quest.requirements.map(({ item }) => item));
-  assert.deepEqual(new Set(state.discovered), new Set([...data.board.initial.filter(code => code !== null), ...tickets]));
+  for (const code of [...data.board.initial.filter(code => code !== null), ...tickets]) assert.ok(state.discovered.includes(code), code);
   assert.equal(validateGame(state, data), true);
 });
 

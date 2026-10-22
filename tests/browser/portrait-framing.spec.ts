@@ -13,7 +13,7 @@ test('every portrait crop stays inside its own cell at ticket and story sizes',a
     name:element.getAttribute('aria-label')!,className:element.className,size:getComputedStyle(element).backgroundSize,position:getComputedStyle(element).backgroundPosition,
   }))).then(visible=>visible.filter((portrait,at)=>visible.findIndex(value=>value.name===portrait.name)===at));
   await page.keyboard.press('Escape');
-  expect(portraits.map(value=>value.name).sort()).toEqual(data.characters.filter(value=>!value.singleVisit).map(value=>value.name).sort());
+  expect(portraits.map(value=>value.name).sort()).toEqual(data.characters.filter(value=>!value.singleVisit&&!value.family).map(value=>value.name).sort());
   // Clone portraits that the actual journal rendered, retaining their production styles and atlas mapping.
   await page.evaluate(portraits=>{
     const gallery=document.createElement('div');gallery.id='portrait-framing-gallery';

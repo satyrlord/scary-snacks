@@ -24,16 +24,16 @@ export type SceneLine = { speaker: string; text: string };
  */
 type Diet = { name: string; forbid: DishTag[]; require?: { item: string; tag: DishTag }; apart?: [DishTag, DishTag]; lent?: true };
 /**
- * A person of the bistro. The core characters drive the story. A regular is a neighbour who arrives with the preparation that
+ * A person of the bistro. The core characters drive the story. Mara's parents (family) speak only in the prologue, and they are not neighbours. A regular is a neighbour who arrives with the preparation that
  * arrivesAfter names, or is present from the start; arrival plays a short scene, and favourites names the dishes that they like.
  * A character with provisions orders food for several days or for other people. Every other quest is one meal for each eater.
  */
 export type Character = {
   id: string; name: string; role: string; introduction: string; sprite: number; visitor?: boolean; singleVisit?: boolean;
   portraitAtlas?: PortraitAtlas; regular?: boolean; arrivesAfter?: string; favourites?: string[]; arrival?: SceneLine[]; diet?: Diet;
-  provisions?: true;
+  provisions?: true; family?: true;
 };
-export const portraitAtlases = ['guest', 'regulars-1', 'regulars-2', 'regulars-3'] as const;
+export const portraitAtlases = ['guest', 'regulars-1', 'regulars-2', 'regulars-3', 'family'] as const;
 type PortraitAtlas = typeof portraitAtlases[number];
 export type Task = { id: string; chapter: number; title: string; cost: number; work: { summary: string; materials: number; labour: number; hours: number }; dialogue: SceneLine[]; unlock?: string };
 export type TaskRequirement =
@@ -130,11 +130,24 @@ export const roomPaintings: readonly string[] = [
   'courtyard-13', 'courtyard-14', 'courtyard-15', 'courtyard-16', 'courtyard-18', 'courtyard-19', 'courtyard-20', 'courtyard-21', 'courtyard-22',
   'courtyard-23',
 ];
+/** A scene of the prologue. A notebook page is a painting that takes the place of the illustration of its event, with its words for screen readers. */
+export type PrologueScene = { id: string; title: string; dialogue: SceneLine[]; page?: { image: string; text: string } };
+/**
+ * An event of the prologue: one play day with a meal. Day is its date as a day of the calendar of act 1, so it is below 1. The board holds
+ * its sources and its prepared dishes, and its layout holds its blockers. On a fasting day no quest has a dish with a fasting tag.
+ * Room names the painted state of the family kitchen. Scene is the illustration of its scenes and of Mara's quests. Its quests pay nothing.
+ */
+export type PrologueEvent = {
+  id: string; title: string; line: string; day: number; fasting?: true; board: (string | null)[]; layout: BoardLayout; room: string;
+  scene: { image: string; text: string }; quests: Quest[]; opening: PrologueScene; closing: PrologueScene;
+};
+/** The prologue: its events in story order, the painted states of the family kitchen, the tags of a fasting day, and the starting gift of act 1. */
+export type Prologue = { title: string; events: PrologueEvent[]; rooms: RoomState[]; fasting: DishTag[]; gift: number };
 export type GameData = {
   board: { columns: number; rows: number; initial: (string | null)[]; defaultLayout: string; layouts: BoardLayout[]; preparations: PreparationObstacleBatch[] };
   chains: Chain[]; items: Record<string, Item>; characters: Character[]; chapters: Chapter[]; finale: Finale; tasks: Task[];
   areas: Area[]; rooms: RoomState[]; decorationSlots: DecorationSlot[]; economy: Economy; day: DayLevers; calendar: Calendar;
-  quests: Quest[];
+  quests: Quest[]; prologue: Prologue;
 };
 /**
  * An area as the completed preparations leave it. States are the earned states in order; current is the latest of them.
@@ -155,12 +168,14 @@ export type NightReport = {
   gift: (Placed & { first: boolean }) | null; departed: string[]; purse: number; seen: boolean;
 };
 export type GameState = {
-  version: 15; board: (Cell | null)[];
+  version: 16; board: (Cell | null)[];
+  /** The current event of the prologue, or null in act 1. During the prologue, the clock stays at day 1 with no merges. */
+  prologue: { event: number } | null;
   /** The purse. Below zero, it is a debt in the notebook of the village shop. */
   coins: number; taskIndex: number;
   discovered: string[]; decorations: string[];
   decorationChoices: Record<string, string>;
-  /** The delivered quests, in the order of delivery. */
+  /** The delivered quests, in the order of delivery. The served event quests of the prologue come first. */
   completedQuests: string[];
   layoutId: string; resolvedObstacles: string[];
   /** Completed preparations at adoption, and permanent placement history. Missing records do not add past batches. */
@@ -257,8 +272,10 @@ export const chainSeason = (chain: string, data: GameData) => data.chains.find(v
 /** A rat hole as a blocker. It has no ID of its own: a cleared rat hole leaves the list, so it never enters the cleared blockers. */
 const ratHole = (hole: Placed): BoardObstacle => ({ id: `rat-hole-${hole.position}`, position: hole.position, name: 'Rat hole', type: 'rat-hole',
   ingredient: hole.item, context: 'The thief rat dropped it here in the night.' });
+/** A board layout by its ID: a layout of act 1, or the layout of an event of the prologue. */
+export const boardLayout = (id: string, data: GameData) => data.board.layouts.find(layout => layout.id === id) ?? data.prologue.events.find(event => event.layout.id === id)?.layout;
 export function boardObstacles(state: Pick<GameState, 'layoutId' | 'preparationObstacles' | 'ratHoles'>, data: GameData): BoardObstacle[] {
-  return [...(data.board.layouts.find(layout => layout.id === state.layoutId)?.obstacles ?? []),
+  return [...(boardLayout(state.layoutId, data)?.obstacles ?? []),
     ...(state.preparationObstacles?.placed.flatMap(placement => {
       const batch = data.board.preparations.find(batch => batch.obstacles.some(obstacle => obstacle.id === placement.id));
       const obstacle = batch?.obstacles.find(obstacle => obstacle.id === placement.id);
@@ -266,7 +283,7 @@ export function boardObstacles(state: Pick<GameState, 'layoutId' | 'preparationO
     }) ?? []), ...state.ratHoles.map(ratHole)];
 }
 export function unresolvedObstacle(state: Pick<GameState, 'layoutId' | 'resolvedObstacles' | 'preparationObstacles' | 'ratHoles'>, index: number, data: GameData): BoardObstacle | null {
-  const initial = data.board.layouts.find(layout => layout.id === state.layoutId)?.obstacles.find(obstacle =>
+  const initial = boardLayout(state.layoutId, data)?.obstacles.find(obstacle =>
     obstacle.position === index && !state.resolvedObstacles.includes(obstacle.id));
   if (initial) return initial;
   const hole = state.ratHoles.find(value => value.position === index);
@@ -379,10 +396,10 @@ export function hasArrived(state: Pick<GameState, 'decorations'>, person: Charac
 /** The scene that introduces a regular on arrival. */
 export const arrivalScene = (person: Pick<Character, 'id'>) => `arrival-${person.id}`;
 export const isRegular = (person: Character) => !!person.regular;
-/** The neighbours of the bistro: the core characters, then the regulars in order of arrival, each with their delivered quests. */
+/** The neighbours of the bistro: the core characters, then the regulars in order of arrival, each with their delivered quests. Mara's parents are not neighbours. */
 export function resolveNeighbours(state: GameState, data: GameData) {
   const order = (person: Character) => person.arrivesAfter === undefined ? -1 : data.tasks.findIndex(task => task.id === person.arrivesAfter);
-  return data.characters.filter(person => !person.visitor).sort((a, b) => Number(isRegular(a)) - Number(isRegular(b)) || order(a) - order(b))
+  return data.characters.filter(person => !person.visitor && !person.family).sort((a, b) => Number(isRegular(a)) - Number(isRegular(b)) || order(a) - order(b))
     .map(person => ({ person, arrived: hasArrived(state, person),
       delivered: state.completedQuests.filter(id => data.quests.find(quest => quest.id === id)?.character === person.id).length }));
 }
@@ -434,6 +451,45 @@ function openRepeating(state: GameState, views: QuestView[], data: GameData): Qu
   const busy = open.length > later.length || questDeliveryCells(state, { requirements: later.flatMap(quest => quest.requirements) }).some(index => index < 0);
   return busy || taskEligibility(state, data).ready ? undefined : nextRepeating(state, data);
 }
+/** The current event of the prologue, or undefined in act 1. */
+export const currentEvent = (state: Pick<GameState, 'prologue'>, data: GameData) => state.prologue ? data.prologue.events[state.prologue.event - 1] : undefined;
+/** The date of the game: the date of the current event in the prologue, and the day of the clock in act 1. */
+export const gameDay = (state: Pick<GameState, 'prologue' | 'clock'>, data: GameData) => currentEvent(state, data)?.day ?? state.clock.day;
+/** The event quests of the prologue, in event order. */
+export const prologueQuests = (data: GameData) => data.prologue.events.flatMap(event => event.quests);
+/** A quest by its ID: a quest of an act, or an event quest of the prologue. */
+export const findQuest = (id: string, data: GameData) => data.quests.find(quest => quest.id === id) ?? prologueQuests(data).find(quest => quest.id === id);
+/** The number of the event of an event quest, or 0 for a quest of an act. */
+export const questEvent = (quest: Quest, data: GameData) => data.prologue.events.findIndex(event => event.quests.includes(quest)) + 1;
+/** Each quest of an event is served. */
+export const eventComplete = (state: Pick<GameState, 'completedQuests'>, event: PrologueEvent) => event.quests.every(quest => state.completedQuests.includes(quest.id));
+/** The scenes of the prologue in story order: opening 1, closing 1, opening 2, and so on to closing 7. */
+export const prologueScenes = (data: GameData) => data.prologue.events.flatMap(event => [event.opening, event.closing]);
+/**
+ * The prologue scenes that a game has earned, in story order. A new game earns opening 1, the end of event N earns closing N and
+ * opening N + 1, and the end of event 7 earns closing 7. Act 1 has earned each one.
+ */
+export function earnedPrologue(state: Pick<GameState, 'prologue' | 'completedQuests'>, data: GameData): string[] {
+  const scenes = prologueScenes(data).map(scene => scene.id), event = currentEvent(state, data);
+  return event ? scenes.slice(0, 2 * state.prologue!.event - 1 + Number(eventComplete(state, event))) : scenes;
+}
+/**
+ * The dishes that an event board can hold: the first dish of each source, the prepared dishes, the blocked dishes, and each dish that a
+ * merge of two of these makes, until no merge adds a dish. The list ignores how many of each dish the board holds.
+ */
+export function eventDishes(event: Pick<PrologueEvent, 'board' | 'layout'>, data: GameData): Set<string> {
+  const dishes = new Set<string>();
+  for (const code of event.board.filter(present)) dishes.add(data.items[code].generator?.outputs[0] ?? code);
+  for (const obstacle of event.layout.obstacles) dishes.add(obstacle.ingredient);
+  const recipes = Object.values(data.items).filter(item => item.recipe);
+  for (let size = 0; size !== dishes.size;) {
+    size = dishes.size;
+    // Check each possible result once per pass. Save validation uses this list after every action.
+    for (const code of dishes) if (data.items[code].next) dishes.add(data.items[code].next!);
+    for (const item of recipes) if (item.recipe!.every(part => dishes.has(part))) dishes.add(item.id);
+  }
+  return dishes;
+}
 /** The number of quest tickets on the counter. The recovery quest has its own ticket after them. */
 export const QUEST_TICKETS = 3;
 /**
@@ -452,6 +508,10 @@ function recoveryOpen(state: GameState, data: GameData, open = data.quests.some(
  */
 export function resolveQuests(state: GameState, data: GameData): QuestView[] {
   let tickets = 0;
+  // In the prologue, only the quests of the current event are open. They pay nothing, so the recovery quest stays closed.
+  const event = currentEvent(state, data);
+  if (event) return [...event.quests.map((quest): QuestView => ({ quest, status: questDone(state, quest.id) ? 'complete' : tickets++ < QUEST_TICKETS ? 'active' : 'waiting' })),
+    ...data.quests.map((quest): QuestView => ({ quest, status: 'locked' }))];
   const views: QuestView[] = data.quests.map(quest => ({ quest, status: questDone(state, quest.id) ? 'complete'
     : quest.recovery || quest.repeating || !questReady(state, quest, data) ? 'locked' : tickets++ < QUEST_TICKETS ? 'active' : 'waiting' }));
   const open = views.some(view => view.status === 'active' || view.status === 'waiting');
@@ -476,7 +536,7 @@ export function requiredQuests(taskIndex: number, data: GameData): Quest[] {
 /** A guest who visits once has a journal introduction only while their quest is open. */
 export function journalCharacters(state: GameState, data: GameData): Character[] {
   const quests = resolveQuests(state, data);
-  return data.characters.filter(character => hasArrived(state, character)).filter(character => !character.singleVisit
+  return data.characters.filter(character => hasArrived(state, character) && !character.family).filter(character => !character.singleVisit
     || quests.some(view => (view.quest.character === character.id || view.quest.companions?.includes(character.id)) && (view.status === 'active' || view.status === 'waiting')));
 }
 /** The cells that hold a dish, in board order. A blocked cell holds no item, so the player can move each of them. */
@@ -577,13 +637,14 @@ export function questOpening(quest: Quest, data: GameData, known = new Map<Quest
 /** Every scene ID: a preparation scene uses the ID of its preparation, and a quest completion scene uses the ID of its quest. */
 export const storyScenes = (data: GameData) => [...data.tasks.map(task => task.id), ...data.quests.map(quest => quest.id),
   ...data.chapters.map(chapter => chapter.id), data.finale.id, ...data.quests.flatMap(quest => quest.followUp ? [quest.followUp.id] : []),
-  ...data.characters.flatMap(person => person.arrival ? [arrivalScene(person)] : [])];
+  ...data.characters.flatMap(person => person.arrival ? [arrivalScene(person)] : []), ...prologueScenes(data).map(scene => scene.id)];
 /** The story order of preparation scenes, chapter scenes, and the finale: each chapter scene follows the preparations of its chapter. */
 export const storyOrder = (data: GameData) => [...data.chapters.flatMap((chapter, index) => [...data.tasks.filter(task => task.chapter === index + 1).map(task => task.id), chapter.id]), data.finale.id];
-/** The content that a scene ID names: a preparation, a quest completion, a chapter's closing, the finale, a regular's arrival, or local news. */
+/** The content that a scene ID names: a preparation, a quest completion, a chapter's closing, the finale, a regular's arrival, local news, or a scene of the prologue. */
 type SceneSource =
   | { kind: 'task'; task: Task } | { kind: 'quest'; quest: Quest } | { kind: 'chapter'; chapter: Chapter; number: number }
-  | { kind: 'finale'; finale: Finale } | { kind: 'arrival'; person: Character } | { kind: 'news'; news: NonNullable<Quest['followUp']> };
+  | { kind: 'finale'; finale: Finale } | { kind: 'arrival'; person: Character } | { kind: 'news'; news: NonNullable<Quest['followUp']> }
+  | { kind: 'prologue'; scene: PrologueScene; event: PrologueEvent; number: number };
 /** The content of a scene by its ID, or null for an unknown ID. */
 export function sceneSource(id: string, data: GameData): SceneSource | null {
   const task = data.tasks.find(value => value.id === id);
@@ -596,7 +657,11 @@ export function sceneSource(id: string, data: GameData): SceneSource | null {
   const person = data.characters.find(value => value.arrival && arrivalScene(value) === id);
   if (person) return { kind: 'arrival', person };
   const news = data.quests.find(value => value.followUp?.id === id)?.followUp;
-  return news ? { kind: 'news', news } : null;
+  if (news) return { kind: 'news', news };
+  const number = data.prologue.events.findIndex(event => event.opening.id === id || event.closing.id === id) + 1;
+  if (!number) return null;
+  const event = data.prologue.events[number - 1];
+  return { kind: 'prologue', scene: event.opening.id === id ? event.opening : event.closing, event, number };
 }
 /** Completed preparations are the only input. A chapter is complete when its last preparation is complete. */
 export function resolveChapters(state: Pick<GameState, 'taskIndex'>, data: GameData): ChapterView[] {

@@ -24,6 +24,11 @@ export const imageVariants = {
   'scene-sheet-2': { widths: [1024], formats: ['webp'], cells: { columns: 2, rows: 2, names: ['scene-cathedral-5', 'scene-cathedral-6', 'scene-cathedral-7', 'scene-cathedral-8'] } },
   'scene-sheet-3': { widths: [1024], formats: ['webp'], cells: { columns: 2, rows: 2, names: ['scene-cathedral-9', 'scene-ionatan-dinner', 'scene-mina-avram-meal', 'scene-easter-baskets'] } },
   'scene-sheet-4': { widths: [1024], formats: ['webp'], cells: { columns: 2, rows: 2, names: ['scene-bela-snowman', 'scene-icicle-clock', 'scene-chimney-sweep', 'scene-blajini'] } },
+  // The illustrations of the prologue events, and the two painted pages of the notebook in cells of the same size.
+  'scene-sheet-5': { widths: [1024], formats: ['webp'], cells: { columns: 2, rows: 2, names: ['scene-prologue-churchyard', 'scene-prologue-carols', 'scene-prologue-midnight', 'scene-prologue-bus-stop'] } },
+  'notebook-pages': { widths: [1024], formats: ['webp'], cells: { columns: 2, rows: 1, names: ['scene-notebook-cabbage-rolls', 'scene-notebook-note'] } },
+  // The family photographs of Mama and Tata take the place of their sketches, in cells of the sketch size.
+  'family-photos': { widths: [672], formats: ['webp'], cells: { columns: 2, rows: 1, names: ['photo-mama', 'photo-tata'] } },
   // The page draws the runner at most 14px tall through an SVG pattern, which takes one format.
   'embroidered-runner': { widths: [384], formats: ['webp'] },
   // The food atlases have 512px cells. The 1024px width gives 256px cells.
@@ -54,6 +59,7 @@ export const imageVariants = {
   'regulars-2': { widths: [640], formats: ['webp'] },
   'regulars-3': { widths: [640], formats: ['webp'] },
   mascots: { widths: [640], formats: ['webp'] },
+  'family-portraits': { widths: [640], formats: ['webp'] },
   // The rat sheets have 512px cells. The 1024px width gives 256px cells for a rat of at most one board cell.
   'rat-thief': { widths: [1024], formats: ['webp'] },
   'rat-soricescu': { widths: [1024], formats: ['webp'] },
@@ -96,6 +102,11 @@ export const imageVariants = {
   // The painting of the supper fills the dialog on a phone and a half-height dialog on a wider screen.
   'finale-supper': { widths: [768, 1536], formats: ['avif', 'webp'] },
   'front-room-24': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  // The family kitchen of the prologue fills the same 3:4 room view.
+  'family-kitchen-mourning': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'family-kitchen-christmas': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'family-kitchen-new-year': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'family-kitchen-farewell': { widths: [768, 1536], formats: ['avif', 'webp'] },
 } as const;
 export const encoderSettings = {
   avif: { quality: 66, effort: 6, chromaSubsampling: '4:4:4' },

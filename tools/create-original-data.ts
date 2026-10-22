@@ -3,7 +3,8 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { menuPrice, MIXED, roomPaintings, yearDay } from '../src/model.ts';
 import { dataProblems } from '../src/content.ts';
-import type { Area, BoardLayout, Calendar, Chain, Chapter, Character, DayLevers, DecorationSlot, DishTag, Economy, Finale, FoodAtlas, GameData, Holiday, Item, PreparationObstacleBatch, Quest, RoomState, Task, Weather } from '../src/model.ts';
+import { imageVariants } from './build-image-variants.ts';
+import type { Area, BoardLayout, BoardObstacle, Calendar, Chain, Chapter, Character, DayLevers, DecorationSlot, DishTag, Economy, Finale, FoodAtlas, GameData, Holiday, Item, PreparationObstacleBatch, Prologue, PrologueEvent, Quest, RoomState, Task, Weather } from '../src/model.ts';
 
 // The levers of the economy (docs/economy.md). They are starting values: the campaign balance test measures them.
 const economy: Economy = { takeCost: 1, blockerCoin: 1, workRate: 2, recoveryFloor: 10 };
@@ -98,6 +99,9 @@ const mixedRows: [slug: string, name: string, parts: [string, string], added: Di
   ['pasca', 'Pască', ['Sweet dough', 'Cottage cheese'], [], 'breads', 5],
   ['red-eggs', 'Red eggs', ['Eggs', 'Vegetable basket'], [], 'breads', 6],
   ['coliva', 'Colivă', ['Flour', 'Fruit bowl'], [], 'breads', 7],
+  // The breads of the prologue: the ritual bread rings with a sprig of basil, and the Christmas Eve wafers with honey and walnuts.
+  ['colaci', 'Colaci', ['Loaf', 'Herb bunch'], [], 'sweets', 5],
+  ['turte', 'Turte', ['Dough', 'Fruit bowl'], [], 'sweets', 6],
 ];
 const items: Record<string, Item> = {};
 for (const [chain, , source, stages, free] of chains) {
@@ -156,6 +160,11 @@ const characters: Character[] = [
     diet: { name: 'Kosher-style', forbid: ['pork'], apart: ['meat', 'dairy'] },
     introduction: 'I am Doctor Avram, professional physician and amateur solomonar. I am travelling with Mina to find Ionatan. We will stay together while we ask about the road to the castle.' },
   ...regulars(),
+  // Mara's parents speak only in the prologue. Mara calls them Mama and Tata, and they have no other names.
+  { id: 'mama', name: 'Mama', role: 'Mara’s mother', family: true, portraitAtlas: 'family', sprite: 0,
+    introduction: 'I am Mara’s mother. I keep the kitchen of our flat in the city, and my mother’s recipes in my head.' },
+  { id: 'tata', name: 'Tata', role: 'Mara’s father', family: true, portraitAtlas: 'family', sprite: 1,
+    introduction: 'I am Mara’s father. I have opinions about carols, roofs, and the price of everything.' },
 ];
 /** Vlad and Elisabeta: each quest has red wine and a meat dish, and no dish has garlic. */
 function nobleDiet(): Character['diet'] {
@@ -883,6 +892,181 @@ const rank = (quest: Quest) => quest.booked ? 3 : quest.march ? 2 : quest.opens 
 const quests: Quest[] = [recovery, ...campaign.filter(({ quest }) => !quest.act).sort((first, second) => first.window - second.window
   || rank(first.quest) - rank(second.quest))
   .map(({ quest }) => quest), ...repeating, ...campaign.filter(({ quest }) => quest.act).map(({ quest }) => quest)];
+// The prologue: seven events in the family kitchen of the city flat, from the funeral of Mamaia Paraschiva to the farewell dinner.
+// Each event has an authored board with its sources and its prepared dishes, one to three quests that pay nothing, and two scenes.
+// The fasting tags apply to each quest of a fasting day. Wine and garlic are permitted.
+const fasting: DishTag[] = ['meat', 'dairy', 'egg', 'fish'];
+// The four paintings of the family kitchen. The room shows the state of the current event.
+const kitchenRows: [id: string, label: string, text: string][] = [
+  ['mourning', 'mourning', 'The kitchen of the family flat in the city, in winter. A cloth covers the mirror, and a candle burns beside a photograph of Mamaia Paraschiva with a black ribbon. The window shows apartment blocks under snow, and the glass of the balcony door shows the pickle barrel.'],
+  ['christmas', 'Christmas', 'Fir branches hang over the kitchen door, a basket of colaci waits on the table, and the paper star of the carol singers leans by the window.'],
+  ['new-year', 'the new year', 'Paper streamers from the midnight table hang over the cupboard, and frost ferns cover the window.'],
+  ['farewell', 'the farewell', 'A packed suitcase and an empty cat basket wait by the kitchen door.'],
+];
+const prologueRooms: RoomState[] = kitchenRows.map(([id, label, text]) => ({ id: `family-kitchen-${id}`, area: 'family-kitchen', after: null, focus: { x: 50, y: 50 }, mark: { x: 50, y: 50 }, label, text }));
+// The illustrations of the events. Mara's quests show them too, in place of a sketch.
+const eventScenes = {
+  churchyard: { image: 'scene-prologue-churchyard', text: 'The village churchyard in snow. Mourners with candles stand before the church, among them Mara, Ilie, Eszter, and Sorin, beside a table with colivă and colaci.' },
+  carols: { image: 'scene-prologue-carols', text: 'Three children with a paper star sing carols at the door of the flat. Tata holds out a basket of colaci, and Miez peeks out behind his legs.' },
+  midnight: { image: 'scene-prologue-midnight', text: 'Mara, Mama, and Tata at the midnight table in the family kitchen, under paper streamers, with frost on the window and Miez on the windowsill. Tata raises his glass, and Mama says nothing.' },
+  busStop: { image: 'scene-prologue-bus-stop', text: 'Mara waits at a bus stop of the city at dawn, with a suitcase and a cat basket, and Miez looks out through its grille.' },
+};
+// The two pages of Mamaia's notebook. Each is a painting that takes the place of the illustration of its scene. Mara reads the words aloud.
+const notebook = {
+  cabbageRolls: { image: 'scene-notebook-cabbage-rolls', text: 'Mamaia’s notebook, open at the cabbage rolls. The left page has the recipe in faded handwriting, a small drawing of a roll, and a grease stain. The right page has nine lines of old Cyrillic letters under a small red cross.' },
+  note: { image: 'scene-notebook-note', text: 'A later page of Mamaia’s notebook: a short note in handwriting fills the page, beside a pressed sprig of basil.' },
+};
+/** An authored event board: the sources centred in the top row, and the prepared dishes centred in the second row. */
+function eventBoard(sources: string[], prepared: string[]) {
+  const board = Array<string | null>(42).fill(null), centre = (count: number) => Math.floor((6 - count) / 2);
+  sources.forEach((name, at) => { board[centre(sources.length) + at] = Object.values(items).find(item => item.name === name && item.generator)!.id; });
+  prepared.forEach((name, at) => { board[6 + centre(prepared.length) + at] = dish(name); });
+  return board;
+}
+type EventScene = [id: string, title: string, speech: [speaker: string, text: string][]];
+type EventRow = {
+  id: string; title: string; line: string; date: string; fasting?: true; sources: string[]; prepared: string[]; blockers?: (Omit<BoardObstacle, 'ingredient' | 'context'> & { ingredient: string })[];
+  room: string; scene: PrologueEvent['scene']; quests: [character: string, title: string, requirements: [string, number][], opening: Speech][];
+  opening: EventScene; closing: EventScene; openingPage?: PrologueEvent['scene']; closingPage?: PrologueEvent['scene'];
+};
+const eventRows: EventRow[] = [
+  { id: 'funeral', title: 'The funeral meal', line: 'Cook the funeral meal (pomană) for Mamaia Paraschiva, in the village. It is a fasting day.', date: '23 Dec', fasting: true,
+    sources: ['Legume sacks'], prepared: ['Colivă', 'Colaci', 'Green beans'], room: 'mourning', scene: eventScenes.churchyard,
+    quests: [
+      ['mama', 'The table of the dead', [['Colivă', 1], ['Colaci', 1]], 'The colivă and the colaci are ready. Put them on the tray for the priest. He blesses them before anyone eats.'],
+      ['mara', 'Beans for the mourners', [['Bean dip', 1]], 'The mourners come in from the cold churchyard. A bean dip for the fasting table, with plenty of garlic. Mamaia said that garlic keeps out the cold, and other things too.'],
+    ],
+    opening: ['call', 'A call on Saint Ignatius', [
+      ['mara', 'The telephone rang on Friday, on Saint Ignatius. Mamaia Paraschiva died in her sleep, in the village, in the house above her old bistro.'],
+      ['mama', 'She was ninety-one, and she still made her own colivă. She said that a colivă from a shop has no memory.'],
+      ['mama', 'The funeral is on Monday. We cook here in the city and drive it to the village. Colivă and colaci for the table of the dead, and beans, because it is a fasting day.'],
+      ['mara', 'I have not been to the village since I was twelve.'],
+      ['mama', 'Then the village has not seen you since you were twelve. Wash your hands.']]],
+    closing: ['miez', 'Miez chooses a bag', [
+      ['mara', 'After the meal, I walked down to the bistro. The shutters are closed, and the sign has lost two letters.'],
+      ['mara', 'A black cat sat on the steps, as if he waited for the door to open.'],
+      ['mama', 'That is Miez. He was your grandmother’s. Nobody knows how old he is. She did not know either.'],
+      ['mara', 'When we packed the car, he was in my bag. He did not ask.'],
+      ['mama', 'Then he comes with us. A cat that chooses a bag has chosen a family.']]] },
+  { id: 'christmas-eve', title: 'Christmas Eve', line: 'Cook for the carol singers and the table of Christmas Eve. It is a fasting day.', date: '24 Dec', fasting: true,
+    sources: ['Windmill', 'Herb basket', 'Cornucopia'], prepared: ['Loaf', 'Herb bunch', 'Dough', 'Fruit bowl'], room: 'christmas', scene: eventScenes.carols,
+    quests: [
+      ['tata', 'Colaci for the carol singers', [['Colaci', 2]], 'Every child who sings at our door gets a colac. That is the custom. I would like the custom to sing a longer song.'],
+      ['mama', 'Turte for Christmas Eve', [['Turte', 2]], 'Turte with honey and walnuts, as my mother made them. Thin enough to read the newspaper through, she said.'],
+    ],
+    opening: ['carols', 'The carol singers are coming', [
+      ['tata', 'The carol singers come tonight. I have counted the children in our block. Eleven, and the boy on the fourth floor counts as two.'],
+      ['mama', 'Then we need colaci for the door and turte for the table. It is still a fasting day.'],
+      ['mara', 'Miez is asleep on the radiator. He has not moved since we came home.'],
+      ['tata', 'A sensible animal.']]],
+    closing: ['verses', 'Three lines of a carol', [
+      ['tata', 'They sang three lines and held out their hands. When I was a boy, a carol had eleven verses, and a dog chased you after the fourth.'],
+      ['mama', 'You gave each of them two colaci.'],
+      ['tata', 'They sang the three lines very well.'],
+      ['mara', 'One small girl saw Miez on the windowsill and crossed herself. Then she asked for a colac for him too.']]] },
+  { id: 'christmas', title: 'Christmas dinner', line: 'Cook Mamaia’s cabbage rolls from her notebook for Christmas dinner.', date: '25 Dec',
+    sources: ['Butcher’s hook', 'Vegetable crate', 'Cornucopia'], prepared: ['Minced pork', 'Pickled cabbage', 'Sweet dough'], room: 'christmas', scene: eventScenes.carols,
+    openingPage: notebook.cabbageRolls,
+    quests: [
+      ['mama', 'Mamaia’s cabbage rolls', [['Cabbage rolls', 2]], 'Two pots of cabbage rolls from the notebook, word for word. If she wrote "a little", we use a little.'],
+      ['tata', 'A Christmas plate', [['Sausages', 1], ['Cozonac', 1]], 'The fast is over. I want a sausage, a slice of cozonac, and then a long nap.'],
+    ],
+    opening: ['notebook', 'Mamaia’s notebook', [
+      ['mama', 'I brought your grandmother’s notebook from her kitchen drawer. Her cabbage rolls are on the first page.'],
+      ['mara', 'Listen: "Sour cabbage from the barrel, never from the shop. Roll them tight, like a child in winter. Cook them until the house smells of them, then one hour more."'],
+      ['mara', 'The page beside it is in letters that I cannot read. They look like the letters in old church books.'],
+      ['tata', 'That is the old writing. My grandfather could read it. He said it was mostly about the weather.'],
+      ['mama', 'Today we cook the cabbage rolls. The weather can wait.']]],
+    closing: ['nearly', 'Nearly right', [
+      ['mama', 'They are good. They are nearly right.'],
+      ['tata', 'They are very good.'],
+      ['mama', 'Nearly. Something is missing, and the notebook does not say what.'],
+      ['mara', 'Maybe it is on the page that nobody can read.']]] },
+  { id: 'new-year', title: 'New Year’s Eve', line: 'Cook the midnight table of New Year’s Eve.', date: '31 Dec',
+    sources: ['Butcher’s hook', 'Vegetable crate', 'Pickle barrel', 'Windmill', 'Milk churn'], prepared: ['Vegetable basket', 'Pickled green tomatoes', 'Cottage cheese'], room: 'new-year', scene: eventScenes.midnight,
+    quests: [
+      ['mama', 'Peppers for the old year', [['Stuffed peppers', 2]], 'Two stuffed peppers. Your father eats the second one and says that it is for the old year.'],
+      ['tata', 'The midnight table', [['Sausages', 1], ['Mixed pickles', 1]], 'Sausages, and pickles from the barrel on the balcony. That barrel is the only thing in this flat that improves with age.'],
+      ['mara', 'Papanași at midnight', [['Papanași', 2]], 'Papanași for midnight. If we eat them while the clock strikes, the year starts sweet.'],
+    ],
+    opening: ['midnight', 'The last night of the year', [
+      ['tata', 'Stuffed peppers, sausages, pickles from the balcony, and papanași at midnight. That is a New Year’s table.'],
+      ['mara', 'And a long talk about the bistro, I suppose.'],
+      ['tata', 'After the papanași. Nobody makes a good decision before dessert.']]],
+    closing: ['talk', 'The talk after dessert', [
+      ['tata', 'The building in the village is old, Mara. The roof leaks, and the village is far away. A man from the town has already asked to buy it.'],
+      ['mara', 'Mamaia kept it open for fifty years.'],
+      ['tata', 'And for the last ten, it was open only for the cat.'],
+      ['mara', 'Mama did not say a word. In our family, that is the loudest answer.'],
+      ['tata', 'Happy New Year, everyone.']]] },
+  { id: 'epiphany', title: 'Epiphany', line: 'Cook a warm meal for the priest who blesses the flat on Epiphany (Boboteaza).', date: '6 Jan',
+    sources: ['Hen’s nest', 'Windmill', 'Herb basket'], prepared: ['Chicken broth', 'Socată'], room: 'new-year', scene: eventScenes.midnight,
+    closingPage: notebook.note,
+    quests: [
+      ['tata', 'Soup for the priest', [['Chicken noodle soup', 2], ['Linden tea', 1]], 'The priest climbs eight floors with his basil and his holy water. He gets a chicken soup, and I get one for the stairs that I did not climb. And a linden tea for his voice.'],
+    ],
+    opening: ['blessing', 'The blessing of the flat', [
+      ['mama', 'The priest comes today to bless the flat. Your father has hidden the plum brandy.'],
+      ['tata', 'Behind the holy water. Nobody looks there.'],
+      ['mara', 'The frost is so hard that the window has ferns of ice. Miez watches them as if they might move.']]],
+    closing: ['note', 'A note for Mara', [
+      ['mara', 'After the priest left, I read the notebook again. On a later page, there is a note with my name on it.'],
+      ['mara', '"Mara. The bistro needs someone who cooks for people, not for money. The cabbage rolls need the same thing. The rest is in this notebook. Do not let them sell the cat."'],
+      ['mama', 'She knew your father very well.'],
+      ['tata', 'I never wanted to sell the cat.']]] },
+  { id: 'memorial', title: 'The memorial of the fortieth day', line: 'Cook the memorial meal of the fortieth day, in the village.', date: '25 Jan',
+    sources: ['Windmill', 'Herb basket', 'Cornucopia', 'Legume sacks'], prepared: ['Flour'], room: 'mourning', scene: eventScenes.churchyard,
+    blockers: [
+      { id: 'prologue-crate', position: 19, name: 'Mamaia’s crate', type: 'clutter', ingredient: 'Loaf', sprite: 0 },
+      { id: 'prologue-sack', position: 28, name: 'Mamaia’s sack', type: 'clutter', ingredient: 'Fruit bowl', sprite: 1 },
+      { id: 'prologue-linen', position: 34, name: 'Mamaia’s linen bundle', type: 'clutter', ingredient: 'Herb bunch', sprite: 3 },
+    ],
+    quests: [
+      ['mama', 'Colivă for the fortieth day', [['Colivă', 2]], 'Two plates of colivă, one for the church and one for the table. Use her old dish. She would check.'],
+      ['mara', 'Colaci for the memorial', [['Colaci', 2], ['Bean dip', 1]], 'Colaci and a bean dip for the neighbours who come to remember her. Half the village says that Mamaia fed them once. The other half says twice.'],
+    ],
+    opening: ['fortieth', 'The fortieth day', [
+      ['mama', 'The fortieth day falls on Tuesday, but we hold the memorial on Saturday. Saturday belongs to the dead.'],
+      ['mara', 'So we go back to the village. Colivă again, colaci again, and beans.'],
+      ['tata', 'And the notary. He reads the will after the meal. I asked him to read it before, but he has principles.'],
+      ['mama', 'Her house is full of things to sort. Mind her crate, her sack, and her linen. She labelled nothing and remembered everything.']]],
+    closing: ['will', 'The will', [
+      ['mara', 'The notary read the will in the cold front room of the bistro. Mamaia left her house to Mama, her savings to the church roof, and the bistro to me.'],
+      ['tata', 'And the cat?'],
+      ['mara', '"The cat goes where the bistro goes." It is in the will.'],
+      ['mara', 'I stood in the dark room and saw her at the stove. I am going to open the bistro again.'],
+      ['mama', 'I know. I knew at New Year.']]] },
+  { id: 'farewell', title: 'The farewell dinner', line: 'Cook the farewell dinner before Mara leaves for the village.', date: '13 Feb',
+    sources: ['Butcher’s hook', 'Vegetable crate', 'Windmill'], prepared: [], room: 'farewell', scene: eventScenes.busStop,
+    quests: [
+      ['mama', 'The cabbage rolls, again', [['Cabbage rolls', 2]], 'Two pots, from the notebook. This time I cook them for you, not for the notebook.'],
+      ['tata', 'Pogăcele for the journey', [['Pogăcele', 2]], 'Two pogăcele for the bus. The village is far, and the bus does not stop for anybody’s stomach.'],
+    ],
+    opening: ['last-dinner', 'The last dinner in the city', [
+      ['mama', 'Your last dinner in the city. I am cooking the cabbage rolls from the notebook again.'],
+      ['tata', 'And I make pogăcele for the journey. Nobody leaves this flat with an empty bag.'],
+      ['mara', 'Miez knows. He sat in my suitcase all morning, and now he refuses to go in his basket.']]],
+    closing: ['blessing', 'A blessing for the road', [
+      ['mara', 'Mama, these are right. These are exactly right.'],
+      ['mama', 'I cooked them for you. That was the missing thing.'],
+      ['tata', 'Here is some money from us. It is not much, but it pays for the first days, until the bistro pays for itself.'],
+      ['tata', 'And our blessing. That one costs nothing, and it lasts longer.'],
+      ['mara', 'At dawn, I took the first bus to the village. Miez rode in his basket and complained for the whole journey.']]] },
+];
+const prologueEvents: PrologueEvent[] = eventRows.map((row, index) => {
+  const number = index + 1, scene = ([id, title, speech]: EventScene, page?: PrologueEvent['scene']) =>
+    ({ id: `prologue-${number}-${id}`, title, dialogue: lines('mara', speech), ...(page ? { page } : {}) });
+  return {
+    id: row.id, title: row.title, line: row.line, day: on(row.date), ...(row.fasting ? { fasting: true as const } : {}), board: eventBoard(row.sources, row.prepared),
+    layout: { id: `prologue-${row.id}`, obstacles: (row.blockers ?? []).map(blocker => ({ ...blocker, ingredient: dish(blocker.ingredient) })) },
+    room: `family-kitchen-${row.room}`, scene: row.scene,
+    quests: row.quests.map(([character, title, requirements, opening]) => ({ id: `prologue-${number}-${character}`, character, title, afterTask: null,
+      ...questTerms(requirements), reward: 0, opening: lines(character, opening), completion: [] })),
+    opening: scene(row.opening, row.openingPage), closing: scene(row.closing, row.closingPage),
+  };
+});
+// The starting gift of Mara's parents: the purse of act 1 at its start. A lever from 10 to 20 coins (docs/economy.md).
+const prologue: Prologue = { title: 'The inheritance', events: prologueEvents, rooms: prologueRooms, fasting, gift: 15 };
 // The renovation: every preparation repaints one room, so the bistro visibly improves as the player spends coins.
 // Each area is a series of 3:4 portrait paintings (docs/specs/001-visible-renovation-art-plan.md). A state shows every change paid for in its area.
 const areas: Area[] = [
@@ -1084,13 +1268,15 @@ const preparations: PreparationObstacleBatch[] = [
 const data: GameData = {
   board: { columns: 6, rows: 7, initial, defaultLayout: 'workbench-clutter-1', layouts, preparations },
   chains: chains.map(([id, name]) => ({ id, name, ...(seasons[id] ? { season: seasons[id] } : {}) })), items, characters, chapters, finale, tasks, areas, rooms, decorationSlots,
-  economy, day, calendar, quests,
+  economy, day, calendar, quests, prologue,
 };
 // A room shows only paintings whose masters the user accepted; the build ships their variants.
 const provenance: { assets: { id: string }[] } = JSON.parse(await readFile(new URL('../docs/asset-provenance.json', import.meta.url), 'utf8'));
 const unapproved = roomPaintings.filter(id => !provenance.assets.some(asset => asset.id === id));
 if (unapproved.length) throw new Error(`These room paintings have no approved master: ${unapproved.join(', ')}.`);
-const problems = dataProblems(data, provenance.assets.map(asset => asset.id));
+// A sheet master ships each of its cells as its own image.
+const cellImages = Object.values(imageVariants).flatMap(plan => 'cells' in plan ? plan.cells.names.filter(name => name !== null) : []);
+const problems = dataProblems(data, [...provenance.assets.map(asset => asset.id), ...cellImages]);
 if (problems.length) throw new Error(`The game data is not valid: ${problems.join(' ')}`);
 const target = new URL('../public/data/game.json', import.meta.url);
 await mkdir(fileURLToPath(new URL('.', target)), { recursive: true });

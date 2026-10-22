@@ -1,8 +1,8 @@
 // The story: the chapter card with the next preparation and its payment, the scenes, and the story journal.
-import { dateText, deliveriesSince, journalCharacters, resolveChapters, resolveNeighbours, resolveQuests, sceneSource, supperComplete, supperQuest, taskEligibility } from './model.ts';
+import { currentEvent, dateText, deliveriesSince, earnedPrologue, eventComplete, journalCharacters, prologueScenes, resolveChapters, resolveNeighbours, resolveQuests, sceneSource, supperComplete, supperQuest, taskEligibility } from './model.ts';
 import type { Character, ChapterView, SceneLine, Task, TaskRequirement } from './model.ts';
 import { $, button, coinText, count, element, names } from './dom.ts';
-import { coinMark, icon, portrait, questSketch } from './art.ts';
+import { coinMark, icon, portrait, questSketch, sceneIllustration } from './art.ts';
 import { modal, showModal } from './dialog.ts';
 import { guidanceGoal } from './dishes.ts';
 import { holdChange, miezSprite, preloadRoom, roomPicture, SUPPER_PICTURE, toggleCat } from './room.ts';
@@ -15,6 +15,7 @@ onReplace(() => { expandedCost = null; });
 
 /** The story card on wider screens and the Story sheet on phones show the same content; the sheet's title replaces the heading. */
 export function storyContent(inSheet: boolean) {
+  if (state.prologue) return prologueContent(inSheet);
   const eligibility = taskEligibility(state, data), task = eligibility.task, views = resolveChapters(state, data);
   const view = views.find(value => value.status === 'current') ?? views.at(-1)!, chapter = view.number;
   const content = document.createDocumentFragment();
@@ -22,13 +23,7 @@ export function storyContent(inSheet: boolean) {
   if (inSheet) content.append(element('p', 'chapter-name', `Chapter ${chapter} · ${view.chapter.title}`));
   else content.append(element('h2', 'chapter-title', view.chapter.title));
   content.append(element('p', 'chapter-objective', view.chapter.objective), chapterSteps(view, !inSheet));
-  // An earned scene waits here until the player finishes it. Cooking never waits for it.
-  const waiting = state.pendingScenes[0], scene = waiting ? storyScene(waiting) : null;
-  if (waiting) {
-    const notice = element('div', 'story-waiting'), read = button('Read now', 'text-button', () => showScene(waiting));
-    read.setAttribute('aria-label', `Read now: ${scene?.title ?? 'the waiting scene'}`);
-    notice.append(element('p', '', scene?.prompt ?? 'A story scene is waiting.'), read); content.append(notice);
-  }
+  content.append(...waitingNotice());
   const body = element('div', 'task-content');
   const supper = supperQuest(data)!;
   if (!task && !supperComplete(state,data)) body.append(element('h3', '', supper.title), element('p', '', `Every preparation is done. ${character(supper.character).name}’s last quest waits on the counter: cook the supper there, one plate for each guest.`));
@@ -72,16 +67,47 @@ export function storyContent(inSheet: boolean) {
     details.append(icon('', '0 0 24 24', ['path', { d: 'm7 10 5 5 5-5' }]));
     actions.append(pay, details); body.append(requirements, actions, costs);
   }
+  content.append(body, ...storyFoot(state.taskIndex, data.tasks.length, 'preparations')); return content;
+}
+/** An earned scene waits in Story until the player finishes it. Cooking never waits for it. In the prologue, it is the first pending scene. */
+function waitingNotice() {
+  const waiting = state.pendingScenes[0], scene = waiting ? storyScene(waiting) : null;
+  if (!waiting) return [];
+  const notice = element('div', 'story-waiting'), read = button('Read now', 'text-button', () => showScene(waiting));
+  read.setAttribute('aria-label', `Read now: ${scene?.title ?? 'the waiting scene'}`);
+  notice.append(element('p', '', scene?.prompt ?? 'A story scene is waiting.'), read);
+  return [notice];
+}
+/** The journal link, the Miez card, the save state, and the progress count. Miez joins the family in the city after the funeral. */
+function storyFoot(done: number, total: number, unit: string) {
   const links = element('div', 'story-links');
   const journalLink=button('Journal','text-button',journal);journalLink.setAttribute('aria-label','Open the story journal');links.append(journalLink);
   // The drawer can cover the windowsill on phones, so the cat also waits in the Story sheet there.
   const cat = button('', 'miez-card', toggleCat); const words = element('span');
   words.append(element('strong', '', 'Miez is on kitchen duty.'), element('small', '', 'Give the resident cat some attention.'));
   cat.append(miezSprite(), words);
-  // The count is short so that it shares a line with the save state. Screen readers also hear the word "preparations".
-  const progress = element('span', '', `${state.taskIndex} of ${data.tasks.length}`); progress.append(element('span', 'visually-hidden', ' preparations'), ' done');
+  // The count is short so that it shares a line with the save state. Screen readers also hear the unit.
+  const progress = element('span', '', `${done} of ${total}`); progress.append(element('span', 'visually-hidden', ` ${unit}`), ' done');
   const foot = element('p', 'story-foot'); foot.append(element('span', 'save-status', saveMessage), progress);
-  content.append(body, links, cat, foot); return content;
+  return state.prologue?.event === 1 ? [links, foot] : [links, cat, foot];
+}
+/** The prologue as one part before chapter 1: its title, the meal of the current event, one step for each event, and the waiting scene. Nothing is paid. */
+function prologueContent(inSheet: boolean) {
+  const event = currentEvent(state, data)!, events = data.prologue.events, content = document.createDocumentFragment();
+  const title = `Prologue: ${data.prologue.title}`;
+  content.append(inSheet ? element('p', 'chapter-name', title) : element('h2', 'chapter-title', title), element('p', 'chapter-objective', event.line));
+  const done = events.filter(value => eventComplete(state, value)).length;
+  const row = element('div', 'chapter-steps'), list = element('ol'); list.setAttribute('aria-label', 'Prologue events');
+  for (const value of events) {
+    const step = element('li'), complete = eventComplete(state, value), now = value === event && !complete;
+    step.dataset.step = complete ? 'done' : now ? 'now' : 'next';
+    step.append(element('span', 'visually-hidden', `${value.title}: ${complete ? 'done' : now ? 'now' : 'not yet'}`)); list.append(step);
+  }
+  const count = element('span', '', inSheet ? `${done} of ${events.length} done` : 'Prologue'); count.setAttribute('aria-hidden', 'true');
+  row.append(list, count); content.append(row, ...waitingNotice());
+  const body = element('div', 'task-content');
+  body.append(element('h3', '', event.title), element('p', '', dateText(event.day, data)));
+  content.append(body, ...storyFoot(done, events.length, 'events')); return content;
 }
 /** Exact totals stay in payment descriptions and in Cost details when the main list shows only unmet needs. */
 function requirementTotal(requirement: TaskRequirement) {
@@ -162,6 +188,8 @@ function storyScene(id: string) {
     case 'finale':{const {finale}=source;return {title:finale.title,dialogue:finale.dialogue,completion:'',prompt:'The supper can begin.'};}
     case 'arrival':{const {person}=source;return {title:`${person.name} arrives`,dialogue:person.arrival!,completion:`${person.name} is now a regular. Read more about ${person.name} in the story journal.`,prompt:'A new neighbour has arrived.'};}
     case 'news':{const {news}=source;return {title:news.title,dialogue:news.dialogue,completion:'The news is recorded in the story journal.',prompt:'News has reached the bistro.'};}
+    // A notebook page takes the place of the illustration of its event.
+    case 'prologue':{const {scene,event}=source;return {title:scene.title,dialogue:scene.dialogue,completion:'',prompt:more(scene.dialogue),illustration:scene.page?{...scene.page,painted:true}:event.scene};}
     default:return null;
   }
 }
@@ -186,10 +214,14 @@ export function showScene(id: string, backTo?: () => void, options: { paid?: boo
     const result=apply({type:'readScene',id});if(!result.ok)return;
     // The close of a paid scene starts the reveal, which then opens the next scene that the payment earned.
     if(options.paid){modal.close();return;}
-    const next=state.pendingScenes[0],after=backTo??(next?()=>showScene(next):undefined);
+    // The prologue scenes follow one another, also from the journal, which they return to at the end.
+    const next=state.pendingScenes[0],story=prologueScenes(data).some(scene=>scene.id===id)&&next?()=>showScene(next,backTo):undefined;
+    const after=story??backTo??(next?()=>showScene(next):undefined);
     if(finale)showSupper(after);else if(after)after();else modal.close();
   });
-  showStory(conversation,options.paid,completion,backTo,{id,label:finale?'See the supper':backTo?'Return':state.pendingScenes.length>1?'Next scene':'Back to the kitchen',finish:read});
+  // The last scene of the prologue starts act 1 when it ends.
+  const scenes=prologueScenes(data),last=id===scenes.at(-1)!.id,chained=scenes.some(scene=>scene.id===id)&&state.pendingScenes.length>1;
+  showStory(conversation,options.paid,completion,backTo,{id,label:finale?'See the supper':last?'Leave for the village':chained?'Next scene':backTo?'Return':state.pendingScenes.length>1?'Next scene':'Back to the kitchen',finish:read});
 }
 /** After the last scene of a flow closes, focus returns to the story, because reading can remove the control that opened the scene. */
 export function endSceneFlow() {
@@ -201,10 +233,11 @@ export function endSceneFlow() {
   }
 }
 /** Each scene, and a combined quest journal page, is one transcript. Opening or scrolling it never changes the game. After follows the last line of a replay. */
-function showStory(task: { title: string; dialogue: SceneLine[]; opening?: SceneLine[]; questCharacter?: string; questId?: string }, paid = false, completion = '', backTo?: () => void, end?: { id: string; label: string; finish: () => void }, after?: () => void) {
-  const content=element('div',task.questCharacter?'quest-page-content':''),reading=element('div','quest-reading'),transcript=element('div','story-transcript');
+function showStory(task: { title: string; dialogue: SceneLine[]; opening?: SceneLine[]; questCharacter?: string; questId?: string; illustration?: { image: string; text: string; painted?: boolean } }, paid = false, completion = '', backTo?: () => void, end?: { id: string; label: string; finish: () => void }, after?: () => void) {
+  const content=element('div',task.questCharacter||task.illustration?'quest-page-content':''),reading=element('div','quest-reading'),transcript=element('div','story-transcript');
   transcript.id='story-line';
   if(task.questCharacter)reading.append(questSketch(task.questCharacter,task.questId));
+  else if(task.illustration)reading.append(sceneIllustration(task.illustration,task.illustration.painted));
   const parts=task.opening?[{label:'Quest',lines:task.opening},{label:'Reply',lines:task.dialogue}]:[{label:'',lines:task.dialogue}];
   for(const part of parts){
     const section=part.label?element('section','conversation-part'):transcript;
@@ -257,9 +290,32 @@ function journal(focusEntry?: string, scrollTop = 0, openGroups: string[] = []) 
   content.append(element('p','modal-copy','Read your saved conversations. Reading never gives another reward.'));
   const unread=element('section','journal-unread'),heading=element('h3','','Unread scenes');heading.tabIndex=-1;
   unread.setAttribute('aria-label','Unread scenes');unread.append(heading);
-  for(const id of state.pendingScenes)unread.append(sceneEntry(id));
+  // The prologue scenes are read in story order, so only the first pending one shows.
+  for(const id of state.prologue?state.pendingScenes.slice(0,1):state.pendingScenes)unread.append(sceneEntry(id));
   if(!state.pendingScenes.length)unread.append(element('p','small-copy','No unread scenes.'));
   content.append(unread);
+  // The prologue: each event with its date, and the replay of each scene that the player has read.
+  const prologueSection=(current: boolean)=>{
+    const section=element('section','chapter-journal'),earned=earnedPrologue(state,data);section.dataset.chapter='prologue';
+    if(current)section.dataset.currentChapter='';
+    section.append(element(current?'h3':'h4','',`Prologue · ${data.prologue.title}`));
+    const steps=element('ul','journal-steps');
+    for(const [index,event] of data.prologue.events.entries()){
+      const read=[event.opening,event.closing].filter(scene=>earned.includes(scene.id)&&!state.pendingScenes.includes(scene.id));
+      if(!read.length){steps.append(element('li','',`${event.title} · ${dateText(event.day,data,'plain')} · ${eventComplete(state,event)?'Done':state.prologue?.event===index+1?'Now':'Not yet'}`));continue;}
+      section.append(element('p','small-copy',`${event.title} · ${dateText(event.day,data,'plain')}`));
+      for(const scene of read)section.append(sceneEntry(scene.id));
+    }
+    if(steps.childElementCount)section.append(steps);
+    return section;
+  };
+  // During the prologue, the journal has only the prologue. Mara has not met the neighbours yet.
+  if(state.prologue){
+    content.append(prologueSection(true));
+    const focus=focusEntry?content.querySelector<HTMLElement>(`[data-journal="${focusEntry}"]`)??heading:undefined;
+    showModal('Story journal',content,focus);modal.scrollTop=focusEntry?scrollTop:0;
+    return;
+  }
   // A waiting scene has one row, above. Read preparations and chapter endings stay with their chapter.
   const chapters=resolveChapters(state,data).filter(value=>value.status!=='locked');
   const latest=chapters.find(value=>value.status==='current')??chapters.at(-1)!;
@@ -284,11 +340,10 @@ function journal(focusEntry?: string, scrollTop = 0, openGroups: string[] = []) 
     return section;
   };
   content.append(chapterSection(latest,true));
-  if(chapters.length>1){
-    const earlier=group('chapters','Earlier chapters');
-    for(const view of [...chapters].reverse())if(view!==latest)earlier.append(chapterSection(view,false));
-    content.append(earlier);
-  }
+  // The prologue comes before chapter 1, at the end of the earlier chapters.
+  const earlier=group('chapters','Earlier chapters');
+  for(const view of [...chapters].reverse())if(view!==latest)earlier.append(chapterSection(view,false));
+  earlier.append(prologueSection(false));content.append(earlier);
   const conversations=group('conversations','Earlier conversations');
   const completed=quests.filter(view=>view.status==='complete'&&people.some(person=>person.id===view.quest.character))
     .sort((a,b)=>state.completedQuests.indexOf(b.quest.id)-state.completedQuests.indexOf(a.quest.id));

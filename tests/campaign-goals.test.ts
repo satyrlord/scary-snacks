@@ -4,7 +4,7 @@ import { campaignQuest, dishWork, requiredQuests, stapleCost, taskEligibility, u
 import { validateGame } from '../src/engine.ts';
 import { dataProblems, questProblems } from '../src/content.ts';
 import type { Action, Quest } from '../src/model.ts';
-import { act, addOpenLayout, data, openCheckpoint, openGame, rejected } from './support.ts';
+import { act, addOpenLayout, data, openCheckpoint, openGame, prologueServed, rejected } from './support.ts';
 
 addOpenLayout();
 /** The checkpoint before the quests that open with the previous preparation are delivered. */
@@ -25,7 +25,7 @@ test('each preparation needs every campaign quest that opens before it, and the 
 });
 
 test('eligibility lists the unmet coins and quests and keeps the exact totals above a requirement', () => {
-  const state = openGame();
+  const state = { ...openGame(), coins: 0 };
   const quests = requiredQuests(0, data);
   const eligibility = taskEligibility(state, data);
   assert.equal(eligibility.task, data.tasks[0]);
@@ -37,7 +37,7 @@ test('eligibility lists the unmet coins and quests and keeps the exact totals ab
   ]);
   assert.deepEqual(eligibility.blockers, [`Earn ${data.tasks[0].cost} more coins to pay for this preparation.`, `Deliver ${quests.length} more quests for this preparation.`]);
   assert.equal(rejected(state, { type: 'task' }).message, eligibility.blockers.join(' '));
-  Object.assign(state, { coins: data.tasks[0].cost + 100, completedQuests: quests.map(quest => quest.id) });
+  Object.assign(state, { coins: data.tasks[0].cost + 100, completedQuests: [...prologueServed, ...quests.map(quest => quest.id)] });
   const ready = taskEligibility(state, data);
   assert.ok(ready.ready);
   assert.deepEqual(ready.blockers, []);
@@ -133,7 +133,7 @@ test('the last preparation needs its own quests and repeated completion changes 
   const ready = openCheckpoint(23);
   const state = withoutWindow(23);
   assert.ok(validateGame(state, data));
-  const missing = requiredQuests(23, data).length - state.completedQuests.length;
+  const missing = requiredQuests(23, data).length + prologueServed.length - state.completedQuests.length;
   assert.deepEqual(taskEligibility(state, data).blockers, [`Deliver ${missing} more ${missing === 1 ? 'quest' : 'quests'} for this preparation.`]);
   rejected(state, { type: 'task' });
   const completed = act(ready, { type: 'task' });
@@ -147,7 +147,7 @@ test('board actions never count as quests, and invalid actions change nothing', 
   let state = openGame();
   const unchanged = (action: Action) => {
     state = act(state, action);
-    assert.deepEqual(state.completedQuests, []);
+    assert.deepEqual(state.completedQuests, prologueServed);
     assert.equal(taskEligibility(state, data).requirements.find(requirement => requirement.kind === 'quests')!.met, false);
   };
   unchanged({ type: 'move', from: 22, to: 0 });

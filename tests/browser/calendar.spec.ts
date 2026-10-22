@@ -1,9 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { dayMerges, requiredQuests, yearDay } from '../../src/model.ts';
-import { createGame } from '../../src/engine.ts';
 import type { GameState } from '../../src/model.ts';
 import { moveTo } from '../../tools/create-checkpoint-saves.ts';
-import { act, checkpoint, data, mergeFlour, openQuest, quest, replaceSave, saved, start, startStill, supper, supplies, supply, ticket, toast, tile } from './support.ts';
+import { actOne, act, checkpoint, data, mergeFlour, openQuest, quest, replaceSave, saved, start, startStill, supper, supplies, supply, ticket, toast, tile } from './support.ts';
 
 /** The day of act 1 of a date of year 1. */
 const day = (date: number, month: number) => yearDay(month, date) - data.calendar.start + 1;
@@ -13,7 +12,7 @@ const on = (state: GameState, target: number) => { const next = structuredClone(
 const lateEvening = (state: GameState): GameState => ({ ...structuredClone(state), clock: { ...state.clock, merges: dayMerges(state.clock.day, data) - 1 } });
 
 test('a weekday closing pays the upkeep with a notice and no dialog, and play goes on', async ({ page }) => {
-  await start(page, lateEvening(on(createGame(data, 1), day(17, 2))));
+  await start(page, lateEvening(on(actOne(1), day(17, 2))));
   await mergeFlour(page);
   await expect(toast(page)).toHaveText(`The bistro closed for the night. Upkeep: ${data.day.upkeep} coins. Good morning, Tuesday 18 February.`);
   await expect(page.locator('#modal')).not.toBeVisible();
@@ -25,7 +24,7 @@ test('a weekday closing pays the upkeep with a notice and no dialog, and play go
 });
 
 test('the Saturday closing leads to 10:00 on Sunday, which has no evening guest', async ({ page }) => {
-  await start(page, lateEvening(createGame(data, 1)));
+  await start(page, lateEvening(actOne(1)));
   await mergeFlour(page);
   await expect(page.locator('#day-clock .clock-face')).toHaveText('Sun 16 Feb · 10:00');
   await expect(page.locator('#day-clock .visually-hidden')).toHaveText('Sunday 16 February, 10:00');

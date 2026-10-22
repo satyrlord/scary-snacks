@@ -2,8 +2,18 @@
 // Each save has its preparations paid, the quests that the next preparation needs delivered, and the exact coins for the next reveal.
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { currentTask, firstFreeBoardCell, freeBoardCells, isSunday, marchOpens, questHoliday, requiredQuests, sourceCell, sourceNeeded, stapleCost, supperQuest, terraceDay } from '../src/model.ts';
-import { createGame, KEEP_FREE, reduceGame, revealTickets, validateGame } from '../src/engine.ts';
+import { KEEP_FREE, reduceGame, revealTickets, validateGame } from '../src/engine.ts';
 import type { GameData, GameState, Quest } from '../src/model.ts';
+import { runPrologue } from './campaign-balance.ts';
+
+const starts = new WeakMap<GameData, Map<number, GameState>>();
+/** The state at the start of act 1, after a legal run of the prologue with this seed. Each data and seed plays the prologue once. */
+export function actOneStart(data: GameData, seed = 0): GameState {
+  const runs = starts.get(data) ?? new Map<number, GameState>();
+  starts.set(data, runs);
+  if (!runs.has(seed)) runs.set(seed, runPrologue(data, seed, false).state);
+  return structuredClone(runs.get(seed)!);
+}
 
 /** The earliest day on which a quest delivers: its opening date, its holiday, and a terrace day for an outdoor quest. */
 function deliveryDay(quest: Quest, from: number, data: GameData) {
@@ -48,7 +58,7 @@ export function deliverRequired(state: GameState, data: GameData) {
  * the coins equal its cost. A checkpoint keeps no scene from earlier payments, so its own payment shows only the scenes that it earns.
  * The finished checkpoint keeps the scenes earned by the last payment, and its coins buy the staples of the supper.
  */
-export function checkpointState(data: GameData, count: number, start: GameState = createGame(data)): GameState {
+export function checkpointState(data: GameData, count: number, start: GameState = actOneStart(data)): GameState {
   let state = structuredClone(start);
   for (;;) {
     deliverRequired(state, data);

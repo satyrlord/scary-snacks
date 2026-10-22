@@ -1,5 +1,5 @@
 // The quest tickets on the drawer: who asks for which dishes, the delivery and its flight, and the quest dialog.
-import { awaitsLanterns, bookedTonight, canDeliverQuest, canLightLanterns, cellsOf, clockText, dateText, laterDay, QUEST_TICKETS, questDeliveryCells, questHoliday, resolveQuests, ticketNote } from './model.ts';
+import { awaitsLanterns, bookedTonight, canDeliverQuest, canLightLanterns, cellsOf, clockText, dateText, laterDay, prologueScenes, QUEST_TICKETS, questDeliveryCells, questEvent, questHoliday, resolveQuests, ticketNote } from './model.ts';
 import { guidanceGoal, guidanceStep, showItem, showMissingStep } from './dishes.ts';
 import type { GameState, Quest } from './model.ts';
 import { $, button, coinText, count, element, names } from './dom.ts';
@@ -68,6 +68,8 @@ export const activeQuests = () => {
   ticketQuests = tickets.map(quest => quest.id); shownQuests = shown.map(quest => quest.id);
   return shown;
 };
+/** The supper and the event quests of the prologue pay nothing, so their tickets serve. */
+const serves = (quest: Quest) => !!quest.finale || questEvent(quest, data) > 0;
 /** The portions of a quest that the board holds now, at most the quantity that it needs. */
 const onBoard = (code: string, quantity: number) => Math.min(quantity, cellsOf(state, code).length);
 /** Each quest on the counter is a paper ticket on the drawer: who asks, the quest title, the dishes with their counts, and Deliver. */
@@ -108,17 +110,17 @@ export function renderTickets() {
     // Wider screens deliver from the counter. Phone tickets keep their names and counts, and open the dialog to deliver.
     const deliverButton = button('', 'primary-button deliver-button', () => deliver(quest));
     if (guided?.ticket === quest.id) deliverButton.classList.add('guide-target');
-    // The supper pays nothing: its button serves the supper.
-    if (quest.finale) deliverButton.append(element('span', 'deliver-word', 'Serve'));
+    // The supper and the event quests of the prologue pay nothing: their button serves.
+    if (serves(quest)) deliverButton.append(element('span', 'deliver-word', 'Serve'));
     else deliverButton.append(element('span', 'deliver-word', 'Deliver'), element('span', 'deliver-dot', ' · '), element('span', 'deliver-reward', count.format(quest.reward)), coinMark());
     deliverButton.disabled = !ready;
-    deliverButton.setAttribute('aria-label', quest.finale ? `Serve ${quest.title}` : `Deliver ${quest.title} to ${person.name} for ${coinText(quest.reward)}`);
+    deliverButton.setAttribute('aria-label', serves(quest) ? `Serve ${quest.title}` : `Deliver ${quest.title} to ${person.name} for ${coinText(quest.reward)}`);
     if (guided?.ticket === quest.id) deliverButton.setAttribute('aria-label', `${deliverButton.getAttribute('aria-label')}. Next step toward ${goal}`);
     card.append(face, waitControl(quest, person.name) ?? deliverButton); container.append(card);
   });
   // The recovery ticket keeps its own column beside the line, so the line still says why no quest waits.
-  // Without work, a repeating quest opens, so an empty counter means that the next preparation is ready to pay.
-  if (tickets.every(quest => quest.recovery)) container.prepend(element('p', 'tickets-empty', 'No quests wait now. Pay for the next preparation.'));
+  // Without work, a repeating quest opens, so an empty counter means that the next preparation is ready to pay. The prologue waits for its last scene.
+  if (tickets.every(quest => quest.recovery)) container.prepend(element('p', 'tickets-empty', state.prologue ? 'Every dish is served. The last scene of the prologue waits in Story.' : 'No quests wait now. Pay for the next preparation.'));
 }
 /**
  * The control of a ticket that cannot deliver yet: the lanterns for tonight's guest or the supper before the booking time, or Later
@@ -166,6 +168,7 @@ function deliver(quest: Quest) { return changeGame(() => {
   const codes = quest.requirements.flatMap(requirement => Array<string>(requirement.quantity).fill(requirement.item));
   const into = card?.getBoundingClientRect();
   delivery = { id: quest.id, at: performance.now(), before: state };
+  const waiting = state.pendingScenes;
   const result = apply({ type:'deliverQuest', id:quest.id });
   delivery = null;
   if (!result.ok) return;
@@ -176,7 +179,9 @@ function deliver(quest: Quest) { return changeGame(() => {
   const who = names.format([quest.character, ...quest.companions ?? []].map(id => character(id).name));
   const reply = state.pendingScenes.includes(quest.id) ? { label: `Read ${who}’s reply`, read: () => showScene(quest.id) } : undefined;
   const token = deliveryToken;
-  const notify = () => { if (token === deliveryToken) toast(message, reply); };
+  // The last delivery of an event earns a scene of the prologue. The first pending one opens at once.
+  const scenes = prologueScenes(data), earned = state.pendingScenes.find(id => scenes.some(scene => scene.id === id) && !waiting.includes(id));
+  const notify = () => { if (token !== deliveryToken) return; toast(message, reply); if (earned && !modal.open) showScene(state.pendingScenes[0]); };
   if (quest.finale) { showSupperRoom(); notify(); showScene(data.finale.id); }
   else if (still() || !into) notify(); else void fly(codes, from, into).then(notify);
 }); }
@@ -221,9 +226,9 @@ function showQuest(quest: Quest) {
     if(have<quantity){const find=button('Find','text-button quest-find',()=>showMissingStep(item));find.setAttribute('aria-label',`Find the next step for ${itemName(item)} on the board`);row.append(find);}
     requirements.append(row);
   }
-  const deliverButton=button(quest.finale?'Serve':`Deliver · ${count.format(quest.reward)}`,'primary-button quest-deliver',()=>{modal.close();void deliver(quest);});
-  if(!quest.finale)deliverButton.append(coinMark());
-  deliverButton.setAttribute('aria-label',quest.finale?`Serve ${quest.title}`:`Deliver ${quest.title} for ${coinText(quest.reward)}`);deliverButton.disabled=!canDeliverQuest(state,quest,data);
+  const deliverButton=button(serves(quest)?'Serve':`Deliver · ${count.format(quest.reward)}`,'primary-button quest-deliver',()=>{modal.close();void deliver(quest);});
+  if(!serves(quest))deliverButton.append(coinMark());
+  deliverButton.setAttribute('aria-label',serves(quest)?`Serve ${quest.title}`:`Deliver ${quest.title} for ${coinText(quest.reward)}`);deliverButton.disabled=!canDeliverQuest(state,quest,data);
   // A quest that waits for its time says when, and the lanterns or Later take the place of Deliver.
   const name=character(quest.character).name,wait=waitText(quest,name);
   if(wait)content.append(element('p','quest-booking',wait));
@@ -231,7 +236,8 @@ function showQuest(quest: Quest) {
   control?.addEventListener('click',()=>modal.close());
   const actions=element('div','quest-actions');actions.append(control??deliverButton);
   // The supper pays nothing and opens the finale. The recovery quest returns while the purse runs low.
-  content.append(requirements,element('p','quest-reward',quest.finale?'The supper pays nothing. Serving it opens the finale.':`Reward: ${coinText(quest.reward)}`),actions,
+  const reward=quest.finale?'The supper pays nothing. Serving it opens the finale.':serves(quest)?'A family meal pays nothing.':`Reward: ${coinText(quest.reward)}`;
+  content.append(requirements,element('p','quest-reward',reward),actions,
     element('p','quest-note',quest.finale?'One plate for each guest, to each one’s taste. There is no deadline.':quest.recovery?'Ana returns while the purse runs low. Herbs from the Herb basket are free.':'Delivery uses dishes on the board. There is no deadline.'));
   showModal(quest.title,content);
 }

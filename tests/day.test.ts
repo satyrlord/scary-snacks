@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { canDeliverQuest, clockMinutes, dayMerges, freeBoardCells, resolveQuests, supperQuest, ticketNote, unresolvedObstacle } from '../src/model.ts';
-import { createGame, reduceGame, validateGame } from '../src/engine.ts';
+import { reduceGame, validateGame } from '../src/engine.ts';
 import { dayProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import type { GameData, GameState } from '../src/model.ts';
-import { moveTo } from '../tools/create-checkpoint-saves.ts';
+import { actOneStart, moveTo } from '../tools/create-checkpoint-saves.ts';
 import { act, addOpenLayout, checkpoint, data, deliver, openGame, player, ready, rejected, status, supply, validate, know, quest, recovery, withTickets } from './support.ts';
 
 addOpenLayout();
@@ -74,7 +74,7 @@ test('the merge that reaches the closing time of a Sunday pays the upkeep, bring
 });
 
 test('with a given seed, the thief rat picks the same loose raw ingredients, at most three, and never a herb, a cooked dish, or a blocked item', () => {
-  const board = withBoard(sunday(createGame(data, 7)), [[2, 'grain_1'], [3, 'corn_1'], [7, 'grain_1'], [8, 'corn_1'], [9, 'herbs_1'], [10, 'grain_3'], [12, 'grain_2']]);
+  const board = withBoard(sunday(actOneStart(data, 7)), [[2, 'grain_1'], [3, 'corn_1'], [7, 'grain_1'], [8, 'corn_1'], [9, 'herbs_1'], [10, 'grain_3'], [12, 'grain_2']]);
   const close = (seed: number) => reduceGame(lateEvening({ ...board, seed }), { type: 'move', from: 13, to: 14 }, data).state;
   const raw = [2, 3, 7, 8, 22];
   const picks = new Set<string>();
@@ -176,7 +176,7 @@ test('a board with exactly four free cells after the closing merge gets no gift,
 });
 
 test('a purse of −20 takes free herbs only, and the recovery quest and the blocker coins work with a debt', () => {
-  const state: GameState = { ...createGame(data, 1), coins: -20 };
+  const state: GameState = { ...actOneStart(data, 1), coins: -20 };
   assert.equal(validateGame(state, data), true);
   act(state, { type: 'spawn', index: 31 });
   assert.match(rejected(state, { type: 'spawn', index: 1 }).message, /cannot pay/);

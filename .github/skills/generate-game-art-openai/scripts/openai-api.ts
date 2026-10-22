@@ -11,9 +11,10 @@ const MAX_REFERENCE_BYTES = 50_000_000;
 
 // Read the current room states from public/data/game.json.
 // State 00 of the front room shows the new game. Each other state shows its area after one preparation.
+// The family kitchen of the prologue has one state for each group of events.
 const gameData: GameData = JSON.parse(readFileSync(new URL('../../../../public/data/game.json', import.meta.url), 'utf8'));
-type RoomStateId = `front-room-${string}` | `courtyard-${string}`;
-type PencilSheetId = 'sketch-sheet-1' | 'sketch-sheet-2' | 'sketch-sheet-3' | 'scene-sheet-1' | 'scene-sheet-2' | 'scene-sheet-3' | 'scene-sheet-4';
+type RoomStateId = `front-room-${string}` | `courtyard-${string}` | `family-kitchen-${string}`;
+type PencilSheetId = 'sketch-sheet-1' | 'sketch-sheet-2' | 'sketch-sheet-3' | 'scene-sheet-1' | 'scene-sheet-2' | 'scene-sheet-3' | 'scene-sheet-4' | 'scene-sheet-5';
 type FoodAtlasId = `food-${string}`;
 type WindowViewId = 'window-view-late-winter' | 'window-view-early-spring' | 'window-view-spring';
 export type AssetId =
@@ -23,6 +24,9 @@ export type AssetId =
   | 'regulars-2'
   | 'regulars-3'
   | 'mascots'
+  | 'family-portraits'
+  | 'family-photos'
+  | 'notebook-pages'
   | 'timber-tabletop'
   | 'embroidered-runner'
   | 'decoration-front'
@@ -76,7 +80,7 @@ const windowViewIds: WindowViewId[] = ['window-view-late-winter', 'window-view-e
 // Each is a 4-by-2 grid; the cells after the last picture stay fully transparent.
 const foodAtlases: [id: string, pictures: number][] = [
   ['grain', 7], ['corn', 5], ['herbs', 5], ['dairy', 7], ['poultry', 5], ['vegetables', 7], ['fruits', 7], ['pork', 6],
-  ['beans', 6], ['lamb', 6], ['veal', 7], ['fish', 5], ['soups', 8], ['mains', 7], ['sweets', 5], ['breads', 8],
+  ['beans', 6], ['lamb', 6], ['veal', 7], ['fish', 5], ['soups', 8], ['mains', 7], ['sweets', 7], ['breads', 8],
   // The seasonal chains of spec 017: the pickle barrel and the forage basket.
   ['pickles', 5], ['greens', 5],
 ];
@@ -84,7 +88,7 @@ const foodAtlas = (pictures: number): AssetContract => ({ background: 'transpare
   ...(pictures < 8 ? { blankCells: Array.from({ length: 8 - pictures }, (_, index) => pictures + index) } : {}), defaultSize: '2048x1024' });
 const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   ...(Object.fromEntries(foodAtlases.map(([id, pictures]) => [`food-${id}`, foodAtlas(pictures)])) as Record<FoodAtlasId, AssetContract>),
-  ...(Object.fromEntries(gameData.rooms.map(state => [state.id, roomState])) as Record<RoomStateId, AssetContract>),
+  ...(Object.fromEntries([...gameData.rooms, ...gameData.prologue.rooms].map(state => [state.id, roomState])) as Record<RoomStateId, AssetContract>),
   // Eight character sketches in 672-pixel cells, or four quest scenes in 1152 by 768 cells, at sizes that are not experimental.
   'sketch-sheet-1': sketchSheet,
   'sketch-sheet-2': sketchSheet,
@@ -93,6 +97,12 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   'scene-sheet-2': sceneSheet,
   'scene-sheet-3': sceneSheet,
   'scene-sheet-4': sceneSheet,
+  // The four event illustrations of the prologue.
+  'scene-sheet-5': sceneSheet,
+  // The two painted pages of the grandmother's notebook, in two cells of the quest scene size.
+  'notebook-pages': { background: 'opaque', shape: 'landscape-3x1', columns: 2, rows: 1, defaultSize: '2304x768' },
+  // Two old studio photographs of Mara's parents, each a paper rectangle on transparency in a square cell of the sketch size.
+  'family-photos': { background: 'transparent', shape: 'landscape-2x1', columns: 2, rows: 1, defaultSize: '2048x1024' },
   ...(Object.fromEntries(windowViewIds.map(id => [id, windowView])) as Record<WindowViewId, AssetContract>),
   'decoration-front': roomState,
   'decoration-courtyard': roomState,
@@ -114,6 +124,8 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   'regulars-2': portraitAtlas,
   'regulars-3': { ...portraitAtlas, blankCells: [3] },
   mascots: portraitAtlas,
+  // Mara's parents in the prologue: the two upper cells hold their portraits, and the lower cells stay empty.
+  'family-portraits': { ...portraitAtlas, blankCells: [2, 3] },
   // The two rats of the night: one reference pose of each, then a sheet of eight poses with that pose as its identity reference.
   'rat-thief-reference': { background: 'transparent', shape: 'square', columns: 1, rows: 1, defaultSize: '1024x1024' },
   'rat-soricescu-reference': { background: 'transparent', shape: 'square', columns: 1, rows: 1, defaultSize: '1024x1024' },

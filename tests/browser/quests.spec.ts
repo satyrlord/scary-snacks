@@ -1,9 +1,8 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { firstFreeBoardCell, getItem } from '../../src/model.ts';
-import { createGame } from '../../src/engine.ts';
 import type { GameState, Quest } from '../../src/model.ts';
-import { act, checkpoint, naturalSize, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, forward, importSaveFile, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readNow, readTo, replaceSave, restoreWrites, saved, serialize, start, startAgain, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate, know } from './support.ts';
+import { act, checkpoint, naturalSize, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, forward, importSaveFile, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readNow, readTo, replaceSave, restoreWrites, saved, serialize, start, startAgain, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate, know, prologueServed } from './support.ts';
 
 /** The first campaign quest of each neighbour who lives in the village. The recovery quest stands outside the order of quests. */
 const campaign=data.quests.filter(value=>!value.recovery);
@@ -259,8 +258,8 @@ for(const width of [1440,390])test(`a waiting quest has one complete journal con
 
 test('quest rewards survive export and import, while introductions and journal replay give no reward',async({page})=>{
   const value=firstQuests[0];await start(page,deliverable(value));await journal(page,['chapters','conversations','neighbours']);const initial=await saved(page);
-  // Each introduction in a new game's journal, the visitors' too, gives no reward.
-  for(const character of data.characters.filter(character=>!character.singleVisit&&!character.arrivesAfter)){
+  // Each introduction in the journal at the start of act 1, the visitors' too, gives no reward.
+  for(const character of data.characters.filter(character=>!character.singleVisit&&!character.arrivesAfter&&!character.family)){
     await page.getByRole('button',{name:`Meet ${character.name}`,exact:true}).click();await expect(page.locator('#story-line')).toContainText(character.introduction);
     await finishScene(page);expect(await saved(page)).toEqual(initial);
   }
@@ -288,7 +287,7 @@ test('a surplus on the board reads as the required count on the ticket and in th
 
 test('quest dish help keeps focus on the next blocked merge on desktop and phone',async({page})=>{
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
-    await page.setViewportSize(viewport);await start(page,createGame(data));
+    await page.setViewportSize(viewport);await start(page,checkpoint(0));
     const value=firstQuests[0],{item:code,quantity}=value.requirements[0];
     await openQuest(page,value);await page.getByRole('button',{name:new RegExp(`^${quantity} ${itemName(code)}:`)}).click();
     await page.getByRole('button',{name:'Show me on the board',exact:true}).click();
@@ -302,7 +301,7 @@ test('quest dish help keeps focus on the next blocked merge on desktop and phone
 });
 
 test('Find on a missing quest dish goes straight to the next board step',async({page})=>{
-  const initial=createGame(data),value=quest('mara-welcome');
+  const initial=checkpoint(0),value=quest('mara-welcome');
   await page.setViewportSize({width:390,height:844});await start(page,initial);await openQuest(page,value);
   await page.getByRole('button',{name:'Find the next step for Herb bunch on the board'}).click();
   await expect(page.locator('#modal')).toBeHidden();
@@ -313,7 +312,7 @@ test('Find on a missing quest dish goes straight to the next board step',async({
 });
 
 test('Find seeks another portion when one required dish is already on the board',async({page})=>{
-  const initial=createGame(data),value=quest('sorin-first-ride');
+  const initial=checkpoint(0),value=quest('sorin-first-ride');
   initial.board[18]={code:'grain_2'};know(initial,'grain_2');
   await start(page,initial);await openQuest(page,value);
   const find=page.getByRole('button',{name:'Find the next step for Dough on the board'});
@@ -330,7 +329,7 @@ test('Find seeks another portion when one required dish is already on the board'
 
 test('a dish guide updates after takes and ends when its dish is made',async({page})=>{
   // The purse pays for the Flour from the Windmill.
-  const initial=createGame(data);initial.board[13]=null;initial.board[14]=null;initial.coins=10;
+  const initial=checkpoint(0);initial.board[13]=null;initial.board[14]=null;initial.coins=10;
   await page.setViewportSize({width:390,height:844});await start(page,initial);await openQuest(page,quest('sorin-first-ride'));
   await page.getByRole('button',{name:'Find the next step for Dough on the board'}).click();
   await expect(page.locator('#item-detail.guided')).toContainText('For Dough: take Flour');
@@ -354,7 +353,7 @@ test('a dish guide updates after takes and ends when its dish is made',async({pa
 });
 
 test('a dish guide updates after a move and blocker clearing',async({page})=>{
-  const value=quest('victor-exam'),initial=onTicket(value);expect(supplies(value)).toContain('grain_3');expect(initial.board).toEqual(createGame(data).board);
+  const value=quest('victor-exam'),initial=onTicket(value);expect(supplies(value)).toContain('grain_3');expect(initial.board).toEqual(checkpoint(0).board);
   await start(page,initial);await openQuest(page,value);
   await page.getByRole('button',{name:`Find the next step for ${itemName('grain_3')} on the board`}).click();
   await tile(page,20).click();
@@ -371,7 +370,7 @@ test('a dish guide updates after a move and blocker clearing',async({page})=>{
 });
 
 test('delivery keeps a dish guide, Stop cancels it, and reload clears it',async({page})=>{
-  const initial=supply(createGame(data),supplies(quest('mara-welcome')));
+  const initial=supply(checkpoint(0),supplies(quest('mara-welcome')));
   await start(page,initial);await openQuest(page,quest('sorin-first-ride'));
   await page.getByRole('button',{name:'Find the next step for Dough on the board'}).click();
   await deliverButton(page,quest('mara-welcome')).click();
@@ -390,7 +389,7 @@ test('delivery keeps a dish guide, Stop cancels it, and reload clears it',async(
 
 test('a quest row with enough portions keeps dish help and has no Find control',async({page})=>{
   // Both Socată by the Herb basket go, so the Socată row misses its portion.
-  const value=quest('sorin-first-ride'),initial=supply(createGame(data),['grain_2','grain_2']);initial.board[32]=null;initial.board[33]=null;
+  const value=quest('sorin-first-ride'),initial=supply(checkpoint(0),['grain_2','grain_2']);initial.board[32]=null;initial.board[33]=null;
   await start(page,initial);await openQuest(page,value);
   await expect(page.getByRole('button',{name:'Find the next step for Dough on the board'})).toHaveCount(0);
   await expect(page.getByRole('button',{name:'Find the next step for Socată on the board'})).toBeVisible();
@@ -487,7 +486,7 @@ test('another tab that delivers a quest takes it off this tab’s ticket, and th
   await deliverButton(other,value).click();await expect(toast(other)).toHaveText(`${value.title}: delivered. Earned ${value.reward} coins.`);
   await expect(page.locator('#status')).toHaveText('This game moved on in another tab. The board now shows that progress.');
   await expect(ticket(page,value)).toHaveCount(0);await expect(page.locator('#coins')).toHaveText(String(before.coins+value.reward));
-  expect((await saved(page)).completedQuests).toEqual([value.id]);await other.close();
+  expect((await saved(page)).completedQuests).toEqual([...prologueServed,value.id]);await other.close();
 });
 
 test('a delivery flight cannot show its old toast after another tab replaces the game',async({page,context})=>{
@@ -503,13 +502,13 @@ test('a delivery flight cannot show its old toast after another tab replaces the
       setTimeout(()=>document.dispatchEvent(new Event('test-delivery-finished')));
     },{once:true});
   });
-  await other.evaluate(({key,text})=>localStorage.setItem(key,text),{key:KEY,text:serialize(createGame(data))});
+  await other.evaluate(({key,text})=>localStorage.setItem(key,text),{key:KEY,text:serialize(checkpoint(0))});
   await expect(page.locator('#status')).toContainText('another tab');
   await page.evaluate(()=>new Promise<void>(resolve=>{
     document.addEventListener('test-delivery-finished',()=>resolve(),{once:true});
     document.dispatchEvent(new Event('finish-test-delivery'));
   }));
-  await expect(page.locator('.toast')).toHaveCount(0);expect((await saved(page)).completedQuests).toEqual([]);await other.close();
+  await expect(page.locator('.toast')).toHaveCount(0);expect((await saved(page)).completedQuests).toEqual(prologueServed);await other.close();
 });
 
 for(const replacement of ['import','reset','another tab'] as const)test(`a visible delivery notice clears when ${replacement} replaces the game`,async({page,context})=>{
@@ -520,15 +519,16 @@ for(const replacement of ['import','reset','another tab'] as const)test(`a visib
   await deliverButton(page,value).click();await expect(toast(page)).toContainText('Earned');
   if(replacement==='another tab'){
     const other=await context.newPage();await other.goto('./');await opened(other);
-    await other.evaluate(({key,text})=>localStorage.setItem(key,text),{key:KEY,text:serialize(createGame(data))});
+    await other.evaluate(({key,text})=>localStorage.setItem(key,text),{key:KEY,text:serialize(checkpoint(0))});
     await expect(page.locator('#status')).toContainText('another tab');await other.close();
   }else{
     await options(page);
-    if(replacement==='import')await importSaveFile(page,serialize(createGame(data)));
+    if(replacement==='import')await importSaveFile(page,serialize(checkpoint(0)));
     else await startAgain(page);
     await expect(page.locator('#modal')).toBeHidden();
   }
-  expect((await saved(page)).completedQuests).toEqual([]);await expect(toast(page)).toHaveCount(0);
+  // Start again opens the prologue, which has no delivered quest.
+  expect((await saved(page)).completedQuests).toEqual(replacement==='reset'?[]:prologueServed);await expect(toast(page)).toHaveCount(0);
 });
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`the quest dialog fits ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{

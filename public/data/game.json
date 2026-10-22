@@ -2534,6 +2534,40 @@
         "grain_1",
         "fruits_2"
       ]
+    },
+    "mixed_colaci": {
+      "id": "mixed_colaci",
+      "name": "Colaci",
+      "chain": "mixed",
+      "stage": 1,
+      "next": null,
+      "art": {
+        "atlas": "sweets",
+        "cell": 5
+      },
+      "price": 14,
+      "tags": [],
+      "recipe": [
+        "grain_3",
+        "herbs_2"
+      ]
+    },
+    "mixed_turte": {
+      "id": "mixed_turte",
+      "name": "Turte",
+      "chain": "mixed",
+      "stage": 1,
+      "next": null,
+      "art": {
+        "atlas": "sweets",
+        "cell": 6
+      },
+      "price": 10,
+      "tags": [],
+      "recipe": [
+        "grain_2",
+        "fruits_2"
+      ]
     }
   },
   "characters": [
@@ -2950,6 +2984,24 @@
           "text": "From tomorrow, the bus stops by the square for a loaf of bread. The horse prefers apples, but the horse does not drive."
         }
       ]
+    },
+    {
+      "id": "mama",
+      "name": "Mama",
+      "role": "Mara’s mother",
+      "family": true,
+      "portraitAtlas": "family",
+      "sprite": 0,
+      "introduction": "I am Mara’s mother. I keep the kitchen of our flat in the city, and my mother’s recipes in my head."
+    },
+    {
+      "id": "tata",
+      "name": "Tata",
+      "role": "Mara’s father",
+      "family": true,
+      "portraitAtlas": "family",
+      "sprite": 1,
+      "introduction": "I am Mara’s father. I have opinions about carols, roofs, and the price of everything."
     }
   ],
   "chapters": [
@@ -8823,5 +8875,1161 @@
         ]
       }
     }
-  ]
+  ],
+  "prologue": {
+    "title": "The inheritance",
+    "events": [
+      {
+        "id": "funeral",
+        "title": "The funeral meal",
+        "line": "Cook the funeral meal (pomană) for Mamaia Paraschiva, in the village. It is a fasting day.",
+        "day": -53,
+        "fasting": true,
+        "board": [
+          null,
+          null,
+          "generator_beans",
+          null,
+          null,
+          null,
+          null,
+          "mixed_coliva",
+          "mixed_colaci",
+          "beans_3",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "layout": {
+          "id": "prologue-funeral",
+          "obstacles": []
+        },
+        "room": "family-kitchen-mourning",
+        "scene": {
+          "image": "scene-prologue-churchyard",
+          "text": "The village churchyard in snow. Mourners with candles stand before the church, among them Mara, Ilie, Eszter, and Sorin, beside a table with colivă and colaci."
+        },
+        "quests": [
+          {
+            "id": "prologue-1-mama",
+            "character": "mama",
+            "title": "The table of the dead",
+            "afterTask": null,
+            "requirements": [
+              {
+                "item": "mixed_coliva",
+                "quantity": 1
+              },
+              {
+                "item": "mixed_colaci",
+                "quantity": 1
+              }
+            ],
+            "reward": 0,
+            "opening": [
+              {
+                "speaker": "mama",
+                "text": "The colivă and the colaci are ready. Put them on the tray for the priest. He blesses them before anyone eats."
+              }
+            ],
+            "completion": []
+          },
+          {
+            "id": "prologue-1-mara",
+            "character": "mara",
+            "title": "Beans for the mourners",
+            "afterTask": null,
+            "requirements": [
+              {
+                "item": "beans_4",
+                "quantity": 1
+              }
+            ],
+            "reward": 0,
+            "opening": [
+              {
+                "speaker": "mara",
+                "text": "The mourners come in from the cold churchyard. A bean dip for the fasting table, with plenty of garlic. Mamaia said that garlic keeps out the cold, and other things too."
+              }
+            ],
+            "completion": []
+          }
+        ],
+        "opening": {
+          "id": "prologue-1-call",
+          "title": "A call on Saint Ignatius",
+          "dialogue": [
+            {
+              "speaker": "mara",
+              "text": "The telephone rang on Friday, on Saint Ignatius. Mamaia Paraschiva died in her sleep, in the village, in the house above her old bistro."
+            },
+            {
+              "speaker": "mama",
+              "text": "She was ninety-one, and she still made her own colivă. She said that a colivă from a shop has no memory."
+            },
+            {
+              "speaker": "mama",
+              "text": "The funeral is on Monday. We cook here in the city and drive it to the village. Colivă and colaci for the table of the dead, and beans, because it is a fasting day."
+            },
+            {
+              "speaker": "mara",
+              "text": "I have not been to the village since I was twelve."
+            },
+            {
+              "speaker": "mama",
+              "text": "Then the village has not seen you since you were twelve. Wash your hands."
+            }
+          ]
+        },
+        "closing": {
+          "id": "prologue-1-miez",
+          "title": "Miez chooses a bag",
+          "dialogue": [
+            {
+              "speaker": "mara",
+              "text": "After the meal, I walked down to the bistro. The shutters are closed, and the sign has lost two letters."
+            },
+            {
+              "speaker": "mara",
+              "text": "A black cat sat on the steps, as if he waited for the door to open."
+            },
+            {
+              "speaker": "mama",
+              "text": "That is Miez. He was your grandmother’s. Nobody knows how old he is. She did not know either."
+            },
+            {
+              "speaker": "mara",
+              "text": "When we packed the car, he was in my bag. He did not ask."
+            },
+            {
+              "speaker": "mama",
+              "text": "Then he comes with us. A cat that chooses a bag has chosen a family."
+            }
+          ]
+        }
+      },
+      {
+        "id": "christmas-eve",
+        "title": "Christmas Eve",
+        "line": "Cook for the carol singers and the table of Christmas Eve. It is a fasting day.",
+        "day": -52,
+        "fasting": true,
+        "board": [
+          null,
+          "generator_grain",
+          "generator_herbs",
+          "generator_fruits",
+          null,
+          null,
+          null,
+          "grain_3",
+          "herbs_2",
+          "grain_2",
+          "fruits_2",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "layout": {
+          "id": "prologue-christmas-eve",
+          "obstacles": []
+        },
+        "room": "family-kitchen-christmas",
+        "scene": {
+          "image": "scene-prologue-carols",
+          "text": "Three children with a paper star sing carols at the door of the flat. Tata holds out a basket of colaci, and Miez peeks out behind his legs."
+        },
+        "quests": [
+          {
+            "id": "prologue-2-tata",
+            "character": "tata",
+            "title": "Colaci for the carol singers",
+            "afterTask": null,
+            "requirements": [
+              {
+                "item": "mixed_colaci",
+                "quantity": 2
+              }
+            ],
+            "reward": 0,
+            "opening": [
+              {
+                "speaker": "tata",
+                "text": "Every child who sings at our door gets a colac. That is the custom. I would like the custom to sing a longer song."
+              }
+            ],
+            "completion": []
+          },
+          {
+            "id": "prologue-2-mama",
+            "character": "mama",
+            "title": "Turte for Christmas Eve",
+            "afterTask": null,
+            "requirements": [
+              {
+                "item": "mixed_turte",
+                "quantity": 2
+              }
+            ],
+            "reward": 0,
+            "opening": [
+              {
+                "speaker": "mama",
+                "text": "Turte with honey and walnuts, as my mother made them. Thin enough to read the newspaper through, she said."
+              }
+            ],
+            "completion": []
+          }
+        ],
+        "opening": {
+          "id": "prologue-2-carols",
+          "title": "The carol singers are coming",
+          "dialogue": [
+            {
+              "speaker": "tata",
+              "text": "The carol singers come tonight. I have counted the children in our block. Eleven, and the boy on the fourth floor counts as two."
+            },
+            {
+              "speaker": "mama",
+              "text": "Then we need colaci for the door and turte for the table. It is still a fasting day."
+            },
+            {
+              "speaker": "mara",
+              "text": "Miez is asleep on the radiator. He has not moved since we came home."
+            },
+            {
+              "speaker": "tata",
+              "text": "A sensible animal."
+            }
+          ]
+        },
+        "closing": {
+          "id": "prologue-2-verses",
+          "title": "Three lines of a carol",
+          "dialogue": [
+            {
+              "speaker": "tata",
+              "text": "They sang three lines and held out their hands. When I was a boy, a carol had eleven verses, and a dog chased you after the fourth."
+            },
+            {
+              "speaker": "mama",
+              "text": "You gave each of them two colaci."
+            },
+            {
+              "speaker": "tata",
+              "text": "They sang the three lines very well."
+            },
+            {
+              "speaker": "mara",
+              "text": "One small girl saw Miez on the windowsill and crossed herself. Then she asked for a colac for him too."
+            }
+          ]
+        }
+      },
+      {
+        "id": "christmas",
+        "title": "Christmas dinner",
+        "line": "Cook Mamaia’s cabbage rolls from her notebook for Christmas dinner.",
+        "day": -51,
+        "board": [
+          null,
+          "generator_pork",
+          "generator_vegetables",
+          "generator_fruits",
+          null,
+          null,
+          null,
+          "pork_2",
+          "vegetables_3",
+          "mixed_sweet-dough",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "layout": {
+          "id": "prologue-christmas",
+          "obstacles": []
+        },
+        "room": "family-kitchen-christmas",
+        "scene": {
+          "image": "scene-prologue-carols",
+          "text": "Three children with a paper star sing carols at the door of the flat. Tata holds out a basket of colaci, and Miez peeks out behind his legs."
+        },
+        "quests": [
+          {
+            "id": "prologue-3-mama",
+            "character": "mama",
+            "title": "Mamaia’s cabbage rolls",
+            "afterTask": null,
+            "requirements": [
+              {
+                "item": "mixed_cabbage-rolls",
+                "quantity": 2
+              }
+            ],
+            "reward": 0,
+            "opening": [
+              {
+                "speaker": "mama",
+                "text": "Two pots of cabbage rolls from the notebook, word for word. If she wrote \"a little\", we use a little."
+              }
+            ],
+            "completion": []
+          },
+          {
+            "id": "prologue-3-tata",
+            "character": "tata",
+            "title": "A Christmas plate",
+            "afterTask": null,
+            "requirements": [
+              {
+                "item": "pork_3",
+                "quantity": 1
+              },
+              {
+                "item": "mixed_cozonac",
+                "quantity": 1
+              }
+            ],
+            "reward": 0,
+            "opening": [
+              {
+                "speaker": "tata",
+                "text": "The fast is over. I want a sausage, a slice of cozonac, and then a long nap."
+              }
+            ],
+            "completion": []
+          }
+        ],
+        "opening": {
+          "id": "prologue-3-notebook",
+          "title": "Mamaia’s notebook",
+          "dialogue": [
+            {
+              "speaker": "mama",
+              "text": "I brought your grandmother’s notebook from her kitchen drawer. Her cabbage rolls are on the first page."
+            },
+            {
+              "speaker": "mara",
+              "text": "Listen: \"Sour cabbage from the barrel, never from the shop. Roll them tight, like a child in winter. Cook them until the house smells of them, then one hour more.\""
+            },
+            {
+              "speaker": "mara",
+              "text": "The page beside it is in letters that I cannot read. They look like the letters in old church books."
+            },
+            {
+              "speaker": "tata",
+              "text": "That is the old writing. My grandfather could read it. He said it was mostly about the weather."
+            },
+            {
+              "speaker": "mama",
+              "text": "Today we cook the cabbage rolls. The weather can wait."
+            }
+          ],
+          "page": {
+            "image": "scene-notebook-cabbage-rolls",
+            "text": "Mamaia’s notebook, open at the cabbage rolls. The left page has the recipe in faded handwriting, a small drawing of a roll, and a grease stain. The right page has nine lines of old Cyrillic letters under a small red cross."
+          }
+        },
+        "closing": {
+          "id": "prologue-3-nearly",
+          "title": "Nearly right",
+          "dialogue": [
+            {
+              "speaker": "mama",
+              "text": "They are good. They are nearly right."
+            },
+            {
+              "speaker": "tata",
+              "text": "They are very good."
+            },
+            {
+              "speaker": "mama",
+              "text": "Nearly. Something is missing, and the notebook does not say what."
+            },
+            {
+              "speaker": "mara",
+              "text": "Maybe it is on the page that nobody can read."
+            }
+          ]
+        }
+      },
+      {
+        "id": "new-year",
+        "title": "New Year’s Eve",
+        "line": "Cook the midnight table of New Year’s Eve.",
+        "day": -45,
+        "board": [
+          "generator_pork",
+          "generator_vegetables",
+          "generator_pickles",
+          "generator_grain",
+          "generator_dairy",
+          null,
+          null,
+          "vegetables_2",
+          "pickles_2",
+          "dairy_3",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "layout": {
+          "id": "prologue-new-year",
+          "obstacles": []
+        },
+        "room": "family-kitchen-new-year",
+        "scene": {
+          "image": "scene-prologue-midnight",
+          "text": "Mara, Mama, and Tata at the midnight table in the family kitchen, under paper streamers, with frost on the window and Miez on the windowsill. Tata raises his glass, and Mama says nothing."
+        },
+        "quests": [
+          {
+            "id": "prologue-4-mama",
+            "character": "mama",
+            "title": "Peppers for the old year",
+            "afterTask": null,
+            "requirements": [
+              {
+                "item": "mixed_stuffed-peppers",
+                "quantity": 2
+              }
+            ],
+            "reward": 0,
+            "opening": [
+              {
+                "speaker": "mama",
+                "text": "Two stuffed peppers. Your father eats the second one and says that it is for the old year."
+              }
+            ],
+            "completion": []
+          },
+          {
+            "id": "prologue-4-tata",
+            "character": "tata",
+            "title": "The midnight table",
+            "afterTask": null,
+            "requirements": [
+              {
+                "item": "pork_3",
+                "quantity": 1
+              },
+              {
+                "item": "pickles_3",
+                "quantity": 1
+              }
+            ],
+            "reward": 0,
+            "opening": [
+              {
+                "speaker": "tata",
+                "text": "Sausages, and pickles from the barrel on the balcony. That barrel is the only thing in this flat that improves with age."
+              }
+            ],
+            "completion": []
+          },
+          {
+            "id": "prologue-4-mara",
+            "character": "mara",
+            "title": "Papanași at midnight",
+            "afterTask": null,
+            "requirements": [
+              {
+                "item": "mixed_papanasi",
+                "quantity": 2
+              }
+            ],
+            "reward": 0,
+            "opening": [
+              {
+                "speaker": "mara",
+                "text": "Papanași for midnight. If we eat them while the clock strikes, the year starts sweet."
+              }
+            ],
+            "completion": []
+          }
+        ],
+        "opening": {
+          "id": "prologue-4-midnight",
+          "title": "The last night of the year",
+          "dialogue": [
+            {
+              "speaker": "tata",
+              "text": "Stuffed peppers, sausages, pickles from the balcony, and papanași at midnight. That is a New Year’s table."
+            },
+            {
+              "speaker": "mara",
+              "text": "And a long talk about the bistro, I suppose."
+            },
+            {
+              "speaker": "tata",
+              "text": "After the papanași. Nobody makes a good decision before dessert."
+            }
+          ]
+        },
+        "closing": {
+          "id": "prologue-4-talk",
+          "title": "The talk after dessert",
+          "dialogue": [
+            {
+              "speaker": "tata",
+              "text": "The building in the village is old, Mara. The roof leaks, and the village is far away. A man from the town has already asked to buy it."
+            },
+            {
+              "speaker": "mara",
+              "text": "Mamaia kept it open for fifty years."
+            },
+            {
+              "speaker": "tata",
+              "text": "And for the last ten, it was open only for the cat."
+            },
+            {
+              "speaker": "mara",
+              "text": "Mama did not say a word. In our family, that is the loudest answer."
+            },
+            {
+              "speaker": "tata",
+              "text": "Happy New Year, everyone."
+            }
+          ]
+        }
+      },
+      {
+        "id": "epiphany",
+        "title": "Epiphany",
+        "line": "Cook a warm meal for the priest who blesses the flat on Epiphany (Boboteaza).",
+        "day": -39,
+        "board": [
+          null,
+          "generator_poultry",
+          "generator_grain",
+          "generator_herbs",
+          null,
+          null,
+          null,
+          null,
+          "poultry_3",
+          "herbs_3",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "layout": {
+          "id": "prologue-epiphany",
+          "obstacles": []
+        },
+        "room": "family-kitchen-new-year",
+        "scene": {
+          "image": "scene-prologue-midnight",
+          "text": "Mara, Mama, and Tata at the midnight table in the family kitchen, under paper streamers, with frost on the window and Miez on the windowsill. Tata raises his glass, and Mama says nothing."
+        },
+        "quests": [
+          {
+            "id": "prologue-5-tata",
+            "character": "tata",
+            "title": "Soup for the priest",
+            "afterTask": null,
+            "requirements": [
+              {
+                "item": "mixed_chicken-noodle-soup",
+                "quantity": 2
+              },
+              {
+                "item": "herbs_4",
+                "quantity": 1
+              }
+            ],
+            "reward": 0,
+            "opening": [
+              {
+                "speaker": "tata",
+                "text": "The priest climbs eight floors with his basil and his holy water. He gets a chicken soup, and I get one for the stairs that I did not climb. And a linden tea for his voice."
+              }
+            ],
+            "completion": []
+          }
+        ],
+        "opening": {
+          "id": "prologue-5-blessing",
+          "title": "The blessing of the flat",
+          "dialogue": [
+            {
+              "speaker": "mama",
+              "text": "The priest comes today to bless the flat. Your father has hidden the plum brandy."
+            },
+            {
+              "speaker": "tata",
+              "text": "Behind the holy water. Nobody looks there."
+            },
+            {
+              "speaker": "mara",
+              "text": "The frost is so hard that the window has ferns of ice. Miez watches them as if they might move."
+            }
+          ]
+        },
+        "closing": {
+          "id": "prologue-5-note",
+          "title": "A note for Mara",
+          "dialogue": [
+            {
+              "speaker": "mara",
+              "text": "After the priest left, I read the notebook again. On a later page, there is a note with my name on it."
+            },
+            {
+              "speaker": "mara",
+              "text": "\"Mara. The bistro needs someone who cooks for people, not for money. The cabbage rolls need the same thing. The rest is in this notebook. Do not let them sell the cat.\""
+            },
+            {
+              "speaker": "mama",
+              "text": "She knew your father very well."
+            },
+            {
+              "speaker": "tata",
+              "text": "I never wanted to sell the cat."
+            }
+          ],
+          "page": {
+            "image": "scene-notebook-note",
+            "text": "A later page of Mamaia’s notebook: a short note in handwriting fills the page, beside a pressed sprig of basil."
+          }
+        }
+      },
+      {
+        "id": "memorial",
+        "title": "The memorial of the fortieth day",
+        "line": "Cook the memorial meal of the fortieth day, in the village.",
+        "day": -20,
+        "board": [
+          null,
+          "generator_grain",
+          "generator_herbs",
+          "generator_fruits",
+          "generator_beans",
+          null,
+          null,
+          null,
+          "grain_1",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "layout": {
+          "id": "prologue-memorial",
+          "obstacles": [
+            {
+              "id": "prologue-crate",
+              "position": 19,
+              "name": "Mamaia’s crate",
+              "type": "clutter",
+              "ingredient": "grain_3",
+              "sprite": 0
+            },
+            {
+              "id": "prologue-sack",
+              "position": 28,
+              "name": "Mamaia’s sack",
+              "type": "clutter",
+              "ingredient": "fruits_2",
+              "sprite": 1
+            },
+            {
+              "id": "prologue-linen",
+              "position": 34,
+              "name": "Mamaia’s linen bundle",
+              "type": "clutter",
+              "ingredient": "herbs_2",
+              "sprite": 3
+            }
+          ]
+        },
+        "room": "family-kitchen-mourning",
+        "scene": {
+          "image": "scene-prologue-churchyard",
+          "text": "The village churchyard in snow. Mourners with candles stand before the church, among them Mara, Ilie, Eszter, and Sorin, beside a table with colivă and colaci."
+        },
+        "quests": [
+          {
+            "id": "prologue-6-mama",
+            "character": "mama",
+            "title": "Colivă for the fortieth day",
+            "afterTask": null,
+            "requirements": [
+              {
+                "item": "mixed_coliva",
+                "quantity": 2
+              }
+            ],
+            "reward": 0,
+            "opening": [
+              {
+                "speaker": "mama",
+                "text": "Two plates of colivă, one for the church and one for the table. Use her old dish. She would check."
+              }
+            ],
+            "completion": []
+          },
+          {
+            "id": "prologue-6-mara",
+            "character": "mara",
+            "title": "Colaci for the memorial",
+            "afterTask": null,
+            "requirements": [
+              {
+                "item": "mixed_colaci",
+                "quantity": 2
+              },
+              {
+                "item": "beans_4",
+                "quantity": 1
+              }
+            ],
+            "reward": 0,
+            "opening": [
+              {
+                "speaker": "mara",
+                "text": "Colaci and a bean dip for the neighbours who come to remember her. Half the village says that Mamaia fed them once. The other half says twice."
+              }
+            ],
+            "completion": []
+          }
+        ],
+        "opening": {
+          "id": "prologue-6-fortieth",
+          "title": "The fortieth day",
+          "dialogue": [
+            {
+              "speaker": "mama",
+              "text": "The fortieth day falls on Tuesday, but we hold the memorial on Saturday. Saturday belongs to the dead."
+            },
+            {
+              "speaker": "mara",
+              "text": "So we go back to the village. Colivă again, colaci again, and beans."
+            },
+            {
+              "speaker": "tata",
+              "text": "And the notary. He reads the will after the meal. I asked him to read it before, but he has principles."
+            },
+            {
+              "speaker": "mama",
+              "text": "Her house is full of things to sort. Mind her crate, her sack, and her linen. She labelled nothing and remembered everything."
+            }
+          ]
+        },
+        "closing": {
+          "id": "prologue-6-will",
+          "title": "The will",
+          "dialogue": [
+            {
+              "speaker": "mara",
+              "text": "The notary read the will in the cold front room of the bistro. Mamaia left her house to Mama, her savings to the church roof, and the bistro to me."
+            },
+            {
+              "speaker": "tata",
+              "text": "And the cat?"
+            },
+            {
+              "speaker": "mara",
+              "text": "\"The cat goes where the bistro goes.\" It is in the will."
+            },
+            {
+              "speaker": "mara",
+              "text": "I stood in the dark room and saw her at the stove. I am going to open the bistro again."
+            },
+            {
+              "speaker": "mama",
+              "text": "I know. I knew at New Year."
+            }
+          ]
+        }
+      },
+      {
+        "id": "farewell",
+        "title": "The farewell dinner",
+        "line": "Cook the farewell dinner before Mara leaves for the village.",
+        "day": -1,
+        "board": [
+          null,
+          "generator_pork",
+          "generator_vegetables",
+          "generator_grain",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "layout": {
+          "id": "prologue-farewell",
+          "obstacles": []
+        },
+        "room": "family-kitchen-farewell",
+        "scene": {
+          "image": "scene-prologue-bus-stop",
+          "text": "Mara waits at a bus stop of the city at dawn, with a suitcase and a cat basket, and Miez looks out through its grille."
+        },
+        "quests": [
+          {
+            "id": "prologue-7-mama",
+            "character": "mama",
+            "title": "The cabbage rolls, again",
+            "afterTask": null,
+            "requirements": [
+              {
+                "item": "mixed_cabbage-rolls",
+                "quantity": 2
+              }
+            ],
+            "reward": 0,
+            "opening": [
+              {
+                "speaker": "mama",
+                "text": "Two pots, from the notebook. This time I cook them for you, not for the notebook."
+              }
+            ],
+            "completion": []
+          },
+          {
+            "id": "prologue-7-tata",
+            "character": "tata",
+            "title": "Pogăcele for the journey",
+            "afterTask": null,
+            "requirements": [
+              {
+                "item": "grain_4",
+                "quantity": 2
+              }
+            ],
+            "reward": 0,
+            "opening": [
+              {
+                "speaker": "tata",
+                "text": "Two pogăcele for the bus. The village is far, and the bus does not stop for anybody’s stomach."
+              }
+            ],
+            "completion": []
+          }
+        ],
+        "opening": {
+          "id": "prologue-7-last-dinner",
+          "title": "The last dinner in the city",
+          "dialogue": [
+            {
+              "speaker": "mama",
+              "text": "Your last dinner in the city. I am cooking the cabbage rolls from the notebook again."
+            },
+            {
+              "speaker": "tata",
+              "text": "And I make pogăcele for the journey. Nobody leaves this flat with an empty bag."
+            },
+            {
+              "speaker": "mara",
+              "text": "Miez knows. He sat in my suitcase all morning, and now he refuses to go in his basket."
+            }
+          ]
+        },
+        "closing": {
+          "id": "prologue-7-blessing",
+          "title": "A blessing for the road",
+          "dialogue": [
+            {
+              "speaker": "mara",
+              "text": "Mama, these are right. These are exactly right."
+            },
+            {
+              "speaker": "mama",
+              "text": "I cooked them for you. That was the missing thing."
+            },
+            {
+              "speaker": "tata",
+              "text": "Here is some money from us. It is not much, but it pays for the first days, until the bistro pays for itself."
+            },
+            {
+              "speaker": "tata",
+              "text": "And our blessing. That one costs nothing, and it lasts longer."
+            },
+            {
+              "speaker": "mara",
+              "text": "At dawn, I took the first bus to the village. Miez rode in his basket and complained for the whole journey."
+            }
+          ]
+        }
+      }
+    ],
+    "rooms": [
+      {
+        "id": "family-kitchen-mourning",
+        "area": "family-kitchen",
+        "after": null,
+        "focus": {
+          "x": 50,
+          "y": 50
+        },
+        "mark": {
+          "x": 50,
+          "y": 50
+        },
+        "label": "mourning",
+        "text": "The kitchen of the family flat in the city, in winter. A cloth covers the mirror, and a candle burns beside a photograph of Mamaia Paraschiva with a black ribbon. The window shows apartment blocks under snow, and the glass of the balcony door shows the pickle barrel."
+      },
+      {
+        "id": "family-kitchen-christmas",
+        "area": "family-kitchen",
+        "after": null,
+        "focus": {
+          "x": 50,
+          "y": 50
+        },
+        "mark": {
+          "x": 50,
+          "y": 50
+        },
+        "label": "Christmas",
+        "text": "Fir branches hang over the kitchen door, a basket of colaci waits on the table, and the paper star of the carol singers leans by the window."
+      },
+      {
+        "id": "family-kitchen-new-year",
+        "area": "family-kitchen",
+        "after": null,
+        "focus": {
+          "x": 50,
+          "y": 50
+        },
+        "mark": {
+          "x": 50,
+          "y": 50
+        },
+        "label": "the new year",
+        "text": "Paper streamers from the midnight table hang over the cupboard, and frost ferns cover the window."
+      },
+      {
+        "id": "family-kitchen-farewell",
+        "area": "family-kitchen",
+        "after": null,
+        "focus": {
+          "x": 50,
+          "y": 50
+        },
+        "mark": {
+          "x": 50,
+          "y": 50
+        },
+        "label": "the farewell",
+        "text": "A packed suitcase and an empty cat basket wait by the kitchen door."
+      }
+    ],
+    "fasting": [
+      "meat",
+      "dairy",
+      "egg",
+      "fish"
+    ],
+    "gift": 15
+  }
 }

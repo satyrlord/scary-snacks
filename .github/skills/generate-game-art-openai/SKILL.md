@@ -76,7 +76,7 @@ The helper reads each other value from the contract of the asset:
 | `mascots` | `1536x1536` | `transparent` | 2 columns by 2 rows |
 | `timber-tabletop` | `1536x1536` | `opaque` | One image, square, tileable |
 | `embroidered-runner` | `1536x512` | `opaque` | One image, 3:1, repeats horizontally |
-| Each room state in `public/data/game.json` | `1536x2048` | `opaque` | One image, 3:4 portrait, a painted room state |
+| Each room state and each family kitchen state in `public/data/game.json` | `1536x2048` | `opaque` | One image, 3:4 portrait, a painted room state |
 | `decoration-front`, `decoration-courtyard` | `1536x2048` | `opaque` | One image, 3:4 portrait, a decoration edit of a room state |
 | `holiday-front`, `holiday-courtyard` | `1536x2048` | `opaque` | One image, 3:4 portrait, a room state with the holiday decorations painted in; the decorations are then cut out |
 | `finale-supper` | `1536x2048` | `opaque` | One image, 3:4 portrait, the supper painting: an edit of `courtyard-23` with the guests |
@@ -86,7 +86,10 @@ The helper reads each other value from the contract of the asset:
 | `rat-hole` | `1024x1024` | `transparent` | One image, square, the rat hole blocker |
 | `night-sky` | `2048x1024` | `opaque` | One image, 2:1, the night sky behind the window glass |
 | `sketch-sheet-1` to `sketch-sheet-3` | `2688x1344` | `opaque`, then `ink` and `sepia` | 4 columns by 2 rows, eight character sketches in one request |
-| `scene-sheet-1` to `scene-sheet-4` | `2304x1536` | `opaque`, then `ink` and `sepia` | 2 columns by 2 rows, four quest scenes in one request |
+| `scene-sheet-1` to `scene-sheet-5` | `2304x1536` | `opaque`, then `ink` and `sepia` | 2 columns by 2 rows, four quest scenes in one request |
+| `notebook-pages` | `2304x768` | `opaque` | 2 columns by 1 row, two painted notebook pages |
+| `family-photos` | `2048x1024` | `transparent`, then `halo` | 2 columns by 1 row, two old photographs |
+| `family-portraits` | `1536x1536` | `transparent`, then `halo` | 2 columns by 2 rows; the lower cells stay fully transparent |
 | `window-view-late-winter`, `window-view-early-spring`, `window-view-spring` | `1152x1536` | `opaque` | One image, 3:4 portrait, the seasonal view behind the six panes of the front-room window |
 
 The helper does not accept `visitor-portraits`, `guests`, `preparation-clutter`, or `parchment-page`.

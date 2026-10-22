@@ -64,7 +64,7 @@ test('a take from a paid source spends the take cost, and a take from the Herb b
 });
 
 test('a take without the coins changes nothing, and its message names the source', () => {
-  const state = openGame();
+  const state = { ...openGame(), coins: 0 };
   for (const [index, code] of [[1, 'generator_grain'], [4, 'generator_corn']] as const) {
     const result = rejected(state, { type: 'spawn', index });
     assert.equal(state.board[index]?.code, code);

@@ -134,7 +134,7 @@ test('after the supper, the repeating quests continue, the clock stays stopped, 
   assert.deepEqual(state.clock, clock);
 });
 
-test('the data check rejects a large or broken repeating quest and a cycle that a new game cannot start', () => {
+test('the data check rejects a large or broken repeating quest and a cycle that cannot start with act 1', () => {
   assert.deepEqual(questProblems(data), []);
   const change = (edit: (content: typeof data) => void) => { const content = structuredClone(data); edit(content); return dataProblems(content).join(' '); };
   const staff = (content: typeof data) => content.quests.find(value => value.id === 'sorin-staff-meal')!;
@@ -148,7 +148,7 @@ test('the data check rejects a large or broken repeating quest and a cycle that 
     value.reward = value.requirements.reduce((sum, { item, quantity }) => sum + content.items[item].price * quantity, 0);
   }), /more than one meal/, 'A character who orders campaign provisions still gets one meal in a repeating quest.');
   assert.match(change(content => { delete content.quests.find(value => value.id === 'cezar-before-rounds')!.afterQuest; }), /cezar-before-rounds: .* more than one merge beyond/);
-  assert.match(change(content => { staff(content).afterQuest = 'cezar-castle-lights'; }), /join the cycle in a new game/);
+  assert.match(change(content => { staff(content).afterQuest = 'cezar-castle-lights'; }), /join the cycle at the start of act 1/);
   assert.match(change(content => { staff(content).afterQuest = 'cezar-long-night'; }), /invalid repeating quest/, 'A repeating quest follows a campaign quest of act 1.');
   assert.match(change(content => { staff(content).afterQuest = 'unknown'; }), /invalid repeating quest/);
   assert.match(change(content => { staff(content).companions = ['nobody']; }), /invalid companions/);

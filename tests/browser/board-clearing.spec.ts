@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { createGame } from '../../src/engine.ts';
+import { mergePartners } from '../../src/model.ts';
 import { checkpoint, data, saved, start, tile, know } from './support.ts';
 
 test('new board explains blocked spaces and counts only usable empty cells', async ({ page }) => {
@@ -10,18 +10,21 @@ test('new board explains blocked spaces and counts only usable empty cells', asy
   await expect(tile(page, 0)).toHaveAttribute('aria-label', /Old crate, blocked Loaf/);
   await expect(tile(page, 0).locator('.clutter-overlay')).toHaveCount(1);
   await expect(tile(page, 0).locator('.food')).toBeVisible();
-  await expect(tile(page, 6)).toHaveAttribute('aria-label', /blocked Dough. Merge Dough or Herb bunch into this space to clear it/);
+  // The tied Dough takes a Dough, or each recipe partner that the player made: some partners come from the prologue.
+  const known = (await saved(page)).discovered, partners = new Intl.ListFormat('en', { type: 'disjunction' }).format(mergePartners('grain_2', data)
+    .filter(partner => partner === 'grain_2' || known.includes(partner)).map(partner => data.items[partner].name));
+  await expect(tile(page, 6)).toHaveAttribute('aria-label', `Row 2, column 1: Tied dough, blocked Dough. Merge ${partners} into this space to clear it`);
   await tile(page, 0).focus();
   await page.keyboard.press('ArrowDown');
   await expect(tile(page, 6)).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(page.locator('#status')).toHaveText('Tied dough: tap a marked Dough or Herb bunch to merge here.');
+  await expect(page.locator('#status')).toHaveText(`Tied dough: tap a marked ${partners} to merge here.`);
   await expect(page.locator('.cell.clutter')).toHaveCount(4);
   await expect(page.locator('.cell.anchored')).toHaveCount(4);
 });
 
 test('selected ingredients mark matching food and update targets after a move and merge', async ({ page }) => {
-  await start(page, createGame(data));
+  await start(page, checkpoint(0));
   await tile(page, 13).click();
   await expect(tile(page, 13)).toHaveClass(/selected/);
   await expect(tile(page, 14)).toHaveClass(/merge-target/);
@@ -38,7 +41,7 @@ test('selected ingredients mark matching food and update targets after a move an
 });
 
 test('a selected dish marks movable matches and matching blockers only', async ({ page }) => {
-  const state = createGame(data);
+  const state = checkpoint(0);
   state.board[18] = { code: 'grain_2' };
   state.board[19] = { code: 'grain_2' };
   know(state,'grain_2');
@@ -62,7 +65,7 @@ test('a selected dish marks movable matches and matching blockers only', async (
 
 test('forced colours distinguish the selected dish from its matching targets', async ({ page }) => {
   await page.emulateMedia({ forcedColors: 'active' });
-  await start(page, createGame(data));
+  await start(page, checkpoint(0));
   await tile(page, 13).click();
   await expect(tile(page, 13)).toHaveCSS('outline-style', 'solid');
   await expect(tile(page, 14)).toHaveCSS('outline-style', 'dotted');
@@ -70,7 +73,7 @@ test('forced colours distinguish the selected dish from its matching targets', a
 });
 
 test('sources, final dishes, and cleared selections show no merge targets', async ({ page }) => {
-  const state = createGame(data);
+  const state = checkpoint(0);
   state.board[18] = { code: 'grain_6' };
   know(state,'grain_6');
   await start(page, state);
@@ -87,7 +90,7 @@ test('sources, final dishes, and cleared selections show no merge targets', asyn
 
 test('a pointer merge clears only its destination and can then clear the adjacent blocker', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await start(page, createGame(data));
+  await start(page, checkpoint(0));
   await tile(page, 13).click();
   await tile(page, 14).click();
   await tile(page, 6).click();
@@ -123,7 +126,7 @@ test('dragging a matching item into an anchor clears it', async ({ page }) => {
 });
 
 test('keyboard selection can merge into an anchored cell', async ({ page }) => {
-  await start(page, createGame(data));
+  await start(page, checkpoint(0));
   await tile(page, 13).focus();
   await page.keyboard.press('Enter');
   await tile(page, 14).focus();
@@ -138,7 +141,7 @@ test('touch merges the two Flours and releases the tied dough with one more tap'
   const context = await browser.newContext({ baseURL, viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce' });
   try {
     const page = await context.newPage();
-    await start(page, createGame(data));
+    await start(page, checkpoint(0));
     await tile(page, 13).tap();
     await tile(page, 14).tap();
     await tile(page, 6).tap();
@@ -149,7 +152,7 @@ test('touch merges the two Flours and releases the tied dough with one more tap'
 });
 
 test('Find a match selects movable food and points to matching clutter', async ({ page }) => {
-  const state = createGame(data);
+  const state = checkpoint(0);
   state.board = state.board.map(cell => cell && data.items[cell.code].generator ? cell : null);
   state.board[13] = { code: 'grain_3' };
   if (!state.discovered.includes('grain_3')) know(state,'grain_3');

@@ -1,13 +1,12 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { boardObstacles, firstFreeBoardCell, unresolvedObstacle } from '../../src/model.ts';
-import { createGame } from '../../src/engine.ts';
 import type { GameState } from '../../src/model.ts';
 import { act, checkpoint, data, deliverable, deliverButton, dialogDeliver, quest, saved, start, supply, ticket, tile, validate, know } from './support.ts';
 
 /** A purse at the recovery floor keeps Ana's recovery quest, which could take the Linden tea of Mara's quest, off the counter. */
 const welcomeReady = () => { const state = deliverable(quest('mara-welcome')); state.coins = data.economy.recoveryFloor; return state; };
-function fullBoard(code: string, seed = createGame(data), keep: (index: number) => boolean = () => false) {
+function fullBoard(code: string, seed = checkpoint(0), keep: (index: number) => boolean = () => false) {
   const state: GameState = structuredClone(seed);
   state.board.forEach((cell, index) => {
     if (!unresolvedObstacle(state,index,data) && !cell?.code.startsWith('generator_') && !keep(index)) state.board[index] = {code};
@@ -131,7 +130,7 @@ test('a full-board guide skips a delivery that would exceed the coin limit',asyn
 });
 
 test('a full-board guide points to a legal ordinary merge',async({page})=>{
-  const state=fullBoard('grain_6',createGame(data),index=>index===13||index===14);
+  const state=fullBoard('grain_6',checkpoint(0),index=>index===13||index===14);
   know(state,'herbs_3');
   await start(page,state);await guide(page,'herbs_3');
   const from=Number((await page.locator('#board .selected').getAttribute('data-cell'))!);
@@ -146,7 +145,7 @@ test('a full-board guide points to a legal ordinary merge',async({page})=>{
 });
 
 test('a full-board guide points to a legal blocker merge',async({page})=>{
-  const state=fullBoard('grain_6',createGame(data),index=>index===22);
+  const state=fullBoard('grain_6',checkpoint(0),index=>index===22);
   know(state,'herbs_3');
   await start(page,state);await guide(page,'herbs_3');
   await expect(tile(page,22)).toHaveClass(/selected/);

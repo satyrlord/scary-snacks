@@ -3,11 +3,11 @@ import sharp from 'sharp';
 import type { Page } from '@playwright/test';
 import { clockText, dateText, dayHours, dayMerges, isSunday } from '../../src/model.ts';
 import { moveTo } from '../../tools/create-checkpoint-saves.ts';
-import { createGame, reduceGame, revealTickets } from '../../src/engine.ts';
+import { reduceGame, revealTickets } from '../../src/engine.ts';
 import type { GameState, NightReport } from '../../src/model.ts';
-import { act, supper, checkpoint, data, dialogDeliver, KEY, mergeFlour, opened, openQuest, options, quest, replaceSave, saved, serialize, start, supplies, supply, svgImageSizes, ticket, tile, toast, validate } from './support.ts';
+import { actOne, act, supper, checkpoint, data, dialogDeliver, KEY, mergeFlour, opened, openQuest, options, quest, replaceSave, saved, serialize, start, supplies, supply, svgImageSizes, ticket, tile, toast, validate } from './support.ts';
 
-// A new game has two Flours at 13 and 14, a Corn cob at 22, and Elderflowers at 27.
+// The start of act 1 has two Flours at 13 and 14, a Corn cob at 22, and Elderflowers at 27.
 const upkeep = data.day.upkeep;
 /** The report of the closing of a day: a rat only on Sunday night. */
 const report = (values: Partial<NightReport> = {}): NightReport => {
@@ -16,7 +16,7 @@ const report = (values: Partial<NightReport> = {}): NightReport => {
 };
 /** A new game one merge before the closing of Sunday 23 February, day 9. Only a Sunday night brings a rat. */
 const SUNDAY = 9;
-const lateEvening = (values: Partial<GameState> = {}): GameState => ({ ...createGame(data, 4), coins: 30, clock: { day: SUNDAY, merges: dayMerges(SUNDAY, data) - 1 }, night: report({ day: SUNDAY - 1 }), ...values });
+const lateEvening = (values: Partial<GameState> = {}): GameState => ({ ...actOne(4), coins: 30, clock: { day: SUNDAY, merges: dayMerges(SUNDAY, data) - 1 }, night: report({ day: SUNDAY - 1 }), ...values });
 const closing = (page: Page) => page.getByRole('dialog', { name: 'Closing time', exact: true });
 /** The morning dialog after the closing of that Sunday. */
 const morning = (page: Page) => page.getByRole('dialog', { name: 'Good morning, Monday 24 February', exact: true });
@@ -34,7 +34,7 @@ function bookedEvening(): GameState {
 }
 
 test('the clock shows the date and the time, and a merge moves it', async ({ page }) => {
-  await start(page, createGame(data, 1));
+  await start(page, actOne(1));
   await expect(page.locator('#day-clock .clock-face')).toHaveText('Sat 15 Feb · 07:00');
   await expect(page.locator('#day-clock .visually-hidden')).toHaveText('Saturday 15 February, 07:00');
   await mergeFlour(page);
@@ -43,7 +43,7 @@ test('the clock shows the date and the time, and a merge moves it', async ({ pag
 });
 
 test('a purse below zero shows a debt with a minus sign, in ink, as owed', async ({ page }) => {
-  await start(page, { ...createGame(data, 1), coins: -12 });
+  await start(page, { ...actOne(1), coins: -12 });
   await expect(page.locator('#coins')).toHaveText('−12');
   await expect(page.locator('#coin-label')).toHaveText('owed');
   await expect(page.locator('#coin-count')).toHaveClass(/debt/);
@@ -96,8 +96,9 @@ test('the closing dialog shows the board before the night, and watching plays th
 });
 
 test('Șoricescu puts down his gift in the night, and the morning dialog names the new dish', async ({ page }) => {
+  // The prologue made Pogăcele. This save has not, so the gift is a new dish.
   const state = lateEvening();
-  state.board[22] = null;
+  state.board[22] = null; state.discovered = state.discovered.filter(code => code !== 'grain_4');
   await start(page, state);
   await mergeFlour(page);
   await expect(tile(page, 30)).toHaveClass(/night-hidden/);
@@ -259,10 +260,10 @@ test('replacing a game while its morning report is open leaves the replacement r
 
 for (const width of [320, 360, 390, 411, 720, 721, 1024, 1280, 1365, 1366, 1400, 1440, 1460, 1500, 1536, 1600, 1920]) test(`the masthead keeps a gap between the title, clock, and purse at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 900 });
-  await start(page, createGame(data, 1));
+  await start(page, actOne(1));
   // Wednesday 12 March has the widest short date of act 1, and a Sunday opens at 10:00. The March quests that open are delivered.
   for (const [day, coins] of [[26, -999], [26, 999], [75, -9999], [9, 123_456], [52, -1_000_000_000]]) {
-    const state = on({ ...createGame(data, 1), coins }, day);
+    const state = on({ ...actOne(1), coins }, day);
     state.completedQuests.push(...state.march.filter(id => !state.completedQuests.includes(id)));
     await replaceSave(page, state); await page.evaluate(() => document.fonts.ready);
     await expect(page.locator('#day-clock .visually-hidden')).toHaveText(`${dateText(day, data)}, ${clockText(dayHours(day, data).opening)}`);
@@ -287,10 +288,10 @@ test('the coin figures share the wordmark baseline on wider screens, and a large
     };
     return { wordmark: baseline('.wordmark span:last-child'), coins: baseline('#coins'), height: document.querySelector('.masthead')!.getBoundingClientRect().height };
   });
-  await start(page, { ...createGame(data, 1), coins: 30 });
+  await start(page, { ...actOne(1), coins: 30 });
   const small = await baselines();
   expect(Math.abs(small.coins - small.wordmark)).toBeLessThan(1);
-  await replaceSave(page, { ...createGame(data, 1), coins: 4321 });
+  await replaceSave(page, { ...actOne(1), coins: 4321 });
   expect(await baselines()).toEqual(small);
 });
 
@@ -300,7 +301,7 @@ const unreported = [
   ['a visit without room for a gift', report({ gift: null }), 'Șoricescu found no room for his gift. He needs 5 free spaces. The purse holds 30 coins.'],
 ] as const;
 for (const [name, night, words] of unreported) test(`after a reload, the morning dialog of ${name} shows once, without the night`, async ({ page }) => {
-  const state: GameState = { ...createGame(data, 1), clock: { day: 3, merges: 0 }, night: { ...night, seen: false }, coins: night.purse };
+  const state: GameState = { ...actOne(1), clock: { day: 3, merges: 0 }, night: { ...night, seen: false }, coins: night.purse };
   expect(validate(state)).toBe(true);
   await start(page, state);
   const dialog = page.getByRole('dialog', { name: 'Good morning, Monday 17 February', exact: true });

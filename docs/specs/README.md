@@ -2,10 +2,9 @@
 
 Each specification in this folder records one feature of Scary Snacks: its rules, its data, its saves, and its checks. [PRODUCT.md](../../PRODUCT.md), [DESIGN.md](../../DESIGN.md), and [DELIVERY.md](../../DELIVERY.md) control the current behavior. A specification does not change a contract. When you change a feature, change its owner documents in the same task.
 
-The implemented specifications cover act 1, its calendar, and its seasons.
-The proposed specification 016 adds the prologue before act 1.
+The implemented specifications cover the prologue, act 1, its calendar, and its seasons.
 
-The game has six chapters, 24 preparations, and 111 authored quests.
+The game has a prologue of seven events with 16 event quests, six chapters, 24 preparations, and 111 authored quests.
 The quests are 88 campaign quests of act 1, five March quests, nine quests of later acts, the supper quest, the recovery quest, and seven repeating quests.
 
 ## File names
@@ -47,8 +46,9 @@ The status column gives the state of each specification. The status of a specifi
 | 013 | [Bistro day and night](013-day-and-night.md) | Implemented | 012 |
 | 014 | [Repeating quests](014-repeating-quests.md) | Implemented | 010, 013 |
 | 015 | [Calendar and act 1 dates](015-calendar.md) | Implemented | 013, 014, and 017 in the same change |
-| 016 | [The prologue](016-prologue.md) | Proposed | 015, 017 for the pickle barrel |
+| 016 | [The prologue](016-prologue.md) | Implemented | 015, 017 for the pickle barrel |
 | 017 | [Seasons and holidays](017-seasons-and-holidays.md) | Implemented | 012, 014, and 015 in the same change |
+| 018 | [Act 2](018-act-two.md) | Draft | 015, 016, 017 |
 
 A dependency is a specification that the complete feature needs. A reference to another specification is not always a dependency. Only this register lists the dependencies.
 
@@ -68,7 +68,7 @@ A dependency is a specification that the complete feature needs. A reference to 
 
 ## Shared save compatibility
 
-Current saves use game state version 15 in envelope version 14 at `scary-snacks-save-v14`.
+Current saves use game state version 16 in envelope version 15 at `scary-snacks-save-v15`.
 The game supports only this format.
 Load reads only this key.
 If no current save exists, the game starts a new campaign.

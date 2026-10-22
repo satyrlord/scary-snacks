@@ -1,5 +1,5 @@
 // The game page: it opens the game, draws every part of the interface after each change, and plays the effects of a change.
-import { clockMinutes, clockText, dateText, unresolvedObstacle } from './model.ts';
+import { clockMinutes, clockText, dateText, gameDay, unresolvedObstacle } from './model.ts';
 import { dataProblems } from './content.ts';
 import { $, coinText, coinWord, compact, count, element, reason, status } from './dom.ts';
 import { portrait } from './art.ts';
@@ -7,7 +7,7 @@ import { modal } from './dialog.ts';
 import { changeGame, data, definition, onDraw, open, persist, saveFailed, select, selected, state, syncSavedGame } from './session.ts';
 import { SAVE_KEY } from './storage.ts';
 import { drawerLayout, onMotionResume, phone, playTone } from './preferences.ts';
-import { introduceFirstDelivery, renderBoard, renderDetail } from './board.ts';
+import { introduceFirstQuest, renderBoard, renderDetail } from './board.ts';
 import { renderTickets, toast } from './tickets.ts';
 import { guidanceStep, markRecipeBook, noteNewDishes, updateGuidance } from './dishes.ts';
 import { endSceneFlow, renderOffer, showScene, storyContent } from './story.ts';
@@ -25,6 +25,8 @@ let actionFeedback = '';
  * screen readers always hear the exact amount. A purse below zero is a debt, with a minus sign, in ink, and "owed".
  */
 function renderCoins() {
+  // The prologue has no purse.
+  $('#coin-count').hidden = state.prologue !== null;
   const amount = Math.abs(state.coins), short = amount >= (phone.matches ? 10_000 : 1_000_000), debt = state.coins < 0;
   $('#coins').textContent = `${debt ? '−' : ''}${short ? compact.format(amount) : count.format(amount)}`;
   $('#coin-label').textContent = debt ? 'owed' : coinWord(amount);
@@ -32,14 +34,18 @@ function renderCoins() {
   $('#coin-count').classList.toggle('long', amount >= 1000);
   $('#coin-count').classList.toggle('debt', debt);
 }
-/** The date and the time. Screen readers hear the full date; phones stack the short date over the time, so the masthead keeps room for the coins. */
+/**
+ * The date and the time. Screen readers hear the full date; phones stack the short date over the time, so the masthead keeps room for
+ * the coins. The prologue has no clock, so the masthead shows only the date of the current event.
+ */
 function renderClock() {
-  const day = dateText(state.clock.day, data, 'short'), time = clockText(clockMinutes(state, data)), clock = $('#day-clock');
-  if (clock.querySelector('.clock-face')?.textContent === `${day} · ${time}`) return;
+  const shown = gameDay(state, data), day = dateText(shown, data, 'short'), time = state.prologue ? '' : clockText(clockMinutes(state, data)), clock = $('#day-clock');
+  if (clock.querySelector('.clock-face')?.textContent === (time ? `${day} · ${time}` : day)) return;
   const face = element('span', 'clock-face');
   face.setAttribute('aria-hidden', 'true');
-  face.append(element('span', 'clock-day', day), element('span', 'clock-dot', ' · '), element('span', 'clock-time', time));
-  clock.replaceChildren(element('span', 'visually-hidden', `${dateText(state.clock.day, data)}, ${time}`), face);
+  face.append(element('span', 'clock-day', day));
+  if (time) face.append(element('span', 'clock-dot', ' · '), element('span', 'clock-time', time));
+  clock.replaceChildren(element('span', 'visually-hidden', time ? `${dateText(shown, data)}, ${time}` : dateText(shown, data)), face);
 }
 function celebrateCoins(gain: number) {
   const purse = $('#coin-count');
@@ -140,7 +146,9 @@ try {
   // The frame pans smoothly only after it first settles, so opening the game shows the room in place.
   requestAnimationFrame(()=>requestAnimationFrame(()=>{$('#room-frame').classList.add('settled');syncRoomControls();}));
   if(saved.status==='empty')await changeGame(persist);
-  status(saved.status==='loaded'?`Welcome back. The stove is still warm.${state.pendingScenes.length?' A story scene is waiting in Story.':''}`:introduceFirstDelivery());
+  status(saved.status==='loaded'?`Welcome back. The stove is still warm.${state.pendingScenes.length?' A story scene is waiting in Story.':''}`:introduceFirstQuest());
+  // A new game opens the first scene of the prologue at once. A reload opens no scene.
+  if(saved.status==='empty'&&state.pendingScenes.length)showScene(state.pendingScenes[0]);
   if(saveFailed)options();
   // A night that the player did not see before the page closed opens its morning dialog now, without the sequence.
   if(modal.open)modal.addEventListener('close',morning,{once:true});else morning();

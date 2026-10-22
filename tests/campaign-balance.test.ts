@@ -7,7 +7,7 @@ import { KEEP_FREE, validateGame } from '../src/engine.ts';
 import { BALANCE_SEEDS, runCampaignBalance } from '../tools/campaign-balance.ts';
 import type { CampaignTotals } from '../tools/campaign-balance.ts';
 import { checkpointState } from '../tools/create-checkpoint-saves.ts';
-import { act, afterMarch, data, nightLine, player, runs, recovery } from './support.ts';
+import { act, afterMarch, data, nightLine, player, prologueServed, runs, recovery } from './support.ts';
 
 /** The first efficient run, which checks the state after every action. */
 const report = runCampaignBalance(data, BALANCE_SEEDS[0]);
@@ -25,11 +25,11 @@ test('the efficient run pays all 24 preparations and serves the supper with no i
   assert.equal(finalState.taskIndex, data.tasks.length);
   assert.equal(validateGame(finalState, data), true);
   assert.ok(supperComplete(finalState, data));
-  assert.deepEqual(new Set(finalState.completedQuests), new Set([...campaign.map(quest => quest.id), ...march.map(quest => quest.id), supper.id]), 'Every campaign quest and every March quest.');
+  assert.deepEqual(new Set(finalState.completedQuests), new Set([...prologueServed, ...campaign.map(quest => quest.id), ...march.map(quest => quest.id), supper.id]), 'Every prologue quest, campaign quest, and March quest.');
   assert.equal(finalState.completedQuests.at(-1), supper.id);
   assert.equal(totals.quests, campaign.length + march.length + 1 + totals.recoveries + totals.repeats, 'Each campaign quest, each March quest, the supper, each recovery tea, and each repeating quest.');
-  // Every coin comes from a quest or a cleared blocker, and goes to a preparation, a take, or the upkeep.
-  assert.equal(finalState.coins, totals.questCoins + totals.blockerCoins - totals.preparationCoins - totals.takeCoins - totals.upkeepCoins);
+  // Every coin comes from the starting gift, a quest, or a cleared blocker, and goes to a preparation, a take, or the upkeep.
+  assert.equal(finalState.coins, data.prologue.gift + totals.questCoins + totals.blockerCoins - totals.preparationCoins - totals.takeCoins - totals.upkeepCoins);
   assert.equal(totals.upkeepCoins, (finalState.clock.day - 1) * data.day.upkeep, 'Each closing pays the upkeep.');
   assert.deepEqual(finalState.act1, { purse: finalState.coins }, 'The supper records the result of act 1.');
   assert.equal(totals.questCoins, [...campaign, ...march].reduce((sum, quest) => sum + quest.reward, 0) + totals.recoveries * recovery.reward + totals.repeatCoins);
@@ -89,11 +89,20 @@ test('the efficient strategy pays the last preparation before the closing of 30 
   }
 });
 
+test('the run plays the prologue with legal actions, within the merge limits of each event, and starts act 1 with the starting gift', () => {
+  assert.deepEqual(report.prologue.map(event => event.event), [1, 2, 3, 4, 5, 6, 7]);
+  // The first event serves its first quest with no take, then makes the Bean dip with four takes and four merges.
+  assert.deepEqual([report.prologue[0].takes, report.prologue[0].merges], [4, 4]);
+  for (const event of report.prologue) assert.ok(event.merges <= 40 && event.freeCells > 0, `Event ${event.event}: ${event.merges} merges.`);
+  assert.ok(report.prologue.reduce((sum, event) => sum + event.merges, 0) <= 250);
+  assert.deepEqual(report.finalState.completedQuests.slice(0, prologueServed.length).sort(), [...prologueServed].sort());
+});
+
 test('the run records the coins, the takes, and the free cells at each preparation and each chapter', t => {
   const { totals } = report;
   assert.deepEqual(report.chapters.map(chapter => chapter.chapter), [1, 2, 3, 4, 5, 6]);
   assert.deepEqual(report.preparations.map(task => task.id), data.tasks.map(task => task.id));
-  let balance = 0;
+  let balance = data.prologue.gift;
   for (const chapter of report.chapters) {
     balance += chapter.questCoins + chapter.blockerCoins - chapter.preparationCoins - chapter.takeCoins - chapter.upkeepCoins;
     assert.equal(chapter.balance, balance, `Chapter ${chapter.chapter} records its actual balance.`);

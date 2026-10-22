@@ -1,4 +1,5 @@
-// Make masks and region composites for the painted room states, and convert, patch, and colour pencil drawings.
+// Make masks and region composites for the painted room states, convert, patch, and colour pencil drawings, clear the halo of a cut-out atlas,
+// and typeset a text that a painting must copy.
 // A provider can change pixels outside a mask.
 // The composite preserves the previous state outside the region and its soft edge.
 // It uses generated pixels inside that region.
@@ -53,6 +54,30 @@ export async function makeMask(width: number, height: number, boxes: Box[], elli
   return sharp(pixels, { raw: { width, height, channels: 4 } }).png().toBuffer();
 }
 
+/**
+ * Clear the halo of a transparent candidate: a pixel below the floor becomes fully transparent, and a pixel above the ceiling becomes
+ * fully opaque. The edge between them keeps its alpha, so the cut-out keeps a smooth edge and loses the faint glow around it.
+ */
+/**
+ * Typeset a text in dark ink on white paper, so that a request can copy its letters exactly. The font must be a file on this computer,
+ * for example a font with the old Romanian Cyrillic letters.
+ */
+async function typeset(text: string, fontfile: string, width: number, height: number) {
+  const markup = text.trim().replaceAll('&', '&amp;').replaceAll('<', '&lt;');
+  const lines = await sharp({ text: { text: `<span foreground="#2b1d12">${markup}</span>`, fontfile, font: path.parse(fontfile).name, width: width - 96, height: height - 96, rgba: true, spacing: 12 } }).png().toBuffer();
+  return sharp({ create: { width, height, channels: 3, background: '#ffffff' } }).composite([{ input: lines, left: 48, top: 48 }]).png().toBuffer();
+}
+
+async function clearHalo(candidate: Buffer, floor = 32, ceiling = 224) {
+  const { data, info } = await sharp(candidate).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  let cleared = 0, filled = 0;
+  for (let index = 3; index < data.length; index += 4) {
+    if (data[index] && data[index] < floor) { data[index] = 0; cleared++; }
+    else if (data[index] > ceiling && data[index] < 255) { data[index] = 255; filled++; }
+  }
+  const bytes = await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toBuffer();
+  return { bytes, cleared, filled };
+}
 /**
  * Copy generated pixels into the mask region with a soft edge of `feather` pixels.
  * Preserve the alpha outside the region. Keep an opaque base opaque.
@@ -204,7 +229,8 @@ async function main() {
     options: {
       size: { type: 'string' }, box: { type: 'string', multiple: true }, ellipse: { type: 'string', multiple: true }, polygon: { type: 'string', multiple: true }, out: { type: 'string' },
       base: { type: 'string' }, candidate: { type: 'string' }, mask: { type: 'string' }, feather: { type: 'string' }, ramp: { type: 'boolean' },
-      input: { type: 'string' }, 'keep-red': { type: 'boolean' }, 'keep-gold': { type: 'boolean' },
+      input: { type: 'string' }, 'keep-red': { type: 'boolean' }, 'keep-gold': { type: 'boolean' }, floor: { type: 'string' }, ceiling: { type: 'string' },
+      text: { type: 'string' }, font: { type: 'string' },
     },
   });
   if (command === 'mask' && values.size && (values.box || values.ellipse || values.polygon) && values.out) {
@@ -230,7 +256,7 @@ async function main() {
     // The previous state and the candidate must both be project images with their records.
     const base = await readReference(values.base);
     const candidate = await readReference(values.candidate);
-    if (path.basename(values.candidate) !== 'candidate.png') throw new Error('Composite a candidate.png from a helper run.');
+    if (!['candidate.png', 'halo.png'].includes(path.basename(values.candidate))) throw new Error('Composite a candidate.png from a helper run, or its halo.png.');
     const maskPath = await resolveWithAncestors(values.mask);
     if (!isInside(await resolveWithAncestors(TASK_ROOT), maskPath)) throw new Error('Keep the mask inside analysis/art-generation/.');
     const mask = await readFile(maskPath);
@@ -285,6 +311,33 @@ async function main() {
     const result = { baseSha256: drawing.sha256, paperSha256: paper.sha256, candidateSha256: candidate.sha256, maskSha256: sha256(mask), feather, sourceSha256: sha256(bytes) };
     await writeFile(path.join(out, 'patch.json'), `${JSON.stringify(result, null, 2)}\n`, { flag: 'wx' });
     console.log(JSON.stringify({ patch: path.join(out, 'patch.png'), ...result }));
+  } else if (command === 'halo' && values.candidate && values.out) {
+    // The input is a candidate.png of a transparent asset from a helper run, so its record names the request.
+    const candidate = await readReference(values.candidate);
+    if (path.basename(values.candidate) !== 'candidate.png') throw new Error('Clear the halo of a candidate.png from a helper run.');
+    const floor = values.floor === undefined ? 32 : Number(values.floor), ceiling = values.ceiling === undefined ? 224 : Number(values.ceiling);
+    if (!Number.isSafeInteger(floor) || !Number.isSafeInteger(ceiling) || floor < 1 || ceiling > 254 || floor >= ceiling) throw new Error('Use a floor from 1 and a ceiling to 254, with the floor below the ceiling.');
+    const out = await newOutput(values.out);
+    const { bytes, cleared, filled } = await clearHalo(candidate.bytes, floor, ceiling);
+    await mkdir(out, { recursive: true });
+    await writeFile(path.join(out, 'halo.png'), bytes, { flag: 'wx' });
+    const record = { candidateSha256: candidate.sha256, floor, ceiling, clearedPixels: cleared, filledPixels: filled, sourceSha256: sha256(bytes) };
+    await writeFile(path.join(out, 'halo.json'), `${JSON.stringify(record, null, 2)}\n`, { flag: 'wx' });
+    console.log(JSON.stringify({ halo: path.join(out, 'halo.png'), ...record }));
+  } else if (command === 'text' && values.text && values.font && values.size && values.out) {
+    // The text file is in the task folder, so the record names the words that the request copies.
+    const textPath = await resolveWithAncestors(values.text);
+    if (!isInside(await resolveWithAncestors(TASK_ROOT), textPath)) throw new Error('Keep the text file inside analysis/art-generation/.');
+    const [width, height] = values.size.split('x').map(Number);
+    if (![width, height].every(value => Number.isSafeInteger(value) && value >= 256 && value <= 3840)) throw new Error('Use a size from 256x256 to 3840x3840.');
+    const [text, font] = await Promise.all([readFile(textPath, 'utf8'), readFile(values.font)]);
+    const out = await newOutput(values.out);
+    const bytes = await typeset(text, path.resolve(values.font), width, height);
+    await mkdir(out, { recursive: true });
+    await writeFile(path.join(out, 'text.png'), bytes, { flag: 'wx' });
+    const record = { text: path.relative(REPO, textPath).replaceAll('\\', '/'), textSha256: sha256(Buffer.from(text, 'utf8')), font: path.basename(values.font), fontSha256: sha256(font), sourceSha256: sha256(bytes) };
+    await writeFile(path.join(out, 'text.json'), `${JSON.stringify(record, null, 2)}\n`, { flag: 'wx' });
+    console.log(JSON.stringify({ textImage: path.join(out, 'text.png'), ...record }));
   } else if (command === 'sepia' && values.input && values.out) {
     // The input is the ink.png or the patch.png of a pencil drawing, next to its record.
     const input = await resolveWithAncestors(values.input), name = path.basename(input);
@@ -302,7 +355,7 @@ async function main() {
 `, { flag: 'wx' });
     console.log(JSON.stringify({ sepia: path.join(out, 'sepia.png'), ...result }));
   } else {
-    throw new Error('Use "mask --size WxH [--box left,top,width,height] [--ellipse x,y,rx,ry] [--polygon x1,y1,x2,y2,x3,y3,...] --out <file>", "composite --base <png> --candidate <candidate.png> --mask <png> --out <dir> [--feather 24] [--ramp]", "ink --candidate <candidate.png> --out <dir>", "paper --base <drawing png> --out <dir>", "patch --base <paper.png> --candidate <candidate.png> --mask <png> --out <dir> [--feather 8]", or "sepia --input <ink.png or patch.png> --out <dir> [--keep-red] [--keep-gold]".');
+    throw new Error('Use "mask --size WxH [--box left,top,width,height] [--ellipse x,y,rx,ry] [--polygon x1,y1,x2,y2,x3,y3,...] --out <file>", "composite --base <png> --candidate <candidate.png> --mask <png> --out <dir> [--feather 24] [--ramp]", "ink --candidate <candidate.png> --out <dir>", "paper --base <drawing png> --out <dir>", "patch --base <paper.png> --candidate <candidate.png> --mask <png> --out <dir> [--feather 8]",, "sepia --input <ink.png or patch.png> --out <dir> [--keep-red] [--keep-gold]", "halo --candidate <candidate.png> --out <dir> [--floor 32] [--ceiling 224]", or "text --text <txt> --font <ttf> --size WxH --out <dir>".');
   }
 }
 

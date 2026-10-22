@@ -657,6 +657,22 @@ The journal shows its current or latest chapter after Unread scenes. The other c
 
 The neighbour help line uses muted text. Each unread scene has its entry under Unread scenes. After the player reads a preparation scene, its entry names its room change, for example "New: lamps lit". A closing scene and the finale say "Replay". A news scene has a Local news section in Earlier conversations. A quest reply moves to Earlier conversations with the quest title and the name of the neighbour. These parts have no animation.
 
+### The prologue
+
+The prologue room has one area, the family kitchen of a flat in a city apartment block, in a front-facing 3:4 painting. The area switch does not show. The kitchen has four painted states: mourning (events 1 and 6: a cloth over the mirror, and a candle beside a photograph of Paraschiva with a black ribbon), Christmas (events 2 and 3: fir branches, the carol star, and a basket of colaci), the new year (events 4 and 5: streamers and frost on the window), and the farewell (event 7: a packed suitcase and an empty cat basket by the door). The room shows the state of the current event. At the change of event, the new state comes into focus over the old one in 1200ms. With reduced motion, the change is immediate. The kitchen has no New pin, no window view, no weather, no holiday decoration, no finish, and no bat.
+
+Miez appears in the family kitchen from event 2. He sits on the windowsill and sleeps on the radiator. In the farewell state, he sits beside the empty cat basket. From event 2, the Miez card in Story works as in act 1.
+
+The masthead shows the short date of the current event, for example "Tue 24 Dec", with no time and no coins. Screen readers hear the full date.
+
+Story shows the prologue as one part. The heading is "Prologue: The inheritance", and the objective is the meal of the current event. The steps have one pip for each of the seven events, with the label "Prologue" in the story section and "N of 7 done" in the sheet. The list has the accessible name "Prologue events". The body names the event and its long date. Story shows no Pay and no cost details. The foot counts the events. While the game waits for closing 7, every pip is done, and Read now offers the scene. The counter then says "Every dish is served. The last scene of the prologue waits in Story."
+
+An event quest ticket and its dialog show Serve, with no coin mark. The dialog says "A family meal pays nothing." Mara's quests in the prologue show the illustration of their event in place of a sketch. Mama and Tata show an old sepia studio photograph on a card with a paper border, in the slot of the sketch.
+
+Each prologue scene shows the illustration of its event, a pencil sketch in the quest scene format, above its transcript. Opening 3 and closing 5 show a painted page of Mamaia's notebook in place of the illustration: the cabbage rolls beside a page of old Cyrillic, and the note to Mara beside a pressed basil sprig. The Cyrillic page shows an authored prayer, which Mara cannot read. The other pages suggest handwriting. Mara reads the recipe and the note aloud in her lines. The text alternative of each page describes the page. A journal replay shows the same picture. The completion action of closing 7 reads "Leave for the village".
+
+In the journal, the prologue part has the heading "Prologue · The inheritance". Each event with a read scene shows its title and date in muted text, then a Replay entry for each read scene. An event with no read scene shows as a muted entry. Its status is "Done", "Now", or "Not yet", from its quest progress.
+
 ### Quests
 
 The title of the quest dialog is the quest title. A 44px portrait for each person is beside the names. The first lines of the quest follow in 16px body text.
@@ -766,15 +782,18 @@ Options shows the save state. If the state needs one, Options also shows the Ret
 ## Design instructions
 
 ### Required actions
-- Use only the 74 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
+- Use only the 82 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
   - The 25 room masters are front-room-00 to front-room-12, front-room-17, front-room-24, courtyard-13 to courtyard-16, and courtyard-18 to courtyard-23.
+  - The four family kitchen masters of the prologue are family-kitchen-mourning, family-kitchen-christmas, family-kitchen-new-year, and family-kitchen-farewell. Christmas and the farewell are edits of the mourning state, and the new year is an edit of Christmas.
   - The supper master is finale-supper, an edit of courtyard-23 with the guests of the supper.
   - The two decoration masters are decoration-front and decoration-courtyard. The two holiday masters are holiday-front and holiday-courtyard: transparent pictures at the size of the room states, with each decoration at its place.
   - The three window views are window-view-late-winter, window-view-early-spring, and window-view-spring, each 1152 by 1536px and opaque.
-  - The 19 other masters are these:
-    - board-clutter, preparation-clutter, portraits, visitor-portraits, guests, regulars-1, regulars-2, regulars-3, mascots, timber-tabletop, embroidered-runner, and parchment-page
+  - The 23 other masters are these:
+    - board-clutter, preparation-clutter, portraits, visitor-portraits, guests, regulars-1, regulars-2, regulars-3, family-portraits, mascots, timber-tabletop, embroidered-runner, and parchment-page
     - sketch-sheet-1 to sketch-sheet-3, each a grid of four columns and two rows of 672px character sketches
-    - scene-sheet-1 to scene-sheet-4, each a grid of two columns and two rows of 1152 by 768px quest scenes
+    - scene-sheet-1 to scene-sheet-5, each a grid of two columns and two rows of 1152 by 768px quest scenes; scene-sheet-5 holds the four event scenes of the prologue
+    - notebook-pages, one row of two opaque 1152 by 768px painted pages of the notebook
+    - family-photos, one row of two 1024px square cells, each with an old photograph of Mama or Tata on transparency
   - The four night masters are these:
     - rat-thief and rat-soricescu, each a grid of four columns and two rows of 512px cells
     - rat-hole, 1024px square
@@ -782,8 +801,8 @@ Options shows the save state. If the state needs one, Options also shows the Ret
   - The 18 food atlas masters are grids of four columns and two rows. A dish shows its whole cell, with no measured bounds. A chain atlas holds the source in cell 0 and the dishes in stage order. The food atlas masters are these:
     - food-grain, food-corn, food-herbs, food-dairy, food-poultry, food-vegetables, food-fruits, food-pork, food-beans, food-lamb, food-veal, food-fish, food-pickles, food-greens, food-soups, food-mains, food-sweets, and food-breads
 - Paint each room state as a complete 3:4 painting, 1536 by 2048, opaque. Keep every pixel outside the change the same as in the state before it.
-- Ship room states and the supper painting as AVIF and WebP at 768 and 1536px wide, AVIF first. Ship the timber as AVIF and WebP at 1024 and 1536px wide. Ship the decoration paintings and the holiday images as WebP at 1536px wide. Ship the window views as WebP at 576px wide. Ship the transparent atlases and the runner as WebP. Ship the rat sheets and the night sky as WebP at 1024px wide. Ship the rat hole as WebP at 256px square.
-- Ship the parchment as a WebP at its native 1254px square size. Cut each cell of a pencil sheet into its own variant. Ship each character sketch as a transparent WebP at its native 672px square. Ship each quest scene as a transparent WebP at 1024px wide.
+- Ship room states, the family kitchen states, and the supper painting as AVIF and WebP at 768 and 1536px wide, AVIF first. Ship the timber as AVIF and WebP at 1024 and 1536px wide. Ship the decoration paintings and the holiday images as WebP at 1536px wide. Ship the window views as WebP at 576px wide. Ship the transparent atlases and the runner as WebP. Ship the rat sheets and the night sky as WebP at 1024px wide. Ship the rat hole as WebP at 256px square.
+- Ship the parchment as a WebP at its native 1254px square size. Cut each cell of a pencil sheet into its own variant. Ship each character sketch as a transparent WebP at its native 672px square. Ship each quest scene as a transparent WebP at 1024px wide, and each notebook page as a WebP at 1024px wide. Ship each family photograph as a transparent WebP at 672px square.
 - Keep the neighbours in working village dress: Mara, Ilie, and Sorin in Romanian dress, and Eszter in Székely dress.
 - Draw every control icon as a vector with a 1.7 stroke and round caps and joins.
 - Give every interactive boundary `--control-line`. Keep every target at least 44px.

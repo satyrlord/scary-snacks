@@ -1,26 +1,37 @@
 // Shared fixtures for the Node tests: the game data, checked actions, checkpoint saves, quest deliveries, balance runs, and a storage in memory.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { canLightLanterns, firstFreeBoardCell, generatorOutputs, getItem, questHoliday, requiredQuests, resolveQuests } from '../src/model.ts';
+import { canLightLanterns, firstFreeBoardCell, generatorOutputs, getItem, prologueQuests, questHoliday, requiredQuests, resolveQuests } from '../src/model.ts';
 import { createGame, reduceGame, revealTickets, validateGame } from '../src/engine.ts';
 import { dataProblems } from '../src/content.ts';
 import type { Action, GameData, GameState } from '../src/model.ts';
-import { checkpointState, deliverRequired, moveTo } from '../tools/create-checkpoint-saves.ts';
+import { actOneStart, checkpointState, deliverRequired, moveTo } from '../tools/create-checkpoint-saves.ts';
 import { BALANCE_SEEDS, runCampaignBalance } from '../tools/campaign-balance.ts';
 import type { CampaignBalance, CampaignStrategy } from '../tools/campaign-balance.ts';
 
 export const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
 export const validate = (candidate: unknown) => validateGame(candidate, data);
+/** The event quests of the prologue, which an act 1 save lists first as delivered. */
+export const prologueServed = prologueQuests(data).map(value => value.id);
 /** A quest by its ID, and the recovery quest. */
 export const quest = (id: string) => data.quests.find(value => value.id === id)!;
 export const recovery = data.quests.find(value => value.recovery)!;
 
 /** Adds a board layout without obstacles to the shared data. openGame starts a new game on it. */
 export const addOpenLayout = () => { data.board.layouts.push({ id: 'test-open', obstacles: [] }); };
-/** A new game with a fixed seed, so that two new games are equal. */
-const newGame = (content = data) => createGame(content, 1);
-export const openGame = (): GameState => ({ ...newGame(), layoutId: 'test-open' });
+/** The start of act 1 with a fixed seed, after a legal run of the prologue, so that two starts are equal. */
+export const actOne = (content = data) => actOneStart(content, 1);
+export const openGame = (): GameState => ({ ...actOne(), layoutId: 'test-open' });
 
+/**
+ * A copy whose recipe book holds only the board and the dishes of the quests on the tickets, as if the prologue had discovered nothing
+ * else. Tests of a first discovery in act 1 use it.
+ */
+export function unknown(state: GameState): GameState {
+  const next = structuredClone(state);
+  next.discovered = [...new Set(next.board.flatMap(cell => cell ? [cell.code] : []))];
+  return withTickets(next);
+}
 /** Applies a legal action: it succeeds, leaves its input unchanged, and gives a valid state. */
 export function act(state: GameState, action: Action, content = data): GameState {
   const before = structuredClone(state);
@@ -122,7 +133,7 @@ const checked = new WeakSet<GameData>();
  * A player who takes only legal actions, and who makes each dish from its source, merges, and recipes. A recipe merges its second
  * part into its first. A take from a paid source needs the coins in the purse.
  */
-export function player(initial = createGame(data), content = data) {
+export function player(initial = actOne(), content = data) {
   let state = initial;
   if (!checked.has(content)) assert.deepEqual(dataProblems(content), [], 'The fixture data passes its checks.');
   checked.add(content);

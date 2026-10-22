@@ -8,7 +8,7 @@ import { exportSave, importSave } from '../src/storage.ts';
 import { imageVariants } from '../tools/build-image-variants.ts';
 import type { Action, GameData, GameState, Quest } from '../src/model.ts';
 import { deliverRequired } from '../tools/create-checkpoint-saves.ts';
-import { act, addOpenLayout, data, openGame, player, rejected, validate, know } from './support.ts';
+import { actOne, act, addOpenLayout, data, openGame, player, rejected, validate, know } from './support.ts';
 addOpenLayout();
 // Large funds and quests marked delivered isolate production, placement, and room art from the campaign effort.
 const funded = () => ({ ...openGame(), coins: 100000 });
@@ -48,12 +48,13 @@ function addMixed(content: GameData, id: string, recipe: string[]) {
   content.items[id] = { id, name: 'Test dish', chain: 'mixed', stage: 2, next: null, art: { atlas: 'mains', cell: 7 }, price: 1, tags, recipe: recipe as [string, string] };
 }
 
-test('original data has 14 chains of four to six dishes, 28 mixed dishes, 14 sources, 23 characters, and 24 tasks', () => {
+test('original data has 14 chains of four to six dishes, 30 mixed dishes, 14 sources, 25 characters, and 24 tasks', () => {
   assert.equal(data.board.columns * data.board.rows, 42);
-  assert.equal(Object.keys(data.items).length, 111);
+  assert.equal(Object.keys(data.items).length, 113);
   assert.deepEqual(data.chains.map(chain => chain.id), ['grain', 'corn', 'herbs', 'dairy', 'poultry', 'vegetables', 'fruits', 'pork', 'beans', 'lamb', 'veal', 'fish', 'pickles', 'greens']);
-  assert.equal(data.characters.length, 23);
-  assert.equal(data.characters.filter(person => !person.visitor && !person.regular).length, 4);
+  assert.equal(data.characters.length, 25);
+  assert.equal(data.characters.filter(person => !person.visitor && !person.regular && !person.family).length, 4);
+  assert.deepEqual(data.characters.filter(person => person.family).map(person => person.name), ['Mama', 'Tata']);
   assert.equal(data.characters.filter(person => person.regular).length, 13);
   assert.equal(data.characters.filter(person => person.visitor).length, 6);
   assert.equal(data.tasks.length, 24);
@@ -74,7 +75,7 @@ test('original data has 14 chains of four to six dishes, 28 mixed dishes, 14 sou
     assert.deepEqual(data.items[`generator_${chain.id}`].generator?.outputs, [`${chain.id}_1`]);
   }
   const mixed = Object.values(data.items).filter(item => item.chain === 'mixed');
-  assert.equal(mixed.length, 28);
+  assert.equal(mixed.length, 30);
   for (const item of mixed) {
     assert.match(item.id, /^mixed_[a-z-]+$/);
     assert.equal(item.recipe?.length, 2);
@@ -87,19 +88,22 @@ test('dish and drink names use only English and Romanian letters, with the é of
   for (const item of Object.values(data.items)) if (!item.generator) assert.match(item.name, /^[A-Za-zĂÂÎȘȚăâîșțé ]+(-[a-z]+)?[A-Za-zĂÂÎȘȚăâîșțé ]*$/, item.name);
 });
 
-test('fresh games are valid, identical, and independent', () => {
-  const state = openGame();
+test('a new game starts at the first event of the prologue, and new games are valid, identical, and independent', () => {
+  const state = createGame(data, 1);
   assert.equal(validateGame(state, data), true);
-  assert.equal(state.version, 15);
-  assert.deepEqual(state, openGame());
-  assert.deepEqual([state.coins, state.taskIndex, state.completedQuests, state.pendingScenes], [0, 0, [], []]);
-  state.board[0] = { code: 'grain_1' };
-  assert.equal(openGame().board[0], null);
-  assert.equal(currentTask(openGame(), data)?.id, 'task_1');
+  assert.equal(state.version, 16);
+  assert.deepEqual(state, createGame(data, 1));
+  assert.deepEqual([state.prologue, state.coins, state.taskIndex, state.completedQuests, state.pendingScenes], [{ event: 1 }, 0, 0, [], [data.prologue.events[0].opening.id]]);
+  state.board[0] = { code: 'beans_1' };
+  assert.equal(createGame(data, 1).board[0], null);
+  const start = openGame();
+  assert.equal(validateGame(start, data), true);
+  assert.deepEqual([start.prologue, start.coins, start.taskIndex, start.pendingScenes], [null, data.prologue.gift, 0, []]);
+  assert.equal(currentTask(start, data)?.id, 'task_1');
 });
 
-test('a new game opens Grain, Corn, and Herbs with their sources, staples, and two Socată in fixed cells, the pickle barrel of winter, and eight blockers', () => {
-  const state = createGame(data);
+test('act 1 opens Grain, Corn, and Herbs with their sources, staples, and two Socată in fixed cells, the pickle barrel of winter, and eight blockers', () => {
+  const state = actOne();
   const codes = Object.fromEntries(state.board.flatMap((cell, index) => cell ? [[index, cell.code]] : []));
   assert.deepEqual(codes, { 1: 'generator_grain', 3: 'generator_pickles', 4: 'generator_corn', 13: 'grain_1', 14: 'grain_1', 22: 'corn_1', 27: 'herbs_1', 31: 'generator_herbs', 32: 'herbs_3', 33: 'herbs_3' });
   assert.equal(data.board.layouts.find(layout => layout.id === data.board.defaultLayout)!.obstacles.length, 8);
@@ -129,7 +133,7 @@ test('a source takes only its first ingredient after late preparations', () => {
 });
 
 test('a newly unlocked source starts with stage one after its preparation', () => {
-  const state = pay({ ...createGame(data), coins: 100000 }, 6);
+  const state = pay({ ...actOne(), coins: 100000 }, 6);
   const empty = firstFreeBoardCell(state, data);
   const result = reduceGame(state, { type: 'spawn', index: state.board.findIndex(cell => cell?.code === 'generator_vegetables') }, data);
   assert.ok(result.ok);
@@ -194,7 +198,7 @@ test('a refused pair swaps two dishes without a recipe, and fails on a blocked d
   assert.deepEqual([swapped.board[13]?.code, swapped.board[22]?.code], ['corn_1', 'grain_1']);
   assert.deepEqual({ ...swapped, board: state.board }, state, 'Only the two cells change.');
   // Flour and Dough make nothing, so the tied Dough stays blocked and the Flour stays in its cell.
-  const blocked = createGame(data);
+  const blocked = actOne();
   assert.equal(rejected(blocked, { type: 'move', from: 13, to: 6 }).message, 'Merge a matching dish or a recipe partner into this blocked space.');
   // Mămăligă is a recipe part, but not of a recipe with Dough.
   const [partner, [cob]] = place(blocked, ['corn_4']);
@@ -236,7 +240,7 @@ test('a delivery takes each duplicate from its own cell', () => {
 });
 
 test('invalid, unknown, and unavailable actions do not change state', () => {
-  const state = openGame();
+  const state = { ...openGame(), coins: 0 };
   for (const action of [null, {}, { type: 'unknown' }, { type: 'task' }, { type: 'spawn', index: 13 }, { type: 'spawn', index: 1 },
     { type: 'move', from: 13, to: 13 }, { type: 'move', from: 13, to: 42 }, { type: 'move', from: -1, to: 0 },
     { type: 'move', from: 13, to: '14' }, { type: 'deliverQuest', id: 'absent' }, { type: 'deliverQuest', id: 'mara-welcome' }]) rejected(state, action as Action);
@@ -245,7 +249,7 @@ test('invalid, unknown, and unavailable actions do not change state', () => {
 test('save validation rejects invalid numeric fields, codes, closed dishes, quest records, and unsupported versions', () => {
   // Some corruptions write a value that the GameState type does not admit.
   const corruptions: ((state: any) => void)[] = [
-    state => { state.version = 1; }, state => { state.version = 14; }, state => { state.version = 16; }, state => { state.coins = -1_000_000_001; },
+    state => { state.version = 1; }, state => { state.version = 15; }, state => { state.version = 17; }, state => { state.coins = -1_000_000_001; },
     state => { state.coins = 0.5; }, state => { state.taskIndex = 25; },
     state => { state.board.pop(); }, state => { state.board[0] = { code: '__proto__' }; },
     state => { state.board[0] = { code: 'grain_1', hidden: true }; },
@@ -282,14 +286,14 @@ test('save validation rejects missing, duplicated, and premature generators', ()
 
 test('a short purse names the missing coins, and a preparation that brings a new source says which source arrived and where it is', () => {
   const source = data.items.generator_dairy.name;
-  assert.equal(rejected(withQuests(openGame()), { type: 'task' }).message, `Earn ${data.tasks[0].cost} more coins to pay for this preparation.`);
+  assert.equal(rejected(withQuests(openGame()), { type: 'task' }).message, `Earn ${data.tasks[0].cost - data.prologue.gift} more coins to pay for this preparation.`);
   const state = withQuests(pay(funded(), 2));
   assert.ok(reduceGame(state, { type: 'task' }, data).message.startsWith(`${data.tasks[2].title}: done. The ${source} is on the board.`));
 });
 
 const completedAt = (count: number) => data.tasks.slice(0, count).map(task => task.id);
 const roomsAt = (count: number, painted?: readonly string[]) => resolveRooms(completedAt(count), data, painted);
-// The art plan: the front room has a state for the new game and after preparations 1 to 12, 17 and 24; the courtyard after 13 to 16 and 18 to 23.
+// The art plan: the front room has a state for the start of act 1 and after preparations 1 to 12, 17 and 24; the courtyard after 13 to 16 and 18 to 23.
 const plan: Record<string, number[]> = { 'front-room': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 17, 24], courtyard: [13, 14, 15, 16, 18, 19, 20, 21, 22, 23] };
 
 test('the authored rooms resolve at every checkpoint and show only approved, shipped paintings', () => {
@@ -340,7 +344,7 @@ test('the room follows the area of the latest change', () => {
   for (const [count, area] of expected) assert.equal(latestArea(completedAt(count), data), area, `at ${count}`);
 });
 
-test('the new game shows the webs and the spiders, and the mended window clears them but for one', () => {
+test('the start of act 1 shows the webs and the spiders, and the mended window clears them but for one', () => {
   assert.equal(data.tasks[0].title, 'Fix the broken window');
   const [base, mended] = data.rooms;
   assert.match(base.text, /Cobwebs hang in the broken window/);
@@ -385,7 +389,7 @@ test('a preparation paid with exactly its cost empties the purse and adds one ro
 test('fresh, mid-campaign, and completed saves resolve the same rooms after reload and export', () => {
   for (const count of [0, 12, 13, data.tasks.length]) {
     const state = pay(funded(), count);
-    const reloaded = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 14, state: JSON.parse(JSON.stringify(state)) }), validate);
+    const reloaded = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 15, state: JSON.parse(JSON.stringify(state)) }), validate);
     const exported = importSave<GameState>(exportSave(reloaded, validate), validate);
     assert.deepEqual(resolveRooms(reloaded.decorations, data), roomsAt(count), `reload at ${count}`);
     assert.deepEqual(resolveRooms(exported.decorations, data), roomsAt(count), `export at ${count}`);
@@ -393,7 +397,8 @@ test('fresh, mid-campaign, and completed saves resolve the same rooms after relo
 });
 
 test('one data check gathers every content check, and the game can run it without the image records', async () => {
-  const images = (JSON.parse(await readFile(new URL('../docs/asset-provenance.json', import.meta.url), 'utf8')) as { assets: { id: string }[] }).assets.map(asset => asset.id);
+  const images = [...(JSON.parse(await readFile(new URL('../docs/asset-provenance.json', import.meta.url), 'utf8')) as { assets: { id: string }[] }).assets.map(asset => asset.id),
+    ...Object.values(imageVariants).flatMap(plan => 'cells' in plan ? plan.cells.names.filter(name => name !== null) : [])];
   assert.deepEqual(dataProblems(data, images), []);
   assert.deepEqual(dataProblems(data), []);
   const unknownImage = structuredClone(data);
@@ -415,12 +420,15 @@ test('one data check gathers every content check, and the game can run it withou
   }
 });
 
-test('data checks reject a starting board that does not make a valid new game', () => {
+test('data checks reject a starting board of act 1 or a first event that does not make a valid game', () => {
   for (const code of ['generator_grain', 'dairy_1']) {
     const content = structuredClone(data);
     content.board.initial[2] = code;
-    assert.match(dataProblems(content).join(' '), /valid new game|source must be available exactly once/, code);
+    assert.match(dataProblems(content).join(' '), /valid game|source must be available exactly once/, code);
   }
+  const event = structuredClone(data);
+  event.prologue.events[0].board[12] = 'generator_beans';
+  assert.match(dataProblems(event).join(' '), /sources, each once|valid new game/);
 });
 
 test('data checks reject broken merge paths, item records, and source references before play', () => {

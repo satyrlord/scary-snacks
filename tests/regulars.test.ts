@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { arrivalScene, availableChains, dishOpen, hasArrived, journalCharacters, requiredQuests, resolveNeighbours, resolveQuests } from '../src/model.ts';
-import { createGame, reduceGame, validateGame } from '../src/engine.ts';
+import { reduceGame, validateGame } from '../src/engine.ts';
 import { characterProblems, dataProblems } from '../src/content.ts';
 import type { GameData, Quest } from '../src/model.ts';
-import { checkpoint, data, payNext, tags } from './support.ts';
+import { actOne, checkpoint, data, payNext, tags } from './support.ts';
 
 const regulars = data.characters.filter(person => person.regular);
 /** The preparations paid before a quest opens: 0 for a quest of a new game. */
@@ -71,7 +71,7 @@ test('each regular asks only after arrival, and the journal shows only arrived n
   assert.ok(resolveQuests(after, data).some(view => view.quest.character === 'vlad' && view.status !== 'locked'));
   const delivered = resolveNeighbours(checkpoint(24), data);
   assert.ok(delivered.every(view => view.arrived && view.delivered === requiredQuests(data.tasks.length, data).filter(quest => quest.character === view.person.id).length));
-  const fresh = createGame(data);
+  const fresh = actOne();
   const shown = journalCharacters(fresh, data).map(person => person.id);
   assert.ok(shown.includes('dochia') && !shown.includes('sanziana') && !shown.includes('vlad'));
   assert.equal(hasArrived(fresh, data.characters.find(person => person.id === 'vlad')!), false);

@@ -4,12 +4,12 @@ import { boardObstacles, firstFreeBoardCell, generatorOutputs, mergePartners, re
 import { createGame } from '../../src/engine.ts';
 import { appVersion } from '../../tools/build.ts';
 import type { GameState } from '../../src/model.ts';
-import { KEY, act, naturalSize, recovery, supper, appearance, checkpoint, data, deliverButton, dialogDeliver, dismissDialogs, exportText, forward, goal, importSaveFile, journal, mergeFlour, newGame, onTicket, opened, openQuest, options, painting, pay, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, startAgain, stateText, supplies, supply, tile, ticket, toast, unselect, know, madeLine } from './support.ts';
+import { KEY, act, naturalSize, recovery, supper, appearance, checkpoint, data, deliverButton, dialogDeliver, dismissDialogs, exportText, forward, goal, importSaveFile, journal, mergeFlour, newGame, onTicket, opened, openQuest, options, painting, pay, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, startAgain, startNewGame, stateText, supplies, supply, tile, ticket, toast, unselect, know, madeLine, prologueServed } from './support.ts';
 
-const welcome=quest('mara-welcome'),welcomeSupplied=()=>supply(createGame(data),supplies(welcome));
+const welcome=quest('mara-welcome'),welcomeSupplied=()=>supply(checkpoint(0),supplies(welcome));
 /** Earn the first preparation through legal actions: every required quest but the last delivered, and the dishes of the last on the board. */
 function beforeFirstPreparation(){
-  let state=createGame(data);
+  let state=checkpoint(0);
   const produce=(code: string): number=>{
     const item=data.items[code],source=`generator_${item.chain}`;
     if(generatorOutputs(state,source,data).includes(code)){
@@ -34,7 +34,7 @@ function beforeFirstPreparation(){
 test('the bistro produces, merges, delivers a quest, and survives reload',async({page})=>{
   const errors: string[]=[];page.on('pageerror',error=>errors.push(error.message));
   // Mara's welcome waits for one more Herb bunch.
-  await start(page,supply(createGame(data),['herbs_2','herbs_4']));await mergeFlour(page);
+  await start(page,supply(checkpoint(0),['herbs_2','herbs_4']));await mergeFlour(page);
   // A free take from the Herb basket and the Elderflowers on the board merge into the second Herb bunch.
   const herbs=(await saved(page)).board.findIndex(cell=>cell?.code==='generator_herbs');
   await tile(page,herbs).click();
@@ -43,12 +43,12 @@ test('the bistro produces, merges, delivers a quest, and survives reload',async(
   expect((await saved(page)).board[flowers[1]]?.code).toBe('herbs_2');
   const deliver=deliverButton(page,welcome);await expect(deliver).toBeEnabled();await expect(deliver).toHaveAccessibleName(`Deliver ${welcome.title} to Mara for ${welcome.reward} coins`);await deliver.click();
   await expect(toast(page)).toHaveText(`${welcome.title}: delivered. Earned ${welcome.reward} coins.`);
-  const after=await saved(page);expect(after.completedQuests).toEqual([welcome.id]);expect(after.coins).toBe(welcome.reward);expect(after.board[flowers[1]]).toBeNull();expect(after.pendingScenes).toEqual([welcome.id]);
+  const after=await saved(page);expect(after.completedQuests).toEqual([...prologueServed,welcome.id]);expect(after.coins).toBe(welcome.reward);expect(after.board[flowers[1]]).toBeNull();expect(after.pendingScenes).toEqual([welcome.id]);
   await page.reload();await opened(page);expect(await saved(page)).toEqual(after);expect(errors).toEqual([]);
 });
 
 test('pointer drag and keyboard merge agree, and the selected dish offers only Clear selection',async({page})=>{
-  await start(page,createGame(data));const from=(await tile(page,13).boundingBox())!;const to=(await tile(page,14).boundingBox())!;
+  await start(page,checkpoint(0));const from=(await tile(page,13).boundingBox())!;const to=(await tile(page,14).boundingBox())!;
   await page.mouse.move(from.x+from.width/2,from.y+from.height/2);await page.mouse.down();await page.mouse.move(to.x+to.width/2,to.y+to.height/2,{steps:8});await page.mouse.up();
   expect((await saved(page)).board[14]?.code).toBe('grain_2');await expect(tile(page,14)).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('#item-detail').getByRole('button')).toHaveText(['']);await expect(page.locator('#item-detail').getByRole('button')).toHaveAccessibleName('Clear selection');
@@ -129,7 +129,7 @@ test('a ticket opens its quest, a dish row says how to get the dish, Show me poi
   await expect(page.locator('#story').getByRole('button',{name:`Pay ${data.tasks[0].cost} coins: ${data.tasks[0].title}`})).toBeDisabled();
 });
 
-test('a new game opens on the unfinished front room, with Miez on the windowsill and no New pin',async({page})=>{
+test('act 1 opens on the unfinished front room, with Miez on the windowsill and no New pin',async({page})=>{
   await start(page);const frame=page.locator('#room-frame');
   await expect(frame).toHaveAttribute('data-painting','front-room-00');await expect.poll(()=>painting(page)).toMatch(/^front-room-00-(768x1024|1536x2048)\.avif$/);
   await expect(page.locator('#room-pin')).toBeHidden();await expect(page.locator('#cat-button')).toBeVisible();await expect(page.locator('.counter-cat')).toBeHidden();
@@ -259,7 +259,8 @@ test('the courtyard is named but closed until its preparation, then the room fol
   await courtyard.click();await expect(courtyard).toHaveAttribute('aria-pressed','true');
   // Export, start again, and import: the opened area comes back with the progress, without paying again.
   await options(page);const text=await exportText(page);await startAgain(page);
-  await expect(courtyard).toHaveAttribute('aria-disabled','true');await expect(front).toHaveAttribute('aria-pressed','true');await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-00');
+  // The new game is the prologue, in the family kitchen, with no area choice.
+  await expect(page.locator('#area-switch')).toBeHidden();await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','family-kitchen-mourning');
   await options(page);await importSaveFile(page,text);
   expect(await saved(page)).toEqual(progress);await expect(courtyard).not.toHaveAttribute('aria-disabled');await expect(courtyard).toHaveAttribute('aria-pressed','true');
 });
@@ -318,10 +319,10 @@ test('the framed change, the New pin and the area switch never collide, and no i
   }
 });
 
-for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'])test(`a new game shows three quest tickets and the recovery ticket that fit ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
-  await page.setViewportSize(viewport);await start(page,undefined,theme);await expect(page.locator('html')).toHaveAttribute('data-theme',theme);
-  // A new game has no coins while quests are open, so Ana's recovery quest takes a fourth ticket after the three quest tickets.
-  const active=resolveQuests(createGame(data),data).filter(view=>view.status==='active').map(view=>view.quest),open=[...active.filter(value=>!value.recovery),recovery];
+for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'])test(`an empty purse at the start of act 1 shows three quest tickets and the recovery ticket that fit ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
+  await page.setViewportSize(viewport);await start(page,checkpoint(0),theme);await expect(page.locator('html')).toHaveAttribute('data-theme',theme);
+  // The purse is empty while quests are open, so Ana's recovery quest takes a fourth ticket after the three quest tickets.
+  const active=resolveQuests(checkpoint(0),data).filter(view=>view.status==='active').map(view=>view.quest),open=[...active.filter(value=>!value.recovery),recovery];
   expect(active).toHaveLength(4);expect(active).toContain(recovery);
   await expect(page.locator('#tickets .ticket')).toHaveCount(4);expect(await page.locator('#tickets').evaluate(e=>e.style.getPropertyValue('--tickets'))).toBe('4');
   await expect(page.locator('#tickets .recovery-ticket')).toHaveCount(1);await expect(page.locator('#tickets .ticket').last()).toHaveClass(/recovery-ticket/);
@@ -360,7 +361,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
 
 // Each phone ticket has one full-width target; all actions remain in its quest dialog.
 for(const width of [390,360])test(`on a ${width}px phone, each target stays inside its ticket when the recovery ticket makes four`,async({page})=>{
-  await page.setViewportSize({width,height:844});await start(page);await expect(page.locator('#tickets .ticket')).toHaveCount(4);
+  await page.setViewportSize({width,height:844});await start(page,checkpoint(0));await expect(page.locator('#tickets .ticket')).toHaveCount(4);
   for(const button of await page.locator('#tickets .deliver-button').all())await expect(button).toBeHidden();
   for(const card of await page.locator('#tickets .ticket').all()){
     await expect(card.getByRole('button')).toHaveCount(1);
@@ -383,7 +384,7 @@ test('delivering a ready quest pays its reward with a toast, and a waiting quest
   // The dishes fly to the ticket; then a toast reports the reward in words, without a dialog to dismiss.
   await expect(page.locator('#modal')).toBeHidden();await expect(toast(page)).toHaveText(`${welcome.title}: delivered. Earned ${welcome.reward} coins.`);
   await expect(page.locator('#coins')).toHaveText(String(welcome.reward));
-  const after=await saved(page);expect(after.coins).toBe(welcome.reward);expect(after.completedQuests).toEqual([welcome.id]);expect(after.pendingScenes).toEqual([welcome.id]);
+  const after=await saved(page);expect(after.coins).toBe(welcome.reward);expect(after.completedQuests).toEqual([...prologueServed,welcome.id]);expect(after.pendingScenes).toEqual([welcome.id]);
   // The waiting quest takes the delivered ticket; the other tickets keep their places.
   expect(await page.locator('#tickets .ticket').evaluateAll(cards=>cards.map(card=>(card as HTMLElement).dataset.quest))).toEqual([waiting.id,...others]);
   await expect(page.locator('#tickets .ticket').first()).toHaveClass(/arriving/);await expect(page.locator('.deliver-flight')).toHaveCount(0);
@@ -422,12 +423,13 @@ test('a ticket that only moves up after a delivery does not arrive again',async(
 
 /** Two of the first undiscovered dish's ingredient on the board, so one merge makes a new dish. */
 function beforeNewDish(){
-  const initial=createGame(data),dish=Object.values(data.items).find(item=>!item.generator&&item.stage>1&&!initial.discovered.includes(item.id)&&initial.discovered.includes(`${item.chain}_${item.stage-1}`))!;
+  const initial=checkpoint(0),dish=Object.values(data.items).find(item=>!item.generator&&item.stage>1&&!initial.discovered.includes(item.id)&&initial.discovered.includes(`${item.chain}_${item.stage-1}`))!;
   const state=supply(initial,[`${dish.chain}_${dish.stage-1}`,`${dish.chain}_${dish.stage-1}`]);
   const [first,second]=state.board.flatMap((cell,index)=>cell?.code===`${dish.chain}_${dish.stage-1}`?[index]:[]);
   return {state,dish,first,second};
 }
-const dishCount=()=>({known:createGame(data).discovered.filter(code=>!data.items[code].generator).length,total:Object.values(data.items).filter(item=>!item.generator).length});
+/** The dishes that a game knows, and all dishes. */
+const dishCount=(state: GameState)=>({known:state.discovered.filter(code=>!data.items[code].generator).length,total:Object.values(data.items).filter(item=>!item.generator).length});
 /** A mixed dish on the board, so its entry sits in the last section of the book. */
 function lastBookDish() {
   const code=sweetDough.id,state=supply(checkpoint(6),[code]);
@@ -435,7 +437,7 @@ function lastBookDish() {
 }
 
 test('the recipe book keeps undiscovered dishes covered and marks new ones until it is opened',async({page})=>{
-  const {state,dish,first,second}=beforeNewDish(),{known,total}=dishCount();
+  const {state,dish,first,second}=beforeNewDish(),{known,total}=dishCount(state);
   await start(page,state);await page.getByRole('button',{name:/The recipe book/}).click();
   await expect(page.locator('.recipe-item.not-yet')).toHaveCount(total-known);await expect(page.locator('#modal')).not.toContainText(dish.name);await page.getByRole('button',{name:'Close dialog'}).click();
   await expect(page.locator('#discovery-count')).toHaveText(`${known} of ${total} dishes discovered`);
@@ -473,7 +475,7 @@ test('Show me from a recipe closes the book and focuses the board',async({page})
 });
 
 for(const route of ['ready recipe','recipe guide','quest Find'])for(const theme of ['light','dark'])test(`board help raises a lowered phone drawer from ${route} in ${theme}`,async({page})=>{
-  const state=createGame(data);know(state,'grain_2');
+  const state=checkpoint(0);know(state,'grain_2');
   await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'reduce'});await start(page,state,theme);
   await page.locator('#drawer-handle').click();await expect(page.locator('#drawer-body')).toHaveAttribute('inert','');
   if(route==='quest Find'){
@@ -492,14 +494,14 @@ for(const route of ['ready recipe','recipe guide','quest Find'])for(const theme 
 });
 
 test('a chain with all its dishes discovered shows its completion mark across reload, and earns nothing',async({page})=>{
-  const state=createGame(data);for(const code of [1,2,3,4,5,6].map(stage=>`grain_${stage}`).concat([1,2,3].map(stage=>`corn_${stage}`)))if(!state.discovered.includes(code))know(state,code);
+  const state=checkpoint(0);for(const code of [1,2,3,4,5,6].map(stage=>`grain_${stage}`).concat([1,2,3].map(stage=>`corn_${stage}`)))if(!state.discovered.includes(code))know(state,code);
   const bakery=data.chains.find(chain=>chain.id==='grain')!.name,warm=data.chains.find(chain=>chain.id==='corn')!.name,herbs=data.chains.find(chain=>chain.id==='herbs')!.name;
   await start(page,state);
   for(let round=0;round<2;round++){
     await page.getByRole('button',{name:/The recipe book/}).click();const book=page.getByRole('dialog');
     await expect(book.getByRole('heading',{name:`${bakery}, complete`,exact:true})).toContainText('Complete');
     await expect(book.getByRole('heading',{name:warm,exact:true})).not.toContainText('Complete');
-    // A new game knows every Herbs dish: the board and the first tickets hold them.
+    // The start of act 1 knows every Herbs dish: the board and the first tickets hold them.
     await expect(book.getByRole('heading',{name:`${herbs}, complete`,exact:true})).toContainText('Complete');
     await expect(book.locator('.chain-complete')).toHaveCount(2);
     await page.getByRole('button',{name:'Close dialog'}).click();
@@ -532,7 +534,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   const recipe=dialog.getByRole('list',{name:'Recipe'});await expect(recipe.locator('li')).toHaveText([data.items.grain_2.name,data.items.poultry_1.name,sweetDough.name]);
   await expect(recipe.locator('[aria-current="step"]')).toHaveText(sweetDough.name);
   const cakes=mixed.filter(item=>item.recipe!.includes(sweetDough.id));
-  await expect(dialog).toContainText(`It is a part of ${cakes.length} mixed dishes.`);
+  await expect(dialog).toContainText(`It is a part of ${cakes.length} mixed dishes`);
   await page.screenshot({path:testInfo.outputPath(`mixed-dish-dialog-${viewport.width}-${theme}.png`)});
   // A part names the mixed dishes that it makes: the discovered ones by name.
   await page.getByRole('button',{name:'Close dialog'}).click();await expect(book).toBeVisible();
@@ -572,7 +574,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
 });
 
 test('a quest on a ticket puts its dishes in the recipe book before they are made, and they stay after delivery and reload',async({page})=>{
-  const dish=data.items[welcome.requirements[0].item],part=`${dish.chain}_${dish.stage-1}`,state=supply(createGame(data),[part,part,part,part,welcome.requirements[1].item]);
+  const dish=data.items[welcome.requirements[0].item],part=`${dish.chain}_${dish.stage-1}`,state=supply(checkpoint(0),[part,part,part,part,welcome.requirements[1].item]);
   const [first,second,third,fourth]=state.board.flatMap((cell,index)=>cell?.code===part?[index]:[]);
   expect(state.discovered).toContain(dish.id);await start(page,state);await expect(ticket(page,welcome).locator('.ticket-face')).toHaveAccessibleName(new RegExp(dish.name));
   await page.getByRole('button',{name:/The recipe book/}).click();await expect(page.locator('#modal').getByRole('button',{name:dish.name,exact:true})).toBeVisible();await page.getByRole('button',{name:'Close dialog'}).click();
@@ -618,7 +620,7 @@ for(const change of ['choice','device'])test(`live motion ${change} ends a deliv
   if(change==='choice')await chooseMotion(page,'Reduced');else await page.emulateMedia({reducedMotion:'reduce'});
   await expect(page.locator('.deliver-flight')).toHaveCount(0);
   await expect(toast(page)).toHaveCount(1);await expect(toast(page)).toContainText(`Earned ${welcome.reward} coins.`);
-  expect((await saved(page)).completedQuests).toEqual([welcome.id]);
+  expect((await saved(page)).completedQuests).toEqual([...prologueServed,welcome.id]);
 });
 
 test('the open Motion note follows a device preference change',async({page})=>{
@@ -699,7 +701,7 @@ test('Clear selection returns focus to the selected space and ends the selection
 });
 
 test('one tap on an ingredient source takes one ingredient and selects the source; a drag only moves it',async({page})=>{
-  await start(page);const items=async()=>(await saved(page)).board.filter(Boolean).length,before=await items();
+  await start(page,checkpoint(0));const items=async()=>(await saved(page)).board.filter(Boolean).length,before=await items();
   const source=tile(page,31);await expect(source).toHaveAttribute('aria-label',/Herb basket, source of Elderflowers: tap to take an ingredient, free$/);
   await source.click();expect(await items()).toBe(before+1);await expect(source).toHaveAttribute('aria-pressed','true');await expect(page.locator('#item-detail.source-detail')).toContainText('Tap again for Elderflowers');
   await source.click();expect(await items()).toBe(before+2);
@@ -712,7 +714,7 @@ test('one tap on an ingredient source takes one ingredient and selects the sourc
 });
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'])test(`a paid source shows its take cost, refuses a take that the purse cannot pay, and the Herb basket is free at ${viewport.width}px in ${theme}`,async({page},testInfo)=>{
-  await page.setViewportSize(viewport);await start(page,undefined,theme);
+  await page.setViewportSize(viewport);await start(page,checkpoint(0),theme);
   const windmill=tile(page,1),basket=tile(page,4),herbs=tile(page,31);
   // A paid source shows a coin mark and the cost of one take; the Herb basket shows none.
   for(const source of [windmill,basket]){
@@ -729,14 +731,14 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   await expect(windmill).toHaveAttribute('aria-label',/Windmill, source of Flour: tap to take an ingredient, 1 coin each$/);
   await expect(herbs.locator('.take-cost')).toHaveCount(0);await expect(herbs.locator('.source-mark')).toBeVisible();
   await page.screenshot({path:testInfo.outputPath(`take-cost-${viewport.width}-${theme}.png`)});
-  // A new game has no coins: the Windmill takes nothing, and Mara names the source and the cost.
+  // An empty purse: the Windmill takes nothing, and Mara names the source and the cost.
   const before=await saved(page);expect(before.coins).toBe(0);await windmill.click();
   await expect(page.locator('#status')).toHaveText('The Windmill costs 1 coin for each take, and the purse cannot pay. Deliver a quest, or take free herbs from the Herb basket.');
   expect(await saved(page)).toEqual(before);await expect(windmill).toHaveAttribute('aria-pressed','true');
   // The Herb basket takes for free.
   await herbs.click();let after=await saved(page);expect(after.coins).toBe(0);expect(after.board[2]?.code).toBe('herbs_1');
   // With coins, the Windmill spends one coin for each take.
-  const paid=createGame(data);paid.coins=3;await replaceSave(page,paid);
+  const paid=checkpoint(0);paid.coins=3;await replaceSave(page,paid);
   await windmill.click();after=await saved(page);expect(after.coins).toBe(2);expect(after.board[2]?.code).toBe('grain_1');
   await expect(page.locator('#status')).toHaveText(`Took ${data.items.grain_1.name} for 1 coin.`);await expect(page.locator('#coins')).toHaveText('2');
 });
@@ -899,7 +901,7 @@ test('corrupt saves remain intact and report recovery',async({page})=>{
 
 for(const writer of ['this tab','another tab'] as const)test(`a corrupt live save from ${writer} blocks changes and offers saved-game recovery`,async({page,context})=>{
   // Replacing the game clears the selection, so the snapshot is taken with no selection.
-  await start(page,createGame(data));await mergeFlour(page);await tile(page,14).click();
+  await start(page,checkpoint(0));await mergeFlour(page);await tile(page,14).click();
   const original=await page.evaluate(key=>localStorage.getItem(key)!,KEY);
   const before=await page.locator('#board button').evaluateAll(cells=>cells.map(cell=>cell.getAttribute('aria-label')));
   const other=writer==='another tab'?await context.newPage():null;
@@ -931,27 +933,29 @@ for(const writer of ['this tab','another tab'] as const)test(`a corrupt live sav
       await startAgain(page);
       await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(await newGame(page));
     }
-    const recovered=await saved(page);await tile(page,31).click();
+    // Start again opens the prologue, whose first board has the bean sacks.
+    const recovered=await saved(page),source=other?31:recovered.board.findIndex(cell=>cell?.code==='generator_beans');await tile(page,source).click();
     expect((await saved(page)).board.filter(Boolean)).toHaveLength(recovered.board.filter(Boolean).length+1);
     await options(page);await expect(page.getByRole('button',{name:'Retry saved game',exact:true})).toHaveCount(0);
   }finally{await other?.close();}
 });
 
 test('a previous-format campaign stays untouched beside a new campaign',async({page})=>{
-  // The previous format: its own key and envelope, and state version 14 without the opened March quests.
-  const oldKey='scary-snacks-save-v13';expect(KEY).toBe('scary-snacks-save-v14');
-  const {march:_march,...earlier}=checkpoint(24);
-  const old=JSON.stringify({format:'scary-snacks',version:13,state:{...earlier,version:14}});
+  // The previous format: its own key and envelope, and state version 15 without the prologue.
+  const oldKey='scary-snacks-save-v14';expect(KEY).toBe('scary-snacks-save-v15');
+  const {prologue:_prologue,...earlier}=checkpoint(24);
+  const old=JSON.stringify({format:'scary-snacks',version:14,state:{...earlier,version:15}});
   await page.addInitScript(({key,value})=>{
     if(!sessionStorage.getItem('previous-save-seeded')){
       localStorage.setItem(key,value);sessionStorage.setItem('previous-save-seeded','true');
     }
   },{key:oldKey,value:old});
-  await start(page);
+  await startNewGame(page);await page.keyboard.press('Escape');
   expect(await saved(page)).toEqual(await newGame(page));
   const previous=()=>page.evaluate(key=>localStorage.getItem(key),oldKey);
   expect(await previous()).toBe(old);
-  await mergeFlour(page);const progressed=await saved(page);
+  await page.locator('#tickets .deliver-button').first().click();
+  await expect.poll(async()=>(await saved(page)).completedQuests).toHaveLength(1);const progressed=await saved(page);
   await page.reload();await opened(page);expect(await saved(page)).toEqual(progressed);expect(await previous()).toBe(old);
   await options(page);
   await page.locator('input[type=file]').setInputFiles({name:'previous-save.json',mimeType:'application/json',buffer:Buffer.from(old)});
@@ -1050,7 +1054,7 @@ test('phone shows the room, the tickets, the board and Mara in one screen, with 
 
 test('desktop first screen shows the uncovered room beside the tickets, the whole board, Mara, the story and the recipe book',async({page},testInfo)=>{
   for(const viewport of [{width:1440,height:900},{width:1280,height:800},{width:1920,height:1080}]){
-    await page.setViewportSize(viewport);await start(page);await expect(page.locator('#tickets .ticket')).toHaveCount(4);
+    await page.setViewportSize(viewport);await start(page,checkpoint(0));await expect(page.locator('#tickets .ticket')).toHaveCount(4);
     const room=(await page.locator('#room-stage').boundingBox())!;expect([room.x,room.y,room.height]).toEqual([0,0,viewport.height]);expect(room.width).toBeGreaterThanOrEqual(viewport.width*.5-1);
     for(const selector of ['.masthead','#drawer']){const box=(await page.locator(selector).boundingBox())!;expect(box.x,`${selector} beside the room`).toBeGreaterThanOrEqual(room.x+room.width);}
     const first=['.tickets','#board','.mara-line','#story','#collection-button'];
@@ -1175,9 +1179,11 @@ test('blocked browser storage keeps the game playable for the visit and says tha
   await start(page);await expect(page.getByRole('dialog',{name:'Options',exact:true})).toBeVisible();
   await expect(page.getByRole('dialog').locator('.save-status').first()).toContainText('blocks storage');
   for(const name of ['Retry saved game','Retry save'])await expect(page.getByRole('button',{name,exact:true})).toHaveCount(0);
-  await page.getByRole('button',{name:'Close dialog'}).click();
-  await tile(page,13).click();await tile(page,14).click();
-  await expect(tile(page,14)).toHaveAttribute('aria-label',new RegExp(data.items.grain_2.name));
+  await dismissDialogs(page);
+  // The new game is the prologue: its first quest is ready, and Serve works without a save.
+  const first=data.prologue.events[0].quests[0];
+  await page.locator(`#tickets .ticket[data-quest="${first.id}"] .deliver-button`).click();
+  await expect(page.locator(`#tickets .ticket[data-quest="${first.id}"]`)).toHaveCount(0);
   await expect(page.locator('.save-status').first()).toContainText('lasts only for this visit');
 });
 
@@ -1205,10 +1211,11 @@ test('narrow phones keep the whole dish name in the strip, and short screens kee
   await page.setViewportSize({width:390,height:740});await start(page);
   expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBe(true);
   expect((await page.locator('#drawer').boundingBox())!.y).toBeGreaterThan(48+100);
-  // A new game on a short phone: the shorter opening line fits the line under the board.
+  // A new game on a short phone: the opening line fits the line under the board.
   await page.addInitScript(key=>localStorage.removeItem(key),KEY);
+  const first=data.prologue.events[0].quests[0];
   for(const width of [320,390]){
-    await page.setViewportSize({width,height:740});await start(page);await expect(page.locator('#status')).toHaveText(/^Merge two Socată/);
+    await page.setViewportSize({width,height:740});await startNewGame(page);await expect(page.locator('#status')).toHaveText(`${data.characters.find(person=>person.id===first.character)!.name}’s dishes are ready on the board. Serve them from the ticket.`);
     const words=await page.locator('#status').evaluate(e=>{const range=document.createRange();range.selectNodeContents(e);return range.getBoundingClientRect().bottom;});
     expect(words).toBeLessThanOrEqual((await page.locator('.phone-bar').boundingBox())!.y);
   }
@@ -1249,7 +1256,7 @@ test('phone recipe guidance selects a dish on the board while another item is se
 });
 
 test('a recipe guide can be stopped with Escape and does not survive a replaced game',async({page})=>{
-  const initial=createGame(data);know(initial,'grain_2');
+  const initial=checkpoint(0);know(initial,'grain_2');
   await page.setViewportSize({width:390,height:844});await start(page,initial);
   const guide=async()=>{await page.locator('#recipes-button').click();await page.getByRole('button',{name:'Dough',exact:true}).click();await page.getByRole('button',{name:'Show me on the board'}).click();};
   await guide();await expect(page.getByRole('button',{name:'Stop guide for Dough'})).toBeVisible();
@@ -1267,7 +1274,7 @@ test('a recipe guide can be stopped with Escape and does not survive a replaced 
 });
 
 test('a full board rejects a guided take without ending the dish guide',async({page})=>{
-  const initial=createGame(data);
+  const initial=checkpoint(0);
   initial.board=initial.board.map((cell,index)=>unresolvedObstacle(initial,index,data)?null:cell&&data.items[cell.code].generator?cell:{code:'grain_6'});
   know(initial,'grain_6');
   await start(page,initial);await ticket(page,quest('sorin-first-ride')).locator('.ticket-face').click();
@@ -1280,7 +1287,7 @@ test('a full board rejects a guided take without ending the dish guide',async({p
 });
 
 test('a guide keeps a visible Stop action when delivery removes its selected cell',async({page})=>{
-  const sorin=quest('sorin-first-ride'),initial=supply(createGame(data),supplies(sorin)),target='grain_4';
+  const sorin=quest('sorin-first-ride'),initial=supply(checkpoint(0),supplies(sorin)),target='grain_4';
   know(initial,target);
   await page.setViewportSize({width:390,height:844});await start(page,initial);
   await page.locator('#recipes-button').click();
@@ -1300,14 +1307,15 @@ test('a guide keeps a visible Stop action when delivery removes its selected cel
 });
 
 test('starting a new game clears the previous game discovery notification',async({page})=>{
-  const {state,first,second}=beforeNewDish(),{known,total}=dishCount();
+  // Start again opens the prologue, which knows only the dishes of its first board.
+  const {state,first,second}=beforeNewDish(),{known,total}=dishCount(createGame(data));
   await start(page,state);await tile(page,first).click();await tile(page,second).click();await expect(page.locator('#collection-button')).toHaveAttribute('data-fresh','');
   await options(page);await startAgain(page);
   await expect(page.locator('#collection-button')).not.toHaveAttribute('data-fresh','');await expect(page.locator('#discovery-count')).toHaveText(`${known} of ${total} dishes discovered`);
 });
 
 test('a delayed storage event cannot let a stale action overwrite another tab',async({context})=>{
-  const first=await context.newPage();await start(first,createGame(data));const second=await context.newPage();
+  const first=await context.newPage();await start(first,checkpoint(0));const second=await context.newPage();
   await second.addInitScript(()=>window.addEventListener('storage',event=>event.stopImmediatePropagation(),true));await start(second);
   await mergeFlour(first);const newer=await saved(first);
   await expect(tile(second,14)).toHaveAttribute('aria-label',/: Flour$/);

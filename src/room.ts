@@ -1,6 +1,6 @@
 // The room: the painting of an area as the completed preparations leave it, the reveal of a paid change, the area switch,
 // the decoration finishes, the kitchen drawer over the room, and the cats.
-import { decorationUnlocked, holidayDecorations, latestArea, resolveDecorations, resolveRooms, supperComplete, weather, windowView } from './model.ts';
+import { currentEvent, decorationUnlocked, holidayDecorations, latestArea, resolveDecorations, resolveRooms, supperComplete, weather, windowView } from './model.ts';
 import type { DecorationSlot, DecorationVariant, RoomState, RoomView, Task } from './model.ts';
 import { $, button, element, status, svg } from './dom.ts';
 import { swapMark } from './art.ts';
@@ -69,14 +69,28 @@ async function showPainting(id: string, fade: number) {
   if(token!==paintingToken)return;
   for(const old of holder.querySelectorAll('.leaving'))old.remove();
 }
-/** The area the room shows: the player's open choice, or the area of the latest change. */
+/** The family kitchen of the prologue, in the painted state of the current event. It is the only area of the prologue. */
+function kitchenView(): RoomView | null {
+  const event=currentEvent(state,data);if(!event)return null;
+  const room=data.prologue.rooms.find(value=>value.id===event.room)!;
+  return {id:room.area,name:'The family kitchen',unlock:null,open:true,states:[room],current:room,painting:room};
+}
+/** The area the room shows: the family kitchen in the prologue, and else the player's open choice, or the area of the latest change. */
 function currentView() {
+  const kitchen=kitchenView();if(kitchen)return {views:[kitchen],view:kitchen};
   const supper=supperComplete(state,data),views=resolveRooms(roomCompleted(),data).map(view=>supper&&view.id===SUPPER.area?{...view,states:[...view.states,SUPPER],current:SUPPER,painting:SUPPER}:view);
   return {views,view:views.find(view=>view.id===viewArea&&view.open)??views.find(view=>view.id===latestView())!};
 }
 /** Serving the supper turns the room to the supper. */
 export function showSupperRoom() { viewArea=SUPPER.area;try{storage?.setItem(AREA_KEY,viewArea);}catch{/* The room still shows the supper. */}renderRoom(); }
-export function renderRoom() { const {views,view}=currentView();viewArea=view.id;renderAreaSwitch(views,view);void drawRoom(view); }
+/** The kitchen changes its state with the event, so the new state comes into focus over the old one. */
+export function renderRoom() {
+  const {views,view}=currentView(),frame=$('#room-frame'),change=frame.dataset.area===view.id&&view.id==='family-kitchen'&&frame.dataset.painting!==view.painting!.id;
+  // The area switch does not show in the prologue.
+  $('#area-switch').hidden=views.length===1&&view.id==='family-kitchen';
+  if(view.id!=='family-kitchen')viewArea=view.id;
+  renderAreaSwitch(views,view);void drawRoom(view,change?FOCUS_MS:0);
+}
 /**
  * Draws one area as it stands: its painting framed on the latest change, the New pin on that change, the cats in the front room,
  * and a caption that says in words what is there. A render that changes nothing leaves the room alone.
@@ -102,6 +116,8 @@ function drawRoom(view: RoomView, fade = 0) {
   drawDecorations($('#room-decorations'),area,roomCompleted(),state.decorationChoices);renderFinishes(area);
   // The day gives the weather, the view behind the window, and the holiday decorations. The broken window shows no view and no decoration.
   const day=state.clock.day,holidays=painting.id==='front-room-00'?[]:holidayDecorations(day,area,data);
+  // Miez comes to the city after the funeral, so the family kitchen shows him from the second event.
+  $('#cat-button').hidden=state.prologue?.event===1;
   frame.dataset.weather=weather(day,data);$('.window-view').dataset.view=windowView(day,data).id;
   drawHolidays(holidays);
   const caption=$('#room-caption'),key=`${view.id}:${view.states.map(room=>room.id).join()}:${decorations.map(slot=>slot.selected.id).join()}:${holidays.map(decoration=>decoration.id).join()}`;

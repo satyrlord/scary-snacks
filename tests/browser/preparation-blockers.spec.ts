@@ -1,15 +1,15 @@
 import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { boardObstacles, firstFreeBoardCell, freeBoardCells, requiredQuests, pendingPreparationObstacles, unresolvedObstacle } from '../../src/model.ts';
-import { createGame, reduceGame, validateGame } from '../../src/engine.ts';
+import { reduceGame, validateGame } from '../../src/engine.ts';
 import { deliverRequired } from '../../tools/create-checkpoint-saves.ts';
 import type { GameState } from '../../src/model.ts';
-import { data, failWrites, forward, pay, replaceSave, revealed, saved, startStill as start, tile, know } from './support.ts';
+import { checkpoint, data, failWrites, forward, pay, replaceSave, revealed, saved, startStill as start, tile, know } from './support.ts';
 
 /** The game after count preparations, ready to pay the next one, with the preparation-blocker record starting there. */
 function beforeBatch(count = 0) {
   // Each payment comes on the earliest day that its quests and its chapter permit.
-  let state = createGame(data);
+  let state = checkpoint(0);
   for (let index = 0; index < count; index++) {
     deliverRequired(state, data);
     state.coins = data.tasks[index].cost;
@@ -74,7 +74,7 @@ async function expectFrameFit(art: Locator, columns: number, rows: number, index
 }
 
 test('initial blocker frames fill their tiles without sampling neighbouring sprites', async ({ page }) => {
-  await start(page, createGame(data));
+  await start(page, checkpoint(0));
   for(let index=0;index<6;index++)await expectFrameFit(page.locator(`.clutter-art-${index}`).first(),3,2,index);
 });
 
@@ -110,7 +110,7 @@ test('paying a preparation adds its contextual batch once and retains it after r
   }
   await tile(page, active(paid)[0].position).click();
   await expect(page.locator('#status')).toContainText(batch.context);
-  await expect(page.locator('#status')).toContainText('tap a marked Flour to merge here');
+  await expect(page.locator('#status')).toContainText(/tap a marked Flour( or [^.]+)? to merge here/);
   await page.reload(); expect(await saved(page)).toEqual(paid);
   expect(active(await saved(page))).toHaveLength(batch.obstacles.length);
 });

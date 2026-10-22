@@ -10,7 +10,7 @@ import { imageVariants } from '../tools/build-image-variants.ts';
 
 test('the PNG masters match their provenance records',async()=>{
   const record=JSON.parse(await readFile('docs/asset-provenance.json','utf8'));
-  assert.equal(record.assets.length,74);
+  assert.equal(record.assets.length,82);
   const names=await readdir('public/assets/original');
   assert.deepEqual(names.sort(),record.assets.map((a: { file: string })=>a.file.split('/').at(-1)).sort());
   for(const asset of record.assets){assert.equal(asset.sourceGameImageInput,false);const bytes=await readFile(asset.file);assert.equal(createHash('sha256').update(bytes).digest('hex'),asset.sha256,asset.id);assert.ok(asset.width>1000);}
@@ -45,12 +45,13 @@ test('the parchment is opaque',async()=>{
   assert.deepEqual([parchment.width,parchment.height,parchment.hasAlpha],[1254,1254,false]);
 });
 
-test('each character has a sketch cell, and each pencil sheet is pencil marks on transparency that stay inside their cells',async()=>{
+test('each character has a sketch cell or a family photograph, and each pencil sheet is pencil marks on transparency that stay inside their cells',async()=>{
   const record=JSON.parse(await readFile('docs/asset-provenance.json','utf8'));
-  const game=JSON.parse(await readFile('public/data/game.json','utf8'));
-  const sheets=Object.entries(imageVariants).flatMap(([id,plan])=>'cells' in plan?[{id,cells:plan.cells}]:[]);
-  const cells: string[]=sheets.flatMap(sheet=>sheet.cells.names.filter(name=>name!==null));
-  for(const person of game.characters)assert.ok(cells.includes(`sketch-${person.id}`),person.id);
+  const game: GameData=JSON.parse(await readFile('public/data/game.json','utf8'));
+  const cells: string[]=Object.values(imageVariants).flatMap(plan=>'cells' in plan?plan.cells.names.filter(name=>name!==null):[]);
+  // Mara's parents never meet Victor, so they show in family photographs.
+  for(const person of game.characters)assert.ok(cells.includes(person.family?`photo-${person.id}`:`sketch-${person.id}`),person.id);
+  const sheets=Object.entries(imageVariants).flatMap(([id,plan])=>'cells' in plan&&/^(sketch|scene)-/.test(id)?[{id,cells:plan.cells}]:[]);
   assert.deepEqual(record.assets.filter((asset: {id: string})=>/^(sketch|scene)-/.test(asset.id)).map((asset: {id: string})=>asset.id).sort(),sheets.map(sheet=>sheet.id).sort());
   for(const sheet of sheets){
     const asset=record.assets.find((entry: {id: string})=>entry.id===sheet.id);

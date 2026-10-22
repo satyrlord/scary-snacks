@@ -49,9 +49,10 @@ These records support content and technical verification. They do not establish 
 The board has six columns and seven rows. The game has these authored parts:
 
 - 14 chains of four to six dishes each, which are 69 dishes and drinks. Two of the chains are seasonal.
-- 28 mixed dishes, each cooked from dishes of two or three chains
+- 30 mixed dishes, each cooked from dishes of two or three chains
 - 14 ingredient sources (generators), one for each chain
-- 23 characters
+- 25 characters, including Mara's parents, who speak only in the prologue
+- a prologue of seven events with 16 event quests
 - 111 quests: 88 campaign quests of act 1, five March quests, nine quests of later acts, one supper quest, one recovery quest, and seven repeating quests
 - 24 preparations in six chapters
 - a calendar of 76 days, from Saturday 15 February to Thursday 1 May
@@ -62,7 +63,7 @@ A quest is an authored task that a character gives to the player.
 
 A campaign quest earns coins. Some preparations unlock a source. Each preparation unlocks story scenes and visibly changes the bistro.
 
-Each chain follows one staple food family. Its source gives the stage-1 ingredient, and its dishes use only foods of that family. Three chains are open in a new game: Grain, Corn, and Herbs. Preparations 3, 5, 6, 7, and 8 open Dairy, Poultry, Vegetables, Fruits, and Pork. Preparations 11, 12, 13, and 16 open Beans, Fish, Lamb, and Veal. The scene of each of these preparations names its new source. The two seasonal chains, Preserved vegetables and Spring greens, open with their season. "Seasons and holidays" gives their rules. A mixed dish opens when each of its chains is open.
+Each chain follows one staple food family. Its source gives the stage-1 ingredient, and its dishes use only foods of that family. Three chains are open at the start of act 1: Grain, Corn, and Herbs. Preparations 3, 5, 6, 7, and 8 open Dairy, Poultry, Vegetables, Fruits, and Pork. Preparations 11, 12, 13, and 16 open Beans, Fish, Lamb, and Veal. The scene of each of these preparations names its new source. The two seasonal chains, Preserved vegetables and Spring greens, open with their season. "Seasons and holidays" gives their rules. A mixed dish opens when each of its chains is open.
 
 The economy has four levers:
 
@@ -73,13 +74,13 @@ The economy has four levers:
 
 A take from a paid source spends the take cost. A take from the Herb basket or from a seasonal source is free. Each cleared blocker gives the blocker coin. A formula gives the menu price of each dish. The price has two parts. The first part is the number of ingredients in the dish times the take cost. The second part is the number of merges in the dish times the work rate. An ingredient of a free source counts as zero. For example, Flour costs 1 coin, Elderflowers cost nothing, Linden tea costs 14 coins, and Bulz costs 46 coins.
 
-The menu value of a quest is the sum of the prices of its portions. Every quest except the supper pays its menu value. So a delivery pays back its ingredients and earns the work rate for each merge. Quests and cleared blockers are the only income.
+The menu value of a quest is the sum of the prices of its portions. In act 1, every quest except the supper pays its menu value. So a delivery pays back its ingredients and earns the work rate for each merge. Quests and cleared blockers are the only income.
 
 Each preparation has a work scope, a material cost, a labour cost, and an estimate of active person-hours. Its coin cost is the material cost plus the labour cost. The cost does not rise with the position of the preparation in the story. As a reference scale, the cost model uses one coin for about one Romanian leu. The model includes reuse of the furniture and supplies that the bistro has. The model does not include running costs. The [economy record](docs/economy.md) gives the quantities, the portions, the primary references, and the assumptions.
 
-A campaign quest opens after a named preparation, or in a new game. A campaign quest that opens after preparation N is necessary for preparation N + 1. Each preparation needs every campaign quest that opens before it. The player delivers all 88 campaign quests of act 1 before the supper quest. A campaign quest can also have an opening date: "Calendar" gives its rules. The five quests of Dochia are March quests, and no preparation needs them. The nine quests of later acts stay in the game data with their act, and act 1 never opens them. A quest of a later act or a March quest is not an earlier quest of its character for a quest of act 1, and the quest-value check of the preparations does not count it.
+A campaign quest opens after a named preparation, or at the start of act 1. A campaign quest that opens after preparation N is necessary for preparation N + 1. Each preparation needs every campaign quest that opens before it. The player delivers all 88 campaign quests of act 1 before the supper quest. A campaign quest can also have an opening date: "Calendar" gives its rules. The five quests of Dochia are March quests, and no preparation needs them. The nine quests of later acts stay in the game data with their act, and act 1 never opens them. A quest of a later act or a March quest is not an earlier quest of its character for a quest of act 1, and the quest-value check of the preparations does not count it.
 
-A quest asks only for dishes that the player can place. When a quest gets its ticket, the player surely knows a set of dishes. Each dish of the quest is one merge beyond that set. Its parts, or the dish one stage below it, are in the recipe book. Otherwise, its source is on the board. The player surely knows the dishes of a new game. The player also surely knows the dishes of each quest that surely had a ticket before. A March quest and a quest of a later act do not count for this rule. When a quest gets a ticket, its dishes enter the recipe book. The data check enforces this rule for every quest of act 1, including the supper.
+A quest asks only for dishes that the player can place. When a quest gets its ticket, the player surely knows a set of dishes. Each dish of the quest is one merge beyond that set. Its parts, or the dish one stage below it, are in the recipe book. Otherwise, its source is on the board. The player surely knows the dishes of the initial board of act 1, the prepared dishes of the prologue boards, and the dishes of the prologue quests. The player also surely knows the dishes of each quest that surely had a ticket before. A March quest and a quest of a later act do not count for this rule. When a quest gets a ticket, its dishes enter the recipe book. The data check enforces this rule for every quest of act 1, including the supper.
 
 A quest is one meal at one sitting. It has at most three portions for each eater and at most two portions of one dish. A shared quest counts each of its characters: the character of the quest and each companion who shares the meal. Only the characters who order provisions ask for more. Adrian, Monica, and Janos pack food for days under the cathedral. Dochia packs food for her days on the hill. Sânziana buys food for her sisters. The supper has one plate for each guest. The data check enforces these limits.
 
@@ -90,7 +91,7 @@ The recovery quest is Ana's "Tea for the night ward". It asks for one Linden tea
 - Another quest is open, and the purse holds less than the recovery floor.
 - No other quest is open, and the purse cannot pay for the next preparation.
 
-The supper quest counts as another quest, so the purse can pay for the ingredients of the supper. The recovery quest has its own ticket after the three quest tickets. So the recovery quest never moves a quest to waiting. A delivery pays the reward, records nothing, and queues no scene. The quest closes when neither case is true. The quest opens again each time a case becomes true. The quest is outside the order of Ana's quests. Its dialog says "Ana returns while the purse runs low. Herbs from the Herb basket are free." So a player who spends coins on extra food can always continue. The herbs are free, and blocker placement keeps room for the tea. One tea puts an empty purse above the recovery floor. In a new game, two Socată are next to the Herb basket. So on the first day, the player can make the tea with one merge.
+The supper quest counts as another quest, so the purse can pay for the ingredients of the supper. The recovery quest has its own ticket after the three quest tickets. So the recovery quest never moves a quest to waiting. A delivery pays the reward, records nothing, and queues no scene. The quest closes when neither case is true. The quest opens again each time a case becomes true. The quest is outside the order of Ana's quests. Its dialog says "Ana returns while the purse runs low. Herbs from the Herb basket are free." So a player who spends coins on extra food can always continue. The herbs are free, and blocker placement keeps room for the tea. One tea puts an empty purse above the recovery floor. At the start of act 1, two Socată are next to the Herb basket. So on the first day, the player can make the tea with one merge.
 
 The repeating quests give the bistro work when it has no other work. A quest has work if the player can act on it on the current day. Each open campaign quest, the supper quest, and an open recovery quest have work. A booked quest for another evening is different: the player can cook its meal now but cannot deliver it. So the booked meals for later evenings have work only while a portion is missing. The board must hold the portions of all of them together. The bistro has no work if no open quest has work and the next preparation is not ready to pay.
 
@@ -106,7 +107,7 @@ Seven repeating quests take turns in this order:
 
 A repeating quest with a season joins the cycle only in its season. An open repeating quest stays open after its season until its delivery.
 
-If the bistro has no work, the next repeating quest that can join the cycle opens in the same change. The next quest comes after the last delivered repeating quest. A repeating quest stays open until its delivery. A campaign quest gets a ticket before a repeating quest, so a repeating quest can wait without a ticket. A repeating quest pays its menu value, records nothing, queues no scene, and has no journal entry. No preparation needs a repeating quest. Its dialog shows one opening line, which does not introduce the character again. The two cases of the recovery quest do not count the repeating quests. After the supper, the bistro has no other work, so the repeating quests continue. The data check limits each repeating quest to 15 merges and one meal for each eater. At least three repeating quests exist, and one can join the cycle in a new game.
+If the bistro has no work, the next repeating quest that can join the cycle opens in the same change. The next quest comes after the last delivered repeating quest. A repeating quest stays open until its delivery. A campaign quest gets a ticket before a repeating quest, so a repeating quest can wait without a ticket. A repeating quest pays its menu value, records nothing, queues no scene, and has no journal entry. No preparation needs a repeating quest. Its dialog shows one opening line, which does not introduce the character again. The two cases of the recovery quest do not count the repeating quests. After the supper, the bistro has no other work, so the repeating quests continue. The data check limits each repeating quest to 15 merges and one meal for each eater. At least three repeating quests exist, and one can join the cycle at the start of act 1.
 
 The data check adds the work value of the quests that open before each preparation. The work value is the merges of their dishes times the work rate. The check also adds the costs of the preparations up to that preparation. The work value must cover the costs. Consider a player who delivers every open quest and pays only for its ingredients. That player always has the coins for the next preparation. The coins that remain after the last preparation must pay for the ingredients of the supper. Only the supper quest opens after the last preparation. The data has exactly one supper quest and one recovery quest. The data check also counts the merges of each quest: each meal fits in one weekday. Provisions and the supper can take more than one day.
 
@@ -144,7 +145,7 @@ The quest dialog shows who asks and why. It also shows each dish with its board 
 - The quest is an outdoor quest, and the day is not a terrace day.
 - The quest is the supper, and the time is not from 20:00 on 1 May.
 
-Character introductions, quest dialogs, quest completion scenes, and quest replays use parchment pages. All 23 characters have individual pencil sketches. A quest shows the sketch of its character. Mara has a second sketch at the stove, which shows for her cooking quests. The nine supply quests, Ionatan's dinner, Mina and Avram's meal, Mara's baskets for the Easter blessing, Mara's chimney sweep, Mara's Easter of the Blajini, Bela's snowman, and Costel's icicle clock are exceptions: they show their own scene illustrations. The illustration stays with the quest through speaker changes and journal replays. Introductions show the individual character sketch. Other story scenes keep their usual presentation. Victor draws these sketches while he waits for his meal. He is an anatomy student, and he studies anatomy, proportions, and perspective. He draws light but clear facial features. Awake people have open eyes, and sleepers have closed eyelids. He is secretly in love with Mara, so he draws her face with the most care.
+Character introductions, quest dialogs, quest completion scenes, and quest replays use parchment pages. Each character has an individual pencil sketch, except Mara's parents. Victor never meets them, so their dialogs show an old family photograph of each parent in place of a sketch. A quest shows the sketch of its character. Mara's quests in the prologue show the illustration of their event. Mara has a second sketch at the stove, which shows for her cooking quests. The nine supply quests, Ionatan's dinner, Mina and Avram's meal, Mara's baskets for the Easter blessing, Mara's chimney sweep, Mara's Easter of the Blajini, Bela's snowman, and Costel's icicle clock are exceptions: they show their own scene illustrations. The illustration stays with the quest through speaker changes and journal replays. Introductions show the individual character sketch. Other story scenes keep their usual presentation. Victor draws these sketches while he waits for his meal. He is an anatomy student, and he studies anatomy, proportions, and perspective. He draws light but clear facial features. Awake people have open eyes, and sleepers have closed eyelids. He is secretly in love with Mara, so he draws her face with the most care.
 
 The dishes fly to the ticket. A temporary notice reports the delivery and the reward. While the completion scene is unread, the notice also offers "Read [Name]’s reply", which opens that scene. The next open quest gets the ticket. If no quest is open, the counter shows "No quests wait now. Pay for the next preparation." After the supper, the repeating quests keep a ticket on the counter.
 
@@ -182,7 +183,7 @@ Their shared quest is a vegetarian meal for two. The meal is two portions of zac
 
 The third delivery after theirs earns local news. The news says that they found him gravely ill and that all three left for Britain. They do not visit the bistro on the return journey. Only local speakers tell the news, and the news gives no reward. The player can read the news later in the journal.
 
-The journal holds optional introductions for the neighbours and the three returning visitors. Its neighbours list shows the core characters, then the regulars in order of arrival. Each neighbour who has arrived shows a portrait, a name, a trade, and the number of delivered quests. A regular also shows the favourite dishes. A neighbour who has not arrived shows as a "Not yet" outline without a name and without a portrait.
+The journal holds optional introductions for the neighbours and the three returning visitors. Its neighbours list shows the core characters, then the regulars in order of arrival. Mara's parents are not neighbours, so the list does not show them. During the prologue, the journal has no Neighbours group, because Mara has not met the neighbours yet. Each neighbour who has arrived shows a portrait, a name, a trade, and the number of delivered quests. A regular also shows the favourite dishes. A neighbour who has not arrived shows as a "Not yet" outline without a name and without a portrait.
 
 An unread arrival scene opens from Unread scenes. The neighbour rows open introductions. Ionatan, Mina, and Avram have introductions only while their quest is open. The journal does not replay their completed quests.
 
@@ -207,6 +208,8 @@ Story shows the first unread scene with Read now. After a reload, Mara's line sa
 The next preparation and all tickets stay available while a scene is unread. A scene gives no coins and no items when the player reads or replays it. If a saved scene has no content, the game shows an error with a recovery action and keeps the progress. The game does not invent story text.
 
 Each scene shows its full transcript in order, with a portrait and a name for each speaker. A combined quest journal page, introductions, and replays use the same presentation. One completion action follows the text. The dialog focuses its title and starts at the top. Close and Escape do not mark an unread scene as read. A scene that opens again starts at the top. If the player opens or scrolls a scene, no saved state changes. An unread scene shows a save warning when its session is not saved.
+
+During the prologue, the journal has Unread scenes and the prologue part only. Unread scenes shows only the first pending prologue scene, and the prologue part lists each event with its date and the replay of each scene that the player has read. An event quest has no reply, so it has no conversation entry. In act 1, the prologue part is the last entry of Earlier chapters, before chapter 1 in time.
 
 The journal starts with Unread scenes, in their saved order. Each unread scene has one entry here, including the farewell scene of a single-visit visitor. A read farewell scene has no replay. An empty list says "No unread scenes." The current chapter follows, or the latest chapter when all preparations are complete. Earlier chapters and Earlier conversations follow as collapsed groups. Earlier chapters lists the other complete chapters, newest first. Earlier conversations keeps each completed quest in one entry, with the most recently delivered quest first. Earlier conversations also holds earned local news and the read finale. Neighbours is a collapsed group that lists the characters. The journal opens with all groups closed. Return, Close, and Escape from a conversation keep the open groups and the position in the journal. They also focus the entry of the conversation. When an entry moves after the player reads it, its group opens and the entry becomes visible. After a read arrival scene, the journal returns to the neighbour of the scene. After a read farewell scene of a single-visit visitor, the journal returns to the Unread scenes heading. The player gets no reward when the player reads an entry or opens a group.
 
@@ -233,7 +236,7 @@ Each chain has one source. One tap on a source takes one stage-1 ingredient and 
 
 A dish leaves the board when the player merges it or delivers it. A dish also leaves the board when the thief rat picks it at closing. Consider a full board of dishes that cannot merge and that no quest needs. Only a new game clears that board. The board-full notice says "The board is full. Merge a pair or deliver a quest."
 
-The recipe book lists the dishes of each chain, then the mixed dishes. A new game discovers the items on its initial board. After that, a take, a merge, a gift of Șoricescu, or a quest ticket discovers a dish. A quest that gets a ticket puts its dishes in the recipe book. A dish that the player has not discovered shows as a covered dish with the label "Not yet". A discovered dish shows its picture and its name and opens its item dialog. Close or Escape from an item dialog that the book opened returns to the same position in the book. Then the book focuses that dish. "Show me on the board" leaves the book and goes to the board. Close or Escape from an item dialog that a quest opened returns to its quest. If a take or a merge makes a dish that is not in the recipe book, a notice shows. The notice says "[Dish] is a new dish! It is in the recipe book now." A section whose dishes are all discovered shows "Complete" in its heading. The item dialog of a mixed dish shows its recipe. The item dialog of a part names the mixed dishes that the part makes. The recipe book button shows how many dishes the player has discovered. These marks give no reward.
+The recipe book lists the dishes of each chain, then the mixed dishes. A new game discovers the items of its first event board. Each event of the prologue discovers the sources and the prepared dishes of its board, and the start of act 1 discovers the items of the initial board. After that, a take, a merge, a gift of Șoricescu, or a quest ticket discovers a dish. A quest that gets a ticket puts its dishes in the recipe book. A dish that the player has not discovered shows as a covered dish with the label "Not yet". A discovered dish shows its picture and its name and opens its item dialog. Close or Escape from an item dialog that the book opened returns to the same position in the book. Then the book focuses that dish. "Show me on the board" leaves the book and goes to the board. Close or Escape from an item dialog that a quest opened returns to its quest. If a take or a merge makes a dish that is not in the recipe book, a notice shows. The notice says "[Dish] is a new dish! It is in the recipe book now." A section whose dishes are all discovered shows "Complete" in its heading. The item dialog of a mixed dish shows its recipe. The item dialog of a part names the mixed dishes that the part makes. The recipe book button shows how many dishes the player has discovered. These marks give no reward.
 
 The recipe book uses the available width on a desktop and one column of sections on a phone. Its title and close button stay visible while the dishes scroll. A section picker moves directly to a chain or to the mixed dishes. An expandable group explains the book. Clicking outside the book closes it and focuses the control that opened it.
 
@@ -241,7 +244,7 @@ The guide raises the kitchen drawer if the drawer is low, and then focuses the n
 
 When the board is full, the guide first points to a legal merge toward its dish. If no such merge is available, the guide points to a ready quest delivery that removes a dish. After that, the guide points to another legal pair or blocker merge. A ready delivery gets the same dotted mark on its ticket button. The guide does not count blocked items as movable matches. The guide does not suggest a take from a source if no free cell is available. If no delivery or merge can make room, the guide says so and keeps Stop available. The guide does not change the board or deliver a quest for the player.
 
-A new game starts with eight blocked cells at the edge of the board. A blocker covers each of these cells. Each cell shows its blocked item through the open centre of the blocker. Four blockers use crate, sack, crock, or linen art, and four use twine. Webs cover the crate, sack, crock, and linen blockers until the preparation "Fix the broken window" is complete.
+Act 1 starts with eight blocked cells at the edge of the board. A blocker covers each of these cells. Each cell shows its blocked item through the open centre of the blocker. Four blockers use crate, sack, crock, or linen art, and four use twine. Webs cover the crate, sack, crock, and linen blockers until the preparation "Fix the broken window" is complete.
 
 Every blocker has the same rule. Any legal merge into the blocked item clears the blocker. The merge can use a matching dish of its chain or a recipe partner. The blocker clears, and the dish of the merge stays in that cell. In the same change, the purse gets the blocker coin. The cell of the moved item becomes empty. A merge next to a blocker clears nothing.
 
@@ -255,7 +258,7 @@ The usual blocker rules apply. Quest deliveries earn no batch. No batches arrive
 
 A blocker goes only in a free cell. A new source from the payment gets its cell first. Placement follows board order and keeps at least four cells free. So the recovery quest always has room for one Linden tea. Blockers can touch each other.
 
-At most three preparation blockers can be on the board at the same time. This limit does not count the eight blockers of a new game or the rat holes. The other blockers wait in preparation order. A successful move, take, delivery, or payment tries placement again. A failed action places nothing.
+At most three preparation blockers can be on the board at the same time. This limit does not count the eight blockers of the start of act 1 or the rat holes. The other blockers wait in preparation order. A successful move, take, delivery, or payment tries placement again. A failed action places nothing.
 
 A placement never replaces an item and never moves an item. A blocked cell can get another blocker only after the player clears the earlier blocker and the cell is empty. Each blocker appears once. Its name and its explanation give its context. The label of the board gives the number of blockers that wait.
 
@@ -304,11 +307,41 @@ A finish switch with a small badge is on each detail. The switch shows when the 
 
 The player can change the finish again at any time. A finish does not change progress or rewards. The switch shows only in the area that the room shows. The switch accepts input only if its painting has loaded. The switch also needs at least 44px by 44px of the detail to be visible above the drawer. Where the drawer can move, the player can lower it to see a detail outside the current view. The completion line of each finish quest says where the switch is.
 
+### Prologue
+
+A new game starts with the prologue, before act 1. The prologue is the story of the inheritance. On Friday 20 December of year 0, Mamaia Paraschiva, the grandmother of Mara, dies in the village. She leaves her old bistro to Mara. Mara cooks in the kitchen of the flat of her parents in the city until Thursday 13 February of year 1. Spec 016 gives the outline of the story.
+
+The prologue has seven events. Each event is one play day with a meal: the funeral meal (Monday 23 December), Christmas Eve (Tuesday 24 December), Christmas dinner (Wednesday 25 December), New Year's Eve (Tuesday 31 December), Epiphany (Monday 6 January), the memorial of the fortieth day (Saturday 25 January), and the farewell dinner (Thursday 13 February). The funeral and Christmas Eve are fasting days: no quest of these events has a dish with the meat, dairy, egg, or fish tag. The memorial is on the Saturday before the fortieth day, because Saturday is the day of the dead in the Orthodox week.
+
+Each event has an authored board with its sources and its prepared dishes, and one to three event quests. The quests belong to Mama, Tata, or Mara, at most one for each character. The first quest of the first event is ready on the board, so the first action of the game can be Serve. The memorial board has three blockers: Mamaia's crate, sack, and linen bundle, with the art of the act 1 blockers and no webs. Two mixed dishes come with the prologue: Colaci (Loaf and Herb bunch) and Turte (Dough and Fruit bowl). They have no content tags.
+
+The prologue uses the board, the tickets, the recipe book, and the merge rules of act 1, with these changes:
+
+- The prologue has no purse. Each take is free. A full board refuses a take.
+- An event quest pays nothing. Its ticket and its dialog show Serve. An event quest has no reply scene.
+- A cleared blocker gives no coin.
+- The prologue has no clock. Merges do not move the time. The masthead shows the date of the current event, and no coins.
+- The prologue has no upkeep, no night, no rats, no preparations, no recovery quest, and no repeating quests. The bat does not cross.
+
+Each event has an opening scene and a closing scene. The scenes have a story order: opening 1, closing 1, opening 2, and so on to closing 7. A new game earns opening 1 and opens it immediately. The last delivery of event N, for N from 1 to 6, earns closing N and opening N + 1. In the same change, the date moves to the next event, and the authored board of the next event replaces the board. The new board discovers its sources and its prepared dishes. The blockers discover nothing. As in act 1, a merge that clears a blocker discovers the result of the merge. The player can serve the quests of an event in any order.
+
+After an event change, the first pending scene of the prologue opens immediately. Each completion opens the next pending scene. Only the first pending scene of the prologue can end: the completion of a later scene changes nothing. Close or Escape keeps a scene pending, and play continues. Story offers the first pending scene with Read now. A reload opens no scene.
+
+The last delivery of event 7 earns closing 7. The game stays at event 7, with its board and no ticket, until the player completes closing 7. The completion of closing 7 starts act 1 once, in one change: the initial board of act 1, the starting gift in the purse, and Saturday 15 February at 07:00. No prologue scene is pending in act 1. The journal keeps the prologue scenes for replay.
+
+The starting gift of Mara's parents is 15 coins. It is a lever from 10 to 20 coins. It pays for the first takes of act 1, so the first days do not need recovery teas. [The economy record](docs/economy.md) gives the balance evidence.
+
+The recipe book keeps each dish that the player discovered in the prologue. A prologue discovery does not open its source. In act 1, the item dialog of a discovered dish whose chain is not open says "The [source] comes to the bistro later." and shows no "Show me on the board". In the prologue, the item dialog offers board guidance for dishes that the current event board can make.
+
+The data check limits each event to 40 merges from the raw staples, and the prologue to 250. Each event quest obeys the discovery rule with what the player surely knows at its event, the diet of its event, and the quest-size rule. Each quest dish is a dish of its event board: the dishes that the sources, the prepared dishes, and the blocked dishes of the board can make by merges.
+
+The save records the current event of the prologue. A prologue save is valid only if it can continue: the served quests are the quests of the earlier events and some quests of the current event, the current event is the first event with a quest to serve, the pending scenes are the last part of the earned scenes in story order, and the end of event 7 leaves closing 7 pending. An act 1 save lists every prologue quest first.
+
 ### Calendar
 
 The game has a calendar. Each day of play has a date, and the story happens on fixed dates. The years have the names "year 0" and "year 1". The game never shows a real year. Year 1 has 365 days and starts on a Wednesday. In year 1, the Orthodox Easter and the Western Easter are on the same day: Sunday 20 April.
 
-Act 1 starts on Saturday 15 February of year 1 and ends with the community supper on Thursday 1 May. Act 1 has 76 days, with 11 Sundays. Each day of act 1 is a day of play, and the bistro opens every day. The calendar paces the story: each chapter opens on a date. Inside a chapter, the player sets the pace. A new game starts on Saturday 15 February at 07:00.
+Act 1 starts on Saturday 15 February of year 1 and ends with the community supper on Thursday 1 May. Act 1 has 76 days, with 11 Sundays. Each day of act 1 is a day of play, and the bistro opens every day. The calendar paces the story: each chapter opens on a date. Inside a chapter, the player sets the pace. Act 1 starts on Saturday 15 February at 07:00, when the prologue ends.
 
 The masthead shows the short weekday, the day, the short month, and the time, for example "Sat 15 Feb · 07:00". The accessible name gives the full weekday, the day, the full month, and the time, for example "Saturday 15 February, 07:00". On a phone, the date is above the time. The saved day number gives the date: day 1 is 15 February.
 
@@ -419,7 +452,7 @@ A seasonal source is on the board only in its season. Its take is free, and its 
 | Pickle barrel | 1 December to 20 March | Preserved vegetables: Gherkins, Pickled green tomatoes, Mixed pickles, Cabbage-stuffed pickled peppers |
 | Forage basket | 21 March to 31 May | Spring greens: Nettles, Wild garlic and sorrel, Nettle soup, Nettle purée with garlic |
 
-The pickle barrel is on the board of a new game. At the opening time of the first day of its season, a seasonal source takes the first free cell in board order, if the board keeps at least four free cells. Otherwise the source waits, and each successful move, take, delivery, and payment tries the placement again. The closing of the last day of its season removes the source, and the dishes of its chain stay. The source stays while an undelivered campaign quest of act 1 or the open repeating quest asks for a dish of its chain. It then leaves at the first closing after the delivery of the last such quest. The closing notice, or the morning dialog of a Sunday, says that the source left, for example "The pickle barrel is empty until next winter." A quest asks for a dish of a seasonal chain only if the days of the quest are inside the season.
+The pickle barrel is on the initial board of act 1. At the opening time of the first day of its season, a seasonal source takes the first free cell in board order, if the board keeps at least four free cells. Otherwise the source waits, and each successful move, take, delivery, and payment tries the placement again. The closing of the last day of its season removes the source, and the dishes of its chain stay. The source stays while an undelivered campaign quest of act 1 or the open repeating quest asks for a dish of its chain. It then leaves at the first closing after the delivery of the last such quest. The closing notice, or the morning dialog of a Sunday, says that the source left, for example "The pickle barrel is empty until next winter." A quest asks for a dish of a seasonal chain only if the days of the quest are inside the season.
 
 The terrace season is from 1 April to 31 October. A terrace day is a fair day in the terrace season. An outdoor quest delivers only on a terrace day. On another day, its ticket shows "Waits for fair weather", Later takes the place of Deliver, and it has work only while a portion is missing. The outdoor quests of act 1 are Ilie's "Bread for outside" and Sorin's "A courtyard break", which open after the preparation "Clear the courtyard", and the community supper.
 
@@ -433,12 +466,13 @@ The art plan `docs/specs/001-visible-renovation-art-plan.md` defines the 25 pain
 
 ## Identity
 
-The game has 74 generated Portable Network Graphics (PNG) masters. They give these items:
+The game has 82 generated Portable Network Graphics (PNG) masters. They give these items:
 
 - 18 food atlases: one for each chain, with its source and its dishes, and four for the mixed dishes
-- portraits, including three atlases for the regulars
-- parchment paper, three sheets of character sketches, and four sheets of quest scenes
-- 25 painted room states
+- portraits, including three atlases for the regulars and one for Mara's parents
+- parchment paper, three sheets of character sketches, and five sheets of quest scenes, the last with the event scenes of the prologue
+- the two painted pages of the grandmother's notebook, and two old family photographs of Mara's parents
+- 25 painted room states, and four painted states of the family kitchen of the prologue
 - the supper painting
 - two decoration edit paintings, which the game samples only in their authored regions
 - the timber tabletop
@@ -470,11 +504,11 @@ If the game data cannot load or does not pass its checks, the kitchen says so an
 
 An import validates the envelope and the state of the save. The envelope is the outer record with the format and the version. A load and an import accept a top-level state field that the save format does not define. Play, the next save, and an export keep that field. A load ignores an envelope field that the format does not define, and the next save removes that field. If a board cell has an undefined field, the save is not valid. An import rejects damaged saved data and keeps the current save. An import enforces a size limit of 2 mebibytes (MiB). Load, save, import, and reset use only the save key of this game. They do not change other browser data.
 
-A current save has game state version 15 in envelope version 14 at the key `scary-snacks-save-v14`. The game supports only this format. Load reads only this key. If no current save exists, the game starts a new campaign.
+A current save has game state version 16 in envelope version 15 at the key `scary-snacks-save-v15`. The game supports only this format. Load reads only this key. If no current save exists, the game starts a new campaign.
 
 The ID of the supper quest in the completed quests records the served supper. If a current save has all preparations complete and no served supper, the game shows the supper quest. The save earns the finale only when the player serves the supper. If such a save holds the finale as an unread scene, load and import remove the finale before the check.
 
-Saves in an earlier format stay unchanged. The game does not read them or convert them. Import rejects earlier formats. A new game uses the authored blocked layout. A save records the ID of the layout and the IDs of the cleared blockers. A layout ID must stay the same after release.
+Saves in an earlier format stay unchanged. The game does not read them or convert them. Import rejects earlier formats. The start of act 1 uses the authored blocked layout. Each event of the prologue has its own layout. A save records the ID of the layout and the IDs of the cleared blockers. A layout ID must stay the same after release.
 
 The optional record of the repeating quests stores the last delivered repeating quest and the open repeating quest. A missing record means neither. Save validation rejects a record that names an unknown quest or a quest that is not in the cycle.
 

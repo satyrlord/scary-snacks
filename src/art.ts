@@ -1,8 +1,9 @@
 // The game's pictures as page elements: dishes and sources from the food atlases, portraits, blocker art, and the small icons.
+import { findQuest, questEvent } from './model.ts';
 import { element, svg } from './dom.ts';
-import { character, definition } from './session.ts';
+import { character, data, definition } from './session.ts';
 
-// Every character has a sketch (tests/assets.test.ts). Each entry describes what the sketch shows.
+// Every character has a sketch (tests/assets.test.ts), except Mara's parents, who show in old family photographs. Each entry describes what the sketch shows.
 const sketches: Record<string,string>={
   mara:'Mara with a tray, her free hand held out in welcome.',
   ilie:'Ilie in his cap and glasses slides a loaf into a brick oven on a long peel.',
@@ -51,13 +52,31 @@ const questDrawings: Record<string,readonly [string,string]>={
   'mara-cellar':['mara-stove','Mara stirs a pot at the stove and smiles over her shoulder.'],
   'mara-easter-lunch':['mara-stove','Mara stirs a pot at the stove and smiles over her shoulder.'],
 };
-/** The quest scene takes precedence over its owner's drawing and stays through speaker changes. */
+// Victor never meets Mara's parents, so they show in old studio photographs from the family album.
+const photographs: Record<string,string>={
+  mama:'An old studio photograph in sepia: Mama as a young woman in Transylvanian folk dress, before a painted backdrop.',
+  tata:'An old studio photograph in sepia: Tata as a young man in Transylvanian folk dress, before a painted backdrop.',
+};
+/** A scene illustration in the quest scene format: a pencil sketch of an event, or a painted page of the notebook with its own words. */
+export function sceneIllustration(scene: { image: string; text: string }, painted = false) {
+  const image=element('img','quest-sketch quest-scene-sketch');
+  image.src=new URL(`../assets/variants/${scene.image}-1024x683.webp`,import.meta.url).href;
+  image.alt=painted?scene.text:`A pencil sketch: ${scene.text}`;image.width=1024;image.height=683;
+  image.addEventListener('error',()=>image.remove(),{once:true});
+  return image;
+}
+/**
+ * The quest scene takes precedence over its owner's drawing and stays through speaker changes. Mara's quests in the prologue show the
+ * illustration of their event, and Mama and Tata show their family photographs.
+ */
 export function questSketch(person: string, questId?: string) {
+  const quest=questId?findQuest(questId,data):undefined,event=quest?data.prologue.events[questEvent(quest,data)-1]:undefined;
+  if(event&&!character(person).family)return sceneIllustration(event.scene);
   const scene=questId?questScenes[questId]:undefined,drawing=questId?questDrawings[questId]:undefined;
-  const image=element('img',`quest-sketch${scene?' quest-scene-sketch':''}`);
-  const asset=scene?`${scene[0]}-1024x683`:`sketch-${drawing?.[0]??person}-672x672`;
+  const photo=photographs[person],image=element('img',`quest-sketch${scene?' quest-scene-sketch':''}${photo?' family-photo':''}`);
+  const asset=scene?`${scene[0]}-1024x683`:photo?`photo-${person}-672x672`:`sketch-${drawing?.[0]??person}-672x672`;
   image.src=new URL(`../assets/variants/${asset}.webp`,import.meta.url).href;
-  image.alt=`A pencil sketch: ${scene?scene[1]:drawing?.[1]??sketches[person]??character(person).name}`;
+  image.alt=photo??`A pencil sketch: ${scene?scene[1]:drawing?.[1]??sketches[person]??character(person).name}`;
   image.width=scene?1024:672;image.height=scene?683:672;
   image.addEventListener('error',()=>image.remove(),{once:true});
   return image;
@@ -75,7 +94,7 @@ const portraitFrames: Record<string, readonly [number, number, number]> = {
   vlad: [.06,0,.88], elisabeta: [.06,0,.88], mina: [.11,.07,.8], avram: [.1,.09,.8],
   dochia: [.08,.015,.84], victor: [.08,0,.84], ana: [.08,0,.84], costel: [.07,0,.86],
   sanziana: [.07,.015,.86], dorian: [.08,0,.84], ileana: [.09,.015,.82], cezar: [.07,.01,.86],
-  catalina: [.1,.06,.82], bran: [.1,.03,.82], bela: [.1,.06,.82],
+  catalina: [.1,.06,.82], bran: [.1,.03,.82], bela: [.1,.06,.82], mama: [.12,.2,.8], tata: [.07,.2,.8],
 };
 export function portrait(id: string) {
   const person = character(id);

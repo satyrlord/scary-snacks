@@ -96,6 +96,32 @@
         "scene-chimney-sweep",
         "scene-blajini"
       ]
+    },
+    "scene-sheet-5": {
+      "columns": 2,
+      "rows": 2,
+      "names": [
+        "scene-prologue-churchyard",
+        "scene-prologue-carols",
+        "scene-prologue-midnight",
+        "scene-prologue-bus-stop"
+      ]
+    },
+    "notebook-pages": {
+      "columns": 2,
+      "rows": 1,
+      "names": [
+        "scene-notebook-cabbage-rolls",
+        "scene-notebook-note"
+      ]
+    },
+    "family-photos": {
+      "columns": 2,
+      "rows": 1,
+      "names": [
+        "photo-mama",
+        "photo-tata"
+      ]
     }
   },
   "variants": [
@@ -1452,12 +1478,12 @@
     {
       "file": "public/assets/variants/food-sweets-1024x512.webp",
       "master": "food-sweets",
-      "masterSha256": "3f1447a694933ce6597aa5c3668534a7efa8ef5ace1d720de68a44e08d3c1445",
+      "masterSha256": "02c83965385640bd8ee1b0df98b6197dba7b8de04137fcaca5d28e6ce0bc4548",
       "width": 1024,
       "height": 512,
       "format": "webp",
-      "bytes": 124504,
-      "sha256": "7183d72522615dce71d5f385023ee317011a58c38e7ef4ac2d6c4bdcb241e97c"
+      "bytes": 176082,
+      "sha256": "4a6411a80570d900f6ba474eec91ea0c5132a63c512f0a4bac2b3dfb9991c8e4"
     },
     {
       "file": "public/assets/variants/rat-thief-1024x512.webp",
@@ -1978,6 +2004,256 @@
       "format": "webp",
       "bytes": 20958,
       "sha256": "97921278995d6cb02190de91c8d7bdb37e15732df89240c1e270b65b266b27a8"
+    },
+    {
+      "file": "public/assets/variants/family-kitchen-mourning-768x1024.avif",
+      "master": "family-kitchen-mourning",
+      "masterSha256": "f26d9a866c44d468a48eb15c38bea95ca85abac91c05b4afe5bcb244eaa2de07",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 116176,
+      "sha256": "6be71266748756458f8b257d473f1b6ccfc6ec3fc780015f26f96a75bf5e4511"
+    },
+    {
+      "file": "public/assets/variants/family-kitchen-mourning-768x1024.webp",
+      "master": "family-kitchen-mourning",
+      "masterSha256": "f26d9a866c44d468a48eb15c38bea95ca85abac91c05b4afe5bcb244eaa2de07",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 166916,
+      "sha256": "582096394deb483c0b164e9daaeda00f80bbdfcd2abd471e9bf36597d51e95a4"
+    },
+    {
+      "file": "public/assets/variants/family-kitchen-mourning-1536x2048.avif",
+      "master": "family-kitchen-mourning",
+      "masterSha256": "f26d9a866c44d468a48eb15c38bea95ca85abac91c05b4afe5bcb244eaa2de07",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 376712,
+      "sha256": "5977f13861b9c7589654b1d763961da6781de0160feb02c032d30360a1644438"
+    },
+    {
+      "file": "public/assets/variants/family-kitchen-mourning-1536x2048.webp",
+      "master": "family-kitchen-mourning",
+      "masterSha256": "f26d9a866c44d468a48eb15c38bea95ca85abac91c05b4afe5bcb244eaa2de07",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 515748,
+      "sha256": "88718dcc4ecb1fd76b2da9dde68a7a1abeb7bee7d2bdc2bd29b81b538804f5a6"
+    },
+    {
+      "file": "public/assets/variants/family-kitchen-christmas-768x1024.avif",
+      "master": "family-kitchen-christmas",
+      "masterSha256": "4afef53e03c4acf0f634d3ef349945c85bc612992258e6de230041c211da9764",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 116617,
+      "sha256": "4250b8feb54d65bdc28a254bcb9000395c40897c6b836ad5ecf819fb285bac12"
+    },
+    {
+      "file": "public/assets/variants/family-kitchen-christmas-768x1024.webp",
+      "master": "family-kitchen-christmas",
+      "masterSha256": "4afef53e03c4acf0f634d3ef349945c85bc612992258e6de230041c211da9764",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 168080,
+      "sha256": "56b6d4566927d5122583159d807c4745294f9721751059ed3a4e9e3fd685f04b"
+    },
+    {
+      "file": "public/assets/variants/family-kitchen-christmas-1536x2048.avif",
+      "master": "family-kitchen-christmas",
+      "masterSha256": "4afef53e03c4acf0f634d3ef349945c85bc612992258e6de230041c211da9764",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 376566,
+      "sha256": "730b2a9a6b48e7b56624f3c7f006195ee2420289353a69a52990ce575a42662c"
+    },
+    {
+      "file": "public/assets/variants/family-kitchen-christmas-1536x2048.webp",
+      "master": "family-kitchen-christmas",
+      "masterSha256": "4afef53e03c4acf0f634d3ef349945c85bc612992258e6de230041c211da9764",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 516534,
+      "sha256": "e92c0550a22e37dd450a0dfa17d044083a73b82b74c0db000ddb888f2f76afb6"
+    },
+    {
+      "file": "public/assets/variants/family-kitchen-new-year-768x1024.avif",
+      "master": "family-kitchen-new-year",
+      "masterSha256": "f89f8abae21415f53b578a3d9141e4a3e883798efab4e32babe5dd45048a9f5e",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 121988,
+      "sha256": "3f4371ba4bb7102dbbc040aa0e5e90cf916d624d707ce5f685335f62533dd612"
+    },
+    {
+      "file": "public/assets/variants/family-kitchen-new-year-768x1024.webp",
+      "master": "family-kitchen-new-year",
+      "masterSha256": "f89f8abae21415f53b578a3d9141e4a3e883798efab4e32babe5dd45048a9f5e",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 171212,
+      "sha256": "998b695849bc0128f66d521bc908444fae12c7ed9f620e49d770f49b9a50849f"
+    },
+    {
+      "file": "public/assets/variants/family-kitchen-new-year-1536x2048.avif",
+      "master": "family-kitchen-new-year",
+      "masterSha256": "f89f8abae21415f53b578a3d9141e4a3e883798efab4e32babe5dd45048a9f5e",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 387101,
+      "sha256": "d7c9fedadf9f744ca423b1f9c9bf6c1a28ce4c1ef8f433a23d3a7398f2d6be08"
+    },
+    {
+      "file": "public/assets/variants/family-kitchen-new-year-1536x2048.webp",
+      "master": "family-kitchen-new-year",
+      "masterSha256": "f89f8abae21415f53b578a3d9141e4a3e883798efab4e32babe5dd45048a9f5e",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 533440,
+      "sha256": "5a6380c76a6d18b2794541f65c8f6f8e4a80c8b82095af42bdd7dcd5b9563dc9"
+    },
+    {
+      "file": "public/assets/variants/family-kitchen-farewell-768x1024.avif",
+      "master": "family-kitchen-farewell",
+      "masterSha256": "844a10ed182d9b7f2d5552ab73955cd6a5324f930200e662b3c6df266af8635f",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 118957,
+      "sha256": "864903acb84167b01835a1fc9c762f0946034016591d56386b329ca1def6b223"
+    },
+    {
+      "file": "public/assets/variants/family-kitchen-farewell-768x1024.webp",
+      "master": "family-kitchen-farewell",
+      "masterSha256": "844a10ed182d9b7f2d5552ab73955cd6a5324f930200e662b3c6df266af8635f",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 171718,
+      "sha256": "a08292a5eab1181aebd84fe0a717c407aa23e6fe532670ee3db93876b413a290"
+    },
+    {
+      "file": "public/assets/variants/family-kitchen-farewell-1536x2048.avif",
+      "master": "family-kitchen-farewell",
+      "masterSha256": "844a10ed182d9b7f2d5552ab73955cd6a5324f930200e662b3c6df266af8635f",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 383368,
+      "sha256": "17fa3fe60c701596f0a1c3dda7f8c28a088167b38e9e24aa6f901946c85ff713"
+    },
+    {
+      "file": "public/assets/variants/family-kitchen-farewell-1536x2048.webp",
+      "master": "family-kitchen-farewell",
+      "masterSha256": "844a10ed182d9b7f2d5552ab73955cd6a5324f930200e662b3c6df266af8635f",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 523712,
+      "sha256": "e1e5cc253bb39fd773b5418902771e39f745bfe6b5429704abe5971ee7c67382"
+    },
+    {
+      "file": "public/assets/variants/scene-prologue-churchyard-1024x683.webp",
+      "master": "scene-sheet-5",
+      "masterSha256": "5af39f66d287e852f91aca1a7e93407b4798e0c3332d4e9299aca97af8482d38",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 520298,
+      "sha256": "50326616b3aeb4d3232f68bd71db8f0b1d7deab1a51bfcdcc0b656014d00301d"
+    },
+    {
+      "file": "public/assets/variants/scene-prologue-carols-1024x683.webp",
+      "master": "scene-sheet-5",
+      "masterSha256": "5af39f66d287e852f91aca1a7e93407b4798e0c3332d4e9299aca97af8482d38",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 464318,
+      "sha256": "249cde3912cca85e7c2a710ca47109ee56ad5381094fb4a4d936755d35eeaa90"
+    },
+    {
+      "file": "public/assets/variants/scene-prologue-midnight-1024x683.webp",
+      "master": "scene-sheet-5",
+      "masterSha256": "5af39f66d287e852f91aca1a7e93407b4798e0c3332d4e9299aca97af8482d38",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 606416,
+      "sha256": "798788b1e8f6cae15d404ae7668c492aff13e084bfdecc308558a7f273357ebe"
+    },
+    {
+      "file": "public/assets/variants/scene-prologue-bus-stop-1024x683.webp",
+      "master": "scene-sheet-5",
+      "masterSha256": "5af39f66d287e852f91aca1a7e93407b4798e0c3332d4e9299aca97af8482d38",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 516012,
+      "sha256": "b2d9269252df5cf7f4737d1646eadae9c9cae99f6d409bbd03e6641de76649e3"
+    },
+    {
+      "file": "public/assets/variants/scene-notebook-cabbage-rolls-1024x683.webp",
+      "master": "notebook-pages",
+      "masterSha256": "b6f6a53cef4cb96c979b2ef03b6b13eec3343b55d0c6a19f268f544621451f3f",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 173248,
+      "sha256": "60c7bfe247958f3fe2a53bc5884177297ec74d173db3ccfcfd8181a0de7ed59b"
+    },
+    {
+      "file": "public/assets/variants/scene-notebook-note-1024x683.webp",
+      "master": "notebook-pages",
+      "masterSha256": "b6f6a53cef4cb96c979b2ef03b6b13eec3343b55d0c6a19f268f544621451f3f",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 183072,
+      "sha256": "a115acf40c467b3800843961329e3f8782f4ce3f54775621818b97dca56c0f73"
+    },
+    {
+      "file": "public/assets/variants/photo-mama-672x672.webp",
+      "master": "family-photos",
+      "masterSha256": "c89a580a369f30d141454f669a89388befd3d8cf0228292d76905193df93de6c",
+      "width": 672,
+      "height": 672,
+      "format": "webp",
+      "bytes": 47432,
+      "sha256": "c0c24aa7922b1156d4af8f354bd4a98470cb883ca95586c7a5ecb7ad25985acf"
+    },
+    {
+      "file": "public/assets/variants/photo-tata-672x672.webp",
+      "master": "family-photos",
+      "masterSha256": "c89a580a369f30d141454f669a89388befd3d8cf0228292d76905193df93de6c",
+      "width": 672,
+      "height": 672,
+      "format": "webp",
+      "bytes": 44408,
+      "sha256": "ce7cb9eac85df27dbc824dae926e4ef1156c0a1e19a7fe516d9ea7e8e9e0b085"
+    },
+    {
+      "file": "public/assets/variants/family-portraits-640x640.webp",
+      "master": "family-portraits",
+      "masterSha256": "4e6d1a99cf01b23b05b4b4fdf13ce44d5fa2d701270aaac3165e36c81d7df603",
+      "width": 640,
+      "height": 640,
+      "format": "webp",
+      "bytes": 40120,
+      "sha256": "18843cb46dcc58474e0079566a7ed59f81479cddc8676c6ad6b2e1a35f668a32"
     }
   ]
 }

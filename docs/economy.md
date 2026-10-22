@@ -149,7 +149,7 @@ Merge chains are game rules, not recipes for food preparation.
 ## Quest rewards
 
 Quests and cleared blockers are the only income.
-Every quest except the supper pays its menu value: the sum of the prices of its portions.
+In act 1, every quest except the supper pays its menu value: the sum of the prices of its portions.
 So a delivery repays the ingredients of its dishes and earns the work rate for each merge. The supper pays nothing.
 
 A quest that opens after preparation N is necessary for preparation N + 1.
@@ -160,7 +160,7 @@ The coins that remain after the last preparation must buy the ingredients of the
 `questProblems` in `src/content.ts` checks these rules before the data can ship.
 A player who delivers every open quest and buys only its ingredients has enough coins for the next preparation.
 
-A new game starts with no coins. The first quest asks only for free herbs.
+The prologue has no purse, and act 1 starts with the starting gift of Mara's parents: 15 coins, a lever from 10 to 20. The gift pays for the first takes of act 1, so the purse stays above the recovery floor of 10 coins at the start. The balance run plays the prologue first and then act 1 with the gift. For each fixed seed, the efficient run ends act 1 with 1,656 coins of 10,336 spent, 16.0 percent, inside the balance band of 0 to 20 percent.
 The early quests also ask for herb bunches, Linden tea, and socată, which need no paid ingredient. The work value of these quests gives the purse the coins to buy ingredients for the next quests.
 
 The recovery quest prevents a stop in the campaign. Ana asks for one Linden tea in two conditions:
@@ -304,7 +304,7 @@ For each of the 20 fixed seeds, the report gives these values:
 The test file gives these values for each preparation and each chapter.
 
 The campaign fixture is the play code in `tools/campaign-balance.ts`.
-The fixture plays a new game with one repeatable policy, with no injected coins or items.
+The fixture plays a new game with one repeatable policy, with no injected coins or items. It plays the prologue first, with legal actions only, and continues from the start of act 1.
 The fixture pays each preparation when payment becomes available.
 If the fixture cannot pay, the fixture delivers a holiday quest on its holiday first, and it cooks a holiday meal ahead.
 In the middle of a long order, the fixture delivers a holiday quest whose dishes are on the board as soon as its holiday comes.

@@ -1,7 +1,7 @@
 // The checks of the authored game data. The content generator refuses to write data with a problem, and the game refuses to start on it.
-import { availableChains, calendarDate, campaignQuest, canJoinCycle, chainSeason, dishChains, dishTags, dishWork, foodAtlases, integer, isRegular, menuPrice, mergePartners, MIXED, own, portraitAtlases, present, questHoliday, questOpening, questPredecessors, requiredQuests, roomPaintings, scene, spoken, stable, stapleCost, stateNumber, storyScenes, terraceDay, yearDay } from './model.ts';
+import { availableChains, calendarDate, campaignQuest, canJoinCycle, chainSeason, dishChains, dishTags, dishWork, eventDishes, foodAtlases, integer, isRegular, menuPrice, mergePartners, MIXED, own, portraitAtlases, present, prologueQuests, questHoliday, questOpening, questPredecessors, requiredQuests, roomPaintings, scene, spoken, stable, stapleCost, stateNumber, storyScenes, terraceDay, yearDay } from './model.ts';
 import type { BoardObstacle, Character, DishTag, GameData, Item, Quest } from './model.ts';
-import { createGame, KEEP_FREE, validateGame } from './engine.ts';
+import { actOneGame, createGame, KEEP_FREE, validateGame } from './engine.ts';
 
 /** The day of act 1 of a date of year 1. */
 const actDay = (month: number, date: number, data: GameData) => yearDay(month, date) - data.calendar.start + 1;
@@ -64,6 +64,7 @@ export function characterProblems(data: GameData): string[] {
       portraits.add(`${atlas}:${person.sprite}`);
       if (person.regular !== undefined && (person.regular !== true || person.visitor)) problems.push(`${person.id}: invalid regular flag.`);
       if (person.provisions !== undefined && (person.provisions !== true || person.singleVisit)) problems.push(`${person.id}: invalid provisions flag.`);
+      if (person.family !== undefined && (person.family !== true || person.visitor || person.regular || person.arrivesAfter !== undefined || person.portraitAtlas !== 'family')) problems.push(`${person.id}: invalid family flag.`);
       if (person.arrivesAfter !== undefined && (!isRegular(person) || !data.tasks.some(task => task.id === person.arrivesAfter))) problems.push(`${person.id}: unknown arrival preparation.`);
       if (person.favourites !== undefined && (!person.regular || !Array.isArray(person.favourites) || person.favourites.length < 2 || person.favourites.length > 3
         || new Set(person.favourites).size !== person.favourites.length || !person.favourites.every(code => isDish(code, data)))) problems.push(`${person.id}: a regular likes two or three different known dishes.`);
@@ -107,7 +108,7 @@ export function questProblems(data: GameData): string[] {
       if (!quest || typeof quest !== 'object') { problems.push('Every quest needs a record.'); continue; }
       if (!stable(quest.id) || ids.has(quest.id)) problems.push('Quest IDs must be stable and unique.');
       ids.add(quest.id);
-      if (!data.characters.some(character => character.id === quest.character) || !quest.title) problems.push(`${quest.id}: unknown character or missing title.`);
+      if (!data.characters.some(character => character.id === quest.character && !character.family) || !quest.title) problems.push(`${quest.id}: unknown character or missing title.`);
       if (quest.afterTask !== null && !data.tasks.some(task => task.id === quest.afterTask)) problems.push(`${quest.id}: unknown opening preparation.`);
       if (quest.afterQuest !== undefined) {
         const previous = data.quests.find(other => other.id === quest.afterQuest);
@@ -171,7 +172,7 @@ export function questProblems(data: GameData): string[] {
     const repeating = data.quests.filter(quest => quest.repeating);
     if (repeating.length < 3) problems.push('The game needs at least three repeating quests.');
     for (const quest of repeating) if (questMerges(quest, data) > REPEAT_MERGES) problems.push(`${quest.id}: a repeating quest needs at most ${REPEAT_MERGES} merges.`);
-    if (!repeating.some(quest => canJoinCycle(createGame(data), quest, data))) problems.push('A repeating quest must be able to join the cycle in a new game.');
+    if (!repeating.some(quest => canJoinCycle(actOneGame(data), quest, data))) problems.push('A repeating quest must be able to join the cycle at the start of act 1.');
     const supper = data.quests.filter(quest => quest.finale), recovery = data.quests.filter(quest => quest.recovery);
     if (supper.length !== 1) problems.push('The finale needs exactly one supper quest.');
     else if (openings[data.quests.indexOf(supper[0])] !== data.tasks.length - 1) problems.push('The supper quest opens after the last preparation.');
@@ -276,7 +277,7 @@ export function storyProblems(data: GameData): string[] {
     if (!stable(finale.id) || ids.has(finale.id)) problems.push('Chapter and finale IDs must be stable and unique.');
     if (typeof finale.title !== 'string' || !finale.title.trim() || typeof finale.ending !== 'string' || !finale.ending.trim()) problems.push('The finale needs a title and an ending.');
     if (!scene(finale.dialogue, data)) problems.push('The finale has an invalid scene.');
-    for (const character of data.characters.filter(character => !character.visitor && !isRegular(character))) {
+    for (const character of data.characters.filter(character => !character.visitor && !isRegular(character) && !character.family)) {
       if (!scene(finale.dialogue, data) || !finale.dialogue.some(line => line.speaker === character.id)) problems.push(`The finale must include ${character.name}.`);
       if (!chapters.some(chapter => data.quests.find(quest => quest.id === chapter?.contribution)?.character === character.id)) problems.push(`${character.name} needs a chapter contribution.`);
     }
@@ -472,11 +473,92 @@ export function dataProblems(data: GameData, knownImages?: readonly string[]): s
     const items = itemProblems(data);
     if (items.length) return items;
     const problems = [...characterProblems(data), ...calendarProblems(data), ...boardLayoutProblems(data), ...roomProblems(data), ...decorationProblems(data, knownImages),
-      ...questProblems(data), ...discoveryProblems(data), ...storyProblems(data), ...economyProblems(data), ...dayProblems(data)];
+      ...questProblems(data), ...discoveryProblems(data), ...storyProblems(data), ...economyProblems(data), ...dayProblems(data), ...prologueProblems(data, knownImages)];
     // The save validation relies on the other checks, so it judges the new game only after they pass.
-    if (!problems.length && !validateGame(createGame(data), data)) problems.push('The starting board does not make a valid new game.');
+    if (!problems.length && !validateGame(createGame(data), data)) problems.push('The first event does not make a valid new game.');
+    if (!problems.length && !validateGame(actOneGame(data), data)) problems.push('The starting board of act 1 does not make a valid game.');
     return problems;
   } catch { return ['The game data is malformed.']; }
+}
+/** The prologue is short: the merges of each event from the raw staples, and of all events together. */
+const EVENT_MERGES = 40, PROLOGUE_MERGES = 250;
+/**
+ * Check the prologue: the events and their dates, the boards and their blockers, the quests, the scenes, the family kitchen, and the
+ * starting gift. Each event quest pays nothing, has no reply, and is one meal of one dish or two, a dish of its board, and inside the
+ * diet of its event. The discovery rule of act 1 applies with what the player surely knows at the event: the prepared dishes of this
+ * and the earlier boards, the sources of this board, and the dishes of the earlier quests. A dish that the board holds in full passes.
+ * Without knownImages, the image names are not checked.
+ */
+export function prologueProblems(data: GameData, knownImages?: readonly string[]): string[] {
+  const problems: string[] = [];
+  try {
+    const { events, rooms, fasting, gift, title } = data.prologue;
+    if (!Array.isArray(events) || !events.length || typeof title !== 'string' || !title.trim() || !integer(gift, 10, 20)
+      || !Array.isArray(fasting) || !fasting.every(tag => (dishTags as readonly string[]).includes(tag))) return ['The prologue needs a title, events, the fasting tags, and a gift of 10 to 20 coins.'];
+    const roomIds = new Set(rooms.map(room => room.id));
+    if (roomIds.size !== rooms.length) problems.push('Family kitchen state IDs must be unique.');
+    for (const room of rooms) if (!stable(room.id) || room.area !== 'family-kitchen' || room.after !== null || !room.label || room.label.length > 28 || !room.text) problems.push(`${room.id}: invalid family kitchen state.`);
+    const ids = new Set([...data.quests.map(quest => quest.id), ...data.board.layouts.map(layout => layout.id), ...data.board.layouts.flatMap(layout => layout.obstacles.map(obstacle => obstacle.id)),
+      ...data.board.preparations.flatMap(batch => batch.obstacles.map(obstacle => obstacle.id))]);
+    const unique = (id: string) => { const fresh = stable(id) && !ids.has(id); ids.add(id); return fresh; };
+    const known = new Set<string>(), mara = data.characters[0]?.id;
+    let total = 0;
+    for (const [index, event] of events.entries()) {
+      const label = `Prologue event ${index + 1}`;
+      if (!stable(event.id) || typeof event.title !== 'string' || !event.title.trim() || typeof event.line !== 'string' || !event.line.trim()
+        || !integer(event.day, -1000, 0) || (index && event.day <= events[index - 1].day) || (event.fasting !== undefined && event.fasting !== true)) problems.push(`${label} needs an ID, a title, a line, and a date before act 1, after the event before it.`);
+      if (!roomIds.has(event.room)) problems.push(`${label}: unknown family kitchen state.`);
+      for (const image of [event.scene?.image, event.opening?.page?.image, event.closing?.page?.image].filter(present)) if (!stable(image) || (knownImages && !knownImages.includes(image))) problems.push(`${label}: missing image ${image}.`);
+      if (typeof event.scene?.text !== 'string' || !event.scene.text.trim()) problems.push(`${label} needs a description of its illustration.`);
+      // The board: known sources once each, known dishes, and blockers on empty cells.
+      if (!Array.isArray(event.board) || event.board.length !== data.board.initial.length || !event.board.every(code => code === null || own(data.items, code))) { problems.push(`${label} needs a board of known items.`); continue; }
+      const sources = event.board.filter(code => code && data.items[code].generator);
+      if (!sources.length || new Set(sources).size !== sources.length) problems.push(`${label} needs its own sources, each once.`);
+      if (!unique(event.layout?.id) || !Array.isArray(event.layout.obstacles)) { problems.push(`${label} needs its own layout.`); continue; }
+      const positions = new Set<number>();
+      for (const obstacle of event.layout.obstacles) {
+        if (!unique(obstacle.id) || typeof obstacle.name !== 'string' || !obstacle.name.trim() || obstacle.type !== 'clutter' || !integer(obstacle.sprite, 0, 3) || obstacle.atlas !== undefined
+          || !isDish(obstacle.ingredient, data) || !mergePartners(obstacle.ingredient, data).length || !integer(obstacle.position, 0, event.board.length - 1)
+          || event.board[obstacle.position] !== null || positions.has(obstacle.position)) problems.push(`${label} has an invalid blocker.`);
+        positions.add(obstacle.position);
+      }
+      const dishes = eventDishes(event, data);
+      for (const code of event.board) if (code && !data.items[code].generator) known.add(code);
+      for (const code of sources) known.add(code!);
+      // The quests: one for each of Mama, Tata, and Mara at most, with no reward and no reply.
+      if (!Array.isArray(event.quests) || !event.quests.length || event.quests.length > 3 || new Set(event.quests.map(quest => quest.character)).size !== event.quests.length) problems.push(`${label} needs one to three quests, at most one for each character.`);
+      let merges = 0;
+      for (const quest of event.quests) {
+        const person = data.characters.find(value => value.id === quest.character);
+        if (!unique(quest.id) || !quest.id.startsWith('prologue-') || !person || !(person.family || person.id === mara) || typeof quest.title !== 'string' || !quest.title.trim()
+          || quest.reward !== 0 || quest.afterTask !== null || !scene(quest.opening, data) || !Array.isArray(quest.completion) || quest.completion.length
+          || Object.keys(quest).some(key => !['id', 'character', 'title', 'afterTask', 'requirements', 'reward', 'opening', 'completion'].includes(key))) problems.push(`${quest.id}: invalid prologue quest.`);
+        if (!Array.isArray(quest.requirements) || !quest.requirements.length || !quest.requirements.every(({ item, quantity }) => isDish(item, data) && integer(quantity, 1, 2))
+          || new Set(quest.requirements.map(({ item }) => item)).size !== quest.requirements.length || quest.requirements.reduce((sum, { quantity }) => sum + quantity, 0) > MEAL.portions) { problems.push(`${quest.id}: asks for more than one meal.`); continue; }
+        for (const { item, quantity } of quest.requirements) {
+          merges += dishWork(item, data).merges * quantity;
+          if (!dishes.has(item)) problems.push(`${quest.id}: ${data.items[item].name} is not a dish of its board.`);
+          if (event.fasting && data.items[item].tags.some(tag => fasting.includes(tag))) problems.push(`${quest.id}: breaks the fast of its day.`);
+          const dish = data.items[item], parts = dish.recipe ?? [dish.stage > 1 ? `${dish.chain}_${dish.stage - 1}` : `generator_${dish.chain}`];
+          const full = event.board.filter(code => code === item).length >= quantity;
+          if (!full && !parts.every(part => known.has(part))) problems.push(`${quest.id}: ${dish.name} is more than one merge beyond the dishes that the player knows.`);
+        }
+        for (const { item } of quest.requirements) known.add(item);
+      }
+      // The sources of an event count as known only during it.
+      for (const code of sources) known.delete(code!);
+      if (merges > EVENT_MERGES) problems.push(`${label} needs ${merges} merges, more than ${EVENT_MERGES}.`);
+      total += merges;
+      for (const part of [event.opening, event.closing]) {
+        if (!part || !stable(part.id) || !part.id.startsWith('prologue-') || typeof part.title !== 'string' || !part.title.trim() || !scene(part.dialogue, data)
+          || (part.page !== undefined && (typeof part.page.text !== 'string' || !part.page.text.trim()))) problems.push(`${label} has an invalid scene.`);
+      }
+    }
+    if (total > PROLOGUE_MERGES) problems.push(`The prologue needs ${total} merges, more than ${PROLOGUE_MERGES}.`);
+    if (events.at(-1)!.day >= 1) problems.push('The prologue ends before act 1.');
+    for (const room of rooms) if (!events.some(event => event.room === room.id)) problems.push(`${room.id}: no event shows it.`);
+  } catch { problems.push('The prologue records are malformed.'); }
+  return problems;
 }
 /**
  * A quest asks only for dishes one merge beyond what the player surely knows when its ticket shows, so no quest asks for a dish
@@ -487,8 +569,10 @@ export function dataProblems(data: GameData, knownImages?: readonly string[]): s
 export function discoveryProblems(data: GameData): string[] {
   const problems: string[] = [], openings = new Map<Quest, number>(), opening = (quest: Quest) => questOpening(quest, data, openings);
   const byId = new Map(data.quests.map(quest => [quest.id, quest])), predecessors = new Map(data.quests.map(quest => [quest, questPredecessors(quest, data)]));
-  // The starting board, without the dishes that the first tickets put in the recipe book.
-  const start = data.board.initial.filter(present);
+  // The starting board, without the dishes that the first tickets put in the recipe book, and the sure discoveries of the prologue: the
+  // prepared dishes of its boards and the dishes of its quests.
+  const start = [...data.board.initial.filter(present), ...data.prologue.events.flatMap(event => event.board.filter(code => !!code && !data.items[code].generator) as string[]),
+    ...prologueQuests(data).flatMap(quest => quest.requirements.map(({ item }) => item))];
   /** The quests that are delivered before this one opens: those that the preparations before it need, and its predecessors. */
   const delivered = (quest: Quest, found = new Set<Quest>()): Set<Quest> => {
     for (const other of data.quests) if (campaignQuest(other) && opening(other) < opening(quest)) found.add(other);

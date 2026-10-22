@@ -6,14 +6,14 @@ import { dataProblems } from '../src/content.ts';
 import { exportSave, importSave, loadSave, saveGame } from '../src/storage.ts';
 import type { GameData, GameState } from '../src/model.ts';
 import { moveTo } from '../tools/create-checkpoint-saves.ts';
-import { act, addOpenLayout, data, openGame, payDay, rejected, validate, know, withTickets } from './support.ts';
+import { act, addOpenLayout, data, openGame, payDay, prologueServed, rejected, validate, know, withTickets } from './support.ts';
 
 addOpenLayout();
 // Isolate blocker rules from earning the required quests.
 function ready(taskIndex = 0): GameState {
   const state = openGame();
   Object.assign(state, { coins: 100000, taskIndex });
-  state.completedQuests = requiredQuests(taskIndex, data).map(quest => quest.id);
+  state.completedQuests = [...prologueServed, ...requiredQuests(taskIndex, data).map(quest => quest.id)];
   state.decorations = data.tasks.slice(0, taskIndex).map(task => task.id);
   state.preparationObstacles = { start: taskIndex, placed: [] };
   moveTo(state, payDay(taskIndex), data);
@@ -72,7 +72,7 @@ test('payment places a batch once and preserves existing items and quest progres
 test('failed payment leaves placed blockers, queued batches, and the input state unchanged', () => {
   let state = act(full(ready()), { type: 'task' });
   for (let count = 0; count <= KEEP_FREE; count++) state = mergeOne(state);
-  state.completedQuests = requiredQuests(state.taskIndex, data).map(quest => quest.id);
+  state.completedQuests = [...prologueServed, ...requiredQuests(state.taskIndex, data).map(quest => quest.id)];
   state.coins = 0;
   assert.equal(active(state).length, 1);
   assert.equal(pendingPreparationObstacles(state, data).length, 1);
@@ -95,7 +95,7 @@ test('full-board batches queue while only four cells are free, drain when a fift
   state = mergeOne(state);
   assert.equal(freeBoardCells(state, data), 4);
   assert.equal(active(state).length, 2);
-  state.completedQuests = requiredQuests(state.taskIndex, data).map(quest => quest.id);
+  state.completedQuests = [...prologueServed, ...requiredQuests(state.taskIndex, data).map(quest => quest.id)];
   state = act(state, { type: 'task' });
   assert.equal(freeBoardCells(state, data), 4);
   assert.equal(pendingPreparationObstacles(state, data).length, 3);

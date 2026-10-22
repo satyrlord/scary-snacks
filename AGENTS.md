@@ -25,7 +25,7 @@ Git history keeps the past.
 - `public/` holds the shipped image variants, fonts, and game data.
   `assets/variants/` holds AV1 Image File Format (AVIF) and WebP images.
   `assets/fonts/` holds the fonts, and `data/game.json` holds the game data.
-  `public/assets/original/` holds the 74 Portable Network Graphics (PNG) masters of those variants. The build does not ship the masters.
+  `public/assets/original/` holds the 82 Portable Network Graphics (PNG) masters of those variants. The build does not ship the masters.
 - `tools/` holds the Node.js tools. They build the game, serve it, and write the game data.
   They also make the image variants, write the checkpoint saves, check the campaign balance, and export the source.
   `tools/create-original-data.ts` writes `public/data/game.json`.
@@ -108,7 +108,7 @@ For a change that the user can see, give browser evidence.
 
 ## Assets, security, and deployment
 
-The 74 PNG masters in `public/assets/original/` have records in `docs/asset-provenance.json` and `docs/asset-prompts.json`.
+The 82 PNG masters in `public/assets/original/` have records in `docs/asset-provenance.json` and `docs/asset-prompts.json`.
 After a master changes, run `npm run assets:build`.
 The command uses Sharp, a development dependency, to make the AVIF and WebP variants in `public/assets/variants/`.
 The command encodes only the masters that are new or changed. It keeps each variant that agrees with its record, and it removes the variants that no plan names.
@@ -141,6 +141,8 @@ Use [`.github/skills/SKILLS.md`](.github/skills/SKILLS.md) as the index of the r
 Before important work, select the applicable skill from that index.
 Repository skills do not increase the approval that the user gave.
 Reviews, audits, and diagnosis do not change files unless the user tells you to make a change.
+You can present your own ideas for the product, the story, the content, and the art to the user at any time.
+An idea goes into a document or the game data only after the user approves it.
 To let the skill discovery tools find the skills, run `pwsh -File .github/scripts/setup-skill-links.ps1`.
 The script makes the ignored folder links `.claude/skills`, `.agents/skills`, and `.codex/skills`.
 [`.github/copilot-instructions.md`](.github/copilot-instructions.md) and [`CLAUDE.md`](CLAUDE.md) refer to this file.

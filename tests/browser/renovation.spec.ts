@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { resolveRooms, latestArea } from '../../src/model.ts';
 import { createHash } from 'node:crypto';
-import { checkpoint, data, options, painting, replaceSave, revealed, saved, serialize, start, startAgain } from './support.ts';
+import { checkpoint, data, options, painting, replaceSave, revealed, saved, serialize, start, startAgain, prologueAt } from './support.ts';
 
 /** The save after count preparations, ready to pay the next one when ready is set. */
 const saveAfter=(count: number,ready=false)=>serialize(checkpoint(count,{ready}));
@@ -94,14 +94,14 @@ test('room pins stay in the visible room and clear the area switch on short phon
   }
 });
 
-test('a new game restores its original room crop after a pin has moved the frame',async({page})=>{
+test('a new game restores the crop of the family kitchen after a pin has moved the frame',async({page})=>{
   await page.setViewportSize({width:768,height:1024});await page.emulateMedia({reducedMotion:'reduce'});
-  await start(page,saveAfter(0));await loaded(page);
+  await start(page,prologueAt(1));await loaded(page);
   const initial=(await page.locator('#room-frame').boundingBox())!;
   await replaceSave(page,saveAfter(23));await loaded(page);
   await expect(page.locator('#room-pin')).toBeVisible();
   await options(page);await startAgain(page);
-  await expect(page.locator('#room-frame')).toHaveAttribute('data-current','front-room-00');
+  await expect(page.locator('#room-frame')).toHaveAttribute('data-current','family-kitchen-mourning');
   await expect(page.locator('#room-pin')).toBeHidden();
   await expect.poll(async()=>(await page.locator('#room-frame').boundingBox())!.y).toBeCloseTo(initial.y,1);
 });

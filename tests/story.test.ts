@@ -1,16 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { availableChains, firstFreeBoardCell, requiredQuests, resolveChapters, resolveQuests, storyScenes, supperComplete, supperQuest } from '../src/model.ts';
-import { createGame, validateGame } from '../src/engine.ts';
+import { validateGame } from '../src/engine.ts';
 import { dataProblems, storyProblems } from '../src/content.ts';
 import type { GameData } from '../src/model.ts';
-import { afterMarch, deliver, act, data, payNext, ready, rejected, supply, withTickets } from './support.ts';
+import { actOne, afterMarch, deliver, act, data, payNext, prologueServed, ready, rejected, supply, withTickets } from './support.ts';
 
 const titles = ['Open the shutters', 'A kitchen for everyone', 'Around one table', 'The courtyard', 'Recipes to share', 'The first community supper'];
 const boundaries = [4, 8, 12, 16, 20, 24];
 /** A synthetic checkpoint after count payments, with every scene that the payments queued still waiting. */
 function checkpoint(count: number, content = data) {
-  let state = createGame(content);
+  let state = actOne(content);
   while (state.taskIndex < count) state = payNext(state, content);
   return state;
 }
@@ -46,9 +46,9 @@ test('six chapters keep their titles and cover all 24 preparations, each with a 
   assert.deepEqual(storyProblems(data), []);
   assert.deepEqual(data.chapters.map(chapter => chapter.title), titles);
   assert.deepEqual(data.chapters.map(chapter => chapter.id), titles.map((_, index) => `chapter-${index + 1}`));
-  const covered = resolveChapters(createGame(data), data).flatMap(view => view.tasks.map(task => task.id));
+  const covered = resolveChapters(actOne(), data).flatMap(view => view.tasks.map(task => task.id));
   assert.deepEqual(covered, data.tasks.map(task => task.id));
-  for (const view of resolveChapters(createGame(data), data)) {
+  for (const view of resolveChapters(actOne(), data)) {
     assert.equal(view.tasks.length, 4);
     for (const key of ['objective', 'opening', 'payoff'] as const) assert.ok(view.chapter[key].trim(), `${view.chapter.id} needs its ${key}.`);
     for (const task of view.tasks) assert.equal(data.rooms.filter(room => room.after === task.id).length, 1, `${task.id} needs one visible result.`);
@@ -56,7 +56,7 @@ test('six chapters keep their titles and cover all 24 preparations, each with a 
 });
 
 test('each chapter has a neighbour contribution that opens during it, and the four core characters all contribute and speak in the finale', () => {
-  const characters = data.characters.filter(character => !character.visitor && !character.regular).map(character => character.id);
+  const characters = data.characters.filter(character => !character.visitor && !character.regular && !character.family).map(character => character.id);
   assert.deepEqual(new Set(data.chapters.map(chapter => data.quests.find(quest => quest.id === chapter.contribution)!.character)), new Set(characters));
   assert.deepEqual(new Set(data.finale.dialogue.map(line => line.speaker)), new Set(characters));
   for (const [index, chapter] of data.chapters.entries()) {
@@ -158,7 +158,7 @@ test('the last preparation queues its scene and the chapter scene once, with no 
 test('the supper quest has no cost, earns the finale, leaves only a repeating ticket, and keeps the board playable', () => {
   const supper = supperQuest(data)!, campaign = requiredQuests(data.tasks.length, data);
   const before = ready(checkpoint(23));
-  assert.deepEqual(new Set(before.completedQuests), new Set(campaign.map(quest => quest.id)), 'Every campaign quest is required before the supper.');
+  assert.deepEqual(new Set(before.completedQuests), new Set([...prologueServed, ...campaign.map(quest => quest.id)]), 'Every campaign quest is required before the supper.');
   for (const quest of campaign) rejected({ ...before, completedQuests: before.completedQuests.filter(id => id !== quest.id) }, { type: 'task' });
   // The March quests of Dochia that opened are delivered too, so only the supper is left.
   const paid = afterMarch(act(before, { type: 'task' }));
@@ -182,7 +182,7 @@ test('the supper quest has no cost, earns the finale, leaves only a repeating ti
 test('saved scene queues hold only earned scenes, once each, in story order', () => {
   const middle = checkpoint(12);
   assert.deepEqual(storyScenes(data), [...data.tasks.map(task => task.id), ...data.quests.map(quest => quest.id), ...data.chapters.map(chapter => chapter.id), 'finale', 'mina-avram-news',
-    ...data.characters.flatMap(person => person.arrival ? [`arrival-${person.id}`] : [])]);
+    ...data.characters.flatMap(person => person.arrival ? [`arrival-${person.id}`] : []), ...data.prologue.events.flatMap(event => [event.opening.id, event.closing.id])]);
   const quest = data.quests.find(value => middle.completedQuests.includes(value.id))!;
   const undelivered = data.quests.find(value => !value.recovery && !middle.completedQuests.includes(value.id))!;
   for (const pendingScenes of [[], ['chapter-1'], ['chapter-3'], ['chapter-1', 'chapter-2', 'chapter-3'], ['task_1', 'chapter-1', 'task_12'], ['task_4', 'task_9', 'chapter-3'], queued(12)]) {
@@ -229,7 +229,7 @@ test('a payment queues its preparation scene in the same change, and reading it 
   rejected(read, { type: 'readScene', id: data.tasks[1].id });
 });
 
-test('three chains and the pickle barrel of winter are open in a new game, and each preparation that opens a chain names its new source in its scene', () => {
+test('three chains and the pickle barrel of winter are open at the start of act 1, and each preparation that opens a chain names its new source in its scene', () => {
   assert.deepEqual(availableChains({ taskIndex: 0, clock: { day: 1 } }, data), ['grain', 'pickles', 'corn', 'herbs']);
   const opens = Object.fromEntries(data.tasks.flatMap(task => task.unlock ? [[task.id, task.unlock]] : []));
   assert.deepEqual(opens, { task_3: 'dairy', task_5: 'poultry', task_6: 'vegetables', task_7: 'fruits', task_8: 'pork', task_11: 'beans', task_12: 'fish', task_13: 'lamb', task_16: 'veal' });

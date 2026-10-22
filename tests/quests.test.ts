@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { campaignQuest, canDeliverQuest, dishChains, menuPrice, QUEST_TICKETS, questDeliveryCells, questPredecessors, requiredQuests, resolveQuests, supperQuest } from '../src/model.ts';
-import { createGame, reduceGame, validateGame } from '../src/engine.ts';
+import { reduceGame, validateGame } from '../src/engine.ts';
 import { dataProblems, dietBreaks, discoveryProblems, questProblems } from '../src/content.ts';
 import type { GameData, GameState, Quest } from '../src/model.ts';
 import { moveTo } from '../tools/create-checkpoint-saves.ts';
-import { act, afterMarch, checkpoint, data, deliver, opened, player, rejected, status, supply, know, recovery } from './support.ts';
+import { actOne, act, afterMarch, checkpoint, data, deliver, opened, player, prologueServed, rejected, status, supply, know, recovery } from './support.ts';
 
 /** The campaign quests with a status. The recovery quest has its own ticket, so the tests of the tickets leave it out. */
 const ids = (state: GameState, status: string) => resolveQuests(state, data).filter(view => !view.quest.recovery && view.status === status).map(view => view.quest.id);
@@ -20,6 +20,8 @@ test('every neighbour asks across the whole campaign, and every quest except the
   assert.equal(data.quests.filter(quest => quest.repeating).length, 7);
   for (const character of data.characters) {
     assert.ok(character.introduction.length > 40);
+    // Mara's parents ask only in the prologue.
+    if (character.family) { assert.ok(data.prologue.events.flatMap(event => event.quests).filter(quest => quest.character === character.id).length >= 2, character.id); continue; }
     const count = data.quests.filter(quest => !quest.repeating && (quest.character === character.id || quest.companions?.includes(character.id))).length;
     if (character.singleVisit) assert.equal(count, 1, character.id);
     else assert.ok(count >= 2, character.id);
@@ -37,7 +39,7 @@ test('every neighbour asks across the whole campaign, and every quest except the
 
 test('tickets show at most three active quests in authored order, and a waiting quest takes a freed ticket', () => {
   assert.equal(QUEST_TICKETS, 3);
-  const start = createGame(data);
+  const start = actOne();
   // A second quest of a character in the same window waits for the first, so it is locked, not waiting.
   const campaign = data.quests.filter(campaignQuest);
   const open = campaign.filter((quest, at) => quest.afterTask === null && !campaign.slice(0, at).some(earlier => earlier.character === quest.character)).map(quest => quest.id);
@@ -59,7 +61,7 @@ test('tickets show at most three active quests in authored order, and a waiting 
 });
 
 test('a waiting quest cannot be delivered even with every item on the board', () => {
-  const start = createGame(data);
+  const start = actOne();
   const waiting = ids(start, 'waiting')[0];
   const supplied = supply(start, waiting);
   assert.ok(questDeliveryCells(supplied, data.quests.find(quest => quest.id === waiting)!).every(index => index >= 0));
@@ -230,7 +232,7 @@ test('atomic delivery accounts for repeated quantities, then pays only once', ()
   const quest = content.quests.find(quest => quest.id === 'mara-welcome')!;
   // The same dishes and reward, with the Herb bunches split over two rows.
   quest.requirements = [{ item: 'herbs_2', quantity: 1 }, { item: 'herbs_4', quantity: 1 }, { item: 'herbs_2', quantity: 1 }];
-  const play = player(createGame(content), content);
+  const play = player(actOne(content), content);
   play.produce('herbs_2');
   play.produce('herbs_4');
   rejected(play.state, { type: 'deliverQuest', id: quest.id }, content);
@@ -240,7 +242,7 @@ test('atomic delivery accounts for repeated quantities, then pays only once', ()
   play.act({ type: 'deliverQuest', id: quest.id });
   assert.equal(play.state.coins, before.coins + quest.reward);
   assert.equal(play.state.taskIndex, before.taskIndex);
-  assert.deepEqual(play.state.completedQuests, [quest.id]);
+  assert.deepEqual(play.state.completedQuests, [...prologueServed, quest.id]);
   assert.equal(play.state.board.filter(cell => cell?.code === 'herbs_2' || cell?.code === 'herbs_4').length, 0);
   const reloaded: GameState = JSON.parse(JSON.stringify(play.state));
   rejected(reloaded, { type: 'deliverQuest', id: quest.id }, content);
@@ -356,10 +358,12 @@ test('the supper asks one plate for each guest, to the taste of each one, and it
 test('the recovery quest opens below the floor while a quest is open, takes a fourth ticket, and moves no quest to waiting', () => {
   assert.equal(floor, 10);
   assert.deepEqual(recovery.requirements, [{ item: 'herbs_4', quantity: 1 }]);
-  const start = createGame(data);
-  assert.equal(start.coins, 0);
+  // The starting gift keeps the purse above the floor, so act 1 starts without recovery teas.
+  assert.ok(data.prologue.gift >= floor);
+  assert.equal(status(actOne(), recovery.id), 'locked');
+  const start = { ...actOne(), coins: 0 };
   const low = { ...start, coins: floor - 1 }, high = { ...start, coins: floor };
-  assert.equal(status(start, recovery.id), 'active', 'An empty purse opens the recovery quest in a new game.');
+  assert.equal(status(start, recovery.id), 'active', 'An empty purse opens the recovery quest.');
   assert.equal(status(low, recovery.id), 'active');
   assert.equal(status(high, recovery.id), 'locked', 'The recovery quest closes at the floor.');
   // The recovery quest is active outside the three tickets, so every other quest keeps its status.
@@ -378,7 +382,7 @@ test('the recovery quest opens below the floor while a quest is open, takes a fo
   const supplied = supply(start, third);
   assert.deepEqual(ids(supplied, 'active').map(id => canDeliverQuest(supplied, id, data)), [false, false, true]);
   const delivered = deliver(start, third);
-  assert.deepEqual(delivered.completedQuests, [third]);
+  assert.deepEqual(delivered.completedQuests, [...prologueServed, third]);
   // With no campaign quest open, the recovery quest opens while the purse cannot pay the next preparation.
   for (const count of [1, 12, 23]) {
     const waiting = afterMarch(checkpoint(count)), cost = data.tasks[count].cost;
@@ -423,7 +427,7 @@ test("Ana's campaign quests open and close in order whether the recovery quest i
   for (const [at, quest] of ana.entries()) assert.deepEqual(questPredecessors(quest, data), ana.slice(0, at).map(earlier => earlier.id));
   const windows = ana.map(quest => quest.afterTask === null ? 0 : data.tasks.findIndex(task => task.id === quest.afterTask) + 1);
   for (const [at, window] of windows.entries()) {
-    let state = window ? opened(window) : createGame(data);
+    let state = window ? opened(window) : actOne();
     while (ids(state, 'active').length) {
       const low = { ...state, coins: 0 }, high = { ...state, coins: floor };
       assert.equal(status(low, recovery.id), 'active');
@@ -476,17 +480,19 @@ test('each quest dish is one merge beyond the dishes that the player surely know
     // Later quests may lose a step that this quest taught; only this quest counts here.
     return discoveryProblems(copy).filter(problem => problem.startsWith(`${id}:`));
   };
-  // A new game knows Flour and the Socată by the Herb basket: Dough and Linden tea are one merge away, Loaf is two.
-  assert.deepEqual(asking('mara-welcome', 'grain_2'), []);
-  assert.deepEqual(asking('mara-welcome', 'herbs_4'), []);
-  assert.deepEqual(asking('mara-welcome', 'grain_3'), ['mara-welcome: Loaf is more than one merge beyond the dishes that the player knows when the quest opens.']);
-  // The quest before it on the counter puts Dough in the recipe book, so the next quest may ask for Loaf.
-  assert.equal(data.quests[data.quests.findIndex(quest => quest.id === 'victor-exam') - 1].id, 'sorin-first-ride');
-  assert.deepEqual(asking('victor-exam', 'grain_3'), []);
+  // Act 1 knows the Corn cob of its board, and the prologue taught Loaf and Pogăcele: Shelled corn and Langoș are one merge away,
+  // and Cornmeal and Bread basket are two.
+  assert.deepEqual(asking('mara-welcome', 'corn_2'), []);
+  assert.deepEqual(asking('mara-welcome', 'grain_5'), []);
+  assert.deepEqual(asking('mara-welcome', 'corn_3'), ['mara-welcome: Cornmeal is more than one merge beyond the dishes that the player knows when the quest opens.']);
+  assert.deepEqual(asking('mara-welcome', 'grain_6'), ['mara-welcome: Bread basket is more than one merge beyond the dishes that the player knows when the quest opens.']);
+  // Victor's quest on the counter puts Shelled corn in the recipe book, so the next quest may ask for Cornmeal.
+  const next = data.quests[data.quests.findIndex(quest => quest.id === 'victor-exam') + 1].id;
+  assert.deepEqual(asking(next, 'corn_3'), []);
 });
 
 test('a quest that takes a ticket puts its dishes in the recipe book, and a save without them is not valid', () => {
-  const start = createGame(data);
+  const start = actOne();
   const tickets = resolveQuests(start, data).filter(view => view.status === 'active');
   assert.ok(tickets.length > 1);
   for (const { quest } of tickets) for (const { item } of quest.requirements) assert.ok(start.discovered.includes(item), item);

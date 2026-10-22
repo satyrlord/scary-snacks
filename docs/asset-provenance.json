@@ -1035,16 +1035,16 @@
     {
       "id": "food-sweets",
       "file": "public/assets/original/food-sweets.png",
-      "sha256": "3f1447a694933ce6597aa5c3668534a7efa8ef5ace1d720de68a44e08d3c1445",
-      "bytes": 4085543,
+      "sha256": "02c83965385640bd8ee1b0df98b6197dba7b8de04137fcaca5d28e6ce0bc4548",
+      "bytes": 5121559,
       "width": 2048,
       "height": 1024,
       "mode": "RGBA",
       "hasTransparency": true,
-      "promptId": "food-sweets",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; five moves centre each icon in its cell, and an alpha cut at 96 removes faint smudges; no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts",
+      "promptId": "food-sweets-prologue",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an edit of the accepted atlas, then a halo clear set each alpha below 96 to 0 and each alpha above 224 to 255, and a composite took only cells 6 and 7 into the accepted atlas",
       "sourceGameImageInput": false,
-      "review": "The food atlas of the sweets for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Sweet dough, Cozonac, Chimney cake, Papanași, and Plum dumplings, in stage order. The agent measured the soft-alpha fringe (0.004 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it.",
+      "review": "Colaci with a sprig of basil and turte with honey and walnuts in cells 6 and 7. The first five cells keep their pixels. The agent checked both new icons on dark and light backgrounds for a halo.",
       "visualAcceptance": {
         "status": "accepted",
         "by": "user"
@@ -1385,6 +1385,156 @@
         "status": "accepted",
         "by": "user"
       }
+    },
+    {
+      "id": "family-kitchen-mourning",
+      "file": "public/assets/original/family-kitchen-mourning.png",
+      "sha256": "f26d9a866c44d468a48eb15c38bea95ca85abac91c05b4afe5bcb244eaa2de07",
+      "bytes": 5390120,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "family-kitchen-mourning",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a new painting with front-room-01 as the style reference",
+      "sourceGameImageInput": false,
+      "review": "The family kitchen in mourning: the window over the city blocks in snow, the radiator under the windowsill, the balcony door with the pickle barrel, the black cloth over the mirror, and the photograph of Paraschiva with a black ribbon beside a candle. The agent checked the front-facing perspective, the empty windowsill and radiator for Miez, and the absence of text and people.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "family-kitchen-christmas",
+      "file": "public/assets/original/family-kitchen-christmas.png",
+      "sha256": "4afef53e03c4acf0f634d3ef349945c85bc612992258e6de230041c211da9764",
+      "bytes": 7834744,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "family-kitchen-christmas-mourning",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of family-kitchen-mourning, of which only the mirror, the wall shelf, and the table top were composited, with tools in .github/skills/generate-game-art-openai/scripts; then a masked edit of that state, with family-kitchen-mourning as a second reference, of which only the wall shelf was composited",
+      "sourceGameImageInput": false,
+      "referenceAsset": "family-kitchen-mourning",
+      "referenceSha256": "f26d9a866c44d468a48eb15c38bea95ca85abac91c05b4afe5bcb244eaa2de07",
+      "review": "The family kitchen at Christmas: the uncovered mirror with a fir sprig, a basket of colaci on the table, and on the wall shelf the fir branches, the paper carol star, and the mourning corner of the funeral: the photograph of Mamaia with a black ribbon and a lit candle. The family keeps quiet signs of mourning for a year. The agent checked the seams of each composited region and the light of the candle on the wall.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "family-kitchen-new-year",
+      "file": "public/assets/original/family-kitchen-new-year.png",
+      "sha256": "f89f8abae21415f53b578a3d9141e4a3e883798efab4e32babe5dd45048a9f5e",
+      "bytes": 7900745,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "family-kitchen-new-year-mourning",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of family-kitchen-christmas, of which only the band under the ceiling, the window, and the table top were composited, with tools in .github/skills/generate-game-art-openai/scripts; then a masked edit of that state, with family-kitchen-mourning as a second reference, of which only the wall shelf was composited",
+      "sourceGameImageInput": false,
+      "referenceAsset": "family-kitchen-christmas-first",
+      "referenceSha256": "aa2ad3666dfedb46ffc04d9755421d680e794f2ba10b5dfe12cc864dcc6f34d2",
+      "review": "The family kitchen on New Year’s Eve: streamers under the ceiling, frost ferns on the window, the remains of the midnight table, and on the wall shelf the fir branches, the paper carol star, and the mourning corner of the funeral: the photograph of Mamaia with a black ribbon and a lit candle. The family keeps quiet signs of mourning for a year. The agent checked the seams of each composited region and the light of the candle on the wall.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "family-kitchen-farewell",
+      "file": "public/assets/original/family-kitchen-farewell.png",
+      "sha256": "844a10ed182d9b7f2d5552ab73955cd6a5324f930200e662b3c6df266af8635f",
+      "bytes": 7923624,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "family-kitchen-farewell-mourning",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of family-kitchen-mourning, of which only the mirror, the wall shelf, and the floor by the hall door were composited, with tools in .github/skills/generate-game-art-openai/scripts; then a masked edit of that state, with family-kitchen-mourning as a second reference, of which only the wall shelf was composited",
+      "sourceGameImageInput": false,
+      "referenceAsset": "family-kitchen-mourning",
+      "referenceSha256": "f26d9a866c44d468a48eb15c38bea95ca85abac91c05b4afe5bcb244eaa2de07",
+      "review": "The family kitchen before the farewell: the uncovered mirror, the suitcase and the empty cat basket by the hall door, and on the wall shelf a potted plant and the mourning corner of the funeral: the photograph of Mamaia with a black ribbon and a lit candle. The family keeps quiet signs of mourning for a year. The agent checked the seams of each composited region and the light of the candle on the wall.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "scene-sheet-5",
+      "file": "public/assets/original/scene-sheet-5.png",
+      "sha256": "5af39f66d287e852f91aca1a7e93407b4798e0c3332d4e9299aca97af8482d38",
+      "bytes": 4666607,
+      "width": 2304,
+      "height": 1536,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "scene-sheet-5-carol",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; four scenes of the prologue drawn on white paper in one request with the white-paper copies of scene-sheet-4, scene-sheet-3, and sketch-sheet-1 as references; then the paper was made transparent with the ink conversion, then a fixed colour mapping set one sepia line colour and kept the alpha of each pixel and the gold of the flames; a masked edit of a white-paper copy of that sheet redrew the clock and the background of the bus stop, and a second masked edit of that candidate drew them again with one sign pole; the patch command took only those regions of the second edit into the drawing, then the sepia command set the line colour; a third masked edit of a white-paper copy of the result redrew the view through the stairwell window of the carol scene, and the patch and sepia commands took only that region",
+      "sourceGameImageInput": false,
+      "review": "The four event scenes of the prologue: the churchyard with Mara, Ilie, Eszter, and Sorin among the mourners, the carol singers at the door with Tata and Miez, the midnight table under a wall clock with hour marks and no numbers, and Mara at the bus stop with the cat basket, a round bus sign, and low city blocks of the 1920s to the 1950s. The agent checked each identity, the gold candle flames, the seams of the patched regions, and the cell lines.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "notebook-pages",
+      "file": "public/assets/original/notebook-pages.png",
+      "sha256": "b6f6a53cef4cb96c979b2ef03b6b13eec3343b55d0c6a19f268f544621451f3f",
+      "bytes": 4801222,
+      "width": 2304,
+      "height": 768,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "notebook-pages-prayer",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; two painted notebook pages in one request with front-room-01 as the style reference; then a masked edit of the right page of the left view, with a typeset copy of the prayer in Noto Serif as a second reference, of which only that page was composited",
+      "sourceGameImageInput": false,
+      "review": "Two views of Mamaia’s notebook: the cabbage-roll recipe with a drawing and a grease stain beside a page with a short old prayer in Romanian Cyrillic letters under a red cross, and a later page with a note beside a pressed sprig of basil. The agent compared each letter of the prayer with its typeset text.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "family-photos",
+      "file": "public/assets/original/family-photos.png",
+      "sha256": "c89a580a369f30d141454f669a89388befd3d8cf0228292d76905193df93de6c",
+      "bytes": 4053255,
+      "width": 2048,
+      "height": 1024,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "family-photos",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; two old studio photographs on transparency in one request; then a halo clear set each alpha below 32 to 0 and each alpha above 224 to 255, without painted pixels",
+      "sourceGameImageInput": false,
+      "review": "Two sepia studio photographs on cards with paper borders: Mama and Tata as young people in Transylvanian folk dress, before a painted backdrop on a wooden floor. The agent checked the borders, the absence of text, and the clear background.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "family-portraits",
+      "file": "public/assets/original/family-portraits.png",
+      "sha256": "4e6d1a99cf01b23b05b4b4fdf13ce44d5fa2d701270aaac3165e36c81d7df603",
+      "bytes": 1171231,
+      "width": 1536,
+      "height": 1536,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "family-portraits",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a corrective request at a smaller scale, with the first candidate and the portrait atlases as references; then a halo clear set each alpha below 32 to 0 and each alpha above 224 to 255, without painted pixels; then each bust moved 20 pixels down, so its lower cut lies on the lower edge of its cell, and each fully transparent pixel set to black",
+      "sourceGameImageInput": false,
+      "review": "The portraits of Mama and Tata in the two upper cells; the lower cells stay clear. The first candidate drew the busts across the middle line of the atlas. The lower cut of each bust lies on the lower edge of its cell, as in the other portrait atlases. The agent checked the framing, the empty cells, and the clear background.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
     }
   ],
   "note": "The game uses only project-generated images. The mascots use a generated chat atlas from the references list. The core portraits use a revision of a generated candidate. front-room-00 and courtyard-13 use generated room references. The decoration paintings use generated design references. Each later room state edits the previous state of its area. Each composite retains only the changed region. The board-clutter atlas uses chat generation and cell corrections. The second regulars atlas revises its previous version, and the references list keeps that version. Each pencil sheet is drawn in one request, so that its drawings share one hand. The 18 food atlases use alpha cuts, moves, box clears, and cell copies between candidates, without painted pixels. The window views use a front-room painting as their style reference. Each holiday decoration is a masked edit of a room state, cut out by its difference from that state. The two rat sheets use generated identity references from the references list. The thief rat sheet uses a cell trim, without painted pixels. This record preserves the source and review evidence of the current assets. This record does not give legal clearance.",
@@ -1631,6 +1781,19 @@
       "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; one request with front-room-12 and window-view-late-winter as references",
       "sourceGameImageInput": false,
       "use": "The rejected first early-spring view. Its thaw in the village is the reference for window-view-early-spring. The game does not ship it."
+    },
+    {
+      "id": "family-kitchen-christmas-first",
+      "sha256": "aa2ad3666dfedb46ffc04d9755421d680e794f2ba10b5dfe12cc864dcc6f34d2",
+      "bytes": 7834416,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "family-kitchen-christmas",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of family-kitchen-mourning, of which only the mirror, the wall shelf, and the table top were composited",
+      "sourceGameImageInput": false,
+      "use": "The reference image of family-kitchen-new-year: the Christmas state before the mourning corner came back to its shelf. The game does not ship it."
     }
   ]
 }

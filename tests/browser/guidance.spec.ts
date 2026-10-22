@@ -1,8 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { Locator } from '@playwright/test';
 import { firstFreeBoardCell } from '../../src/model.ts';
-import { createGame } from '../../src/engine.ts';
-import { data, dialogDeliver, openQuest, opened, recovery, saved, startStill, tile, validate } from './support.ts';
+import { checkpoint, data, opened, saved, startNewGame, startStill, tile, validate } from './support.ts';
 
 /** The actual text fits its visible region and stays above the phone controls, without clipped lines. */
 async function visibleCopy(target: Locator, region: string) {
@@ -20,7 +19,8 @@ async function visibleCopy(target: Locator, region: string) {
 
 for(const theme of ['light','dark'])for(const [width,height] of [[360,640],[390,844],[1280,720]]) {
   test(`a refused source explains recovery in the visible strip at ${width} in ${theme}`,async({page})=>{
-    await page.setViewportSize({width,height});await startStill(page,undefined,theme);
+    // An empty purse in act 1: the Windmill refuses a take, and the Herb basket gives one for free.
+    await page.setViewportSize({width,height});await startStill(page,checkpoint(0),theme);
     const before=await saved(page);
     await tile(page,1).click();
     const refusal=page.locator('#item-detail .detail-feedback');
@@ -40,30 +40,26 @@ for(const theme of ['light','dark'])for(const [width,height] of [[360,640],[390,
     await tile(page,13).click();await expect(page.locator('#item-detail')).not.toContainText('cannot pay');
   });
 
-  test(`the opening tea earns its stated reward at ${width} in ${theme}`,async({page})=>{
-    await page.setViewportSize({width,height});await startStill(page,undefined,theme);
-    await expect(page.locator('#status')).toHaveText('Merge two Socată into Linden tea. Deliver to Ana for 14 coins.');
+  test(`a new game points to the first quest, which is ready to serve, at ${width} in ${theme}`,async({page})=>{
+    await page.setViewportSize({width,height});await page.emulateMedia({reducedMotion:'reduce'});await startNewGame(page,theme);
+    await expect(page.locator('#modal-title')).toHaveText(data.prologue.events[0].opening.title);await page.keyboard.press('Escape');
+    await expect(page.locator('#status')).toHaveText('Mama’s dishes are ready on the board. Serve them from the ticket.');
     await visibleCopy(page.locator('#status'),'.mara-line');
-    await tile(page,32).click();
-    const guidance=page.locator('#item-detail .detail-onboarding');
-    await expect(guidance).toHaveText('Tap the other Socată. Deliver the tea to Ana for 14 coins.');
-    await visibleCopy(guidance,'#item-detail');
-    await tile(page,33).click();
-    await expect(guidance).toHaveText('Deliver to Ana for 14 coins.');
-    await visibleCopy(guidance,'#item-detail');
-    expect((await saved(page)).board[33]?.code).toBe('herbs_4');
+    const [first]=data.prologue.events[0].quests;
+    const serve=page.locator(`#tickets .ticket[data-quest="${first.id}"] .deliver-button`);
+    // On phones, the ticket opens the quest dialog, which serves.
+    if(await serve.isVisible())await serve.click();
+    else{await page.locator(`#tickets .ticket[data-quest="${first.id}"] .ticket-face`).click();await page.getByRole('dialog').getByRole('button',{name:`Serve ${first.title}`,exact:true}).click();}
+    await expect.poll(async()=>(await saved(page)).completedQuests).toEqual([first.id]);
     expect((await saved(page)).coins).toBe(0);
-    await openQuest(page,recovery);await dialogDeliver(page,recovery).click();
-    expect((await saved(page)).coins).toBe(14);
-    expect((await saved(page)).board[33]).toBeNull();
     await page.reload();await opened(page);
-    await expect(page.locator('#status')).toHaveText('Welcome back. The stove is still warm.');
-    await expect(page.locator('#item-detail .detail-onboarding')).toHaveCount(0);
+    // The closed opening scene is still pending.
+    await expect(page.locator('#status')).toHaveText('Welcome back. The stove is still warm. A story scene is waiting in Story.');
   });
 }
 
 test('a full board shows the refused take and keeps its saved board intact',async({page})=>{
-  const state=createGame(data);
+  const state=checkpoint(0);
   for(let at=firstFreeBoardCell(state,data);at>=0;at=firstFreeBoardCell(state,data))state.board[at]={code:'herbs_1'};
   expect(validate(state)).toBe(true);
   await page.setViewportSize({width:390,height:844});await startStill(page,state);

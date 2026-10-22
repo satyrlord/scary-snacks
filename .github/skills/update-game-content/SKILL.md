@@ -30,11 +30,13 @@ Read `PRODUCT.md`, `DELIVERY.md`, and `tools/create-original-data.ts`.
 This skill calls that file the data tool. Only the data tool writes the game data.
 Read `validateGame` in `src/engine.ts`, `dataProblems` in `src/content.ts`, and the quest rules in `src/model.ts` and `src/engine.ts`.
 `validateGame` checks a save against the game data.
-`dataProblems` runs each data check. It also checks that the initial board makes a valid new game.
+`dataProblems` runs each data check. It checks that the first event of the prologue makes a valid new game.
+It also checks that the initial board makes a valid start of act 1.
 The data tool and the game both call `dataProblems`. The game does not open if the data has a problem.
 Read the content test in `tests/engine.test.ts` and the campaign test in `tests/campaign-balance.test.ts`.
 If the change affects quests, read `tests/quests.test.ts` and `tests/campaign-goals.test.ts`.
 If the change affects guests, regulars, or the story, read `tests/guests.test.ts`, `tests/regulars.test.ts`, and `tests/story.test.ts`.
+If the change affects the prologue, read `tests/prologue.test.ts` and `tests/browser/prologue.spec.ts`.
 Read the code in `src/art.ts`, `src/tickets.ts`, and `src/story.ts` that shows items, portraits, and dialogue.
 
 `PRODUCT.md` gives the board size and these counts: generators, dishes and drinks, characters, quests, preparations, and chapters.
@@ -65,13 +67,16 @@ The first four visitors use the two-by-two visitor portrait atlas.
 Characters with `portraitAtlas: 'guest'` use the two-by-two guest portrait atlas.
 Eleven regulars use the two-by-two atlases `regulars-1`, `regulars-2`, and `regulars-3`.
 The lower-right cell of `regulars-3` stays transparent.
+Mara's parents use the two upper cells of `family-portraits`. Its two lower cells stay transparent.
+Their dialogs use the individual photographs from `family-photos`.
 Verify each assignment against `portraitAtlas` and `sprite` in the data tool.
 The cell index increases from left to right, and then from top to bottom.
 A new item or a changed dish must have its own art, and that art must agree with the item.
 Each preparation has one authored room state.
 A room state has the fields `id`, `area`, `after`, `focus`, `mark`, `label`, and `text`.
 The `id` also names the painting. The field `after` names the preparation.
-The state of the new game has `null` in `after`.
+The initial room state of act 1 has `null` in `after`.
+The new game uses a family kitchen state from `prologue.rooms`.
 The data tool stops if an entry of `roomPaintings` in `src/model.ts` has no approved master in `docs/asset-provenance.json`.
 Use [generate-game-art](../generate-game-art/SKILL.md) for new art. Make the name agree with the picture.
 

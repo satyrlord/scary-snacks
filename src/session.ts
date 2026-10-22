@@ -27,8 +27,8 @@ export const sourceOutput = (code: string) => itemName(definition(code).generato
 /** A blocked dish that a dish merges with: a matching dish of its chain, or a recipe partner. */
 export const matchingBlocker = (code: string) => boardObstacles(state,data).find(obstacle =>
   !state.resolvedObstacles.includes(obstacle.id) && !!mergeResult(code, obstacle.ingredient, data));
-/** The coins that one take from a source spends, in words. */
-export const takePrice = (source: string) => { const cost = takeCost(definition(source), data); return cost ? `${cost} ${cost === 1 ? 'coin' : 'coins'} each` : 'free'; };
+/** The coins that one take from a source spends, in words. Each take of the prologue is free. */
+export const takePrice = (source: string) => { const cost = state.prologue ? 0 : takeCost(definition(source), data); return cost ? `${cost} ${cost === 1 ? 'coin' : 'coins'} each` : 'free'; };
 
 /** What the interface shows after a change: the result of an action and the state before it, or null for a redraw alone. */
 export type Change = { result: Result; before: GameState } | null;

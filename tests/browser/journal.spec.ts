@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { arrivalScene, deliveriesSince, journalCharacters, resolveChapters, resolveQuests, supperComplete } from '../../src/model.ts';
-import { act, supper, supperEvening, checkpoint, data, deliverable, forward, journal, opened, quest, ratio, readTo, saved, start, supplies, supply, validate } from './support.ts';
+import { arrivalScene, deliveriesSince, journalCharacters, prologueScenes, resolveChapters, resolveQuests, supperComplete } from '../../src/model.ts';
+import { act, supper, supperEvening, checkpoint, data, deliverable, forward, journal, opened, prologueServed, quest, ratio, readTo, saved, start, supplies, supply, validate } from './support.ts';
 
 /** Earned scenes left unread at representative campaign positions. */
 function journalState(count: number){
@@ -8,7 +8,7 @@ function journalState(count: number){
   if(count){
     const arrival=data.characters.find(person=>person.arrival&&data.tasks.findIndex(task=>task.id===person.arrivesAfter)<count)!;
     const chapter=data.chapters[Math.floor(count/4)-1].id,task=data.tasks[count-1].id;
-    state.pendingScenes=[...(count%4?[chapter,task]:[task,chapter]),arrivalScene(arrival),state.completedQuests[0]];
+    state.pendingScenes=[...(count%4?[chapter,task]:[task,chapter]),arrivalScene(arrival),state.completedQuests.find(id=>!prologueServed.includes(id))!];
   }
   expect(validate(state)).toBe(true);return state;
 }
@@ -23,7 +23,8 @@ for(const count of [0,10,24])for(const width of [1440,390])for(const theme of ['
   const order=await list.evaluate(node=>[...node.children].map(child=>child.className));
   expect(order.indexOf('journal-unread')).toBeLessThan(order.indexOf('chapter-journal'));
   for(const group of await list.locator('details').all())await expect(group).not.toHaveAttribute('open','');
-  const people=journalCharacters(state,data),expected=new Set(state.pendingScenes);
+  // Act 1 keeps each prologue scene for replay.
+  const people=journalCharacters(state,data),expected=new Set([...state.pendingScenes,...prologueScenes(data).map(scene=>scene.id)]);
   for(const task of data.tasks.slice(0,count))expected.add(task.id);
   for(const view of resolveChapters(state,data).filter(view=>view.status==='complete'))expected.add(view.chapter.id);
   const completed=resolveQuests(state,data).filter(view=>view.status==='complete'&&people.some(person=>person.id===view.quest.character));
@@ -80,7 +81,7 @@ test('earlier conversations follow delivery order, and the latest chapter remain
   state=act(state,{type:'deliverQuest',id:supper.id});state=act(state,{type:'readScene',id:data.finale.id});
   await start(page,state);await journal(page,['conversations']);
   await expect(page.locator('[data-current-chapter]')).toHaveAttribute('data-chapter',data.chapters.at(-1)!.id);
-  const people=journalCharacters(state,data),expected=[...state.completedQuests].reverse().filter(id=>people.some(person=>person.id===quest(id).character));
+  const people=journalCharacters(state,data),expected=[...state.completedQuests].reverse().filter(id=>!prologueServed.includes(id)&&people.some(person=>person.id===quest(id).character));
   expect(await page.locator('[data-group="conversations"] [data-quest]').evaluateAll(rows=>rows.map(row=>(row as HTMLElement).dataset.quest!))).toEqual(expected);
   const replay=page.getByRole('button',{name:`Replay ${data.finale.title}`,exact:true});await expect(replay).toBeVisible();expect(await saved(page)).toEqual(state);
 });

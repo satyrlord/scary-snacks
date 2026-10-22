@@ -2,8 +2,9 @@
 import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { eveningOpen, firstFreeBoardCell, resolveQuests, supperQuest } from '../../src/model.ts';
-import { checkpointState, deliverRequired, moveTo } from '../../tools/create-checkpoint-saves.ts';
+import { eveningOpen, firstFreeBoardCell, prologueQuests, resolveQuests, supperQuest } from '../../src/model.ts';
+import { actOneStart, checkpointState, deliverRequired, moveTo } from '../../tools/create-checkpoint-saves.ts';
+import { runPrologue } from '../../tools/campaign-balance.ts';
 import { createGame, reduceGame, revealTickets, validateGame } from '../../src/engine.ts';
 import type { Action, GameData, GameState, Quest } from '../../src/model.ts';
 import { SAVE_KEY, exportSave } from '../../src/storage.ts';
@@ -13,6 +14,8 @@ export const KEY=SAVE_KEY;
 export const validate=(candidate: unknown)=>validateGame(candidate,data);
 export const serialize=(state: GameState)=>exportSave(state,validate);
 export function act(state: GameState,action: Action){const result=reduceGame(state,action,data);expect(result.ok,result.message).toBe(true);return result.state;}
+/** The prologue quests, which an act 1 save lists first among its delivered quests. */
+export const prologueServed=prologueQuests(data).map(value=>value.id);
 export const quest=(id: string)=>data.quests.find(value=>value.id===id)!;
 export const recovery=data.quests.find(value=>value.recovery)!,supper=supperQuest(data)!;
 export const person=(id: string)=>data.characters.find(value=>value.id===id)!;
@@ -29,7 +32,7 @@ export function deliverMarch(state: GameState){
  * The March quests that opened are delivered unless march is false.
  */
 export function checkpoint(count: number,{ready=false,coins=0,march=true}: {ready?: boolean; coins?: number; march?: boolean}={}){
-  const state=count?checkpointState(data,count-1):createGame(data);
+  const state=count?checkpointState(data,count-1):actOneStart(data);
   if(count){deliverRequired(state,data);state.coins=data.tasks[count-1].cost;Object.assign(state,act(state,{type:'task'}));}
   state.pendingScenes=[];state.coins=coins;
   if(ready&&count<data.tasks.length){deliverRequired(state,data);state.coins=data.tasks[count].cost;}
@@ -90,12 +93,29 @@ export function supply(state: GameState,codes: string[]){
 export const deliverable=(value: Quest)=>atBookingTime(supply(onTicket(value),supplies(value)),value);
 
 export async function opened(page: Page){await expect(page.locator('#board button')).toHaveCount(42);}
-/** Opens the game. Only the first load gets the save, so a reload shows what the game itself saved. */
-export async function start(page: Page,save?: GameState|string,theme?: string){
-  if(save!==undefined||theme)await page.addInitScript(({key,value,theme})=>{
+/** The start of act 1 after a legal run of the prologue. Without a seed, it has the seed of the test fixtures. */
+export const actOne=(seed=1)=>actOneStart(data,seed);
+/**
+ * Opens the game, at the start of act 1 unless a save is given. Only the first load gets the save, so a reload shows what the game
+ * itself saved. A new game starts with the prologue: startNewGame opens one.
+ */
+export async function start(page: Page,save: GameState|string=actOne(),theme?: string){
+  await page.addInitScript(({key,value,theme})=>{
     if(value!==null&&localStorage.getItem(key)===null)localStorage.setItem(key,value);
     if(theme)localStorage.setItem('scary-snacks-theme',theme);
-  },{key:KEY,value:save===undefined?null:typeof save==='string'?save:serialize(save),theme:theme??''});
+  },{key:KEY,value:typeof save==='string'?save:serialize(save),theme:theme??''});
+  await page.goto('./');await opened(page);
+}
+/**
+ * The prologue by legal play at the start of an event: with its scenes read, or with the scenes of the event change still pending.
+ * Event 7 can also wait for its last scene, when each of its quests is served.
+ */
+export function prologueAt(event: number,{read=true,served=false}: {read?: boolean; served?: boolean}={}){
+  return runPrologue(data,1,false,state=>state.prologue?.event===event&&(served?resolveQuests(state,data).every(view=>view.status!=='active'):!resolveQuests(state,data).some(view=>view.status==='complete'&&view.quest.id.startsWith(`prologue-${event}-`))&&(!read||!state.pendingScenes.length))).state;
+}
+/** Opens a new game: the prologue starts, and its first scene opens at once. */
+export async function startNewGame(page: Page,theme?: string){
+  if(theme)await page.addInitScript(value=>localStorage.setItem('scary-snacks-theme',value),theme);
   await page.goto('./');await opened(page);
 }
 /** Starts the game with reduced motion in the light theme, so that no animation delays the checks. */
@@ -180,9 +200,10 @@ export async function exportText(page: Page){
   const download=await pending;expect(download.suggestedFilename()).toBe('scary-snacks-save.json');
   return readFileSync((await download.path())!,'utf8');
 }
-/** Erases the game from the open Options dialog and starts a new one. */
+/** Erases the game from the open Options dialog and starts a new one. The first scene of the prologue opens, and Escape closes it. */
 export async function startAgain(page: Page){
   await page.getByRole('button',{name:'Start a new game',exact:true}).click();await page.getByRole('button',{name:'Erase and start again',exact:true}).click();
+  await expect(page.locator('#modal-title')).toHaveText(data.prologue.events[0].opening.title);await page.keyboard.press('Escape');
 }
 /** Imports this save text from the open Options dialog. */
 export async function importSaveFile(page: Page,text: string){

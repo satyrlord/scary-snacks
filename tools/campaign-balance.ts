@@ -28,8 +28,10 @@ export type CampaignNights = {
   /** The day on which each campaign quest opened and was delivered. */
   opened: Record<string, number>; delivered: Record<string, number>;
 };
+/** The work of one event of the prologue: its merges, its takes, and the fewest free cells while it lasted. */
+export type PrologueEventRun = { event: number; merges: number; takes: number; freeCells: number };
 export type CampaignBalance = {
-  chapters: CampaignChapter[]; preparations: CampaignPreparation[]; totals: CampaignTotals; nights: CampaignNights; finalState: GameState;
+  prologue: PrologueEventRun[]; chapters: CampaignChapter[]; preparations: CampaignPreparation[]; totals: CampaignTotals; nights: CampaignNights; finalState: GameState;
   /** The purse after the supper, and the coins that the run spent on preparations, takes, and upkeep. */
   purse: number; spending: number;
 };
@@ -43,7 +45,56 @@ const UPKEEP_GUARD = 30;
 const TIDY_FREE = 24;
 
 /**
- * Deterministic reducer play with a fixed seed. Pay each preparation as soon as it is ready. Deliver tonight's booked quest first,
+ * Plays the prologue from a new game with legal actions only: it reads each scene when it waits, and serves the quests of each event in
+ * ticket order. Each dish comes from a prepared dish or spare food on the board, or from takes and merges. The run ends at the start of
+ * act 1, or at the first state, between two steps, for which until is true.
+ */
+export function runPrologue(data: GameData, seed = 1, checkEveryAction = true, until: (state: GameState) => boolean = () => false): { state: GameState; events: PrologueEventRun[] } {
+  let state = createGame(data, seed), run: PrologueEventRun = { event: 1, merges: 0, takes: 0, freeCells: freeBoardCells(state, data) };
+  const events: PrologueEventRun[] = [], kept = new Set<number>();
+  function act(action: Action) {
+    const result = reduceGame(state, action, data);
+    assert.equal(result.ok, true, `Prologue event ${state.prologue?.event}, ${action.type}: ${result.message}`);
+    state = result.state;
+    if (checkEveryAction) assert.equal(validateGame(state, data), true, `Valid prologue state after ${action.type}.`);
+    if (result.event === 'merge') run.merges++;
+    if (action.type === 'spawn') run.takes++;
+    if (state.prologue?.event === run.event) run.freeCells = Math.min(run.freeCells, freeBoardCells(state, data));
+  }
+  const spare = (code: string) => state.board.findIndex((cell, index) => cell?.code === code && !kept.has(index) && !unresolvedObstacle(state, index, data));
+  function produce(code: string): number {
+    const found = spare(code), item = getItem(code, data)!;
+    if (found >= 0) return found;
+    if (item.stage === 1 && !item.recipe) {
+      const empty = firstFreeBoardCell(state, data);
+      assert.ok(empty >= 0, `Prologue event ${state.prologue?.event}: the board has room for a take.`);
+      act({ type: 'spawn', index: state.board.findIndex(cell => cell?.code === `generator_${item.chain}`) });
+      return empty;
+    }
+    const [firstCode, secondCode] = item.recipe ?? [`${item.chain}_${item.stage - 1}`, `${item.chain}_${item.stage - 1}`];
+    const first = produce(firstCode);
+    kept.add(first);
+    const second = produce(secondCode);
+    kept.delete(first);
+    act({ type: 'move', from: second, to: first });
+    return first;
+  }
+  while (state.prologue && !until(state)) {
+    if (state.pendingScenes.length) { act({ type: 'readScene', id: state.pendingScenes[0] }); continue; }
+    const quest = resolveQuests(state, data).find(view => view.status === 'active')!.quest, event = state.prologue.event;
+    for (const { item, quantity } of quest.requirements) for (let count = 0; count < quantity; count++) kept.add(produce(item));
+    kept.clear();
+    act({ type: 'deliverQuest', id: quest.id });
+    if (state.prologue?.event !== event || !resolveQuests(state, data).some(view => view.status === 'active')) {
+      events.push(run);
+      run = { event: event + 1, merges: 0, takes: 0, freeCells: freeBoardCells(state, data) };
+    }
+  }
+  assert.equal(validateGame(state, data), true, 'Valid state at the end of the run.');
+  return { state, events };
+}
+/**
+ * Deterministic reducer play with a fixed seed. The prologue comes first. Then pay each preparation as soon as it is ready. Deliver tonight's booked quest first,
  * with the lanterns if it is early. Otherwise deliver the unbooked ticket whose staples cost the least. With only booked quests for
  * later evenings left, cook them now. Then the bistro has no work, and the strategy delivers the repeating quests until the night. Make each quest dish from spare food on the board when it can,
  * and otherwise from stage-one staples, merging up and cooking recipes. A full board makes room only by a merge of spare food: a pair,
@@ -52,7 +103,8 @@ const TIDY_FREE = 24;
  * Actions are game actions, not pointer presses. This fixture does not measure human play time or difficulty.
  */
 export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignStrategy = 'efficient', checkEveryAction = true): CampaignBalance {
-  let state = createGame(data, seed);
+  const prologue = runPrologue(data, seed, checkEveryAction);
+  let state = prologue.state;
   const totals = emptyTotals(), nights: CampaignNights = { days: 1, lanterns: 0, closings: 0, rats: 0, thefts: 0, stolen: 0, gifts: 0, lowestPurse: 0, fillerMerges: 0,
     repeatMerges: 0, repeatDays: [], payments: [], held: false, opened: {}, delivered: {} };
   let previousChapter = emptyTotals(), previousPreparation = emptyTotals(), injected = 0, guarding = false, filling = false, repeatWork = false, holidayDelivery = false;
@@ -107,7 +159,7 @@ export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignS
     // A merge into a blocked dish gives the blocker coin. A closing in the same change pays the upkeep.
     if (action.type === 'move') totals.blockerCoins += state.coins - before.coins + (state.clock.day !== before.clock.day ? state.night!.upkeep : 0);
     nights.lowestPurse = Math.min(nights.lowestPurse, state.coins);
-    assert.equal(state.coins, totals.questCoins + totals.blockerCoins - totals.preparationCoins - totals.takeCoins - totals.upkeepCoins + injected, 'Every coin comes from a recorded legal action.');
+    assert.equal(state.coins, data.prologue.gift + totals.questCoins + totals.blockerCoins - totals.preparationCoins - totals.takeCoins - totals.upkeepCoins + injected, 'Every coin comes from the starting gift or a recorded legal action.');
     assert.ok(totals.actions < 400_000, 'The campaign must converge within the fixture action limit.');
     // In the middle of a long order, a holiday quest whose dishes wait on the board is delivered as soon as its holiday comes.
     if (!holidayDelivery && state.clock.day !== before.clock.day) {
@@ -345,7 +397,7 @@ export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignS
   }
 
   assert.equal(state.taskIndex, data.tasks.length);
-  assert.equal(state.completedQuests.filter(id => !data.quests.find(quest => quest.id === id)!.march).length, requiredQuests(data.tasks.length, data).length, 'The last preparation needs every campaign quest.');
+  assert.equal(state.completedQuests.filter(id => data.quests.some(quest => quest.id === id && !quest.march)).length, requiredQuests(data.tasks.length, data).length, 'The last preparation needs every campaign quest.');
   // The supper waits for its day. Until then, the bistro fills the days with the repeating quests.
   const supper = supperQuest(data)!;
   while (state.clock.day < data.calendar.supper) {
@@ -361,7 +413,7 @@ export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignS
   assert.ok(supperComplete(state, data), 'The supper is served.');
   assert.equal(validateGame(state, data), true);
   assert.equal(totals.preparationCoins, preparations.reduce((sum, task) => sum + task.cost, 0));
-  return { chapters, preparations, totals, nights, finalState: state, purse: state.coins, spending: totals.preparationCoins + totals.takeCoins + totals.upkeepCoins };
+  return { prologue: prologue.events, chapters, preparations, totals, nights, finalState: state, purse: state.coins, spending: totals.preparationCoins + totals.takeCoins + totals.upkeepCoins };
 }
 
 /** The fixed seeds of the balance check. */

@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { getItem } from '../../src/model.ts';
-import { createGame } from '../../src/engine.ts';
 import { checkpoint, data, deliverable, dialogDeliver, exportText, finishScene, journal, opened, openQuest, options, person, portraitCell, saved, start, startAgainAndImport, supplies, ticket, toast } from './support.ts';
 
 const visitors=data.characters.filter(value=>value.visitor&&!value.singleVisit);
@@ -40,7 +39,7 @@ for(const value of firstQuests)test(`${value.character} shows the exact expediti
 });
 
 for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`visitor portraits and introductions fit ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
-  await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});await start(page,createGame(data));await journal(page,['chapters','conversations','neighbours']);
+  await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});await start(page,checkpoint(0));await journal(page,['chapters','conversations','neighbours']);
   const before=await saved(page);
   for(const visitor of visitors){
     const entry=page.getByRole('button',{name:`Meet ${visitor.name}`,exact:true});await entry.scrollIntoViewIfNeeded();

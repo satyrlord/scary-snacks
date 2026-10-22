@@ -3,7 +3,7 @@ import { $, button, element, pulse, status } from './dom.ts';
 import { coveredDish, food, icon } from './art.ts';
 import { modal, showModal } from './dialog.ts';
 import { setLowered } from './room.ts';
-import { availableChains, boardObstacles, canDeliverQuest, cellsOf, chainSeason, dateText, dishChains, firstFreeBoardCell, integer, mergeResult, MIXED, resolveQuests, sourceCell } from './model.ts';
+import { availableChains, boardObstacles, canDeliverQuest, cellsOf, chainSeason, dateText, dishChains, eventDishes, firstFreeBoardCell, integer, mergeResult, MIXED, resolveQuests, sourceCell } from './model.ts';
 import { data, definition, itemName, matchingBlocker, onReplace, redraw, select, sourceOf, state, takePrice } from './session.ts';
 import type { Change } from './session.ts';
 import { BOARD_FULL, KEEP_FREE } from './engine.ts';
@@ -50,7 +50,8 @@ function cooksInto(code: string) {
 function detailContent(code: string) {
   const def = definition(code), name = itemName(code);
   const onBoard = cells(code).length;
-  const missingSources = dishChains(code, data).filter(chain => chainSeason(chain, data) && sourceCell(state, chain) < 0);
+  // The prologue has only the sources of its event board, so no seasonal source comes or goes.
+  const missingSources = state.prologue ? [] : dishChains(code, data).filter(chain => chainSeason(chain, data) && sourceCell(state, chain) < 0);
   const content = document.createDocumentFragment();
   const how = def.recipe ? `Merge ${itemName(def.recipe[0])} and ${itemName(def.recipe[1])} to make ${name}.`
     : def.stage > 1 ? `Merge two ${itemName(`${def.chain}_${def.stage - 1}`)} to make ${name}.`
@@ -64,19 +65,29 @@ function detailContent(code: string) {
       : `The ${source} needs ${KEEP_FREE + 1} free board spaces before it can arrive.`;
     content.append(element('p','seasonal-source-note',note));
   }
-  const open = availableChains(state, data), closed = dishChains(code, data).filter(chain => !open.includes(chain));
+  // In the prologue, the open chains are the sources of the event board. A dish that the prologue discovered keeps its place in act 1,
+  // also when its source comes to the bistro later.
+  const open = state.prologue ? state.board.flatMap(cell => cell && definition(cell.code).generator ? [definition(cell.code).chain] : []) : availableChains(state, data);
+  const closed = dishChains(code, data).filter(chain => !open.includes(chain)), known = state.discovered.includes(code);
   if (closed.length) {
-    const sources = closed.filter(chain => !chainSeason(chain, data)).map(chain => { const task = data.tasks.find(value => value.unlock === chain); return `the ${sourceOf(chain).name} arrives with ${task ? `the preparation “${task.title}”` : 'a later preparation'}`; });
+    const sources = closed.filter(chain => state.prologue || !chainSeason(chain, data)).map(chain => {
+      const task = data.tasks.find(value => value.unlock === chain), source = sourceOf(chain).name;
+      return state.prologue ? `the ${source} is not in the kitchen for this meal` : known ? `the ${source} comes to the bistro later`
+        : `the ${source} arrives with ${task ? `the preparation “${task.title}”` : 'a later preparation'}`;
+    });
     const text = sources.join(', and ');
     if (text) content.append(element('p','',`${text[0].toUpperCase()}${text.slice(1)}.`));
-    content.append(pathOf(code));
-    return content;
+    if (!state.prologue) { content.append(pathOf(code)); return content; }
   }
   const have = onBoard ? `You have ${onBoard} on the board.` : 'You have none yet.';
   content.append(element('p','',have), pathOf(code));
   const parts = cooksInto(code);
   if (parts) content.append(parts);
-  if (!missingSources.length || nextStep(code, true)) content.append(button('Show me on the board','secondary-button',() => showWay(code)));
+  // Prepared dishes can replace a missing source, but only while the board still has them or dishes made from them.
+  const guide = state.prologue ? eventDishes({ board: state.board.map(cell => cell?.code ?? null),
+    layout: { id: state.layoutId, obstacles: boardObstacles(state, data).filter(obstacle => !state.resolvedObstacles.includes(obstacle.id)) } }, data).has(code) && nextStep(code, true)
+    : !missingSources.length || nextStep(code, true);
+  if (guide) content.append(button('Show me on the board','secondary-button',() => showWay(code)));
   return content;
 }
 type Step = { at: number[]; line: string; short: string; ready?: boolean; ticket?: string };

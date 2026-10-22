@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { requiredQuests, unresolvedObstacle } from '../../src/model.ts';
-import { createGame, revealTickets } from '../../src/engine.ts';
+import { revealTickets } from '../../src/engine.ts';
 import { moveTo } from '../../tools/create-checkpoint-saves.ts';
 import type { GameState } from '../../src/model.ts';
-import { act, checkpoint, data, dialogDeliver, goal, importSaveFile, newGame, opened, openQuest, options, pay, ratio, saved, serialize, start, supplies, supply, ticket, tile, toast, validate, know } from './support.ts';
+import { act, checkpoint, data, dialogDeliver, goal, importSaveFile, opened, openQuest, options, pay, ratio, saved, serialize, start, supplies, supply, ticket, tile, toast, validate, know, prologueServed } from './support.ts';
 
 const first = data.tasks[0];
 const needed = requiredQuests(0, data);
@@ -19,7 +19,7 @@ function lastQuestReady(index = 0, extra: string[] = []) {
 
 for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 800 }]) {
   test(`work details expand inside Story and keep toggle focus at ${viewport.width}px`, async ({ page }, testInfo) => {
-    await page.setViewportSize(viewport); await start(page, createGame(data));
+    const initial = checkpoint(0); await page.setViewportSize(viewport); await start(page, initial);
     const phone = viewport.width < 1024;
     if (phone) await page.locator('#story-button').click();
     const scope = page.locator(phone ? '#modal' : '#story');
@@ -43,7 +43,7 @@ for (const viewport of [{ width: 1280, height: 800 }, { width: 390, height: 800 
     await page.keyboard.press('Space');await expect(details()).toBeFocused();
     await expect(details()).toHaveAttribute('aria-expanded','false');await expect(costs).toBeHidden();
     await details().click();await expect(costs).toBeVisible();await details().click();await expect(costs).toBeHidden();
-    expect(await saved(page)).toEqual(await newGame(page));
+    expect(await saved(page)).toEqual(initial);
     if (phone) { await page.keyboard.press('Escape'); await expect(page.locator('#story-button')).toBeFocused(); }
   });
 }
@@ -68,7 +68,7 @@ for(const viewport of [{width:1280,height:800},{width:390,height:800},{width:320
 }
 
 test('cost expansion survives board redraws for the same preparation and resets on reload',async({page})=>{
-  const state=createGame(data);await start(page,state);
+  const state=checkpoint(0);await start(page,state);
   await page.getByRole('button',{name:'Work and cost',exact:true}).click();
   await tile(page,31).click();
   await expect(page.locator('#story [data-work-cost]')).toHaveAttribute('aria-expanded','true');
@@ -80,7 +80,7 @@ test('cost expansion survives board redraws for the same preparation and resets 
 });
 
 test('both Story views share cost expansion and importing the game clears it',async({page})=>{
-  const state=createGame(data);await start(page,state);
+  const state=checkpoint(0);await start(page,state);
   await page.locator('#story [data-work-cost]').click();
   await page.setViewportSize({width:390,height:844});await page.locator('#story-button').click();
   await expect(page.locator('#modal [data-work-cost]')).toHaveAttribute('aria-expanded','true');
@@ -97,7 +97,7 @@ test('both Story views share cost expansion and importing the game clears it',as
 });
 
 test('coins cannot hide undelivered quests', async ({ page }) => {
-  const state: GameState = createGame(data); state.coins = first.cost;
+  const state: GameState = checkpoint(0); state.coins = first.cost;
   await start(page, state);
   await expect(goal(page, 'coins')).toHaveCount(0);
   await expect(goal(page, 'quests')).toHaveText(`Deliver ${needed.length} more quests.`);
@@ -153,7 +153,7 @@ test('delivering the last required quest makes the phone offer ready', async ({ 
   const deliver = dialogDeliver(page, last);
   await deliver.focus(); await page.keyboard.press('Enter');
   await expect(toast(page)).toHaveText(`${last.title}: delivered. Earned ${last.reward} coins.`);
-  expect((await saved(page)).completedQuests).toHaveLength(needed.length);
+  expect((await saved(page)).completedQuests.filter(id => !prologueServed.includes(id))).toHaveLength(needed.length);
   await expect(page.locator('#story-button')).toHaveAttribute('data-ready', '');
   await expect(page.locator('#offer').getByRole('button', { name: /^Pay / })).toBeEnabled();
   await expect(page.locator('#offer .pay-button')).toHaveAccessibleDescription(new RegExp(`Coins: ${first.cost} / ${first.cost}.*Quests delivered: ${needed.length} / ${needed.length}`));
@@ -206,7 +206,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 1280, height: 800
   for (const theme of ['light', 'dark']) {
     test(`preparation requirements fit ${viewport.width}x${viewport.height} in ${theme}`, async ({ page }, testInfo) => {
       await page.setViewportSize(viewport); await page.emulateMedia({ reducedMotion: 'reduce' });
-      await start(page, createGame(data), theme);
+      await start(page, checkpoint(0), theme);
       if (viewport.width < 1024) await page.locator('#story-button').click();
       const panel = page.locator(viewport.width < 1024 ? '#modal .task-content' : '#story .task-content');
       await expect(panel.locator('.preparation-requirements li')).toHaveCount(2);

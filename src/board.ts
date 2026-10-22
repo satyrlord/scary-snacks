@@ -10,28 +10,16 @@ import { onMotionResume, phone } from './preferences.ts';
 
 // Mara's note when nothing is selected: the move gesture, in the same words as the other board guidance.
 const MOVE_HINT = 'Tap an item, then tap where it should go.';
-let ignoreClick = false, boardFocus = 0, firstDelivery = false;
+let ignoreClick = false, boardFocus = 0;
 let dragging: { index: number; id: number; x: number; y: number; ghost: SVGSVGElement | null } | null = null;
 onReplace(cancelDrag);
-onReplace(() => { firstDelivery = false; });
 onMotionResume(() => { for(const cell of document.querySelectorAll('.cell'))cell.classList.remove('first','settle','hint'); });
 
-/** A fresh visit points to the free starting tea and its real delivery reward. It never locks an action. */
-export function introduceFirstDelivery() {
-  firstDelivery=true;
-  const quest=data.quests.find(value=>value.recovery)!, tea=quest.requirements[0].item;
-  const part=Object.values(data.items).find(value=>value.next===tea)!;
-  pulse(state.board.flatMap((cell,index)=>cell?.code===part.id?[index]:[]));
-  return `Merge two ${part.name} into ${itemName(tea)}. Deliver to ${character(quest.character).name} for ${quest.reward} coins.`;
-}
-/** Keep the purpose in the selection strip until the first income. Loaded games use their normal guidance. */
-function firstDeliveryNote(code: string) {
-  if(!firstDelivery)return null;
-  const quest=data.quests.find(value=>value.recovery)!, tea=quest.requirements[0].item;
-  if(code===tea)return `Deliver to ${character(quest.character).name} for ${quest.reward} coins.`;
-  if(definition(code).next===tea&&state.board.filter(cell=>cell?.code===code).length>=2)
-    return `Tap the other ${itemName(code)}. Deliver the tea to ${character(quest.character).name} for ${quest.reward} coins.`;
-  return null;
+/** A new game points to the first quest of the prologue, whose dishes are ready on the board, so the first action can be Serve. */
+export function introduceFirstQuest() {
+  const quest=data.prologue.events[0].quests[0];
+  pulse(state.board.flatMap((cell,index)=>cell&&quest.requirements.some(({item})=>item===cell.code)?[index]:[]));
+  return `${character(quest.character).name}’s dishes are ready on the board. Serve them from the ticket.`;
 }
 
 /** Mara's note for a selected item, which the status region announces. On phones the note leaves out the name, which the selection strip shows. */
@@ -143,8 +131,8 @@ export function renderBoard() {
       value.append(food(cell.code));
       if (definition(cell.code).generator) {
         value.append(sourceMark());
-        // A paid source shows the coins of one take beside its mark.
-        const cost = takeCost(definition(cell.code), data);
+        // A paid source shows the coins of one take beside its mark. Each take of the prologue is free.
+        const cost = state.prologue ? 0 : takeCost(definition(cell.code), data);
         if (cost) { const price = element('span', 'take-cost', String(cost)); price.prepend(coinMark()); price.setAttribute('aria-hidden', 'true'); value.append(price); }
       }
     }
@@ -153,7 +141,8 @@ export function renderBoard() {
     if (obstacle) value.append(food(obstacle.ingredient));
     if (obstacle?.type === 'clutter') {
       value.append(clutterArt(obstacle.sprite!, 'clutter-object', obstacle.atlas === 'preparation'));
-      if (state.taskIndex === 0) value.append(clutterArt(4, 'clutter-overlay'));
+      // The webs cover only the clutter of the neglected bistro, not the things of the grandmother's house in the prologue.
+      if (state.taskIndex === 0 && !state.prologue) value.append(clutterArt(4, 'clutter-overlay'));
     }
     if (obstacle?.type === 'anchored') {
       value.append(clutterArt(5, 'clutter-overlay'));
@@ -173,7 +162,6 @@ function detailNote(code: string) {
 }
 /** The selected item and its actions take the place of Mara's line under the board, so the player acts without leaving the board. */
 export function renderDetail(feedback = '') {
-  if(state.coins>0)firstDelivery=false;
   const container = $('#item-detail'); container.replaceChildren();
   container.classList.toggle('action-feedback', !!feedback);
   const goal=guidanceGoal(), hint=$('#hint-button');
@@ -199,11 +187,9 @@ export function renderDetail(feedback = '') {
   }
   if (!cell) { fitPin(); return; }
   const def = definition(cell.code);
-  const first=firstDeliveryNote(cell.code);
   const head = element('div','detail-head'); const words = element('div','detail-words');
   words.append(element('h3','',def.name));
   if (guided) words.append(element('p','detail-next',guided.short));
-  else if(first)words.append(element('p','detail-onboarding',first));
   else {
     if (!def.generator) words.append(element('p','detail-next',def.next ? `Two make ${state.discovered.includes(def.next) ? itemName(def.next) : 'a new dish'}`
       : knownPartners(cell.code).length ? `Cook it with ${partnerNames(cell.code)}` : mergePartners(cell.code, data).length ? 'Cook it with a new dish' : 'Final dish'));

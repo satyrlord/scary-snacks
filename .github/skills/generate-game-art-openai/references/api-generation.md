@@ -44,10 +44,10 @@ It requires multiples of 16 and an aspect ratio of 1:3 to 3:1.
 It requires an edge of at most 3840 pixels and 655,360 to 8,294,400 pixels in total.
 It also requires the shape of the asset:
 
-- Square for the core portrait, regular portrait, and mascot atlases, the timber, and the character sketches.
+- Square for the core portrait, regular portrait, family portrait, and mascot atlases, and the timber.
   Also square for the rat hole and the two rat reference poses.
-- 2:1 for the food atlases, the two rat sheets, and the night sky.
-- 3:1 for the runner.
+- 2:1 for the food atlases, the character sketch sheets, the family photographs, the two rat sheets, and the night sky.
+- 3:1 for the runner and the notebook pages.
 - 3:2 for the board-clutter atlas and the quest scenes.
 - 3:4 for a room state, a decoration painting, the supper painting, and a window view.
 
@@ -77,6 +77,8 @@ The helper accepts only these references:
 - A `candidate.png` in `analysis/art-generation/` that matches its generation-record hash.
 - A `composite.png` there that matches its `composite.json` hash.
 - A `paper.png` there that matches its `paper.json` hash.
+- A `halo.png` there that matches its `halo.json` hash.
+- A `text.png` there that matches its `text.json` hash.
 
 The helper rejects every other path, including `private/` and the other folders under `analysis/`.
 The helper accepts at most 16 references. Each reference must be a PNG image of less than 50 MB.
@@ -157,6 +159,38 @@ Use `--processed` only with `inspect`, for the `ink.png`, the `patch.png`, or th
 The option requires transparency in the result.
 Without the option, the measurement requires the opaque paper that the request specifies.
 Review `ink.png` on the parchment and on a dark background. A tinted area on the paper stays visible in the result.
+
+## Clear a halo
+
+The provider can leave a faint glow of partial alpha around the objects of a transparent asset.
+Clear it without painted pixels:
+
+```powershell
+node .github/skills/generate-game-art-openai/scripts/art-composite.ts halo `
+  --candidate analysis/art-generation/<task>/<run>/candidate.png --out analysis/art-generation/<task>/<run>-halo [--floor 32] [--ceiling 224]
+```
+
+Each alpha below the floor becomes 0, and each alpha above the ceiling becomes 255. The edge between them keeps its alpha.
+`halo.json` records the hashes of the candidate and the result, the floor, the ceiling, and the number of changed pixels.
+A `halo.png` can be the candidate of a composite, and a reference.
+Review the result on a dark and a light background.
+
+## Typeset a text
+
+A painting can show a text that must be exact, for example a prayer in old Romanian Cyrillic letters.
+The provider can change letters or repeat letter shapes. Give the provider the exact letters as a reference:
+
+```powershell
+node .github/skills/generate-game-art-openai/scripts/art-composite.ts text `
+  --text analysis/art-generation/<task>/<name>.txt --font <font file> --size 1024x768 --out analysis/art-generation/<task>/<name>-text
+```
+
+The text file must be in the task folder. The font must be a font file on this computer that has each letter of the text.
+The current project text references use Noto Serif. Check the font license and each required letter before use.
+The command sets the text in dark ink on white paper. It does not resample or paint a painting.
+`text.json` records the text file, the hashes of the text, the font, and the result.
+A `text.png` can be a reference. Also give the lines of the text in the prompt.
+Examine each letter of the candidate against the text.
 
 ## Set the line colour
 
@@ -256,7 +290,7 @@ It sets the exit code to 1 for an `issues` entry. An issue is one of these items
 
 - The size does not agree with `--size`, or the width is not more than 1000 pixels.
 - The image does not divide into the grid.
-- A required blank cell in a food atlas or `regulars-3` has a pixel that is not transparent.
+- A required blank cell in a food atlas, `regulars-3`, or `family-portraits` has a pixel that is not transparent.
 - A transparent asset has no alpha channel or no fully transparent pixel.
 - A cell of a transparent asset has no visible object. A visible object has pixels with an alpha of 128 or more.
 - An opaque painting has a transparent or partly transparent pixel.
@@ -284,7 +318,8 @@ Add these route details:
   Change the top-level `mode` field so that it names each route that made an entry.
 - Examine the statements that name the built-in chat image generator in `docs/release-notes.md` (section "Art provenance").
   Change a statement that is not true.
-- Set `sourceGameImageInput` to `false` only if each reference is a shipped bitmap or a candidate of this project.
+- Set `sourceGameImageInput` to `false` only if each reference comes from this project.
+  References can include the helper's composites, paper copies, cleared halos, and typeset text.
 
 Run `npm run assets:build`, `npm test`, `npm run build`, and `npm run test:browser`.
 Examine the changed assets in the game in both themes at the desktop size and the phone size.

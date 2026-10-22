@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { requiredQuests } from '../../src/model.ts';
 import type { GameState, SceneLine } from '../../src/model.ts';
 import { deliverRequired } from '../../tools/create-checkpoint-saves.ts';
-import { KEY, act, recovery, supper, supperEvening, deliverMarch, checkpoint, data, deliverable, deliverButton, exportText, failWrites, forward, journal, opened, openQuest, options, painting, payAndRead, ratio, readNow, readTo, replaceSave, revealed, saved, start, startAgainAndImport, story, supplies, supply, tile } from './support.ts';
+import { KEY, prologueServed, act, recovery, supper, supperEvening, deliverMarch, checkpoint, data, deliverable, deliverButton, exportText, failWrites, forward, journal, opened, openQuest, options, painting, payAndRead, ratio, readNow, readTo, replaceSave, revealed, saved, start, startAgainAndImport, story, supplies, supply, tile } from './support.ts';
 
 const closing=(index: number)=>`Chapter ${index+1} complete: ${data.chapters[index].title}`;
 /** The regulars whose arrival scenes the payment of a preparation queues. */
@@ -269,7 +269,7 @@ test('a fresh save plays through every payment, chapter scene, the supper, and t
     }else await expect(page.locator('#modal')).toBeHidden();
     state=await saved(page);expect(state.taskIndex).toBe(index+1);expect(state.pendingScenes).toEqual([]);
   }
-  expect(new Set(state.completedQuests.filter(id=>!data.quests.find(value=>value.id===id)!.march))).toEqual(new Set(requiredQuests(data.tasks.length,data).map(value=>value.id)));
+  expect(new Set(state.completedQuests.filter(id=>!prologueServed.includes(id)&&!data.quests.find(value=>value.id===id)!.march))).toEqual(new Set(requiredQuests(data.tasks.length,data).map(value=>value.id)));
   // Each plate of the supper is on the board; the rules tests cover how they are cooked.
   state=supply(supperEvening(state),supplies(supper));await replaceSave(page,state);
   await deliverButton(page,supper).click();await expect(scene(page,data.finale.title)).toBeVisible();
@@ -293,10 +293,10 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:390
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:testInfo.outputPath('story-card.png')});
   await page.getByRole('button',{name:'Open the story journal',exact:true}).click();
   for(const summary of await page.locator('.journal-group>summary').all())await summary.click();
-  const arrived=data.characters.filter(person=>!person.singleVisit&&(!person.arrivesAfter||data.tasks.findIndex(task=>task.id===person.arrivesAfter)<13));
+  const arrived=data.characters.filter(person=>!person.singleVisit&&!person.family&&(!person.arrivesAfter||data.tasks.findIndex(task=>task.id===person.arrivesAfter)<13));
   const entries=page.locator('.neighbour-entry:not(.not-yet)'),neighbours=page.locator('.neighbour-introduction');
   await expect(entries).toHaveCount(arrived.filter(person=>!person.visitor).length);await expect(neighbours).toHaveCount(arrived.filter(person=>person.visitor).length);
-  await expect(page.locator('.neighbour-entry.not-yet')).toHaveCount(data.characters.filter(person=>!person.visitor).length-arrived.filter(person=>!person.visitor).length);
+  await expect(page.locator('.neighbour-entry.not-yet')).toHaveCount(data.characters.filter(person=>!person.visitor&&!person.family).length-arrived.filter(person=>!person.visitor).length);
   const checkEntryAlignment=async()=>{
     const rows=await entries.evaluateAll(values=>values.map(entry=>{
       const portrait=entry.querySelector('.portrait')!.getBoundingClientRect(),name=entry.querySelector('strong')!.getBoundingClientRect(),count=entry.querySelector(':scope > span:last-child')!.getBoundingClientRect();
