@@ -6,10 +6,11 @@ import { createHash } from 'node:crypto';
 import sharp from 'sharp';
 import { runtimeFiles } from '../tools/build.ts';
 import type { GameData } from '../src/model.ts';
+import { imageVariants } from '../tools/build-image-variants.ts';
 
 test('the PNG masters match their provenance records',async()=>{
   const record=JSON.parse(await readFile('docs/asset-provenance.json','utf8'));
-  assert.equal(record.assets.length,94);
+  assert.equal(record.assets.length,66);
   const names=await readdir('public/assets/original');
   assert.deepEqual(names.sort(),record.assets.map((a: { file: string })=>a.file.split('/').at(-1)).sort());
   for(const asset of record.assets){assert.equal(asset.sourceGameImageInput,false);const bytes=await readFile(asset.file);assert.equal(createHash('sha256').update(bytes).digest('hex'),asset.sha256,asset.id);assert.ok(asset.width>1000);}
@@ -39,43 +40,39 @@ test('food atlases contain each assigned picture and keep unused cells fully tra
   }
 });
 
-test('the parchment is opaque and Mara keeps transparent space between pencil marks',async()=>{
+test('the parchment is opaque',async()=>{
   const parchment=await sharp('public/assets/original/parchment-page.png').metadata();
   assert.deepEqual([parchment.width,parchment.height,parchment.hasAlpha],[1254,1254,false]);
-  const {data,info}=await sharp('public/assets/original/sketch-mara.png').ensureAlpha().raw().toBuffer({resolveWithObject:true});
-  assert.deepEqual([info.width,info.height,info.channels],[1254,1254,4]);
-  let clear=0,drawn=0;
-  for(let offset=3;offset<data.length;offset+=4){
-    if(data[offset]===0)clear++;
-    if(data[offset]>=64)drawn++;
-  }
-  assert.ok(clear>info.width*info.height*.7,'Most of the sketch stays transparent.');
-  assert.ok(drawn>info.width*info.height*.05,'The sketch contains visible pencil marks.');
 });
 
-test('each character has one sketch, and the sketches and quest scenes are pencil marks on transparency',async()=>{
+test('each character has a sketch cell, and each pencil sheet is pencil marks on transparency that stay inside their cells',async()=>{
   const record=JSON.parse(await readFile('docs/asset-provenance.json','utf8'));
   const game=JSON.parse(await readFile('public/data/game.json','utf8'));
-  const sketches=record.assets.filter((asset: {id: string})=>asset.id.startsWith('sketch-'));
-  const scenes=record.assets.filter((asset: {id: string})=>asset.id.startsWith('scene-'));
-  assert.deepEqual(sketches.map((asset: {id: string})=>asset.id).sort(),game.characters.map((person: {id: string})=>`sketch-${person.id}`).sort());
-  assert.equal(scenes.length,11);
-  for(const asset of [...sketches,...scenes]){
+  const sheets=Object.entries(imageVariants).flatMap(([id,plan])=>'cells' in plan?[{id,cells:plan.cells}]:[]);
+  const cells: string[]=sheets.flatMap(sheet=>sheet.cells.names.filter(name=>name!==null));
+  for(const person of game.characters)assert.ok(cells.includes(`sketch-${person.id}`),person.id);
+  assert.deepEqual(record.assets.filter((asset: {id: string})=>/^(sketch|scene)-/.test(asset.id)).map((asset: {id: string})=>asset.id).sort(),sheets.map(sheet=>sheet.id).sort());
+  for(const sheet of sheets){
+    const asset=record.assets.find((entry: {id: string})=>entry.id===sheet.id);
     const {data,info}=await sharp(asset.file).ensureAlpha().raw().toBuffer({resolveWithObject:true});
-    if(asset.id.startsWith('sketch-'))assert.ok(info.width===info.height&&info.width>=1024,asset.id);
-    else assert.deepEqual([info.width,info.height],[1536,1024],asset.id);
-    assert.deepEqual([asset.width,asset.height,asset.mode,asset.hasTransparency],[info.width,info.height,'RGBA',true],asset.id);
-    let clear=0,drawn=0,pale=0;
-    for(let offset=0;offset<data.length;offset+=4){
-      const alpha=data[offset+3];
-      if(alpha===0)clear++;
-      if(alpha>=64)drawn++;
-      // An opaque light pixel is a paint fill, which shows as a pale patch on the parchment.
-      if(alpha>=128&&Math.min(data[offset],data[offset+1],data[offset+2])>=150)pale++;
+    assert.deepEqual([asset.width,asset.height,asset.mode,asset.hasTransparency],[info.width,info.height,'RGBA',true],sheet.id);
+    const cellWidth=info.width/sheet.cells.columns,cellHeight=info.height/sheet.cells.rows,alpha=(x: number,y: number)=>data[(y*info.width+x)*4+3];
+    for(let column=0;column<sheet.cells.columns;column++)for(let row=0;row<sheet.cells.rows;row++){
+      const name=`${sheet.id} cell ${column},${row}`;
+      let clear=0,drawn=0,pale=0;
+      for(let y=row*cellHeight;y<(row+1)*cellHeight;y++)for(let x=column*cellWidth;x<(column+1)*cellWidth;x++){
+        const offset=(y*info.width+x)*4,value=data[offset+3];
+        if(value===0)clear++;
+        if(value>=64)drawn++;
+        // An opaque light pixel is a paint fill, which shows as a pale patch on the parchment.
+        if(value>=128&&Math.min(data[offset],data[offset+1],data[offset+2])>=150)pale++;
+      }
+      assert.ok(clear>cellWidth*cellHeight*.1,`${name} keeps transparent drawing space.`);
+      assert.ok(drawn>cellWidth*cellHeight*.01,`${name} contains visible pencil marks.`);
+      assert.ok(pale<cellWidth*cellHeight*.006,`${name} has no pale opaque fill.`);
+      for(let x=column*cellWidth;x<(column+1)*cellWidth;x++)for(const y of [row*cellHeight,(row+1)*cellHeight-1])assert.ok(alpha(x,y)<64,`${name} has no mark on its edge.`);
+      for(let y=row*cellHeight;y<(row+1)*cellHeight;y++)for(const x of [column*cellWidth,(column+1)*cellWidth-1])assert.ok(alpha(x,y)<64,`${name} has no mark on its edge.`);
     }
-    assert.ok(clear>info.width*info.height*.1,`${asset.id} keeps transparent drawing space.`);
-    assert.ok(drawn>info.width*info.height*.01,`${asset.id} contains visible pencil marks.`);
-    assert.ok(pale<info.width*info.height*.006,`${asset.id} has no pale opaque fill.`);
   }
 });
 

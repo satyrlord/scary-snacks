@@ -60,7 +60,7 @@ Art candidates are not in the published assets.
 
 ## Art provenance
 
-The game ships image variants from 94 masters.
+The game ships image variants from 66 masters.
 [Asset provenance](asset-provenance.json) records each master, its references, processing, review limits, and hash.
 [Asset prompts](asset-prompts.json) preserves the exact generation prompts.
 These records describe the source of the current assets. These records do not give legal clearance.
@@ -71,7 +71,7 @@ The built-in chat image generator supplies these assets:
 - The board-clutter atlas, as an edit of a project-generated blocker atlas.
 - The preparation-clutter atlas, with a precise alpha correction that the user approved.
 - The visitor portraits, with the core portraits as their style reference.
-- The parchment, 17 character sketches, and seven quest scenes.
+- The parchment.
 
 Fixed-cell assembly gives the visitor atlas the complete Ionatan cell.
 The dress of Adrian, Monica, and Janos follows the recorded local references.
@@ -86,8 +86,7 @@ The OpenAI Images application programming interface (API) supplies these assets 
 - The 25 room states, with project-generated room paintings as the base references.
 - The two decoration paintings, with project-generated design references.
 - The supper painting, with the final courtyard state and project-generated portraits as references.
-- The sketches of Sorin, Cătălina, Mina, Bran, and Victor, and four quest scenes, with project-generated chat drawings as references.
-- The sketch of Bela, with a project-generated sketch and his portrait candidate as references.
+- The three sheets of character sketches and the three sheets of quest scenes, with earlier sheets of the same task as style references.
 - The 16 food atlases, with two accepted food atlases of the same set as style references.
 - The two rat sheets, with project-generated reference poses as identity references.
 - The rat hole and the night sky, with project-generated masters as style references.
@@ -96,7 +95,7 @@ A correction edit keeps each pose of the mascot atlas inside its grid cell.
 A masked edit changes one cell of the first regulars atlas.
 A masked edit adds Bela to the last regulars atlas, and a fit places him inside his cell.
 A masked edit removes paint from one sleeve in the second regulars atlas.
-A fixed conversion makes the white paper of Bran's sketch and of the four quest scenes from the API transparent. A masked edit draws the mouth of Victor's sketch, and the same conversion makes that region transparent.
+A fixed conversion makes the white paper of the pencil sheets transparent. A fixed colour mapping gives every pencil line one sepia colour and keeps the alpha of each pixel. A masked edit redraws one bell in the second sketch sheet.
 The Sharp image library scales the two portraits of the third regulars atlas inside their cells.
 Alpha cuts, moves, box clears, and cell copies between candidates correct the food atlases without painted pixels.
 A cell trim keeps each pose of the thief rat sheet inside its grid cell without painted pixels.

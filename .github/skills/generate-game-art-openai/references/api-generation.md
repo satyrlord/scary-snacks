@@ -49,7 +49,7 @@ It also requires the shape of the asset:
 - 2:1 for the food atlases, the two rat sheets, and the night sky.
 - 3:1 for the runner.
 - 3:2 for the board-clutter atlas and the quest scenes.
-- 3:4 for a room state, a decoration painting, and the supper painting.
+- 3:4 for a room state, a decoration painting, the supper painting, and a window view.
 
 The size must divide into equal grid cells.
 The plan sets `experimentalResolution` for a size of more than 3,686,400 pixels (2560 by 1440).
@@ -132,7 +132,7 @@ Only the changed region of the edit goes into the new state.
 
 ## Convert a pencil drawing
 
-A sketch or a quest scene is pencil on transparency.
+A pencil sheet holds eight character sketches or four quest scenes, drawn in one request, so that they share one hand. Each drawing is pencil on transparency.
 With a transparent background, the provider makes only the area around the drawing clear. The paper inside closed shapes stays as a fill.
 Ask for the drawing on plain white paper, with no paper texture and no fills.
 Then make the paper transparent:
@@ -149,23 +149,37 @@ Measure the transparent result with `inspect --processed`:
 
 ```powershell
 node .github/skills/generate-game-art-openai/scripts/art-image.ts inspect `
-  --asset sketch-bran --input analysis/art-generation/<task>/<run>-ink/ink.png --processed
+  --asset sketch-sheet-1 --input analysis/art-generation/<task>/<run>-ink/ink.png --processed
 ```
 
-Use `--processed` only with `inspect`, for the `ink.png` or the `patch.png` of a character sketch or a quest scene.
+Use `--processed` only with `inspect`, for the `ink.png`, the `patch.png`, or the `sepia.png` of a pencil sheet.
 The option requires transparency in the result.
 Without the option, the measurement requires the opaque paper that the request specifies.
 Review `ink.png` on the parchment and on a dark background. A tinted area on the paper stays visible in the result.
 
+## Set the line colour
+
+Each pencil line has one sepia colour. The transparency of the line gives its light and dark. Then run the `sepia` command on the `ink.png` or the `patch.png`:
+
+```powershell
+node .github/skills/generate-game-art-openai/scripts/art-composite.ts sepia `
+  --input analysis/art-generation/<task>/<run>-ink/ink.png --out analysis/art-generation/<task>/<run>-sepia --keep-gold
+```
+
+The command keeps the alpha of each pixel. `--keep-gold` keeps the gold of flames and crowns. `--keep-red` keeps red chalk.
+Give `--keep-red` only to a sheet whose quests name a red object. Then examine each cell: red outside a named object is a defect.
+`sepia.json` records the hashes of the input and the result, the colours, and the number of kept pixels.
+`sepia.png` is the master.
+
 ## Repair a region of a pencil drawing
 
-Use this procedure to change one region of an accepted transparent sketch or quest scene.
+Use this procedure to change one region of an accepted pencil sheet.
 
 1. **Make a paper copy.** The drawing must be a reference that the helper accepts, for example a shipped bitmap:
 
    ```powershell
    node .github/skills/generate-game-art-openai/scripts/art-composite.ts paper `
-     --base public/assets/original/sketch-bran.png --out analysis/art-generation/<task>/<name>-paper
+     --base public/assets/original/sketch-sheet-1.png --out analysis/art-generation/<task>/<name>-paper
    ```
 
    The command puts the drawing on white paper. The command pads each side to the next multiple of 16 pixels, and does not resample a pixel.
@@ -187,7 +201,8 @@ Use this procedure to change one region of an accepted transparent sketch or que
    Every other pixel of the drawing stays unchanged.
    The command stops if the drawing changed after the paper copy.
    `patch.json` records the hashes of the drawing, the paper copy, the candidate, the mask, and the result.
-5. **Measure the result.** Run `inspect --processed` on `patch.png`. Review `patch.png` as you review `ink.png`.
+5. **Set the line colour.** Run the `sepia` command on `patch.png`.
+6. **Measure the result.** Run `inspect --processed` on `sepia.png`. Review `sepia.png` as you review `ink.png`.
 
 ## Send the request
 

@@ -24,7 +24,7 @@ async function combinedConversation(page: Page,value: Quest){
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'])test(`Mara's parchment page shows her sketch and returns from item help at ${viewport.width}px in ${theme}`,async({page},testInfo)=>{
   await page.setViewportSize(viewport);const value=quest('mara-welcome');await start(page,deliverable(value),theme);await openQuest(page,value);
   const modal=page.locator('#modal'),sketch=modal.locator('.quest-sketch');
-  await expect(sketch).toBeVisible();expect((await naturalSize(sketch))[0]).toBe(768);
+  await expect(sketch).toBeVisible();expect((await naturalSize(sketch))[0]).toBe(672);
   expect(await modal.evaluate(node=>getComputedStyle(node).backgroundImage)).toContain('parchment-page-1254x1254.webp');
   expect(await modal.evaluate(node=>getComputedStyle(node).color)).toBe('rgb(59, 42, 30)');
   expect(await modal.evaluate(node=>node.scrollWidth<=node.clientWidth)).toBe(true);
@@ -60,8 +60,14 @@ test('a failed Mara sketch leaves quest words and delivery usable',async({page})
 test('Ilie keeps his own sketch when Mara speaks in his quest',async({page})=>{
   const value=quest('ilie-counter');expect(value.opening.some(line=>line.speaker==='mara')).toBe(true);
   await start(page,onTicket(value));await openQuest(page,value);
-  await expect(page.locator('.quest-page-content')).toBeVisible();await expect(page.locator('.quest-sketch')).toHaveAttribute('src',/sketch-ilie-768x768\.webp$/);
+  await expect(page.locator('.quest-page-content')).toBeVisible();await expect(page.locator('.quest-sketch')).toHaveAttribute('src',/sketch-ilie-672x672\.webp$/);
   await expect(page.locator('.quest-lines')).toContainText(value.opening.find(line=>line.speaker==='mara')!.text);
+});
+
+test('Mara shows her stove sketch in the cellar quest',async({page})=>{
+  const value=quest('mara-cellar');await start(page,onTicket(value));await openQuest(page,value);
+  const sketch=page.locator('#modal .quest-sketch');await expect(sketch).toHaveAttribute('src',/sketch-mara-stove-672x672\.webp$/);
+  await expect(sketch).toHaveAttribute('alt',/at the stove/);expect(await naturalSize(sketch)).toEqual([672,672]);
 });
 
 const illustratedScenes=[
@@ -127,8 +133,8 @@ for(const visitor of data.characters.filter(person=>person.visitor))test(`${visi
   const visit=data.quests.find(value=>value.character===visitor.id||value.companions?.includes(visitor.id))!;
   await start(page,visitor.singleVisit?onTicket(visit):checkpoint(24),'dark');await journal(page,['chapters','conversations','neighbours']);
   await page.getByRole('button',{name:`Meet ${visitor.name}`,exact:true}).click();
-  const sketch=page.locator('#modal .quest-sketch');await expect(sketch).toHaveAttribute('src',new RegExp(`sketch-${visitor.id}-768x768\\.webp$`));
-  expect(await naturalSize(sketch)).toEqual([768,768]);
+  const sketch=page.locator('#modal .quest-sketch');await expect(sketch).toHaveAttribute('src',new RegExp(`sketch-${visitor.id}-672x672\\.webp$`));
+  expect(await naturalSize(sketch)).toEqual([672,672]);
   await expect(page.locator('.quest-page-content')).toBeVisible();await expect(sketch).not.toHaveClass(/quest-scene-sketch/);
   await expect(page.locator('#story-line')).toContainText(visitor.introduction);
   await page.keyboard.press('Escape');await expect(page.getByRole('button',{name:`Meet ${visitor.name}`,exact:true})).toBeFocused();
@@ -139,10 +145,10 @@ for(const value of firstQuests)test(`${value.character} asks on a ticket, the qu
   const card=ticket(page,value);await expect(card).toHaveAccessibleName(`${name}’s quest: ${value.title}`);await expect(card.locator('.ticket-name')).toHaveText(name);
   await expect(card.locator('.ticket-item.ready')).toHaveCount(value.requirements.length);await expect(deliverButton(page,value)).toBeEnabled();
   await journal(page,['chapters','conversations','neighbours']);await page.getByRole('button',{name:`Meet ${name}`,exact:true}).click();
-  await expect(page.locator('#modal .quest-sketch')).toHaveAttribute('src',new RegExp(`sketch-${value.character}-768x768\\.webp$`));
+  await expect(page.locator('#modal .quest-sketch')).toHaveAttribute('src',new RegExp(`sketch-${value.character}-672x672\\.webp$`));
   await expect(page.locator('.quest-page-content')).toBeVisible();await page.keyboard.press('Escape');await page.keyboard.press('Escape');
   await openQuest(page,value);const dialog=page.getByRole('dialog',{name:value.title,exact:true});
-  await expect(dialog.locator('.quest-sketch')).toHaveAttribute('src',new RegExp(`sketch-${value.character}-768x768\\.webp$`));
+  await expect(dialog.locator('.quest-sketch')).toHaveAttribute('src',new RegExp(`sketch-${value.character}-672x672\\.webp$`));
   await expect(dialog.locator('.quest-person')).toHaveText(name);for(const line of value.opening)await expect(dialog.locator('.quest-view')).toContainText(line.text);
   for(const {item,quantity} of value.requirements)await expect(dialog.getByRole('button',{name:`${quantity} ${itemName(item)}: ${quantity} of ${quantity} on the board`,exact:true})).toBeVisible();
   await expect(dialog.locator('.quest-reward')).toHaveText(`Reward: ${value.reward} coins`);expect(await saved(page)).toEqual(before);

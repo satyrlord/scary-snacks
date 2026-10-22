@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { crc32, deflateSync } from 'node:zlib';
 import sharp from 'sharp';
 import { checkMask, planAsset, verifyReferenceHash } from '../.github/skills/generate-game-art-openai/scripts/art-image.ts';
-import { compositeRegion, inkPatch, makeMask, paperCopy, paperToAlpha } from '../.github/skills/generate-game-art-openai/scripts/art-composite.ts';
+import { SEPIA_DARK, compositeRegion, inkPatch, makeMask, paperCopy, paperToAlpha, sepiaLines } from '../.github/skills/generate-game-art-openai/scripts/art-composite.ts';
 import { buildImageRequest } from '../.github/skills/generate-game-art-openai/scripts/openai-api.ts';
 import { inspectPng } from '../.github/skills/generate-game-art-openai/scripts/png-facts.ts';
 
@@ -107,7 +107,7 @@ test('processed sketch and scene inspection checks transparency while raw inspec
     '.github/skills/generate-game-art-openai/scripts/art-image.ts', 'inspect', '--asset', asset,
     '--input', `public/assets/original/${input}.png`, ...(processed ? ['--processed'] : []),
   ], { encoding: 'utf8' });
-  for (const asset of ['sketch-bran', 'scene-cathedral-4']) {
+  for (const asset of ['sketch-sheet-1', 'scene-sheet-1']) {
     const processed = inspect(asset, asset, true);
     assert.equal(processed.status, 0, processed.stderr || processed.stdout);
     assert.equal(JSON.parse(processed.stdout).background, 'transparent');
@@ -115,17 +115,17 @@ test('processed sketch and scene inspection checks transparency while raw inspec
     assert.equal(raw.status, 1);
     assert.deepEqual(JSON.parse(raw.stdout).issues, ['An opaque painting must be fully opaque.']);
   }
-  const missingAlpha = inspect('sketch-bran', 'parchment-page', true);
+  const missingAlpha = inspect('scene-sheet-1', 'parchment-page', true);
   assert.equal(missingAlpha.status, 1);
   assert.equal(JSON.parse(missingAlpha.stdout).hasAlphaChannel, false);
   assert.equal(JSON.parse(missingAlpha.stdout).valid, false);
-  const rawPaper = inspect('sketch-bran', 'parchment-page', false);
+  const rawPaper = inspect('scene-sheet-1', 'parchment-page', false);
   assert.equal(rawPaper.status, 0, rawPaper.stderr || rawPaper.stdout);
   const wrongAsset = inspect('portraits', 'portraits', true);
   assert.equal(wrongAsset.status, 1);
   assert.match(wrongAsset.stderr, /only for a character sketch or a quest scene/u);
   const wrongCommand = spawnSync(process.execPath, [
-    '.github/skills/generate-game-art-openai/scripts/art-image.ts', 'plan', '--asset', 'sketch-bran', '--processed',
+    '.github/skills/generate-game-art-openai/scripts/art-image.ts', 'plan', '--asset', 'sketch-sheet-1', '--processed',
   ], { encoding: 'utf8' });
   assert.equal(wrongCommand.status, 1);
   assert.match(wrongCommand.stderr, /documented helper command/u);
@@ -288,4 +288,19 @@ test('the repository path is the real path, so a lower-case drive letter still f
   const run = spawnSync(process.execPath, ['--input-type=module', '-e', `const { REPO } = await import(${JSON.stringify(module)}); console.log(REPO);`], { encoding: 'utf8' });
   assert.equal(run.status, 0, run.stderr);
   assert.match(run.stdout.trim(), /^[A-Z]:\\/);
+});
+
+test('the sepia colour keeps alpha, turns faint yellowish strokes sepia, and keeps gold and red chalk only when asked', async () => {
+  // Four pixels: a dark line, a faint yellowish stroke, a gold flame, and red chalk.
+  const pixels = Buffer.from([90, 50, 30, 220, 230, 190, 60, 40, 255, 200, 40, 230, 200, 40, 40, 200]);
+  const drawing = await sharp(pixels, { raw: { width: 4, height: 1, channels: 4 } }).png().toBuffer();
+  const colour = async (keepRed: boolean, keepGold: boolean) => sharp((await sepiaLines(drawing, keepRed, keepGold)).bytes).raw().toBuffer();
+  const plain = await colour(false, false), accents = await colour(true, true);
+  assert.deepEqual([plain[3], plain[7], plain[11], plain[15]], [220, 40, 230, 200]);
+  // The faint stroke is never gold: it takes the sepia hue, with red above green above blue.
+  assert.ok(accents[4] > accents[5] && accents[5] > accents[6] && accents[6] < 190);
+  assert.deepEqual([...accents.subarray(8, 12)], [255, 200, 40, 230]);
+  assert.deepEqual([...accents.subarray(12, 16)], [200, 40, 40, 200]);
+  assert.notDeepEqual([...plain.subarray(8, 11)], [255, 200, 40]);
+  assert.ok(plain[12] <= SEPIA_DARK[0] * 3 && plain[12] > plain[13]);
 });

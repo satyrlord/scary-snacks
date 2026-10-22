@@ -655,9 +655,20 @@ The title of the quest dialog is the quest title. A 44px portrait for each perso
 
 Character introductions, quest dialogs, quest completion scenes, and journal replays of quests use the parchment texture. The paper stays warm cream with dark brown ink (#3b2a1e) in both themes. The texture repeats at 512px square. Muted text uses #58402e. Controls keep their 44px targets, with dark borders and the light-theme action colours. Other dialogs use the current theme. Forced colours use the system canvas.
 
-Each character introduction shows its own transparent character sketch in pencil. Quest openings, replies, and journal replays show the character sketch of the quest owner. The nine cathedral supply quests and the two visitor meal quests are the exception. Each of these 11 quests shows its accepted quest scene, a landscape image. The art does not change when the speaker changes. On a wider dialog, a character sketch floats to the right at 42% of the text area. The sketch is up to 210px wide. At 540px and below, the sketch is in the centre above the text, at 170px wide. A quest scene is in the centre above the text, at the text width, up to 460px. It keeps its natural proportions. The text and the controls stay in normal flow, and the dialog can scroll vertically. If an image does not load, the dialog removes it, and all text and controls stay. Local news keeps the story layout.
+Each character introduction shows its own transparent character sketch in pencil. Quest openings, replies, and journal replays show the character sketch of the quest owner. Mara's quest "A look at the cellar" shows her second sketch, at the stove. The nine cathedral supply quests and the two visitor meal quests are the exception. Each of these 11 quests shows its accepted quest scene, a landscape image. The art does not change when the speaker changes. On a wider dialog, a character sketch floats to the right at 42% of the text area. The sketch is up to 210px wide. At 540px and below, the sketch is in the centre above the text, at 170px wide. A quest scene is in the centre above the text, at the text width, up to 460px. It keeps its natural proportions. The text and the controls stay in normal flow, and the dialog can scroll vertically. If an image does not load, the dialog removes it, and all text and controls stay. Local news keeps the story layout.
 
-Victor draws the sketches while he waits for his meal. Keep light, steady pencil lines of a skilled artist. Keep accurate anatomy, proportions, and perspective. Draw the facial features lightly, but always draw them. If the view shows the eyes, awake people have open eyes, and sleepers have closed eyelids. Victor's secret crush explains the more detailed face of Mara. Match the accepted sketches, and do not add dense fabric or surface detail.
+Victor draws the sketches while he waits for his meal and listens to the other guests. So each drawing is a quick sketch: simple lines, a simple face, and soft light shading. Keep light, steady pencil lines of a skilled artist. Keep accurate anatomy, proportions, and perspective. Draw the facial features lightly, but always draw them. If the view shows the eyes, awake people have open eyes, and sleepers have closed eyelids. Victor's secret crush explains the more detailed face of Mara. Match the accepted sketches, and do not add dense fabric or surface detail.
+
+Each quest scene and each character sketch matches the sketches of Adrian, Avram, Bran, Costel, Eszter, Ilie, Sorin, and Vlad:
+
+- Use a soft warm sepia pencil, drawn freehand. Draw one clear outline for each body and garment, with several fold lines. Show embroidery only as a few small motifs on a sleeve or a cuff.
+- Draw each face lightly but completely: open eyes with a small iris and a lid line, brows, a nose with a little shadow on one side, and a mouth. Draw age lines on old characters.
+- Shade with soft tone from the side of the pencil, in short parallel strokes that fade at their edges. Put the tone on the shadow side of each form, with the light from the upper left. About a third of each figure carries tone. No area is solid.
+- Show the full figure on the ground with its props. Draw the setting with a few light lines, and let it fade out unfinished.
+- Do not use scratchy or hairy lines, the grainy texture of a crayon, or an even, clean outline, as from a fine pen. Do not draw dense pattern or texture on cloth, hair, or walls.
+- Use only three colours: sepia, red chalk, and gold. Each sepia line has the same colour. The transparency of the line gives its light and dark.
+- Use faint red chalk only on the objects that the quest names: the cathedral door, the Easter eggs, and the ribbon of the Easter candle.
+- Use gold only on crowns and on flames.
 
 If more than one character speaks, the lines form an exchange. Each line is a paragraph, 12px from the next. At each change of speaker, the name of the speaker (13px, 600) is on its own line above the text. Screen readers hear "[Name]:" before the text. The food rows show the exact quantity and the count on the board. Each row opens item help, which returns to the quest. An unmet row also has a 44px Find text button. Its accessible name gives the dish. Find closes the dialog and points to the next board step for another portion. The coin reward follows in gold. Then Deliver ("Deliver · N" with the coin mark) and one muted line follow: "Delivery uses dishes on the board. There is no deadline."
 
@@ -747,15 +758,14 @@ Options shows the save state. If the state needs one, Options also shows the Ret
 ## Design instructions
 
 ### Required actions
-- Use only the 94 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
+- Use only the 66 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
   - The 25 room masters are front-room-00 to front-room-12, front-room-17, front-room-24, courtyard-13 to courtyard-16, and courtyard-18 to courtyard-23.
   - The supper master is finale-supper, an edit of courtyard-23 with the guests of the supper.
   - The two decoration masters are decoration-front and decoration-courtyard.
-  - The 46 other masters are these:
+  - The 18 other masters are these:
     - board-clutter, preparation-clutter, portraits, visitor-portraits, guests, regulars-1, regulars-2, regulars-3, mascots, timber-tabletop, embroidered-runner, and parchment-page
-    - 23 character sketches
-    - nine cathedral scenes
-    - two visitor meal scenes
+    - sketch-sheet-1 to sketch-sheet-3, each a grid of four columns and two rows of 672px character sketches
+    - scene-sheet-1 to scene-sheet-3, each a grid of two columns and two rows of 1152 by 768px quest scenes
   - The four night masters are these:
     - rat-thief and rat-soricescu, each a grid of four columns and two rows of 512px cells
     - rat-hole, 1024px square
@@ -764,7 +774,7 @@ Options shows the save state. If the state needs one, Options also shows the Ret
     - food-grain, food-corn, food-herbs, food-dairy, food-poultry, food-vegetables, food-fruits, food-pork, food-beans, food-lamb, food-veal, food-fish, food-soups, food-mains, food-sweets, and food-breads
 - Paint each room state as a complete 3:4 painting, 1536 by 2048, opaque. Keep every pixel outside the change the same as in the state before it.
 - Ship room states and the supper painting as AVIF and WebP at 768 and 1536px wide, AVIF first. Ship the timber as AVIF and WebP at 1024 and 1536px wide. Ship the decoration paintings as WebP at 1536px wide. Ship the transparent atlases and the runner as WebP. Ship the rat sheets and the night sky as WebP at 1024px wide. Ship the rat hole as WebP at 256px square.
-- Ship the parchment as a WebP at its native 1254px square size. Ship the 23 character sketches as transparent WebP at 768px square. Ship the 11 quest scenes as transparent WebP at 1024px wide.
+- Ship the parchment as a WebP at its native 1254px square size. Cut each cell of a pencil sheet into its own variant. Ship each character sketch as a transparent WebP at its native 672px square. Ship each quest scene as a transparent WebP at 1024px wide.
 - Keep the neighbours in working village dress: Mara, Ilie, and Sorin in Romanian dress, and Eszter in Székely dress.
 - Draw every control icon as a vector with a 1.7 stroke and round caps and joins.
 - Give every interactive boundary `--control-line`. Keep every target at least 44px.

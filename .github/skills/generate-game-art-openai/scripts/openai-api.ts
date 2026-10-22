@@ -13,9 +13,9 @@ const MAX_REFERENCE_BYTES = 50_000_000;
 // State 00 of the front room shows the new game. Each other state shows its area after one preparation.
 const gameData: GameData = JSON.parse(readFileSync(new URL('../../../../public/data/game.json', import.meta.url), 'utf8'));
 type RoomStateId = `front-room-${string}` | `courtyard-${string}`;
-type SketchId = `sketch-${string}`;
-type SceneId = `scene-${string}`;
+type PencilSheetId = 'sketch-sheet-1' | 'sketch-sheet-2' | 'sketch-sheet-3' | 'scene-sheet-1' | 'scene-sheet-2' | 'scene-sheet-3';
 type FoodAtlasId = `food-${string}`;
+type WindowViewId = 'window-view-late-winter' | 'window-view-early-spring' | 'window-view-spring';
 export type AssetId =
   | FoodAtlasId
   | 'portraits'
@@ -27,6 +27,8 @@ export type AssetId =
   | 'embroidered-runner'
   | 'decoration-front'
   | 'decoration-courtyard'
+  | 'holiday-front'
+  | 'holiday-courtyard'
   | 'finale-supper'
   | 'board-clutter'
   | 'rat-thief-reference'
@@ -35,9 +37,9 @@ export type AssetId =
   | 'rat-soricescu'
   | 'rat-hole'
   | 'night-sky'
+  | WindowViewId
   | RoomStateId
-  | SketchId
-  | SceneId;
+  | PencilSheetId;
 type Background = 'transparent' | 'opaque';
 interface AssetContract {
   background: Background;
@@ -63,26 +65,39 @@ interface ImageRequest {
 // The room states, the decoration paintings, and the supper painting are opaque 3:4 portrait images.
 const roomState: AssetContract = { background: 'opaque', shape: 'portrait-3x4', columns: 1, rows: 1, defaultSize: '1536x2048' };
 const portraitAtlas: AssetContract = { background: 'transparent', shape: 'square', columns: 2, rows: 2, defaultSize: '1536x1536' };
-// Each character has one pencil sketch, and each quest scene is a 3:2 pencil drawing. The request asks for plain white paper;
-// art-composite.ts ink then makes the paper transparent, so no paper survives as a fill inside a closed shape.
-const sketch: AssetContract = { background: 'opaque', shape: 'square', columns: 1, rows: 1, defaultSize: '1024x1024' };
-const scene: AssetContract = { background: 'opaque', shape: 'landscape-3x2', columns: 1, rows: 1, defaultSize: '1536x1024' };
-const sceneIds = [...Array.from({ length: 9 }, (_, index) => `scene-cathedral-${index + 1}`), 'scene-ionatan-dinner', 'scene-mina-avram-meal'];
+// The pencil drawings are drawn in sheets, one request for each sheet, so that they share one hand. The request asks for
+// plain white paper; art-composite.ts ink then makes the paper transparent, so no paper survives as a fill inside a closed shape.
+const sketchSheet: AssetContract = { background: 'opaque', shape: 'landscape-2x1', columns: 4, rows: 2, defaultSize: '2688x1344' };
+const sceneSheet: AssetContract = { background: 'opaque', shape: 'landscape-3x2', columns: 2, rows: 2, defaultSize: '2304x1536' };
+// The seasonal views fill the six panes of the front-room window, behind the glass, at the dusk of the room paintings.
+const windowView: AssetContract = { background: 'opaque', shape: 'portrait-3x4', columns: 1, rows: 1, defaultSize: '1152x1536' };
+const windowViewIds: WindowViewId[] = ['window-view-late-winter', 'window-view-early-spring', 'window-view-spring'];
 // The food atlases: one for each chain (its source, then its dishes in stage order) and four for the mixed dishes.
 // Each is a 4-by-2 grid; the cells after the last picture stay fully transparent.
 const foodAtlases: [id: string, pictures: number][] = [
   ['grain', 7], ['corn', 5], ['herbs', 5], ['dairy', 7], ['poultry', 5], ['vegetables', 7], ['fruits', 7], ['pork', 6],
   ['beans', 6], ['lamb', 6], ['veal', 7], ['fish', 5], ['soups', 8], ['mains', 7], ['sweets', 5], ['breads', 4],
+  // The seasonal chains of spec 017: the pickle barrel and the forage basket.
+  ['pickles', 5], ['greens', 5],
 ];
 const foodAtlas = (pictures: number): AssetContract => ({ background: 'transparent', shape: 'landscape-2x1', columns: 4, rows: 2,
   ...(pictures < 8 ? { blankCells: Array.from({ length: 8 - pictures }, (_, index) => pictures + index) } : {}), defaultSize: '2048x1024' });
 const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   ...(Object.fromEntries(foodAtlases.map(([id, pictures]) => [`food-${id}`, foodAtlas(pictures)])) as Record<FoodAtlasId, AssetContract>),
   ...(Object.fromEntries(gameData.rooms.map(state => [state.id, roomState])) as Record<RoomStateId, AssetContract>),
-  ...(Object.fromEntries(gameData.characters.map(person => [`sketch-${person.id}`, sketch])) as Record<SketchId, AssetContract>),
-  ...(Object.fromEntries(sceneIds.map(id => [id, scene])) as Record<SceneId, AssetContract>),
+  // Eight character sketches in 672-pixel cells, or four quest scenes in 1152 by 768 cells, at sizes that are not experimental.
+  'sketch-sheet-1': sketchSheet,
+  'sketch-sheet-2': sketchSheet,
+  'sketch-sheet-3': sketchSheet,
+  'scene-sheet-1': sceneSheet,
+  'scene-sheet-2': sceneSheet,
+  'scene-sheet-3': sceneSheet,
+  ...(Object.fromEntries(windowViewIds.map(id => [id, windowView])) as Record<WindowViewId, AssetContract>),
   'decoration-front': roomState,
   'decoration-courtyard': roomState,
+  // The holiday decorations of spec 017 are painted into a room state, then cut out by their difference from that state.
+  'holiday-front': roomState,
+  'holiday-courtyard': roomState,
   // The supper painting: the courtyard of the last state with the guests of the supper.
   'finale-supper': roomState,
   'board-clutter': {

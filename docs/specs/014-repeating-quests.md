@@ -108,7 +108,7 @@ Bela is a new regular. He is present from a new game.
 
 | Regular | Trade | Favourite dishes | Reference |
 | --- | --- | --- | --- |
-| Bela | Graveyard keeper | Pogăcele, Linden tea | Bela Lugosi, who played Ygor, the grave robber, in *Son of Frankenstein* (film, 1939). Bela keeps the old churchyard and says good night to each grave |
+| Bela | Graveyard keeper | Pogăcele, Linden tea | Bela Lugosi, who played Ygor, the grave robber, in *Son of Frankenstein* (film, 1939). Bela is Székely. He keeps the old churchyard and says good night to each grave |
 
 - Bela has one campaign quest, `bela-warm-cup`, "A warm cup at the gate". The quest opens after preparation 2 and asks for 1 Pogăcele and 1 Linden tea. Its opening introduces him.
 - Bela is not a guest of the supper. He sleeps through the day, and his smile unsettles the other guests. The supper guest list does not change.

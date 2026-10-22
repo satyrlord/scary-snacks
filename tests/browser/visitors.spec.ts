@@ -49,7 +49,7 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const
     await entry.click();await expect(page.locator('#story-line')).toContainText(visitor.introduction);
     const portrait=page.locator('.story-turn .portrait');await checkPortrait(portrait,visitor.sprite);
     const box=(await portrait.boundingBox())!;expect(box.width).toBe(44);expect(box.height).toBe(box.width);
-    await expect(page.locator('.quest-sketch')).toHaveAttribute('src',new RegExp(`sketch-${visitor.id}-768x768\\.webp$`));
+    await expect(page.locator('.quest-sketch')).toHaveAttribute('src',new RegExp(`sketch-${visitor.id}-672x672\\.webp$`));
     const returnButton=page.getByRole('button',{name:'Return',exact:true});await returnButton.scrollIntoViewIfNeeded();await expect(returnButton).toBeInViewport();
     expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
     await page.screenshot({path:testInfo.outputPath(`${visitor.id}.png`)});
@@ -115,7 +115,7 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const
   const before=await saved(page),entry=page.getByRole('button',{name:`Meet ${guest.name}`,exact:true});
   await entry.scrollIntoViewIfNeeded();await checkPortrait(entry.locator('.portrait'),guest.sprite);await entry.click();
   await expect(page.locator('#story-line')).toContainText(guest.introduction);await checkPortrait(page.locator('.story-turn .portrait'),guest.sprite);
-  await expect(page.locator('.quest-sketch')).toHaveAttribute('src',/sketch-ionatan-768x768\.webp$/);
+  await expect(page.locator('.quest-sketch')).toHaveAttribute('src',/sketch-ionatan-672x672\.webp$/);
   const returnButton=page.getByRole('button',{name:'Return',exact:true});await returnButton.scrollIntoViewIfNeeded();await expect(returnButton).toBeInViewport();
   expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
   await page.screenshot({path:testInfo.outputPath('ionatan-introduction.png')});await finishScene(page);

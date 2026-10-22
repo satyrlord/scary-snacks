@@ -5,21 +5,21 @@ import { character, definition } from './session.ts';
 // Every character has a sketch (tests/assets.test.ts). Each entry describes what the sketch shows.
 const sketches: Record<string,string>={
   mara:'Mara with a tray, her free hand held out in welcome.',
-  ilie:'Ilie in his cap and glasses draws a loaf from the oven on a long peel.',
+  ilie:'Ilie in his cap and glasses slides a loaf into a brick oven on a long peel.',
   eszter:'Eszter shapes a bowl at her potter’s wheel, with finished bowls on a shelf behind her.',
-  sorin:'Sorin, seen from behind, pushes a delivery bicycle with parcels up a cobbled lane.',
+  sorin:'Sorin walks beside his delivery bicycle, a parcel in its basket.',
   adrian:'Adrian, a rolled pack on his back, holds up a lantern.',
   monica:'Monica kneels in her headscarf and cloak to trace a route on a flat stone, a lantern beside her.',
   janos:'Janos sits on a stone in his brimmed hat and reads loose pages by a candle, his staff beside him.',
-  ionatan:'Ionatan stands and reads a book, a travel bag at his feet.',
+  ionatan:'Ionatan stands and reads an open folio, a travel bag at his feet.',
   vlad:'Vlad sits at a table and raises a glass of wine beside a carafe and a candle.',
-  elisabeta:'Elisabeta, in a pearl headdress and veil, reads a letter beside a glass of wine.',
+  elisabeta:'Elisabeta, in a pearl headdress and veil, reads her papers beside a glass of wine.',
   mina:'Mina holds a folded letter, a travelling case at her feet.',
   avram:'Avram stands with his walking stick and his doctor’s bag.',
   dochia:'Dochia leans on her crook among her sheep.',
   victor:'Victor rests his head on his hand at a table beside a classroom skeleton with a napkin at its neck.',
   ana:'Ana hangs a string of garlic on a door, a lantern at her feet.',
-  costel:'Costel smiles at a small mechanical bird on his finger, with clockwork parts on his bench.',
+  costel:'Costel smiles at a small bird on his finger, a clock on his workbench.',
   bela:'Bela leans on his spade at the churchyard gate and waves good night to an old headstone.',
   sanziana:'Sânziana, in a flower crown, holds a bunch of flowers beside her flower cart.',
   dorian:'Dorian lounges at a small table with a glass of wine.',
@@ -41,14 +41,18 @@ const questScenes: Record<string,readonly [string,string]>={
   'ionatan-castle-dinner':['scene-ionatan-dinner','Ionatan dines beside his papers, with a distant castle visible through the window.'],
   'mina-avram-search':['scene-mina-avram-meal','Mina and Avram share a meal as Mara points toward the road and distant castle.'],
 };
+// Mara has a second sketch, at the stove, for the quests where she cooks.
+const questDrawings: Record<string,readonly [string,string]>={
+  'mara-cellar':['mara-stove','Mara stirs a pot at the stove and smiles over her shoulder.'],
+};
 /** The quest scene takes precedence over its owner's drawing and stays through speaker changes. */
 export function questSketch(person: string, questId?: string) {
-  const scene=questId?questScenes[questId]:undefined;
+  const scene=questId?questScenes[questId]:undefined,drawing=questId?questDrawings[questId]:undefined;
   const image=element('img',`quest-sketch${scene?' quest-scene-sketch':''}`);
-  const asset=scene?`${scene[0]}-1024x683`:`sketch-${person}-768x768`;
+  const asset=scene?`${scene[0]}-1024x683`:`sketch-${drawing?.[0]??person}-672x672`;
   image.src=new URL(`../assets/variants/${asset}.webp`,import.meta.url).href;
-  image.alt=`A pencil sketch: ${scene?scene[1]:sketches[person]??character(person).name}`;
-  image.width=scene?1024:768;image.height=scene?683:768;
+  image.alt=`A pencil sketch: ${scene?scene[1]:drawing?.[1]??sketches[person]??character(person).name}`;
+  image.width=scene?1024:672;image.height=scene?683:672;
   image.addEventListener('error',()=>image.remove(),{once:true});
   return image;
 }

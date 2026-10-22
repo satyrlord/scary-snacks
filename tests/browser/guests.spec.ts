@@ -91,7 +91,7 @@ for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const
     const entry=page.getByRole('button',{name:`Meet ${guest.name}`,exact:true});await entry.scrollIntoViewIfNeeded();await portrait(entry.locator('.portrait'),guest.sprite);await expect(entry).toContainText(guest.role);
     expect(await entry.evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);await entry.click();await portrait(page.locator('.story-turn .portrait'),guest.sprite);
     await expect(page.locator('#story-line')).toContainText(guest.introduction);
-    await expect(page.locator('.quest-sketch')).toHaveAttribute('src',new RegExp(`sketch-${guest.id}-768x768\\.webp$`));
+    await expect(page.locator('.quest-sketch')).toHaveAttribute('src',new RegExp(`sketch-${guest.id}-672x672\\.webp$`));
     const returnButton=page.getByRole('button',{name:'Return',exact:true});await returnButton.scrollIntoViewIfNeeded();await expect(returnButton).toBeInViewport();
     expect(await page.locator('#modal').evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);
     await page.screenshot({path:testInfo.outputPath(`${guest.id}.png`)});await scene(page,[{speaker:guest.id,text:guest.introduction}]);

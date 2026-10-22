@@ -130,7 +130,7 @@ The quest dialog shows who asks and why. It also shows each dish with its board 
 - The purse cannot hold the reward.
 - The quest is a booked quest, and the time is not from 20:00 on the evening of its guest.
 
-Character introductions, quest dialogs, quest completion scenes, and quest replays use parchment pages. All 23 characters have individual pencil sketches. A quest shows the sketch of its character. The nine supply quests, Ionatan's dinner, and Mina and Avram's meal are exceptions: they show their own scene illustrations. The illustration stays with the quest through speaker changes and journal replays. Introductions show the individual character sketch. Other story scenes keep their usual presentation. Victor draws these sketches while he waits for his meal. He is an anatomy student, and he studies anatomy, proportions, and perspective. He draws light but clear facial features. Awake people have open eyes, and sleepers have closed eyelids. He is secretly in love with Mara, so he draws her face with the most care.
+Character introductions, quest dialogs, quest completion scenes, and quest replays use parchment pages. All 23 characters have individual pencil sketches. A quest shows the sketch of its character. Mara has a second sketch at the stove, which shows for her cooking quests. The nine supply quests, Ionatan's dinner, and Mina and Avram's meal are exceptions: they show their own scene illustrations. The illustration stays with the quest through speaker changes and journal replays. Introductions show the individual character sketch. Other story scenes keep their usual presentation. Victor draws these sketches while he waits for his meal. He is an anatomy student, and he studies anatomy, proportions, and perspective. He draws light but clear facial features. Awake people have open eyes, and sleepers have closed eyelids. He is secretly in love with Mara, so he draws her face with the most care.
 
 The dishes fly to the ticket. A temporary notice reports the delivery and the reward. While the completion scene is unread, the notice also offers "Read [Name]’s reply", which opens that scene. The next open quest gets the ticket. If no quest is open, the counter shows "No quests wait now. Pay for the next preparation." After the supper, the repeating quests keep a ticket on the counter.
 
@@ -336,11 +336,11 @@ The art plan `docs/specs/001-visible-renovation-art-plan.md` defines the 25 pain
 
 ## Identity
 
-The game has 94 generated Portable Network Graphics (PNG) masters. They give these items:
+The game has 66 generated Portable Network Graphics (PNG) masters. They give these items:
 
 - 16 food atlases: one for each chain, with its source and its dishes, and four for the mixed dishes
 - portraits, including three atlases for the regulars
-- parchment paper, 23 character sketches, nine cathedral scenes, and two visitor meal scenes
+- parchment paper, three sheets of character sketches, and three sheets of quest scenes
 - 25 painted room states
 - the supper painting
 - two decoration edit paintings, which the game samples only in their authored regions

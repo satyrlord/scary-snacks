@@ -69,7 +69,7 @@ The helper reads each other value from the contract of the asset:
 
 | Asset identifier | Default size | Background | Grid |
 | --- | --- | --- | --- |
-| `food-<atlas>` for each food atlas: `grain`, `corn`, `herbs`, `dairy`, `poultry`, `vegetables`, `fruits`, `pork`, `beans`, `lamb`, `veal`, `fish`, `soups`, `mains`, `sweets`, `breads` | `2048x1024` | `transparent` | 4 columns by 2 rows; the cells after the last picture stay fully transparent |
+| `food-<atlas>` for each food atlas: `grain`, `corn`, `herbs`, `dairy`, `poultry`, `vegetables`, `fruits`, `pork`, `beans`, `lamb`, `veal`, `fish`, `soups`, `mains`, `sweets`, `breads`, and the seasonal `pickles` and `greens` | `2048x1024` | `transparent` | 4 columns by 2 rows; the cells after the last picture stay fully transparent |
 | `portraits` | `1536x1536` | `transparent` | 2 columns by 2 rows |
 | `regulars-1`, `regulars-2` | `1536x1536` | `transparent` | 2 columns by 2 rows |
 | `regulars-3` | `1536x1536` | `transparent` | 2 columns by 2 rows; the lower-right cell stays fully transparent |
@@ -78,14 +78,16 @@ The helper reads each other value from the contract of the asset:
 | `embroidered-runner` | `1536x512` | `opaque` | One image, 3:1, repeats horizontally |
 | Each room state in `public/data/game.json` | `1536x2048` | `opaque` | One image, 3:4 portrait, a painted room state |
 | `decoration-front`, `decoration-courtyard` | `1536x2048` | `opaque` | One image, 3:4 portrait, a decoration edit of a room state |
+| `holiday-front`, `holiday-courtyard` | `1536x2048` | `opaque` | One image, 3:4 portrait, a room state with the holiday decorations painted in; the decorations are then cut out |
 | `finale-supper` | `1536x2048` | `opaque` | One image, 3:4 portrait, the supper painting: an edit of `courtyard-23` with the guests |
 | `board-clutter` | `1536x1024` | `transparent` | 3 columns by 2 rows, six blockers with open centres |
 | `rat-thief-reference`, `rat-soricescu-reference` | `1024x1024` | `transparent` | One image, square, one reference pose of a rat of the night |
 | `rat-thief`, `rat-soricescu` | `2048x1024` | `transparent` | 4 columns by 2 rows, eight poses of one rat |
 | `rat-hole` | `1024x1024` | `transparent` | One image, square, the rat hole blocker |
 | `night-sky` | `2048x1024` | `opaque` | One image, 2:1, the night sky behind the window glass |
-| `sketch-<character>` for each character in `public/data/game.json` | `1024x1024` | `opaque`, then `ink` | One image, square, a pencil sketch |
-| `scene-cathedral-1` to `scene-cathedral-9`, `scene-ionatan-dinner`, `scene-mina-avram-meal` | `1536x1024` | `opaque`, then `ink` | One image, 3:2 landscape, a pencil quest scene |
+| `sketch-sheet-1` to `sketch-sheet-3` | `2688x1344` | `opaque`, then `ink` and `sepia` | 4 columns by 2 rows, eight character sketches in one request |
+| `scene-sheet-1` to `scene-sheet-3` | `2304x1536` | `opaque`, then `ink` and `sepia` | 2 columns by 2 rows, four quest scenes in one request |
+| `window-view-late-winter`, `window-view-early-spring`, `window-view-spring` | `1152x1536` | `opaque` | One image, 3:4 portrait, the seasonal view behind the six panes of the front-room window |
 
 The helper does not accept `visitor-portraits`, `guests`, `preparation-clutter`, or `parchment-page`.
 Use the chat route for these assets unless the approved scope includes an API contract change.

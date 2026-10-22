@@ -764,666 +764,6 @@
       }
     },
     {
-      "id": "sketch-mara",
-      "file": "public/assets/original/sketch-mara.png",
-      "sha256": "9ceef4a750d8c34587cb9b991dccf0de1e80d7c09c866a1d1c960b96608f498d",
-      "bytes": 1010895,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-mara",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "portraits",
-      "referenceSha256": "42ecfa1970b5b6ad9a874990ca9b5ac055fc22f4fc7d3d40c8d549c751106a92",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The source is 1254 by 1254 pixels, RGBA, with alpha from 0 to 254. It has 1153943 fully transparent pixels. Mara holds one tray and one glass and raises her other hand in welcome. Light, incomplete pencil strokes preserve her headscarf and blouse. Faint stray pixels reach the margins; the source does not meet the requested clear margin. No obvious pale matte was visible in the dark preview. The user accepted the sketch. Victor draws only Mara's face in detail because he has a secret crush on her. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-ilie",
-      "file": "public/assets/original/sketch-ilie.png",
-      "sha256": "a8fd41d1b3c10157219d56b2d083489c0b1039fa202e8dfbd3d50ad3834e1e7f",
-      "bytes": 1695718,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-ilie",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "portraits",
-      "referenceSha256": "42ecfa1970b5b6ad9a874990ca9b5ac055fc22f4fc7d3d40c8d549c751106a92",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1254 by 1254 pixels, RGBA, with alpha from 0 to 252 and 810435 fully transparent pixels. Format limits: does not meet the requested 1024 square size or clear margins. Faint pixels extend to the edges. Agent visual review: readable at 500px on parchment. The hat, glasses, moustache, vest, bread peel, loaf, tiled stove and open notebook are present. One person. Eyes and mouth are indistinct. Both hands grip the peel, with plausible arm proportions. Oven and counter perspective are readable. No obvious lettering, extra limbs, pale matte or halo on dark background. The face reads younger than about 70; cloth and hat shading are denser than Mara's. These are bitmap limits for user review. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-eszter",
-      "file": "public/assets/original/sketch-eszter.png",
-      "sha256": "e563308c18e44e0e49a5ff79106024a9aaa68ee39eb43ee9008c189f8c4eadc3",
-      "bytes": 1304521,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-eszter",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "portraits",
-      "referenceSha256": "42ecfa1970b5b6ad9a874990ca9b5ac055fc22f4fc7d3d40c8d549c751106a92",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1254 by 1254 pixels, RGBA, with alpha from 0 to 253 and 962840 fully transparent pixels. Format limits: size differs from the requested 1024 square, and faint pixels violate the clear margins. Agent review: examined on parchment at 500px and on a dark background. One seated potter, short bob, puffed sleeves, bodice, beads, bowl, kick wheel, and spare shelf with finished vessels. Both hands cup the bowl. The upper disk, spindle, and lower flywheel have a coherent visual arrangement. Face is indicated with a few strokes; it remains more defined than an indistinct study. Hair and bodice contours are cleaner than the accepted Mara pencil strokes. No obvious lettering, extra person, pale matte, or halo. Anatomical and perspective judgments are visual assessments, not measurements. Some foot and pedal details remain ambiguous in the sparse lines. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-sorin",
-      "file": "public/assets/original/sketch-sorin.png",
-      "sha256": "ba2d0eaf114365fab0b73927b48c01e722bb8c0bd00bd5235d2aa2b07e9ced26",
-      "bytes": 1422996,
-      "width": 1024,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-sorin-fills",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality",
-      "sourceGameImageInput": false,
-      "referenceAsset": "sketch-sorin-chat",
-      "referenceSha256": "486cb83069178d8a693e2806914e66b5dcce8b63a1fb6463d352f100946d0e27",
-      "review": "Corrective revision of the previous sketch, which had opaque cream fills in the shirt, trousers, satchel and parcel. The agent compared it with the previous sketch on parchment and on a dark background: same rear view, bicycle and parcels, with open transparent interiors and no pale opaque fill. The user accepted it.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-adrian",
-      "file": "public/assets/original/sketch-adrian.png",
-      "sha256": "8347193caae77b84a7bb1ad69a8c6bda512b92d9f12fef554407ffbab8f60950",
-      "bytes": 1049722,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-adrian",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "visitor-portraits",
-      "referenceSha256": "1effc3a91422805fb6b634ef5930d5b4151d488c494ba1f52f63fb62add5eeb4",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1254 by 1254 pixels, RGBA, with alpha from 0 to 249 and 1125017 fully transparent pixels. Agent review: examined at 500px and larger on parchment and against dark. Both eyes are present and open below the cap. One guard, one lantern and a large strapped pack with bedroll are readable. The moustache, cap, cuirass and cloak retain Adrian's identity. Face and clothing have open interiors. Natural head alignment, grounded stance, plausible elbows and wrists, and a hanging lantern are visible. No lettering, extra figure, duplicated limb or weapon in hand is visible. Anatomy and hand grip assessments are visual, not measured proof. Open bitmap limits: the actual size differs from the requested 1024 square. Tiny edge pixels violate clear margins. Some outlines are more continuous and finished than the broken-stroke brief. The face remains more defined than the sparse brief. The lower figure is complete rather than fading out as strongly as requested. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-monica",
-      "file": "public/assets/original/sketch-monica.png",
-      "sha256": "57179d93a5090f8bd5c9367ec387e23d491001324c970c3405fab44672eafeb5",
-      "bytes": 1732004,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-monica",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "visitor-portraits",
-      "referenceSha256": "1effc3a91422805fb6b634ef5930d5b4151d488c494ba1f52f63fb62add5eeb4",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1254 by 1254 pixels, RGBA, with alpha from 0 to 254 and 803723 fully transparent pixels. Format limits: output differs from the requested 1024 square; faint pixels violate the clear margins. Agent review: examined at 500px on parchment and on a dark background. One kneeling pathfinder with headscarf, braid, scout armour, cross-strap and cloak. One finger follows the map and the other hand braces against the flat stone. The head inclines naturally toward the map. Bent legs and feet form a plausible supported kneeling pose in visual review. Stone and map planes align. Lantern is beside the stone. No obvious lettering, extra person or duplicated limb. Face, braid, embroidery and clothing are more defined than the sparse brief. Lantern contains a pale filled light area, visible against the dark preview. The map has a rectangular edge and may read as a sheet rather than marks directly on the stone. Anatomy and perspective assessments are visual, not measurements. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-janos",
-      "file": "public/assets/original/sketch-janos.png",
-      "sha256": "e08e3cdea1450d089809cee9a72879d063257142a351294e9b4fc83b0ab7d2df",
-      "bytes": 1967627,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-janos",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "visitor-portraits",
-      "referenceSha256": "1effc3a91422805fb6b634ef5930d5b4151d488c494ba1f52f63fb62add5eeb4",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1254 by 1254 pixels, RGBA, with alpha from 0 to 253 and 559449 fully transparent pixels. Review: examined at 500px on parchment and against dark. Eyes are visibly open. Janos holds loose pages, seated on a stone block with his staff and candle beside him. Both hands and feet are readable. No obvious extra person, duplicated limbs or legible text. Face, beard and clothing remain more detailed and shaded than the sparse brief. His gaze reads downward, though exact fixation on the page is uncertain. The staff has a shaped knob and ties rather than a wholly plain shaft. Faint edge pixels and output size differ from the prompt. Anatomy and perspective assessments are visual, not measured proof. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-ionatan",
-      "file": "public/assets/original/sketch-ionatan.png",
-      "sha256": "dbc524d8c62951de5b2d61bc433ac1d8257c002428615a24188ebcefcea63d50",
-      "bytes": 1036810,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-ionatan",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "visitor-portraits",
-      "referenceSha256": "1effc3a91422805fb6b634ef5930d5b4151d488c494ba1f52f63fb62add5eeb4",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1254 by 1254 pixels, RGBA, with alpha from 0 to 253 and 1131870 fully transparent pixels. Format limits: output differs from the requested 1024 square; faint pixels violate the clear margins. Agent review: examined at 500px on parchment and on a dark background. One young clean-shaven man, neat side-parted hair, travel suit, high collar and cravat. Standing beside a travelling bag, he supports an open folio and lifts a page. Head inclines naturally toward the documents. Eyes read as open and looking downward. Arms, wrists, standing proportions, folio planes and bag ground contact appear plausible in visual review. No obvious extra person, duplicated limb, lettering, pale matte or halo. Face and clothing contours remain more defined than the sparse brief; folio has denser hatching. Anatomy and perspective assessments are visual, not measurements. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-vlad",
-      "file": "public/assets/original/sketch-vlad.png",
-      "sha256": "6d47b6483492a3d36275390f9c80ced0f82e35bdc5595a6cfdcb1fcf20f7431a",
-      "bytes": 1811966,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-vlad",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "guests",
-      "referenceSha256": "6556ba6f6793ff63e2ea5c68ea1f5ef83174752f9ad34c95f1e45cab460fd140",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1254 by 1254 pixels, RGBA, with alpha from 0 to 253 and 708800 fully transparent pixels. Format limits: output differs from the requested 1024 square; faint pixels violate the clear margins. Agent review: examined at 500px on parchment and on a dark background. One seated man with jewelled cap, shoulder-length hair, moustache, embroidered coat and chain. Raised wine glass, carafe, candle and table are readable. His eyes are open. The neck is naturally aligned; the raised arm, wrist and glass grip appear plausible. Table and vessels have coherent perspective in visual review. No obvious extra person, duplicated limb, legible text, fangs or frightening elements. Hair, face and embroidery are denser than the sparse brief. Pale marks remain at the collar, cuff and candle on dark. Anatomy and perspective judgments are visual, not measurements. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-elisabeta",
-      "file": "public/assets/original/sketch-elisabeta.png",
-      "sha256": "4f44657c69a5b6b344b55c2d9537297db66304e3297db64565c028473a1cef90",
-      "bytes": 1642615,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-elisabeta",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "guests",
-      "referenceSha256": "6556ba6f6793ff63e2ea5c68ea1f5ef83174752f9ad34c95f1e45cab460fd140",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1254 by 1254 pixels, RGBA, with alpha from 0 to 251 and 762945 fully transparent pixels. Format limits: output differs from the requested 1024 square; faint pixels violate the clear margins. Agent review: examined at 500px on parchment and on a dark background. One seated countess with veil, pearl-trimmed cap, bodice and necklace. She reads a sheet above a paper stack at a desk, with wine beside her elbow. Eyes read as open and directed toward the paper. Hands, arm positions, neck alignment and desk perspective appear plausible in visual review. Red wash is confined to the wine. No obvious lettering, extra person, duplicated limb, pale matte or halo. Face and clothing are more resolved than the sparse brief. The neckline follows the portrait reference rather than the high lace collar requested in the subject. The lower figure is unfinished, so seated-leg anatomy is not visible. Anatomy and perspective judgments are visual, not measurements. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-mina",
-      "file": "public/assets/original/sketch-mina.png",
-      "sha256": "37460690da2bf2c416e7c0df58bec3e83003f5dad86c57dbf82fef720d2070b4",
-      "bytes": 1148353,
-      "width": 1024,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-mina-fills",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality",
-      "sourceGameImageInput": false,
-      "referenceAsset": "sketch-mina-chat",
-      "referenceSha256": "7ba5b0ee8d5ea2f29841a1319369ad026382fc338264fa4b13633073cdb648ec",
-      "review": "Corrective revision of the previous sketch, which had an opaque white fill in the blouse and letter. The agent compared it on parchment and on a dark background: same pose, letter and case, open transparent interiors and no pale opaque fill. The user accepted it.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-avram",
-      "file": "public/assets/original/sketch-avram.png",
-      "sha256": "a2a4c3f0977aed9b50249a1939e9d1c03cfb513ae457fe2aafac922ca8edc639",
-      "bytes": 867743,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-avram",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "guests",
-      "referenceSha256": "6556ba6f6793ff63e2ea5c68ea1f5ef83174752f9ad34c95f1e45cab460fd140",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1254 by 1254 pixels, RGBA, with alpha from 0 to 254 and 1192310 fully transparent pixels. Format limits: output differs from the requested 1024 square; faint pixels violate the clear margins. Agent review: examined at 500px on parchment and on a dark background. One elderly clean-shaven man with receding swept-back hair, suit, waistcoat and tie. He holds a doctor's bag and a walking cane. Eyes are open; posture is alert and grounded. Head alignment, standing proportions, arm positions, bag suspension and cane contact appear plausible in visual review. No obvious extra person, duplicated limb, legible text, pale matte or halo. Face and clothing contours remain more defined than the sparse brief. Bag-handle grip is simplified and needs user judgment at full size. Anatomy and perspective judgments are visual, not measurements. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-dochia",
-      "file": "public/assets/original/sketch-dochia.png",
-      "sha256": "c504e9eb254299a14d079de593761f65bf1e1d635efa9ee8eadd5f293a96b186",
-      "bytes": 1693634,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-dochia",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "regulars-1",
-      "referenceSha256": "9322779dac85388a0e101fbc06f0f46f5cf8f0d9b3c0e19de9dd595c58636f8a",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1254 by 1254 pixels, RGBA, with alpha from 0 to 255 and 857640 fully transparent pixels. Format limits: output differs from the requested 1024 square; faint pixels violate the clear margins. Agent review: examined at 500px on parchment and on a dark background. One elderly shepherdess with headscarf, white braid, layered sheepskin garments and crook. Exactly three sheep are present; the rear sheep is partly occluded. Eyes are open, expression amused. Head alignment, hands resting on the crook, group proportions and hillside ground contact appear plausible in visual review. No obvious extra person, duplicated animal head or lettering. Occlusion limits review of the rear sheep's legs. Braid, face, sheepskin and wool are denser than the sparse brief. Pale braid and blouse marks are visible against dark. Anatomy and perspective judgments are visual, not measurements. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-victor",
-      "file": "public/assets/original/sketch-victor.png",
-      "sha256": "f6af1b7a85515788b8c81816359d4f2a6c7365e006150850533c7de51579627f",
-      "bytes": 1222378,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-victor-mouth",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a masked edit of a white-paper copy drew the mouth, and only the masked region was made transparent with the ink conversion and composited with an 8-pixel feather (review-fixes/runs/sketch-victor-mouth-2-patch), with tools in .github/skills/generate-game-art-openai/scripts",
-      "sourceGameImageInput": false,
-      "referenceAsset": "sketch-victor-chat",
-      "referenceSha256": "d8b226d4eb969cfdf13df348a30883769c7ef07006f262392caa2c2614cd6a94",
-      "review": "The previous sketch with a mouth added; the previous sketch had none. The agent measured the change: only the small region between his nose and chin differs. The agent examined it on parchment at full size and enlarged. The user accepted it.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-ana",
-      "file": "public/assets/original/sketch-ana.png",
-      "sha256": "93e7a4e1f48e36ff35834fe99ba8524d19999f4d3a803159cfcbbcf257e01b7d",
-      "bytes": 916845,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-ana",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "regulars-1",
-      "referenceSha256": "9322779dac85388a0e101fbc06f0f46f5cf8f0d9b3c0e19de9dd595c58636f8a",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1254 by 1254 pixels, RGBA, with alpha from 0 to 254 and 1160160 fully transparent pixels. Format limits: output differs from the requested 1024 square; faint pixels violate the clear margins. Agent review: examined at 500px on parchment and on a dark background. One nurse with low bun, work dress, apron bib and small shoulder garlic braid. She hangs a larger garlic braid from a door peg; lantern rests on the floor. Hands meet the hanging loop and peg, with a plausible reaching pose and naturally aligned head. Body, door and lantern perspective appear coherent in visual review. No obvious extra person, duplicated limb, lettering, pale matte or halo. Face is simple; small eye marks are difficult to distinguish at 500px. Hair and sleeve contours have more definition than the sparse brief. Hand and string attachment are simplified and need user review at full size. Anatomy and perspective judgments are visual, not measurements. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-costel",
-      "file": "public/assets/original/sketch-costel.png",
-      "sha256": "463f443e884bc01d20291ec229a5601611209684477eea259c6dade76513e706",
-      "bytes": 1786767,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-costel",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "regulars-1",
-      "referenceSha256": "9322779dac85388a0e101fbc06f0f46f5cf8f0d9b3c0e19de9dd595c58636f8a",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1254 by 1254 pixels, RGBA, with alpha from 0 to 249 and 724388 fully transparent pixels. Format limits: output differs from the requested 1024 square; faint pixels violate the clear margins. Agent review: examined at 500px on parchment and on a dark background. One maker with curly hair, beard, forehead loupe, rolled sleeves, waistcoat, watch chain and winding key. One small mechanical bird with a winding key perches on his extended finger. Open clock, a few loose gears and a tool rest on the bench. Eyes are open and directed toward the bird. Raised hand and resting forearm appear plausible; bird feet and finger contact are simplified. Head tilt is mild rather than a backward twist. No obvious extra person, duplicate bird, lettering, pale matte or halo. Face, hair and waistcoat have denser shading than the sparse brief. Lower body is concealed, limiting anatomy review. Clock mechanism is illustrative rather than mechanically verified. Anatomy and perspective judgments are visual, not measurements. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-sanziana",
-      "file": "public/assets/original/sketch-sanziana.png",
-      "sha256": "70f931327c44446ae5e36d45c248a177d9c51feffc1744320ca59a1580f7023e",
-      "bytes": 1023210,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-sanziana",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "regulars-2-painter-cuff",
-      "referenceSha256": "fba50332fc97340580bae7903297c084e4a29d5187832fc14686dbaf96f2c433",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1254 by 1254 pixels, RGBA, with alpha from 0 to 253 and 1134623 fully transparent pixels. Agent review: examined at 500px on parchment and against dark. One florist with loose hair, low flower crown, blouse, apron, flowers and small cart. The face, plants and clothing are simplified. Yellow is confined to the crown. Most pale fills are removed. Arms cradle the stems naturally; cart wheel and box share a readable perspective. No obvious extra person, lettering or duplicated limb. Eye marks are very small and may read as closed at preview scale. Contours are more uniform than Mara's broken pencil touch. Skirt conceals feet and lower leg anatomy. Faint edge pixels and output size differ from requested margin and dimensions. Anatomy and perspective judgments are visual, not measurements. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-dorian",
-      "file": "public/assets/original/sketch-dorian.png",
-      "sha256": "b1d48ad63833c54efeaf4531f4ab54caf946b0b2f25b6ef2ca821071fe491a73",
-      "bytes": 1268403,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-dorian",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "regulars-2-painter-cuff",
-      "referenceSha256": "fba50332fc97340580bae7903297c084e4a29d5187832fc14686dbaf96f2c433",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1254 by 1254 pixels, RGBA, with alpha from 0 to 243 and 1001023 fully transparent pixels. Review: examined at 500px on parchment and against dark. One young gentleman in velvet jacket and cravat, seated with a wine glass and gloves on a small table. No easel, canvas, brush, palette or paint marks. Eyes are open. Head, torso, seated legs, glass grip and furniture perspective appear plausible in visual review. Legs are crossed rather than the prompt's slight forward stance. Face and jacket shading remain more defined than the sparse brief. No obvious extra person, lettering, duplicated limb or pale matte. Faint edge pixels and output dimensions differ from the prompt. Anatomy and perspective judgments are visual, not measurements. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-ileana",
-      "file": "public/assets/original/sketch-ileana.png",
-      "sha256": "1eae53007a01550f7ec82c939095d954b2c9b372d8bb90181c5a3f9d96ec0f03",
-      "bytes": 2493997,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-ileana",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "regulars-2-painter-cuff",
-      "referenceSha256": "fba50332fc97340580bae7903297c084e4a29d5187832fc14686dbaf96f2c433",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1254 by 1254 pixels, RGBA, with alpha from 0 to 249 and 345478 fully transparent pixels. Format limits: output differs from the requested 1024 square; faint pixels violate the clear margins. Agent review: examined at 500px on parchment and on a dark background. One seamstress with small headscarf, blouse, neck tape and wrist pin cushion, sewing by hand at a worktable. A headless dress form on a stand holds an unfinished dress; a thread spool stands on the table. Eyes read as open and directed toward the stitching. Hands, needle and cloth contact, head alignment and table/form perspective appear plausible in visual review. No obvious extra person, duplicated limb or legible lettering. Fine needle grip and thread path remain simplified. The thread holder reads as a spool rather than a spindle. Face and cloth are more shaded than the sparse brief, with pale skin fills visible on dark. Lower seated anatomy is hidden by table and cloth. Anatomy and perspective judgments are visual, not measurements. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-cezar",
-      "file": "public/assets/original/sketch-cezar.png",
-      "sha256": "a81a6be755edb3ca75271aee4cbeb4fe43951cb8adff19478710d5f65496a99d",
-      "bytes": 940371,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-cezar",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "regulars-2-painter-cuff",
-      "referenceSha256": "fba50332fc97340580bae7903297c084e4a29d5187832fc14686dbaf96f2c433",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1254 by 1254 pixels, RGBA, with alpha from 0 to 255 and 1185467 fully transparent pixels. Format limits: output differs from the requested 1024 square; faint pixels violate the clear margins. Agent review: examined at 500px on parchment and on a dark background. One tall lean watchman with cap, long buttoned coat, whistle and low-held lantern, walking over a few cobbles. Almost-closed eyes are intentional for this drowsy character under the handoff subject. Head alignment, stride, lantern suspension and ground perspective appear plausible in visual review. No obvious extra person, duplicated limb or lettering. Hand grip and whistle are simplified. Face has more detail and pale fill than the sparse brief. Coat and lantern contours remain clear at 500px. Anatomy and perspective judgments are visual, not measurements. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-catalina",
-      "file": "public/assets/original/sketch-catalina.png",
-      "sha256": "e10c6cfce18a2d847ac4920559de7aee7bcb9aced26de0c19405bbe861834c45",
-      "bytes": 1627248,
-      "width": 1024,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-catalina-fills",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality",
-      "sourceGameImageInput": false,
-      "referenceAsset": "sketch-catalina-chat",
-      "referenceSha256": "68cb026c089bbaa6eb5b4f41a7fb191ceae2edbd9098387dd13fab822f296f35",
-      "review": "Corrective revision of the previous sketch, which had opaque pale fills in the skin, blouse, skirt and vest and a rope cut at the top edge. The agent compared it on parchment and on a dark background: same pose and tower, open transparent interiors, no pale opaque fill, and the rope fades before the edge. The user accepted it.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "sketch-bran",
-      "file": "public/assets/original/sketch-bran.png",
-      "sha256": "00b6c73882e626be9e2b777792c71169f2d16c4afb10d62b9261cbe8bbcf26b6",
-      "bytes": 1025642,
-      "width": 1024,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-bran-paper",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; drawn on white paper, then the paper was made transparent with the ink conversion (review-fixes/runs/sketch-bran-3-ink), with tools in .github/skills/generate-game-art-openai/scripts",
-      "sourceGameImageInput": false,
-      "referenceAsset": "sketch-bran-chat",
-      "referenceSha256": "b5a20f1fd8150d015846a88a51e32d42de1f84f784539d8d7cff4f16d38a8773",
-      "review": "Revision of the previous sketch, whose scarf was a saturated orange-red. The agent compared it on parchment and on a dark background: one horse with correct anatomy, Bran with a faint muted red scarf, open transparent interiors and no pale opaque fill. The user accepted it.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "scene-cathedral-1",
-      "file": "public/assets/original/scene-cathedral-1.png",
-      "sha256": "583f60cd8d7611d9bba8b3aeca106c02d383b975c54a200a2ac458a51806eb34",
-      "bytes": 1771323,
-      "width": 1536,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "scene-cathedral-1",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "visitor-portraits",
-      "referenceSha256": "1effc3a91422805fb6b634ef5930d5b4151d488c494ba1f52f63fb62add5eeb4",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1536 by 1024 pixels, RGBA, with alpha from 0 to 250 and 906678 fully transparent pixels. Agent review: examined at 500px and larger on parchment, and against dark. Exactly three adult travellers with packs stand at the same upper landing. Adrian lowers one lantern over the stair. Janos's brimmed hat, beard and staff and Monica's scarf and braid identify the other travellers. Faces are lightly suggested; clothing and packs have mostly open interiors and little surface texture. The stair clearly descends from their boots toward the lower-left foreground. A few altar and arch strokes suggest the cathedral. No red or green clothing, extra person, lettering or polished portrait is visible. Open bitmap limits: the lantern and first step retain pale highlights visible against dark. Very faint alpha reaches the canvas edges and violates the 48px margin. Some outlines are more continuous than the broken-stroke brief. Stair risers are still rather tall in relation to the boots, and the right ends of the steps are unfinished. Precise anatomical and architectural correctness is not certified by this visual review. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "scene-cathedral-2",
-      "file": "public/assets/original/scene-cathedral-2.png",
-      "sha256": "2a4e0a9c799113c3c723007c267c51efad2c24537454a4daf69560e8cefdbe28",
-      "bytes": 2044668,
-      "width": 1536,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "scene-cathedral-2",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "visitor-portraits",
-      "referenceSha256": "1effc3a91422805fb6b634ef5930d5b4151d488c494ba1f52f63fb62add5eeb4",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1536 by 1024 pixels, RGBA, with alpha from 0 to 248 and 659453 fully transparent pixels. Agent review: examined at 500px and larger on parchment and against dark. Exactly four people. The round-bellied cook, apron, open shouting mouth, upward-held cleaver, pot and simple table make the kitchen action readable. The cleaver points away from the travellers. Adrian climbs toward the upper-right landing, facing naturally uphill, with one boot planted higher and the other trailing. Monica and Janos stand fully on the upper landing and gesture toward him. Packs and bedrolls, Adrian's cap, Monica's scarf and Janos's hat and staff retain identity. Stair direction, figure balance and depth appear plausible in this visual review. No meat, hooks, blood, extra figure or lettering visible. Open bitmap limits: cloth and pack shading is denser than accepted scene 1, though faces remain small. Some contours are more complete than the unfinished brief. Faint alpha and floor lines reach the edges, violating the 48px margin. Hand details and the cook's shouting face are simplified. Anatomy, grips and architectural perspective are visual judgments, not measured certification. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "scene-cathedral-3",
-      "file": "public/assets/original/scene-cathedral-3.png",
-      "sha256": "44a4687e70ea78859f541d922a63fef8fa9b2fba15908ccfe8f67f8698b84be6",
-      "bytes": 1925766,
-      "width": 1536,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "scene-cathedral-3",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "visitor-portraits",
-      "referenceSha256": "1effc3a91422805fb6b634ef5930d5b4151d488c494ba1f52f63fb62add5eeb4",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1536 by 1024 pixels, RGBA, with alpha from 0 to 249 and 836893 fully transparent pixels. Agent review: examined at 500px and larger on parchment and against dark. Exactly two figures. Janos sits with a raised open book, both eyes visibly open, head nearly level and staff leaning beside him. The crowned skeleton rests on a stone throne, skull bowed forward and sideways, one bony palm still held out. Hands, feet, book and step levels are readable. No lettering, extra skeleton, extra limb, colour wash, flesh or gore visible. Seated anatomy and prop perspective appear plausible; this is visual judgment, not measured proof. Open bitmap limits: Janos's face is more defined than the sparse brief, and cloth has more tonal hatching than scene 1. The king's nod is partly sideways rather than purely forward; sleepiness is conveyed by the slumped posture. Skeletal finger and foot bones are simplified. Faint alpha and floor lines reach the edges, violating 48px clear margins. Exact anatomical correctness and finger counts are not certified. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "scene-cathedral-4",
-      "file": "public/assets/original/scene-cathedral-4.png",
-      "sha256": "cbe2bdeb49731b53ae210449e49d22add846390821445431d22a85ae1e00dbd3",
-      "bytes": 781545,
-      "width": 1536,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "scene-cathedral-4-paper",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; drawn on white paper, then the paper was made transparent with the ink conversion (review-fixes/runs/scene-cathedral-4-3-ink), with tools in .github/skills/generate-game-art-openai/scripts",
-      "sourceGameImageInput": false,
-      "referenceAsset": "scene-cathedral-4-chat",
-      "referenceSha256": "22278c4724707bb710059125eb65825e84c23e0ce1694a94d194ca335138f947",
-      "review": "Revision of the previous scene, in which the goblin was as tall as Adrian although the quest calls him small. The agent compared it on parchment and on a dark background: the bowed goblin reaches about Adrian's hip, offers one rock in both hands, and Adrian holds the bread basket; open transparent interiors and no pale opaque fill. The user accepted it.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "scene-cathedral-5",
-      "file": "public/assets/original/scene-cathedral-5.png",
-      "sha256": "c6081c0be3fcc3c818ff51fa030b71f2436b1d93cbf24f5dff679f832d81a007",
-      "bytes": 2214162,
-      "width": 1536,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "scene-cathedral-5",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "visitor-portraits",
-      "referenceSha256": "1effc3a91422805fb6b634ef5930d5b4151d488c494ba1f52f63fb62add5eeb4",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1536 by 1024 pixels, RGBA, with alpha from 0 to 249 and 429927 fully transparent pixels. Agent review: examined at 500px on parchment and against dark. One seated scout, with Monica's headscarf, braid, cloak, armour and pack. She supports a flat irregular stone and points to its scratched surface with one index finger. No paper rectangle or lettering is visible. The stream curves past her toward a narrow vertical opening, with an elliptical round well opening above. Natural cave contours replace the cathedral architecture. Seated joints, stone grip and ground contact appear plausible in visual review. No extra person, monster, duplicated limb, weapon or logo visible. Open bitmap limits: the water and well shaft have pale filled highlights visible against dark, rather than fully transparent unmarked interiors. Costume, face and cave contours are more defined than the sparse brief. The map route is very faint at 500px; finger contact and the stone remain readable. Broad low-alpha marks reach the edges and violate the 48px margin. Exact anatomy, finger count and cave geometry are not mathematically certified. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "scene-cathedral-6",
-      "file": "public/assets/original/scene-cathedral-6.png",
-      "sha256": "26fd562441e0f06fd24437b42f857e4690f3a6828682e7b51cf16e5caee51a7f",
-      "bytes": 1313529,
-      "width": 1536,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "scene-cathedral-6-paper",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; drawn on white paper, then the paper was made transparent with the ink conversion (review-fixes/runs/scene-cathedral-6-3-ink), with tools in .github/skills/generate-game-art-openai/scripts",
-      "sourceGameImageInput": false,
-      "referenceAsset": "scene-cathedral-6-chat",
-      "referenceSha256": "e828d330d97d0e5abf8d203757ba49f53f9f0759c392140e958ebbf03322f46f",
-      "review": "Revision of the previous scene, in which Janos looked young with only a moustache. The agent compared it on parchment and on a dark background: Janos is older with a full short beard, the librarian screams, one upright chimney cake; open transparent interiors and no pale opaque fill. The user accepted it.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "scene-cathedral-7",
-      "file": "public/assets/original/scene-cathedral-7.png",
-      "sha256": "177727e958e86b30d9849c23e3dc3026bcb14e9295532a88dd558f276dfee155",
-      "bytes": 1779812,
-      "width": 1536,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "scene-cathedral-7",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "visitor-portraits",
-      "referenceSha256": "1effc3a91422805fb6b634ef5930d5b4151d488c494ba1f52f63fb62add5eeb4",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1536 by 1024 pixels, RGBA, with alpha from 0 to 244 and 875059 fully transparent pixels. Agent review: examined at 500px and larger on parchment and against dark. Exactly two people. Adrian watches from the doorway; the archbishop gestures from the pulpit to three empty backless bench rows. Faces are much less rendered, with sparse profile marks and no detailed skin shading. Clothes and room have open interiors and much less surface texture. Faint local wall chalk and wavy heat marks remain. Body alignment, scale against the doorway and pulpit, floor contact and benches appear plausible in this visual review. No extra person, letters, coloured clothes, weapon or broad pale face fill visible. Open bitmap limits: the eyebrow expression is too small to judge at 500px. Some architectural and clothing contours remain continuous. Faint alpha and floor lines violate the clear edge margin. The figure and head pixel-height targets were prompt controls, not separately measured results. The archbishop has a long beard. Exact anatomy and architectural geometry are not certified. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "scene-cathedral-8",
-      "file": "public/assets/original/scene-cathedral-8.png",
-      "sha256": "070e761146cfae23abb86c0a489a01464fa525f35a831e86e4e899234397bbe6",
-      "bytes": 1905564,
-      "width": 1536,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "scene-cathedral-8",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "visitor-portraits",
-      "referenceSha256": "1effc3a91422805fb6b634ef5930d5b4151d488c494ba1f52f63fb62add5eeb4",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1536 by 1024 pixels, RGBA, with alpha from 0 to 246 and 490972 fully transparent pixels. Agent review: examined at 500px and larger on parchment and against dark. Exactly four people. The same plain-mitred, long-robed archbishop gestures toward a fully closed, large iron-banded door. Adrian, Monica and Janos move left in a row with cautious raised-heel steps, packs and bedrolls. Their rear three-quarter heads follow their bodies without backward twists. Janos has his staff. Faces remain faint or hidden by the natural view. Red chalk is confined to the door. Falling marks above it suggest loose dust. Nothing is visible beyond the closed leaf. No lettering, extra person, creature, weapon, pulpit or benches visible. Movement, grounding and relative scales appear plausible in visual review. Open bitmap limits: two horizontal door bands are visible rather than the three requested by this prompt; the handoff requires heavy bands without a count. Falling particles are larger and rounder than fine dust. Some clothing and architecture contours are more complete than the broken-line brief. Broad faint alpha and floor lines reach the canvas edges, violating the 48px margin. Exact anatomy, finger counts and architectural geometry are not certified. Figure and head pixel-height targets were prompt controls, not separately measured outputs. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "scene-cathedral-9",
-      "file": "public/assets/original/scene-cathedral-9.png",
-      "sha256": "c5d8eeeb353e33867ec671300b5dba19e9aaeaca6baf4a76fa4f71970b0f8892",
-      "bytes": 1470935,
-      "width": 1536,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "scene-cathedral-9-paper",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; drawn on white paper, then the paper was made transparent with the ink conversion (review-fixes/runs/scene-cathedral-9-4-ink), with tools in .github/skills/generate-game-art-openai/scripts",
-      "sourceGameImageInput": false,
-      "referenceAsset": "scene-cathedral-9-chat",
-      "referenceSha256": "64e990d94c1fbbc3633135a465b20a0f1e13751de0c8ef1210525ffe64adeebd",
-      "review": "Revision of the previous scene, in which Janos looked young without a beard and the door had strong red outlines. The agent compared it on parchment and on a dark background: steady lines, Janos older with a beard and a finger at his lips, the archbishop asleep with the pot, the door in brown pencil with a faint red smudge; no pale opaque fill. The user accepted it.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "scene-ionatan-dinner",
-      "file": "public/assets/original/scene-ionatan-dinner.png",
-      "sha256": "ef8584383f1d7207f19d0d3b2505696718524470c3dfdf4e30b574eed539e4d7",
-      "bytes": 1791092,
-      "width": 1536,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "scene-ionatan-dinner",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "referenceAsset": "visitor-portraits",
-      "referenceSha256": "1effc3a91422805fb6b634ef5930d5b4151d488c494ba1f52f63fb62add5eeb4",
-      "review": "The agent examined the sketch on parchment at 500 pixels and on a dark background. The measured source is 1536 by 1024 pixels, RGBA, with alpha from 0 to 247 and 727272 fully transparent pixels. Agent review: examined at 500px and larger on parchment and against dark. Exactly one young clean-shaven diner in suit, waistcoat and cravat. His eyes and simple nose and mouth are present. One hand lifts a blank sheet while the other rests at the open folio. The pot, plate and small glass are on a small table; complete chair and feet are visible. The window shows a small castle on a hill, with restrained exterior detail. Posture reads attentive and mildly concerned. No lettering, extra person, coloured accents, duplicate glass or extra limb visible. Seated anatomy, object support and perspective appear plausible in visual review. Open bitmap limits: clothes and hair still have more hatching than the sparse prompt. The open folio could read as a bound book, and the pot's food contents are not distinct at 500px. A small steam line was added. Some room and furniture contours are continuous. Faint alpha and floor lines reach the edges, violating the 48px margin. Exact anatomy, finger count and room geometry are not certified; the requested seated-figure height was not separately measured. The user accepted the master. The accepted source is copied without pixel changes.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
-      "id": "scene-mina-avram-meal",
-      "file": "public/assets/original/scene-mina-avram-meal.png",
-      "sha256": "828d554d9b08f2424041614a20f1e58befc95d54baca6ed75389b461e68b3133",
-      "bytes": 853610,
-      "width": 1536,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "scene-mina-avram-meal-paper",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; drawn on white paper, then the paper was made transparent with the ink conversion (review-fixes/runs/scene-mina-avram-meal-4-ink), with tools in .github/skills/generate-game-art-openai/scripts",
-      "sourceGameImageInput": false,
-      "referenceAsset": "scene-mina-avram-meal-chat",
-      "referenceSha256": "b65bac710a695c695129794ada57ed37f48c730a438243f33c46bb17b62629bc",
-      "review": "Revision of the previous scene, in which Mina's and Avram's faces were drawn as carefully as Mara's. The agent compared it on parchment and on a dark background: steady lines, Mina with her letter, Avram with his bag, Mara pointing to the road and castle with the most carefully drawn face; no pale opaque fill. The user accepted it.",
-      "visualAcceptance": {
-        "status": "accepted",
-        "by": "user"
-      }
-    },
-    {
       "id": "finale-supper",
       "file": "public/assets/original/finale-supper.png",
       "sha256": "074eff91c090bd4514a999035b2e4843774b3b8a12778410f2861c81b27a65ea",
@@ -1789,27 +1129,117 @@
       "visualAcceptance": "The user accepted the night sky."
     },
     {
-      "id": "sketch-bela",
-      "file": "public/assets/original/sketch-bela.png",
-      "sha256": "30a3d446914f086ab84bee431e72867a24ab468cde2b33001bf6d098762f4f7a",
-      "bytes": 540032,
-      "width": 1024,
-      "height": 1024,
+      "id": "sketch-sheet-1",
+      "file": "public/assets/original/sketch-sheet-1.png",
+      "sha256": "c0afa9caa74555743b75c889a6e003c3226577bc92302dd8b89ad8d88602107f",
+      "bytes": 3917982,
+      "width": 2688,
+      "height": 1344,
       "mode": "RGBA",
       "hasTransparency": true,
-      "promptId": "sketch-bela",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; drawn on white paper, then the paper was made transparent with the ink conversion (bela/sketch-bela-run1-ink), with tools in .github/skills/generate-game-art-openai/scripts",
+      "promptId": "sketch-sheet-1",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; eight sketches drawn on white paper in one request with sketch-sheet-pilot as the style reference, then the paper was made transparent with the ink conversion, then a fixed colour mapping set one sepia line colour and kept the alpha of each pixel and the gold of the two flames",
       "sourceGameImageInput": false,
-      "referenceAsset": "regulars-3-bela-candidate",
-      "referenceSha256": "3e43c9762ad6b4fe51bcd356e5574f0294a9d72204a2da3ecc3196bc8120956d",
-      "review": "Bela at the gate of the churchyard, with his spade, his keys, and the rosemary, waving good night to one headstone without lettering. The agent compared it with sketch-cezar on a dark background and examined it on white: open transparent interiors, no pale fill, all marks inside the margins. The user accepted it.",
+      "referenceAsset": "sketch-sheet-pilot",
+      "referenceSha256": "6f176165a959d542c58f6ae45f92578948efdaff9ff03441bbef2c3dafb0a87f",
+      "review": "Eight character sketches: Adrian, Avram, Bran, Costel, Eszter, Ilie, Sorin, Vlad, in 672-pixel cells. The agent examined the sheet on parchment, each face at native size, and a cell at the 630-pixel dialog size. No mark touches the image edge or a cell line. The user accepted it as the master of the pencil style.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "sketch-sheet-2",
+      "file": "public/assets/original/sketch-sheet-2.png",
+      "sha256": "a49ac8063a6c35a0cefa1a82b399fab444ae42f245f7f06526c47fc1a21e2b37",
+      "bytes": 3813390,
+      "width": 2688,
+      "height": 1344,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "sketch-sheet-2-bell",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; eight sketches drawn on white paper in one request with the candidate of sketch-sheet-1 as the style reference; a masked edit of that candidate redrew the bell in the third cell, and only the masked region was composited; then the paper was made transparent with the ink conversion, then a fixed colour mapping set one sepia line colour and kept the alpha of each pixel and the gold of the two flames; a box clear set the alpha of the top 8 pixel rows of the third cell to 0, where the bell chain met the edge, without painted pixels",
+      "sourceGameImageInput": false,
+      "review": "Eight character sketches: Ana, Bela, Cătălina, Cezar, Dochia, Dorian, Elisabeta, Ileana. The agent compared the sheet with sketch-sheet-1 for line, faces, shading, and density. The first candidate cut the top of the bell at the image edge; the masked edit places the whole bell inside the cell. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "sketch-sheet-3",
+      "file": "public/assets/original/sketch-sheet-3.png",
+      "sha256": "691b55c80801c7dfac89bedb2c4a8ae4c73b985b16f64d22eec32755b279161a",
+      "bytes": 3410977,
+      "width": 2688,
+      "height": 1344,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "sketch-sheet-3",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; eight sketches drawn on white paper in one request with the candidate of sketch-sheet-1 as the style reference, then the paper was made transparent with the ink conversion, then a fixed colour mapping set one sepia line colour and kept the alpha of each pixel and the gold of the flames and the flower crown",
+      "sourceGameImageInput": false,
+      "review": "Eight character sketches: Ionatan, Janos, Mara with a tray, Mina, Monica, Sânziana, Victor, and Mara at the stove. The agent compared the sheet with sketch-sheet-1. No mark touches the image edge or a cell line. The user accepted it and both Mara sketches.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "scene-sheet-1",
+      "file": "public/assets/original/scene-sheet-1.png",
+      "sha256": "ea530f39dcc7c9bf491fb221d785f133f29333a19d1c639d2c07514ef60f065c",
+      "bytes": 4297997,
+      "width": 2304,
+      "height": 1536,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "scene-sheet-1",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; four quest scenes drawn on white paper in one request with the candidates of sketch-sheet-1 and sketch-sheet-3 as style references, then the paper was made transparent with the ink conversion, then a fixed colour mapping set one sepia line colour and kept the alpha of each pixel and the gold of the flame and the crown",
+      "sourceGameImageInput": false,
+      "review": "Cathedral scenes 1 to 4 in 1152 by 768 cells. The first candidate drew the travellers with faces from the reference sheets; this revision fixes Adrian, Monica, and Janos in words. The agent checked each identity in each cell, the edges, and the cell lines. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "scene-sheet-2",
+      "file": "public/assets/original/scene-sheet-2.png",
+      "sha256": "c7ee163427e769c760e7e7f8f8a332f3e8675b8013b0cba2e78a61addd5466b3",
+      "bytes": 4350861,
+      "width": 2304,
+      "height": 1536,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "scene-sheet-2",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; four quest scenes drawn on white paper in one request with the candidates of scene-sheet-1 and sketch-sheet-1 as style references, then the paper was made transparent with the ink conversion, then a fixed colour mapping set one sepia line colour and kept the alpha of each pixel",
+      "sourceGameImageInput": false,
+      "review": "Cathedral scenes 5 to 8. The agent checked the travellers and the archbishop against scene-sheet-1, the edges, and the cell lines. The model drew almost no red chalk on the door, so the whole sheet is sepia. The user accepted it.",
+      "visualAcceptance": {
+        "status": "accepted",
+        "by": "user"
+      }
+    },
+    {
+      "id": "scene-sheet-3",
+      "file": "public/assets/original/scene-sheet-3.png",
+      "sha256": "463f6a5e73bd07aa6c1f2676de56549efcd155d55228d7309b0498c0d6bc08e7",
+      "bytes": 5039208,
+      "width": 2304,
+      "height": 1536,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "scene-sheet-3",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; four quest scenes drawn on white paper in one request with the candidates of scene-sheet-2 and scene-sheet-1 as style references, then the paper was made transparent with the ink conversion, then a fixed colour mapping set one sepia line colour and kept the alpha of each pixel, and kept red chalk only in the door cell and the Easter cell",
+      "sourceGameImageInput": false,
+      "review": "Cathedral scene 9, Ionatan's dinner, the meal of Mina and Avram, and the Easter baskets. The agent checked each identity, the sleeping archbishop, the red chalk on the eggs and the ribbon, the edges, and the cell lines. The user accepted it.",
       "visualAcceptance": {
         "status": "accepted",
         "by": "user"
       }
     }
   ],
-  "note": "The game uses only project-generated images. The mascots use a generated chat atlas from the references list. The core portraits use a revision of a generated candidate. front-room-00 and courtyard-13 use generated room references. The decoration paintings use generated design references. Each later room state edits the previous state of its area. Each composite retains only the changed region. The board-clutter atlas uses chat generation and cell corrections. Five pencil sketches, four quest scenes, and the second regulars atlas revise their previous versions, and the references list keeps each previous version. The 16 food atlases use alpha cuts, moves, box clears, and cell copies between candidates, without painted pixels. The two rat sheets use generated identity references from the references list. The thief rat sheet uses a cell trim, without painted pixels. This record preserves the source and review evidence of the current assets. This record does not give legal clearance.",
+  "note": "The game uses only project-generated images. The mascots use a generated chat atlas from the references list. The core portraits use a revision of a generated candidate. front-room-00 and courtyard-13 use generated room references. The decoration paintings use generated design references. Each later room state edits the previous state of its area. Each composite retains only the changed region. The board-clutter atlas uses chat generation and cell corrections. The second regulars atlas revises its previous version, and the references list keeps that version. Each pencil sheet is drawn in one request, so that its drawings share one hand. The 16 food atlases use alpha cuts, moves, box clears, and cell copies between candidates, without painted pixels. The two rat sheets use generated identity references from the references list. The thief rat sheet uses a cell trim, without painted pixels. This record preserves the source and review evidence of the current assets. This record does not give legal clearance.",
   "references": [
     {
       "id": "counter-band",
@@ -1925,58 +1355,6 @@
       "use": "The generated reference for the guest portrait spacing correction. The game does not ship this reference."
     },
     {
-      "id": "scene-cathedral-4-transparent",
-      "sha256": "5f5f9ba7630331cb700b073077ac1ca69e05be759a3e8610d68bc94d4da1a947",
-      "bytes": 2542796,
-      "width": 1536,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "scene-cathedral-4-transparent",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality",
-      "sourceGameImageInput": false,
-      "use": "The composition reference of scene-cathedral-4. The game does not ship it."
-    },
-    {
-      "id": "sketch-sorin-chat",
-      "sha256": "486cb83069178d8a693e2806914e66b5dcce8b63a1fb6463d352f100946d0e27",
-      "bytes": 1405190,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-sorin",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "use": "The previous Sorin sketch, the drawing that sketch-sorin revises. The game does not ship it."
-    },
-    {
-      "id": "sketch-catalina-chat",
-      "sha256": "68cb026c089bbaa6eb5b4f41a7fb191ceae2edbd9098387dd13fab822f296f35",
-      "bytes": 2128317,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-catalina",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "use": "The previous Cătălina sketch, the drawing that sketch-catalina revises. The game does not ship it."
-    },
-    {
-      "id": "sketch-mina-chat",
-      "sha256": "7ba5b0ee8d5ea2f29841a1319369ad026382fc338264fa4b13633073cdb648ec",
-      "bytes": 1128874,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-mina",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "use": "The previous Mina sketch, the drawing that sketch-mina revises. The game does not ship it."
-    },
-    {
       "id": "regulars-2-painter-cuff",
       "sha256": "fba50332fc97340580bae7903297c084e4a29d5187832fc14686dbaf96f2c433",
       "bytes": 4108752,
@@ -1988,84 +1366,6 @@
       "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality",
       "sourceGameImageInput": false,
       "use": "The previous regulars atlas, with paint on Dorian's sleeve. regulars-2 keeps every pixel of it outside that sleeve. The game does not ship it."
-    },
-    {
-      "id": "sketch-bran-chat",
-      "sha256": "b5a20f1fd8150d015846a88a51e32d42de1f84f784539d8d7cff4f16d38a8773",
-      "bytes": 1964496,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-bran",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "use": "The previous Bran sketch, the drawing that sketch-bran revises. The game does not ship it."
-    },
-    {
-      "id": "scene-cathedral-4-chat",
-      "sha256": "22278c4724707bb710059125eb65825e84c23e0ce1694a94d194ca335138f947",
-      "bytes": 1744492,
-      "width": 1536,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "scene-cathedral-4",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "use": "The previous goblin scene, the style reference of scene-cathedral-4. The game does not ship it."
-    },
-    {
-      "id": "scene-cathedral-6-chat",
-      "sha256": "e828d330d97d0e5abf8d203757ba49f53f9f0759c392140e958ebbf03322f46f",
-      "bytes": 2095087,
-      "width": 1536,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "scene-cathedral-6",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "use": "The previous library scene, the drawing that scene-cathedral-6 revises. The game does not ship it."
-    },
-    {
-      "id": "scene-cathedral-9-chat",
-      "sha256": "64e990d94c1fbbc3633135a465b20a0f1e13751de0c8ef1210525ffe64adeebd",
-      "bytes": 2095423,
-      "width": 1536,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "scene-cathedral-9",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "use": "The previous escape scene, the drawing that scene-cathedral-9 revises. The game does not ship it."
-    },
-    {
-      "id": "scene-mina-avram-meal-chat",
-      "sha256": "b65bac710a695c695129794ada57ed37f48c730a438243f33c46bb17b62629bc",
-      "bytes": 2382481,
-      "width": 1536,
-      "height": 1024,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "scene-mina-avram-meal",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "use": "The previous meal scene, the drawing that scene-mina-avram-meal revises. The game does not ship it."
-    },
-    {
-      "id": "sketch-victor-chat",
-      "sha256": "d8b226d4eb969cfdf13df348a30883769c7ef07006f262392caa2c2614cd6a94",
-      "bytes": 1434405,
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "hasTransparency": true,
-      "promptId": "sketch-victor",
-      "generation": "Built-in image_gen.imagegen. The generated candidate is copied unchanged.",
-      "sourceGameImageInput": false,
-      "use": "The previous Victor sketch, which sketch-victor keeps outside the mouth region. The game does not ship it."
     },
     {
       "id": "rat-thief-reference",
@@ -2105,6 +1405,19 @@
       "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a masked edit of the previous regulars-3 for the bottom-left cell",
       "sourceGameImageInput": false,
       "use": "The candidate of Bela's portrait. regulars-3 takes Bela from it, and sketch-bela uses it as the identity reference. The game does not ship it."
+    },
+    {
+      "id": "sketch-sheet-pilot",
+      "sha256": "6f176165a959d542c58f6ae45f92578948efdaff9ff03441bbef2c3dafb0a87f",
+      "bytes": 4219994,
+      "width": 1920,
+      "height": 1920,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "sketch-sheet-pilot",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a 2 by 2 sheet drawn on white paper, with two earlier pilot sheets of this task as references",
+      "sourceGameImageInput": false,
+      "use": "The 2 by 2 pilot sheet whose style the user chose. sketch-sheet-1 copies its style. The game does not ship it."
     }
   ]
 }

@@ -1,4 +1,4 @@
-// Make masks and region composites for the painted room states, and convert and patch pencil drawings.
+// Make masks and region composites for the painted room states, and convert, patch, and colour pencil drawings.
 // A provider can change pixels outside a mask.
 // The composite preserves the previous state outside the region and its soft edge.
 // It uses generated pixels inside that region.
@@ -129,6 +129,45 @@ export async function paperToAlpha(drawing: Buffer, floor = 0.04) {
   return { bytes: await sharp(pixels, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toBuffer(), paper, floor };
 }
 
+// Every pencil line has one sepia colour, from SEPIA_DARK to SEPIA_LIGHT. The transparency of a line gives its light and dark.
+export const SEPIA_DARK = [108, 48, 12], SEPIA_LIGHT = [205, 178, 150];
+const luminance = (r: number, g: number, b: number) => 0.299 * r + 0.587 * g + 0.114 * b;
+/** Red chalk: a red with little yellow in it, laid with some weight. A faint orange-brown pencil stroke is never red. */
+export const isRedChalk = (r: number, g: number, b: number, a: number) =>
+  a >= 60 && r > 120 && r > 1.6 * g && r > 1.6 * b && (r - Math.max(g, b)) / r > 0.45 && g / Math.max(1, r) < 0.55 && Math.abs(g - b) < 40;
+/** Gold: a bright, saturated, nearly opaque yellow, as in a flame or a crown. A faint pencil stroke is never gold. */
+export function isGold(r: number, g: number, b: number, a: number) {
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  if (a < 150 || max < 200 || (max - min) / max < 0.6 || max !== r) return false;
+  const hue = 60 * ((g - b) / (max - min));
+  return hue >= 35 && hue <= 60;
+}
+
+/**
+ * Give each mark of a transparent pencil drawing the one sepia colour, at the darkness of its own colour. The mean darkness
+ * of the drawn lines maps to SEPIA_DARK; lighter marks blend toward SEPIA_LIGHT. Alpha does not change. Red chalk and gold
+ * keep their colour only when the drawing may show them.
+ */
+export async function sepiaLines(drawing: Buffer, keepRed: boolean, keepGold: boolean) {
+  const { data, info } = await sharp(drawing).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  let mean = 0, weight = 0;
+  for (let index = 0; index < data.length; index += 4) {
+    const alpha = data[index + 3];
+    if (alpha >= 96) { mean += luminance(data[index], data[index + 1], data[index + 2]) * alpha; weight += alpha; }
+  }
+  mean /= weight;
+  let kept = 0;
+  for (let index = 0; index < data.length; index += 4) {
+    const [r, g, b, a] = [data[index], data[index + 1], data[index + 2], data[index + 3]];
+    if (!a) continue;
+    if ((keepRed && isRedChalk(r, g, b, a)) || (keepGold && isGold(r, g, b, a))) { kept++; continue; }
+    const darkness = luminance(r, g, b) / mean, blend = Math.min(1, (darkness - 1) / 2);
+    for (let channel = 0; channel < 3; channel++)
+      data[index + channel] = Math.max(0, Math.min(255, Math.round(darkness <= 1 ? SEPIA_DARK[channel] * darkness : SEPIA_DARK[channel] + blend * (SEPIA_LIGHT[channel] - SEPIA_DARK[channel]))));
+  }
+  return { bytes: await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toBuffer(), kept };
+}
+
 /**
  * Lay a transparent pencil drawing on white paper. Pad each side to the next multiple of 16.
  * Then the provider edits the drawing at its own scale, and the copy resamples no pixel.
@@ -164,6 +203,7 @@ async function main() {
     options: {
       size: { type: 'string' }, box: { type: 'string', multiple: true }, ellipse: { type: 'string', multiple: true }, polygon: { type: 'string', multiple: true }, out: { type: 'string' },
       base: { type: 'string' }, candidate: { type: 'string' }, mask: { type: 'string' }, feather: { type: 'string' }, ramp: { type: 'boolean' },
+      input: { type: 'string' }, 'keep-red': { type: 'boolean' }, 'keep-gold': { type: 'boolean' },
     },
   });
   if (command === 'mask' && values.size && (values.box || values.ellipse || values.polygon) && values.out) {
@@ -244,8 +284,24 @@ async function main() {
     const result = { baseSha256: drawing.sha256, paperSha256: paper.sha256, candidateSha256: candidate.sha256, maskSha256: sha256(mask), feather, sourceSha256: sha256(bytes) };
     await writeFile(path.join(out, 'patch.json'), `${JSON.stringify(result, null, 2)}\n`, { flag: 'wx' });
     console.log(JSON.stringify({ patch: path.join(out, 'patch.png'), ...result }));
+  } else if (command === 'sepia' && values.input && values.out) {
+    // The input is the ink.png or the patch.png of a pencil drawing, next to its record.
+    const input = await resolveWithAncestors(values.input), name = path.basename(input);
+    const record = { 'ink.png': 'ink.json', 'patch.png': 'patch.json' }[name];
+    if (!isInside(await resolveWithAncestors(TASK_ROOT), input) || !record || !(await pathExists(path.join(path.dirname(input), record))))
+      throw new Error('Give the ink.png or the patch.png of a pencil drawing, with its record.');
+    const drawing = await readFile(input);
+    const out = await newOutput(values.out);
+    const keepRed = values['keep-red'] === true, keepGold = values['keep-gold'] === true;
+    const { bytes, kept } = await sepiaLines(drawing, keepRed, keepGold);
+    await mkdir(out, { recursive: true });
+    await writeFile(path.join(out, 'sepia.png'), bytes, { flag: 'wx' });
+    const result = { inputSha256: sha256(drawing), dark: SEPIA_DARK, light: SEPIA_LIGHT, keepRed, keepGold, keptAccentPixels: kept, sourceSha256: sha256(bytes) };
+    await writeFile(path.join(out, 'sepia.json'), `${JSON.stringify(result, null, 2)}
+`, { flag: 'wx' });
+    console.log(JSON.stringify({ sepia: path.join(out, 'sepia.png'), ...result }));
   } else {
-    throw new Error('Use "mask --size WxH [--box left,top,width,height] [--ellipse x,y,rx,ry] [--polygon x1,y1,x2,y2,x3,y3,...] --out <file>", "composite --base <png> --candidate <candidate.png> --mask <png> --out <dir> [--feather 24] [--ramp]", "ink --candidate <candidate.png> --out <dir>", "paper --base <drawing png> --out <dir>", or "patch --base <paper.png> --candidate <candidate.png> --mask <png> --out <dir> [--feather 8]".');
+    throw new Error('Use "mask --size WxH [--box left,top,width,height] [--ellipse x,y,rx,ry] [--polygon x1,y1,x2,y2,x3,y3,...] --out <file>", "composite --base <png> --candidate <candidate.png> --mask <png> --out <dir> [--feather 24] [--ramp]", "ink --candidate <candidate.png> --out <dir>", "paper --base <drawing png> --out <dir>", "patch --base <paper.png> --candidate <candidate.png> --mask <png> --out <dir> [--feather 8]", or "sepia --input <ink.png or patch.png> --out <dir> [--keep-red] [--keep-gold]".');
   }
 }
 

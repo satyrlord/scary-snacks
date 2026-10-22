@@ -965,7 +965,7 @@ test('only approved assets load from the active root or Pages prefix, and only t
   expect(rooms()).toEqual(['front-room-00']);
   await ticket(page,welcome).locator('.ticket-face').click();
   const sketch=page.locator('#modal .quest-sketch');
-  expect((await naturalSize(sketch))[0]).toBe(768);
+  expect((await naturalSize(sketch))[0]).toBe(672);
   for(const id of ['parchment-page','sketch-mara'])await expect.poll(()=>loaded.some(path=>path.includes(`/assets/variants/${id}-`))).toBe(true);
   await page.getByRole('button',{name:'Close dialog'}).click();
   await page.getByRole('button',{name:/The recipe book/}).click();await expect(page.locator('.recipe-item')).toHaveCount(Object.values(data.items).filter(item=>!item.generator).length);await page.getByRole('button',{name:'Close dialog'}).click();

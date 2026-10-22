@@ -46,9 +46,9 @@ The status column gives the state of each specification. The status of a specifi
 | 012 | [Staple chains and mixed dishes](012-staple-chains.md) | Implemented | None |
 | 013 | [Bistro day and night](013-day-and-night.md) | Implemented | 012 |
 | 014 | [Repeating quests](014-repeating-quests.md) | Implemented | 010, 013 |
-| 015 | [Calendar and act 1 dates](015-calendar.md) | Proposed | 013, 014 |
+| 015 | [Calendar and act 1 dates](015-calendar.md) | Proposed | 013, 014, and 017 in the same change |
 | 016 | [The prologue](016-prologue.md) | Proposed | 015, 017 for the pickle barrel |
-| 017 | [Seasons and holidays](017-seasons-and-holidays.md) | Proposed | 012, 014, 015 |
+| 017 | [Seasons and holidays](017-seasons-and-holidays.md) | Proposed | 012, 014, and 015 in the same change |
 
 A dependency is a specification that the complete feature needs. A reference to another specification is not always a dependency. Only this register lists the dependencies.
 

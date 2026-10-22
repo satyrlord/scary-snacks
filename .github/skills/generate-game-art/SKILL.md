@@ -61,8 +61,8 @@ The next table lists the layouts of the Portable Network Graphics (PNG) masters 
 | `rat-hole.png` | The rat hole blocker | One image, square, 1024 by 1024 pixels | Transparent |
 | `night-sky.png` | The night sky behind the window glass | One image, 2:1, 2048 by 1024 pixels | Opaque |
 | `parchment-page.png` | The paper of the quest dialogs | One tileable square, 1254 by 1254 pixels | Opaque |
-| `sketch-<character>.png` | The pencil sketch of one character | One image, square, at least 1024 pixels | Transparent |
-| `scene-<name>.png` | The pencil scene of one quest | One image, 3:2, 1536 by 1024 pixels | Transparent |
+| `sketch-sheet-<n>.png` | Eight character sketches | 4 columns by 2 rows, 2688 by 1344 pixels; each cell is 672 pixels square | Transparent |
+| `scene-sheet-<n>.png` | Four quest scenes | 2 columns by 2 rows, 2304 by 1536 pixels; each cell is 1152 by 768 pixels | Transparent |
 
 `AGENTS.md` gives the rules for the masters, the variants, and their records.
 Keep each candidate in its task folder `analysis/art-generation/<task>/` until the user decides.

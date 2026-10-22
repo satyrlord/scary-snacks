@@ -13,41 +13,16 @@ export const imageVariants = {
   'timber-tabletop': { widths: [1024, 1536], formats: ['avif', 'webp'] },
   // The page repeats the parchment at 512px. The native size keeps it sharp at more than twice the device pixel ratio.
   'parchment-page': { widths: [1254], formats: ['webp'] },
-  'sketch-mara': { widths: [768], formats: ['webp'] },
-  'sketch-ilie': { widths: [768], formats: ['webp'] },
-  'sketch-eszter': { widths: [768], formats: ['webp'] },
-  'sketch-sorin': { widths: [768], formats: ['webp'] },
-  'sketch-adrian': { widths: [768], formats: ['webp'] },
-  'sketch-monica': { widths: [768], formats: ['webp'] },
-  'sketch-janos': { widths: [768], formats: ['webp'] },
-  'sketch-ionatan': { widths: [768], formats: ['webp'] },
-  'sketch-vlad': { widths: [768], formats: ['webp'] },
-  'sketch-elisabeta': { widths: [768], formats: ['webp'] },
-  'sketch-mina': { widths: [768], formats: ['webp'] },
-  'sketch-avram': { widths: [768], formats: ['webp'] },
-  'sketch-dochia': { widths: [768], formats: ['webp'] },
-  'sketch-victor': { widths: [768], formats: ['webp'] },
-  'sketch-ana': { widths: [768], formats: ['webp'] },
-  'sketch-costel': { widths: [768], formats: ['webp'] },
-  'sketch-sanziana': { widths: [768], formats: ['webp'] },
-  'sketch-dorian': { widths: [768], formats: ['webp'] },
-  'sketch-ileana': { widths: [768], formats: ['webp'] },
-  'sketch-cezar': { widths: [768], formats: ['webp'] },
-  'sketch-catalina': { widths: [768], formats: ['webp'] },
-  'sketch-bran': { widths: [768], formats: ['webp'] },
-  'sketch-bela': { widths: [768], formats: ['webp'] },
+  // The pencil drawings are drawn in sheets so that they share one hand. The build cuts each named cell into its own variant.
+  // A sketch floats at up to 210px; its native 672px cell covers three times the device pixel ratio.
+  'sketch-sheet-1': { widths: [672], formats: ['webp'], cells: { columns: 4, rows: 2, names: ['sketch-adrian', 'sketch-avram', 'sketch-bran', 'sketch-costel', 'sketch-eszter', 'sketch-ilie', 'sketch-sorin', 'sketch-vlad'] } },
+  'sketch-sheet-2': { widths: [672], formats: ['webp'], cells: { columns: 4, rows: 2, names: ['sketch-ana', 'sketch-bela', 'sketch-catalina', 'sketch-cezar', 'sketch-dochia', 'sketch-dorian', 'sketch-elisabeta', 'sketch-ileana'] } },
+  'sketch-sheet-3': { widths: [672], formats: ['webp'], cells: { columns: 4, rows: 2, names: ['sketch-ionatan', 'sketch-janos', 'sketch-mara', 'sketch-mina', 'sketch-monica', 'sketch-sanziana', 'sketch-victor', 'sketch-mara-stove'] } },
   // Landscape scenes fill the reading column at up to 460px. The 1024px width covers twice the device pixel ratio.
-  'scene-cathedral-1': { widths: [1024], formats: ['webp'] },
-  'scene-cathedral-2': { widths: [1024], formats: ['webp'] },
-  'scene-cathedral-3': { widths: [1024], formats: ['webp'] },
-  'scene-cathedral-4': { widths: [1024], formats: ['webp'] },
-  'scene-cathedral-5': { widths: [1024], formats: ['webp'] },
-  'scene-cathedral-6': { widths: [1024], formats: ['webp'] },
-  'scene-cathedral-7': { widths: [1024], formats: ['webp'] },
-  'scene-cathedral-8': { widths: [1024], formats: ['webp'] },
-  'scene-cathedral-9': { widths: [1024], formats: ['webp'] },
-  'scene-ionatan-dinner': { widths: [1024], formats: ['webp'] },
-  'scene-mina-avram-meal': { widths: [1024], formats: ['webp'] },
+  // The game shows no quest for the last cell of the third sheet, the Easter baskets, so that cell has no variant.
+  'scene-sheet-1': { widths: [1024], formats: ['webp'], cells: { columns: 2, rows: 2, names: ['scene-cathedral-1', 'scene-cathedral-2', 'scene-cathedral-3', 'scene-cathedral-4'] } },
+  'scene-sheet-2': { widths: [1024], formats: ['webp'], cells: { columns: 2, rows: 2, names: ['scene-cathedral-5', 'scene-cathedral-6', 'scene-cathedral-7', 'scene-cathedral-8'] } },
+  'scene-sheet-3': { widths: [1024], formats: ['webp'], cells: { columns: 2, rows: 2, names: ['scene-cathedral-9', 'scene-ionatan-dinner', 'scene-mina-avram-meal', null] } },
   // The page draws the runner at most 14px tall through an SVG pattern, which takes one format.
   'embroidered-runner': { widths: [384], formats: ['webp'] },
   // The food atlases have 512px cells. The 1024px width gives 256px cells.
@@ -130,14 +105,21 @@ async function buildImageVariants() {
   for (const asset of provenance.assets) {
     const master = await readFile(resolve(root, asset.file));
     if (sha256(master) !== asset.sha256) throw new Error(`${asset.id}: the master does not match its provenance record.`);
-    const plan = imageVariants[asset.id as keyof typeof imageVariants];
-    for (const width of plan.widths) {
-      for (const format of plan.formats) {
-        const resized = sharp(master).resize({ width });
-        const { data, info } = await (format === 'avif' ? resized.avif(encoderSettings.avif) : resized.webp(encoderSettings.webp)).toBuffer({ resolveWithObject: true });
-        const file = `${variantDirectory}/${asset.id}-${info.width}x${info.height}.${format}`;
-        files.set(file, data);
-        variants.push({ file, master: asset.id, masterSha256: asset.sha256, width: info.width, height: info.height, format, bytes: data.length, sha256: sha256(data) });
+    const plan: { widths: readonly number[]; formats: readonly ('avif' | 'webp')[]; cells?: { columns: number; rows: number; names: readonly (string | null)[] } } = imageVariants[asset.id as keyof typeof imageVariants];
+    const { width: sheetWidth, height: sheetHeight } = await sharp(master).metadata();
+    const parts = plan.cells
+      ? plan.cells.names.flatMap((name, index) => name ? [{ name, region: { left: (index % plan.cells!.columns) * sheetWidth / plan.cells!.columns, top: Math.floor(index / plan.cells!.columns) * sheetHeight / plan.cells!.rows, width: sheetWidth / plan.cells!.columns, height: sheetHeight / plan.cells!.rows } }] : [])
+      : [{ name: asset.id, region: undefined }];
+    for (const { name, region } of parts) {
+      const source = region ? await sharp(master).extract(region).toBuffer() : master;
+      for (const width of plan.widths) {
+        for (const format of plan.formats) {
+          const resized = sharp(source).resize({ width });
+          const { data, info } = await (format === 'avif' ? resized.avif(encoderSettings.avif) : resized.webp(encoderSettings.webp)).toBuffer({ resolveWithObject: true });
+          const file = `${variantDirectory}/${name}-${info.width}x${info.height}.${format}`;
+          files.set(file, data);
+          variants.push({ file, master: asset.id, masterSha256: asset.sha256, width: info.width, height: info.height, format, bytes: data.length, sha256: sha256(data) });
+        }
       }
     }
   }
