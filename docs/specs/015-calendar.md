@@ -139,6 +139,7 @@ The ticket rule does not change: the first three open quests in authored order g
 So a dated quest that opens can take the ticket of an open quest that comes later in authored order. That quest then waits, and its dishes stay on the board.
 The repeating quest already follows this rule.
 The data authors each dated quest first among the quests that open after its preparation, except a booked quest, which stays last.
+Mara's "Three months" is another exception. It comes after her other quests in the same preparation window, so it does not hold up her line.
 So a holiday quest gets its ticket before the holiday, and the player can cook ahead.
 
 ## The supper on 1 May
@@ -180,7 +181,7 @@ Act 1 needs more quests to fill 76 days. The repeating quests fill only the gaps
 - Seasonal repeating quests of spec 017 join the cycle only in their season.
 
 The repeating quests fill at most 20% of the merges of act 1.
-Act 1 has 88 campaign quests, five March quests, and the supper quest.
+Act 1 has 89 campaign quests, five March quests, and the supper quest.
 The cycle has seven repeating quests, including the seasonal repeating quests.
 
 Some current quests do not fit the season of act 1. Spec 017 gives the rule. This spec moves them out of act 1.
@@ -268,6 +269,7 @@ Spec 017 gives the customs of the holidays.
 | `eszter-carnival` | Eszter | 4 | Thursday 27 February | Sunday 2 March, Carnival Sunday | 1 Papanași, 1 Bulz, and 1 Cheese pie | The last feast before Lent. Eszter says that papanași are the doughnuts of her farsang, with better manners. |
 | `sorin-womens-day` | Sorin and Ana | 5 | Wednesday 5 March | Saturday 8 March, Women's Day | 2 Papanași, 2 Linden teas, and 1 Pogăcele | Sorin brings sweets to the night ward. Ana accepts them for all the nurses. |
 | `costel-mucenici` | Costel | 6 | Thursday 6 March | Sunday 9 March, the Forty Martyrs | 2 Mucenici and 1 Socată | The custom gives forty small glasses. Costel's clock counts them and stops at nine. |
+| `mara-three-months` | Mara, with Ilie | 8 | Thursday 13 March | Saturday 15 March, the three-month memorial | 1 Colivă, 2 Colaci, and 1 Pickled cabbage | Mamaia Paraschiva died on 20 December. Three months fall on 20 March. The family holds the memorial on the Saturday before, the second Saturday of Lent, a Saturday of the dead. The meal keeps the Lenten fast. |
 | `ilie-annunciation` | Ilie | 12 | Saturday 22 March | Tuesday 25 March, the Annunciation | 2 Fresh trout and 1 White beans | The first fish of Lent. Ilie's grandmother never missed it. |
 | `sanziana-palm-sunday` | Sânziana | 17 | Thursday 10 April | Sunday 13 April, Palm Sunday | 2 Fried trout, 2 Fruit teas, and 2 Plum dumplings | Sânziana sells willow catkins at the church gate and buys fish for her sisters. |
 | `mara-easter-baskets` | Mara, Eszter, and Sorin | 19 | Wednesday 16 April | Saturday 19 April, Holy Saturday | 2 Pască, 2 Red eggs, 2 Cozonac, and 1 Drob | The baskets for the blessing at midnight. Ilie guards the baskets and does not taste, because Lent is not over. |

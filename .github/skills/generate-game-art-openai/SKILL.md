@@ -87,6 +87,7 @@ The helper reads each other value from the contract of the asset:
 | `night-sky` | `2048x1024` | `opaque` | One image, 2:1, the night sky behind the window glass |
 | `sketch-sheet-1` to `sketch-sheet-3` | `2688x1344` | `opaque`, then `ink` and `sepia` | 4 columns by 2 rows, eight character sketches in one request |
 | `scene-sheet-1` to `scene-sheet-5` | `2304x1536` | `opaque`, then `ink` and `sepia` | 2 columns by 2 rows, four quest scenes in one request |
+| `scene-sheet-6` | `2304x1536` | `opaque`, then `ink` and `sepia` | 2 columns by 2 rows; the quest scenes of the mourning year; the cells after the last scene stay blank |
 | `notebook-pages` | `2304x768` | `opaque` | 2 columns by 1 row, two painted notebook pages |
 | `family-photos` | `2048x1024` | `transparent`, then `halo` | 2 columns by 1 row, two old photographs |
 | `family-portraits` | `1536x1536` | `transparent`, then `halo` | 2 columns by 2 rows; the lower cells stay fully transparent |

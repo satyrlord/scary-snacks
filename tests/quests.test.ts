@@ -13,8 +13,8 @@ const floor = data.economy.recoveryFloor;
 
 test('every neighbour asks across the whole campaign, and every quest except the supper opens before the last preparation', () => {
   assert.deepEqual(questProblems(data), []);
-  assert.equal(data.quests.length, 111);
-  assert.equal(data.quests.filter(campaignQuest).length, 88);
+  assert.equal(data.quests.length, 112);
+  assert.equal(data.quests.filter(campaignQuest).length, 89);
   assert.equal(data.quests.filter(quest => quest.march).length, 5);
   assert.equal(data.quests.filter(quest => quest.act).length, 9);
   assert.equal(data.quests.filter(quest => quest.repeating).length, 7);
@@ -196,7 +196,7 @@ test('traveller quests return in one shared sequence of provisions and meals tha
 
 test('each quest of a core character is a short exchange at its opening and at its completion, and the supper has no completion', () => {
   const core = ['mara', 'ilie', 'eszter', 'sorin'], quests = data.quests.filter(quest => core.includes(quest.character) && !quest.repeating);
-  assert.equal(quests.length, 38);
+  assert.equal(quests.length, 39);
   for (const quest of quests) {
     // The supper earns the finale in place of a reply.
     assert.ok(quest.opening.length >= 2 && (quest.finale ? !quest.completion.length : quest.completion.length >= 2), `${quest.id} needs at least two turns in each scene.`);
@@ -219,7 +219,10 @@ test('a delivery pays once, a missing dish keeps the quest open, and a reload re
   const before = structuredClone(play.state);
   play.act({ type: 'deliverQuest', id });
   assert.equal(play.state.coins, 7 + quest.reward);
-  for (const key of ['taskIndex', 'decorations', 'discovered'] as const) assert.deepEqual(play.state[key], before[key]);
+  for (const key of ['taskIndex', 'decorations'] as const) assert.deepEqual(play.state[key], before[key]);
+  // Only the dishes of a quest that takes a freed ticket enter the recipe book.
+  const ticketed = resolveQuests(play.state, data).filter(view => view.status === 'active').flatMap(view => view.quest.requirements.map(({ item }) => item));
+  assert.ok(play.state.discovered.every(code => before.discovered.includes(code) || ticketed.includes(code)));
   assert.deepEqual(play.state.completedQuests, [...before.completedQuests, id]);
   assert.equal(resolveQuests(play.state, data).find(view => view.quest.id === id)!.status, 'complete');
   const reloaded: GameState = JSON.parse(JSON.stringify(play.state));
@@ -461,6 +464,18 @@ test('every quest is one meal for each eater, unless its character orders provis
   assert.deepEqual(sized('mara-welcome', [{ item: 'herbs_2', quantity: 3 }]), ['mara-welcome: asks for more than one meal for each eater.']);
   assert.deepEqual(sized('mina-avram-search', [{ item: 'vegetables_5', quantity: 2 }, { item: 'vegetables_4', quantity: 2 }, { item: 'dairy_5', quantity: 2 }]), []);
   assert.deepEqual(sized('dochia-sheepskin', [{ item: 'corn_4', quantity: 6 }]), []);
+});
+
+test('the three-month memorial follows the other quests of Mara after preparation 8, so they open with the payment', () => {
+  const memorial = 'mara-three-months';
+  assert.deepEqual(questPredecessors(data.quests.find(quest => quest.id === memorial)!, data).slice(-2), ['mara-table', 'mara-candles']);
+  let state = afterMarch(opened(8));
+  assert.equal(status(state, 'mara-table'), 'active');
+  state = deliver(state, 'mara-table');
+  assert.notEqual(status(state, 'mara-candles'), 'locked');
+  assert.equal(status(state, memorial), 'locked');
+  state = deliver(state, 'mara-candles');
+  assert.notEqual(status(state, memorial), 'locked');
 });
 
 test('an act 1 quest cannot depend on a later act, a March quest, or a delivery that is not recorded', () => {

@@ -4,8 +4,8 @@ Each specification in this folder records one feature of Scary Snacks: its rules
 
 The implemented specifications cover the prologue, act 1, its calendar, and its seasons.
 
-The game has a prologue of seven events with 16 event quests, six chapters, 24 preparations, and 111 authored quests.
-The quests are 88 campaign quests of act 1, five March quests, nine quests of later acts, the supper quest, the recovery quest, and seven repeating quests.
+The game has a prologue of seven events with 16 event quests, six chapters, 24 preparations, and 112 authored quests.
+The quests are 89 campaign quests of act 1, five March quests, nine quests of later acts, the supper quest, the recovery quest, and seven repeating quests.
 
 ## File names
 
@@ -68,7 +68,7 @@ A dependency is a specification that the complete feature needs. A reference to 
 
 ## Shared save compatibility
 
-Current saves use game state version 16 in envelope version 15 at `scary-snacks-save-v15`.
+Current saves use game state version 17 in envelope version 16 at `scary-snacks-save-v16`.
 The game supports only this format.
 Load reads only this key.
 If no current save exists, the game starts a new campaign.

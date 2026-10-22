@@ -60,7 +60,7 @@ Art candidates are not in the published assets.
 
 ## Art provenance
 
-The game ships image variants from 82 masters.
+The game ships image variants from 83 masters.
 [Asset provenance](asset-provenance.json) records each master, its references, processing, review limits, and hash.
 [Asset prompts](asset-prompts.json) preserves the exact generation prompts.
 These records describe the source of the current assets. These records do not give legal clearance.
@@ -86,7 +86,7 @@ The OpenAI Images application programming interface (API) supplies these assets 
 - The 25 room states, with project-generated room paintings as the base references.
 - The two decoration paintings, with project-generated design references.
 - The supper painting, with the final courtyard state and project-generated portraits as references.
-- The three sheets of character sketches and the five sheets of quest scenes, with earlier sheets of the same task as style references.
+- The three sheets of character sketches and the six sheets of quest scenes, with earlier sheets of the same task as style references.
 - The 18 food atlases, with two accepted food atlases of the same set as style references.
 - The three window views, with a front-room painting as their style reference.
 - The two holiday images, as masked edits of room states.

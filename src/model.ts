@@ -168,7 +168,7 @@ export type NightReport = {
   gift: (Placed & { first: boolean }) | null; departed: string[]; purse: number; seen: boolean;
 };
 export type GameState = {
-  version: 16; board: (Cell | null)[];
+  version: 17; board: (Cell | null)[];
   /** The current event of the prologue, or null in act 1. During the prologue, the clock stays at day 1 with no merges. */
   prologue: { event: number } | null;
   /** The purse. Below zero, it is a debt in the notebook of the village shop. */

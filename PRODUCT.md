@@ -53,7 +53,7 @@ The board has six columns and seven rows. The game has these authored parts:
 - 14 ingredient sources (generators), one for each chain
 - 25 characters, including Mara's parents, who speak only in the prologue
 - a prologue of seven events with 16 event quests
-- 111 quests: 88 campaign quests of act 1, five March quests, nine quests of later acts, one supper quest, one recovery quest, and seven repeating quests
+- 112 quests: 89 campaign quests of act 1, five March quests, nine quests of later acts, one supper quest, one recovery quest, and seven repeating quests
 - 24 preparations in six chapters
 - a calendar of 76 days, from Saturday 15 February to Thursday 1 May
 
@@ -78,7 +78,7 @@ The menu value of a quest is the sum of the prices of its portions. In act 1, ev
 
 Each preparation has a work scope, a material cost, a labour cost, and an estimate of active person-hours. Its coin cost is the material cost plus the labour cost. The cost does not rise with the position of the preparation in the story. As a reference scale, the cost model uses one coin for about one Romanian leu. The model includes reuse of the furniture and supplies that the bistro has. The model does not include running costs. The [economy record](docs/economy.md) gives the quantities, the portions, the primary references, and the assumptions.
 
-A campaign quest opens after a named preparation, or at the start of act 1. A campaign quest that opens after preparation N is necessary for preparation N + 1. Each preparation needs every campaign quest that opens before it. The player delivers all 88 campaign quests of act 1 before the supper quest. A campaign quest can also have an opening date: "Calendar" gives its rules. The five quests of Dochia are March quests, and no preparation needs them. The nine quests of later acts stay in the game data with their act, and act 1 never opens them. A quest of a later act or a March quest is not an earlier quest of its character for a quest of act 1, and the quest-value check of the preparations does not count it.
+A campaign quest opens after a named preparation, or at the start of act 1. A campaign quest that opens after preparation N is necessary for preparation N + 1. Each preparation needs every campaign quest that opens before it. The player delivers all 89 campaign quests of act 1 before the supper quest. A campaign quest can also have an opening date: "Calendar" gives its rules. The five quests of Dochia are March quests, and no preparation needs them. The nine quests of later acts stay in the game data with their act, and act 1 never opens them. A quest of a later act or a March quest is not an earlier quest of its character for a quest of act 1, and the quest-value check of the preparations does not count it.
 
 A quest asks only for dishes that the player can place. When a quest gets its ticket, the player surely knows a set of dishes. Each dish of the quest is one merge beyond that set. Its parts, or the dish one stage below it, are in the recipe book. Otherwise, its source is on the board. The player surely knows the dishes of the initial board of act 1, the prepared dishes of the prologue boards, and the dishes of the prologue quests. The player also surely knows the dishes of each quest that surely had a ticket before. A March quest and a quest of a later act do not count for this rule. When a quest gets a ticket, its dishes enter the recipe book. The data check enforces this rule for every quest of act 1, including the supper.
 
@@ -129,7 +129,7 @@ The story journal (the journal) is a dialog that Story opens.
 
 The game checks the coins, the necessary quests, the free cell for an unlocked source, and the opening date of the chapter at the same time. A failed check changes nothing. A payment spends the coins once and completes one preparation. A quest prerequisite that is unknown or cyclic is not valid. The authored quests are in the order in which they open. Every campaign quest opens before the last preparation.
 
-Three quest tickets are on the counter. The first three open quests, in authored order, get the tickets. The other open quests wait without a ticket. The next open quest gets the first free ticket. A character has at most one open campaign quest, because each quest waits for the earlier quests of its character. An open repeating quest gets a ticket after the campaign quests. Among the quests that open after the same preparation, a dated quest comes first, a March quest comes after the other quests, and the quest of a booked guest comes last. So a holiday quest gets its ticket before its holiday. So the quests before the evening put the dishes of the dinner in the recipe book. While the recovery quest is open, it has a fourth ticket with a dashed edge.
+Three quest tickets are on the counter. The first three open quests, in authored order, get the tickets. The other open quests wait without a ticket. The next open quest gets the first free ticket. A character has at most one open campaign quest, because each quest waits for the earlier quests of its character. An open repeating quest gets a ticket after the campaign quests. Among the quests that open after the same preparation, a dated quest comes first, a March quest comes after the other quests, and the quest of a booked guest comes last. So a holiday quest gets its ticket before its holiday. So the quests before the evening put the dishes of the dinner in the recipe book. Mara's "Three months" is an exception: it comes after her other quests that open after the same preparation, so it does not hold up her line. While the recovery quest is open, it has a fourth ticket with a dashed edge.
 
 A ticket shows the portrait and the name of the character and the dishes. The ticket face is the portrait, the name, the title, and the dishes. A tap on the face opens the quest dialog. A ticket with more than four dishes shows the first three and the count of the others. On a wider screen, the ticket also shows the quest title and Deliver with its reward. A phone ticket has one target: its face. The phone player delivers, serves the supper, and lights the lanterns in the quest dialog. The quest dialog and the accessible name of the ticket face give the board count of each dish. On phones, each shown dish has its board count and required quantity. On a wider screen, a dish that needs more than one portion has that count. Deliver is available when the board holds every portion. The label of the ticket section is "Neighbour quests".
 
@@ -145,7 +145,7 @@ The quest dialog shows who asks and why. It also shows each dish with its board 
 - The quest is an outdoor quest, and the day is not a terrace day.
 - The quest is the supper, and the time is not from 20:00 on 1 May.
 
-Character introductions, quest dialogs, quest completion scenes, and quest replays use parchment pages. Each character has an individual pencil sketch, except Mara's parents. Victor never meets them, so their dialogs show an old family photograph of each parent in place of a sketch. A quest shows the sketch of its character. Mara's quests in the prologue show the illustration of their event. Mara has a second sketch at the stove, which shows for her cooking quests. The nine supply quests, Ionatan's dinner, Mina and Avram's meal, Mara's baskets for the Easter blessing, Mara's chimney sweep, Mara's Easter of the Blajini, Bela's snowman, and Costel's icicle clock are exceptions: they show their own scene illustrations. The illustration stays with the quest through speaker changes and journal replays. Introductions show the individual character sketch. Other story scenes keep their usual presentation. Victor draws these sketches while he waits for his meal. He is an anatomy student, and he studies anatomy, proportions, and perspective. He draws light but clear facial features. Awake people have open eyes, and sleepers have closed eyelids. He is secretly in love with Mara, so he draws her face with the most care.
+Character introductions, quest dialogs, quest completion scenes, and quest replays use parchment pages. Each character has an individual pencil sketch, except Mara's parents. Victor never meets them, so their dialogs show an old family photograph of each parent in place of a sketch. A quest shows the sketch of its character. Mara's quests in the prologue show the illustration of their event. Mara has a second sketch at the stove, which shows for her cooking quests. The nine supply quests, Ionatan's dinner, Mina and Avram's meal, Mara's baskets for the Easter blessing, Mara's chimney sweep, Mara's three-month memorial, Mara's Easter of the Blajini, Bela's snowman, and Costel's icicle clock are exceptions: they show their own scene illustrations. The illustration stays with the quest through speaker changes and journal replays. Introductions show the individual character sketch. Other story scenes keep their usual presentation. Victor draws these sketches while he waits for his meal. He is an anatomy student, and he studies anatomy, proportions, and perspective. He draws light but clear facial features. Awake people have open eyes, and sleepers have closed eyelids. He is secretly in love with Mara, so he draws her face with the most care.
 
 The dishes fly to the ticket. A temporary notice reports the delivery and the reward. While the completion scene is unread, the notice also offers "Read [Name]’s reply", which opens that scene. The next open quest gets the ticket. If no quest is open, the counter shows "No quests wait now. Pay for the next preparation." After the supper, the repeating quests keep a ticket on the counter.
 
@@ -153,7 +153,7 @@ An unread scene is a scene that the player has not read.
 
 The four core characters are Mara, Ilie, Eszter, and Sorin. Their quests continue through the six chapters. Each of their campaign quests has at least two turns at its opening and at its completion. Each of these quests gives its character a want, a small complication, and a change at the end. Mara worries as a host. Ilie keeps the habits of his family. Eszter is proud of her craft. Sorin tells what he sees on his round.
 
-In act 1, Mara and Eszter have ten campaign quests each, and Ilie and Sorin have eight each. Mara also has the supper quest, and Ana has the recovery quest. These two quests have no completion scene. Costel has seven quests. Dochia has five March quests. Victor and Dorian have five quests each. Ana and Ileana have four quests each. Sânziana, Cezar, Cătălina, and Bran have three quests each. Bela, Vlad, and Elisabeta have two quests each.
+In act 1, Mara has 11 campaign quests, Eszter has ten, and Ilie and Sorin have eight each. Mara also has the supper quest, and Ana has the recovery quest. These two quests have no completion scene. Costel has seven quests. Dochia has five March quests. Victor and Dorian have five quests each. Ana and Ileana have four quests each. Sânziana, Cezar, Cătălina, and Bran have three quests each. Bela, Vlad, and Elisabeta have two quests each.
 
 A visitor is a character who does not live in the neighbourhood. Adrian, Monica, and Janos are returning visitors who visit more than once. Ionatan, Mina, and Avram are single-visit visitors. Each returning visitor has three supply quests. The nine supply quests alternate in that order. They open after preparations 6, 8, 9, 13, 14, 17, 19, 21, and 22.
 
@@ -361,7 +361,7 @@ Each chapter has an opening date. The first preparation of a chapter can have a 
 | 5 | Wednesday 9 April | 17 to 20 |
 | 6 | Sunday 20 April | 21 to 24 |
 
-A campaign quest can have an opening date. The quest opens after its preparation and its earlier quests, and not before its opening date. A quest without an opening date opens by the other rules. The data check keeps each opening date inside act 1 and on or after the opening date of the chapter of its preparation. Among the quests that open after the same preparation, a dated quest comes first. So a dated quest that opens can take the ticket of an open quest that comes later in authored order.
+A campaign quest can have an opening date. The quest opens after its preparation and its earlier quests, and not before its opening date. A quest without an opening date opens by the other rules. The data check keeps each opening date inside act 1 and on or after the opening date of the chapter of its preparation. Among the quests that open after the same preparation, a dated quest comes first, except Mara's "Three months". So a dated quest that opens can take the ticket of an open quest that comes later in authored order.
 
 A holiday quest is a dated quest with a holiday. Its opening date is at most three days before the holiday. Before the holiday, its ticket shows the holiday and its date, for example "For Easter, Sunday 20 April", and Later takes the place of Deliver. The quest has work only while a portion is missing from the board. Deliver works from the opening time of the holiday. After the holiday, the quest stays open, its ticket shows "Late for Easter", and the reward is the same. The completion scene is the same on and after the holiday.
 
@@ -430,6 +430,7 @@ A holiday is a date with a custom of the village. The village keeps the Orthodox
 | Sunday 2 March | Carnival Sunday | Eszter's "The last feast" |
 | Saturday 8 March | Women's Day | Sorin's "Sweets for the night ward" |
 | Sunday 9 March | the Forty Martyrs | Costel's "Forty small glasses" |
+| Saturday 15 March | the three-month memorial | Mara's "Three months" |
 | Tuesday 25 March | the Annunciation | Ilie's "The first fish" |
 | Sunday 13 April | Palm Sunday | Sânziana's "Willow catkins" |
 | Thursday 17 April | Holy Thursday | Ileana's "Before Thursday" |
@@ -466,11 +467,11 @@ The art plan `docs/specs/001-visible-renovation-art-plan.md` defines the 25 pain
 
 ## Identity
 
-The game has 82 generated Portable Network Graphics (PNG) masters. They give these items:
+The game has 83 generated Portable Network Graphics (PNG) masters. They give these items:
 
 - 18 food atlases: one for each chain, with its source and its dishes, and four for the mixed dishes
 - portraits, including three atlases for the regulars and one for Mara's parents
-- parchment paper, three sheets of character sketches, and five sheets of quest scenes, the last with the event scenes of the prologue
+- parchment paper, three sheets of character sketches, and six sheets of quest scenes: the fifth with the event scenes of the prologue, and the sixth with the memorial of three months
 - the two painted pages of the grandmother's notebook, and two old family photographs of Mara's parents
 - 25 painted room states, and four painted states of the family kitchen of the prologue
 - the supper painting
@@ -504,7 +505,7 @@ If the game data cannot load or does not pass its checks, the kitchen says so an
 
 An import validates the envelope and the state of the save. The envelope is the outer record with the format and the version. A load and an import accept a top-level state field that the save format does not define. Play, the next save, and an export keep that field. A load ignores an envelope field that the format does not define, and the next save removes that field. If a board cell has an undefined field, the save is not valid. An import rejects damaged saved data and keeps the current save. An import enforces a size limit of 2 mebibytes (MiB). Load, save, import, and reset use only the save key of this game. They do not change other browser data.
 
-A current save has game state version 16 in envelope version 15 at the key `scary-snacks-save-v15`. The game supports only this format. Load reads only this key. If no current save exists, the game starts a new campaign.
+A current save has game state version 17 in envelope version 16 at the key `scary-snacks-save-v16`. The game supports only this format. Load reads only this key. If no current save exists, the game starts a new campaign.
 
 The ID of the supper quest in the completed quests records the served supper. If a current save has all preparations complete and no served supper, the game shows the supper quest. The save earns the finale only when the player serves the supper. If such a save holds the finale as an unread scene, load and import remove the finale before the check.
 

@@ -102,8 +102,8 @@ test('the first preparation of a chapter waits for the opening date of its chapt
 });
 
 test('a save rejects a paid preparation before the opening date of its chapter', () => {
-  const paid = act(ready(checkpoint(8)), { type: 'task' });
-  assert.equal(paid.clock.day, data.chapters[2].opens);
+  const paid = act(ready(checkpoint(12)), { type: 'task' });
+  assert.equal(paid.clock.day, data.chapters[3].opens);
   assert.deepEqual(importSave(exportSave(paid, validate), validate), paid);
   const early = structuredClone(paid);
   early.clock.day--;

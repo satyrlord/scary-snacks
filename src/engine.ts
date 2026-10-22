@@ -145,7 +145,7 @@ function startActOne(state: GameState, data: GameData) {
 /** A new game, at the first event of the prologue with its opening scene earned. The session gives it a random seed, so the rules themselves stay deterministic. */
 export function createGame(data: GameData, seed = 0): GameState {
   const state: GameState = {
-    version: 16, prologue: null, layoutId: data.board.defaultLayout, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] },
+    version: 17, prologue: null, layoutId: data.board.defaultLayout, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] },
     pendingScenes: [data.prologue.events[0].opening.id], board: [], coins: 0, taskIndex: 0, discovered: [],
     decorations: [], decorationChoices: {}, completedQuests: [],
     clock: { day: 1, merges: 0 }, seed, ratHoles: [], gifts: 0, evening: { guest: null, last: null, delivered: false }, night: null, act1: null, march: [],
@@ -281,7 +281,7 @@ export function repairSave(candidate: unknown, data: GameData): unknown {
 export function validateGame(candidate: unknown, data: GameData): candidate is GameState {
   try {
     const state = candidate as GameState;
-    if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== 16) return false;
+    if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== 17) return false;
     if (!Array.isArray(state.board) || state.board.length !== data.board.columns * data.board.rows) return false;
     if (!integer(state.coins, -1_000_000_000)) return false;
     if (!integer(state.taskIndex, 0, data.tasks.length) || !Array.isArray(state.completedQuests)) return false;

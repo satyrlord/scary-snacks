@@ -26,6 +26,8 @@ export const imageVariants = {
   'scene-sheet-4': { widths: [1024], formats: ['webp'], cells: { columns: 2, rows: 2, names: ['scene-bela-snowman', 'scene-icicle-clock', 'scene-chimney-sweep', 'scene-blajini'] } },
   // The illustrations of the prologue events, and the two painted pages of the notebook in cells of the same size.
   'scene-sheet-5': { widths: [1024], formats: ['webp'], cells: { columns: 2, rows: 2, names: ['scene-prologue-churchyard', 'scene-prologue-carols', 'scene-prologue-midnight', 'scene-prologue-bus-stop'] } },
+  // The scenes of the mourning year of the grandmother. The empty cells wait for the later memorials.
+  'scene-sheet-6': { widths: [1024], formats: ['webp'], cells: { columns: 2, rows: 2, names: ['scene-three-months', null, null, null] } },
   'notebook-pages': { widths: [1024], formats: ['webp'], cells: { columns: 2, rows: 1, names: ['scene-notebook-cabbage-rolls', 'scene-notebook-note'] } },
   // The family photographs of Mama and Tata take the place of their sketches, in cells of the sketch size.
   'family-photos': { widths: [672], formats: ['webp'], cells: { columns: 2, rows: 1, names: ['photo-mama', 'photo-tata'] } },

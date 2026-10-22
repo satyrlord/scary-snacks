@@ -679,7 +679,7 @@ The title of the quest dialog is the quest title. A 44px portrait for each perso
 
 Character introductions, quest dialogs, quest completion scenes, and journal replays of quests use the parchment texture. The paper stays warm cream with dark brown ink (#3b2a1e) in both themes. The texture repeats at 512px square. Muted text uses #58402e. Controls keep their 44px targets, with dark borders and the light-theme action colours. Other dialogs use the current theme. Forced colours use the system canvas.
 
-Each character introduction shows its own transparent character sketch in pencil. Quest openings, replies, and journal replays show the character sketch of the quest owner. Mara's quests "A look at the cellar" and "Easter lunch" show her second sketch, at the stove. The nine cathedral supply quests, the two visitor meal quests, Mara's "Baskets for the blessing", "The chimney sweep", and "The Easter of the Blajini", Bela's "A snowman among the graves", and Costel's "The icicle clock" are the exception. Each of these 16 quests shows its accepted quest scene, a landscape image. The art does not change when the speaker changes. On a wider dialog, a character sketch floats to the right at 42% of the text area. The sketch is up to 210px wide. At 540px and below, the sketch is in the centre above the text, at 170px wide. A quest scene is in the centre above the text, at the text width, up to 460px. It keeps its natural proportions. The text and the controls stay in normal flow, and the dialog can scroll vertically. If an image does not load, the dialog removes it, and all text and controls stay. Local news keeps the story layout.
+Each character introduction shows its own transparent character sketch in pencil. Quest openings, replies, and journal replays show the character sketch of the quest owner. Mara's quests "A look at the cellar" and "Easter lunch" show her second sketch, at the stove. The nine cathedral supply quests, the two visitor meal quests, Mara's "Baskets for the blessing", "The chimney sweep", "Three months", and "The Easter of the Blajini", Bela's "A snowman among the graves", and Costel's "The icicle clock" are the exception. Each of these 17 quests shows its accepted quest scene, a landscape image. The art does not change when the speaker changes. On a wider dialog, a character sketch floats to the right at 42% of the text area. The sketch is up to 210px wide. At 540px and below, the sketch is in the centre above the text, at 170px wide. A quest scene is in the centre above the text, at the text width, up to 460px. It keeps its natural proportions. The text and the controls stay in normal flow, and the dialog can scroll vertically. If an image does not load, the dialog removes it, and all text and controls stay. Local news keeps the story layout.
 
 Victor draws the sketches while he waits for his meal and listens to the other guests. So each drawing is a quick sketch: simple lines, a simple face, and soft light shading. Keep light, steady pencil lines of a skilled artist. Keep accurate anatomy, proportions, and perspective. Draw the facial features lightly, but always draw them. If the view shows the eyes, awake people have open eyes, and sleepers have closed eyelids. Victor's secret crush explains the more detailed face of Mara. Match the accepted sketches, and do not add dense fabric or surface detail.
 
@@ -782,16 +782,16 @@ Options shows the save state. If the state needs one, Options also shows the Ret
 ## Design instructions
 
 ### Required actions
-- Use only the 82 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
+- Use only the 83 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
   - The 25 room masters are front-room-00 to front-room-12, front-room-17, front-room-24, courtyard-13 to courtyard-16, and courtyard-18 to courtyard-23.
   - The four family kitchen masters of the prologue are family-kitchen-mourning, family-kitchen-christmas, family-kitchen-new-year, and family-kitchen-farewell. Christmas and the farewell are edits of the mourning state, and the new year is an edit of Christmas.
   - The supper master is finale-supper, an edit of courtyard-23 with the guests of the supper.
   - The two decoration masters are decoration-front and decoration-courtyard. The two holiday masters are holiday-front and holiday-courtyard: transparent pictures at the size of the room states, with each decoration at its place.
   - The three window views are window-view-late-winter, window-view-early-spring, and window-view-spring, each 1152 by 1536px and opaque.
-  - The 23 other masters are these:
+  - The 24 other masters are these:
     - board-clutter, preparation-clutter, portraits, visitor-portraits, guests, regulars-1, regulars-2, regulars-3, family-portraits, mascots, timber-tabletop, embroidered-runner, and parchment-page
     - sketch-sheet-1 to sketch-sheet-3, each a grid of four columns and two rows of 672px character sketches
-    - scene-sheet-1 to scene-sheet-5, each a grid of two columns and two rows of 1152 by 768px quest scenes; scene-sheet-5 holds the four event scenes of the prologue
+    - scene-sheet-1 to scene-sheet-6, each a grid of two columns and two rows of 1152 by 768px quest scenes; scene-sheet-5 holds the four event scenes of the prologue, and scene-sheet-6 holds the memorial of three months in its first cell, with three empty cells
     - notebook-pages, one row of two opaque 1152 by 768px painted pages of the notebook
     - family-photos, one row of two 1024px square cells, each with an old photograph of Mama or Tata on transparency
   - The four night masters are these:

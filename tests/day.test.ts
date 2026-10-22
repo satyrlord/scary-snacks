@@ -227,7 +227,7 @@ function anyAction(state: GameState) {
 /** Vlad has a ticket: the quests of the window before the booked guests are on their way. Elisabeta waits. */
 const vladTicket = () => deliver(deliver(afterEight(), 'mara-table'), 'ileana-fitting');
 /** Both booked guests have tickets, and Vlad has the evening. */
-const both = () => deliver(vladTicket(), 'mara-candles');
+const both = () => deliver(deliver(vladTicket(), 'mara-candles'), 'mara-three-months');
 
 test('the evening guest follows the booked tickets: one guest, the authored order, and the guest who did not have the last evening', () => {
   // The booked guests come last in their window, so they wait for a ticket after the payment.

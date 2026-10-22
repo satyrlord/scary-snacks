@@ -203,7 +203,7 @@ test('a prologue save that cannot continue is invalid', () => {
   invalid.push(['an unknown event', { ...second, prologue: { event: 8 } }]);
   for (const [name, state] of invalid) {
     assert.equal(validate(state), false, name);
-    assert.throws(() => importSave(JSON.stringify({ format: 'scary-snacks', version: 15, state }), validate), name);
+    assert.throws(() => importSave(JSON.stringify({ format: 'scary-snacks', version: 16, state }), validate), name);
   }
   assert.equal(earnedPrologue(second, data).length, 3);
 });

@@ -32,12 +32,12 @@ test('the Saturday closing leads to 10:00 on Sunday, which has no evening guest'
 });
 
 test('Story names the opening date of the next chapter while the other requirements are met', async ({ page }) => {
-  // The quests that preparation 9 needs have no date, so they can be done before chapter 3 opens on 13 March.
-  const state = on(checkpoint(8), data.chapters[2].opens - 1);
-  state.completedQuests.push(...requiredQuests(8, data).map(quest => quest.id).filter(id => !state.completedQuests.includes(id)));
-  state.coins = data.tasks[8].cost;
+  // The quests that preparation 13 needs end with the Annunciation on 25 March, so they can be done before chapter 4 opens on 27 March.
+  const state = on(checkpoint(12), data.chapters[3].opens - 1);
+  state.completedQuests.push(...requiredQuests(12, data).map(quest => quest.id).filter(id => !state.completedQuests.includes(id)));
+  state.coins = data.tasks[12].cost;
   await start(page, state);
-  await expect(page.locator('#story .preparation-requirements [data-requirement="date"]')).toHaveText('Opens on Thursday 13 March.');
+  await expect(page.locator('#story .preparation-requirements [data-requirement="date"]')).toHaveText('Opens on Thursday 27 March.');
   await expect(page.locator('#story').getByRole('button', { name: /^Pay / })).toBeDisabled();
 });
 

@@ -68,6 +68,7 @@ A holiday is a date with a custom of the village. Some holidays have a holiday q
 | Sunday 2 March | Carnival Sunday | The last feast before Lent: Lăsata secului, the Hungarian farsang, and the masks of the Saxon carnival | `eszter-carnival` |
 | Saturday 8 March | Women's Day | Men give flowers and sweets. | `sorin-womens-day` |
 | Sunday 9 March | The Forty Martyrs (Mucenici) | Sweet pastries in the shape of an eight. The custom gives forty small glasses of wine to the men. | `costel-mucenici` |
+| Saturday 15 March | The three-month memorial of Mamaia Paraschiva | The second Saturday of Lent is a Saturday of the dead. The family gives colivă and colaci at the church. | `mara-three-months` |
 | Tuesday 25 March | The Annunciation (Buna Vestire) | The first fish day of Lent. The cuckoo sings for the first time. | `ilie-annunciation` |
 | Sunday 13 April | Palm Sunday (Florii) | The church blesses willow catkins. Fish is permitted. | `sanziana-palm-sunday` |
 | Thursday 17 April | Holy Thursday (Joia Mare) | The families dye eggs red. Joimărița visits the girls who did not finish their spinning. | `ileana-thursday` |

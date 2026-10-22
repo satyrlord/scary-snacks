@@ -941,10 +941,10 @@ for(const writer of ['this tab','another tab'] as const)test(`a corrupt live sav
 });
 
 test('a previous-format campaign stays untouched beside a new campaign',async({page})=>{
-  // The previous format: its own key and envelope, and state version 15 without the prologue.
-  const oldKey='scary-snacks-save-v14';expect(KEY).toBe('scary-snacks-save-v15');
-  const {prologue:_prologue,...earlier}=checkpoint(24);
-  const old=JSON.stringify({format:'scary-snacks',version:14,state:{...earlier,version:15}});
+  // The previous format: its own key and envelope, and state version 16.
+  const oldKey='scary-snacks-save-v15';expect(KEY).toBe('scary-snacks-save-v16');
+  const earlier=checkpoint(0);
+  const old=JSON.stringify({format:'scary-snacks',version:15,state:{...earlier,version:16}});
   await page.addInitScript(({key,value})=>{
     if(!sessionStorage.getItem('previous-save-seeded')){
       localStorage.setItem(key,value);sessionStorage.setItem('previous-save-seeded','true');

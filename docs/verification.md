@@ -58,7 +58,7 @@ The files in `tests/` check these areas.
 | `art-image.test.ts` | Art generation request fields, image dimensions, masks, composites, paper copies and patches, and rejected inputs. |
 
 Generator checks cover stage-1 production, paid and free takes, and a full board.
-The efficient campaign fixture completes all 24 preparations, all 88 campaign quests, and the five March quests without injected coins or items.
+The efficient campaign fixture completes all 24 preparations, all 89 campaign quests, and the five March quests without injected coins or items.
 Then the fixture serves the supper.
 The purse after the supper is inside the balance band.
 The balance band is 0 to 20% of the coins that the fixture spent on preparations, takes, and upkeep.

@@ -14,7 +14,7 @@ const MAX_REFERENCE_BYTES = 50_000_000;
 // The family kitchen of the prologue has one state for each group of events.
 const gameData: GameData = JSON.parse(readFileSync(new URL('../../../../public/data/game.json', import.meta.url), 'utf8'));
 type RoomStateId = `front-room-${string}` | `courtyard-${string}` | `family-kitchen-${string}`;
-type PencilSheetId = 'sketch-sheet-1' | 'sketch-sheet-2' | 'sketch-sheet-3' | 'scene-sheet-1' | 'scene-sheet-2' | 'scene-sheet-3' | 'scene-sheet-4' | 'scene-sheet-5';
+type PencilSheetId = 'sketch-sheet-1' | 'sketch-sheet-2' | 'sketch-sheet-3' | 'scene-sheet-1' | 'scene-sheet-2' | 'scene-sheet-3' | 'scene-sheet-4' | 'scene-sheet-5' | 'scene-sheet-6';
 type FoodAtlasId = `food-${string}`;
 type WindowViewId = 'window-view-late-winter' | 'window-view-early-spring' | 'window-view-spring';
 export type AssetId =
@@ -99,6 +99,8 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   'scene-sheet-4': sceneSheet,
   // The four event illustrations of the prologue.
   'scene-sheet-5': sceneSheet,
+  // The scenes of the mourning year of the grandmother: the memorial of three months, and empty cells for the later memorials.
+  'scene-sheet-6': { ...sceneSheet, blankCells: [1, 2, 3] },
   // The two painted pages of the grandmother's notebook, in two cells of the quest scene size.
   'notebook-pages': { background: 'opaque', shape: 'landscape-3x1', columns: 2, rows: 1, defaultSize: '2304x768' },
   // Two old studio photographs of Mara's parents, each a paper rectangle on transparency in a square cell of the sketch size.

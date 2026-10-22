@@ -29,7 +29,7 @@ function bookedEvening(): GameState {
   state.completedQuests.push(...state.march.filter(id => !state.completedQuests.includes(id)));
   revealTickets(state, data);
   // The booked guests come last in their window: the quests before them are delivered, and both take tickets.
-  for (const id of ['mara-table', 'ileana-fitting', 'mara-candles']) state = act(supply(state, supplies(quest(id))), { type: 'deliverQuest', id });
+  for (const id of ['mara-table', 'ileana-fitting', 'mara-candles', 'mara-three-months']) state = act(supply(state, supplies(quest(id))), { type: 'deliverQuest', id });
   return supply(state, supplies(quest('vlad-after-dark')));
 }
 

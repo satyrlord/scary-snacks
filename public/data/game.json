@@ -4409,6 +4409,11 @@
         "day": 23
       },
       {
+        "id": "three-months",
+        "name": "the three-month memorial",
+        "day": 29
+      },
+      {
         "id": "annunciation",
         "name": "the Annunciation",
         "day": 39
@@ -6144,6 +6149,60 @@
         {
           "speaker": "sorin",
           "text": "And an owl stared all evening. Nobody invited it. It came anyway."
+        }
+      ]
+    },
+    {
+      "id": "mara-three-months",
+      "character": "mara",
+      "title": "Three months",
+      "afterTask": "task_8",
+      "holiday": "three-months",
+      "companions": [
+        "ilie"
+      ],
+      "opens": 27,
+      "requirements": [
+        {
+          "item": "mixed_coliva",
+          "quantity": 1
+        },
+        {
+          "item": "mixed_colaci",
+          "quantity": 2
+        },
+        {
+          "item": "vegetables_3",
+          "quantity": 1
+        }
+      ],
+      "reward": 45,
+      "opening": [
+        {
+          "speaker": "mara",
+          "text": "On Saturday, we hold Mamaia’s three-month memorial. Mama cannot come from the city, so the memorial is mine."
+        },
+        {
+          "speaker": "ilie",
+          "text": "In Lent, the church remembers the dead on Saturdays anyway. She will have company."
+        },
+        {
+          "speaker": "mara",
+          "text": "Colivă for the church, colaci for the people at the gate, and pickled cabbage as she made it. She always fed the priest, and it is Lent."
+        }
+      ],
+      "completion": [
+        {
+          "speaker": "ilie",
+          "text": "The priest read her name first. Then he read it again, more slowly. He wanted a second colac."
+        },
+        {
+          "speaker": "mara",
+          "text": "Half the village came to the gate. Each person told me a different reason why she fed them."
+        },
+        {
+          "speaker": "ilie",
+          "text": "All the reasons were true. That was your grandmother."
         }
       ]
     },

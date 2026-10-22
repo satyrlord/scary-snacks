@@ -27,7 +27,7 @@ const weather: Weather[] = Array.from({ length: SUPPER }, (_, index) => snow.som
 // The holidays of act 1 that have a quest. On Saint George's Eve, garlic hangs on every door, so no booked guest dines.
 const holidays: Holiday[] = ([
   ['dragobete', 'Dragobete', '24 Feb'], ['carnival', 'Carnival Sunday', '2 Mar'], ['womens-day', 'Women’s Day', '8 Mar'], ['mucenici', 'the Forty Martyrs', '9 Mar'],
-  ['annunciation', 'the Annunciation', '25 Mar'], ['palm-sunday', 'Palm Sunday', '13 Apr'], ['holy-thursday', 'Holy Thursday', '17 Apr'],
+  ['three-months', 'the three-month memorial', '15 Mar'], ['annunciation', 'the Annunciation', '25 Mar'], ['palm-sunday', 'Palm Sunday', '13 Apr'], ['holy-thursday', 'Holy Thursday', '17 Apr'],
   ['holy-saturday', 'Holy Saturday', '19 Apr'], ['easter', 'Easter', '20 Apr'], ['easter-monday', 'Easter Monday', '21 Apr'],
   ['saint-george-eve', 'Saint George’s Eve', '22 Apr'], ['blajini', 'the Easter of the Blajini', '28 Apr'],
 ] as const).map(([id, name, date]) => ({ id, name, day: on(date), ...(id === 'saint-george-eve' ? { noEvening: true as const } : {}) }));
@@ -355,9 +355,10 @@ const questTerms = (rows: [string, number][]) => ({ requirements: rows.map(([nam
 type Speech = string | [speaker: string, text: string][];
 const lines = (character: string, speech: Speech) => typeof speech === 'string' ? [{ speaker: character, text: speech }] : speech.map(([speaker, text]) => ({ speaker, text }));
 // The calendar of a quest: its opening date, its holiday, a March quest, a later act, an outdoor quest, and the companions who share the meal.
-type QuestExtra = { opens?: string; holiday?: string; march?: true; act?: 2 | 3; outdoor?: true; companions?: string[] };
+// A dated quest with followsLine comes after the other quests of its window, so it does not hold up the line of its character.
+type QuestExtra = { opens?: string; holiday?: string; march?: true; act?: 2 | 3; outdoor?: true; companions?: string[]; followsLine?: true };
 type QuestRow = [id: string, character: string, title: string, window: number, requirements: [string, number][], opening: Speech, completion: Speech, extra?: QuestExtra];
-const questExtra = ({ opens, ...rest }: QuestExtra = {}) => ({ ...rest, ...(opens ? { opens: on(opens) } : {}) });
+const questExtra = ({ opens, followsLine: _followsLine, ...rest }: QuestExtra = {}) => ({ ...rest, ...(opens ? { opens: on(opens) } : {}) });
 // Each quest of a regular asks for at least one favourite dish.
 const questRows: QuestRow[] = [
   ['mara-welcome', 'mara', 'A welcome drink', 0, [['Herb bunch', 2], ['Linden tea', 1]],
@@ -720,6 +721,14 @@ const questRows: QuestRow[] = [
       ['mara', 'Then we will be the fourth. Let us light ours and have supper beside it.']],
     [['mara', 'Two neighbours waved, and one of them came in.'],
       ['sorin', 'And an owl stared all evening. Nobody invited it. It came anyway.']], { companions: ['sorin'] }],
+  // Mamaia died on 20 December. The family holds her three-month memorial on the Saturday before 20 March, the second Saturday of Lent.
+  ['mara-three-months', 'mara', 'Three months', 8, [['Colivă', 1], ['Colaci', 2], ['Pickled cabbage', 1]],
+    [['mara', 'On Saturday, we hold Mamaia’s three-month memorial. Mama cannot come from the city, so the memorial is mine.'],
+      ['ilie', 'In Lent, the church remembers the dead on Saturdays anyway. She will have company.'],
+      ['mara', 'Colivă for the church, colaci for the people at the gate, and pickled cabbage as she made it. She always fed the priest, and it is Lent.']],
+    [['ilie', 'The priest read her name first. Then he read it again, more slowly. He wanted a second colac.'],
+      ['mara', 'Half the village came to the gate. Each person told me a different reason why she fed them.'],
+      ['ilie', 'All the reasons were true. That was your grandmother.']], { opens: '13 Mar', holiday: 'three-months', companions: ['ilie'], followsLine: true }],
   ['sorin-postbag', 'sorin', 'A heavy post bag', 10, [['Roasted vegetables', 1], ['Langoș', 2]],
     [['sorin', 'Everyone in the valley is sending letters this week, and every one of them lives up a hill.'],
       ['sorin', 'One letter has no name. Only an address: "the house that is not there".'],
@@ -759,7 +768,7 @@ const finishes: Record<string, Quest['unlocks']> = {
 };
 // Vlad and Elisabeta book a table for the evening, never on the same evening.
 const bookedGuests = ['vlad', 'elisabeta'];
-const campaign: { window: number; quest: Quest }[] = questRows.map(([id, character, title, window, requirements, opening, completion, extra]) => ({ window, quest: {
+const campaign: { window: number; quest: Quest; followsLine?: true }[] = questRows.map(([id, character, title, window, requirements, opening, completion, extra]) => ({ window, ...(extra?.followsLine ? { followsLine: true as const } : {}), quest: {
   id, character, title, afterTask: window ? `task_${window}` : null, ...questExtra(extra), ...questTerms(requirements), opening: lines(character, opening), completion: lines(character, completion),
   ...(finishes[id] ? { unlocks: finishes[id] } : {}), ...(bookedGuests.includes(character) ? { booked: true } : {}) } }));
 // The travellers return three times each, in one shared sequence, at fixed places in the campaign.
@@ -888,9 +897,9 @@ const repeating: Quest[] = repeatingRows.map(([id, character, title, after, requ
 // A dated quest comes first in its window, so a holiday quest gets its ticket before the holiday. A March quest opens weeks after its
 // preparation, so it comes after the other quests of its window. A booked guest comes last in the window: the quests before the
 // evening bring the dishes of the dinner into the recipe book. The quests of later acts come last.
-const rank = (quest: Quest) => quest.booked ? 3 : quest.march ? 2 : quest.opens === undefined ? 1 : 0;
+const rank = ({ quest, followsLine }: (typeof campaign)[number]) => quest.booked ? 3 : quest.march ? 2 : quest.opens === undefined || followsLine ? 1 : 0;
 const quests: Quest[] = [recovery, ...campaign.filter(({ quest }) => !quest.act).sort((first, second) => first.window - second.window
-  || rank(first.quest) - rank(second.quest))
+  || rank(first) - rank(second))
   .map(({ quest }) => quest), ...repeating, ...campaign.filter(({ quest }) => quest.act).map(({ quest }) => quest)];
 // The prologue: seven events in the family kitchen of the city flat, from the funeral of Mamaia Paraschiva to the farewell dinner.
 // Each event has an authored board with its sources and its prepared dishes, one to three quests that pay nothing, and two scenes.

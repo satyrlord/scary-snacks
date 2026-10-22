@@ -107,6 +107,16 @@
         "scene-prologue-bus-stop"
       ]
     },
+    "scene-sheet-6": {
+      "columns": 2,
+      "rows": 2,
+      "names": [
+        "scene-three-months",
+        null,
+        null,
+        null
+      ]
+    },
     "notebook-pages": {
       "columns": 2,
       "rows": 1,
@@ -2204,6 +2214,16 @@
       "format": "webp",
       "bytes": 516012,
       "sha256": "b2d9269252df5cf7f4737d1646eadae9c9cae99f6d409bbd03e6641de76649e3"
+    },
+    {
+      "file": "public/assets/variants/scene-three-months-1024x683.webp",
+      "master": "scene-sheet-6",
+      "masterSha256": "a50688ced390c3a14b1a2e4915f2fded03253e142dcfdbfdb61206e4fb58740b",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 439374,
+      "sha256": "c17614efbb44b71d4a6c4dbe39980d51c2ef43a880d37379f51d6d2826a9e72f"
     },
     {
       "file": "public/assets/variants/scene-notebook-cabbage-rolls-1024x683.webp",

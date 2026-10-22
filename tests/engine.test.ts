@@ -91,7 +91,7 @@ test('dish and drink names use only English and Romanian letters, with the é of
 test('a new game starts at the first event of the prologue, and new games are valid, identical, and independent', () => {
   const state = createGame(data, 1);
   assert.equal(validateGame(state, data), true);
-  assert.equal(state.version, 16);
+  assert.equal(state.version, 17);
   assert.deepEqual(state, createGame(data, 1));
   assert.deepEqual([state.prologue, state.coins, state.taskIndex, state.completedQuests, state.pendingScenes], [{ event: 1 }, 0, 0, [], [data.prologue.events[0].opening.id]]);
   state.board[0] = { code: 'beans_1' };
@@ -249,7 +249,7 @@ test('invalid, unknown, and unavailable actions do not change state', () => {
 test('save validation rejects invalid numeric fields, codes, closed dishes, quest records, and unsupported versions', () => {
   // Some corruptions write a value that the GameState type does not admit.
   const corruptions: ((state: any) => void)[] = [
-    state => { state.version = 1; }, state => { state.version = 15; }, state => { state.version = 17; }, state => { state.coins = -1_000_000_001; },
+    state => { state.version = 1; }, state => { state.version = 16; }, state => { state.version = 18; }, state => { state.coins = -1_000_000_001; },
     state => { state.coins = 0.5; }, state => { state.taskIndex = 25; },
     state => { state.board.pop(); }, state => { state.board[0] = { code: '__proto__' }; },
     state => { state.board[0] = { code: 'grain_1', hidden: true }; },
@@ -389,7 +389,7 @@ test('a preparation paid with exactly its cost empties the purse and adds one ro
 test('fresh, mid-campaign, and completed saves resolve the same rooms after reload and export', () => {
   for (const count of [0, 12, 13, data.tasks.length]) {
     const state = pay(funded(), count);
-    const reloaded = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 15, state: JSON.parse(JSON.stringify(state)) }), validate);
+    const reloaded = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 16, state: JSON.parse(JSON.stringify(state)) }), validate);
     const exported = importSave<GameState>(exportSave(reloaded, validate), validate);
     assert.deepEqual(resolveRooms(reloaded.decorations, data), roomsAt(count), `reload at ${count}`);
     assert.deepEqual(resolveRooms(exported.decorations, data), roomsAt(count), `export at ${count}`);

@@ -46,6 +46,7 @@ const questScenes: Record<string,readonly [string,string]>={
   'costel-icicle-clock':['scene-icicle-clock','Costel eats a papanaș at his table while an icicle on the bracket of his clock drips beside the warm stove.'],
   'mara-chimney-sweep':['scene-chimney-sweep','The chimney sweep holds up a burnt page, Mara points at him and laughs, and Sorin brings food on a tray.'],
   'mara-blajini':['scene-blajini','Mara floats red eggshells down the river while Bela holds the churchyard gate open with his lantern.'],
+  'mara-three-months':['scene-three-months','Mara holds a candle beside the memorial table with colivă and colaci, the priest reads the names and glances at the basket of colaci in Ilie’s hands, and villagers wait at the churchyard gate.'],
 };
 // Mara has a second sketch, at the stove, for the quests where she cooks.
 const questDrawings: Record<string,readonly [string,string]>={

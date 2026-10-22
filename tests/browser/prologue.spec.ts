@@ -85,7 +85,7 @@ test('each event shows its painted state of the family kitchen, and the room kee
   const expected = ['family-kitchen-mourning', 'family-kitchen-christmas', 'family-kitchen-christmas', 'family-kitchen-new-year', 'family-kitchen-new-year', 'family-kitchen-mourning', 'family-kitchen-farewell'];
   await start(page, prologueAt(1));
   for (const [index, room] of expected.entries()) {
-    if (index) await page.evaluate(([key, value]) => localStorage.setItem(key, value), ['scary-snacks-save-v15', JSON.stringify({ format: 'scary-snacks', version: 15, state: prologueAt(index + 1) })]), await page.reload();
+    if (index) await page.evaluate(([key, value]) => localStorage.setItem(key, value), ['scary-snacks-save-v16', JSON.stringify({ format: 'scary-snacks', version: 16, state: prologueAt(index + 1) })]), await page.reload();
     await expect.poll(() => painting(page)).toMatch(new RegExp(`^${room}-`));
     await expect(page.locator('#room-frame')).toHaveAttribute('data-current', room);
   }

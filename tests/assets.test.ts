@@ -10,7 +10,7 @@ import { imageVariants } from '../tools/build-image-variants.ts';
 
 test('the PNG masters match their provenance records',async()=>{
   const record=JSON.parse(await readFile('docs/asset-provenance.json','utf8'));
-  assert.equal(record.assets.length,82);
+  assert.equal(record.assets.length,83);
   const names=await readdir('public/assets/original');
   assert.deepEqual(names.sort(),record.assets.map((a: { file: string })=>a.file.split('/').at(-1)).sort());
   for(const asset of record.assets){assert.equal(asset.sourceGameImageInput,false);const bytes=await readFile(asset.file);assert.equal(createHash('sha256').update(bytes).digest('hex'),asset.sha256,asset.id);assert.ok(asset.width>1000);}
@@ -68,6 +68,8 @@ test('each character has a sketch cell or a family photograph, and each pencil s
         // An opaque light pixel is a paint fill, which shows as a pale patch on the parchment.
         if(value>=128&&Math.min(data[offset],data[offset+1],data[offset+2])>=150)pale++;
       }
+      // A cell without a name waits for a later drawing, so it stays fully transparent.
+      if(sheet.cells.names[row*sheet.cells.columns+column]===null){assert.equal(clear,cellWidth*cellHeight,`${name} stays empty.`);continue;}
       assert.ok(clear>cellWidth*cellHeight*.1,`${name} keeps transparent drawing space.`);
       assert.ok(drawn>cellWidth*cellHeight*.01,`${name} contains visible pencil marks.`);
       assert.ok(pale<cellWidth*cellHeight*.006,`${name} has no pale opaque fill.`);

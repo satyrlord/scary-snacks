@@ -43,6 +43,7 @@ Act 2 has the weekdays of year 1 in spec 015.
 | Saturday 3 May | The eve of the departure of Ionatan for the castle | `ionatan-castle-dinner`. In the novel, he dines in the town on 3 May and reaches the castle in the night of 4 May. |
 | Thursday 29 May | The Ascension (Ispas) | A holiday quest. |
 | Sunday 8 June | Pentecost (Rusalii) | A quest of Sânziana. The Rusalii are wild fairies. Wormwood and garlic keep them away. |
+| Saturday 14 June | The six-month memorial of Mamaia Paraschiva | Mamaia died on 20 December, so six months fall on Friday 20 June. The family holds the memorial on the Saturday before, because Saturday belongs to the dead. A quest of Mara. |
 | Saturday 21 June | The summer solstice | The summer festival in the town square. |
 | Monday 23 June | Midsummer Eve (Sânziene) | `sanziana-midsummer`. |
 | Saturday 12 and Sunday 13 July | The visit of Ambrozie | A day and a night in the village. |
@@ -176,6 +177,18 @@ The stall quests open after preparation 12, with an opening date of Wednesday 18
 
 The last stall quest opens the festival painting, as the supper opens its painting.
 
+### The festival painting
+
+The painting shows the square on the evening of 21 June, under Sânziana's garlands. It has eight named people in a crowd of villagers:
+
+- Tarka Miklós plays on the stage. A line of rats follows his tune.
+- Gavril Hămălescu makes a speech at the front.
+- Mara works at the grill stall.
+- Mama and Tata sit at a table. Tata wanted to sell the bistro, and now he sees the village full.
+- Ilie, Eszter, and Sorin move between the stalls.
+
+Mara's parents visit the bistro for the festival. Their visit has one quest and one scene.
+
 ### The piper
 
 Tarka Miklós plays at the festival. The mayor does not want to pay him, so Mara pays him in food.
@@ -186,6 +199,19 @@ The story repeats the theme of the act: a debt is paid.
 
 The feast is the finale of act 2. It is on Friday 15 August, in the town square. Ambrozie's quest for the feast opens after preparation 24. As the supper, it asks for one plate for each guest and pays no coins.
 The feast opens the finale scene and the feast painting.
+
+The feast has nine guests and ten plates:
+
+- Ambrozie blesses the table at its head.
+- Mara stands with the last pot.
+- Ilie, Eszter, and Sorin sit at the table.
+- Cătălina rings the bell of the cathedral.
+- Adrian, Monica, and Janos come up from the red door.
+- One chair stays empty, with a candle and a plate for Mamaia. On the Dormition, families give food in memory of their dead.
+
+Villagers and the doors of the cathedral are in the background.
+In year 1, the Dormition is on a Friday. On that day, the Church permits fish, wine, and oil, but no meat, dairy, or eggs. Each plate of the feast obeys this rule. Monk's stew and the fish dishes suit it.
+Mamaia's plate holds colivă and colaci, the food of a memorial.
 
 ## The orchard
 
@@ -213,7 +239,37 @@ Sânziana has two quests of act 2 in the game data: "Midsummer Eve" and "A picni
 She has two new quests:
 
 - Pentecost: food and wormwood wine for the sisters, to keep the Rusalii away.
-- "Garlands for the square", the mandatory quest of the festival decorations.
+- "Garlands for the square", the mandatory quest of the festival decorations. Her letter comes with the decorations.
+
+## Quest plan
+
+Act 2 has about as many campaign quests as act 1, because it has the same work. The balance test of act 2 sets the final count.
+
+| Character | Campaign quests |
+| --- | --- |
+| Mara, Ilie, Eszter, and Sorin | About six each |
+| Gavril Hămălescu | Five stall quests |
+| Tarka Miklós | One: "The piper's fee" |
+| Ambrozie | Three: his dinner, his lunch, and the feast |
+| Sânziana | Four |
+| Adrian, Monica, and Janos | Three watch visits, and the meal of Janos |
+| Mama and Tata | One: the festival visit |
+| Ionatan, Mina and Avram, and Cătălina | One each: the quests of act 2 in the game data |
+| The other regulars | The remaining quests |
+
+The core characters step back a little in act 2. The new characters and the regulars carry more of the act.
+
+### The visitors
+
+Adrian, Monica, and Janos keep the watch at the red door. They do not want to wake the sleeper. Each visitor has one supply quest, in turn. Each quest asks for food that makes a sleeper sleep, for example linden tea and heavy stews.
+
+| Chapter | Visitor | Finding |
+| ---: | --- | --- |
+| 2 | Adrian | The watch at the red door starts. The snoring is louder this summer. |
+| 4 | Monica | She finds the shelf of the library with the torn book. |
+| 5 | Janos | He reads the loose pages of the archbishop and finds the year of the theft. |
+
+All three come up for the feast. After the feast, Janos has the proper meal that he promised in act 1.
 
 ## Other quests of act 2
 
@@ -227,12 +283,11 @@ The game data already holds these quests of act 2:
 | `sanziana-meadow`, "A picnic in the meadow" | Sânziana |
 | `catalina-hail`, "Bell-ringer's appetite" | Cătălina |
 
-More ideas:
+## Small details
 
-- The visitors Adrian, Monica, and Janos camp at the red door. They do not want to wake the sleeper. Their supply quests ask for food that makes a sleeper sleep: linden tea and heavy suppers.
-- Mara's parents visit for the festival. Tata wanted to sell the bistro. He sees it full.
-- Hail on Saint Elijah can leave a blocker on the board: broken pots or hailstones. A blocker gives no loss of progress.
-- Summer kittens in the garden, with Miez.
+- Hail in the week of Saint Elijah leaves blockers on the board: broken pots and hailstones. The player clears them by merges and gets the blocker coin. The hail takes nothing from the player.
+- Kittens play with Miez in the later states of the vegetable garden. They are art only.
+- Sânziana's letter tells the Midsummer custom: a crown on a roof tells of a wedding in the year. Mara's crown stays on the roof of the summer kitchen. A later act can use this hint.
 
 ## New dishes
 
@@ -286,8 +341,7 @@ Each new character refers to a horror novel, a horror film, local folklore, or a
 
 ## Open decisions
 
-The user approved the orchard of the cathedral.
+The user approved the orchard of the cathedral, the quest plan, the guests of the two paintings, the visitors, and the small details.
 
-- The guests of the festival painting and of the feast painting.
-- The quests of the core characters in act 2.
-- The dialogue of each scene. The user approves it.
+- The dialogue of each scene. The update-game-content skill writes it, one chapter at a time, and the user approves each chapter.
+- The quests of each regular. The update-game-content skill proposes them with the dialogue of their chapter.
