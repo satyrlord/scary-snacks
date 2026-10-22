@@ -49,6 +49,7 @@ The status column gives the state of each specification. The status of a specifi
 | 016 | [The prologue](016-prologue.md) | Implemented | 015, 017 for the pickle barrel |
 | 017 | [Seasons and holidays](017-seasons-and-holidays.md) | Implemented | 012, 014, and 015 in the same change |
 | 018 | [Act 2](018-act-two.md) | Draft | 015, 016, 017 |
+| 019 | [Act 3](019-act-three.md) | Draft | 018 |
 
 A dependency is a specification that the complete feature needs. A reference to another specification is not always a dependency. Only this register lists the dependencies.
 
@@ -74,6 +75,10 @@ Load reads only this key.
 If no current save exists, the game starts a new campaign.
 The game leaves earlier local bytes unchanged and does not read or convert them.
 Import rejects earlier formats.
+
+Until act 2 is fully implemented, keep this key and both versions. Each deployed update must load and import every valid current save without lost progress or a required new campaign. This rule applies to partial feature work and to content and validation changes, not only to the shape of the state. A new optional field must accept its absence. Keep the saved IDs and their progress valid.
+
+`tests/fixtures/save-v16.json` holds fixed saves for this compatibility boundary. The Node.js and browser save-compatibility tests load these files without creating replacement saves from the current engine. Keep these fixtures while this boundary applies. Do not regenerate them or weaken their assertions to make an incompatible change pass. Add a fixture when another supported case needs coverage.
 
 The optional preparation blocker record uses this format. The record holds the baseline and the placement history. A missing record receives no past preparation batches. The record starts at the next paid preparation. `PRODUCT.md` owns the queue and placement rules.
 

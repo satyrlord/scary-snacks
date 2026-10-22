@@ -88,6 +88,13 @@ test('the window shows the view of the season, the weather, and the holiday deco
   expect(await view(on(front, day(11, 3)))).toBe('window-view-early-spring');
   await expect(page.locator('#room-frame')).toHaveAttribute('data-weather', 'snow');
   await expect(page.locator('.window-weather')).toBeVisible();
+  // The snow falls in three depths at three speeds, and each fall moves one whole tile, so no grid shows and the loop has no jump.
+  const depths = await page.locator('.window-weather').evaluate(node => [null, '::before', '::after'].map(part => {
+    const style = getComputedStyle(node, part);
+    return { name: style.animationName, duration: style.animationDuration, tile: parseFloat(style.backgroundSize.split(' ')[1]), fall: parseFloat(style.getPropertyValue('--h')) * parseFloat(style.getPropertyValue('--k')) };
+  }));
+  expect(depths.every(depth => depth.name === 'snow-fall' && Math.abs(depth.tile - depth.fall) < .01)).toBe(true);
+  expect(new Set(depths.map(depth => depth.duration)).size).toBe(3);
   await expect(page.locator('#room-holidays svg')).toHaveCount(0);
   expect(await view(on(front, day(17, 4)))).toBe('window-view-spring');
   await expect(page.locator('#room-holidays [data-holiday]')).toHaveCount(2);

@@ -177,6 +177,7 @@ test('a March quest opens only in March, stays open after March, and no preparat
 test('a quest of a later act never opens and never counts as a predecessor', () => {
   const later = data.quests.filter(value => value.act);
   assert.deepEqual(later.map(value => value.id).sort(), ['ana-saint-andrew', 'bran-pumpkins', 'catalina-hail', 'cezar-long-night', 'ilie-pickles', 'ionatan-castle-dinner', 'mina-avram-search', 'sanziana-meadow', 'sanziana-midsummer']);
+  assert.deepEqual(later.filter(value => value.act === 4).map(value => value.id).sort(), ['ana-saint-andrew', 'cezar-long-night'], 'The winter quests wait for act 4.');
   const finished = checkpoint(data.tasks.length);
   for (const value of later) assert.equal(status(finished, value.id), 'locked');
   assert.equal(status(checkpoint(5), 'ilie-clean-monday') !== 'locked' || checkpoint(5).completedQuests.includes('ilie-clean-monday'), true, 'Ilie does not wait for his jars for winter.');

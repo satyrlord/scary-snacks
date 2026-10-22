@@ -88,18 +88,24 @@ test('each event shows its painted state of the family kitchen, and the room kee
     if (index) await page.evaluate(([key, value]) => localStorage.setItem(key, value), ['scary-snacks-save-v16', JSON.stringify({ format: 'scary-snacks', version: 16, state: prologueAt(index + 1) })]), await page.reload();
     await expect.poll(() => painting(page)).toMatch(new RegExp(`^${room}-`));
     await expect(page.locator('#room-frame')).toHaveAttribute('data-current', room);
+    await expect(page.locator('.window-weather')).toBeHidden();
+    await expect(page.locator('.room-weather')).toBeHidden();
   }
 });
 
 test('the wait at event 7 has no ticket, and closing 7 starts act 1 with the gift, the first morning, and the front room', async ({ page }) => {
   await start(page, prologueAt(7, { served: true }));
   await expect(page.locator('#tickets .ticket')).toHaveCount(0);
-  await expect(page.locator('#tickets')).toContainText('The last scene of the prologue waits in Story.');
+  await expect(page.locator('#tickets .prologue-wait')).toContainText('Every dish is served. One scene waits before Mara leaves.');
+  await expect(page.locator('#status')).toHaveText('Welcome back. The stove is still warm. Read now on the counter opens the waiting scene.');
   await expect(page.locator('#day-clock .clock-face')).toHaveText('Thu 13 Feb');
-  await readNow(page, events[6].closing.title);
+  // The counter alone offers the scene on a wide screen: the story card beside it has no Read now.
+  const read = page.getByRole('button', { name: /^Read now/ });
+  await expect(read).toHaveCount(1);
+  await read.click(); await expect(title(page)).toHaveText(events[6].closing.title);
   await page.keyboard.press('Escape');
   expect((await saved(page)).prologue).toEqual({ event: 7 });
-  await readNow(page, events[6].closing.title);
+  await read.click(); await expect(title(page)).toHaveText(events[6].closing.title);
   await expect(forward(page)).toHaveText('Leave for the village');
   await forward(page).click();
   await expect(page.locator('#modal')).toBeHidden();
@@ -116,6 +122,35 @@ test('the wait at event 7 has no ticket, and closing 7 starts act 1 with the gif
   await expect(page.getByRole('dialog').locator('img.quest-scene-sketch')).toHaveAttribute('alt', events[4].closing.page!.text);
   await page.getByRole('button', { name: 'Return', exact: true }).click();
   expect(await saved(page)).toEqual(state);
+});
+
+test('on a phone, the counter after the last dish counts the skipped scenes and its Read now leads through them to act 1', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const state = prologueAt(7, { served: true });
+  state.pendingScenes = [events[5].closing.id, events[6].opening.id, events[6].closing.id];
+  await start(page, state);
+  const wait = page.locator('#tickets .prologue-wait'), read = wait.getByRole('button', { name: 'Read now' });
+  await expect(wait).toContainText('Every dish is served. 3 scenes wait before Mara leaves.');
+  // The Story sheet covers the counter, so it also offers the scene.
+  await story(page); await expect(page.getByRole('dialog').getByRole('button', { name: /^Read now/ })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await read.click();
+  await expect(title(page)).toHaveText(events[5].closing.title);
+  // Close keeps the scene, and the counter still offers it.
+  await page.keyboard.press('Escape');
+  await expect(wait).toContainText('3 scenes wait');
+  await read.click();
+  await expect(forward(page)).toHaveText('Next scene'); await forward(page).click();
+  await expect(title(page)).toHaveText(events[6].opening.title);
+  await page.keyboard.press('Escape');
+  await expect(wait).toContainText('2 scenes wait');
+  await read.click();
+  await expect(title(page)).toHaveText(events[6].opening.title); await forward(page).click();
+  await expect(title(page)).toHaveText(events[6].closing.title);
+  await expect(forward(page)).toHaveText('Leave for the village'); await forward(page).click();
+  await expect(page.locator('#modal')).toBeHidden();
+  expect((await saved(page)).prologue).toBeNull();
+  await expect(wait).toHaveCount(0);
 });
 
 test('a prologue dish of a chain that opens later stays in the recipe book with no way to the board', async ({ page }) => {
@@ -184,6 +219,29 @@ test('the journal marks a completed event done when both scenes are still unread
   await expect(page.locator('.journal-unread .journal-entry')).toHaveCount(1);
   expect(await saved(page)).toEqual(state);
 });
+
+for (const viewport of [{ width: 320, height: 700 }, { width: 360, height: 740 }, { width: 390, height: 844 }, { width: 768, height: 1024 }]) for (const theme of ['light', 'dark']) {
+  test(`the final prologue counter keeps its control and Mara's line clear of the phone bar at ${viewport.width}px in ${theme}`, async ({ page }) => {
+    await page.setViewportSize(viewport); await page.emulateMedia({ reducedMotion: 'reduce' });
+    const state = prologueAt(7, { served: true });
+    state.pendingScenes = events.flatMap(event => [event.opening.id, event.closing.id]);
+    await start(page, state, theme);
+    await page.evaluate(() => document.fonts.ready);
+    const read = page.locator('.prologue-wait button'), bar = await page.locator('.phone-bar').boundingBox();
+    const message = await page.locator('#status').boundingBox(), table = await page.locator('.table').boundingBox();
+    expect(message!.y).toBeGreaterThanOrEqual(table!.y + table!.height);
+    expect(message!.y + message!.height).toBeLessThanOrEqual(bar!.y);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await read.focus(); await page.keyboard.press('Enter');
+    await expect(title(page)).toHaveText(events[0].opening.title);
+    await page.keyboard.press('Escape'); await expect(read).toBeFocused();
+    await page.getByRole('button', { name: 'Lower the kitchen to see the room' }).click();
+    const lowered = await read.boundingBox();
+    expect(lowered!.height).toBeGreaterThanOrEqual(44);
+    expect(lowered!.y + lowered!.height).toBeLessThanOrEqual(bar!.y);
+    await read.click(); await expect(title(page)).toHaveText(events[0].opening.title);
+  });
+}
 
 for (const [label, viewport] of [['phone', { width: 390, height: 844 }], ['desktop', { width: 1440, height: 1000 }]] as const) for (const theme of ['light', 'dark']) {
   test(`the prologue fits the ${label} screen in the ${theme} theme, with reduced motion`, async ({ page }) => {

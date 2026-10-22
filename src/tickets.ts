@@ -119,8 +119,15 @@ export function renderTickets() {
     card.append(face, waitControl(quest, person.name) ?? deliverButton); container.append(card);
   });
   // The recovery ticket keeps its own column beside the line, so the line still says why no quest waits.
-  // Without work, a repeating quest opens, so an empty counter means that the next preparation is ready to pay. The prologue waits for its last scene.
-  if (tickets.every(quest => quest.recovery)) container.prepend(element('p', 'tickets-empty', state.prologue ? 'Every dish is served. The last scene of the prologue waits in Story.' : 'No quests wait now. Pay for the next preparation.'));
+  // Without work, a repeating quest opens, so an empty counter means that the next preparation is ready to pay.
+  if (tickets.every(quest => quest.recovery)) container.prepend(state.prologue ? prologueWait() : element('p', 'tickets-empty', 'No quests wait now. Pay for the next preparation.'));
+}
+/** The prologue waits for its unread scenes after its last dish. The counter names them and opens the first one, so the way to act 1 stays in view. */
+function prologueWait() {
+  const waiting = state.pendingScenes.length, line = element('div', 'tickets-empty prologue-wait');
+  line.append(element('p', '', `Every dish is served. ${waiting === 1 ? 'One scene waits' : `${count.format(waiting)} scenes wait`} before Mara leaves.`),
+    button('Read now', 'primary-button', () => showScene(state.pendingScenes[0])));
+  return line;
 }
 /**
  * The control of a ticket that cannot deliver yet: the lanterns for tonight's guest or the supper before the booking time, or Later

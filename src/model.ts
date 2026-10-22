@@ -58,7 +58,7 @@ export type Quest = {
   requirements: { item: string; quantity: number }[]; reward: number; opening: SceneLine[]; completion: SceneLine[];
   companions?: string[]; unlocks?: { slot: string; variant: string }; finale?: true; guests?: string[]; recovery?: true; booked?: true; repeating?: true;
   followUp?: { id: string; title: string; afterDeliveries: number; dialogue: SceneLine[] };
-  opens?: number; holiday?: string; march?: true; act?: 2 | 3; outdoor?: true; during?: { from: number; to: number };
+  opens?: number; holiday?: string; march?: true; act?: 2 | 3 | 4; outdoor?: true; during?: { from: number; to: number };
 };
 /**
  * The levers of the bistro day. Times are minutes after midnight. Each merge adds mergeMinutes to the clock, and the merge

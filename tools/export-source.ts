@@ -17,6 +17,7 @@ export const sourceFiles=[...runtimeFiles,'public/data/game.json',...fontFiles.m
   'tests/browser/guidance.spec.ts','tests/browser/responsive-quests.spec.ts','tests/browser/room-occlusion.spec.ts','tests/browser/recipes.spec.ts',
   'tests/story.test.ts','tests/browser/story.spec.ts','tests/prologue.test.ts','tests/browser/prologue.spec.ts','tests/browser/journal.spec.ts','tests/calendar.test.ts','tests/browser/calendar.spec.ts','tests/image-variants.test.ts',
   'tests/checkpoint-saves.test.ts','tests/support.ts','tests/browser/support.ts','tests/browser/portrait-framing.spec.ts','tests/browser/day.spec.ts',
+  'tests/save-compatibility.test.ts','tests/browser/save-compatibility.spec.ts','tests/fixtures/save-v16.json',
   'docs/asset-prompts.json','docs/asset-provenance.json','docs/asset-variants.json','docs/font-provenance.json','docs/release-notes.md','docs/verification.md','docs/economy.md',
   '.github/workflows/pages.yml',
 ];

@@ -8645,7 +8645,7 @@
       "character": "ana",
       "title": "Saint Andrew’s Eve",
       "afterTask": "task_17",
-      "act": 3,
+      "act": 4,
       "requirements": [
         {
           "item": "dairy_5",
@@ -8793,7 +8793,7 @@
       "character": "cezar",
       "title": "The longest night",
       "afterTask": "task_14",
-      "act": 3,
+      "act": 4,
       "requirements": [
         {
           "item": "mixed_tochitura",

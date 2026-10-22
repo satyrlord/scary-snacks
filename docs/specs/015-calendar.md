@@ -235,8 +235,8 @@ The March quests of Dochia keep their order among themselves. Spec 017 gives the
 | `catalina-hail`, "Bell-ringer's appetite" | Cătălina | 2 |
 | `ilie-pickles`, "Jars for winter" | Ilie | 3 |
 | `bran-pumpkins`, "The pumpkin fair" | Bran | 3 |
-| `ana-saint-andrew`, "Saint Andrew's Eve" | Ana | 3 |
-| `cezar-long-night`, "The longest night" | Cezar | 3 |
+| `ana-saint-andrew`, "Saint Andrew's Eve" | Ana | 4 |
+| `cezar-long-night`, "The longest night" | Cezar | 4 |
 | `ionatan-castle-dinner`, "Dinner before the castle" | Ionatan | 2 |
 | `mina-avram-search`, "A meal before the search" | Mina and Avram | 2 |
 
@@ -380,7 +380,7 @@ The test also prints the days with work only from repeating quests.
 - Supper: the supper ticket shows "Booked for 1 May" before 1 May. Serve works only from 20:00 on 1 May. The lantern control works on 1 May before 20:00.
 - Hold: on 30 April without preparation 24, a merge at the closing time does not close the day. The payment of preparation 24 closes the day. On 1 May, the day does not close before the supper.
 - End of act 1: the supper card gives the dates and the purse.
-- Quest plan: act 1 opens no quest of act 2 or act 3. Each new and changed quest has the place, the date, and the characters of the plan.
+- Quest plan: act 1 opens no quest of a later act. Each new and changed quest has the place, the date, and the characters of the plan.
 - Prerequisites: no preparation and no act 1 quest waits for a later-act quest or a March quest. The dated graph check passes. The check fails for an outdoor quest after preparation 12.
 - Tickets: on the morning that a dated quest opens, with three tickets in use, the dated quest takes a ticket only if it comes earlier in authored order. A reload gives the same tickets.
 - Hold and bookings: a game reaches 30 April with booked quests of both guests and two quests of one guest still open. During the hold, the player delivers each of them, pays preparation 24, and reaches 1 May.

@@ -2018,162 +2018,162 @@
     {
       "file": "public/assets/variants/family-kitchen-mourning-768x1024.avif",
       "master": "family-kitchen-mourning",
-      "masterSha256": "f26d9a866c44d468a48eb15c38bea95ca85abac91c05b4afe5bcb244eaa2de07",
+      "masterSha256": "110d69524706b54c43e539d7c3a6e8de4ffd0cb6e87f91ad15853fe2a48fe9ac",
       "width": 768,
       "height": 1024,
       "format": "avif",
-      "bytes": 116176,
-      "sha256": "6be71266748756458f8b257d473f1b6ccfc6ec3fc780015f26f96a75bf5e4511"
+      "bytes": 115209,
+      "sha256": "81392c67e83a44611893610632b5ae3b25c64bb30ed13933dacb6885818f7e56"
     },
     {
       "file": "public/assets/variants/family-kitchen-mourning-768x1024.webp",
       "master": "family-kitchen-mourning",
-      "masterSha256": "f26d9a866c44d468a48eb15c38bea95ca85abac91c05b4afe5bcb244eaa2de07",
+      "masterSha256": "110d69524706b54c43e539d7c3a6e8de4ffd0cb6e87f91ad15853fe2a48fe9ac",
       "width": 768,
       "height": 1024,
       "format": "webp",
-      "bytes": 166916,
-      "sha256": "582096394deb483c0b164e9daaeda00f80bbdfcd2abd471e9bf36597d51e95a4"
+      "bytes": 166704,
+      "sha256": "6c58282f0d66c378a2200617479097f3cd6e5994d719906a13438098c07bd64c"
     },
     {
       "file": "public/assets/variants/family-kitchen-mourning-1536x2048.avif",
       "master": "family-kitchen-mourning",
-      "masterSha256": "f26d9a866c44d468a48eb15c38bea95ca85abac91c05b4afe5bcb244eaa2de07",
+      "masterSha256": "110d69524706b54c43e539d7c3a6e8de4ffd0cb6e87f91ad15853fe2a48fe9ac",
       "width": 1536,
       "height": 2048,
       "format": "avif",
-      "bytes": 376712,
-      "sha256": "5977f13861b9c7589654b1d763961da6781de0160feb02c032d30360a1644438"
+      "bytes": 376951,
+      "sha256": "0c814877c03959a63e9c3dd3fd5dadc2771fce943eadac8e6a2f7f05b470281f"
     },
     {
       "file": "public/assets/variants/family-kitchen-mourning-1536x2048.webp",
       "master": "family-kitchen-mourning",
-      "masterSha256": "f26d9a866c44d468a48eb15c38bea95ca85abac91c05b4afe5bcb244eaa2de07",
+      "masterSha256": "110d69524706b54c43e539d7c3a6e8de4ffd0cb6e87f91ad15853fe2a48fe9ac",
       "width": 1536,
       "height": 2048,
       "format": "webp",
-      "bytes": 515748,
-      "sha256": "88718dcc4ecb1fd76b2da9dde68a7a1abeb7bee7d2bdc2bd29b81b538804f5a6"
+      "bytes": 516678,
+      "sha256": "da63961da4f9417a7960bd84ea3c8e443b12d9320f46f4b254e811ce981e8877"
     },
     {
       "file": "public/assets/variants/family-kitchen-christmas-768x1024.avif",
       "master": "family-kitchen-christmas",
-      "masterSha256": "4afef53e03c4acf0f634d3ef349945c85bc612992258e6de230041c211da9764",
+      "masterSha256": "6c372fadf69e9f7f73c4a8cc5181ed795a0ec346fe007b30e4e7ff994b1e84ce",
       "width": 768,
       "height": 1024,
       "format": "avif",
-      "bytes": 116617,
-      "sha256": "4250b8feb54d65bdc28a254bcb9000395c40897c6b836ad5ecf819fb285bac12"
+      "bytes": 115937,
+      "sha256": "ae22dc174ec47b27757784c245fa567da5a88bfb90edc9e5e45cca9874187e7f"
     },
     {
       "file": "public/assets/variants/family-kitchen-christmas-768x1024.webp",
       "master": "family-kitchen-christmas",
-      "masterSha256": "4afef53e03c4acf0f634d3ef349945c85bc612992258e6de230041c211da9764",
+      "masterSha256": "6c372fadf69e9f7f73c4a8cc5181ed795a0ec346fe007b30e4e7ff994b1e84ce",
       "width": 768,
       "height": 1024,
       "format": "webp",
-      "bytes": 168080,
-      "sha256": "56b6d4566927d5122583159d807c4745294f9721751059ed3a4e9e3fd685f04b"
+      "bytes": 168052,
+      "sha256": "ca409b60f84c364a0786b8c2dff55849e0ff08f998c9e101444c2bcddd4f83ed"
     },
     {
       "file": "public/assets/variants/family-kitchen-christmas-1536x2048.avif",
       "master": "family-kitchen-christmas",
-      "masterSha256": "4afef53e03c4acf0f634d3ef349945c85bc612992258e6de230041c211da9764",
+      "masterSha256": "6c372fadf69e9f7f73c4a8cc5181ed795a0ec346fe007b30e4e7ff994b1e84ce",
       "width": 1536,
       "height": 2048,
       "format": "avif",
-      "bytes": 376566,
-      "sha256": "730b2a9a6b48e7b56624f3c7f006195ee2420289353a69a52990ce575a42662c"
+      "bytes": 376816,
+      "sha256": "7a8d4db34feddae3acac625cdab2fcb7f1fbc6536e5768c627cac1f3deceaf6d"
     },
     {
       "file": "public/assets/variants/family-kitchen-christmas-1536x2048.webp",
       "master": "family-kitchen-christmas",
-      "masterSha256": "4afef53e03c4acf0f634d3ef349945c85bc612992258e6de230041c211da9764",
+      "masterSha256": "6c372fadf69e9f7f73c4a8cc5181ed795a0ec346fe007b30e4e7ff994b1e84ce",
       "width": 1536,
       "height": 2048,
       "format": "webp",
-      "bytes": 516534,
-      "sha256": "e92c0550a22e37dd450a0dfa17d044083a73b82b74c0db000ddb888f2f76afb6"
+      "bytes": 517338,
+      "sha256": "620e192184cb5556693ab5b88a1228f2a986296df1eb77c495f09dc590a9e6e9"
     },
     {
       "file": "public/assets/variants/family-kitchen-new-year-768x1024.avif",
       "master": "family-kitchen-new-year",
-      "masterSha256": "f89f8abae21415f53b578a3d9141e4a3e883798efab4e32babe5dd45048a9f5e",
+      "masterSha256": "a5533c17ebd03f6148c6abc9e43f650d7c5ba4855195035802e89d9d2865f780",
       "width": 768,
       "height": 1024,
       "format": "avif",
-      "bytes": 121988,
-      "sha256": "3f4371ba4bb7102dbbc040aa0e5e90cf916d624d707ce5f685335f62533dd612"
+      "bytes": 121595,
+      "sha256": "0205d82a92a9ae079e8d5341fd8740a7eab2425edd884f58271cb9c0a5ff3106"
     },
     {
       "file": "public/assets/variants/family-kitchen-new-year-768x1024.webp",
       "master": "family-kitchen-new-year",
-      "masterSha256": "f89f8abae21415f53b578a3d9141e4a3e883798efab4e32babe5dd45048a9f5e",
+      "masterSha256": "a5533c17ebd03f6148c6abc9e43f650d7c5ba4855195035802e89d9d2865f780",
       "width": 768,
       "height": 1024,
       "format": "webp",
-      "bytes": 171212,
-      "sha256": "998b695849bc0128f66d521bc908444fae12c7ed9f620e49d770f49b9a50849f"
+      "bytes": 172304,
+      "sha256": "31f38f2dcd6fb757149ce94a54694c9a04266f0050a9e4f6eadb2bac2023d029"
     },
     {
       "file": "public/assets/variants/family-kitchen-new-year-1536x2048.avif",
       "master": "family-kitchen-new-year",
-      "masterSha256": "f89f8abae21415f53b578a3d9141e4a3e883798efab4e32babe5dd45048a9f5e",
+      "masterSha256": "a5533c17ebd03f6148c6abc9e43f650d7c5ba4855195035802e89d9d2865f780",
       "width": 1536,
       "height": 2048,
       "format": "avif",
-      "bytes": 387101,
-      "sha256": "d7c9fedadf9f744ca423b1f9c9bf6c1a28ce4c1ef8f433a23d3a7398f2d6be08"
+      "bytes": 392290,
+      "sha256": "fadf39fcdbdd0f7071f17cc9be05ba188b9a30d6ffcec8cea5a32ccc26141d05"
     },
     {
       "file": "public/assets/variants/family-kitchen-new-year-1536x2048.webp",
       "master": "family-kitchen-new-year",
-      "masterSha256": "f89f8abae21415f53b578a3d9141e4a3e883798efab4e32babe5dd45048a9f5e",
+      "masterSha256": "a5533c17ebd03f6148c6abc9e43f650d7c5ba4855195035802e89d9d2865f780",
       "width": 1536,
       "height": 2048,
       "format": "webp",
-      "bytes": 533440,
-      "sha256": "5a6380c76a6d18b2794541f65c8f6f8e4a80c8b82095af42bdd7dcd5b9563dc9"
+      "bytes": 546686,
+      "sha256": "05c9b271781f42e3befb88661f12fbe7c4ae8ff1c94e56693d0e3fc1eb447ff6"
     },
     {
       "file": "public/assets/variants/family-kitchen-farewell-768x1024.avif",
       "master": "family-kitchen-farewell",
-      "masterSha256": "844a10ed182d9b7f2d5552ab73955cd6a5324f930200e662b3c6df266af8635f",
+      "masterSha256": "20df55914c2c9283c0b8a5989087bff9d4ac86a4f38829c098cc65b0d5114305",
       "width": 768,
       "height": 1024,
       "format": "avif",
-      "bytes": 118957,
-      "sha256": "864903acb84167b01835a1fc9c762f0946034016591d56386b329ca1def6b223"
+      "bytes": 118180,
+      "sha256": "e42d3742bf3f88a4a9941d22858a884f9e142ce91efd991e9d2f677fc56276a4"
     },
     {
       "file": "public/assets/variants/family-kitchen-farewell-768x1024.webp",
       "master": "family-kitchen-farewell",
-      "masterSha256": "844a10ed182d9b7f2d5552ab73955cd6a5324f930200e662b3c6df266af8635f",
+      "masterSha256": "20df55914c2c9283c0b8a5989087bff9d4ac86a4f38829c098cc65b0d5114305",
       "width": 768,
       "height": 1024,
       "format": "webp",
-      "bytes": 171718,
-      "sha256": "a08292a5eab1181aebd84fe0a717c407aa23e6fe532670ee3db93876b413a290"
+      "bytes": 170142,
+      "sha256": "4c520d8b7f074a0bf7071b943fb0fa2315714d7dda44bf9d418af85d90f46aa5"
     },
     {
       "file": "public/assets/variants/family-kitchen-farewell-1536x2048.avif",
       "master": "family-kitchen-farewell",
-      "masterSha256": "844a10ed182d9b7f2d5552ab73955cd6a5324f930200e662b3c6df266af8635f",
+      "masterSha256": "20df55914c2c9283c0b8a5989087bff9d4ac86a4f38829c098cc65b0d5114305",
       "width": 1536,
       "height": 2048,
       "format": "avif",
-      "bytes": 383368,
-      "sha256": "17fa3fe60c701596f0a1c3dda7f8c28a088167b38e9e24aa6f901946c85ff713"
+      "bytes": 383458,
+      "sha256": "1c700c273e4deae0dbb63ac14f5370217fcc04d4ee5ec262e0ab2d7c55713b2c"
     },
     {
       "file": "public/assets/variants/family-kitchen-farewell-1536x2048.webp",
       "master": "family-kitchen-farewell",
-      "masterSha256": "844a10ed182d9b7f2d5552ab73955cd6a5324f930200e662b3c6df266af8635f",
+      "masterSha256": "20df55914c2c9283c0b8a5989087bff9d4ac86a4f38829c098cc65b0d5114305",
       "width": 1536,
       "height": 2048,
       "format": "webp",
-      "bytes": 523712,
-      "sha256": "e1e5cc253bb39fd773b5418902771e39f745bfe6b5429704abe5971ee7c67382"
+      "bytes": 524840,
+      "sha256": "2edb86829e29d6b0cc88d59d2f47e2d0244e2cd7c9b9e1db0057bb051aff24a0"
     },
     {
       "file": "public/assets/variants/scene-prologue-churchyard-1024x683.webp",

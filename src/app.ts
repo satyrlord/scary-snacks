@@ -1,5 +1,5 @@
 // The game page: it opens the game, draws every part of the interface after each change, and plays the effects of a change.
-import { clockMinutes, clockText, dateText, gameDay, unresolvedObstacle } from './model.ts';
+import { clockMinutes, clockText, currentEvent, dateText, eventComplete, gameDay, unresolvedObstacle } from './model.ts';
 import { dataProblems } from './content.ts';
 import { $, coinText, coinWord, compact, count, element, reason, status } from './dom.ts';
 import { portrait } from './art.ts';
@@ -146,7 +146,9 @@ try {
   // The frame pans smoothly only after it first settles, so opening the game shows the room in place.
   requestAnimationFrame(()=>requestAnimationFrame(()=>{$('#room-frame').classList.add('settled');syncRoomControls();}));
   if(saved.status==='empty')await changeGame(persist);
-  status(saved.status==='loaded'?`Welcome back. The stove is still warm.${state.pendingScenes.length?' A story scene is waiting in Story.':''}`:introduceFirstQuest());
+  // After the last dish of the prologue, the counter offers the waiting scene.
+  const event=currentEvent(state,data),waiting=!state.pendingScenes.length?'':event&&eventComplete(state,event)?' Read now on the counter opens the waiting scene.':' A story scene is waiting in Story.';
+  status(saved.status==='loaded'?`Welcome back. The stove is still warm.${waiting}`:introduceFirstQuest());
   // A new game opens the first scene of the prologue at once. A reload opens no scene.
   if(saved.status==='empty'&&state.pendingScenes.length)showScene(state.pendingScenes[0]);
   if(saveFailed)options();

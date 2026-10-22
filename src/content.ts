@@ -126,7 +126,7 @@ export function questProblems(data: GameData): string[] {
       if (quest.repeating !== undefined && (quest.repeating !== true || quest.finale || quest.recovery || quest.booked || quest.followUp || quest.unlocks || quest.afterTask !== null
         || (quest.afterQuest !== undefined && !data.quests.some(other => other.id === quest.afterQuest && campaignQuest(other))))) problems.push(`${quest.id}: invalid repeating quest.`);
       if (quest.during !== undefined && (!quest.repeating || !integer(quest.during.from, 1, data.calendar.supper) || !integer(quest.during.to, quest.during.from, data.calendar.supper))) problems.push(`${quest.id}: invalid range of days.`);
-      if (quest.act !== undefined && (![2, 3].includes(quest.act) || !campaignQuest({ ...quest, act: undefined }) || quest.march || quest.unlocks)) problems.push(`${quest.id}: invalid later act.`);
+      if (quest.act !== undefined && (![2, 3, 4].includes(quest.act) || !campaignQuest({ ...quest, act: undefined }) || quest.march || quest.unlocks)) problems.push(`${quest.id}: invalid later act.`);
       if (!Array.isArray(quest.requirements) || !quest.requirements.length || quest.requirements.reduce((count, requirement) => count + requirement.quantity, 0) > data.board.initial.length) problems.push(`${quest.id}: invalid delivery size.`);
       for (const requirement of quest.requirements) {
         if (!isDish(requirement.item, data) || !integer(requirement.quantity, 1, data.board.initial.length)) problems.push(`${quest.id}: invalid requirement.`);

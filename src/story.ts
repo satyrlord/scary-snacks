@@ -104,7 +104,8 @@ function prologueContent(inSheet: boolean) {
     step.append(element('span', 'visually-hidden', `${value.title}: ${complete ? 'done' : now ? 'now' : 'not yet'}`)); list.append(step);
   }
   const count = element('span', '', inSheet ? `${done} of ${events.length} done` : 'Prologue'); count.setAttribute('aria-hidden', 'true');
-  row.append(list, count); content.append(row, ...waitingNotice());
+  // After the last dish, the counter offers the waiting scene, so the story card beside it does not.
+  row.append(list, count); content.append(row, ...(inSheet || !eventComplete(state, event) ? waitingNotice() : []));
   const body = element('div', 'task-content');
   body.append(element('h3', '', event.title), element('p', '', dateText(event.day, data)));
   content.append(body, ...storyFoot(done, events.length, 'events')); return content;

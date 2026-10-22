@@ -1389,16 +1389,18 @@
     {
       "id": "family-kitchen-mourning",
       "file": "public/assets/original/family-kitchen-mourning.png",
-      "sha256": "f26d9a866c44d468a48eb15c38bea95ca85abac91c05b4afe5bcb244eaa2de07",
-      "bytes": 5390120,
+      "sha256": "110d69524706b54c43e539d7c3a6e8de4ffd0cb6e87f91ad15853fe2a48fe9ac",
+      "bytes": 7840726,
       "width": 1536,
       "height": 2048,
       "mode": "RGB",
       "hasTransparency": false,
-      "promptId": "family-kitchen-mourning",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a new painting with front-room-01 as the style reference",
+      "promptId": "family-kitchen-mourning-old-blocks",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a masked edit of family-kitchen-mourning-first, of which only the glass of the window and the balcony door was composited, with tools in .github/skills/generate-game-art-openai/scripts",
       "sourceGameImageInput": false,
-      "review": "The family kitchen in mourning: the window over the city blocks in snow, the radiator under the windowsill, the balcony door with the pickle barrel, the black cloth over the mirror, and the photograph of Paraschiva with a black ribbon beside a candle. The agent checked the front-facing perspective, the empty windowsill and radiator for Miez, and the absence of text and people.",
+      "referenceAsset": "family-kitchen-mourning-first",
+      "referenceSha256": "f26d9a866c44d468a48eb15c38bea95ca85abac91c05b4afe5bcb244eaa2de07",
+      "review": "The family kitchen in mourning: the window over old city buildings of the 1920s to 1950s in snow, with four or five storeys, pitched roofs, chimneys, cornices, and one rounded corner, the radiator under the windowsill, the balcony door with the pickle barrel, the black cloth over the mirror, and the photograph of Paraschiva with a black ribbon beside a candle. The agent checked the front-facing perspective, the seams at the lace and at the edges of the glass, the empty windowsill and radiator for Miez, and the absence of text and people.",
       "visualAcceptance": {
         "status": "accepted",
         "by": "user"
@@ -1407,18 +1409,18 @@
     {
       "id": "family-kitchen-christmas",
       "file": "public/assets/original/family-kitchen-christmas.png",
-      "sha256": "4afef53e03c4acf0f634d3ef349945c85bc612992258e6de230041c211da9764",
-      "bytes": 7834744,
+      "sha256": "6c372fadf69e9f7f73c4a8cc5181ed795a0ec346fe007b30e4e7ff994b1e84ce",
+      "bytes": 7829927,
       "width": 1536,
       "height": 2048,
       "mode": "RGB",
       "hasTransparency": false,
       "promptId": "family-kitchen-christmas-mourning",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of family-kitchen-mourning, of which only the mirror, the wall shelf, and the table top were composited, with tools in .github/skills/generate-game-art-openai/scripts; then a masked edit of that state, with family-kitchen-mourning as a second reference, of which only the wall shelf was composited",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of family-kitchen-mourning-first, of which only the mirror, the wall shelf, and the table top were composited, with tools in .github/skills/generate-game-art-openai/scripts; then a masked edit of that state, with family-kitchen-mourning-first as a second reference, of which only the wall shelf was composited; then the glass of the window and the balcony door was composited from the glass edit of family-kitchen-mourning",
       "sourceGameImageInput": false,
-      "referenceAsset": "family-kitchen-mourning",
+      "referenceAsset": "family-kitchen-mourning-first",
       "referenceSha256": "f26d9a866c44d468a48eb15c38bea95ca85abac91c05b4afe5bcb244eaa2de07",
-      "review": "The family kitchen at Christmas: the uncovered mirror with a fir sprig, a basket of colaci on the table, and on the wall shelf the fir branches, the paper carol star, and the mourning corner of the funeral: the photograph of Mamaia with a black ribbon and a lit candle. The family keeps quiet signs of mourning for a year. The agent checked the seams of each composited region and the light of the candle on the wall.",
+      "review": "The family kitchen at Christmas: the uncovered mirror with a fir sprig, a basket of colaci on the table, and on the wall shelf the fir branches, the paper carol star, and the mourning corner of the funeral: the photograph of Mamaia with a black ribbon and a lit candle. The family keeps quiet signs of mourning for a year. The agent checked the seams of each composited region and the light of the candle on the wall. The window and the balcony door show the old city buildings of family-kitchen-mourning.",
       "visualAcceptance": {
         "status": "accepted",
         "by": "user"
@@ -1427,18 +1429,18 @@
     {
       "id": "family-kitchen-new-year",
       "file": "public/assets/original/family-kitchen-new-year.png",
-      "sha256": "f89f8abae21415f53b578a3d9141e4a3e883798efab4e32babe5dd45048a9f5e",
-      "bytes": 7900745,
+      "sha256": "a5533c17ebd03f6148c6abc9e43f650d7c5ba4855195035802e89d9d2865f780",
+      "bytes": 7901200,
       "width": 1536,
       "height": 2048,
       "mode": "RGB",
       "hasTransparency": false,
-      "promptId": "family-kitchen-new-year-mourning",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of family-kitchen-christmas, of which only the band under the ceiling, the window, and the table top were composited, with tools in .github/skills/generate-game-art-openai/scripts; then a masked edit of that state, with family-kitchen-mourning as a second reference, of which only the wall shelf was composited",
+      "promptId": "family-kitchen-new-year-frost",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of family-kitchen-christmas, of which only the band under the ceiling, the window, and the table top were composited, with tools in .github/skills/generate-game-art-openai/scripts; then a masked edit of that state, with family-kitchen-mourning-first as a second reference, of which only the wall shelf was composited; then the glass of the window and the balcony door was composited from the glass edit of family-kitchen-mourning; then a masked edit of that state painted frost on the window, and only the pale frost of that edit was blended over the window glass, with an alpha from its brightness (a white top-hat of radius 9), without painted pixels",
       "sourceGameImageInput": false,
       "referenceAsset": "family-kitchen-christmas-first",
       "referenceSha256": "aa2ad3666dfedb46ffc04d9755421d680e794f2ba10b5dfe12cc864dcc6f34d2",
-      "review": "The family kitchen on New Year’s Eve: streamers under the ceiling, frost ferns on the window, the remains of the midnight table, and on the wall shelf the fir branches, the paper carol star, and the mourning corner of the funeral: the photograph of Mamaia with a black ribbon and a lit candle. The family keeps quiet signs of mourning for a year. The agent checked the seams of each composited region and the light of the candle on the wall.",
+      "review": "The family kitchen on New Year’s Eve: streamers under the ceiling, frost ferns on the window, the remains of the midnight table, and on the wall shelf the fir branches, the paper carol star, and the mourning corner of the funeral: the photograph of Mamaia with a black ribbon and a lit candle. The family keeps quiet signs of mourning for a year. The agent checked the seams of each composited region and the light of the candle on the wall. The window shows the old city buildings of family-kitchen-mourning behind the frost ferns. The agent compared the buildings with the Christmas state.",
       "visualAcceptance": {
         "status": "accepted",
         "by": "user"
@@ -1447,18 +1449,18 @@
     {
       "id": "family-kitchen-farewell",
       "file": "public/assets/original/family-kitchen-farewell.png",
-      "sha256": "844a10ed182d9b7f2d5552ab73955cd6a5324f930200e662b3c6df266af8635f",
-      "bytes": 7923624,
+      "sha256": "20df55914c2c9283c0b8a5989087bff9d4ac86a4f38829c098cc65b0d5114305",
+      "bytes": 7919102,
       "width": 1536,
       "height": 2048,
       "mode": "RGB",
       "hasTransparency": false,
       "promptId": "family-kitchen-farewell-mourning",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of family-kitchen-mourning, of which only the mirror, the wall shelf, and the floor by the hall door were composited, with tools in .github/skills/generate-game-art-openai/scripts; then a masked edit of that state, with family-kitchen-mourning as a second reference, of which only the wall shelf was composited",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of family-kitchen-mourning-first, of which only the mirror, the wall shelf, and the floor by the hall door were composited, with tools in .github/skills/generate-game-art-openai/scripts; then a masked edit of that state, with family-kitchen-mourning-first as a second reference, of which only the wall shelf was composited; then the glass of the window and the balcony door was composited from the glass edit of family-kitchen-mourning",
       "sourceGameImageInput": false,
-      "referenceAsset": "family-kitchen-mourning",
+      "referenceAsset": "family-kitchen-mourning-first",
       "referenceSha256": "f26d9a866c44d468a48eb15c38bea95ca85abac91c05b4afe5bcb244eaa2de07",
-      "review": "The family kitchen before the farewell: the uncovered mirror, the suitcase and the empty cat basket by the hall door, and on the wall shelf a potted plant and the mourning corner of the funeral: the photograph of Mamaia with a black ribbon and a lit candle. The family keeps quiet signs of mourning for a year. The agent checked the seams of each composited region and the light of the candle on the wall.",
+      "review": "The family kitchen before the farewell: the uncovered mirror, the suitcase and the empty cat basket by the hall door, and on the wall shelf a potted plant and the mourning corner of the funeral: the photograph of Mamaia with a black ribbon and a lit candle. The family keeps quiet signs of mourning for a year. The agent checked the seams of each composited region and the light of the candle on the wall. The window and the balcony door show the old city buildings of family-kitchen-mourning.",
       "visualAcceptance": {
         "status": "accepted",
         "by": "user"
@@ -1555,7 +1557,7 @@
       }
     }
   ],
-  "note": "The game uses only project-generated images. The mascots use a generated chat atlas from the references list. The core portraits use a revision of a generated candidate. front-room-00 and courtyard-13 use generated room references. The decoration paintings use generated design references. Each later room state edits the previous state of its area. Each composite retains only the changed region. The board-clutter atlas uses chat generation and cell corrections. The second regulars atlas revises its previous version, and the references list keeps that version. Each pencil sheet is drawn in one request, so that its drawings share one hand. The 18 food atlases use alpha cuts, moves, box clears, and cell copies between candidates, without painted pixels. The window views use a front-room painting as their style reference. Each holiday decoration is a masked edit of a room state, cut out by its difference from that state. The two rat sheets use generated identity references from the references list. The thief rat sheet uses a cell trim, without painted pixels. This record preserves the source and review evidence of the current assets. This record does not give legal clearance.",
+  "note": "The game uses only project-generated images. The mascots use a generated chat atlas from the references list. The core portraits use a revision of a generated candidate. front-room-00 and courtyard-13 use generated room references. The decoration paintings use generated design references. Each later room state edits the previous state of its area. Each composite retains only the changed region. The board-clutter atlas uses chat generation and cell corrections. The second regulars atlas revises its previous version, and the references list keeps that version. Each pencil sheet is drawn in one request, so that its drawings share one hand. The 18 food atlases use alpha cuts, moves, box clears, and cell copies between candidates, without painted pixels. The window views use a front-room painting as their style reference. Each holiday decoration is a masked edit of a room state, cut out by its difference from that state. The two rat sheets use generated identity references from the references list. The thief rat sheet uses a cell trim, without painted pixels. The family kitchen states share one window view. The frost of the new-year state is taken from a candidate by its brightness, without painted pixels. This record preserves the source and review evidence of the current assets. This record does not give legal clearance.",
   "references": [
     {
       "id": "counter-band",
@@ -1809,9 +1811,22 @@
       "mode": "RGB",
       "hasTransparency": false,
       "promptId": "family-kitchen-christmas",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of family-kitchen-mourning, of which only the mirror, the wall shelf, and the table top were composited",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked edit of family-kitchen-mourning-first, of which only the mirror, the wall shelf, and the table top were composited",
       "sourceGameImageInput": false,
       "use": "The reference image of family-kitchen-new-year: the Christmas state before the mourning corner came back to its shelf. The game does not ship it."
+    },
+    {
+      "id": "family-kitchen-mourning-first",
+      "sha256": "f26d9a866c44d468a48eb15c38bea95ca85abac91c05b4afe5bcb244eaa2de07",
+      "bytes": 5390120,
+      "width": 1536,
+      "height": 2048,
+      "mode": "RGB",
+      "hasTransparency": false,
+      "promptId": "family-kitchen-mourning",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a new painting with front-room-01 as the style reference",
+      "sourceGameImageInput": false,
+      "use": "The reference image of the family kitchen states: the mourning state before the view through its window and balcony door changed to old city buildings. The game does not ship it."
     }
   ]
 }

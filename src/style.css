@@ -138,13 +138,23 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   background-size: 23px 61px, 37px 83px; animation: rain-fall .7s linear infinite;
 }
 .room-frame[data-weather='rain'] .window-weather { background-size: 9px 31px, 14px 47px; animation-duration: 2.4s; }
-.room-frame[data-weather='snow'] :is(.window-weather,.room-weather) {
-  background-image: radial-gradient(circle, #fffffff2 0 1.4px, transparent 2px), radial-gradient(circle, #ffffffb3 0 1px, transparent 1.6px);
-  background-size: 41px 47px, 27px 31px; background-position: 0 0, 13px 17px; animation: snow-fall 9s linear infinite;
+/* Snow falls in three depths: each depth is a tile of scattered flakes with its own size, speed, and sway, so no grid shows.
+   Each fall moves one whole tile, so the loop has no jump. The window shows the same snow farther away. */
+.room-frame[data-weather='snow'] :is(.window-weather,.room-weather) { --k: 1; overflow: hidden; --w: 173px; --h: 197px; --t: 17s; --sway: 3px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='173' height='197'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='45.5' cy='37.9' r='1.1' fill-opacity='0.52'/%3E%3Ccircle cx='163.1' cy='28.0' r='1.3' fill-opacity='0.79'/%3E%3Ccircle cx='133.3' cy='28.3' r='1.0' fill-opacity='0.55'/%3E%3Ccircle cx='116.8' cy='172.9' r='1.2' fill-opacity='0.53'/%3E%3Ccircle cx='28.2' cy='135.1' r='1.2' fill-opacity='0.64'/%3E%3Ccircle cx='171.0' cy='141.1' r='1.0' fill-opacity='0.60'/%3E%3Ccircle cx='72.1' cy='83.6' r='1.2' fill-opacity='0.70'/%3E%3Ccircle cx='30.7' cy='26.7' r='1.2' fill-opacity='0.67'/%3E%3Ccircle cx='35.7' cy='181.5' r='1.2' fill-opacity='0.61'/%3E%3Ccircle cx='145.0' cy='39.2' r='1.0' fill-opacity='0.53'/%3E%3Ccircle cx='139.2' cy='96.5' r='1.0' fill-opacity='0.67'/%3E%3Ccircle cx='64.5' cy='115.3' r='1.2' fill-opacity='0.66'/%3E%3Ccircle cx='77.9' cy='176.8' r='1.1' fill-opacity='0.75'/%3E%3Ccircle cx='97.8' cy='125.0' r='1.1' fill-opacity='0.70'/%3E%3Ccircle cx='149.9' cy='57.9' r='1.0' fill-opacity='0.55'/%3E%3Ccircle cx='117.7' cy='91.7' r='1.1' fill-opacity='0.53'/%3E%3Ccircle cx='45.6' cy='8.5' r='1.3' fill-opacity='0.50'/%3E%3Ccircle cx='128.2' cy='34.2' r='1.0' fill-opacity='0.72'/%3E%3Ccircle cx='83.2' cy='144.5' r='1.0' fill-opacity='0.70'/%3E%3Ccircle cx='31.8' cy='16.0' r='1.0' fill-opacity='0.52'/%3E%3Ccircle cx='105.0' cy='47.6' r='1.2' fill-opacity='0.76'/%3E%3Ccircle cx='132.9' cy='11.7' r='1.1' fill-opacity='0.56'/%3E%3Ccircle cx='135.7' cy='146.1' r='1.1' fill-opacity='0.78'/%3E%3Ccircle cx='156.7' cy='174.7' r='1.0' fill-opacity='0.74'/%3E%3Ccircle cx='68.7' cy='188.1' r='1.0' fill-opacity='0.78'/%3E%3Ccircle cx='30.8' cy='144.1' r='1.3' fill-opacity='0.75'/%3E%3Ccircle cx='90.4' cy='63.2' r='1.1' fill-opacity='0.62'/%3E%3Ccircle cx='36.2' cy='116.8' r='1.0' fill-opacity='0.51'/%3E%3Ccircle cx='131.2' cy='53.0' r='1.0' fill-opacity='0.56'/%3E%3Ccircle cx='157.8' cy='177.5' r='1.1' fill-opacity='0.57'/%3E%3Ccircle cx='54.6' cy='118.7' r='1.2' fill-opacity='0.75'/%3E%3Ccircle cx='171.1' cy='31.7' r='1.3' fill-opacity='0.69'/%3E%3Ccircle cx='69.1' cy='175.8' r='1.0' fill-opacity='0.78'/%3E%3Ccircle cx='125.2' cy='113.6' r='1.1' fill-opacity='0.67'/%3E%3Ccircle cx='170.6' cy='185.4' r='1.2' fill-opacity='0.55'/%3E%3Ccircle cx='22.5' cy='175.1' r='1.1' fill-opacity='0.64'/%3E%3Ccircle cx='148.4' cy='64.0' r='1.0' fill-opacity='0.62'/%3E%3Ccircle cx='67.7' cy='27.6' r='1.0' fill-opacity='0.59'/%3E%3Ccircle cx='157.9' cy='188.2' r='1.2' fill-opacity='0.58'/%3E%3Ccircle cx='113.4' cy='103.6' r='1.3' fill-opacity='0.55'/%3E%3Ccircle cx='152.4' cy='160.3' r='1.1' fill-opacity='0.73'/%3E%3Ccircle cx='14.4' cy='80.2' r='1.2' fill-opacity='0.57'/%3E%3Ccircle cx='48.8' cy='116.2' r='1.2' fill-opacity='0.73'/%3E%3Ccircle cx='34.5' cy='49.1' r='1.0' fill-opacity='0.51'/%3E%3Ccircle cx='119.3' cy='100.4' r='1.1' fill-opacity='0.78'/%3E%3C/g%3E%3C/svg%3E"); }
+.room-frame[data-weather='snow'] .window-weather { --k: .6; }
+.room-frame[data-weather='snow'] :is(.window-weather,.room-weather)::before,.room-frame[data-weather='snow'] :is(.window-weather,.room-weather)::after { content: ''; position: absolute; inset: 0; }
+.room-frame[data-weather='snow'] :is(.window-weather,.room-weather)::before { --w: 229px; --h: 251px; --t: 12s; --sway: 6px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='229' height='251'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='148.8' cy='177.6' r='1.7' fill-opacity='0.72'/%3E%3Ccircle cx='93.5' cy='44.2' r='1.7' fill-opacity='0.89'/%3E%3Ccircle cx='44.4' cy='194.6' r='1.5' fill-opacity='0.85'/%3E%3Ccircle cx='70.4' cy='114.5' r='1.8' fill-opacity='0.75'/%3E%3Ccircle cx='222.7' cy='234.3' r='1.6' fill-opacity='0.79'/%3E%3Ccircle cx='23.3' cy='123.4' r='1.7' fill-opacity='0.80'/%3E%3Ccircle cx='58.5' cy='110.8' r='1.7' fill-opacity='0.74'/%3E%3Ccircle cx='196.2' cy='173.5' r='1.5' fill-opacity='0.77'/%3E%3Ccircle cx='56.9' cy='151.8' r='1.5' fill-opacity='0.80'/%3E%3Ccircle cx='206.3' cy='213.7' r='1.7' fill-opacity='0.75'/%3E%3Ccircle cx='106.9' cy='53.5' r='1.6' fill-opacity='0.77'/%3E%3Ccircle cx='211.0' cy='79.0' r='1.8' fill-opacity='0.90'/%3E%3Ccircle cx='61.1' cy='228.0' r='1.9' fill-opacity='0.89'/%3E%3Ccircle cx='111.7' cy='39.2' r='1.7' fill-opacity='0.73'/%3E%3Ccircle cx='160.9' cy='194.7' r='1.7' fill-opacity='0.71'/%3E%3Ccircle cx='184.2' cy='127.5' r='1.5' fill-opacity='0.89'/%3E%3Ccircle cx='179.7' cy='204.2' r='1.7' fill-opacity='0.83'/%3E%3Ccircle cx='199.5' cy='225.1' r='1.8' fill-opacity='0.87'/%3E%3Ccircle cx='213.7' cy='157.4' r='1.6' fill-opacity='0.86'/%3E%3Ccircle cx='195.5' cy='163.3' r='1.6' fill-opacity='0.83'/%3E%3Ccircle cx='190.4' cy='22.4' r='1.6' fill-opacity='0.83'/%3E%3Ccircle cx='188.0' cy='86.0' r='1.6' fill-opacity='0.86'/%3E%3C/g%3E%3C/svg%3E"); }
+.room-frame[data-weather='snow'] :is(.window-weather,.room-weather)::after { --w: 311px; --h: 337px; --t: 9s; --sway: 11px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='311' height='337'%3E%3Cdefs%3E%3CradialGradient id='f'%3E%3Cstop offset='.45' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cg fill='url(%23f)'%3E%3Ccircle cx='170.4' cy='29.3' r='2.7' fill-opacity='0.92'/%3E%3Ccircle cx='246.6' cy='119.2' r='3.1' fill-opacity='0.88'/%3E%3Ccircle cx='302.6' cy='120.6' r='3.0' fill-opacity='0.98'/%3E%3Ccircle cx='34.3' cy='156.1' r='3.2' fill-opacity='0.98'/%3E%3Ccircle cx='197.7' cy='123.3' r='3.2' fill-opacity='0.91'/%3E%3Ccircle cx='10.9' cy='171.1' r='2.9' fill-opacity='0.98'/%3E%3Ccircle cx='212.4' cy='74.1' r='3.1' fill-opacity='0.97'/%3E%3C/g%3E%3C/svg%3E"); animation-delay: -4s; }
+.room-frame[data-weather='snow'] :is(.window-weather,.room-weather),.room-frame[data-weather='snow'] :is(.window-weather,.room-weather)::before,.room-frame[data-weather='snow'] :is(.window-weather,.room-weather)::after {
+  background-size: calc(var(--w) * var(--k)) calc(var(--h) * var(--k)); animation: snow-fall var(--t) linear infinite;
 }
-.room-frame[data-weather='snow'] .window-weather { background-size: 17px 19px, 11px 13px; }
 @keyframes rain-fall { to { background-position: -8px 122px, -12px 166px; } }
-@keyframes snow-fall { to { background-position: 18px 188px, 31px 141px; } }
+@keyframes snow-fall {
+  25% { background-position: calc(var(--sway) * var(--k)) calc(var(--h) * var(--k) * .25); }
+  50% { background-position: 0 calc(var(--h) * var(--k) * .5); }
+  75% { background-position: calc(var(--sway) * var(--k) * -1) calc(var(--h) * var(--k) * .75); }
+  to { background-position: 0 calc(var(--h) * var(--k)); }
+}
 /* A holiday decoration is cropped from the image of its area, which was painted into a room state, so it keeps the light of the room. */
 .room-holidays { position: absolute; inset: 0; pointer-events: none; }
 .room-holidays svg { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -224,6 +234,9 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .ticket-more { color: var(--muted); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .tickets-empty { grid-column: 1 / -1; margin: 0; padding: 12px; color: var(--muted); font-size: 13px; text-align: center; }
 .ticket-row:has(.recovery-ticket) .tickets-empty { grid-column: 1 / -2; }
+/* After the last dish of the prologue, the counter carries Read now beside its line. */
+.prologue-wait { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 12px; }
+.prologue-wait p { margin: 0; }
 .deliver-button { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 44px; padding: 6px; font-size: 13px; white-space: nowrap; }
 .deliver-button .coin { width: 16px; height: 16px; }
 .deliver-button.guide-target { outline: 2px dotted color-mix(in srgb, var(--muted) 50%, transparent); outline-offset: -4px; }
@@ -629,17 +642,19 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   /* Phones stack the day over the time, so the masthead keeps room for the coins. */
   .day-clock { font-size: 12px; }.clock-face { display: grid; justify-items: end; }.clock-dot { display: none; }
   .game-layout {
-    --gap: 3px; --runner-h: 8px; --drawer-chrome: calc(160px + var(--feedback-space, 0px)); --frame-w: 100cqw;
+    --gap: 3px; --runner-h: 8px; --drawer-chrome: calc(160px + var(--prologue-space, 0px) + var(--feedback-space, 0px)); --frame-w: 100cqw;
     --cell: clamp(44px, min(calc((100vw - 40px) / 6), calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7)), 60px);
     --drawer-h: calc(var(--cell) * 7 + 18px + var(--drawer-chrome));
     --view-base: calc(100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-h));
     /* Lowered, the drawer shows the whole painting and keeps its tickets in view. */
-    --drop-full: max(0px, calc(min(100vw * 4 / 3, 100dvh - var(--head-h) - var(--bar-h) - var(--safe) - 68px) - var(--view-base)));
+    --drop-full: max(0px, calc(min(100vw * 4 / 3, 100dvh - var(--head-h) - var(--bar-h) - var(--safe) - 68px - var(--prologue-space, 0px)) - var(--view-base)));
     --view-h: calc(var(--view-base) + var(--drawer-drop));
     transition: --drawer-drop .6s cubic-bezier(.65,0,.35,1);
   }
   .game-layout:is(.lowered,.revealing) { --drawer-drop: var(--drop-full); }
   .game-layout:has(.action-feedback) { --feedback-space: 24px; }
+  /* The wrapped final-scene counter needs room above the board and must stay visible when the drawer lowers. */
+  .game-layout:has(.prologue-wait) { --prologue-space: 40px; }
   .room { position: fixed; z-index: 0; inset: var(--head-h) 0 0; }
   .drawer { position: fixed; z-index: 10; inset: auto 0 calc(var(--bar-h) + var(--safe)); height: var(--drawer-h); translate: 0 var(--drawer-drop); display: flex; flex-direction: column; border-radius: var(--dialog-radius) var(--dialog-radius) 0 0; box-shadow: 0 -8px 12px -6px #1a0f0a73; }
   .drawer>:not(.drawer-handle),.drawer-body>* { width: min(100%, 560px); margin-inline: auto; }
@@ -668,6 +683,7 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   .ticket-face:has(~ .guide-target):focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
   /* The line is as tall as a ticket, so the board stays still when a ticket replaces it. */
   .tickets-empty { display: grid; place-items: center; min-height: 58px; padding: 0 12px; }
+  .prologue-wait { display: flex; padding-block: 6px; }
   /* The source mark holds the lower corner of a small tile, so the cost of a take sits in the upper corner. */
   .take-cost { top: 2px; bottom: auto; left: 2px; }
   .drawer-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
@@ -709,6 +725,7 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
 .source-detail .detail-description { display: block; }
 /* A fourth dish keeps its own count even on the narrowest phone. */
 @media (max-width: 359px) {
+  .game-layout:has(.prologue-wait) { --prologue-space: 64px; }
   .game-layout:has(.ticket-items>:nth-child(4)) { --drawer-chrome: calc(176px + var(--feedback-space, 0px)); }
   .tickets:has(.ticket-items>:nth-child(4)) .ticket { height: 74px; }
   .ticket-items:has(>:nth-child(4)) { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }

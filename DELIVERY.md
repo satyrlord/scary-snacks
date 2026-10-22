@@ -16,6 +16,8 @@ On Windows, the Playwright test browsers disable `TcpPortRandomizationWin` as a 
 
 The version has the form major.minor.build. The `version` field in `package.json` gives the major and minor versions. Change them manually. The build ignores the third part of that field. The build number is the count of commits in `HEAD` (`git rev-list --count HEAD`). So each new commit increases the build number by one. The build and `npm run dev` write the version into the `app-version` meta element of the page. Options shows the version. A copy without Git history, for example the source export, has build number 0. The build stops in a shallow clone, because a shallow clone does not have the full count.
 
+The build version does not change the save format. Until act 2 is fully implemented, each deployed build keeps the save compatibility boundary in `PRODUCT.md`: key `scary-snacks-save-v16`, envelope version 16, and game state version 17. The save-compatibility tests use fixed saves in `tests/fixtures/save-v16.json`. They check load, import, export, and continued play without lost progress. The source export includes the tests and their fixtures.
+
 ## GitHub Pages
 
 The game has no backend and no runtime dependency. Relative Uniform Resource Locators (URLs) support a repository subdirectory. The deployment address is https://satyrlord.github.io/scary-snacks/.

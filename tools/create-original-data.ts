@@ -356,7 +356,7 @@ type Speech = string | [speaker: string, text: string][];
 const lines = (character: string, speech: Speech) => typeof speech === 'string' ? [{ speaker: character, text: speech }] : speech.map(([speaker, text]) => ({ speaker, text }));
 // The calendar of a quest: its opening date, its holiday, a March quest, a later act, an outdoor quest, and the companions who share the meal.
 // A dated quest with followsLine comes after the other quests of its window, so it does not hold up the line of its character.
-type QuestExtra = { opens?: string; holiday?: string; march?: true; act?: 2 | 3; outdoor?: true; companions?: string[]; followsLine?: true };
+type QuestExtra = { opens?: string; holiday?: string; march?: true; act?: 2 | 3 | 4; outdoor?: true; companions?: string[]; followsLine?: true };
 type QuestRow = [id: string, character: string, title: string, window: number, requirements: [string, number][], opening: Speech, completion: Speech, extra?: QuestExtra];
 const questExtra = ({ opens, followsLine: _followsLine, ...rest }: QuestExtra = {}) => ({ ...rest, ...(opens ? { opens: on(opens) } : {}) });
 // Each quest of a regular asks for at least one favourite dish.
@@ -554,7 +554,7 @@ const questRows: QuestRow[] = [
     'The painter says that I look exactly as I did forty years ago. He meant it kindly, so I paid him twice. The old portrait sighed. I heard it from the stairs.'],
   ['ana-saint-andrew', 'ana', 'Saint Andrew’s Eve', 17, [['Smoked cheese', 1], ['Langoș', 1], ['Linden tea', 1]],
     'Tonight is Saint Andrew’s Eve. I will hang the garlic early, and then I want a proper supper: smoked cheese, a langoș, and a linden tea.',
-    'The garlic is up and the plates are clean. Let anything knock tonight. We are fed, and we smell of garlic.', { act: 3 }],
+    'The garlic is up and the plates are clean. Let anything knock tonight. We are fed, and we smell of garlic.', { act: 4 }],
   ['costel-doll', 'costel', 'The dancing doll', 18, [['Cozonac', 1], ['Plum brandy', 1], ['Papanași', 1]],
     'I have finished a dancing doll for the village fair. She dances very well, but she stares a little. Cozonac, papanași, and a plum brandy to celebrate?',
     'She danced through the whole fair. Only one child cried, and that was because the cozonac ran out.'],
@@ -744,7 +744,7 @@ const questRows: QuestRow[] = [
     'A charming evening. My host had no mirrors, so I checked my cravat in a spoon. One must make an effort for good company.'],
   ['cezar-long-night', 'cezar', 'The longest night', 14, [['Tochitură', 1], ['Bean soup', 1], ['Sharing board', 1]],
     'Tonight is the longest night of the year, and I walk all of it. Tochitură, bean soup, and a sharing board, please. One bite for every hour.',
-    'The sun came up at last. I counted fourteen hours, two owls, and one shadow that walked home with me. It was polite.', { act: 3 }],
+    'The sun came up at last. I counted fourteen hours, two owls, and one shadow that walked home with me. It was polite.', { act: 4 }],
   ['eszter-kiln-party', 'eszter', 'The kiln party', 14, [['Plum dumplings', 1], ['Lamb cuts', 1], ['Linden tea', 1]],
     [['eszter', 'The new kiln is finished. Potters celebrate by watching it heat up.'],
       ['ilie', 'For how long?'],

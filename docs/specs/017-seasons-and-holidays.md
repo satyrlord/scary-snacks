@@ -229,7 +229,7 @@ The broken window of the first front-room state shows no view. The courtyard sho
 
 On a rain day, rain falls over the courtyard, and drops run down the window glass of the front room.
 On a snow day, snow falls over the courtyard and outside the window glass.
-In the prologue, snow falls outside the window of the family kitchen.
+The family kitchen of the prologue uses its painted winter view. It has no weather layer.
 The code draws the rain and the snow. The rain and the snow are not bitmap art.
 With reduced motion, the rain and the snow show as still marks. They do not move.
 The rain and the snow never cover the board, the tickets, or the food art.
@@ -263,7 +263,7 @@ The data check enforces the diets and the seasonal chains of each seasonal repea
 ## Season fit of the current quests
 
 Each quest fits the season of its dates. Its text and its dishes do not name a custom, a crop, or weather of another season.
-These current quests do not fit act 1. Spec 015 moves them to act 2 or act 3:
+These current quests do not fit act 1. Spec 015 moves them to act 2, act 3, or act 4:
 
 | Quest | Season of the quest | Target act |
 | --- | --- | --- |
@@ -272,8 +272,8 @@ These current quests do not fit act 1. Spec 015 moves them to act 2 or act 3:
 | Cătălina, "Bell-ringer's appetite" (hail) | Summer | Act 2 |
 | Ilie, "Jars for winter" | Autumn | Act 3 |
 | Bran, "The pumpkin fair" | Autumn | Act 3 |
-| Ana, "Saint Andrew's Eve" | 29 November | Act 3 |
-| Cezar, "The longest night" | 21 December | Act 3 |
+| Ana, "Saint Andrew's Eve" | 29 November | Act 4 |
+| Cezar, "The longest night" | 21 December | Act 4 |
 
 Spec 015 gives the changes to the prerequisites and to the join rule of Cezar's "Before the rounds".
 
