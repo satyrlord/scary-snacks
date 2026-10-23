@@ -1,8 +1,8 @@
 // Synthetic saves at every preparation checkpoint, for manual checks without playing the whole campaign.
 // Each save has its preparations paid, the quests that the next preparation needs delivered, and the exact coins for the next reveal.
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { currentTask, finaleQuest, finaleServed, firstFreeBoardCell, freeBoardCells, gardenStage, isSunday, levers, marchOpens, questFinale, questHoliday, requiredQuests, seasonPaid, sourceCell, sourceNeeded, stapleCost, taskAct, terraceDay } from '../src/model.ts';
-import { KEEP_FREE, reduceGame, revealTickets, validateGame } from '../src/engine.ts';
+import { currentTask, finaleQuest, finaleServed, gardenStage, isSunday, levers, marchOpens, questFinale, questHoliday, requiredQuests, seasonPaid, sourceNeeded, stapleCost, taskAct, terraceDay } from '../src/model.ts';
+import { reduceGame, revealTickets, validateGame } from '../src/engine.ts';
 import type { Finale, GameData, GameState, Quest } from '../src/model.ts';
 import { runPrologue } from './campaign-balance.ts';
 
@@ -33,11 +33,11 @@ export function moveTo(state: GameState, day: number, data: GameData) {
     state.night = { day: night, upkeep: levers(night, data).upkeep, rat: isSunday(night, data) ? 'soricescu' : null, taken: [], trapped: null, gift: null, departed: [], purse: state.coins, seen: true, piper: false };
     state.evening = { guest: null, last: null, delivered: false };
     for (const chain of data.chains) {
-      const season = chain.season, at = sourceCell(state, chain.id);
+      const season = chain.season, present = state.sources.includes(chain.id);
       if (!season) continue;
-      if (at >= 0 && day > season.to && !sourceNeeded(state, chain.id, data)) state.board[at] = null;
-      if (at < 0 && day >= season.from && day <= season.to && seasonPaid(chain, state.taskIndex, data) && freeBoardCells(state, data) > KEEP_FREE) {
-        state.board[firstFreeBoardCell(state, data)] = { code: `generator_${chain.id}` };
+      if (present && day > season.to && !sourceNeeded(state, chain.id, data)) state.sources = state.sources.filter(source => source !== chain.id);
+      if (!present && day >= season.from && day <= season.to && seasonPaid(chain, state.taskIndex, data)) {
+        state.sources.push(chain.id);
         if (!state.discovered.includes(`generator_${chain.id}`)) state.discovered.push(`generator_${chain.id}`);
       }
     }

@@ -16,7 +16,7 @@ function produce(state: GameState, code: string): [GameState, number] {
   if (found >= 0) return [state, found];
   if (item.stage === 1 && !item.recipe) {
     const empty = firstFreeBoardCell(state, data);
-    return [act(state, { type: 'spawn', index: state.board.findIndex(cell => cell?.code === `generator_${item.chain}`) }), empty];
+    return [act(state, { type: 'spawn', chain: item.chain }), empty];
   }
   const [a, b] = item.recipe ?? [`${item.chain}_${item.stage - 1}`, `${item.chain}_${item.stage - 1}`];
   let first: number, second: number;
@@ -67,8 +67,7 @@ test('the first quest is ready to serve with no take, and the Bean dip needs fou
   assert.equal(state.coins, 0, 'An event quest pays nothing.');
   let takes = 0, merges = 0;
   const step = (action: Action) => { const result = reduceGame(state, action, data); assert.ok(result.ok, result.message); state = result.state; if (action.type === 'spawn') takes++; if (result.event === 'merge') merges++; };
-  const source = state.board.findIndex(cell => cell?.code === 'generator_beans');
-  for (let count = 0; count < 4; count++) step({ type: 'spawn', index: source });
+  for (let count = 0; count < 4; count++) step({ type: 'spawn', chain: 'beans' });
   const cells = (code: string) => state.board.flatMap((cell, index) => cell?.code === code ? [index] : []);
   step({ type: 'move', from: cells('beans_1')[0], to: cells('beans_1')[1] });
   step({ type: 'move', from: cells('beans_1')[0], to: cells('beans_1')[1] });
@@ -87,7 +86,7 @@ test('the first quest is ready to serve with no take, and the Bean dip needs fou
 test('the balance record keeps the next event board out of the completed event free-cell minimum', () => {
   const content = structuredClone(data);
   const first = runPrologue(content, 1, true, state => state.prologue?.event === 2).events[0];
-  assert.equal(first.freeCells, 37);
+  assert.equal(first.freeCells, 38);
   // A crowded next board does not change the space that the first event needed.
   content.prologue.events[1].board = content.prologue.events[1].board.map(code => code ?? 'grain_1');
   const crowded = runPrologue(content, 1, true, state => state.prologue?.event === 2).events[0];
@@ -99,7 +98,7 @@ test('each take is free, a full board refuses a take, and a cleared blocker give
   const full = { ...state, board: state.board.map(cell => cell ?? { code: 'beans_1' }) };
   full.discovered = [...new Set([...full.discovered, 'beans_1'])];
   assert.equal(validate(full), true);
-  rejected(full, { type: 'spawn', index: full.board.findIndex(cell => cell?.code === 'generator_beans') });
+  rejected(full, { type: 'spawn', chain: 'beans' });
   let memorial = playTo(6);
   assert.deepEqual(memorial.discovered.includes('fruits_3'), false, 'This run has not made Cherry compote.');
   let at: number;
@@ -170,7 +169,7 @@ test('the dishes of an event board are what its sources, prepared dishes, and bl
 
 test('event dish lookup matches every reachable merge on each authored board', () => {
   for (const event of events) {
-    const reachable = new Set(event.board.flatMap(code => code ? [data.items[code].generator?.outputs[0] ?? code] : []));
+    const reachable = new Set([...event.sources.map(chain => `${chain}_1`), ...event.board.filter(code => code !== null)]);
     for (const obstacle of event.layout.obstacles) reachable.add(obstacle.ingredient);
     for (let count = -1; count !== reachable.size;) {
       count = reachable.size;
@@ -201,9 +200,10 @@ test('a prologue save that cannot continue is invalid', () => {
   invalid.push(['a moved clock', { ...second, clock: { day: 1, merges: 3 } }]);
   invalid.push(['a source of another event', { ...second, board: second.board.map((cell, index) => index === 30 ? { code: 'generator_pork' } : cell) }]);
   invalid.push(['an unknown event', { ...second, prologue: { event: 8 } }]);
+  const envelope = JSON.parse(exportSave(second, validate));
   for (const [name, state] of invalid) {
     assert.equal(validate(state), false, name);
-    assert.throws(() => importSave(JSON.stringify({ format: 'scary-snacks', version: 16, state }), validate), name);
+    assert.throws(() => importSave(JSON.stringify({ ...envelope, state }), validate), /damaged or unknown game data/, name);
   }
   assert.equal(earnedPrologue(second, data).length, 3);
 });
@@ -217,7 +217,7 @@ test('the last delivery of event 7 waits for closing 7, and its completion start
   assert.equal(dateText(gameDay(state, data), data), 'Thursday 13 February');
   assert.deepEqual(roundTrip(state), state);
   // Takes and merges still work by the prologue rules.
-  act(state, { type: 'spawn', index: state.board.findIndex(cell => cell?.code === 'generator_grain') });
+  act(state, { type: 'spawn', chain: 'grain' });
   const started = act(state, { type: 'readScene', id: scenes.at(-1)! });
   assert.equal(started.prologue, null);
   assert.deepEqual(started.board.map(cell => cell?.code ?? null), data.board.initial);
@@ -257,6 +257,7 @@ test('the data check limits the prologue and checks its boards, quests, diets, a
   assert.match(change(content => { content.prologue.events[6].quests[0].requirements = [{ item: 'grain_6', quantity: 2 }, { item: 'vegetables_6', quantity: 1 }]; }), /merges, more than 40/);
   assert.match(change(content => { content.prologue.events[0].quests[0].reward = 5; }), /invalid prologue quest/);
   assert.match(change(content => { content.prologue.gift = 30; }), /gift of 10 to 20/);
-  assert.match(change(content => { content.prologue.events[0].board[0] = 'generator_beans'; }), /sources, each once/);
+  assert.match(change(content => { content.prologue.events[0].board[0] = 'generator_beans'; }), /board of known dishes/);
+  assert.match(change(content => { content.prologue.events[0].sources = ['beans', 'beans']; }), /sources, each once/);
   assert.match(change(content => { content.prologue.events[3].day = content.prologue.events[2].day; }), /a date before act 1/);
 });

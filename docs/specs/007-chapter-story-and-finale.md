@@ -4,16 +4,16 @@ Status: Implemented.
 
 ## Result
 
-`tools/create-original-data.ts` authors six chapters and one finale.
+This specification describes the six chapters and the finale of act 1. Spec 018 gives the chapters and the finale of act 2. `tools/create-original-data.ts` authors both acts.
 Each chapter has a stable identifier (ID), a title, an objective, and opening context.
 Each chapter also has a payoff, one neighbour contribution, and a closing scene.
-Each of the 24 preparations has a stable ID, three dialogue lines, and a chapter number.
+Each of the 24 preparations of act 1 has a stable ID, three dialogue lines, and a chapter number.
 The chapter number of a preparation is the only link between a chapter and its preparations.
 Each preparation has one room state from spec 001. The journal names that change beside the preparation.
 The player can see the current chapter goal and the state of its four preparations.
 The journal shows the result of each complete chapter.
 The finale names the result of each chapter. All four core characters speak: Mara, Ilie, Eszter, and Sorin.
-The finale ends with a return to the kitchen. Only repeating quests remain after the supper.
+The finale ends with a return to the kitchen. Repeating quests fill the rest of 1 May after the supper. Act 2 begins on 2 May.
 The board and the recipe book stay available.
 
 ## Scope and ownership
@@ -61,11 +61,11 @@ The closing scene of chapter 1 names the one friendly spider that stays under th
    The game does not charge a preparation again and does not give a reward again.
 6. The finale names the outcome of each chapter, and all four core characters speak.
    Its last control, "See the supper", opens the supper painting with the ending line of the finale.
-   The painting ends with "Back to the kitchen" if no other scene is unread. Only repeating quests remain.
+   The painting ends with "Back to the kitchen" if no other scene is unread. Repeating quests remain available before act 2 begins.
 7. The journal replays the closing scene of each complete chapter.
    After the supper, the journal also replays the finale with the supper painting.
    A replay and the close of a dialog have no effect on the economy.
-8. A failed payment, missing coins, a missing required quest, and a full board for a new source change nothing.
+8. A failed payment, missing coins, and a missing required quest change nothing.
    They complete no chapter, queue no scene, and open no finale.
    Serve without every plate on the board also changes nothing.
 9. `storyProblems` rejects missing or blank scenes, unknown speakers, and duplicate or unstable IDs.

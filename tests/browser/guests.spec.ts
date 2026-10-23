@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { firstFreeBoardCell, generatorOutputs } from '../../src/model.ts';
 import type { SceneLine } from '../../src/model.ts';
-import { actOneTasks, atBookingTime, checkpoint, data, deliverButton, dismissDialogs, forward, journal, onTicket, opened, openQuest, person, portraitCell, quest, saved, start, supplies, supply, svgImageSizes, ticket, tile, toast } from './support.ts';
+import { actOneTasks, atBookingTime, checkpoint, data, deliverButton, dismissDialogs, forward, journal, onTicket, opened, openQuest, person, portraitCell, quest, saved, start, supplies, supply, svgImageSizes, ticket, tile, toast , source } from './support.ts';
 
 const dinner=quest('ionatan-castle-dinner');
 const search=quest('mina-avram-search');
@@ -23,7 +23,8 @@ test('Ionatan, Mina, and Avram visit in act 2, so act 1 shows no ticket and no i
 });
 
 for(const viewport of [{width:1366,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`the portraits of the guests atlas in act 1 fit ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
-  await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});await start(page,onTicket(quest('vlad-after-dark')));await journal(page,['chapters','conversations','neighbours']);
+  await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});await start(page,onTicket(quest('vlad-after-dark')),theme);
+  await expect(page.locator('html')).toHaveAttribute('data-theme',theme);await journal(page,['chapters','conversations','neighbours']);
   for(const guest of data.characters.filter(value=>value.portraitAtlas==='guest'&&!value.singleVisit)){
     const entry=page.getByRole('button',{name:`Meet ${guest.name}`,exact:true});await entry.scrollIntoViewIfNeeded();await portrait(entry.locator('.portrait'),guest.sprite);await expect(entry).toContainText(guest.role);
     expect(await entry.evaluate(element=>element.scrollWidth<=element.clientWidth)).toBe(true);await entry.click();await portrait(page.locator('.story-turn .portrait'),guest.sprite);
@@ -46,15 +47,10 @@ test('Vlad’s quest shows Red wine from the fruits atlas on its ticket and open
 
 /** Make the dish through the source and board controls, without adding supplies to the save. */
 async function makeDish(page: Page,code: string): Promise<number>{
-  const before=await saved(page),item=data.items[code],source=`generator_${item.chain}`;
-  if(generatorOutputs(before,source,data).includes(code)){
-    const cell=tile(page,before.board.findIndex(value=>value?.code===source));
-    if(await cell.getAttribute('aria-pressed')!=='true'){
-      const empty=firstFreeBoardCell(before,data);await cell.click();await dismissDialogs(page);
-      if((await saved(page)).board[empty]?.code===code)return empty;
-    }
-    const empty=firstFreeBoardCell(await saved(page),data);expect(empty).toBeGreaterThanOrEqual(0);
-    await cell.click();await dismissDialogs(page);
+  const before=await saved(page),item=data.items[code];
+  if(generatorOutputs(before,`generator_${item.chain}`,data).includes(code)){
+    const empty=firstFreeBoardCell(before,data);expect(empty).toBeGreaterThanOrEqual(0);
+    await source(page,item.chain).click();await dismissDialogs(page);
     expect((await saved(page)).board[empty]?.code).toBe(code);return empty;
   }
   const lower=Object.values(data.items).find(candidate=>candidate.next===code)!;

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calendarDate, clockMinutes, dateText, dayHours, dayMerges, eveningOpen, firstFreeBoardCell, freeBoardCells, getItem, holidayDecorations, isSunday, looseRaw, playable, requiredQuests, resolveQuests, sourceCell, supperQuest, taskEligibility, ticketNote, unresolvedObstacle, windowView, yearDay } from '../src/model.ts';
+import { calendarDate, clockMinutes, dateText, dayHours, dayMerges, eveningOpen, firstFreeBoardCell, freeBoardCells, getItem, holidayDecorations, isSunday, looseRaw, playable, requiredQuests, resolveQuests, supperQuest, taskEligibility, ticketNote, unresolvedObstacle, windowView, yearDay } from '../src/model.ts';
 import { reduceGame, validateGame } from '../src/engine.ts';
 import { calendarProblems, questProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
@@ -223,37 +223,33 @@ test('the calendar checks reject late snow, long April rain, rain on the supper 
 });
 
 test('the pickle barrel of the cathedral sells gherkins for the take cost, leaves at the closing of 20 March, and the forage basket comes the next morning', () => {
-  const start = openGame(), barrel = sourceCell(start, 'pickles');
-  assert.ok(barrel >= 0);
-  const taken = act(start, { type: 'spawn', index: barrel });
+  const start = openGame();
+  assert.ok(start.sources.includes('pickles'));
+  const taken = act(start, { type: 'spawn', chain: 'pickles' });
   assert.equal(taken.coins, start.coins - data.economy.takeCost, 'A take from the pickle barrel spends the take cost.');
-  assert.match(rejected({ ...start, coins: 0 }, { type: 'spawn', index: barrel }).message, /costs 1 coin for each take/);
+  assert.match(rejected({ ...start, coins: 0 }, { type: 'spawn', chain: 'pickles' }).message, /costs 1 coin for each take/);
   assert.ok(looseRaw('pickles_1', data), 'Gherkins are a loose raw ingredient.');
   // The quests of the first windows that ask for pickles are delivered.
   const last = on(checkpoint(2), day(20, 3)), closed = closeDay(last);
-  assert.equal(sourceCell(closed, 'pickles'), -1);
+  assert.ok(!closed.sources.includes('pickles'));
   assert.deepEqual(closed.night!.departed, ['pickles']);
-  const basket = sourceCell(closed, 'greens');
-  assert.ok(basket >= 0);
-  assert.equal(basket, firstFreeBoardCell({ ...closed, board: closed.board.map((cell, index) => index === basket ? null : cell) }, data));
+  assert.equal(closed.sources.at(-1), 'greens', 'The basket joins the end of the source tab.');
   assert.ok(closed.discovered.includes('generator_greens'));
-  // A save holds at most one source of each chain.
+  // A source is never on the board, and the tab holds each source once.
   const free = closed.board.findIndex((cell, index) => !cell && !unresolvedObstacle(closed, index, data));
   assert.equal(validateGame(withBoard(closed, [[free, 'generator_greens']]), data), false);
+  assert.equal(validateGame({ ...closed, sources: [...closed.sources, 'greens'] }, data), false);
 });
 
-test('the forage basket waits for room, keeps four free cells, and comes with a later action', () => {
+test('the forage basket comes on the first morning of spring also to a full board, and leaves the board as it was', () => {
   const crowded = on(checkpoint(2), day(20, 3));
   const free = crowded.board.flatMap((cell, index) => !cell && !unresolvedObstacle(crowded, index, data) && index !== 13 && index !== 14 ? [index] : []);
-  // The closing frees the cell of the merge and the cell of the barrel, which leaves four free cells.
-  const full = withBoard(crowded, free.slice(0, free.length - 2).map(index => [index, 'herbs_4']));
+  const full = withBoard(crowded, free.map(index => [index, 'herbs_4']));
   const closed = closeDay(full);
-  assert.equal(freeBoardCells(closed, data), 4);
-  assert.equal(sourceCell(closed, 'greens'), -1, 'The basket waits.');
-  // A merge frees a cell, so the basket comes, and four cells stay free.
-  const merged = act(withBoard(closed, [[free[0], 'grain_2']]), { type: 'move', from: 14, to: free[0] });
-  assert.ok(sourceCell(merged, 'greens') >= 0);
-  assert.equal(freeBoardCells(merged, data), 4);
+  assert.ok(closed.sources.includes('greens'));
+  assert.deepEqual(closed.board.filter(cell => cell?.code === 'herbs_4').length, free.length);
+  // In its season, the source is always in the bistro.
+  assert.equal(validateGame({ ...closed, sources: closed.sources.filter(chain => chain !== 'greens') }, data), false);
 });
 
 test('the open pickle quest of Ana keeps the barrel after its season, through a reload, until the next closing after its delivery', () => {
@@ -264,16 +260,19 @@ test('the open pickle quest of Ana keeps the barrel after its season, through a 
   know(late, ...quest('ana-pickles').requirements.map(({ item }) => item));
   assert.equal(validateGame(late, data), true);
   const kept = closeDay(late);
-  assert.ok(sourceCell(kept, 'pickles') >= 0);
+  assert.ok(kept.sources.includes('pickles'));
   assert.deepEqual(kept.night!.departed, []);
   const reloaded = importSave<GameState>(exportSave(kept, validate), validate);
   assert.deepEqual(reloaded, kept);
+  const missing = { ...reloaded, sources: reloaded.sources.filter(chain => chain !== 'pickles') };
+  assert.equal(validate(missing), false, 'A save cannot lose a seasonal source while an open repeating quest still needs it.');
+  assert.throws(() => importSave(JSON.stringify({ ...JSON.parse(exportSave(reloaded, validate)), state: missing }), validate), /damaged or unknown/);
   // The open campaign quests hold the tickets, so the delivery is written into the save: the cycle moves on.
   const delivered = { ...reloaded, repeating: { last: 'ana-pickles', open: null } };
   assert.equal(validateGame(delivered, data), true);
-  assert.ok(sourceCell(delivered, 'pickles') >= 0);
+  assert.ok(delivered.sources.includes('pickles'));
   const left = closeDay(delivered);
-  assert.equal(sourceCell(left, 'pickles'), -1);
+  assert.ok(!left.sources.includes('pickles'));
   assert.deepEqual(left.night!.departed, ['pickles']);
 });
 

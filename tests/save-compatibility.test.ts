@@ -7,12 +7,12 @@ import { exportSave, importSave, loadSave, saveGame, SAVE_KEY } from '../src/sto
 import { data, memoryStorage, validate } from './support.ts';
 
 // Fixed saves protect the supported release. Do not regenerate them with the rules under test.
-const saves: Record<string, { format: string; version: number; state: GameState }> = JSON.parse(await readFile(new URL('./fixtures/save-v17.json', import.meta.url), 'utf8'));
+const saves: Record<string, { format: string; version: number; state: GameState }> = JSON.parse(await readFile(new URL('./fixtures/save-v18.json', import.meta.url), 'utf8'));
 
 for (const [name, envelope] of Object.entries(saves)) test(`the supported ${name} save loads, imports, and exports without a progress change`, () => {
-  assert.equal(SAVE_KEY, 'scary-snacks-save-v17');
-  assert.equal(envelope.version, 17);
-  assert.equal(envelope.state.version, 18);
+  assert.equal(SAVE_KEY, 'scary-snacks-save-v18');
+  assert.equal(envelope.version, 18);
+  assert.equal(envelope.state.version, 19);
   const text = JSON.stringify(envelope), storage = memoryStorage([[SAVE_KEY, text]]);
   const loaded = loadSave<GameState>(storage, validate);
   assert.equal(loaded.status, 'loaded', loaded.error ?? name);
@@ -34,7 +34,7 @@ test('the supported saves can continue and save without repeating progress or re
     // Otherwise use a free source so a debt cannot stop the check.
     const action: Action = state.prologue && state.pendingScenes.length
       ? { type: 'readScene', id: state.pendingScenes[0] }
-      : { type: 'spawn', index: state.board.findIndex(cell => cell?.code === 'generator_herbs') };
+      : { type: 'spawn', chain: 'herbs' };
     const played = reduceGame(state, action, data);
     assert.equal(played.ok, true, `${name}: ${played.message}`);
     assert.equal(validate(played.state), true, name);
@@ -58,7 +58,7 @@ test('the supported saves can continue and save without repeating progress or re
 
 test('an export in an earlier format fails on import and keeps the current save', () => {
   const current = JSON.stringify(saves['supper-served']), storage = memoryStorage([[SAVE_KEY, current]]);
-  const earlier = JSON.stringify({ format: 'scary-snacks', version: 16, state: { ...saves['act-one-start'].state, version: 17 } });
+  const earlier = JSON.stringify({ format: 'scary-snacks', version: 17, state: { ...saves['act-one-start'].state, version: 18 } });
   assert.throws(() => importSave(earlier, validate), { status: 'unsupported' });
   assert.equal(loadSave(storage, validate).status, 'loaded');
   assert.equal(storage.values.get(SAVE_KEY), current);

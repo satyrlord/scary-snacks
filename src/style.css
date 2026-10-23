@@ -112,10 +112,11 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .miez { padding: 0; border: 0; border-radius: var(--control-radius); background: transparent; }
 .sill-cat>.mascot { width: 100%; height: 100%; }
 /* In the family kitchen, Miez sits on the left half of the windowsill (its top 41% down the painting) and sleeps on the radiator below it
-   (its top 44.8% down). In the farewell state, he sits on the floor beside the empty cat basket (its foot 89.5% down). */
+   (its top 44.8% down), his belly on the top of the fins over a soft shadow. In the farewell state, he sits on the floor beside the empty
+   cat basket (its foot 89.5% down). */
 .room-frame[data-area='family-kitchen'] .sill-cat { left: 31%; bottom: 58.6%; }
-.room-frame[data-area='family-kitchen'] .sill-cat:has(.cat-sleeping) { left: 41%; bottom: 54.8%; }
-.room-frame[data-current='family-kitchen-farewell'] .sill-cat,.room-frame[data-current='family-kitchen-farewell'] .sill-cat:has(.cat-sleeping) { left: 35%; bottom: 10.5%; }
+.room-frame[data-area='family-kitchen'] .sill-cat:has(.cat-sleeping) { left: 41%; bottom: 54%; background: radial-gradient(46% 9% at 52% 96%, #1a0f08b0, #1a0f0800); }
+.room-frame[data-current='family-kitchen-farewell'] .sill-cat,.room-frame[data-current='family-kitchen-farewell'] .sill-cat:has(.cat-sleeping) { left: 35%; bottom: 10.5%; background: none; }
 /* In act 2, Miez sits on the windowsill of the summer kitchen (its top 52% down the painting), on the windowsill beside the garden
    (its top 50.5% down), and on the rim of the fountain in the town square (its top 67% down). */
 .room-frame[data-area='summer-kitchen'] .sill-cat { left: 12%; bottom: 47.6%; }
@@ -262,6 +263,22 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .runner { display: block; width: 100%; height: var(--runner-h); stroke: none; }
 .runner-source { position: absolute; width: 0; height: 0; overflow: hidden; }
 .board { display: grid; grid-template-columns: repeat(6,var(--cell)); grid-template-rows: repeat(7,var(--cell)); gap: var(--gap); justify-content: center; }
+/* The source tab beside the board: a place for each source of the game, in two columns of eight, the first column next to the board.
+   The eight places of a column span the seven rows of the board, so the tab and the board share their top and bottom edges. */
+.worktop { --slot: calc((var(--cell) * 7 - var(--gap)) / 8); display: flex; justify-content: center; gap: 8px; }
+.sources { position: relative; display: grid; grid-auto-flow: column; grid-template-rows: repeat(8,var(--slot)); grid-auto-columns: var(--slot); gap: var(--gap); direction: rtl; }
+.sources::before { content: ''; position: absolute; inset: -4px; border-radius: 10px; background: #1e120c47; box-shadow: inset 0 1px 3px #1a0f0a59; }
+.source-slot { position: relative; direction: ltr; }
+.source { min-width: 0; min-height: 0; padding: 3px; border: 0; border-radius: var(--tile-radius); background: var(--tile-a); color: inherit; display: grid; place-items: center; touch-action: none; box-shadow: var(--tile-lift); }
+.source .food { width: 100%; height: 100%; pointer-events: none; }
+.source:focus-visible { outline-offset: -3px; }
+@media (hover: hover) { .source:hover { box-shadow: inset 0 0 0 2px var(--selected), var(--tile-lift); } }
+.source.guide-target { outline: 2px dotted color-mix(in srgb, var(--muted) 50%, transparent); outline-offset: -4px; }
+.source.guide-target:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+.source.hint { animation: hint-pulse .75s ease-in-out 3; }
+/* A drag lifts the source out of its place, and the place where it will go has the selection ring. */
+.source.lifted { opacity: .35; }
+.source-slot.drop-target { border-radius: var(--tile-radius); box-shadow: inset 0 0 0 3px var(--selected); }
 .cell { min-width: 0; min-height: 0; position: relative; background: var(--tile-a); border: 0; border-radius: var(--tile-radius); padding: 5px; display: grid; place-items: center; touch-action: none; box-shadow: var(--tile-lift); }
 .cell:nth-child(12n+2),.cell:nth-child(12n+4),.cell:nth-child(12n+6),.cell:nth-child(12n+7),.cell:nth-child(12n+9),.cell:nth-child(12n+11) { background: var(--tile-b); }
 .cell .food { width: 100%; height: 100%; pointer-events: none; }
@@ -296,10 +313,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 @media (hover: hover) { .cell:not(.selected):hover { box-shadow: inset 0 0 0 2px var(--selected), var(--tile-lift); } }
 .cell:is(.blocker-target,.merge-target,.guide-target) { outline: 2px dotted color-mix(in srgb, var(--muted) 50%, transparent); outline-offset: -4px; }
 .cell:is(.blocker-target,.merge-target,.guide-target):focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
-.source-mark { position: absolute; right: 3px; bottom: 3px; width: 17px; height: 17px; pointer-events: none; }
-.source-mark circle { fill: var(--action); stroke: var(--tile-a); stroke-width: 1.5; }.source-mark path { stroke: var(--on-action); stroke-width: 2.6; }
-/* A paid source shows the coins of one take. The Herb basket is free and shows none. */
-.take-cost { position: absolute; left: 3px; bottom: 3px; display: flex; align-items: center; gap: 1px; padding: 0 5px 0 1px; border-radius: 9px; background: var(--panel); color: var(--ink); font-size: 11px; font-weight: 600; line-height: 16px; font-variant-numeric: tabular-nums; pointer-events: none; box-shadow: 0 0 0 1px var(--control-line); }
+/* A paid source shows the coins of one take. The free sources show none. */
+.take-cost { position: absolute; right: 1px; bottom: 1px; display: flex; align-items: center; gap: 1px; padding: 0 4px 0 1px; border-radius: 9px; background: var(--panel); color: var(--ink); font-size: 11px; font-weight: 600; line-height: 16px; font-variant-numeric: tabular-nums; pointer-events: none; box-shadow: 0 0 0 1px var(--control-line); }
 .take-cost .coin { width: 14px; height: 14px; }
 .cell.hint { animation: hint-pulse .75s ease-in-out 3; }
 /* A merged or new item settles onto its tile; the first of each dish arrives with a small flourish. */
@@ -578,7 +593,8 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
    the masthead, the paper tickets, then the board with Mara's line beside the story and the recipe book as sections of the same surface.
    The cell follows the panel's width and the screen's full height, so the panel fills the first screen from 1280 to 1920 wide. */
 @media (min-width: 1024px) {
-  :root { --panel-w: max(50vw, 620px); }
+  /* The room is never wider than its painting at full height, so a wide screen gives the rest to the kitchen. */
+  :root { --panel-w: max(50vw, 100vw - 75dvh, 620px); }
   :root,body { background: var(--panel); }
   body { padding-left: calc(100vw - var(--panel-w)); }
   /* The panel's edge toward the room is shaded on the panel itself, warm and offset downward, so no shadow falls on the painting. */
@@ -587,8 +603,9 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   .wordmark { font-size: clamp(43px, 3.2vw, 48px); }
   .game-layout {
     --view-h: 100dvh; --frame-w: max(100cqw, 75cqh); --gap: 4px; --runner-h: 14px;
-    --side-w: clamp(240px, calc(var(--panel-w) * .36), 300px);
-    --cell: clamp(44px, min(calc((var(--panel-w) - var(--side-w) - 116px) / 6), calc((100dvh - 432px) / 7)), 96px);
+    --side-w: clamp(220px, calc(var(--panel-w) * .3), 300px); --chrome-w: 128px;
+    /* Only the width can take a cell below 44px: the board and the source tab share the kitchen column. */
+    --cell: clamp(40px, min(calc((var(--panel-w) - var(--side-w) - var(--chrome-w)) / 7.75), max(44px, calc((100dvh - 432px) / 7))), 96px);
     padding: 0 24px 16px;
   }
   .room { position: fixed; z-index: 0; inset: 0 auto 0 0; width: calc(100vw - var(--panel-w)); }
@@ -600,9 +617,9 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   .ticket .ticket-item { width: 40px; height: 36px; }.ticket .ticket-item .food { width: 32px; height: 32px; }
   .ticket .ticket-items.many .ticket-item { width: 34px; }.ticket .ticket-items.many .food { width: 30px; height: 30px; }
   .drawer-body { display: grid; grid-template-columns: auto minmax(0,1fr); align-items: start; gap: 20px; }
-  .kitchen { width: calc(var(--cell) * 6 + var(--gap) * 5 + 28px); display: flex; flex-direction: column; gap: 12px; }
+  .kitchen { width: calc(var(--cell) * 7.75 + var(--gap) * 5.75 + 36px); display: flex; flex-direction: column; gap: 12px; }
   .table { border-radius: var(--radius); box-shadow: 0 2px 4px #2a1a1029, var(--shadow); }
-  .board { padding: 14px; }
+  .worktop { padding: 14px; }
   .line-slot>* { min-height: 62px; padding: 6px 2px; }
   /* The story and the recipe book are sections of the panel, between hairlines, not cards. */
   .side { align-self: stretch; display: flex; flex-direction: column; min-width: 0; padding-left: 20px; border-left: 1px solid var(--line); }
@@ -618,6 +635,12 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   .day-clock { grid-column: 1; text-align: right; }
   .coin-count { grid-column: 1; align-self: last baseline; justify-content: end; padding-right: 0; border-right: 0; }
   .options-button { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+}
+/* The narrowest panels have tighter margins, and Pay takes its own row above Cost details. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .game-layout { --side-w: 200px; --chrome-w: 100px; padding-inline: 16px; }
+  .drawer-body { gap: 14px; }.side { padding-left: 14px; }
+  .task-payment { flex-wrap: wrap; row-gap: 4px; }.task-payment .primary-button { flex-basis: 100%; }
 }
 @media (min-width: 1024px) and (max-width: 1365px) {
   .options-button { padding: 0 10px; }.options-button span { display: none; }.header-controls { column-gap: 10px; }
@@ -640,7 +663,7 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   .ticket .portrait { width: 28px; height: 28px; }
   .ticket .ticket-item { height: 28px; }
   .ticket .ticket-item .food { width: 26px; height: 26px; }
-  .board { padding-block: 10px; }
+  .worktop { padding-block: 10px; }
   .kitchen { gap: 8px; }
   .line-slot>* { padding-block: 4px; }
 }
@@ -657,8 +680,10 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   .day-clock { font-size: 12px; }.clock-face { display: grid; justify-items: end; }.clock-dot { display: none; }
   .game-layout {
     --gap: 3px; --runner-h: 8px; --ticket-h: 74px; --drawer-chrome: calc(102px + var(--ticket-h) + var(--prologue-space, 0px) + var(--feedback-space, 0px)); --frame-w: 100cqw;
-    --cell: clamp(44px, min(calc((100vw - 40px) / 6), calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7)), 60px);
-    --drawer-h: calc(var(--cell) * 7 + 18px + var(--drawer-chrome));
+    /* The width gives way below 44px on narrow phones, so the board and the source tab fit side by side. */
+    --cell: clamp(34px, min(calc((min(100vw, 560px) - 42px) / 7.75), max(44px, calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7))), 60px);
+    /* The drawer keeps the height of 44px cells when the width takes a cell below 44px, so the room keeps its view on narrow phones. */
+    --drawer-h: calc(max(var(--cell), 44px) * 7 + 18px + var(--drawer-chrome));
     --view-base: calc(100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-h));
     /* Lowered, the drawer shows the whole painting and keeps its tickets in view. */
     --drop-full: max(0px, calc(min(100vw * 4 / 3, 100dvh - var(--head-h) - var(--bar-h) - var(--safe) - 18px - var(--ticket-h) - var(--prologue-space, 0px)) - var(--view-base)));
@@ -705,12 +730,10 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   /* The line is as tall as a ticket, so the board stays still when a ticket replaces it. */
   .tickets-empty { display: grid; place-items: center; min-height: var(--ticket-h); padding: 0 12px; }
   .prologue-wait { display: flex; padding-block: 6px; }
-  /* The source mark holds the lower corner of a small tile, so the cost of a take sits in the upper corner. */
-  .take-cost { top: 2px; bottom: auto; left: 2px; }
   .drawer-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   .kitchen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   .table { flex: none; margin-top: 4px; border-radius: var(--card-radius); background-image: url('../assets/variants/timber-tabletop-1024x1024.webp'); background-image: image-set(url('../assets/variants/timber-tabletop-1024x1024.avif') type('image/avif'), url('../assets/variants/timber-tabletop-1024x1024.webp') type('image/webp')); }
-  .board { padding: 6px 0; }.cell { padding: 3px; }
+  .worktop { padding: 6px 8px; }.cell { padding: 3px; }
   .line-slot { flex: 1; display: flex; align-items: center; min-height: 0; padding: 0 10px; }
   .mara-line,.offer { gap: 8px; }.mara-line .portrait,.offer .portrait { width: 28px; height: 28px; }.offer strong { font-size: 13px; }.mara-line p { font-size: 13px; line-height: 1.35; }
   .detail-head { flex: 1 1 0; gap: 8px; }.detail-head .food { width: 40px; height: 40px; }
@@ -744,7 +767,6 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
 @media (max-width: 410px) { .detail-head .food { width: 34px; height: 34px; } }
 @media (max-width: 360px) { .detail-head .food,.detail-next { display: none; }.item-actions button { padding-inline: 9px; } }
 .guided .detail-next { display: block; }
-.source-detail .detail-description { display: block; }
 /* A fourth dish keeps its own count even on the narrowest phone. */
 @media (max-width: 359px) {
   .game-layout:has(.prologue-wait) { --prologue-space: 64px; }
@@ -758,7 +780,7 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
 @media (max-width: 1023px) and (min-height: 601px) and (max-height: 700px) {
   .game-layout { --runner-h: 4px; --drawer-chrome: calc(84px + var(--ticket-h) + var(--prologue-space, 0px) + var(--feedback-space, 0px)); }
   .table { margin-top: 2px; }
-  .board { padding-block: 2px; }
+  .worktop { padding-block: 2px; }
 }
 /* Landscape phones and 200% zoom leave too little height for a fixed drawer over the room, so the room, the drawer and the bar return to the page flow. */
 @media (max-width: 1023px) and (max-height: 600px) {
@@ -788,7 +810,9 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
 }
 /* Forced colours drop the tile fills and the inset rings: spaces, buttons and the selection keep system-colour edges. */
 @media (forced-colors: active) {
-  .cell,.primary-button,.secondary-button,.ticket-item,.ticket,.area-choice,.room-pin { border: 1px solid ButtonBorder; }
+  .cell,.source,.primary-button,.secondary-button,.ticket-item,.ticket,.area-choice,.room-pin { border: 1px solid ButtonBorder; }
+  .source.guide-target { outline: 3px dotted Highlight; outline-offset: -3px; }
+  .source-slot.drop-target { outline: 3px solid Highlight; outline-offset: -3px; }
   .cell.obstacle { border: 2px dashed ButtonText; }
   .cell.selected { outline: 3px solid Highlight; outline-offset: -3px; }
   @media (hover: hover) { .cell:hover { outline: 3px solid Highlight; outline-offset: -3px; } }

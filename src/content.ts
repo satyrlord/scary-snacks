@@ -588,6 +588,8 @@ export function dataProblems(data: GameData, knownImages?: readonly string[]): s
     }
     const items = itemProblems(data);
     if (items.length) return items;
+    // Sources stand in the source tab, never on a board.
+    if (!sourceList(data.board.sources, data) || !data.board.initial.every(code => code === null || isDish(code, data))) return ['The board needs known sources, each once, and only dishes in its starting spaces.'];
     const problems = [...characterProblems(data), ...calendarProblems(data), ...boardLayoutProblems(data), ...roomProblems(data), ...decorationProblems(data, knownImages),
       ...questProblems(data), ...discoveryProblems(data), ...storyProblems(data), ...economyProblems(data), ...dayProblems(data), ...prologueProblems(data, knownImages)];
     // The save validation relies on the other checks, so it judges the new game only after they pass.
@@ -596,6 +598,9 @@ export function dataProblems(data: GameData, knownImages?: readonly string[]): s
     return problems;
   } catch { return ['The game data is malformed.']; }
 }
+/** A list of sources: known chains, each once. */
+const sourceList = (sources: unknown, data: GameData): sources is string[] => Array.isArray(sources) && new Set(sources).size === sources.length
+  && sources.every(chain => typeof chain === 'string' && !!data.items[`generator_${chain}`]?.generator);
 /** The prologue is short: the merges of each event from the raw staples, and of all events together. */
 const EVENT_MERGES = 40, PROLOGUE_MERGES = 250;
 /**
@@ -626,10 +631,10 @@ export function prologueProblems(data: GameData, knownImages?: readonly string[]
       if (!roomIds.has(event.room)) problems.push(`${label}: unknown family kitchen state.`);
       for (const image of [event.scene?.image, event.opening?.page?.image, event.closing?.page?.image].filter(present)) if (!stable(image) || (knownImages && !knownImages.includes(image))) problems.push(`${label}: missing image ${image}.`);
       if (typeof event.scene?.text !== 'string' || !event.scene.text.trim()) problems.push(`${label} needs a description of its illustration.`);
-      // The board: known sources once each, known dishes, and blockers on empty cells.
-      if (!Array.isArray(event.board) || event.board.length !== data.board.initial.length || !event.board.every(code => code === null || own(data.items, code))) { problems.push(`${label} needs a board of known items.`); continue; }
-      const sources = event.board.filter(code => code && data.items[code].generator);
-      if (!sources.length || new Set(sources).size !== sources.length) problems.push(`${label} needs its own sources, each once.`);
+      // The sources once each, a board of known dishes, and blockers on empty cells.
+      if (!Array.isArray(event.board) || event.board.length !== data.board.initial.length || !event.board.every(code => code === null || isDish(code, data))) { problems.push(`${label} needs a board of known dishes.`); continue; }
+      if (!sourceList(event.sources, data) || !event.sources.length) { problems.push(`${label} needs its own sources, each once.`); continue; }
+      const sources = event.sources.map(chain => `generator_${chain}`);
       if (!unique(event.layout?.id) || !Array.isArray(event.layout.obstacles)) { problems.push(`${label} needs its own layout.`); continue; }
       const positions = new Set<number>();
       for (const obstacle of event.layout.obstacles) {
@@ -639,8 +644,7 @@ export function prologueProblems(data: GameData, knownImages?: readonly string[]
         positions.add(obstacle.position);
       }
       const dishes = eventDishes(event, data);
-      for (const code of event.board) if (code && !data.items[code].generator) known.add(code);
-      for (const code of sources) known.add(code!);
+      for (const code of [...event.board.filter(present), ...sources]) known.add(code);
       // The quests: one for each of Mama, Tata, and Mara at most, with no reward and no reply.
       if (!Array.isArray(event.quests) || !event.quests.length || event.quests.length > 3 || new Set(event.quests.map(quest => quest.character)).size !== event.quests.length) problems.push(`${label} needs one to three quests, at most one for each character.`);
       let merges = 0;
@@ -662,7 +666,7 @@ export function prologueProblems(data: GameData, knownImages?: readonly string[]
         for (const { item } of quest.requirements) known.add(item);
       }
       // The sources of an event count as known only during it.
-      for (const code of sources) known.delete(code!);
+      for (const code of sources) known.delete(code);
       if (merges > EVENT_MERGES) problems.push(`${label} needs ${merges} merges, more than ${EVENT_MERGES}.`);
       total += merges;
       for (const part of [event.opening, event.closing]) {
@@ -688,7 +692,7 @@ export function discoveryProblems(data: GameData): string[] {
   const byId = new Map(data.quests.map(quest => [quest.id, quest])), predecessors = new Map(data.quests.map(quest => [quest, questPredecessors(quest, data)]));
   // The starting board, without the dishes that the first tickets put in the recipe book, and the sure discoveries of the prologue: the
   // prepared dishes of its boards and the dishes of its quests.
-  const start = [...data.board.initial.filter(present), ...data.prologue.events.flatMap(event => event.board.filter(code => !!code && !data.items[code].generator) as string[]),
+  const start = [...data.board.initial.filter(present), ...data.prologue.events.flatMap(event => event.board.filter(present)),
     ...prologueQuests(data).flatMap(quest => quest.requirements.map(({ item }) => item))];
   /** The quests that are delivered before this one opens: those that the preparations before it need, and its predecessors. */
   const delivered = (quest: Quest, found = new Set<Quest>()): Set<Quest> => {
@@ -765,7 +769,7 @@ function itemProblems(data: GameData): string[] {
     }
     // A seasonal source comes by its season, after the preparation that it waits for: no preparation opens it, and a new game holds it
     // only in its season.
-    const sources = data.board.initial.filter(code => code === `generator_${chain}`).length, unlocks = data.tasks.filter(task => task.unlock === chain).length;
+    const sources = data.board.sources.filter(source => source === chain).length, unlocks = data.tasks.filter(task => task.unlock === chain).length;
     const value = data.chains.find(other => other.id === chain)!, season = value.season;
     if (season ? unlocks || sources !== Number(season.from <= 1 && season.to >= 1 && season.after === undefined)
       || !integer(season.from, -1000) || !integer(season.to, season.from) || typeof season.departure !== 'string' || !season.departure.trim()
@@ -791,7 +795,7 @@ export function boardLayoutProblems(data: GameData): string[] {
   const layouts = data.board.layouts;
   if (!Array.isArray(layouts) || !layouts.length || !layouts.some(layout => layout.id === data.board.defaultLayout)) return ['The board needs a default layout.'];
   const ids = new Set<string>();
-  const startingChains = data.board.initial.filter(present).flatMap(code => data.items[code]?.generator ? [data.items[code].chain] : []);
+  const startingChains = data.board.sources;
   for (const layout of layouts) {
     if (!layout || typeof layout.id !== 'string' || !layout.id || ids.has(layout.id) || !Array.isArray(layout.obstacles)) {
       problems.push('Board layout IDs must be unique, and each layout needs obstacles.');

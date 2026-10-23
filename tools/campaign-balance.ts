@@ -76,7 +76,7 @@ export function runPrologue(data: GameData, seed = 1, checkEveryAction = true, u
     if (item.stage === 1 && !item.recipe) {
       const empty = firstFreeBoardCell(state, data);
       assert.ok(empty >= 0, `Prologue event ${state.prologue?.event}: the board has room for a take.`);
-      act({ type: 'spawn', index: state.board.findIndex(cell => cell?.code === `generator_${item.chain}`) });
+      act({ type: 'spawn', chain: item.chain });
       return empty;
     }
     const [firstCode, secondCode] = item.recipe ?? [`${item.chain}_${item.stage - 1}`, `${item.chain}_${item.stage - 1}`];
@@ -244,13 +244,13 @@ export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignS
   }
 
   function take(code: string): number {
-    const source = `generator_${getItem(code, data)!.chain}`, index = state.board.findIndex(cell => cell?.code === source);
-    assert.ok(index >= 0, `The source of ${code} is on the board.`);
+    const chain = getItem(code, data)!.chain, source = `generator_${chain}`;
+    assert.ok(state.sources.includes(chain), `The source of ${code} is in the bistro.`);
     const cost = takeCost(getItem(source, data)!, data, gardenStage(state.taskIndex, data));
     while (cost && state.coins < cost) recover();
     if (firstFreeBoardCell(state, data) === -1) makeRoom();
     const empty = firstFreeBoardCell(state, data);
-    act({ type: 'spawn', index });
+    act({ type: 'spawn', chain });
     assert.equal(state.board[empty]?.code, code);
     return empty;
   }
@@ -368,8 +368,6 @@ export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignS
       assert.ok(other, `Preparation ${state.taskIndex + 1}: the purse is short, and no quest can pay for it.`);
       deliver(other);
     }
-    // Only the space for a new source can block a preparation whose coins and quests are ready.
-    while (!taskEligibility(state, data).ready && taskEligibility(state, data).requirements.every(requirement => requirement.met || requirement.kind === 'space')) makeRoom();
     act({ type: 'task' });
     preparations.push({ id: task.id, title: task.title, chapter: task.chapter, cost: task.cost, work: task.work, ...since(previousPreparation),
       balance: state.coins, freeCells: freeBoardCells(state, data), cumulative: cumulative() });
@@ -387,7 +385,7 @@ export function runCampaignBalance(data: GameData, seed = 1, strategy: CampaignS
     const task = currentTask(state, data);
     if (!task) break;
     const requirements = taskEligibility(state, data).requirements;
-    if (requirements.every(requirement => requirement.met || requirement.kind === 'space' || requirement.kind === 'coins')
+    if (requirements.every(requirement => requirement.met || requirement.kind === 'coins')
       && requirements.find(requirement => requirement.kind === 'quests')!.met) { complete(task); continue; }
     const ticketQuests = () => resolveQuests(state, data).filter(view => view.status === 'active' && !view.quest.recovery).map(view => view.quest);
     // A holiday quest goes first on its holiday, and a holiday meal is cooked ahead, so a long order never pushes it past its holiday.

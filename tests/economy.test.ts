@@ -53,29 +53,28 @@ test('every menu price equals staples times the take cost plus merges times the 
 test('a take from a paid source spends the take cost, and a take from the Herb basket spends nothing', () => {
   let state = { ...openGame(), coins: 2 };
   const empty = state.board.indexOf(null);
-  const paid = act(state, { type: 'spawn', index: 1 });
+  const paid = act(state, { type: 'spawn', chain: 'grain' });
   assert.equal(paid.board[empty]?.code, 'grain_1');
   assert.equal(paid.coins, 2 - data.economy.takeCost);
-  assert.equal(act(paid, { type: 'spawn', index: 1 }).coins, 0, 'The last coin pays for one more take.');
+  assert.equal(act(paid, { type: 'spawn', chain: 'grain' }).coins, 0, 'The last coin pays for one more take.');
   state = { ...openGame(), coins: 0 };
-  for (let count = 0; count < 5; count++) state = act(state, { type: 'spawn', index: 31 });
+  for (let count = 0; count < 5; count++) state = act(state, { type: 'spawn', chain: 'herbs' });
   assert.equal(state.coins, 0);
   assert.equal(state.board.filter(cell => cell?.code === 'herbs_1').length, 6);
 });
 
 test('a take without the coins changes nothing, and its message names the source', () => {
   const state = { ...openGame(), coins: 0 };
-  for (const [index, code] of [[1, 'generator_grain'], [4, 'generator_corn']] as const) {
-    const result = rejected(state, { type: 'spawn', index });
-    assert.equal(state.board[index]?.code, code);
-    assert.match(result.message, new RegExp(`^The ${data.items[code].name} costs 1 coin for each take, and the purse cannot pay\\.`));
+  for (const chain of ['grain', 'corn']) {
+    const result = rejected(state, { type: 'spawn', chain });
+    assert.match(result.message, new RegExp(`^The ${data.items[`generator_${chain}`].name} costs 1 coin for each take, and the purse cannot pay\\.`));
     assert.match(result.message, /Herb basket/);
   }
   // A take on a full board spends nothing, even with the coins.
   let full = { ...openGame(), coins: 5 };
-  while (full.board.includes(null)) full = act(full, { type: 'spawn', index: 31 });
+  while (full.board.includes(null)) full = act(full, { type: 'spawn', chain: 'herbs' });
   assert.equal(full.coins, 5);
-  assert.match(rejected(full, { type: 'spawn', index: 1 }).message, /board is full/);
+  assert.match(rejected(full, { type: 'spawn', chain: 'grain' }).message, /board is full/);
 });
 
 test('after the last preparation, the recovery quest opens below the floor and closes at the floor', () => {
@@ -144,10 +143,9 @@ test('a sold dish leaves the board and pays back the take costs of its ingredien
   assert.equal(tea.coins, state.coins);
 });
 
-test('a sale refuses a source, an empty space, a blocked space, and the prologue, and changes nothing', () => {
+test('a sale refuses an empty space, a blocked space, and the prologue, and changes nothing', () => {
   const state = openGame();
-  assert.match(rejected(state, { type: 'sell', index: 1 }).message, /source stays on the board/);
-  rejected(state, { type: 'sell', index: 0 });
+  rejected(state, { type: 'sell', index: 1 });
   const blocked = actOne(), at = blocked.board.findIndex((_, index) => unresolvedObstacle(blocked, index, data));
   assert.ok(at >= 0);
   rejected(blocked, { type: 'sell', index: at });

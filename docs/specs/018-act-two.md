@@ -205,7 +205,7 @@ As in act 1, the payment of the fourth preparation of a chapter completes the ch
 | 24 | Town square | Lay the feast tables | |
 
 The festival on 21 June follows preparation 12. The feast on 15 August follows preparation 24. The "Held days" section gives the holds.
-Preparation 6 does not need a free cell, because the Garden beds are a seasonal source. The "Garden beds" section gives their placement.
+The "Garden beds" section gives the arrival of the Garden beds.
 
 The IDs of the preparations, the chapters, and their scenes in act 2 are different from the IDs of act 1.
 
@@ -269,7 +269,7 @@ Two examples, with the take cost of 1 coin and the work rate of 2 coins:
 | Summer salad, a chain dish | 2 garden | 1 | — | 4 | 6 | 8 |
 | Tomato salad with telemea, a mixed dish | 2 garden and 8 dairy | 9 | — | 28 | 30 | 32 |
 
-Before stage 1, the Garden beds are not on the board, so their dishes have no price in play.
+Before stage 1, the Garden beds are absent from the source tab, so the player cannot take their ingredients.
 For the Summer salad at stage 2: 2 × 2 + 1 × 2 = 6. For the Tomato salad with telemea at stage 2: 2 × 2 + 8 × 1 + 9 × 2 = 30.
 
 The garden values are levers. The balance test of act 2 measures them.
@@ -534,9 +534,8 @@ Cătălina's quest `catalina-hail` opens on 18 July, after the hail. In her dial
 The Garden beds are a seasonal source of spec 017. Their season is 1 June to 30 September. Their chain is Summer garden.
 The Garden beds need both preparation 6 and their season:
 
-- If the player pays preparation 6 before 1 June, the source waits. At the opening time of 1 June, it takes its cell.
-- If 1 June comes before the payment, the payment of preparation 6 places the source in the same change.
-- In both cases, the source follows the placement rule of a seasonal source: the first free cell in board order, if the board keeps at least four free cells. Otherwise the source waits, and each successful move, take, delivery, and payment tries the placement again.
+- If the player pays preparation 6 before 1 June, the source waits. At the opening time of 1 June, it joins the source tab.
+- If 1 June comes before the payment, the payment of preparation 6 adds the source in the same change, also to a full board.
 
 | Source | Stage 1 | Stage 2 | Stage 3 | Stage 4 |
 | --- | --- | --- | --- | --- |
@@ -586,11 +585,11 @@ For the pickle barrel, these rules apply:
 
 - A take from the pickle barrel spends the take cost. With a debt or an empty purse, the take fails and changes nothing, as for each paid source.
 - In the menu price, a pickle ingredient counts the take cost. For example, Gherkins cost 1 coin, and Mixed pickles cost 10 coins: 4 × 1 + 3 × 2.
-- The season, the placement, and the departure of the barrel are those of a seasonal source. The barrel gives no gift of Șoricescu.
+- The season, the arrival, and the departure of the barrel are those of a seasonal source. The barrel gives no gift of Șoricescu.
 - The forage basket is free.
 
-The quests of act 1 that ask for pickles pay their menu value with the take cost, and so does Ana's repeating quest "Pickles for the night shift". The barrel is on the initial board of act 1, so the first takes of pickles need the starting gift. The starting gift is 20 coins, at the top of its range of 10 to 20 coins.
-The pickle season ends on 20 March, so act 2 has no pickle barrel on the board. The rule is in act 2 only for a barrel that stays after its season for an open quest of act 1.
+The quests of act 1 that ask for pickles pay their menu value with the take cost, and so does Ana's repeating quest "Pickles for the night shift". The barrel is in the source tab at the start of act 1, so the first takes of pickles need the starting gift. The starting gift is 20 coins, at the top of its range of 10 to 20 coins.
+The pickle season ends on 20 March, so the barrel normally leaves the source tab before act 2. The rule also applies to a barrel that stays after its season for an open quest of act 1.
 
 The story of the barrel:
 
@@ -636,7 +635,7 @@ If the game has no act 3, the purchase stops the clock, as the supper of act 1 d
 - The state records the number of Sunday closings left without the thief rat, from 0 to 4.
 - The record of preparation blockers holds the hail blockers.
 - The state records the result of act 2 after the purchase.
-- The save format of act 2 is game state version 18 in envelope version 17 at `scary-snacks-save-v17`. The game supports only this format, does not read or convert a save of an earlier format, and rejects its import. With no current save, the game starts a new campaign at the prologue. `tests/fixtures/save-v17.json` holds the fixed saves of this format.
+- [Shared save compatibility](README.md#shared-save-compatibility) gives the current save format.
 - Save validation applies these rules:
   - The saved day is never later than 31 August.
   - 2 May comes only after the supper. 21 June comes only after preparation 12. 22 June comes only after the fifth stall quest. 13 July comes only after Ambrozie's dinner. 14 July comes only after his lunch. 15 August comes only after preparation 24. 16 August comes only after the feast.
@@ -688,7 +687,7 @@ The balance test of act 2 plays act 2 with 20 fixed seeds. Each run continues th
 - The feast: a player who reaches the closing of 15 August without the plates stays on 15 August. Serve at the held position, 21:35, closes the day, and a reload gives 16 August exactly once. Serve at 19:30 keeps play on 15 August, and the merge that reaches 22:00 gives 16 August exactly once. A reload after each step gives the same result.
 - The paintings: the festival painting shows at the end of the fifth stall scene and of its replay, and the square keeps its room state; preparations 23 and 24 then show in the square. After the feast, the square shows the feast painting, also after a reload.
 - The orchard: a player with more coins than the price on 15 August, after the feast, cannot pay. Story shows "Opens on Sunday 31 August". On 31 August, the purchase needs Janos's meal.
-- The Garden beds: a payment of preparation 6 in May places the source on 1 June. A payment in June places the source at once. With only four free cells, the source waits and takes its cell after the next action that frees a cell.
+- The Garden beds: a payment of preparation 6 in May adds the source on 1 June. A payment in June adds the source at once, also to a full board.
 - The garden prices: for the Summer salad and the Tomato salad with telemea at each stage, the ticket, the delivery reward, and a reload give the same values.
 - The pickle barrel: a take spends the take cost. With a debt, a take fails and changes nothing. The tickets and the delivery rewards give Gherkins 1 coin and Mixed pickles 10 coins. The take from the forage basket stays free.
 - The hail: with a full board, the hail waits. With four free cells, the hail places nothing. With five free cells, it places one blocker. With three preparation blockers on the board, the hail waits. After placement, a reload places no other hail blocker.

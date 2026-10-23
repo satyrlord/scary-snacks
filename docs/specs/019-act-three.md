@@ -164,9 +164,9 @@ Preparation 16, "Fit the cold-room door", completes the cellar. From that paymen
 - A take from the pickle barrel is free.
 - In the menu price, a pickle ingredient counts the cellar value, not the take cost and not zero. So the free take is profit, as in the garden and the orchard.
 - The cellar value is 2 coins. For example, Gherkins cost 2 coins, and Mixed pickles cost 14 coins: 4 × 2 + 3 × 2.
-- The pickle barrel follows the rules of a seasonal source for its season, its placement, and its departure.
+- The pickle barrel follows the rules of a seasonal source for its season, its arrival in the source tab, and its departure.
 
-The season of the barrel is 1 December to 20 March. So the barrel is not on the board in act 3, and the player first sees the free pickles when the barrel comes back on 1 December, in act 4.
+The season of the barrel is 1 December to 20 March. So the barrel is absent from the source tab in act 3, and the player first sees the free pickles when the barrel comes back on 1 December, in act 4.
 The cellar value is a lever. The balance test of act 4 measures it.
 
 ## The finale painting
@@ -212,7 +212,7 @@ The game data already holds these quests of act 3:
 
 ### The apple tree
 
-The apple tree is a seasonal source of spec 017. Its season is 1 September to 31 October. Preparation 2 puts it on the board.
+The apple tree is a seasonal source of spec 017. Its season is 1 September to 31 October. Preparation 2 adds it to the source tab.
 Its chain is Orchard.
 
 | Source | Stage 1 | Stage 2 | Stage 3 | Stage 4 |
@@ -254,7 +254,7 @@ The wooden platter is a Transylvanian platter of roasts on a wooden board.
 
 - The dependency check permits preparations 16 to 18 while part 6 is open. It rejects data that makes a preparation depend on part 6.
 - A player reaches the held position of 30 October with preparations 1 to 17 paid, parts 1 to 5 delivered, and part 6 open. With every dish of part 6 on the board, Serve before preparation 18 changes nothing. The player can pay preparation 18 without serving part 6. The payment releases the hold and starts 31 October once.
-- The cellar pickles: before the payment of preparation 16, the recipe book gives Mixed pickles 10 coins. After it, the recipe book gives 14 coins. In a test state with the pickle barrel on the board, a take before the payment spends the take cost, and a take after it is free, also with a debt.
+- The cellar pickles: before the payment of preparation 16, the recipe book gives Mixed pickles 10 coins. After it, the recipe book gives 14 coins. In a test state with the pickle barrel in the source tab, a take before the payment spends the take cost, and a take after it is free, also with a debt.
 - On 31 October, Serve before 20:00 changes nothing. With every dish ready, the lantern control sets the time to 20:00. Serve then delivers part 6 and opens the finale once. A reload after the payment and after Serve keeps the date and progress and repeats neither action.
 
 ## Open decisions

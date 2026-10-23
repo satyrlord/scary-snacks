@@ -62,7 +62,8 @@
         <section class="kitchen" aria-label="Kitchen">
           <div class="table">
             <svg class="runner" viewBox="0 0 40000 512" preserveAspectRatio="xMinYMid slice" aria-hidden="true" focusable="false"><rect width="40000" height="512" fill="url(#runner-repeat)"/></svg>
-            <div id="board" class="board" role="group" aria-label="Merge board, 6 columns and 7 rows" tabindex="-1"></div>
+            <!-- The source tab holds a place for every source of the game, so the board keeps its size and position as sources come. -->
+            <div class="worktop"><div id="sources" class="sources" role="group" aria-label="Ingredient sources"></div><div id="board" class="board" role="group" aria-label="Merge board, 6 columns and 7 rows" tabindex="-1"></div></div>
             <svg class="runner" viewBox="0 0 40000 512" preserveAspectRatio="xMinYMid slice" aria-hidden="true" focusable="false"><rect width="40000" height="512" fill="url(#runner-repeat)"/></svg>
           </div>
           <div class="line-slot">

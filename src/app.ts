@@ -8,6 +8,7 @@ import { changeGame, character, data, definition, onDraw, open, persist, saveFai
 import { SAVE_KEY } from './storage.ts';
 import { drawerLayout, onMotionResume, phone, playTone } from './preferences.ts';
 import { introduceFirstQuest, renderBoard, renderDetail } from './board.ts';
+import { renderSources } from './sources.ts';
 import { renderTickets, toast } from './tickets.ts';
 import { guidanceStep, markRecipeBook, noteNewDishes, updateGuidance } from './dishes.ts';
 import { endSceneFlow, renderOffer, showScene, storyContent } from './story.ts';
@@ -16,7 +17,7 @@ import { options } from './options.ts';
 import { morning, playNight } from './night.ts';
 
 // Rendering replaces the controls in these regions, so focus is restored by region and position.
-const FOCUS_REGIONS = '#board,#tickets,#story,#item-detail,#offer';
+const FOCUS_REGIONS = '#board,#sources,#tickets,#story,#item-detail,#offer';
 const TONE_EVENTS = ['merge', 'deliverQuest', 'task'];
 let actionFeedback = '';
 
@@ -67,7 +68,7 @@ function render() {
   $('.game-layout').toggleAttribute('data-selected', selected !== null);
   renderRoom();
   renderCoins(); renderClock();
-  renderBoard();
+  renderBoard(); renderSources();
   renderTickets(); $('#story').replaceChildren(storyContent(false)); renderDetail(actionFeedback); renderOffer();
   markRecipeBook();
   if (region && position >= 0) {
@@ -116,10 +117,10 @@ onDraw(change => {
  * came, and the new date.
  */
 function closingText(upkeep: number, departed: string[], before: typeof state) {
-  const came = data.chains.filter(chain => chain.season && !before.board.some(cell => cell?.code === `generator_${chain.id}`) && state.board.some(cell => cell?.code === `generator_${chain.id}`));
+  const came = data.chains.filter(chain => chain.season && !before.sources.includes(chain.id) && state.sources.includes(chain.id));
   const guest = fixedBooking(before.clock.day, data), sleeps = guest && state.completedQuests.includes(guest.id) ? [`${character(guest.character).name} sleeps in the courtyard.`] : [];
   return [...sleeps, `The bistro closed for the night. Upkeep: ${coinText(upkeep)}.`, ...departed.map(id => data.chains.find(chain => chain.id === id)!.season!.departure),
-    ...came.map(chain => `The ${definition(`generator_${chain.id}`).name} is on the board.`), `Good morning, ${dateText(state.clock.day, data)}.`].join(' ');
+    ...came.map(chain => `The ${definition(`generator_${chain.id}`).name} is ready.`), `Good morning, ${dateText(state.clock.day, data)}.`].join(' ');
 }
 // The end of a paid preparation's story reveals its change, and then opens the scene that the payment earned.
 modal.addEventListener('close',()=>{

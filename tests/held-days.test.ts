@@ -39,8 +39,8 @@ function merge(state: GameState, content = data): GameState {
   next.board[first] = { code: 'herbs_1' }; next.board[second] = { code: 'herbs_1' }; know(next, 'herbs_1');
   return act(next, { type: 'move', from: first, to: second }, content);
 }
-/** A copy whose board keeps its sources and its blockers only, so supplied dishes have room. A blocked cell holds no dish. */
-const roomy = (state: GameState): GameState => ({ ...state, board: state.board.map(cell => cell && getItem(cell.code, data)?.generator ? cell : null) });
+/** A copy with no movable dishes, so supplied dishes have room. The blockers stay. */
+const roomy = (state: GameState): GameState => ({ ...state, board: state.board.map(() => null) });
 /** A copy with the dishes of the quest on the board, unless the board holds them already. */
 const supplied = (state: GameState, value: Quest) => questDeliveryCells(state, value).every(at => at >= 0) ? state : supply(state, value.id);
 /**
@@ -237,13 +237,12 @@ function kitchen(initial: GameState) {
       assert.equal(state.board[into]?.code, code);
       return into;
     }
-    const source = state.board.findIndex(cell => cell?.code === `generator_${item.chain}`);
-    assert.ok(source >= 0, `The source of ${code} is on the board.`);
+    assert.ok(state.sources.includes(item.chain), `The source of ${code} is in the bistro.`);
     const cost = takeCost(getItem(`generator_${item.chain}`, data)!, data, gardenStage(state.taskIndex, data));
     if (cost && state.coins < cost) return null;
     const empty = firstFreeBoardCell(state, data);
     assert.ok(empty >= 0, 'The board has room for a take.');
-    state = act(state, { type: 'spawn', index: source });
+    state = act(state, { type: 'spawn', chain: item.chain });
     assert.equal(state.board[empty]?.code, code);
     return empty;
   }

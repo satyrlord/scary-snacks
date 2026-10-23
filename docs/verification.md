@@ -36,7 +36,7 @@ The files in `tests/` check these areas.
 | `storage.test.ts` | Save validation, size limits, export, import, reset, failed writes, recovery, and invalid data. Unsupported versions that stay unchanged, the served supper, and the rejected recovery quest record. |
 | `decorations.test.ts` | Decoration slots, quest unlocks, finish choices, rejected choices, and saved choices. |
 | `economy.test.ts` | Formula prices, paid and free takes, a take without the coins, and the recovery quest after the last preparation. One Linden tea in four free cells, and work budgets. |
-| `campaign-goals.test.ts` | Required quests, coins, the free cell for a source, failed payments, quest order, the supper and recovery quest records, and sufficient campaign work. |
+| `campaign-goals.test.ts` | Required quests, coins, a new source on a full board, failed payments, quest order, the supper and recovery quest records, and sufficient campaign work. |
 | `campaign-balance.test.ts` | Both acts through valid actions, with separate accounts for coins, upkeep, and repeating work. The efficient strategy for 20 seeds keeps each act inside its balance band and reaches no held position except the festival. The check covers the orchard date, free cells at each payment, and recovery before each payment. |
 | `campaign-missed-bookings.test.ts` | For 20 seeds, a strategy that misses each booking without a fixed evening once finishes both acts. The strategy delivers repeating quests while the bistro has no work. |
 | `campaign-debt.test.ts` | For 20 seeds, a strategy starts each preparation window with a debt of 20 coins. The strategy reaches each preparation through the recovery quest. |
@@ -55,7 +55,7 @@ The files in `tests/` check these areas.
 | `regulars.test.ts` | Arrival pairs, arrival scenes, quest timing, favourite dishes, diets, the neighbours list, and cast validation. |
 | `repeating.test.ts` | The work rule, the cycle order, the ticket after the campaign quests, repeating deliveries, the recovery cases, play after the supper, the data checks, and the saved record. |
 | `board-clearing.test.ts` | Initial blockers, matching merges, recipe partners, the blocker coin, blocked actions, the free cells that placement keeps, discoveries, and saved progress. |
-| `preparation-blockers.test.ts` | Preparation batches, deferred placement, four free cells, source priority, saved history, failed writes, and retry. |
+| `preparation-blockers.test.ts` | Preparation batches, deferred placement, four free cells, a new source that leaves the cells to its batch, saved history, failed writes, and retry. |
 | `story.test.ts` | Chapters, scenes, source openings, the served supper, the finale, queues, failed payments, and play after the finale. |
 | `checkpoint-saves.test.ts` | Manual checkpoint saves, the next payment, and the final scenes. |
 | `assets.test.ts` | Masters, variants, hashes, occupied and unused food cells, portrait cells, blocker cells, references, asset paths, fonts, and license texts. |
@@ -102,8 +102,8 @@ The files in `tests/browser/` check these areas.
 | `full-board-guidance.spec.ts` | Temporary guidance on a full board. A useful merge in either recipe part before a ready delivery, and a campaign quest before the recovery quest. The recovery ticket face on a phone, ordinary merge, blocker merge, no available action that makes a free cell, and unchanged saves. |
 | `renovation.spec.ts` | Room checkpoints, room crops, area changes, and pins. |
 | `decorations.spec.ts` | Finish switches, visible targets, keyboard focus, saved choices, failed writes, and concurrent tabs. |
-| `generators.spec.ts` | Stage-1 production, paid takes across a reload, the free Herb basket, source tile activation, and full boards. Keyboard input, touch emulation, and geometry. |
-| `campaign-goals.spec.ts` | Unmet requirements, compact readiness, inline cost disclosure, the keyboard toggle, payment with details open, and phone scroll. Exact totals and payment descriptions, the free cell for a source, guide Stop when a delivery makes Pay ready, and layout. |
+| `generators.spec.ts` | Stage-1 production, paid takes across a reload, the free Herb basket, source activation in the source tab, and full boards. Keyboard input, touch emulation, a drag and a keyboard move of a source, the order after a reload, and the tab geometry. |
+| `campaign-goals.spec.ts` | Unmet requirements, compact readiness, inline cost disclosure, the keyboard toggle, payment with details open, and phone scroll. Exact totals and payment descriptions, a new source on a full board, guide Stop when a delivery makes Pay ready, and layout. |
 | `quests.spec.ts` | Tickets, quest dialogs, direct missing-dish guidance, dish help, deliveries, scenes, saves, focus, input, and concurrent tabs. |
 | `visitors.spec.ts` | Supply quests, visitor portraits, introductions, Ionatan's dinner, departure, and save failures. |
 | `guests.spec.ts` | Shared quests, both portraits, diets, local news, departure, and red wine. |
@@ -127,7 +127,7 @@ Checks on a narrow screen that is 600px high or less require a drawer that stays
 These checks also require an active drawer body and a reveal that does not wait for the drawer.
 Theme checks include Light, Dark, System, and 4.5:1 contrast for main and muted text.
 
-Generator geometry checks cover the source tile, selected-source line, and Clear selection at 360×740, 390×844, and 1440×900 in both themes.
+Source tab geometry checks cover the places, the take cost, and the shared edges of the tab and the board at 360×740, 390×844, and 1440×900 in both themes.
 Repeated source taps keep the board in place at widths of 360px, 390px, and 412px.
 Ticket and story geometry checks cover 1440×900, 390×844, and 390×800 in both themes.
 With the recovery ticket, each ticket target stays 44px wide and inside its ticket at 390px and 360px.

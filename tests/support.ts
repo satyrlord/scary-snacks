@@ -30,7 +30,7 @@ export const openGame = (): GameState => ({ ...actOne(), layoutId: 'test-open' }
  */
 export function unknown(state: GameState): GameState {
   const next = structuredClone(state);
-  next.discovered = [...new Set(next.board.flatMap(cell => cell ? [cell.code] : []))];
+  next.discovered = [...new Set([...next.sources.map(chain => `generator_${chain}`), ...next.board.flatMap(cell => cell ? [cell.code] : [])])];
   return withTickets(next);
 }
 /** Applies a legal action: it succeeds, leaves its input unchanged, and gives a valid state. */
@@ -181,7 +181,7 @@ export function player(initial = actOne(), content = data) {
     if (generatorOutputs(state, source, content).includes(code)) {
       const empty = firstFreeBoardCell(state, content);
       assert.ok(empty >= 0, 'Normal production fits the board.');
-      state = act(state, { type: 'spawn', index: state.board.findIndex(cell => cell?.code === source) }, content);
+      state = act(state, { type: 'spawn', chain: item.chain }, content);
       assert.equal(state.board[empty]?.code, code);
       return empty;
     }

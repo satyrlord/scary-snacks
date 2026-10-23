@@ -121,8 +121,6 @@ export function icon(className: string, viewBox: string, ...shapes: [keyof SVGEl
   }
   return value;
 }
-/** The ingredient-source badge on a board tile: a plus in a disc. */
-export const sourceMark = () => icon('source-mark', '0 0 24 24', ['circle', { cx: '12', cy: '12', r: '11' }], ['path', { d: 'M12 7v10M7 12h10' }]);
 /** The coin mark from the purse, for prices inside buttons. */
 export const coinMark = () => icon('coin', '0 0 24 24', ['circle', { class: 'coin-face', cx: '12', cy: '12', r: '9' }],
   ['path', { class: 'coin-moon', d: 'M15.7 7.6a5 5 0 1 0 0 8.8 4.6 4.6 0 0 1 0-8.8z' }]);

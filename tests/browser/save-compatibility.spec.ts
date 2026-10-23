@@ -1,15 +1,15 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import type { GameState } from '../../src/model.ts';
-import { KEY, data, exportText, forward, importSaveFile, opened, options, saved, start, tile } from './support.ts';
+import { KEY, data, exportText, forward, importSaveFile, opened, options, saved, start, tile , source } from './support.ts';
 
 // These envelopes are fixed inputs from the supported release, not new saves from the current engine.
-const saves: Record<string, { state: GameState }> = JSON.parse(readFileSync(new URL('../fixtures/save-v17.json', import.meta.url), 'utf8'));
+const saves: Record<string, { state: GameState }> = JSON.parse(readFileSync(new URL('../fixtures/save-v18.json', import.meta.url), 'utf8'));
 
 for (const name of ['prologue-new', 'prologue-last-scene', 'preparations-12', 'supper-served', '2-may', '18-july', 'feast-served', 'preparations-49']) {
   test(`the built game preserves the supported ${name} save through reload, export, import, and play`, async ({ page }) => {
     const envelope = saves[name], text = JSON.stringify(envelope), before = envelope.state;
-    expect(KEY).toBe('scary-snacks-save-v17');
+    expect(KEY).toBe('scary-snacks-save-v18');
     await start(page, text);
     expect(await saved(page)).toEqual(before);
     expect(await page.evaluate(key => localStorage.getItem(key), KEY)).toBe(text);
@@ -30,8 +30,7 @@ for (const name of ['prologue-new', 'prologue-last-scene', 'preparations-12', 's
       await page.reload(); await opened(page);
       expect(await saved(page)).toEqual(continued);
     } else {
-      const source = before.board.findIndex(cell => cell?.code === (before.prologue ? 'generator_beans' : 'generator_herbs'));
-      await tile(page, source).click();
+      await source(page, before.prologue ? 'beans' : 'herbs').click();
       const continued = await saved(page);
       expect(continued.board.filter(Boolean)).toHaveLength(before.board.filter(Boolean).length + 1);
       expect(continued.coins).toBe(before.coins);

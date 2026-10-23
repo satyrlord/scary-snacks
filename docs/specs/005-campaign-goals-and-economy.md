@@ -17,10 +17,10 @@ The [economy record](../economy.md) gives the price table, the work scopes, the 
 1. Each dish has a menu price from the formula in `PRODUCT.md`. A source has no price.
    The menu value of a quest is the sum of the prices of its portions.
 2. The economy record gives the price of each dish.
-3. Every quest except the supper pays its menu value. The supper pays nothing. No quest has a reward multiplier.
+3. Each paid quest pays its menu value. Prologue quests, finale quests, and the piper's fee pay nothing. No quest has a reward multiplier.
 4. A take from a paid source spends the take cost. A take from the Herb basket is free. Each cleared blocker gives the blocker coin.
 5. A window is the group of quests that open after one preparation. The work value of the quests in each window covers the preparation costs.
-6. A dish leaves the board by a merge, a delivery, or a theft at closing (spec 013).
+6. A dish leaves the board by a merge, a delivery, a sale, or a theft at closing (spec 013). `PRODUCT.md` gives the sale rule.
 7. Each preparation defines its work scope, material or stock allowance, labour allowance,
    and estimated active person-hours. Its cost is materials plus labour. The order of the preparations does not change the cost.
 8. The reference scale is one coin for about one Romanian leu. The model uses supplier and service
@@ -34,20 +34,20 @@ The [economy record](../economy.md) gives the price table, the work scopes, the 
     The coins that remain after the last preparation must buy the ingredients of the supper.
     Assume that a player delivers every open quest and buys only the ingredients of those quests.
     That player always has the coins for the next preparation.
-11. The engine checks coins, the necessary quests, and source placement together.
+11. The engine checks coins, the necessary quests, and the opening date together. A new source needs no free cell.
     A successful payment spends the coins once and advances the campaign by one preparation. A failed payment changes nothing.
 
 ## Feedback
 
 Story shows only the unmet requirements.
-An unmet requirement can be extra coins to earn, quests to deliver, or a free cell for a source.
+An unmet requirement can be extra coins to earn, quests to deliver, or an opening date.
 Completed requirements have no row. When the player meets every requirement, one line says "Ready to prepare."
 The accessible description of Pay keeps the exact current and required totals.
 Pay and Mara's offer use the same engine eligibility result.
 
 Cost details sits beside Pay.
 The disclosure expands below that row inside Story. It shows the work scope, the material and labour costs, and the total price.
-It also shows estimated person-hours and the exact current and required coins, delivered quests, and the free cell for a source.
+It also shows estimated person-hours and the exact current and required coins and delivered quests.
 The text states that there is no timer.
 The control exposes its expanded state and its region. Enter, Space, or a tap expands or collapses the details. The focus stays on the control. Pay stays available above the expanded region.
 The details stay expanded through redraws of the same preparation. The details of a new preparation start collapsed. A reload or a replacement of the game collapses the details. Both Story views share the expanded state.
@@ -97,7 +97,7 @@ The report measures gameplay effort under one stated policy. It does not measure
 
 ## Acceptance and evidence
 
-- Engine: exact and missing coins, missing quests, source placement, atomic failures, and repeated or final completion.
+- Engine: exact and missing coins, missing quests, a new source on a full board, atomic failures, and repeated or final completion.
   Paid takes, free takes from the Herb basket, takes with a short purse, and the blocker coin.
 - Economy: the levers, the formula prices, and the reward rule.
   The checks cover complete work budgets and relative costs for signs, menus, and repairs.

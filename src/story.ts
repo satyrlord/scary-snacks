@@ -57,9 +57,8 @@ export function storyContent(inSheet: boolean) {
       const remaining = element('ul', 'task-requirements'); remaining.setAttribute('aria-label', 'Preparation requirements');
       for (const requirement of eligibility.requirements.filter(value => !value.met)) {
         const row = element('li'); row.dataset.requirement = requirement.kind;
-        const amount = requirement.kind === 'space' || requirement.kind === 'date' ? 0 : requirement.required - requirement.current;
-        row.append(element('span', '', requirement.kind === 'space' ? `Free a board space for the ${requirement.source}.`
-          : requirement.kind === 'date' ? `Opens on ${dateText(requirement.day, data)}.`
+        const amount = requirement.kind === 'date' ? 0 : requirement.required - requirement.current;
+        row.append(element('span', '', requirement.kind === 'date' ? `Opens on ${dateText(requirement.day, data)}.`
           : requirement.kind === 'coins' ? `Earn ${count.format(amount)} more ${amount === 1 ? 'coin' : 'coins'}.`
           : `Deliver ${count.format(amount)} more ${amount === 1 ? 'quest' : 'quests'}.`));
         remaining.append(row);
@@ -127,7 +126,6 @@ function prologueContent(inSheet: boolean) {
 }
 /** Exact totals stay in payment descriptions and in Cost details when the main list shows only unmet needs. */
 function requirementTotal(requirement: TaskRequirement) {
-  if (requirement.kind === 'space') return `Board space for the ${requirement.source}: ${requirement.met ? 'available' : '1 needed'}.`;
   if (requirement.kind === 'date') return `Opening date: ${dateText(requirement.day, data)}, ${requirement.met ? 'open' : 'not yet'}.`;
   const label = requirement.kind === 'coins' ? 'Coins' : 'Quests delivered';
   return `${label}: ${count.format(requirement.current)} / ${count.format(requirement.required)}.`;

@@ -8,7 +8,7 @@ The chains follow real staple foods. Each chain is one food family. Each chain s
 A mixed dish uses dishes from two or three chains. The player cannot cook a mixed dish without progress in each of its chains.
 Each dish records what it contains. The data check uses these records to enforce the diet of each character.
 
-The game has 12 chains, 61 chain dishes, 24 mixed dishes, and 12 sources.
+This specification describes the 12 year-round chains, their 61 chain dishes and 12 sources, and 24 mixed dishes. Specs 016, 017, and 018 describe the additional dishes and seasonal chains. `PRODUCT.md` gives the full game counts.
 The recovery quest has a fourth ticket, and the preparation blockers keep four cells free.
 
 ## Implementation scope
@@ -26,12 +26,12 @@ These parts implement the feature:
 - the economy record and the campaign balance test.
 
 `PRODUCT.md` owns the rules for takes, income, the supper, the recovery quest, blockers, tickets, and campaign balance.
-The game has 83 quests, including Ana's recovery quest.
+`PRODUCT.md` gives the quest counts, including Ana's recovery quest.
 Takes are immediate. The game has no energy limit and no waiting.
 
 ## The chains
 
-The game has 12 chains. A chain has from four to six dishes. Each chain has one source, and the source gives the stage-1 ingredient.
+The 12 year-round chains are below. A chain has from four to six dishes. Each chain has one source, and the source gives the stage-1 ingredient.
 Two matching dishes of a chain merge into the next dish of that chain.
 
 | Chain | Source | Stage 1 | Stage 2 | Stage 3 | Stage 4 | Stage 5 | Stage 6 |
@@ -53,21 +53,21 @@ The vegetable basket holds onions, tomatoes, peppers, aubergines, and cabbage. T
 
 ## When each chain opens
 
-Three chains are open in a new game. Preparations open the other nine, up to preparation 20.
+Three year-round chains are open at the start of act 1. Preparations open the other nine, up to preparation 16. The seasonal sources follow spec 017, and each prologue event has the sources of spec 016.
 The scene of each preparation that opens a chain names its new source.
 
 | Preparation | Chain |
 | --- | --- |
-| New game | Grain, Corn, Herbs |
+| Start of act 1 | Grain, Corn, Herbs |
 | 3, "Set up the pastry shelf" | Dairy |
 | 5, "Repair the kitchen worktop" | Poultry |
 | 6, "Bring in market produce" | Vegetables |
 | 7, "Hang the kitchen shelves" | Fruits |
 | 8, "Write the first menu" | Pork |
 | 11, "Make a recipe corner" | Beans |
+| 12, "Open the shared table" | Fish |
 | 13, "Clear the courtyard" | Lamb |
 | 16, "Set the outdoor tables" | Veal |
-| 20, "Print the supper menu" | Fish |
 
 ## Mixed dishes
 
@@ -210,10 +210,10 @@ The journal shows the favourite dishes of a regular.
 
 ## Art
 
-The food art is one consistent set of 16 atlases: 85 dishes and 12 sources.
+These 85 dishes and 12 sources use 16 food atlases. The additional dishes and sources of specs 016, 017, and 018 use the same art rules. `DESIGN.md` gives the full atlas set.
 
 - Each chain has one atlas. The atlas holds the source and the dishes of the chain, in stage order.
-- Four atlases hold the 24 mixed dishes:
+- Four atlases hold these 24 mixed dishes:
   - soups and stews: Meatball soup, Chicken noodle soup, Fish soup, Bean soup, Bean soup in a bread bowl, Goulash pot, Beans with sausages, Tochitură;
   - mains: Bulz, Cabbage rolls, Cabbage rolls with mămăligă, Stuffed peppers, Mici, Drob, Saramură with mămăligă;
   - sweets: Sweet dough, Cozonac, Chimney cake, Papanași, Plum dumplings;
@@ -236,24 +236,24 @@ The player cooks with a plan. Coins pay for ingredients, and quests pay for the 
 ### Takes
 
 A take from the Herbs source is free at all times.
-A take from each other source spends the take cost.
+A take from another year-round source spends the take cost, except that the Vegetable crate becomes free at garden stage 1 of act 2. Specs 017 and 018 give the seasonal sources and the garden prices. Each take in the prologue is free.
 A take needs the coins and a free cell. A failed take spends nothing.
 If the purse holds less than the take cost, a paid source takes nothing, and Mara says why.
 
 ### Blockers
 
-Each cleared blocker gives the blocker coin, in the same change as the merge.
-The rule includes the eight blockers of a new game and each preparation blocker.
+Each cleared blocker after the prologue gives the blocker coin, in the same change as the merge.
+The rule includes the eight blockers at the start of act 1 and each preparation blocker. Prologue blockers give no coin.
 
 ### Rewards
 
-Every quest except the supper pays its menu value. The supper pays nothing. No quest has a reward multiplier.
-So every delivery earns at least the work rate for each merge, and no delivery loses coins.
+Each paid quest pays its menu value. Prologue quests, finale quests, and the piper's fee pay nothing. No quest has a reward multiplier.
+A paid delivery earns at least the work rate for each merge.
 The preparation costs keep their work estimates in lei-equivalent coins.
 
 ### Recovery quest
 
-Ana's "Tea for the night ward" asks for one Linden tea. The recovery quest is the only recurring quest.
+Ana's "Tea for the night ward" asks for one Linden tea. Spec 014 gives the separate repeating quests.
 The recovery quest is open in each of these cases:
 
 - the campaign has an open quest, and the purse holds less than the recovery floor;
@@ -267,7 +267,7 @@ The recovery quest is outside the order of Ana's quests. The recovery quest need
 
 To cook one Linden tea from Elderflowers, the player needs four free cells. Three cells hold the stages 1 to 3 while a fourth cell takes the next Elderflowers.
 So the preparation blockers keep at least four cells free. The other preparation blockers wait in preparation order.
-A board that the player fills with dishes that cannot merge and that no quest needs stays full.
+A board that the player fills with dishes that cannot merge and that no quest needs has no merge or delivery to make room. After the prologue, the player can sell a movable dish by the rule in `PRODUCT.md`.
 
 ### Balance check
 
@@ -289,10 +289,10 @@ The test prints the purse, the takes, the coins from blockers, and the free cell
 ## Quests and interface
 
 - The quest requirements are in `tools/create-original-data.ts`. The work value of the quests in each window pays for the next preparation. The quests also give enough coins for daily upkeep and the ingredients of the supper. These figures use the efficient strategy of spec 013.
-- A new game has no coins. The first quest of Mara asks only for free herbs. The early quests also ask for Linden tea and socată, which need no paid ingredient. As a result, the purse has the coins for the ingredients of the next quests.
+- A new game starts in the prologue, with free takes and no purse. Act 1 starts with the gift of 20 coins, as spec 016 describes. Free herbs also let the player make Linden tea for the recovery quest.
 - The game marks each dish and each blocked space that merges with the selected dish. The mark is the dotted mark of a matching pair.
 - The recipe book has one section for each chain, in chain order, and then one section for the mixed dishes. The item dialog of a mixed dish shows its two parts. The item dialog of a part names the mixed dishes that it makes.
-- A paid source shows its take cost on its tile: a coin mark and the figure. The Herb basket shows no take cost.
+- A paid source shows its take cost in the source tab: a coin mark and the figure. The Herb basket shows no take cost.
 - A cleared blocker adds the blocker coin to the merge notice, and the purse shows the gain.
 - The recovery ticket is a fourth column of the ticket row, with a dashed edge.
 - A ticket with more than four dishes shows its first three dishes and the board count and required quantity of the other portions together. The supper ticket is an example. The supper dialog lists each plate with the name of its guest. Serve replaces Deliver.

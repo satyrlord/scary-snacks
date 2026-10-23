@@ -11,7 +11,7 @@ import { act, addOpenLayout, checkpoint, data, deliver, openGame, player, ready,
 addOpenLayout();
 /** The levers of the day of act 1. */
 const levers = data.acts[0].day;
-// The open layout: the Windmill at 1, the Pickle barrel at 3, the Corn basket at 4, Flour at 13 and 14, Corn at 22, Elderflowers at 27, the Herb basket at 31, Socată at 32 and 33.
+// The open layout: Flour at 13 and 14, Corn at 22, Elderflowers at 27, and Socată at 32 and 33.
 /** A copy with these dishes in these cells. */
 function withBoard(state: GameState, cells: [number, string | null][]): GameState {
   const next = structuredClone(state);
@@ -42,7 +42,7 @@ test('each successful merge adds the merge time, and other actions and failures 
   assert.equal(clockMinutes(state, data), levers.opening);
   rejected(state, { type: 'move', from: 0, to: 2 });
   rejected(withBoard(state, [[0, 'herbs_4'], [2, 'herbs_4']]), { type: 'move', from: 0, to: 2 });
-  for (const action of [{ type: 'move', from: 22, to: 23 }, { type: 'spawn', index: 31 }, { type: 'spawn', index: 1 }] as const) {
+  for (const action of [{ type: 'move', from: 22, to: 23 }, { type: 'spawn', chain: 'herbs' }, { type: 'spawn', chain: 'grain' }] as const) {
     state = act(state, action);
     assert.equal(state.clock.merges, 0, action.type);
   }
@@ -180,8 +180,8 @@ test('a board with exactly four free cells after the closing merge gets no gift,
 test('a purse of −20 takes free herbs only, and the recovery quest and the blocker coins work with a debt', () => {
   const state: GameState = { ...actOneStart(data, 1), coins: -20 };
   assert.equal(validateGame(state, data), true);
-  act(state, { type: 'spawn', index: 31 });
-  assert.match(rejected(state, { type: 'spawn', index: 1 }).message, /cannot pay/);
+  act(state, { type: 'spawn', chain: 'herbs' });
+  assert.match(rejected(state, { type: 'spawn', chain: 'grain' }).message, /cannot pay/);
   rejected({ ...ready(state), coins: -20 }, { type: 'task' });
   assert.equal(resolveQuests(state, data).find(view => view.quest === recovery)!.status, 'active');
   const repaid = act(supply(state, recovery.id), { type: 'deliverQuest', id: recovery.id });
@@ -302,7 +302,7 @@ test('the supper records the result of act 1, which keeps its purse after the pu
   // A merge after the supper moves the clock: the supper no longer ends the game.
   const merged = closeWithHerbs(served);
   assert.equal(merged.clock.day, served.clock.day + 1);
-  const spent = act({ ...merged, coins: 5 }, { type: 'spawn', index: merged.board.findIndex(cell => cell?.code === 'generator_grain') });
+  const spent = act({ ...merged, coins: 5 }, { type: 'spawn', chain: 'grain' });
   assert.deepEqual(spent.act1, { purse: 0 });
   assert.equal(validateGame({ ...spent, act1: null }, data), false, 'A served supper has its result.');
   assert.equal(validateGame({ ...finished, act1: { purse: 0 } }, data), false, 'Only the supper records a result.');
@@ -337,7 +337,7 @@ test('a save keeps the clock, the seed, the rat holes, the gifts, the evening, t
     state => { state.seed = -1; }, state => { state.seed = 2 ** 32; }, state => { state.gifts = 0.5; },
     state => { state.ratHoles.push({ item: 'herbs_1', position: 2 }); }, state => { state.ratHoles[0].item = 'grain_2'; },
     state => { state.ratHoles.push({ item: 'grain_1', position: 2 }, { item: 'grain_1', position: 3 }, { item: 'grain_1', position: 7 }); },
-    state => { state.ratHoles.push({ item: 'grain_1', position: 1 }); },
+    state => { state.ratHoles.push({ item: 'grain_1', position: state.board.findIndex((cell: unknown) => cell) }); },
     state => { state.evening.guest = 'mara'; }, state => { state.evening.delivered = true; },
     state => { state.night.day = 1; }, state => { state.night.rat = 'mouse'; }, state => { state.night.seen = 'no'; },
     state => { state.night.taken = [{ item: 'herbs_1', position: 2 }]; }, state => { state.night = null; },

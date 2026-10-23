@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { checkpoint, data, know, ratio, replaceSave, saved, startStill, supply, tile } from './support.ts';
+import { checkpoint, data, know, ratio, replaceSave, saved, startStill, supply, tile , source } from './support.ts';
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:320,height:568}])for(const theme of ['light','dark']){
   test(`recipe book browsing fits ${viewport.width}px in ${theme}`,async({page},testInfo)=>{
@@ -46,7 +46,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:320
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark']){
   test(`seasonal dish help explains a departed source and still guides leftover merges at ${viewport.width}px in ${theme}`,async({page},testInfo)=>{
     const state=checkpoint(24);know(state,'pickles_1','pickles_2');
-    expect(state.board.some(cell=>cell?.code==='generator_pickles')).toBe(false);
+    expect(state.sources.includes('pickles')).toBe(false);
     await page.setViewportSize(viewport);await startStill(page,state,theme);
     const opener=page.locator(viewport.width<1024?'#recipes-button':'#collection-button');
     await opener.click();await page.getByRole('button',{name:'Gherkins',exact:true}).click();

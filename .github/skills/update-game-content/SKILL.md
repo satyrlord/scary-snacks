@@ -94,7 +94,7 @@ Do not add content that `PRODUCT.md` prohibits.
 
 Confirm that each identifier is unique. Examine each `next` reference.
 Examine each chain unlock and its preparation.
-Examine the initial board. It must hold one generator for each chain that is open at the start. Each start item must belong to an open chain.
+Examine the sources and the initial board of act 1. The source list must name one generator for each chain that is open at the start, each once. The board holds no generator. Each start item must belong to an open chain. Each prologue event also has its own source list and a board of dishes.
 Confirm that the player can complete each preparation with the generators that are available at that point.
 The campaign test shows this result for every preparation with no added resources.
 `questProblems` in `src/content.ts` checks that the quests that open before each preparation pay for that preparation. A quest change must keep this check true.

@@ -138,6 +138,8 @@ export async function replaceSave(page: Page,save: GameState|string){
   await page.reload();await opened(page);
 }
 export const tile=(page: Page,index: number)=>page.locator(`[data-cell="${index}"]`);
+/** The source of a chain in the source tab. */
+export const source=(page: Page,chain: string)=>page.locator(`[data-source="${chain}"]`);
 export async function unselect(page: Page){await tile(page,0).focus();await page.keyboard.press('Escape');}
 /** Merges the two Flours of a new game, at 13 and 14, into the Dough at 14, and checks that the merge saved. */
 export async function mergeFlour(page: Page){await tile(page,13).click();await tile(page,14).click();expect((await saved(page)).board[14]?.code).toBe('grain_2');}

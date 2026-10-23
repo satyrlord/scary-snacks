@@ -3,10 +3,10 @@ import { $, button, element, pulse, status } from './dom.ts';
 import { coveredDish, food, icon } from './art.ts';
 import { modal, showModal } from './dialog.ts';
 import { setLowered } from './room.ts';
-import { availableChains, boardObstacles, canDeliverQuest, cellsOf, chainSeason, dateText, dishChains, eventDishes, firstFreeBoardCell, integer, mergeResult, MIXED, resolveQuests, sourceCell } from './model.ts';
+import { availableChains, boardObstacles, canDeliverQuest, cellsOf, chainSeason, dateText, dishChains, eventDishes, firstFreeBoardCell, integer, mergeResult, MIXED, resolveQuests } from './model.ts';
 import { data, definition, itemName, matchingBlocker, onReplace, redraw, select, sourceOf, state, takePrice } from './session.ts';
 import type { Change } from './session.ts';
-import { BOARD_FULL, KEEP_FREE } from './engine.ts';
+import { BOARD_FULL } from './engine.ts';
 
 // The dishes discovered since the recipe book was last opened.
 let freshDishes = 0;
@@ -50,8 +50,8 @@ function cooksInto(code: string) {
 function detailContent(code: string) {
   const def = definition(code), name = itemName(code);
   const onBoard = cells(code).length;
-  // The prologue has only the sources of its event board, so no seasonal source comes or goes.
-  const missingSources = state.prologue ? [] : dishChains(code, data).filter(chain => chainSeason(chain, data) && sourceCell(state, chain) < 0);
+  // The prologue has only the sources of its event, so no seasonal source comes or goes.
+  const missingSources = state.prologue ? [] : dishChains(code, data).filter(chain => chainSeason(chain, data) && !state.sources.includes(chain));
   const content = document.createDocumentFragment();
   const how = def.recipe ? `Merge ${itemName(def.recipe[0])} and ${itemName(def.recipe[1])} to make ${name}.`
     : def.stage > 1 ? `Merge two ${itemName(`${def.chain}_${def.stage - 1}`)} to make ${name}.`
@@ -59,15 +59,15 @@ function detailContent(code: string) {
     : `Tap the ${sourceOf(def.chain).name} to take ${name}, ${takePrice(sourceOf(def.chain).id)}.`;
   content.append(food(code), element('p','item-how', how));
   for (const chain of missingSources) {
-    const season = chainSeason(chain, data)!, source = sourceOf(chain).name;
+    const season = chainSeason(chain, data)!, source = sourceOf(chain).name, task = data.tasks.find(value => value.id === season.after);
     const note = state.clock.day > season.to ? `${season.departure} You can still merge dishes left on the board.`
-      : state.clock.day < season.from ? `The ${source} arrives from ${dateText(season.from, data)}.`
-      : `The ${source} needs ${KEEP_FREE + 1} free board spaces before it can arrive.`;
+      : state.clock.day < season.from || !task ? `The ${source} arrives from ${dateText(season.from, data)}.`
+      : `The ${source} arrives with the preparation “${task.title}”.`;
     content.append(element('p','seasonal-source-note',note));
   }
-  // In the prologue, the open chains are the sources of the event board. A dish that the prologue discovered keeps its place in act 1,
+  // In the prologue, the open chains are the sources of the event. A dish that the prologue discovered keeps its place in act 1,
   // also when its source comes to the bistro later.
-  const open = state.prologue ? state.board.flatMap(cell => cell && definition(cell.code).generator ? [definition(cell.code).chain] : []) : availableChains(state, data);
+  const open = state.prologue ? state.sources : availableChains(state, data);
   const closed = dishChains(code, data).filter(chain => !open.includes(chain)), known = state.discovered.includes(code);
   if (closed.length) {
     const sources = closed.filter(chain => state.prologue || !chainSeason(chain, data)).map(chain => {
@@ -84,13 +84,14 @@ function detailContent(code: string) {
   const parts = cooksInto(code);
   if (parts) content.append(parts);
   // Prepared dishes can replace a missing source, but only while the board still has them or dishes made from them.
-  const guide = state.prologue ? eventDishes({ board: state.board.map(cell => cell?.code ?? null),
+  const guide = state.prologue ? eventDishes({ sources: state.sources, board: state.board.map(cell => cell?.code ?? null),
     layout: { id: state.layoutId, obstacles: boardObstacles(state, data).filter(obstacle => !state.resolvedObstacles.includes(obstacle.id)) } }, data).has(code) && nextStep(code, true)
     : !missingSources.length || nextStep(code, true);
   if (guide) content.append(button('Show me on the board','secondary-button',() => showWay(code)));
   return content;
 }
-type Step = { at: number[]; line: string; short: string; ready?: boolean; ticket?: string };
+/** A step of the guide: the board cells to use, or a ticket to deliver, or a source to take from. */
+type Step = { at: number[]; line: string; short: string; ready?: boolean; ticket?: string; source?: string };
 const cells = (id: string) => cellsOf(state, id);
 /** A blocked cell that holds this very dish, so a matching dish merges into it. */
 const blockedCopy = (id: string) => boardObstacles(state,data).find(obstacle => obstacle.ingredient === id && !state.resolvedObstacles.includes(obstacle.id));
@@ -132,10 +133,10 @@ function nextStep(code: string, includeReady = false, goalName = itemName(code),
       return { at:[pair[0], blocker.position], line:`Merge ${itemName(id)} into its blocked space to make ${made}${toward(made)}.`, short:`For ${name}: clear blocked ${itemName(id)}` };
     }
   }
-  const source = sourceOf(def.chain), at = cells(source.id), staple = itemName(source.generator!.outputs[0]);
-  if (!at.length) return null;
+  const source = sourceOf(def.chain), staple = itemName(source.generator!.outputs[0]);
+  if (!state.sources.includes(def.chain)) return null;
   if (firstFreeBoardCell(state,data) === -1) return allowRoom ? roomStep(name) : null;
-  return at.length ? { at, line:`Tap the ${source.name} to take ${staple} for ${name}, ${takePrice(source.id)}.`, short:`For ${name}: take ${staple}` } : null;
+  return { at:[], source:def.chain, line:`Tap the ${source.name} to take ${staple} for ${name}, ${takePrice(source.id)}.`, short:`For ${name}: take ${staple}` };
 }
 /** Make room only after no legal merge can advance any part of the requested dish. */
 function roomStep(name: string): Step {
@@ -146,7 +147,7 @@ function roomStep(name: string): Step {
     line:`The board is full. Deliver ${delivery.quest.title} to make space for ${name}.`,
     short:`For ${name}: deliver ${delivery.quest.title}` };
   for (const [index, cell] of state.board.entries()) {
-    if (!cell || definition(cell.code).generator) continue;
+    if (!cell) continue;
     const match = state.board.findIndex((other, at) => at !== index && !!other && !!mergeResult(cell.code, other.code, data));
     if (match >= 0) return { at:[index,match],
       line:`The board is full. Merge ${state.board[match]!.code === cell.code ? `two ${itemName(cell.code)}` : `${itemName(cell.code)} and ${itemName(state.board[match]!.code)}`} to make space for ${name}.`,
@@ -186,6 +187,7 @@ function showWay(code: string, needAnother = false) {
   if (step.ticket) [...document.querySelectorAll<HTMLElement>(`#tickets [data-quest="${step.ticket}"] :is(.deliver-button,.ticket-face)`)].reverse()
     .find(control => control.checkVisibility())?.focus({ preventScroll:true });
   else if (step.at.length) $(`[data-cell="${step.at[0]}"]`).focus({ preventScroll:true });
+  else if (step.source) $(`[data-source="${step.source}"]`).focus({ preventScroll:true });
   else $('#hint-button').focus({ preventScroll:true });
 }
 export function showMissingStep(code: string) { showWay(code,true); }

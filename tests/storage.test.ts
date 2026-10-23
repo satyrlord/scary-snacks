@@ -13,7 +13,7 @@ const valid = (candidate: unknown) => {
   return Boolean(state && Number.isSafeInteger(state.coins) && state.coins >= 0 && Array.isArray(state.board));
 };
 const state = (): State => ({ coins: 12, board: [{ code: 'coffee_1' }, null], story: 'Mara' });
-const envelope = (value: unknown) => JSON.stringify({ format: 'scary-snacks', version: 17, state: value });
+const envelope = (value: unknown) => JSON.stringify({ format: 'scary-snacks', version: 18, state: value });
 
 test('empty storage loads without creating a save', () => {
   const storage = memoryStorage();
@@ -40,7 +40,7 @@ test('portable export and import leave their input unchanged', () => {
   const original = state();
   const before = structuredClone(original);
   const text = exportSave(original, valid);
-  assert.deepEqual(JSON.parse(text), { format: 'scary-snacks', version: 17, state: before });
+  assert.deepEqual(JSON.parse(text), { format: 'scary-snacks', version: 18, state: before });
   assert.deepEqual(importSave(text, valid), before);
   assert.deepEqual(original, before);
 });
@@ -48,13 +48,13 @@ test('portable export and import leave their input unchanged', () => {
 for (const [name, raw, status] of [
   ['corrupt JSON', '{broken', 'invalid'],
   ['unknown version', JSON.stringify({ format: 'scary-snacks', version: 99, state: state() }), 'unsupported'],
-  ['previous version', JSON.stringify({ format: 'scary-snacks', version: 16, state: state() }), 'unsupported'],
+  ['previous version', JSON.stringify({ format: 'scary-snacks', version: 17, state: state() }), 'unsupported'],
   ['zero version', JSON.stringify({ format: 'scary-snacks', version: 0, state: state() }), 'unsupported'],
   ['fractional version', JSON.stringify({ format: 'scary-snacks', version: 4.5, state: state() }), 'unsupported'],
   ['text version', JSON.stringify({ format: 'scary-snacks', version: '6', state: state() }), 'unsupported'],
-  ['unknown format', JSON.stringify({ format: 'another-game', version: 17, state: state() }), 'unsupported'],
+  ['unknown format', JSON.stringify({ format: 'another-game', version: 18, state: state() }), 'unsupported'],
   ['invalid state', envelope({ coins: -1, board: [] }), 'invalid'],
-  ['missing state', JSON.stringify({ format: 'scary-snacks', version: 17 }), 'invalid'],
+  ['missing state', JSON.stringify({ format: 'scary-snacks', version: 18 }), 'invalid'],
   ['empty string', '', 'invalid'],
   ['null envelope', 'null', 'invalid'],
   ['array envelope', '[]', 'invalid'],
@@ -172,11 +172,11 @@ test('import accepts exactly 2 MiB and rejects one byte more', () => {
 });
 
 test('previous campaigns stay unread and unchanged while a fresh campaign saves and resets', () => {
-  assert.equal(SAVE_KEY, 'scary-snacks-save-v17');
+  assert.equal(SAVE_KEY, 'scary-snacks-save-v18');
   for (const count of [0, 1, 9, 12, 19, 24]) {
-    const previous = { ...checkpoint(count), version: 17 };
-    const previousKey = 'scary-snacks-save-v16';
-    const bytes = JSON.stringify({ format: 'scary-snacks', version: 16, state: previous });
+    const previous = { ...checkpoint(count), version: 18 };
+    const previousKey = 'scary-snacks-save-v17';
+    const bytes = JSON.stringify({ format: 'scary-snacks', version: 17, state: previous });
     const storage = memoryStorage([[previousKey, bytes]]);
     const reads: string[] = [];
     const getItem = storage.getItem;
@@ -186,12 +186,12 @@ test('previous campaigns stay unread and unchanged while a fresh campaign saves 
     assert.deepEqual(reads, [SAVE_KEY], 'Load must not inspect an earlier key.');
     assert.equal(storage.writes.length, 0);
     assert.throws(() => importSave(bytes, validate), { status: 'unsupported' });
-    for (const version of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]) {
+    for (const version of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]) {
       assert.throws(() => importSave(JSON.stringify({ format: 'scary-snacks', version, state: previous }), () => assert.fail('An unsupported envelope must stop before state validation.')),
         { status: 'unsupported' }, String(version));
     }
     const fresh = createGame(data);
-    assert.equal(fresh.version, 18);
+    assert.equal(fresh.version, 19);
     assert.equal(fresh.taskIndex, 0);
     assert.deepEqual(fresh.completedQuests, []);
     assert.equal(saveGame(storage, fresh, validate).ok, true);
@@ -205,13 +205,13 @@ test('previous campaigns stay unread and unchanged while a fresh campaign saves 
   }
 });
 
-test('the current envelope accepts state version 18 and rejects state version 17 without replacing it', () => {
+test('the current envelope accepts state version 19 and rejects state version 18 without replacing it', () => {
   const current = checkpoint(1);
   const bytes = exportSave(current, validate);
-  assert.equal(JSON.parse(bytes).version, 17);
-  assert.equal(current.version, 18);
+  assert.equal(JSON.parse(bytes).version, 18);
+  assert.equal(current.version, 19);
   assert.deepEqual(importSave(bytes, validate), current);
-  const previous = { ...current, version: 17 };
+  const previous = { ...current, version: 18 };
   assert.equal(validate(previous), false);
   const malformed = envelope(previous);
   assert.throws(() => importSave(malformed, validate), /damaged or unknown/);
@@ -262,12 +262,11 @@ test('a save with every preparation of act 1 done and the supper not served load
 
 test('a current save with fields that the format does not define still loads and plays, and the next save keeps only the state field', () => {
   const held = { ...checkpoint(1), unknownField: 'kept' };
-  const storage = memoryStorage([[SAVE_KEY, JSON.stringify({ format: 'scary-snacks', version: 17, state: held, unknownField: 'ignored' })]]);
+  const storage = memoryStorage([[SAVE_KEY, JSON.stringify({ format: 'scary-snacks', version: 18, state: held, unknownField: 'ignored' })]]);
   const loaded = loadSave<GameState>(storage, validate);
   assert.equal(loaded.status, 'loaded');
   assert.deepEqual(loaded.state, held);
-  const source = loaded.state!.board.findIndex(cell => cell && data.items[cell.code].generator);
-  const played = reduceGame(loaded.state!, { type: 'spawn', index: source }, data);
+  const played = reduceGame(loaded.state!, { type: 'spawn', chain: loaded.state!.sources[0] }, data);
   assert.equal(played.ok, true, played.message);
   assert.equal(storage.writes.length, 0);
   assert.equal(saveGame(storage, played.state, validate).ok, true);

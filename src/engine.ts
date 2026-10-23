@@ -1,6 +1,6 @@
 // The deterministic rules of the bistro game: the new game, the actions, and the acceptance of an untrusted save.
-import { actOf, arrivalScene, availableChains, boardLayout, boardObstacles, canDeliverQuest, canLightLanterns, chainSeason, clockMinutes, clockText, currentEvent, cycleMember, dateText, decorationUnlocked, deliveriesSince, dayMerges, dishOpen, earnedObstacles, earnedPrologue, earnedScenes, eventComplete, eventDishes, eveningOpen, finaleQuest, findQuest, firstFreeBoardCell, fixedBooking, freeBoardCells, gardenStage, getItem, holdOf, holding, holdsDay, integer, isSunday, levers, looseRaw, looseRawCells, marchOpens, mergePartners, mergeResult, own, pendingPreparationObstacles, playable, prerequisitesMet, present, prologueQuests, prologueScenes, questDeliveryCells, questEvent, questFinale, questHoliday, questPredecessors, questReward, released, salePrice, requiredQuests, resolveChapters, resolveQuests, seasonPaid, sourceCell, sourceNeeded, storyOrder, supperComplete, takeCost, taskEligibility, ticketNote, unresolvedObstacle } from './model.ts';
-import type { Action, Cell, GameData, GameState, NightReport, Placed, Result } from './model.ts';
+import { actOf, arrivalScene, availableChains, boardLayout, boardObstacles, canDeliverQuest, canLightLanterns, chainSeason, clockMinutes, clockText, currentEvent, cycleMember, dateText, decorationUnlocked, deliveriesSince, dayMerges, dishOpen, earnedObstacles, earnedPrologue, earnedScenes, eventComplete, eventDishes, eveningOpen, finaleQuest, findQuest, firstFreeBoardCell, fixedBooking, freeBoardCells, gardenStage, getItem, holdOf, holding, holdsDay, integer, isSunday, levers, looseRaw, looseRawCells, marchOpens, mergePartners, mergeResult, own, pendingPreparationObstacles, playable, prerequisitesMet, present, prologueQuests, prologueScenes, questDeliveryCells, questEvent, questFinale, questHoliday, questPredecessors, questReward, released, salePrice, requiredQuests, resolveChapters, resolveQuests, seasonPaid, sourceNeeded, storyOrder, supperComplete, takeCost, taskEligibility, ticketNote, unresolvedObstacle } from './model.ts';
+import type { Action, Cell, GameData, GameState, NightReport, Placed, PrologueEvent, Result } from './model.ts';
 
 /** At most this many preparation blockers wait on the board at one time. */
 const ACTIVE_BLOCKERS = 3;
@@ -48,19 +48,20 @@ function bottomLeftFreeCell(state: GameState, data: GameData): number {
   return state.board.map((cell, index) => index).filter(index => state.board[index] === null && !unresolvedObstacle(state, index, data))
     .sort((a, b) => distance(a) - distance(b) || b - a)[0] ?? -1;
 }
-/**
- * Places each seasonal source that is in season, paid for by the preparation that its season needs, and not on the board, in the first
- * free cell, while the board keeps its free cells.
- */
+/** Adds a source at the end of the source tab and discovers it. */
+function addSource(state: GameState, chain: string, data: GameData): string {
+  const code = `generator_${chain}`;
+  state.sources.push(chain);
+  discover(state, code);
+  return data.items[code].name;
+}
+/** Adds each seasonal source that is in season, paid for by the preparation that its season needs, and not in the bistro. */
 function placeSeasonalSources(state: GameState, data: GameData): string[] {
   const placed: string[] = [];
   for (const chain of data.chains) {
     const season = chain.season, day = state.clock.day;
-    if (!season || day < season.from || day > season.to || !seasonPaid(chain, state.taskIndex, data) || sourceCell(state, chain.id) >= 0 || freeBoardCells(state, data) <= KEEP_FREE) continue;
-    const code = `generator_${chain.id}`;
-    state.board[firstFreeBoardCell(state, data)] = { code };
-    discover(state, code);
-    placed.push(data.items[code].name);
+    if (!season || day < season.from || day > season.to || !seasonPaid(chain, state.taskIndex, data) || state.sources.includes(chain.id)) continue;
+    placed.push(addSource(state, chain.id, data));
   }
   return placed;
 }
@@ -77,8 +78,8 @@ function recordMarch(state: GameState, data: GameData) {
 function close(state: GameState, data: GameData) {
   const day = state.clock.day, dayLevers = levers(day, data);
   state.coins -= dayLevers.upkeep;
-  const departed = data.chains.filter(chain => chain.season && day >= chain.season.to && sourceCell(state, chain.id) >= 0 && !sourceNeeded(state, chain.id, data)).map(chain => chain.id);
-  for (const chain of departed) state.board[sourceCell(state, chain)] = null;
+  const departed = data.chains.filter(chain => chain.season && day >= chain.season.to && state.sources.includes(chain.id) && !sourceNeeded(state, chain.id, data)).map(chain => chain.id);
+  state.sources = state.sources.filter(chain => !departed.includes(chain));
   const loose = looseRawCells(state, data), piper = isSunday(day, data) && state.piper > 0;
   if (piper) state.piper--;
   let report: Omit<NightReport, 'purse' | 'seen'>;
@@ -142,29 +143,36 @@ export function revealTickets(state: GameState, data: GameData) {
   for (const view of resolveQuests(state, data)) if (view.status === 'active') for (const { item } of view.quest.requirements) discover(state, item);
 }
 /**
- * Puts the authored board of an event on the board, in place of the old board. The sources and the prepared dishes of the new board
- * are discovered. The blockers discover nothing.
+ * Puts the authored sources and board of an event in place of the old ones. The sources and the prepared dishes of the event are
+ * discovered. The blockers discover nothing.
  */
 function startEvent(state: GameState, number: number, data: GameData) {
   const event = data.prologue.events[number - 1];
   state.prologue = { event: number };
   state.board = event.board.map(code => code ? { code } : null);
-  state.layoutId = event.layout.id; state.resolvedObstacles = [];
+  state.layoutId = event.layout.id; state.resolvedObstacles = []; state.sources = [];
+  for (const chain of event.sources) addSource(state, chain, data);
   for (const code of event.board.filter(present)) discover(state, code);
 }
-/** The start of act 1: the initial board of act 1, the starting gift in the purse, and the first morning. The recipe book keeps the prologue discoveries. */
+/**
+ * The start of act 1: the sources and the initial board of act 1, the starting gift in the purse, and the first morning. The recipe
+ * book keeps the prologue discoveries.
+ */
 function startActOne(state: GameState, data: GameData) {
   state.prologue = null;
   state.board = data.board.initial.map(code => code ? { code } : null);
-  state.layoutId = data.board.defaultLayout; state.resolvedObstacles = [];
+  state.layoutId = data.board.defaultLayout; state.resolvedObstacles = []; state.sources = [];
   state.coins = data.prologue.gift; state.clock = { day: 1, merges: 0 };
+  for (const chain of data.board.sources) addSource(state, chain, data);
   for (const code of data.board.initial.filter(present)) discover(state, code);
 }
+/** The items that an event discovers: its sources and its prepared dishes. */
+const eventItems = (event: PrologueEvent) => [...event.sources.map(chain => `generator_${chain}`), ...event.board.filter(present)];
 /** A new game, at the first event of the prologue with its opening scene earned. The session gives it a random seed, so the rules themselves stay deterministic. */
 export function createGame(data: GameData, seed = 0): GameState {
   const state: GameState = {
-    version: 18, prologue: null, layoutId: data.board.defaultLayout, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] },
-    pendingScenes: [data.prologue.events[0].opening.id], board: [], coins: 0, taskIndex: 0, discovered: [],
+    version: 19, prologue: null, layoutId: data.board.defaultLayout, resolvedObstacles: [], preparationObstacles: { start: 0, placed: [] },
+    pendingScenes: [data.prologue.events[0].opening.id], board: [], sources: [], coins: 0, taskIndex: 0, discovered: [],
     decorations: [], decorationChoices: {}, completedQuests: [],
     clock: { day: 1, merges: 0 }, seed, ratHoles: [], gifts: 0, evening: { guest: null, last: null, delivered: false }, night: null, act1: null, act2: null, piper: 0, march: [],
   };
@@ -178,7 +186,7 @@ export function createGame(data: GameData, seed = 0): GameState {
  */
 export function actOneGame(data: GameData, seed = 0): GameState {
   const state = createGame(data, seed);
-  for (const event of data.prologue.events) for (const code of [...event.board.filter(present), ...event.quests.flatMap(quest => quest.requirements.map(({ item }) => item))]) discover(state, code);
+  for (const event of data.prologue.events) for (const code of [...eventItems(event), ...event.quests.flatMap(quest => quest.requirements.map(({ item }) => item))]) discover(state, code);
   state.completedQuests = prologueQuests(data).map(quest => quest.id);
   state.pendingScenes = [];
   startActOne(state, data);
@@ -222,9 +230,9 @@ function servedInOrder(complete: readonly string[], until: number, data: GameDat
 /**
  * The fields of a prologue save. The quests of the earlier events are served, then some quests of the current event, so the current
  * event is the first with a quest to serve, or the last. The pending scenes are the last part of the earned scenes in story order, and
- * the end of the last event leaves its closing scene pending. The board holds each source of the event once and only dishes of the
- * event board. The recipe book holds the sources and the prepared dishes of the events so far, and only dishes of their boards. The
- * purse, the clock, the preparations, and the night stay as a new game has them.
+ * the end of the last event leaves its closing scene pending. The source tab holds each source of the event once, and the board holds
+ * only dishes of the event board. The recipe book holds the sources and the prepared dishes of the events so far, and only dishes of
+ * their boards. The purse, the clock, the preparations, and the night stay as a new game has them.
  */
 function validPrologue(state: GameState, data: GameData): boolean {
   const progress = state.prologue, events = data.prologue.events;
@@ -240,12 +248,12 @@ function validPrologue(state: GameState, data: GameData): boolean {
     || (state.repeating !== undefined && (!record(state.repeating, ['last', 'open']) || state.repeating.last !== null || state.repeating.open !== null))
     || !record(state.evening, ['guest', 'last', 'delivered']) || state.evening.guest !== null || state.evening.last !== null || state.evening.delivered !== false
     || state.layoutId !== event.layout.id) return false;
-  const sources = event.board.filter(code => !!code && data.items[code].generator), dishes = eventDishes(event, data);
-  if (!state.board.every(cell => cell === null || (record(cell, ['code']) && (sources.includes(cell.code as string) || dishes.has(cell.code as string))))
-    || !sources.every(code => state.board.filter(cell => cell?.code === code).length === 1)) return false;
-  const reached = events.slice(0, number), known = new Set(reached.flatMap(value => [...value.board.filter(present), ...eventDishes(value, data)]));
+  const dishes = eventDishes(event, data);
+  if (!state.board.every(cell => cell === null || (record(cell, ['code']) && dishes.has(cell.code as string)))
+    || state.sources.length !== event.sources.length || !event.sources.every(chain => state.sources.includes(chain))) return false;
+  const reached = events.slice(0, number), known = new Set(reached.flatMap(value => [...eventItems(value), ...eventDishes(value, data)]));
   return Array.isArray(state.discovered) && state.discovered.every(code => known.has(code))
-    && reached.every(value => value.board.filter(present).every(code => state.discovered.includes(code)));
+    && reached.every(value => eventItems(value).every(code => state.discovered.includes(code)));
 }
 const record = (value: unknown, keys: string[]): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value)
   && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
@@ -304,8 +312,10 @@ function validDay(state: GameState, data: GameData): boolean {
 export function validateGame(candidate: unknown, data: GameData): candidate is GameState {
   try {
     const state = candidate as GameState;
-    if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== 18) return false;
+    if (!state || typeof state !== 'object' || Array.isArray(state) || state.version !== 19) return false;
     if (!Array.isArray(state.board) || state.board.length !== data.board.columns * data.board.rows) return false;
+    if (!Array.isArray(state.sources) || new Set(state.sources).size !== state.sources.length
+      || !state.sources.every(chain => typeof chain === 'string' && !!getItem(`generator_${chain}`, data)?.generator)) return false;
     if (!integer(state.coins, -1_000_000_000)) return false;
     if (!integer(state.taskIndex, 0, data.tasks.length) || !Array.isArray(state.completedQuests)) return false;
     if (!validDay(state, data)) return false;
@@ -320,7 +330,7 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
       if (!validateQuestProgress(state, data)) return false;
     }
     const validItem = (cell: Cell | null) => cell && typeof cell === 'object' && !Array.isArray(cell)
-      && Object.keys(cell).length === 1 && own(data.items, cell.code) && (prologue || dishOpen(cell.code, chains, data));
+      && Object.keys(cell).length === 1 && own(data.items, cell.code) && !data.items[cell.code].generator && (prologue || dishOpen(cell.code, chains, data));
     if (!state.board.every(cell => cell === null || validItem(cell))) return false;
     {
       const layout = prologue ? boardLayout(state.layoutId, data) : data.board.layouts.find(layout => layout.id === state.layoutId);
@@ -345,19 +355,17 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
         || blocked.some(obstacle => state.board[obstacle.position] !== null)
         || (progress?.placed.filter(placement => !state.resolvedObstacles.includes(placement.id)).length ?? 0) > ACTIVE_BLOCKERS) return false;
     }
-    // Each open chain has one source on the board. A seasonal source can wait for room in its season, and after its season it stays
-    // until the first closing at which no quest needs its chain, so a save holds at most one. The prologue checked its own sources.
+    // Each open chain has its source in the bistro. After its season, a seasonal source stays until the first closing at which no quest
+    // needs its chain. The prologue checked its own sources.
     const cells = state.board.filter(present);
-    for (const chain of prologue ? [] : chains) {
-      const sources = cells.filter(cell => getItem(cell.code, data)?.generator && getItem(cell.code, data)?.chain === chain).length;
-      if (chainSeason(chain, data) ? sources > 1 : sources !== 1) return false;
-    }
+    if (!prologue && (!state.sources.every(chain => chains.includes(chain))
+      || !chains.every(chain => state.sources.includes(chain) || (state.clock.day > (chainSeason(chain, data)?.to ?? Infinity) && !sourceNeeded(state, chain, data))))) return false;
     // In act 1, the recipe book keeps the dishes of the prologue boards, also of chains that act 1 opens later.
-    const kept = prologue ? null : new Set(data.prologue.events.flatMap(event => [...event.board.filter(present), ...eventDishes(event, data)]));
+    const kept = prologue ? null : new Set(data.prologue.events.flatMap(event => [...eventItems(event), ...eventDishes(event, data)]));
     if (!Array.isArray(state.discovered) || state.discovered.length > Object.keys(data.items).length
       || new Set(state.discovered).size !== state.discovered.length
       || !state.discovered.every(code => own(data.items, code) && (!kept || dishOpen(code, chains, data) || kept.has(code)))
-      || !cells.every(cell => state.discovered.includes(cell.code))) return false;
+      || ![...cells.map(cell => cell.code), ...state.sources.map(chain => `generator_${chain}`)].every(code => state.discovered.includes(code))) return false;
     // A blocker does not discover its dish, but clearing one needs a dish that merges with it: a matching dish or a recipe partner.
     if (boardObstacles(state, data).some(obstacle => state.resolvedObstacles.includes(obstacle.id)
       && !mergePartners(obstacle.ingredient, data).some(code => state.discovered.includes(code)))) return false;
@@ -386,6 +394,13 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
   const fail = (message: string): Result => ({ state, ok: false, message, event: null });
   if (!action || typeof action !== 'object') return fail('Choose an action.');
   const next = copy(state);
+  if (action.type === 'arrange') {
+    // Source order changes no other field, including optional quest records and the evening guest.
+    const from = next.sources.indexOf(action.chain);
+    if (from === -1 || !integer(action.to, 0, next.sources.length - 1) || action.to === from) return fail('Choose a source and another place in the tab.');
+    next.sources.splice(action.to, 0, ...next.sources.splice(from, 1));
+    return { state: next, ok: true, message: `${getItem(`generator_${action.chain}`, data)!.name}: place ${action.to + 1} of ${next.sources.length}.`, event: action.type };
+  }
   // Keep a ticket that a save without an open record already shows, even if this action gives a booked quest more work.
   if (!next.repeating?.open) {
     const open = resolveQuests(next, data).find(view => view.quest.repeating && view.status !== 'locked')?.quest.id;
@@ -495,7 +510,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       // Any legal merge into a blocked item clears its blocker: a matching dish of the chain, or a recipe partner.
       const result = obstacle ? mergeResult(source.code, obstacle.ingredient, data) : target ? mergeResult(source.code, target.code, data) : null;
       if (obstacle && !result) return fail('Merge a matching dish or a recipe partner into this blocked space.');
-      if (!result && target?.code === source.code && !item.generator) return fail(`${item.name} is a final dish. Deliver it to a neighbour${mergePartners(source.code, data).length ? ', or cook it with a recipe partner' : ''}.`);
+      if (!result && target?.code === source.code) return fail(`${item.name} is a final dish. Deliver it to a neighbour${mergePartners(source.code, data).length ? ', or cook it with a recipe partner' : ''}.`);
       if (result) {
         next.board[action.to] = { code: result };
         next.board[action.from] = null;
@@ -519,8 +534,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       break;
     }
     case 'spawn': {
-      const cell = itemAt(next, action.index);
-      const item = cell && getItem(cell.code, data);
+      const item = next.sources.includes(action.chain) ? getItem(`generator_${action.chain}`, data) : null;
       if (!item?.generator) return fail('Choose an ingredient source.');
       const code = item.generator.outputs[0];
       const empty = firstFreeBoardCell(next, data);
@@ -538,7 +552,6 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const cell = itemAt(next, action.index);
       const item = cell && getItem(cell.code, data);
       if (!cell || !item || unresolvedObstacle(next, action.index, data)) return fail('Choose a dish to sell.');
-      if (item.generator) return fail('An ingredient source stays on the board.');
       if (next.prologue) return fail('Dishes are sold from act 1.');
       // A sale pays back the takes of the ingredients at the current garden stage, so it makes no profit.
       const price = salePrice(cell.code, data, gardenStage(next.taskIndex, data));
@@ -555,13 +568,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       if (!eligibility.ready || !task) return fail(eligibility.blockers.join(' '));
       next.preparationObstacles ??= { start: next.taskIndex, placed: [], ...(next.clock.day >= data.board.hail.day ? { hail: 0 } : {}) };
       message = task.purchase ? `${task.title}: paid.` : `${task.title}: done.`;
-      if (task.unlock) {
-        const code = `generator_${task.unlock}`;
-        const source = data.items[code].name;
-        const empty = firstFreeBoardCell(next, data);
-        if (empty !== -1) { next.board[empty] = { code }; message += ` The ${source} is on the board.`; }
-        discover(next, code);
-      }
+      if (task.unlock) message += ` The ${addSource(next, task.unlock, data)} is ready.`;
       next.coins -= task.cost;
       next.taskIndex++;
       next.decorations.push(task.id);
@@ -582,7 +589,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
     return { state: next, ok: true, message, event };
   }
   if (['task', 'move', 'spawn', 'sell', 'deliverQuest'].includes(action.type)) {
-    for (const source of placeSeasonalSources(next, data)) message += ` The ${source} is on the board.`;
+    for (const source of placeSeasonalSources(next, data)) message += ` The ${source} is ready.`;
     const placed = placePreparationObstacles(next, data), batch = data.board.preparations.find(value => value.after === data.tasks[next.taskIndex - 1]?.id);
     if (action.type === 'task' && batch) message += ` ${batch.context}`;
     if (placed) message += ` ${placed} preparation ${placed === 1 ? 'blocker' : 'blockers'} placed.`;

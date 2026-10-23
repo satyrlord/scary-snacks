@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { boardObstacles, mergePartners, unresolvedObstacle } from '../../src/model.ts';
 import { reduceGame } from '../../src/engine.ts';
 import type { GameState } from '../../src/model.ts';
-import { checkpoint, data, ratio, saved, startStill as start, tile, validate, know, madeLine } from './support.ts';
+import { checkpoint, data, ratio, saved, startStill as start, tile, validate, know, madeLine , source } from './support.ts';
 
 const help = (page: Page) => page.locator('#item-detail.blocker-help');
 /** The rule of a blocked dish: the matching dish, and each recipe partner that the player has made. */
@@ -12,7 +12,7 @@ const rule = (code: string, state: GameState) => `Tap a marked ${new Intl.ListFo
 /** Five preparations are paid, so the Hen’s nest is on the board, with one Eggs and no other loose dish. */
 function eggsOnly() {
   const state = checkpoint(5, { coins: 20 });
-  for (const [index, cell] of state.board.entries()) if (cell && !data.items[cell.code].generator) state.board[index] = null;
+  state.board.fill(null);
   state.board[state.board.findIndex((cell, index) => !cell && !unresolvedObstacle(state, index, data))] = { code: 'poultry_1' };
   know(state,'poultry_1');
   return state;
@@ -28,10 +28,8 @@ test('every opening blocker has a rule mark and selecting clutter replaces a sou
     await expect(tile(page, obstacle.position).locator('.food')).toBeVisible();
     await expect(tile(page, obstacle.position)).toHaveAttribute('title', /Merge/i);
   }
-  await tile(page, 1).click();
-  const refusal=page.locator('#item-detail.source-detail .detail-feedback');
-  await expect(refusal).toBeVisible();
-  await expect(refusal).toHaveText('The Windmill costs 1 coin for each take, and the purse cannot pay. Deliver a quest, or take free herbs from the Herb basket.');
+  await source(page, 'grain').click();
+  await expect(page.locator('#status')).toHaveText('The Windmill costs 1 coin for each take, and the purse cannot pay. Deliver a quest, or take free herbs from the Herb basket.');
   const before = await saved(page);
   expect(before).toEqual(initial);
   await tile(page, 0).click();
@@ -42,7 +40,6 @@ test('every opening blocker has a rule mark and selecting clutter replaces a sou
   for (const partner of unmade) await expect(tile(page, 0)).not.toHaveAttribute('aria-label', new RegExp(data.items[partner].name));
   await expect(tile(page, 0)).toHaveAttribute('aria-pressed', 'true');
   expect(await targets(page)).toEqual([]);
-  await expect(page.locator('#item-detail.source-detail')).toHaveCount(0);
   await expect(page.locator('#item-detail .detail-feedback')).toHaveCount(0);
   expect(await saved(page)).toEqual(before);
   await page.getByRole('button', { name: 'Clear selection', exact: true }).click();
@@ -152,7 +149,7 @@ test('a second tap on a selected blocker closes its help with the move hint', as
 test('new preparation blocker identifies matching movable ingredients', async ({ page }) => {
   const state = checkpoint(1);
   const obstacle = boardObstacles(state, data).find(obstacle => obstacle.atlas === 'preparation')!;
-  expect(obstacle.position).toBe(2);
+  expect(obstacle.position).toBe(1);
   await start(page, state); await tile(page, obstacle.position).click();
   await expect(help(page)).toBeVisible(); await expect(help(page).locator('.blocker-title')).toHaveText(obstacle.name);
   await expect(page.locator('#blocker-rule')).toHaveText(rule(obstacle.ingredient, state));

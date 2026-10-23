@@ -1571,13 +1571,14 @@ const notebook = {
   cabbageRolls: { image: 'scene-notebook-cabbage-rolls', text: 'Mamaia’s notebook, open at the cabbage rolls. The left page has the recipe in faded handwriting, a small drawing of a roll, and a grease stain. The right page has nine lines of old Cyrillic letters under a small red cross.' },
   note: { image: 'scene-notebook-note', text: 'A later page of Mamaia’s notebook: a short note in handwriting fills the page, beside a pressed sprig of basil.' },
 };
-/** An authored event board: the sources centred in the top row, and the prepared dishes centred in the second row. */
-function eventBoard(sources: string[], prepared: string[]) {
-  const board = Array<string | null>(42).fill(null), centre = (count: number) => Math.floor((6 - count) / 2);
-  sources.forEach((name, at) => { board[centre(sources.length) + at] = Object.values(items).find(item => item.name === name && item.generator)!.id; });
-  prepared.forEach((name, at) => { board[6 + centre(prepared.length) + at] = dish(name); });
+/** An authored event board: the prepared dishes centred in the second row. */
+function eventBoard(prepared: string[]) {
+  const board = Array<string | null>(42).fill(null), centre = Math.floor((6 - prepared.length) / 2);
+  prepared.forEach((name, at) => { board[6 + centre + at] = dish(name); });
   return board;
 }
+/** The chains of the named sources, in tab order. */
+const sourceChains = (names: string[]) => names.map(name => Object.values(items).find(item => item.name === name && item.generator)!.chain);
 type EventScene = [id: string, title: string, speech: [speaker: string, text: string][]];
 type EventRow = {
   id: string; title: string; line: string; date: string; fasting?: true; sources: string[]; prepared: string[]; blockers?: (Omit<BoardObstacle, 'ingredient' | 'context'> & { ingredient: string })[];
@@ -1712,7 +1713,7 @@ const prologueEvents: PrologueEvent[] = eventRows.map((row, index) => {
   const number = index + 1, scene = ([id, title, speech]: EventScene, page?: PrologueEvent['scene']) =>
     ({ id: `prologue-${number}-${id}`, title, dialogue: lines('mara', speech), ...(page ? { page } : {}) });
   return {
-    id: row.id, title: row.title, line: row.line, day: on(row.date), ...(row.fasting ? { fasting: true as const } : {}), board: eventBoard(row.sources, row.prepared),
+    id: row.id, title: row.title, line: row.line, day: on(row.date), ...(row.fasting ? { fasting: true as const } : {}), sources: sourceChains(row.sources), board: eventBoard(row.prepared),
     layout: { id: `prologue-${row.id}`, obstacles: (row.blockers ?? []).map(blocker => ({ ...blocker, ingredient: dish(blocker.ingredient) })) },
     room: `family-kitchen-${row.room}`, scene: row.scene,
     quests: row.quests.map(([character, title, requirements, opening]) => ({ id: `prologue-${number}-${character}`, character, title, afterTask: null,
@@ -1784,16 +1785,13 @@ const decorationSlots: DecorationSlot[] = [
     variants: [{ id: 'wildflowers', name: 'Wildflowers', image: 'front-room-24' }, { id: 'lilacs', name: 'Lilacs', image: 'decoration-front' }],
     crop: { x: 72, y: 39, width: 21, height: 15 } },
 ];
-initial[1] = 'generator_grain';
-initial[4] = 'generator_corn';
-// The pickle barrel of the monk of the cathedral stands in the kitchen until 20 March.
-initial[3] = 'generator_pickles';
-initial[31] = 'generator_herbs';
+// The sources of act 1 in tab order. The pickle barrel of the monk of the cathedral stands in the kitchen until 20 March.
+const sources = ['grain', 'corn', 'herbs', 'pickles'];
 initial[13] = 'grain_1';
 initial[14] = 'grain_1';
 initial[22] = 'corn_1';
 initial[27] = 'herbs_1';
-// Two Socată wait by the Herb basket, so a Linden tea is one merge away from the first day.
+// Two Socată wait on the board, so a Linden tea is one merge away from the first day.
 initial[32] = 'herbs_3';
 initial[33] = 'herbs_3';
 const layouts: BoardLayout[] = [
@@ -1991,7 +1989,7 @@ const actTwoRoomRows: [after: number, area: string, x: number, y: number, label:
 rooms.push(...actTwoRoomRows.map(([after, area, x, y, label, markX, markY, text]): RoomState => ({ id: `${area}-${String(after).padStart(2, '0')}`, area,
   after: after ? actTwoTask(after) : null, focus: { x, y }, mark: { x: markX, y: markY }, label, text })));
 const data: GameData = {
-  board: { columns: 6, rows: 7, initial, defaultLayout: 'workbench-clutter-1', layouts, preparations, hail },
+  board: { columns: 6, rows: 7, sources, initial, defaultLayout: 'workbench-clutter-1', layouts, preparations, hail },
   chains: chains.map(([id, name]) => ({ id, name, ...(seasons[id] ? { season: seasons[id] } : {}), ...(gardenChains.includes(id) ? { garden: true as const } : {}) })),
   items, characters, chapters, finales, tasks, areas, rooms, decorationSlots, economy, acts, calendar, quests, prologue,
 };

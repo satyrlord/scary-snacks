@@ -53,22 +53,18 @@ test('one missing coin blocks completion after the quests are delivered', () => 
   assert.match(rejected(state, { type: 'task' }).message, /1 more coin/);
 });
 
-test('generator placement is part of eligibility and failed completion leaves every field unchanged', () => {
+test('a preparation that brings a source needs no free cell, and a failed completion leaves every field unchanged', () => {
   const state = { ...withoutWindow(2), coins: 0 };
   state.board = state.board.map((cell, index) => cell || unresolvedObstacle(state, index, data) ? cell : { code: 'grain_1' });
   assert.ok(validateGame(state, data));
   const eligibility = taskEligibility(state, data);
-  assert.equal(eligibility.blockers.length, 3);
-  assert.deepEqual(eligibility.requirements.at(-1), { kind: 'space', source: data.items.generator_dairy.name, met: false });
+  assert.deepEqual(eligibility.requirements.map(requirement => requirement.kind), ['coins', 'quests']);
   assert.equal(rejected(state, { type: 'task' }).message, eligibility.blockers.join(' '));
   Object.assign(state, { coins: data.tasks[2].cost, completedQuests: openCheckpoint(2).completedQuests });
-  assert.deepEqual(taskEligibility(state, data).blockers, [`Free a space on the board for the ${data.items.generator_dairy.name}.`]);
-  rejected(state, { type: 'task' });
-  const space = state.board.findIndex(cell => cell?.code === 'grain_1');
-  state.board[space] = null;
   assert.ok(taskEligibility(state, data).ready);
   const completed = act(state, { type: 'task' });
-  assert.equal(completed.board[space]?.code, 'generator_dairy');
+  assert.equal(completed.sources.at(-1), 'dairy');
+  assert.deepEqual(completed.board, state.board);
   assert.equal(completed.coins, 0);
 });
 
@@ -171,7 +167,7 @@ test('board actions never count as quests, and invalid actions change nothing', 
   };
   unchanged({ type: 'move', from: 22, to: 0 });
   unchanged({ type: 'move', from: 0, to: 27 });
-  unchanged({ type: 'spawn', index: 31 });
+  unchanged({ type: 'spawn', chain: 'herbs' });
   unchanged({ type: 'move', from: 13, to: 14 });
   rejected(state, { type: 'move', from: 13, to: 13 });
   rejected(state, { type: 'move', from: 13, to: 14 });

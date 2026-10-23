@@ -18,9 +18,7 @@ function ready(taskIndex = 0): GameState {
   state.preparationObstacles = { start: taskIndex, placed: [] };
   moveTo(state, payDay(taskIndex), data);
   const chains = new Set(availableChains(state, data));
-  for (const chain of chains) if (!data.chains.find(value => value.id === chain)!.season && !state.board.some(cell => cell?.code === `generator_${chain}`)) {
-    state.board[state.board.indexOf(null)] = { code: `generator_${chain}` };
-  }
+  for (const chain of chains) if (!data.chains.find(value => value.id === chain)!.season && !state.sources.includes(chain)) state.sources.push(chain);
   state.discovered = Object.values(data.items).filter(item => chains.has(item.chain)).map(item => item.id);
   assert.ok(validate(state));
   return state;
@@ -64,7 +62,7 @@ test('payment places a batch once and preserves existing items and quest progres
   before.board.forEach((cell, index) => { if (cell) assert.deepEqual(paid.board[index], cell); });
   assert.deepEqual(paid.completedQuests, before.completedQuests);
   assert.equal(paid.coins, before.coins - data.tasks[0].cost);
-  const next = act(paid, { type: 'spawn', index: 1 });
+  const next = act(paid, { type: 'spawn', chain: 'grain' });
   assert.deepEqual(next.preparationObstacles, paid.preparationObstacles);
   assert.equal(boardObstacles(next, data)[0].context, data.board.preparations[0].context);
 });
@@ -113,12 +111,11 @@ test('a board with four free cells holds back a waiting blocker, so one Linden t
   for (let count = 0; count < KEEP_FREE; count++) state = mergeOne(state);
   assert.equal(freeBoardCells(state, data), KEEP_FREE);
   assert.equal(pendingPreparationObstacles(state, data).length, 2);
-  const herbs = state.board.findIndex(cell => cell?.code === 'generator_herbs');
   // Stages 1 to 3 wait on three cells while the fourth takes the next Elderflowers.
   const make = (stage: number): number => {
     if (stage === 1) {
       const empty = state.board.indexOf(null), coins = state.coins;
-      state = act(state, { type: 'spawn', index: herbs });
+      state = act(state, { type: 'spawn', chain: 'herbs' });
       assert.equal(state.board[empty]?.code, 'herbs_1');
       assert.equal(state.coins, coins, 'The Herb basket takes for free.');
       return empty;
@@ -172,10 +169,11 @@ test('preparation blockers clear only with a merge partner on their own cell, an
   assert.equal(state.coins, coins + 2);
 });
 
-test('a newly unlocked source takes the last empty cell before its blocker batch', () => {
+test('a newly unlocked source joins the source tab and leaves the last empty cell to its blocker batch', () => {
   const state = full(ready(2)); state.board[0] = null;
   const paid = act(state, { type: 'task' });
-  assert.equal(paid.board[0]?.code, 'generator_dairy');
+  assert.equal(paid.sources.at(-1), 'dairy');
+  assert.equal(paid.board[0], null);
   assert.equal(active(paid).length, 0);
   assert.equal(pendingPreparationObstacles(paid, data).length, 2);
 });

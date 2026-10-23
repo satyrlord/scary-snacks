@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { firstFreeBoardCell, getItem } from '../../src/model.ts';
 import type { GameState, Quest } from '../../src/model.ts';
-import { act, checkpoint, naturalSize, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, forward, importSaveFile, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readNow, readTo, replaceSave, restoreWrites, saved, serialize, start, startAgain, startAgainAndImport, story, supplies, supply, tile, ticket, toast, validate, know, prologueServed } from './support.ts';
+import { act, checkpoint, naturalSize, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, forward, importSaveFile, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readNow, readTo, replaceSave, restoreWrites, saved, serialize, start, startAgain, startAgainAndImport, story, supplies, supply, source, tile, ticket, toast, validate, know, prologueServed } from './support.ts';
 
 /** The first campaign quest of each neighbour who lives in the village. The recovery quest stands outside the order of quests. */
 const campaign=data.quests.filter(value=>!value.recovery);
@@ -332,20 +332,20 @@ test('a dish guide updates after takes and ends when its dish is made',async({pa
   const initial=checkpoint(0);initial.board[13]=null;initial.board[14]=null;initial.coins=10;
   await page.setViewportSize({width:390,height:844});await start(page,initial);await openQuest(page,quest('sorin-first-ride'));
   await page.getByRole('button',{name:'Find the next step for Dough on the board'}).click();
-  await expect(page.locator('#item-detail.guided')).toContainText('For Dough: take Flour');
-  await expect(page.getByRole('button',{name:'Stop guide for Dough'})).toBeVisible();
+  // A take step marks and focuses the source in the tab, and Mara's line gives the step.
+  const windmill=source(page,'grain');
+  await expect(page.locator('#status')).toHaveText('Tap the Windmill to take Flour for Dough, 1 coin each.');await expect(windmill).toHaveClass(/guide-target/);await expect(windmill).toBeFocused();
+  await expect(page.getByRole('button',{name:'Stop guide'})).toBeVisible();
   expect(await saved(page)).toEqual(initial);
-  const source=initial.board.findIndex(cell=>cell?.code==='generator_grain');
   const first=firstFreeBoardCell(initial,data);
-  await tile(page,source).click();
-  const afterFirst=act(initial,{type:'spawn',index:source});expect(await saved(page)).toEqual(afterFirst);
-  await expect(page.locator('#item-detail.guided')).toContainText('For Dough: take Flour');
+  await windmill.click();
+  const afterFirst=act(initial,{type:'spawn',chain:'grain'});expect(await saved(page)).toEqual(afterFirst);
+  await expect(page.locator('#status')).toContainText('For Dough: take Flour');
   const second=firstFreeBoardCell(afterFirst,data);
-  await tile(page,source).click();
-  const afterSecond=act(afterFirst,{type:'spawn',index:source});expect(await saved(page)).toEqual(afterSecond);
-  await expect(tile(page,source)).toHaveAttribute('aria-pressed','true');
+  await windmill.click();
+  const afterSecond=act(afterFirst,{type:'spawn',chain:'grain'});expect(await saved(page)).toEqual(afterSecond);
   for(const index of [first,second])await expect(tile(page,index)).toHaveClass(/guide-target/);
-  await expect(page.locator('#item-detail.guided')).toContainText('For Dough: merge Flour');
+  await expect(page.locator('#status')).toHaveText('For Dough: merge Flour');
   await tile(page,first).click();await tile(page,second).click();
   expect(await saved(page)).toEqual(act(afterSecond,{type:'move',from:first,to:second}));
   await expect(page.locator('#item-detail.guided')).toHaveCount(0);
@@ -533,7 +533,8 @@ for(const replacement of ['import','reset','another tab'] as const)test(`a visib
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`the quest dialog fits ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
   await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});
-  const value=quest('dochia-sheepskin');await start(page,deliverable(value));await openQuest(page,value);
+  const value=quest('dochia-sheepskin');await start(page,deliverable(value),theme);
+  await expect(page.locator('html')).toHaveAttribute('data-theme',theme);await openQuest(page,value);
   const view=page.locator('.quest-view');await expect(view.locator('.quest-item')).toHaveCount(value.requirements.length);
   for(const control of await page.locator('#modal button').all()){const box=(await control.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);}
   const colors=await view.evaluate(element=>{
@@ -547,7 +548,8 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:390,height:800}])for(const theme of ['light','dark'] as const)test(`a ticket with four dishes fits ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
   await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});
-  const value=quest('monica-third-pack');expect(value.requirements).toHaveLength(4);await start(page,onTicket(value));
+  const value=quest('monica-third-pack');expect(value.requirements).toHaveLength(4);await start(page,onTicket(value),theme);
+  await expect(page.locator('html')).toHaveAttribute('data-theme',theme);
   await expect(ticket(page,value).locator('.ticket-items')).toHaveClass(/many/);await page.screenshot({path:testInfo.outputPath('tickets.png')});
   for(const card of await page.locator('#tickets .ticket').all()){
     expect(await card.evaluate(element=>element.scrollWidth<=element.clientWidth+1)).toBe(true);

@@ -3,7 +3,7 @@ import { requiredQuests, unresolvedObstacle } from '../../src/model.ts';
 import { revealTickets } from '../../src/engine.ts';
 import { moveTo } from '../../tools/create-checkpoint-saves.ts';
 import type { GameState } from '../../src/model.ts';
-import { act, checkpoint, data, dialogDeliver, goal, importSaveFile, opened, openQuest, options, pay, ratio, saved, serialize, start, supplies, supply, ticket, tile, toast, validate, know, prologueServed } from './support.ts';
+import { act, checkpoint, data, dialogDeliver, goal, importSaveFile, opened, openQuest, options, pay, ratio, saved, serialize, start, supplies, supply, ticket, tile, toast, validate, know, prologueServed , source } from './support.ts';
 
 const first = data.tasks[0];
 const needed = requiredQuests(0, data);
@@ -70,10 +70,10 @@ for(const viewport of [{width:1280,height:800},{width:390,height:800},{width:320
 test('cost expansion survives board redraws for the same preparation and resets on reload',async({page})=>{
   const state=checkpoint(0);await start(page,state);
   await page.getByRole('button',{name:'Work and cost',exact:true}).click();
-  await tile(page,31).click();
+  await source(page,'herbs').click();
   await expect(page.locator('#story [data-work-cost]')).toHaveAttribute('aria-expanded','true');
   await expect(page.locator('#story .task-cost')).toBeVisible();
-  expect(await saved(page)).toEqual(act(state,{type:'spawn',index:31}));
+  expect(await saved(page)).toEqual(act(state,{type:'spawn',chain:'herbs'}));
   await page.reload();await opened(page);
   await expect(page.locator('#story [data-work-cost]')).toHaveAttribute('aria-expanded','false');
   await expect(page.locator('#story .task-cost')).toBeHidden();
@@ -126,22 +126,18 @@ test('completed quests leave only the missing coins, with exact totals in Cost d
   expect(await saved(page)).toEqual(state);
 });
 
-test('source placement is the only visible requirement until a merge frees a space',async({page})=>{
+test('a preparation that brings a source is ready on a full board, and its payment adds the source to the tab',async({page})=>{
   const index=data.tasks.findIndex(task=>task.unlock),task=data.tasks[index];
   const state=checkpoint(index,{ready:true});
   state.board.forEach((cell,at)=>{if(!cell&&!unresolvedObstacle(state,at,data))state.board[at]={code:'grain_6'};});
   know(state,'grain_6');expect(validate(state)).toBe(true);
   await start(page,state);
-  const source=data.items[`generator_${task.unlock}`].name;
-  await expect(page.locator('#story .preparation-requirements li')).toHaveText([`Free a board space for the ${source}.`]);
-  await expect(pay(page)).toBeDisabled();
-  await tile(page,13).click();await tile(page,14).click();
   await expect(page.locator('#story .task-ready')).toHaveText('Ready to prepare.');
   await expect(page.locator('#story .preparation-requirements li')).toHaveCount(0);
-  await expect(pay(page)).toBeEnabled();
-  expect(await saved(page)).toEqual(act(state,{type:'move',from:13,to:14}));
-  await page.setViewportSize({width:390,height:844});await tile(page,14).focus();await page.keyboard.press('Escape');
-  await expect(page.locator('#offer .pay-button')).toHaveAccessibleDescription(new RegExp(`Board space for the ${source}: available`));
+  await expect(source(page,task.unlock!)).toHaveCount(0);
+  await expect(pay(page)).toBeEnabled();await pay(page).click();
+  await expect(source(page,task.unlock!)).toHaveCount(1);
+  const paid=await saved(page);expect(paid.sources.at(-1)).toBe(task.unlock);expect(paid.board).toEqual(state.board);
 });
 
 test('delivering the last required quest makes the phone offer ready', async ({ page }) => {
@@ -195,7 +191,7 @@ test('a ready preparation keeps guide Stop visible after delivery clears the sel
 
 test('the last delivery returns focus to Story when the selected cell is in the lowered phone drawer',async({page})=>{
   await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:'reduce'});
-  const {state,last}=lastQuestReady();await start(page,state);await tile(page,31).click();
+  const {state,last}=lastQuestReady();await start(page,state);await source(page,'herbs').click();
   await page.locator('#drawer-handle').click();await expect(page.locator('#drawer-body')).toHaveAttribute('inert','');
   await ticket(page,last).locator('.ticket-face').focus();await page.keyboard.press('Enter');
   await dialogDeliver(page,last).focus();await page.keyboard.press('Enter');

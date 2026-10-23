@@ -2,12 +2,18 @@
   "board": {
     "columns": 6,
     "rows": 7,
+    "sources": [
+      "grain",
+      "corn",
+      "herbs",
+      "pickles"
+    ],
     "initial": [
       null,
-      "generator_grain",
       null,
-      "generator_pickles",
-      "generator_corn",
+      null,
+      null,
+      null,
       null,
       null,
       null,
@@ -34,7 +40,7 @@
       null,
       null,
       null,
-      "generator_herbs",
+      null,
       "herbs_3",
       "herbs_3",
       null,
@@ -15246,10 +15252,13 @@
         "line": "Cook the funeral meal (pomană) for Mamaia Paraschiva, in the village. It is a fasting day.",
         "day": -53,
         "fasting": true,
+        "sources": [
+          "beans"
+        ],
         "board": [
           null,
           null,
-          "generator_beans",
+          null,
           null,
           null,
           null,
@@ -15404,11 +15413,16 @@
         "line": "Cook for the carol singers and the table of Christmas Eve. It is a fasting day.",
         "day": -52,
         "fasting": true,
+        "sources": [
+          "grain",
+          "herbs",
+          "fruits"
+        ],
         "board": [
           null,
-          "generator_grain",
-          "generator_herbs",
-          "generator_fruits",
+          null,
+          null,
+          null,
           null,
           null,
           null,
@@ -15549,11 +15563,16 @@
         "title": "Christmas dinner",
         "line": "Cook Mamaia’s cabbage rolls from her notebook for Christmas dinner.",
         "day": -51,
+        "sources": [
+          "pork",
+          "vegetables",
+          "fruits"
+        ],
         "board": [
           null,
-          "generator_pork",
-          "generator_vegetables",
-          "generator_fruits",
+          null,
+          null,
+          null,
           null,
           null,
           null,
@@ -15706,12 +15725,19 @@
         "title": "New Year’s Eve",
         "line": "Cook the midnight table of New Year’s Eve.",
         "day": -45,
+        "sources": [
+          "pork",
+          "vegetables",
+          "pickles",
+          "grain",
+          "dairy"
+        ],
         "board": [
-          "generator_pork",
-          "generator_vegetables",
-          "generator_pickles",
-          "generator_grain",
-          "generator_dairy",
+          null,
+          null,
+          null,
+          null,
+          null,
           null,
           null,
           "vegetables_2",
@@ -15875,11 +15901,16 @@
         "title": "Epiphany",
         "line": "Cook a warm meal for the priest who blesses the flat on Epiphany (Boboteaza).",
         "day": -39,
+        "sources": [
+          "poultry",
+          "grain",
+          "herbs"
+        ],
         "board": [
           null,
-          "generator_poultry",
-          "generator_grain",
-          "generator_herbs",
+          null,
+          null,
+          null,
           null,
           null,
           null,
@@ -16004,12 +16035,18 @@
         "title": "The memorial of the fortieth day",
         "line": "Cook the memorial meal of the fortieth day, in the village.",
         "day": -20,
+        "sources": [
+          "grain",
+          "herbs",
+          "fruits",
+          "beans"
+        ],
         "board": [
           null,
-          "generator_grain",
-          "generator_herbs",
-          "generator_fruits",
-          "generator_beans",
+          null,
+          null,
+          null,
+          null,
           null,
           null,
           null,
@@ -16182,11 +16219,16 @@
         "title": "The farewell dinner",
         "line": "Cook the farewell dinner before Mara leaves for the village.",
         "day": -1,
+        "sources": [
+          "pork",
+          "vegetables",
+          "grain"
+        ],
         "board": [
           null,
-          "generator_pork",
-          "generator_vegetables",
-          "generator_grain",
+          null,
+          null,
+          null,
           null,
           null,
           null,

@@ -156,7 +156,7 @@ For example, the Easter lunch opens on Holy Thursday, but Ilie eats the lunch on
 
 ## Seasonal sources
 
-A seasonal source is a source that is on the board only in its season.
+A seasonal source is a source that is in the source tab of spec 003 only in its season.
 
 | Source | Season | Chain | Stage 1 | Stage 2 | Stage 3 | Stage 4 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -167,17 +167,15 @@ The user approved the two chains. The chains follow the rules of spec 012. No di
 Wild garlic and sorrel, and Nettle purée with garlic, have the garlic tag.
 Ana's repeating quest of spec 015 uses Mixed pickles. Victor's repeating quest uses Nettle soup.
 
-A take from a seasonal source is free, as a take from the Herb basket. Its ingredient counts as zero in the menu price.
-The pickle barrel holds the stores of the grandmother's cellar. The forage basket holds the greens of the hill.
+A take from the forage basket is free, as a take from the Herb basket. Its ingredient counts as zero in the menu price.
+The pickle barrel is a paid source. Ambrozie sells the barrels for the church roof. A pickle ingredient counts the take cost in the menu price, as spec 018 describes. The forage basket holds the greens of the hill.
 
 ### Placement and departure
 
-At the opening time of the first day of its season, the seasonal source takes the first free cell in board order.
-The placement keeps at least four free cells, as for blockers. If the board has too few free cells, the source waits.
-Each successful move, take, delivery, and payment tries the placement again.
-In act 1, the pickle barrel is on the initial board of 15 February.
+At the opening time of the first day of its season, the seasonal source joins the end of the source tab. It needs no free cell.
+In act 1, the pickle barrel is in the source tab on 15 February.
 
-The closing of the last day of its season removes the seasonal source from the board. Its cell becomes free.
+The closing of the last day of its season removes the seasonal source from the source tab.
 The dishes of its chain stay on the board.
 A slow player can still need the source after its season. So the source stays while an undelivered campaign quest or an open repeating quest asks for a dish of its chain.
 The source then leaves at the first closing after the delivery of the last such quest.
@@ -191,7 +189,7 @@ The stage-1 dish of a seasonal chain is a loose raw ingredient, so the thief rat
 
 A quest asks for a dish of a seasonal chain only if the date range of the quest is inside the season of that chain.
 The date range is the range of the Lent check.
-A seasonal repeating quest joins the cycle only while its source is on the board.
+A seasonal repeating quest joins the cycle only while its source is in the source tab.
 The supper can ask for a dish of the forage basket, because the forage basket is in season on 1 May.
 
 ## Courtyard by season
@@ -292,9 +290,9 @@ Spec 015 gives the changes to the prerequisites and to the join rule of Cezar's 
 - `src/engine.ts` places and removes the seasonal sources. The module applies the holiday dates and the terrace days to Deliver.
 - `src/content.ts` checks that each quest of Dochia is a March quest with an opening date in March, and that no preparation needs a March quest.
   The module also checks the weather rules, the Lent diets, the seasonal chains of each quest, the holiday dates, and the outdoor quests.
-- The feature adds no saved field. The date of spec 015 gives the season, the weather, and the holiday. The board holds the seasonal sources.
+- The feature adds no saved field. The date of spec 015 gives the season, the weather, and the holiday. The source list of spec 003 holds the seasonal sources.
 - The implementation changes the game state version and the envelope version. The game does not read a save of an earlier version.
-- Save validation accepts at most one source of each seasonal chain. After its season, a source stays until the first closing at which no quest needs its chain, so a save that is between the last delivery and that closing holds the source with no quest that needs it.
+- Save validation accepts at most one source of each seasonal chain. After its season, validation requires the source while an undelivered campaign quest or an open repeating quest needs its chain. A source stays until the first closing at which no quest needs its chain, so a save that is between the last delivery and that closing holds the source with no quest that needs it.
 
 ## Owner contracts
 
@@ -322,7 +320,7 @@ For each seed, the test must show these results:
 
 - The efficient strategy delivers each holiday quest on its holiday date.
 - An outdoor quest never waits for more than two days for fair weather.
-- The free takes of the seasonal sources keep the purse after the supper inside the balance band.
+- The paid takes from the pickle barrel and the free takes from the forage basket keep the purse after the supper inside the balance band.
 
 ## Acceptance checks
 
@@ -330,11 +328,11 @@ For each seed, the test must show these results:
 - Holiday quest: before the holiday, the ticket shows "For [holiday], [date]", and Deliver does not work.
   On the holiday, Deliver works from the opening time. After the holiday, the ticket shows "Late for [holiday]", and Deliver gives the same reward.
 - Lent: the data check rejects a quest of a fasting character with meat, dairy, egg, or fish if the quest can open during Lent. The check accepts fish on 25 March and on 13 April.
-- Seasonal source: the source takes the first free cell on the first day of its season and keeps four cells free.
-  With too few free cells, the source waits and appears after a later action. The closing of the last day of the season removes the source and keeps its dishes.
+- Seasonal source: the source joins the source tab on the first day of its season, also when the board is full.
+  The closing of the last day of the season removes the source and keeps its dishes.
   An undelivered campaign quest or an open repeating quest that needs the chain keeps the source after its season.
   A test opens a pickle quest of Ana with its pickle missing on 20 March. After the closing and a reload, the barrel stays until the delivery, then leaves at the next closing.
-- Free take: a take from a seasonal source spends no coins.
+- Takes: a take from the forage basket spends no coins. A take from the pickle barrel spends the take cost. A short purse refuses the paid take and changes nothing.
 - Seasonal chains: the data check rejects a quest that asks for a dish of a seasonal chain outside its season.
 - Terrace: an outdoor quest delivers only on a terrace day. On another day, the ticket shows "Waits for fair weather".
 - March quests: a quest of Dochia does not open before 1 March or after 31 March. No preparation and no supper needs a March quest.
@@ -342,7 +340,7 @@ For each seed, the test must show these results:
 - Saint George's Eve: 22 April has no evening guest. Each booked ticket shows "Booked for another evening".
 - Room: the window view changes on its dates and fills the six panes. At night, the night sky covers the two upper panes. A holiday decoration shows only in its dates.
   Rain and snow show on their days and do not move with reduced motion.
-- Save: a save with two sources of one seasonal chain fails validation. A save between the last delivery that needs a source and the next closing keeps the source.
+- Save: a save with two sources of one seasonal chain, or without a seasonal source whose season and preparation permit it, fails validation. A save without a seasonal source that an undelivered campaign quest or an open repeating quest needs also fails validation. A save between the last delivery that needs a source and the next closing keeps the source.
 - Browser: the tests cover a holiday ticket before, on, and after its holiday, an outdoor ticket on a rain day, the placement of a seasonal source, a window view, rain, snow, and a decoration. Phone and desktop in both themes. Reduced motion.
 
 ## Open decisions

@@ -185,8 +185,8 @@ test('a player who buys a spare staple before each payment repays it with recove
     const task = data.tasks[count], stage = gardenStage(state.taskIndex, data);
     assert.equal(state.coins, task.cost);
     // One spare staple from a paid source leaves the purse short of the payment.
-    const paid = state.board.findIndex(cell => !!cell && !!getItem(cell.code, data)?.generator && takeCost(getItem(cell.code, data)!, data, stage) > 0);
-    state = act(state, { type: 'spawn', index: paid });
+    const paid = state.sources.find(chain => takeCost(getItem(`generator_${chain}`, data)!, data, stage) > 0)!;
+    state = act(state, { type: 'spawn', chain: paid });
     assert.equal(state.coins, task.cost - data.economy.takeCost);
     let made = 0;
     while (state.coins < task.cost) {

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { firstFreeBoardCell, freeBoardCells, gardenStage, menuPrice, menuValue, questReward, requiredQuests, resolveQuests, sourceCell, takeCost } from '../src/model.ts';
+import { firstFreeBoardCell, freeBoardCells, gardenStage, menuPrice, menuValue, questReward, requiredQuests, resolveQuests, takeCost } from '../src/model.ts';
 import { reduceGame } from '../src/engine.ts';
 import type { GameState } from '../src/model.ts';
 import { checkpointState, moveTo } from '../tools/create-checkpoint-saves.ts';
@@ -29,37 +29,32 @@ test('a payment of preparation 6 in May places the Garden beds on the morning of
   const ready = checkpointState(data, index('act2-prep-6'));
   assert.ok(ready.clock.day < june, 'Preparation 6 can be paid in May.');
   const paid = act(ready, { type: 'task' });
-  assert.equal(sourceCell(paid, 'garden'), -1, 'The Garden beds wait for their season.');
+  assert.ok(!paid.sources.includes('garden'), 'The Garden beds wait for their season.');
   const morning = closeDay(on(paid, june - 1));
   assert.equal(morning.clock.day, june);
-  assert.ok(sourceCell(morning, 'garden') >= 0, 'The Garden beds come on 1 June.');
+  assert.ok(morning.sources.includes('garden'), 'The Garden beds come on 1 June.');
   const unpaid = closeDay(on(ready, june - 1));
   assert.equal(unpaid.clock.day, june);
-  assert.equal(sourceCell(unpaid, 'garden'), -1, 'Without preparation 6, the season of the Garden beds does not start.');
+  assert.ok(!unpaid.sources.includes('garden'), 'Without preparation 6, the season of the Garden beds does not start.');
 });
 
 test('a payment of preparation 6 in June places the Garden beds at once', () => {
   const ready = on(checkpointState(data, index('act2-prep-6')), june + 2);
-  assert.equal(sourceCell(ready, 'garden'), -1);
+  assert.ok(!ready.sources.includes('garden'));
   const result = reduceGame(ready, { type: 'task' }, data);
   assert.equal(result.ok, true, result.message);
   assert.equal(validate(result.state), true);
-  assert.ok(sourceCell(result.state, 'garden') >= 0);
-  assert.match(result.message, /The Garden beds is on the board\./);
+  assert.ok(result.state.sources.includes('garden'));
+  assert.match(result.message, /The Garden beds is ready\./);
 });
 
-test('with only four free cells, the Garden beds wait, and take a cell after the next action that frees a cell', () => {
-  // Two Elderflowers that merge, and Socată in every other cell but four.
-  let ready = place(on(checkpointState(data, index('act2-prep-6')), june + 2), 'herbs_1', 'herbs_1').state;
-  while (freeBoardCells(ready, data) > 4) ready = place(ready, 'herbs_3').state;
+test('a payment of preparation 6 in June on a full board places the Garden beds at once, and the board stays full', () => {
+  let ready = on(checkpointState(data, index('act2-prep-6')), june + 2);
+  while (freeBoardCells(ready, data)) ready = place(ready, 'herbs_3').state;
   const paid = act(ready, { type: 'task' });
-  assert.equal(freeBoardCells(paid, data), 4);
-  assert.equal(sourceCell(paid, 'garden'), -1, 'The Garden beds wait while the board keeps only four free cells.');
-  assert.equal(sourceCell(reload(paid), 'garden'), -1);
-  const [from, to] = paid.board.flatMap((cell, at) => cell?.code === 'herbs_1' ? [at] : []);
-  const merged = act(paid, { type: 'move', from, to });
-  assert.ok(sourceCell(merged, 'garden') >= 0, 'The merge frees a cell, and the Garden beds take a cell.');
-  assert.equal(freeBoardCells(merged, data), 4);
+  assert.equal(freeBoardCells(paid, data), 0);
+  assert.equal(paid.sources.at(-1), 'garden');
+  assert.deepEqual(reload(paid), paid);
 });
 
 test('the Summer salad and the Tomato salad with telemea cost the garden value of each stage, and their quests pay it, also after a reload', () => {
@@ -91,12 +86,12 @@ test('the Summer salad and the Tomato salad with telemea cost the garden value o
 });
 
 test('a take from the pickle barrel spends the take cost, a purse in debt takes nothing, and Gherkins and Mixed pickles keep their prices', () => {
-  const start = actOne(), barrel = sourceCell(start, 'pickles');
-  assert.ok(barrel >= 0, 'The pickle barrel is on the board of act 1.');
-  const taken = act(start, { type: 'spawn', index: barrel });
+  const start = actOne();
+  assert.ok(start.sources.includes('pickles'), 'The pickle barrel is in the bistro in act 1.');
+  const taken = act(start, { type: 'spawn', chain: 'pickles' });
   assert.equal(taken.coins, start.coins - data.economy.takeCost);
   assert.equal(taken.board[firstFreeBoardCell(start, data)]?.code, 'pickles_1');
-  assert.match(rejected({ ...start, coins: -3 }, { type: 'spawn', index: barrel }).message, /cannot pay/);
+  assert.match(rejected({ ...start, coins: -3 }, { type: 'spawn', chain: 'pickles' }).message, /cannot pay/);
   assert.deepEqual([menuPrice('pickles_1', data), menuPrice('pickles_3', data)], [1, 10]);
   assert.deepEqual([data.items.pickles_1.price, data.items.pickles_3.price], [1, 10]);
   // The quests that ask for pickles pay their menu value: the authored reward, and the menu value of a repeating quest.
@@ -107,9 +102,9 @@ test('a take from the pickle barrel spends the take cost, a purse in debt takes 
 });
 
 test('a take from the forage basket stays free', () => {
-  const spring = on(actOne(), data.chains.find(chain => chain.id === 'greens')!.season!.from), basket = sourceCell(spring, 'greens');
-  assert.ok(basket >= 0, 'The forage basket comes with spring.');
-  const taken = act(spring, { type: 'spawn', index: basket });
+  const spring = on(actOne(), data.chains.find(chain => chain.id === 'greens')!.season!.from);
+  assert.ok(spring.sources.includes('greens'), 'The forage basket comes with spring.');
+  const taken = act(spring, { type: 'spawn', chain: 'greens' });
   assert.equal(taken.coins, spring.coins);
   assert.equal(takeCost(data.items.generator_greens, data), 0);
 });
@@ -119,17 +114,19 @@ test('an undelivered May quest that asks for forage keeps the forage basket afte
   const state = checkpointState(data, index('act2-prep-1'));
   state.completedQuests = state.completedQuests.filter(id => id !== forage.id);
   const may = on({ ...afterMarch(state), coins: 1000 }, may31);
-  assert.ok(sourceCell(may, 'greens') >= 0, 'The forage basket is on the board on 31 May.');
+  assert.ok(may.sources.includes('greens'), 'The forage basket is in the source tab on 31 May.');
   const june1 = closeDay(may);
   assert.equal(june1.clock.day, may31 + 1);
-  assert.ok(sourceCell(june1, 'greens') >= 0, 'The basket stays while the quest is not delivered.');
+  assert.ok(june1.sources.includes('greens'), 'The basket stays while the quest is not delivered.');
   assert.deepEqual(june1.night!.departed, []);
   const reloaded = reload(june1);
   assert.deepEqual(reloaded, june1);
   assert.equal(resolveQuests(reloaded, data).find(view => view.quest === forage)!.status, 'active');
+  const missing = { ...reloaded, sources: reloaded.sources.filter(chain => chain !== 'greens') };
+  assert.equal(validate(missing), false, 'A save cannot lose a seasonal source while a campaign quest still needs it.');
   const delivered = deliver(reloaded, forage.id);
-  assert.ok(sourceCell(delivered, 'greens') >= 0, 'The basket stays until the next closing.');
+  assert.ok(delivered.sources.includes('greens'), 'The basket stays until the next closing.');
   const next = closeDay(delivered);
-  assert.equal(sourceCell(next, 'greens'), -1);
+  assert.ok(!next.sources.includes('greens'));
   assert.deepEqual(next.night!.departed, ['greens']);
 });

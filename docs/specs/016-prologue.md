@@ -74,9 +74,9 @@ The prologue does not explain the mystery of the village. The scenes can show sm
 
 ### Boards and quests
 
-Each event has its own authored board. The board holds the sources and the prepared dishes of the event.
+Each event has its own sources and its own authored board. The sources stand in the source tab of spec 003, and the board holds the prepared dishes of the event.
 The prologue sources are the pantry of the family flat. They can belong to chains that act 1 opens later.
-The seasons of spec 017 do not apply in the prologue. The authored board gives the sources of each event.
+The seasons of spec 017 do not apply in the prologue. The event gives its sources.
 
 The quests of an event belong to Mama, Tata, or Mara. An event has at most one quest for each character.
 A quest of Mara cooks for the guests of the event. It shows the scene illustration of its event in place of a character sketch, as the quests with a scene illustration in act 1.
@@ -91,7 +91,7 @@ A quest of Mara cooks for the guests of the event. It shows the scene illustrati
 | 6 | Windmill, Herb basket, Cornucopia, Legume sacks | Flour, and three blockers | Mama: 2 Colivă. Mara: 2 Colaci and 1 Bean dip. | Blockers |
 | 7 | Butcher's hook, Vegetable crate, Windmill | None | Mama: 2 Cabbage rolls. Tata: 2 Pogăcele for the journey. | No prepared dish: the player plans each route |
 
-The board has one of each listed source and one of each listed prepared dish. The other cells are empty.
+The source tab has each listed source, in the listed order. The board has one of each listed prepared dish. The other cells are empty.
 In event 1, the first quest is ready to serve, so the first action of the game can be Serve.
 The second quest needs four takes and four merges of matching dishes. Event 1 has no recipe merge.
 
@@ -148,8 +148,8 @@ The prologue goes in this sequence:
 3. When the player serves the last quest of events 1 to 6, the event is complete. In the same change:
    1. Closing N and opening N+1 become pending, after the earlier pending scenes.
    2. The date moves to the date of the next event.
-   3. The authored board of the next event replaces the board. The dishes of the old board leave the board: the family eats the leftovers.
-   4. The sources and the prepared dishes of the new board become discovered. The blockers add no discovery and remove no discovery.
+   3. The sources and the authored board of the next event replace the sources and the board. The dishes of the old board leave the board: the family eats the leftovers.
+   4. The sources and the prepared dishes of the next event become discovered. The blockers add no discovery and remove no discovery.
       As in act 1, a merge that clears a blocker discovers the result of the merge.
    5. The quests of the next event open.
 4. After that change, the first pending prologue scene opens immediately. It is closing N, or an earlier scene that the player did not complete.
@@ -181,11 +181,11 @@ When the player completes the closing scene of event 7, act 1 starts in the same
 
 The start of act 1 happens once. The completion of a scene that is not the first pending prologue scene changes nothing.
 A journal replay of a prologue scene changes nothing: the board, the purse, the date, and the pending scenes stay the same.
-If the player closes closing 7 with Close or Escape, the scene stays pending, and act 1 does not start. Story offers the scene with Read now.
+If the player closes closing 7 with Close or Escape, the scene stays pending, and act 1 does not start. The counter offers the scene with Read now. The Story sheet also offers the scene.
 
 When act 1 starts, no prologue scene is pending. The journal keeps the prologue scenes for replay.
 
-The starting gift is 15 coins. It lets the bistro pay for its first takes, so the first days of act 1 do not need recovery teas.
+The starting gift is 20 coins. It lets the bistro pay for its first takes, so the first days of act 1 do not need recovery teas.
 The gift is a lever from 10 to 20 coins. Its value keeps the purse of the act 1 balance run in the balance band. `docs/economy.md` records the balance evidence.
 
 ### Prologue discoveries in act 1
@@ -218,10 +218,10 @@ The count does not subtract the prepared dishes or the blocked dishes. So the co
 The content check limits each event to 40 merges and the prologue to 250 merges.
 
 The content check applies the discovery rule of act 1 to each event quest, with these known dishes:
-the prepared dishes of the board of the event and of each earlier event, the sources of the board of the event, the dishes of the quests of earlier events, and the dishes of the earlier quests of the event.
+the prepared dishes of the board of the event and of each earlier event, the sources of the event, the dishes of the quests of earlier events, and the dishes of the earlier quests of the event.
 A quest dish that the board of the event holds in the full quantity passes the rule.
 The content check also applies the diet of each event, and the quest-size rule of act 1: at most three portions for each quest, and at most two portions of one dish.
-The content check confirms that each source and each dish of an event board, each blocked dish, and each quest dish is an item of the game data.
+The content check confirms that each source of an event, each dish of an event board, each blocked dish, and each quest dish is an item of the game data. An event board holds no source.
 
 The balance run plays the prologue from a new game with legal actions only, with no injected items or coins.
 It serves each quest when its dishes are ready, completes each scene, and records the merges, the takes, and the free cells of each event.
@@ -251,7 +251,7 @@ The Miez card in Story works as in act 1. In the farewell state, Miez sits next 
 
 Story shows the prologue as one part before chapter 1.
 The prologue part shows its title, "Prologue: The inheritance", and one step for each event: done, now, or not yet.
-While the game waits for closing 7, step 7 shows done, and Story offers the first pending prologue scene with Read now.
+While the game waits for closing 7, step 7 shows done. The counter and the Story sheet offer the first pending prologue scene with Read now. The Story card does not repeat the counter action.
 Story shows no Pay and no cost details in the prologue. Mara's line names the meal of the current event.
 
 The journal lists the prologue before chapter 1. The prologue entry gives each event, its opening scene, and its closing scene.
@@ -328,14 +328,14 @@ During the prologue, the clock record stays at day 1 with no merges, and the pur
 
 The dishes of an event board are the dishes that the board can hold. They are these dishes:
 
-- the first dish of each source of the board;
+- the first dish of each source of the event;
 - each prepared dish of the board;
 - each blocked dish of the board;
 - each result of a merge of two dishes of this list: the next dish of a matching pair, or the mixed dish of a recipe pair. The list grows until no merge adds a dish.
 
-The list does not count the number of each dish on the board. A dish does not need its source on the board.
+The list does not count the number of each dish on the board. A dish does not need its source in the tab.
 For example, the dishes of the event 1 board include Colivă and Colaci, and the Legume sacks dishes up to Bean stew.
-The dishes of the event 3 board include Cozonac, from the prepared Sweet dough and a Fruit bowl from the Cornucopia. They do not include Eggs or Chicken, because the board has no Hen's nest.
+The dishes of the event 3 board include Cozonac, from the prepared Sweet dough and a Fruit bowl from the Cornucopia. They do not include Eggs or Chicken, because the source tab has no Hen's nest in that event.
 
 The content check and the save validation use the same list. The content check confirms that each quest dish of an event is a dish of its board.
 
@@ -343,9 +343,9 @@ The content check and the save validation use the same list. The content check c
 
 The save validation accepts a prologue save only if all these conditions are true:
 
-- The board has each source of the current event once and no other source.
+- The source tab has each source of the current event once and no other source. The board holds no source.
 - Each dish on the board is a dish of the board of the current event.
-- Each discovered item is a source of the board of the current event or of an earlier event, or a dish of one of those boards.
+- Each discovered item is a source of the current event or of an earlier event, or a dish of the board of one of those events.
   The discovered items include each source and each prepared dish of the current event and of each earlier event.
 - The completed quest list holds all the quests of the earlier events, and some quests of the current event, each once.
   The quests of one event can be in any order. The quests of an earlier event come before the quests of a later event.
@@ -358,7 +358,7 @@ The save validation accepts a prologue save only if all these conditions are tru
 - A new game earned opening 1, so a save before the first reading is valid.
 
 The save validation accepts an act 1 save only if the completed quest list starts with all the prologue quests, with each event in event order. No prologue scene is pending.
-In act 1, a discovered item is a source or a dish of an open chain, or a source or a dish of a prologue event board.
+In act 1, a discovered item is a source or a dish of an open chain, or a source or a dish of a prologue event.
 The board rules of act 1 do not change: each dish on the board belongs to chains that are open by the source rules of act 1.
 So Flour and Colaci on the board are valid on day 1, because the Grain and Herbs chains are open. Cozonac on the board before the Fruits chain opens is invalid.
 

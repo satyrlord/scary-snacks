@@ -23,7 +23,7 @@ function paidUpTo(count: number): GameState {
 /** A new-game board after the Dairy source opens with preparation 3, with no preparation blockers. */
 function dairyOpen(): GameState {
   const state = paidUpTo(3);
-  state.board[2] = { code: 'generator_dairy' };
+  state.sources.push('dairy');
   know(state, 'generator_dairy');
   assert.equal(validate(state), true);
   return state;
@@ -32,17 +32,17 @@ function dairyOpen(): GameState {
 test('act 1 starts with eight obstacle cells, and knows its board, the dishes of its tickets, and the prologue discoveries', () => {
   const state = actOne();
   assert.equal(state.layoutId, 'workbench-clutter-1');
-  assert.equal(state.version, 18);
+  assert.equal(state.version, 19);
   assert.equal(state.coins, data.prologue.gift);
-  assert.equal(freeBoardCells(state, data), 24);
-  assert.equal(firstFreeBoardCell(state, data), 2);
+  assert.equal(freeBoardCells(state, data), 28);
+  assert.equal(firstFreeBoardCell(state, data), 1);
   assert.deepEqual([0, 5, 6, 11, 36, 37, 40, 41].map(index => unresolvedObstacle(state, index, data)?.type),
     ['clutter', 'clutter', 'anchored', 'anchored', 'clutter', 'anchored', 'anchored', 'clutter']);
   assert.deepEqual([0, 5, 6, 11, 36, 37, 40, 41].map(index => unresolvedObstacle(state, index, data)?.ingredient),
     ['grain_3', 'corn_2', 'grain_2', 'corn_1', 'herbs_2', 'herbs_1', 'corn_2', 'grain_2']);
   // A quest that holds a ticket puts its dishes in the recipe book, and the recipe book keeps the prologue discoveries.
   const tickets = resolveQuests(state, data).filter(view => view.status === 'active').flatMap(view => view.quest.requirements.map(({ item }) => item));
-  for (const code of [...data.board.initial.filter(code => code !== null), ...tickets]) assert.ok(state.discovered.includes(code), code);
+  for (const code of [...data.board.sources.map(chain => `generator_${chain}`), ...data.board.initial.filter(code => code !== null), ...tickets]) assert.ok(state.discovered.includes(code), code);
   assert.equal(validateGame(state, data), true);
 });
 
@@ -86,7 +86,7 @@ test('a recipe partner clears a blocker, leaves the mixed dish in the blocked ce
 
 test('a recipe partner clears a blocker, the clear discovers only the mixed dish, and the game still saves', () => {
   const state = paidUpTo(5);
-  state.board[2] = { code: 'generator_dairy' }; state.board[3] = { code: 'generator_poultry' }; state.board[7] = { code: 'poultry_1' };
+  state.sources.push('dairy', 'poultry'); state.board[7] = { code: 'poultry_1' };
   know(state, 'generator_dairy', 'generator_poultry', 'poultry_1');
   const result = reduceGame(state, { type: 'move', from: 7, to: 6 }, data);
   assert.equal(result.ok, true, result.message);
@@ -101,14 +101,13 @@ test('a blocked dish refuses a dish that does not merge with it and changes noth
   const state = dairyOpen();
   state.board[7] = { code: 'dairy_1' };
   know(state, 'dairy_1');
-  // Milk is a dish of an open chain, but it is no recipe partner of Dough. Corn, herbs, flour, a loaf, and a source do not merge with it either.
+  // Milk is a dish of an open chain, but it is no recipe partner of Dough. Corn, herbs, flour, and a loaf do not merge with it either.
   for (const code of ['dairy_1', 'corn_1', 'herbs_1', 'grain_1', 'grain_3']) {
     const blocked = structuredClone(state);
     blocked.board[7] = { code };
     if (!blocked.discovered.includes(code)) know(blocked, code);
     assert.equal(rejected(blocked, { type: 'move', from: 7, to: 6 }).message, refusal, code);
   }
-  assert.equal(rejected(state, { type: 'move', from: 1, to: 6 }).message, refusal);
   assert.equal(rejected(state, { type: 'move', from: 7, to: 0 }).message, refusal);
   assert.deepEqual(state.resolvedObstacles, []);
   assert.equal(state.coins, 0);
@@ -183,10 +182,10 @@ test('blocked null cells do not provide placement or preparation space', () => {
   assert.equal(validateGame(state, data), true);
   assert.equal(freeBoardCells(state, data), 0);
   assert.equal(firstFreeBoardCell(state, data), -1);
-  assert.match(rejected(state, { type: 'spawn', index: 1 }).message, /board is full/);
+  assert.match(rejected(state, { type: 'spawn', chain: 'grain' }).message, /board is full/);
   const merged = act(state, { type: 'move', from: 2, to: 7 });
   assert.equal(firstFreeBoardCell(merged, data), 2);
-  const produced = act(merged, { type: 'spawn', index: 1 });
+  const produced = act(merged, { type: 'spawn', chain: 'grain' });
   assert.equal(produced.board[2]?.code, 'grain_1');
   assert.equal(produced.coins, 5 - data.economy.takeCost);
 });
@@ -264,7 +263,7 @@ test('visible blockers never discover their ingredients: only a dish on the boar
   const hidden = data.board.layouts[0].obstacles.map(obstacle => obstacle.ingredient).filter(code => !data.board.initial.includes(code));
   assert.deepEqual([...new Set(hidden)].sort(), ['corn_2', 'grain_2', 'grain_3', 'herbs_2']);
   let state = { ...start(), coins: 5 };
-  for (const action of [{ type: 'spawn', index: 1 }, { type: 'move', from: 2, to: 3 }, { type: 'spawn', index: 31 }] as Action[]) {
+  for (const action of [{ type: 'spawn', chain: 'grain' }, { type: 'move', from: 1, to: 2 }, { type: 'spawn', chain: 'herbs' }] as Action[]) {
     const known = new Set(state.discovered);
     state = act(state, action);
     const tickets = resolveQuests(state, data).filter(view => view.status === 'active').flatMap(view => view.quest.requirements.map(({ item }) => item));
@@ -276,5 +275,5 @@ test('a save that already lists a blocked ingredient stays valid and keeps that 
   const state = { ...start(), coins: 1 };
   know(state, 'grain_3');
   assert.deepEqual(importSave(exportSave(state, validate), validate), state);
-  assert.ok(act(state, { type: 'spawn', index: 1 }).discovered.includes('grain_3'));
+  assert.ok(act(state, { type: 'spawn', chain: 'grain' }).discovered.includes('grain_3'));
 });

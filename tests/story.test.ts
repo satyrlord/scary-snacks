@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { availableChains, firstFreeBoardCell, requiredQuests, resolveChapters, resolveQuests, storyScenes, supperComplete, supperQuest } from '../src/model.ts';
-import { validateGame } from '../src/engine.ts';
+import { reduceGame, validateGame } from '../src/engine.ts';
 import { dataProblems, storyProblems } from '../src/content.ts';
 import type { GameData } from '../src/model.ts';
 import { actOne, act, actOneTasks, data, deliver, payNext, prologueServed, ready, rejected, status, supperEvening, withTickets } from './support.ts';
@@ -128,21 +128,22 @@ test('a chapter opens at its first preparation and completes only with its last 
   }
 });
 
-test('a failed payment, a missing required quest, or a full destination completes no chapter and queues no scene', () => {
+test('a failed payment or a missing required quest completes no chapter and queues no scene, and a full board does not stop a new source', () => {
   const before = ready(checkpoint(3));
   rejected({ ...before, coins: before.coins - 1 }, { type: 'task' });
   const missing = withTickets({ ...before, completedQuests: before.completedQuests.slice(0, -1), discovered: [...before.discovered] });
   assert.equal(validateGame(missing, data), true);
   assert.match(rejected(missing, { type: 'task' }).message, /Deliver 1 more quest for this preparation\./);
-  // The last preparation of chapter 2 brings the Butcher’s hook, so it needs a board space.
+  // The last preparation of chapter 2 brings the Butcher’s hook. The source joins the end of the source tab, so a full board takes it.
   assert.equal(data.tasks[7].unlock, 'pork');
   let full = checkpoint(7);
   // The Herb basket is free, so an empty purse can still fill the board.
-  const source = full.board.findIndex(cell => cell?.code === 'generator_herbs');
-  while (firstFreeBoardCell(full, data) !== -1) full = act(full, { type: 'spawn', index: source });
-  full = ready(full);
-  assert.match(rejected(full, { type: 'task' }).message, /Free a space/);
-  assert.equal(resolveChapters(full, data)[1].status, 'current');
+  while (firstFreeBoardCell(full, data) !== -1) full = act(full, { type: 'spawn', chain: 'herbs' });
+  const paid = reduceGame(ready(full), { type: 'task' }, data);
+  assert.equal(paid.ok, true, paid.message);
+  assert.equal(paid.state.sources.at(-1), 'pork');
+  assert.deepEqual(paid.state.board, full.board);
+  assert.match(paid.message, /The Butcher’s hook is ready\./);
 });
 
 test('the last preparation of an act queues its scene and the chapter scene once, with no second charge or reward', () => {
@@ -187,8 +188,7 @@ test('the supper quest has no cost, earns the finale, and keeps the board playab
   state = act(state, { type: 'readScene', id: 'finale' });
   // No quest of act 1 is left open, except a March quest of Dochia that waits for its delivery.
   assert.ok(resolveQuests(state, data).filter(view => view.status === 'active' || view.status === 'waiting').every(view => view.quest.act === 2 || view.quest.march || view.quest.repeating || view.quest.recovery));
-  const source = state.board.findIndex(cell => cell?.code === 'generator_herbs');
-  state = act(state, { type: 'spawn', index: source });
+  state = act(state, { type: 'spawn', chain: 'herbs' });
   assert.deepEqual(state.pendingScenes, paid.pendingScenes);
 });
 
@@ -244,7 +244,7 @@ test('a payment queues its preparation scene in the same change, and reading it 
 });
 
 test('three chains and the pickle barrel of winter are open at the start of act 1, and each preparation that opens a chain names its new source in its scene', () => {
-  assert.deepEqual(availableChains({ taskIndex: 0, clock: { day: 1 } }, data), ['grain', 'pickles', 'corn', 'herbs']);
+  assert.deepEqual(availableChains({ taskIndex: 0, clock: { day: 1 } }, data), ['grain', 'corn', 'herbs', 'pickles']);
   const opens = Object.fromEntries(data.tasks.flatMap(task => task.unlock ? [[task.id, task.unlock]] : []));
   assert.deepEqual(opens, { task_3: 'dairy', task_5: 'poultry', task_6: 'vegetables', task_7: 'fruits', task_8: 'pork', task_11: 'beans', task_12: 'fish', task_13: 'lamb', task_16: 'veal' });
   for (const [id, chain] of Object.entries(opens)) {

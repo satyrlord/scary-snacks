@@ -46,7 +46,6 @@ export type Task = {
 };
 export type TaskRequirement =
   | { kind: 'coins' | 'quests'; current: number; required: number; met: boolean }
-  | { kind: 'space'; source: string; met: boolean }
   | { kind: 'date'; day: number; met: boolean };
 type TaskEligibility = { task: Task | null; ready: boolean; requirements: TaskRequirement[]; blockers: string[] };
 /**
@@ -172,18 +171,19 @@ export const scenePaintings: readonly string[] = ['finale-supper', 'festival', '
 /** A scene of the prologue. A notebook page is a painting that takes the place of the illustration of its event, with its words for screen readers. */
 export type PrologueScene = { id: string; title: string; dialogue: SceneLine[]; page?: { image: string; text: string } };
 /**
- * An event of the prologue: one play day with a meal. Day is its date as a day of the calendar of act 1, so it is below 1. The board holds
- * its sources and its prepared dishes, and its layout holds its blockers. On a fasting day no quest has a dish with a fasting tag.
+ * An event of the prologue: one play day with a meal. Day is its date as a day of the calendar of act 1, so it is below 1. Sources names
+ * the chains of its sources in the order of the source tab. The board holds its prepared dishes, and its layout holds its blockers. On a fasting day no quest has a dish with a fasting tag.
  * Room names the painted state of the family kitchen. Scene is the illustration of its scenes and of Mara's quests. Its quests pay nothing.
  */
 export type PrologueEvent = {
-  id: string; title: string; line: string; day: number; fasting?: true; board: (string | null)[]; layout: BoardLayout; room: string;
+  id: string; title: string; line: string; day: number; fasting?: true; sources: string[]; board: (string | null)[]; layout: BoardLayout; room: string;
   scene: { image: string; text: string }; quests: Quest[]; opening: PrologueScene; closing: PrologueScene;
 };
 /** The prologue: its events in story order, the painted states of the family kitchen, the tags of a fasting day, and the starting gift of act 1. */
 export type Prologue = { title: string; events: PrologueEvent[]; rooms: RoomState[]; fasting: DishTag[]; gift: number };
+/** The authored game. Its board gives the size of the board, the chains of the sources of act 1 in tab order, and the initial dishes of act 1. */
 export type GameData = {
-  board: { columns: number; rows: number; initial: (string | null)[]; defaultLayout: string; layouts: BoardLayout[]; preparations: PreparationObstacleBatch[]; hail: WeatherObstacleBatch };
+  board: { columns: number; rows: number; sources: string[]; initial: (string | null)[]; defaultLayout: string; layouts: BoardLayout[]; preparations: PreparationObstacleBatch[]; hail: WeatherObstacleBatch };
   chains: Chain[]; items: Record<string, Item>; characters: Character[]; chapters: Chapter[]; finales: Finale[]; tasks: Task[];
   areas: Area[]; rooms: RoomState[]; decorationSlots: DecorationSlot[]; economy: Economy; acts: Act[]; calendar: Calendar;
   quests: Quest[]; prologue: Prologue;
@@ -208,7 +208,12 @@ export type NightReport = {
   gift: (Placed & { first: boolean }) | null; departed: string[]; purse: number; seen: boolean; piper: boolean;
 };
 export type GameState = {
-  version: 18; board: (Cell | null)[];
+  version: 19; board: (Cell | null)[];
+  /**
+   * The chains of the sources in the bistro, in the order of the source tab. A new source joins at the end, and the player can
+   * move a source to another place. A source is never on the board.
+   */
+  sources: string[];
   /** The current event of the prologue, or null in the acts. During the prologue, the clock stays at day 1 with no merges. */
   prologue: { event: number } | null;
   /** The purse. Below zero, it is a debt in the notebook of the village shop. */
@@ -252,7 +257,8 @@ export type GameState = {
 };
 export type Action =
   | { type: 'move'; from: number; to: number }
-  | { type: 'spawn'; index: number }
+  | { type: 'spawn'; chain: string }
+  | { type: 'arrange'; chain: string; to: number }
   | { type: 'sell'; index: number }
   | { type: 'deliverQuest'; id: string }
   | { type: 'lantern'; id: string }
@@ -378,7 +384,7 @@ export function freeBoardCells(state: GameState, data: GameData): number {
  * board.
  */
 export const availableChains = (state: Pick<GameState, 'taskIndex'> & { clock: { day: number } }, data: GameData) => [...new Set([
-  ...data.board.initial.filter(present).filter(code => data.items[code].generator).map(code => data.items[code].chain),
+  ...data.board.sources,
   ...data.tasks.slice(0, state.taskIndex).flatMap(task => task.unlock ? [task.unlock] : []),
   ...data.chains.flatMap(chain => chain.season && state.clock.day >= chain.season.from && seasonPaid(chain, state.taskIndex, data) ? [chain.id] : []),
 ])];
@@ -387,8 +393,6 @@ export const seasonPaid = (chain: Chain, taskIndex: number, data: GameData) => {
   const after = chain.season?.after;
   return after === undefined || data.tasks.findIndex(task => task.id === after) < taskIndex;
 };
-/** The cell of the source of a chain on the board, or -1. */
-export const sourceCell = (state: Pick<GameState, 'board'>, chain: string) => state.board.findIndex(cell => cell?.code === `generator_${chain}`);
 /**
  * A seasonal source stays after its season while an undelivered campaign quest of an act that the calendar reaches, or the open
  * repeating quest, asks for a dish of its chain.
@@ -527,11 +531,11 @@ export function cycleMember(state: Pick<GameState, 'taskIndex' | 'decorations' |
   return !!quest.repeating && !!person && hasArrived(state, person) && quest.requirements.every(({ item }) => dishOpen(item, chains, data))
     && (!quest.afterQuest || state.completedQuests.includes(quest.afterQuest));
 }
-/** A member of the cycle joins it in its season: inside its range of days, and while the source of each seasonal chain of its dishes is on the board. */
-export function canJoinCycle(state: Pick<GameState, 'taskIndex' | 'decorations' | 'completedQuests' | 'clock' | 'board'>, quest: Quest, data: GameData): boolean {
+/** A member of the cycle joins it in its season: inside its range of days, and while the source of each seasonal chain of its dishes is in the bistro. */
+export function canJoinCycle(state: Pick<GameState, 'taskIndex' | 'decorations' | 'completedQuests' | 'clock' | 'sources'>, quest: Quest, data: GameData): boolean {
   const day = state.clock.day;
   return cycleMember(state, quest, data) && (!quest.during || (day >= quest.during.from && day <= quest.during.to))
-    && quest.requirements.every(({ item }) => dishChains(item, data).every(chain => !chainSeason(chain, data) || sourceCell(state, chain) >= 0));
+    && quest.requirements.every(({ item }) => dishChains(item, data).every(chain => !chainSeason(chain, data) || state.sources.includes(chain)));
 }
 /** The repeating quests take turns: the next one after the last delivered one, in data order, that can join the cycle. */
 function nextRepeating(state: GameState, data: GameData): Quest | undefined {
@@ -582,9 +586,9 @@ export function earnedPrologue(state: Pick<GameState, 'prologue' | 'completedQue
  * The dishes that an event board can hold: the first dish of each source, the prepared dishes, the blocked dishes, and each dish that a
  * merge of two of these makes, until no merge adds a dish. The list ignores how many of each dish the board holds.
  */
-export function eventDishes(event: Pick<PrologueEvent, 'board' | 'layout'>, data: GameData): Set<string> {
-  const dishes = new Set<string>();
-  for (const code of event.board.filter(present)) dishes.add(data.items[code].generator?.outputs[0] ?? code);
+export function eventDishes(event: Pick<PrologueEvent, 'sources' | 'board' | 'layout'>, data: GameData): Set<string> {
+  const dishes = new Set<string>(event.sources.map(chain => `${chain}_1`));
+  for (const code of event.board.filter(present)) dishes.add(code);
   for (const obstacle of event.layout.obstacles) dishes.add(obstacle.ingredient);
   const recipes = Object.values(data.items).filter(item => item.recipe);
   for (let size = 0; size !== dishes.size;) {
@@ -870,12 +874,6 @@ export function taskEligibility(state: GameState, data: GameData): TaskEligibili
   const coins = task.cost - state.coins, missing = quests.length - delivered;
   if (coins > 0) blockers.push(`Earn ${coins} more ${coins === 1 ? 'coin' : 'coins'} to pay for this preparation.`);
   if (missing > 0) blockers.push(`Deliver ${missing} more ${missing === 1 ? 'quest' : 'quests'} for this preparation.`);
-  if (task.unlock) {
-    const source = data.items[`generator_${task.unlock}`].name;
-    const met = firstFreeBoardCell(state, data) !== -1;
-    requirements.push({ kind: 'space', source, met });
-    if (!met) blockers.push(`Free a space on the board for the ${source}.`);
-  }
   return { task, ready: blockers.length === 0, requirements, blockers };
 }
 /** A source makes only the first item of its chain while its chain is available. */

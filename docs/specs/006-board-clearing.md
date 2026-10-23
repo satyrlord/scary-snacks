@@ -4,11 +4,11 @@ Status: Implemented.
 
 ## Behavior
 
-The six-by-seven board starts with nine items and eight blocked edge cells. The items are three sources and six dishes.
+The six-by-seven board starts with six dishes and eight blocked edge cells. The sources are in the source tab of spec 003.
 Every blocker shows its blocked dish through a transparent centre.
 Any legal merge into that cell clears the blocker.
 The merge uses a matching dish of its chain or a recipe partner of spec 012.
-The result of the merge stays in the blocked cell. The source cell becomes empty.
+The result of the merge stays in the blocked cell. The cell of the moved dish becomes empty.
 The purse gains the blocker coin of spec 012 in the same change. All blocker pictures use this one rule.
 A merge beside a blocker clears nothing.
 
@@ -19,7 +19,7 @@ Each blocker clears once. The campaign does not need the player to clear blocker
 
 Each preparation payment, including the final payment, earns two or three contextual blockers.
 Their dishes belong to chains that the payment has opened.
-A new source takes its cell first. Blockers use free cells in board order.
+Blockers use free cells in board order.
 Placement keeps four free cells.
 These cells give room to make one Linden tea for the recovery quest from new takes.
 At most three preparation blockers can stay uncleared at the same time.
@@ -59,7 +59,7 @@ Help replaces item actions and preparation offers. Help changes no game state un
 Escape, Clear selection, a dish that does not merge, or a second tap closes the help.
 A selected matching dish also merges directly into the blocked cell.
 After the player selects a movable dish, the game marks each dish and blocked cell that can merge with it.
-Sources, and final dishes that are part of no recipe, mark no merge target.
+Final dishes that are part of no recipe mark no merge target.
 Board hints can show any matching blocked dish.
 
 ## Data and saves

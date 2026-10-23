@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { requiredQuests } from '../../src/model.ts';
 import type { GameState, SceneLine } from '../../src/model.ts';
 import { checkpointState, deliverRequired } from '../../tools/create-checkpoint-saves.ts';
-import { actOneTasks, KEY, prologueServed, act, recovery, supper, supperEvening, deliverMarch, checkpoint, data, deliverable, deliverButton, exportText, failWrites, forward, journal, opened, openQuest, options, painting, payAndRead, ratio, readNow, readTo, replaceSave, revealed, saved, start, startAgainAndImport, story, supplies, supply, tile } from './support.ts';
+import { actOneTasks, KEY, prologueServed, act, recovery, supper, supperEvening, deliverMarch, checkpoint, data, deliverable, deliverButton, exportText, failWrites, forward, journal, opened, openQuest, options, painting, payAndRead, ratio, readNow, readTo, replaceSave, revealed, saved, start, startAgainAndImport, story, supplies, supply, tile , source } from './support.ts';
 
 const closing=(index: number)=>`Chapter ${index+1} complete: ${data.chapters[index].title}`;
 /** The regulars whose arrival scenes the payment of a preparation queues. */
@@ -62,7 +62,7 @@ test('closing a chapter scene leaves it waiting through reload, and cooking neve
   await start(page,payable(7));await payAndRead(page);await expect(scene(page,closing(1))).toBeVisible({timeout:8000});
   await page.keyboard.press('Escape');await expect(page.locator('#modal')).toBeHidden();expect((await saved(page)).pendingScenes).toEqual(['chapter-2',...arrivals(7).map(person=>`arrival-${person.id}`)]);
   // The next preparation and the board stay usable while the scene waits.
-  const before=await saved(page),source=before.board.findIndex(cell=>cell?.code==='generator_herbs');await tile(page,source).click();
+  const before=await saved(page);await source(page,'herbs').click();
   expect((await saved(page)).board.filter(Boolean).length).toBe(before.board.filter(Boolean).length+1);
   await page.reload();await opened(page);await expect(page.locator('#status')).toContainText('A story scene is waiting in Story.');
   const waiting=page.locator('#story .story-waiting');await expect(waiting).toContainText('Chapter 2 is complete.');
@@ -180,7 +180,7 @@ test('a reload during the last preparation story resumes the waiting scenes in o
   await expect(tickets.nth(1)).toHaveAttribute('data-quest',recovery.id);await expect(tickets.nth(1)).toHaveClass(/recovery-ticket/);
   await tickets.nth(1).locator('.ticket-face').click();await expect(scene(page,recovery.title)).toContainText('Ana returns while the purse runs low. Herbs from the Herb basket are free.');
   await page.keyboard.press('Escape');
-  const before=await saved(page),source=before.board.findIndex(cell=>cell?.code==='generator_herbs');await tile(page,source).click();
+  const before=await saved(page);await source(page,'herbs').click();
   expect((await saved(page)).board.filter(Boolean).length).toBe(before.board.filter(Boolean).length+1);expect((await saved(page)).coins).toBe(0);
 });
 
@@ -284,7 +284,8 @@ test('a fresh save plays through every payment, chapter scene, the supper, and t
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:390,height:800}])for(const theme of ['light','dark'] as const)test(`chapter story fits ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
   await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});
-  const state=payable(13);state.pendingScenes=['chapter-1','chapter-2','chapter-3'];await start(page,state);await story(page);
+  const state=payable(13);state.pendingScenes=['chapter-1','chapter-2','chapter-3'];await start(page,state,theme);
+  await expect(page.locator('html')).toHaveAttribute('data-theme',theme);await story(page);
   const card=page.locator(viewport.width>1023?'#story':'#modal');await expect(card.locator('.story-waiting')).toBeVisible();
   for(const control of await card.locator('.story-waiting button,.story-links button').all()){const box=(await control.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);}
   const colors=await card.evaluate(element=>{

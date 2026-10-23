@@ -185,12 +185,12 @@ components:
     backgroundColor: "{colors.light-panel}"
     textColor: "{colors.light-ink}"
     padding: "0 24px 16px"
-    width: "max(50vw, 620px)"
+    width: "max(50vw, 100vw - 75dvh, 620px)"
   drawer:
     backgroundColor: "{colors.light-panel}"
     textColor: "{colors.light-ink}"
     rounded: "18px 18px 0 0"
-    height: "calc(var(--cell) * 7 + 18px + var(--drawer-chrome))"
+    height: "calc(max(var(--cell), 44px) * 7 + 18px + var(--drawer-chrome))"
   drawer-handle:
     backgroundColor: "{colors.light-control-line}"
     rounded: "2px"
@@ -226,7 +226,7 @@ components:
     padding: "14px"
   timber-table-phone:
     rounded: "{rounded.card}"
-    padding: "6px 0"
+    padding: "6px 8px"
   table-runner:
     height: "14px"
   table-runner-phone:
@@ -235,12 +235,17 @@ components:
     backgroundColor: "{colors.light-tile-a}"
     rounded: "{rounded.tile}"
     padding: "5px"
-    size: "clamp(44px, min(calc((var(--panel-w) - var(--side-w) - 116px) / 6), calc((100dvh - 432px) / 7)), 96px)"
+    size: "clamp(40px, min(calc((var(--panel-w) - var(--side-w) - var(--chrome-w)) / 7.75), max(44px, calc((100dvh - 432px) / 7))), 96px)"
   board-tile-phone:
     backgroundColor: "{colors.light-tile-a}"
     rounded: "{rounded.tile}"
     padding: "3px"
-    size: "clamp(44px, min(calc((100vw - 40px) / 6), calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7)), 60px)"
+    size: "clamp(34px, min(calc((min(100vw, 560px) - 42px) / 7.75), max(44px, calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7))), 60px)"
+  source-place:
+    backgroundColor: "{colors.light-tile-a}"
+    rounded: "{rounded.tile}"
+    padding: "3px"
+    size: "calc((var(--cell) * 7 - var(--gap)) / 8)"
   mara-line:
     textColor: "{colors.light-ink}"
     typography: "{typography.body}"
@@ -376,19 +381,19 @@ The frame puts the latest change near the middle of the visible room, a little l
 
 The area switch is in a lower corner of the visible room. The top of the switch is 64px above the lower edge of the visible room. The switch stays on the side opposite the change. In the front room, the switch always stays on the left, away from Miez. In the summer kitchen and the vegetable garden, the switch always stays on the right, away from Miez.
 
-**Wider screens (1024px or more).** The room has a fixed position on the left at full height. The docked panel has the width `max(50vw, 620px)` on the right. The panel holds these parts, from top to bottom:
+**Wider screens (1024px or more).** The room has a fixed position on the left at full height. The docked panel has the width `max(50vw, 100vw - 75dvh, 620px)` on the right. So the room is never wider than its 3:4 painting at full height, and a wide screen gives the rest to the kitchen. The panel holds these parts, from top to bottom:
 - The masthead, with padding of 18px 24px 12px.
 - The three tickets, in three equal columns 12px apart. While the recovery quest is open, a fourth column holds the recovery ticket.
 - The drawer body: the kitchen column, then the side column, 20px apart.
 
-The kitchen column is as wide as the board plus 28px. It holds the timber table and Mara's line, 12px apart. The side column has a hairline on its left and 20px of padding. It holds the story and the recipe book as sections between hairlines. The sections are 14px apart (10px from 1024px to 1365px).
+The kitchen column is as wide as the source tab, an 8px gap, the board, and 28px of timber padding. It holds the timber table and Mara's line, 12px apart. The side column has a hairline on its left and 20px of padding (14px from 1024px to 1279px). It holds the story and the recipe book as sections between hairlines. The sections are 14px apart (10px from 1024px to 1365px).
 
 At a wider-screen height of 799px or less, the masthead has 10px top and 8px bottom padding. The wordmark is 43px. Tickets have 6px padding and 4px gaps. Their portraits are 28px, and their dishes are 26px in 28px-high slots. The drawer gap is 10px, the kitchen gap is 8px, and the board has 10px vertical padding. The status strip has 4px vertical padding. These sizes keep the board and its instructions visible at 1280 by 720px.
 
 **Phones (1023px or less).** The masthead is 48px tall on the page colour, with 14px gutters. The room fills the screen below the masthead. The painting is as wide as the screen. The drawer has a fixed position above the bar, with an 18px radius on its top corners. The content of the drawer is at most 560px wide and in the centre. The drawer holds these parts, from top to bottom:
 - The grip. The grip is a 40px by 4px bar in Control Line, on a 96px by 44px target. The target extends over the room.
 - The three tickets, 6px apart. While the recovery quest is open, the recovery ticket is a fourth ticket.
-- The timber table with the board.
+- The timber table with the source tab and the board.
 - Mara's line, or the offer, or the selected item and its actions.
 
 The bar is 56px tall plus the safe area. The safe area is the space that the device reserves at the screen edge. The bar holds Story, Recipes, and Options. The recipe book card and the side column do not show. Each of the three bar items opens a dialog.
@@ -396,8 +401,8 @@ The bar is 56px tall plus the safe area. The safe area is the space that the dev
 **The lowered drawer.** The grip is a button. Its accessible name is "Lower the kitchen to see the room". While the drawer is lowered, its accessible name is "Raise the kitchen". The grip lowers the drawer, and the drawer then shows the whole painting. The tickets and their status lines stay visible. The height budget reserves 92px above the bar, or 108px below 360px when a ticket has four shown dishes. The final-scene counter of the prologue reserves 116px for its line and Read now, or 140px below 360px. The drawer moves over 0.6s. While the drawer is lowered, the board does not accept input.
 
 **The height budget.** The cell size and the visible room share one budget:
-- Wider screens: `--cell: clamp(44px, min(calc((var(--panel-w) - var(--side-w) - 116px) / 6), calc((100dvh - 432px) / 7)), 96px)`, with 4px gaps.
-- Phones: `--cell: clamp(44px, min(calc((100vw - 40px) / 6), calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7)), 60px)`, with 3px gaps. The value of `--drawer-chrome` is 102px plus the ticket height, normally 176px in total. Below 360px, a ticket with four shown dishes uses 192px in total. The final-scene counter of the prologue uses a 58px base height and adds 40px, or 64px below 360px. Its totals are 200px and 224px, so its wrapped line and button leave room for Mara's line. A visible action failure adds 24px for its explanation. If the cell size allows it, the room shows at least 29.5dvh above the drawer. The unit dvh is one percent of the dynamic viewport height.
+- Wider screens: `--cell: clamp(40px, min(calc((var(--panel-w) - var(--side-w) - var(--chrome-w)) / 7.75), max(44px, calc((100dvh - 432px) / 7))), 96px)`, with 4px gaps. The value of `--side-w` is `clamp(220px, 30% of the panel, 300px)`, and `--chrome-w` is 128px. From 1024px to 1279px, `--side-w` is 200px, `--chrome-w` is 100px, and the panel has 16px side padding. Only the width can take a cell below 44px.
+- Phones: `--cell: clamp(34px, min(calc((min(100vw, 560px) - 42px) / 7.75), max(44px, calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7))), 60px)`, with 3px gaps. On a phone narrower than 391px, the width takes the cell below 44px, so the board and the source tab fit side by side. The drawer keeps the height of 44px cells, so the room keeps its view. The value of `--drawer-chrome` is 102px plus the ticket height, normally 176px in total. Below 360px, a ticket with four shown dishes uses 192px in total. The final-scene counter of the prologue uses a 58px base height and adds 40px, or 64px below 360px. Its totals are 200px and 224px, so its wrapped line and button leave room for Mara's line. A visible action failure adds 24px for its explanation. If the cell size allows it, the room shows at least 29.5dvh above the drawer. The unit dvh is one percent of the dynamic viewport height.
 
 **Compact phones (601px to 700px tall).** The runners are 4px tall, the board has 2px vertical padding, and the table has a 2px top margin. The value of `--drawer-chrome` uses 84px plus the ticket height and the same prologue and failure additions. This saves 18px while the board cells and controls keep their minimum sizes. At 360 by 640px, the room has 52px above the drawer for the New pin and its full touch target.
 
@@ -467,16 +472,16 @@ Portraits are circles. Food and mascots keep their own transparent outlines. The
 ## Components
 
 ### Buttons
-Buttons are solid and warm. Every button target is at least 44px tall.
+Buttons are solid and warm. Button targets are at least 44px tall, except for the board and source tiles. Those tiles use the sizes in "Layout" and "Board and tiles".
 - **Shape:** slightly rounded (9px).
 - **Primary:** in light mode, the fill is Plum Brandy with Light On-Action text. In dark mode, the fill is Candle Amber with Dark On-Action text. The weight is 600, and the padding is 11px × 15px. A pointer that can hover makes an enabled button 7% brighter. A touch screen has no hover brightness. A press moves the button down 1px.
 - **Not yet:** an action that the player cannot afford has a transparent fill. The border is a dashed Control Line, and the text is Smoke. The button never has a dimmed colour.
 - **Unavailable:** if the kitchen cannot open, three parts have 50% opacity and do not accept input. These parts are the Options button, the recipe book, and the bar items. The game dims no other button.
 - **Secondary:** the fill is Flour Dust, the text is ink, and the border is a 1px Control Line. Hover makes it brighter, as for Primary.
 - **Danger:** a transparent fill with an accent outline and accent text. Only the reset actions use this style. A confirmation always follows.
-- **Pay:** Story shows only the unmet requirements. They can be extra coins to earn, quests to deliver, or a board cell to free for a source. A met requirement has no row. When the player meets all requirements, one line says "Ready to prepare." Pay stays disabled with the dashed not-yet style until the player meets every requirement.
+- **Pay:** Story shows only the unmet requirements. They can be extra coins to earn, quests to deliver, or an opening date. A met requirement has no row. When the player meets all requirements, one line says "Ready to prepare." Pay stays disabled with the dashed not-yet style until the player meets every requirement.
 
-  The button reads "Pay · N" with the 16px coin mark. Its accessible name is "Pay N coins: [preparation]". Its description includes the visible requirement note and the exact coin and quest totals. If necessary, the description also includes the source cell. Cost details also shows those totals. Pay and the Cost details text button share one 44px row with a 10px gap. Pay fills the rest of the width.
+  The button reads "Pay · N" with the 16px coin mark. Its accessible name is "Pay N coins: [preparation]". Its description includes the visible requirement note and the exact coin and quest totals. Cost details also shows those totals. Pay and the Cost details text button share one 44px row with a 10px gap. Pay fills the rest of the width. From 1024px to 1279px, Pay takes its own row above Cost details.
 
   Cost details has the accessible name "Work and cost" and reports its expanded state. Its small chevron points down when the details are closed and up when they are open. The control opens and closes its region and keeps focus.
 - **Text button:** an underlined accent link at 13px with a 44px target. Find a match, Journal, and the opening of a finale quest use this style. Read now, the reply in a delivery notice, and Try again also use this style.
@@ -568,8 +573,11 @@ Buttons are solid and warm. Every button target is at least 44px tall.
 
   The accessible names describe the marked cells. The selected tile refers to the visible instruction. Help adds no dialog, no vertical row, and no motion. `PRODUCT.md` gives the ways to leave the help.
 - **States:** hover draws a 2px inset outline in Selected Clay (Candle Amber in dark mode). Selection draws a 3px inset outline. A selected mergeable dish marks each matching movable dish and blocked destination. The mark is a 2px dotted Smoke outline at 50% opacity inside each tile. A source and a final dish mark no target. A hint pulses a 4px Teal Focus inset outline three times. In forced colours, matching targets have an opaque dotted Highlight outline. Keyboard focus stays a solid outline.
-- **Ingredient sources:** a 17px badge in the corner. The badge has an action-coloured disc, a tile-coloured rim, and a plus in the On-Action colour. A paid source also shows its take cost in another corner. The cost is in the lower-left corner on wider screens and in the upper-left corner on phones. The cost has a 14px coin mark and an 11px figure at weight 600. Both are on a Panel pill with a Control Line ring. The free Herb basket shows no cost.
-- **Sale:** a dish that a drag drops outside the board opens the dialog "Sell this dish?". The dialog has one line, "Are you sure you want to sell [dish], for [price] coins?", then Sell, the primary button, and Keep it, the secondary button. Keep it has focus. The dish stays selected in its cell until the player chooses.
+- **Source tab:** the sources stand beside the left edge of the board, never on it. The tab has one square place for each source of the game, in columns of eight. The first column is next to the board, and the order runs down each column. The eight places of a column span the seven rows of the board, so the tab and the board share their top and bottom edges. A dark well (`#1e120c47`, 10px radius, an inset shadow) lies 4px around all the places, so the tab keeps its size while places are free. A free place shows nothing. A source is a tile in Tile A with the tile lift and 3px padding.
+  A paid source shows its take cost in its lower-right corner: a 14px coin mark and an 11px figure at weight 600, on a Panel pill with a Control Line ring. The free sources show no cost.
+  Hover draws the 2px Selected Clay ring. A drag lifts the source to 35% opacity, a ghost follows the pointer, and the place of the drop has the 3px Selected Clay ring. The guide marks its source with the dotted mark of a matching item. A hint pulses the source as it pulses a cell.
+  The accessible name of a source is "[Source], source of [ingredient]: tap to take an ingredient, [price]. Place N of M." The tab is one Tab stop. The Up and Down arrow keys move between the sources, and Home and End go to the first and the last. Alt and the Up or Down arrow key move the focused source by one place, and the focus stays on it. In forced colours, a source has a ButtonBorder edge.
+- **Sale:** a dish that a drag drops outside the board and the source tab opens the dialog "Sell this dish?". The dialog has one line, "Are you sure you want to sell [dish], for [price] coins?", then Sell, the primary button, and Keep it, the secondary button. Keep it has focus. The dish stays selected in its cell until the player chooses.
 - **Keyboard:** the board is one Tab stop. Arrow keys move between cells. Home and End go to the ends of the row. With Control, Home and End go to the first and the last cell. Escape clears the selection.
 - **Motion:** a merged item settles over 180ms from 82% scale. The first of each dish arrives over 700ms with a small tilt.
 
@@ -579,14 +587,14 @@ On the first opening without a save, the instruction connects the starting Socat
 
 If an action on a selected cell fails, its reason and recovery text replace the item picture and ordinary detail text. This paragraph uses 13px text at line height 1.35, with no clamp. Clear selection or Stop stays visible. The next selection or action clears the refusal. A phone drawer adds 24px to its height budget while the refusal shows.
 - **Mara's line:** the 38px portrait of Mara (28px on phones), the live status line, and "Find a match". On phones, the live note for a selected item does not repeat its visible name.
-- **Stop the guide:** if a guide is active with no selected cell, Mara's line shows a short next-step note. "Stop guide" takes the place of "Find a match". With a selected cell, the same Stop control takes the place of Clear selection in the strip. Escape works from the board and from each Stop control. A tap on the selected dish or blocker also ends the guide. A tap on a selected source takes another ingredient.
+- **Stop the guide:** if a guide is active with no selected cell, Mara's line shows a short next-step note. "Stop guide" takes the place of "Find a match". With a selected cell, the same Stop control takes the place of Clear selection in the strip. Escape works from the board and from each Stop control. A tap on the selected dish or blocker also ends the guide. A guide to a take marks and focuses its source in the tab, and Mara's line gives the step.
 - **Full board:** a legal merge toward the goal keeps its board cue. Otherwise, the ticket button of a ready delivery that frees a cell has the dotted Smoke outline at 50% opacity. When the guide starts, it focuses that Deliver button on wider screens. On a phone, the guide marks and focuses the ticket face, which opens its dialog. If no such delivery is ready, another legal pair merge or blocker merge uses the board cue. If no action can make room, Mara names the limit, and Stop stays visible. The guide never marks a source for a take that cannot fit.
 - **Offer:** the offer shows the preparation name, "Ready when you are.", and a primary Pay button. An active guide keeps its Stop control visible in Mara's line in place of the offer. The Story button still marks a ready payment, and Pay stays in the Story sheet. The offer returns when the guide ends. `PRODUCT.md` gives when the offer shows.
-- **Selected item:** the item picture, its name, and its rule line ("Two make …", "Cook it with …", or "Final dish"). "Cook it with" names only the recipe partners that the player has made. If the player has made none, the line reads "Cook it with a new dish". A selected source shows its name and a short line. The line tells the player to tap the source again for its ingredient. While a dish guide is active, the rule line gives the goal dish and the next action. A visible Stop control takes the place of Clear selection. The board marks the next useful cells with the same dotted outline as matching items. The guide adds no row, and the selected board cell keeps its focus. The item picture is 44px (40px on phones). Below 411px, the item picture is 34px. At 360px and below, the item picture does not show.
+- **Selected item:** the item picture, its name, and its rule line ("Two make …", "Cook it with …", or "Final dish"). "Cook it with" names only the recipe partners that the player has made. If the player has made none, the line reads "Cook it with a new dish". While a dish guide is active, the rule line gives the goal dish and the next action. A visible Stop control takes the place of Clear selection. The board marks the next useful cells with the same dotted outline as matching items. The guide adds no row, and the selected board cell keeps its focus. The item picture is 44px (40px on phones). Below 411px, the item picture is 34px. At 360px and below, the item picture does not show.
 
-  At 720px and below, if the name takes two lines, the ordinary rule line does not show. The goal line of the guide stays visible. Clear selection or Stop follows the name or rule. A source tile takes an ingredient when the player taps it or presses Enter or Space on it.
+  At 720px and below, if the name takes two lines, the ordinary rule line does not show. The goal line of the guide stays visible. Clear selection or Stop follows the name or rule.
 
-  Keyboard focus uses the Teal Focus ring. The 44px Clear or Stop control follows. An ordinary source selection keeps the board in place. The selected item and its control fit at 360px without horizontal scroll. On a phone that is taller than 600px, the ordinary strip is 52px high. A refusal gives the strip more room for its full explanation. The strip keeps blocker help and the offer visible.
+  Keyboard focus uses the Teal Focus ring. The 44px Clear or Stop control follows. The selected item and its control fit at 360px without horizontal scroll. On a phone that is taller than 600px, the ordinary strip is 52px high. A refusal gives the strip more room for its full explanation. The strip keeps blocker help and the offer visible.
 
 ### Story and recipe book
 - **Wider screens:** the story and the recipe book are sections of the docked panel between hairlines. They are not cards. The story section starts with the chapter title, the objective, and the steps. If an unread scene exists, its line follows. An unread scene is a story scene that the player has earned and not read.
@@ -626,7 +634,7 @@ The details do not show a painting that the player has not earned. The details s
 - **Bottom sheets (720px and below):** a bottom sheet has full width and is up to 88% of the viewport height. It has 20px padding plus the safe area, and only a top border.
 - **Focus:** a dialog opens with focus on its close button. A scene opens with focus on its title at the top. Each confirmation dialog opens with focus on its safe choice. When an open dialog changes, focus moves to the new title, without a ring.
 - **Story:** each scene shows the full transcript. Each turn has a 44px portrait, a 12px gap, and a text column. The speaker name is 13px at weight 600, with 4px below it. Body text is 16px with a 1.75 line height, or 14px at 720px and below. Turns are 18px apart. One completion action follows the transcript, aligned right, after 24px. After a payment, "See what changed" closes the dialog and starts the reveal.
-- **Item help:** the dish picture, one line about how to get the dish, and the count on the board. The picture is 100px, or 120px at 720px and below. The dishes of the chain follow, three to a row. For a mixed dish, its two parts and the dish follow. Each dish shows its name or "Not yet". A part of a recipe also names the mixed dishes that it makes. It gives the name of a mixed dish after the player discovers that dish. If the source is on the board, the button "Show me on the board" closes the dialog. The board then points at the next step.
+- **Item help:** the dish picture, one line about how to get the dish, and the count on the board. The picture is 100px, or 120px at 720px and below. The dishes of the chain follow, three to a row. For a mixed dish, its two parts and the dish follow. Each dish shows its name or "Not yet". A part of a recipe also names the mixed dishes that it makes. It gives the name of a mixed dish after the player discovers that dish. If the source is in the source tab, the button "Show me on the board" closes the dialog. The board then points at the next step.
 
 ### Chapter story
 
@@ -818,7 +826,7 @@ Options shows the save state. If the state needs one, Options also shows the Ret
 - Ship the parchment as a WebP at its native 1254px square size. Cut each cell of a pencil sheet into its own variant. Ship each character sketch as a transparent WebP at its native 672px square. Ship each quest scene as a transparent WebP at 1024px wide, and each notebook page as a WebP at 1024px wide. Ship each family photograph as a transparent WebP at 672px square.
 - Keep the neighbours in working village dress: Mara, Ilie, and Sorin in Romanian dress, and Eszter in Székely dress.
 - Draw every control icon as a vector with a 1.7 stroke and round caps and joins.
-- Give every interactive boundary `--control-line`. Keep every target at least 44px.
+- Give every interactive boundary `--control-line`. Keep targets at least 44px, except for the board and source tiles, which use their specified sizes.
 - Keep the wordmark as the top-level heading (h1) of the page.
 - If `--cell` or the visible room changes, recompute both together. Check the sizes of The One Screen Rule.
 - Obey reduced motion. Reduced motion is the Motion choice Reduced, or the Motion choice System on a device that asks for reduced motion. Reduced motion removes every animation and transition. Reduced motion keeps every outcome and line of text. The Motion choice Full keeps every animation and transition.

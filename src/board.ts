@@ -1,21 +1,22 @@
 // The merge board: its spaces and blockers, the selected item and its actions under the board, tap, drag, and keyboard play, and the
 // sale of a dish that a drag takes off the board.
-import { freeBoardCells, gardenStage, mergePartners, mergeResult, pendingPreparationObstacles, salePrice, takeCost, unresolvedObstacle } from './model.ts';
+import { freeBoardCells, gardenStage, mergePartners, mergeResult, pendingPreparationObstacles, salePrice, unresolvedObstacle } from './model.ts';
 import { $, button, coinText, either, element, names, pulse, status } from './dom.ts';
-import { blockerMark, clutterArt, coinMark, crossMark, food, sourceMark } from './art.ts';
+import { blockerMark, clutterArt, crossMark, food } from './art.ts';
 import { activeQuests } from './tickets.ts';
 import { guidanceGoal, guidanceStep, stopGuidance } from './dishes.ts';
 import { fitPin } from './room.ts';
 import { modal, showModal } from './dialog.ts';
-import { act, apply, changeGame, character, data, definition, itemName, matchingBlocker, onReplace, redraw, select, selected, sourceOutput, state, takePrice } from './session.ts';
+import { act, apply, changeGame, character, data, definition, itemName, matchingBlocker, onReplace, redraw, select, selected, sourceOf, sourceOutput, state } from './session.ts';
 import { onMotionResume, phone } from './preferences.ts';
+import { pulseSource } from './sources.ts';
 
 // Mara's note when nothing is selected: the move gesture, in the same words as the other board guidance.
 const MOVE_HINT = 'Tap an item, then tap where it should go.';
 let ignoreClick = false, boardFocus = 0;
 let dragging: { index: number; id: number; x: number; y: number; ghost: SVGSVGElement | null } | null = null;
 onReplace(cancelDrag);
-onMotionResume(() => { for(const cell of document.querySelectorAll('.cell'))cell.classList.remove('first','settle','hint'); });
+onMotionResume(() => { for(const cell of document.querySelectorAll('.cell,.source'))cell.classList.remove('first','settle','hint'); });
 
 /** A new game points to the first quest of the prologue, whose dishes are ready on the board, so the first action can be Serve. */
 export function introduceFirstQuest() {
@@ -26,9 +27,8 @@ export function introduceFirstQuest() {
 
 /** Mara's note for a selected item, which the status region announces. On phones the note leaves out the name, which the selection strip shows. */
 function selectionLine(code: string) {
-  const def = definition(code), name = phone.matches ? '' : `${itemName(code)}: `;
-  const line = def.generator ? `tap it to take more ${sourceOutput(code)}, ${takePrice(code)}.`
-    : mergePartners(code, data).length ? 'tap a marked dish to merge, or an empty space to move it.' : 'a final dish. Deliver it, or tap an empty space to move it.';
+  const name = phone.matches ? '' : `${itemName(code)}: `;
+  const line = mergePartners(code, data).length ? 'tap a marked dish to merge, or an empty space to move it.' : 'a final dish. Deliver it, or tap an empty space to move it.';
   return name ? name + line : line[0].toUpperCase() + line.slice(1);
 }
 /**
@@ -46,7 +46,7 @@ function blockerTargets(index: number): number[] {
 /** Mark every legal merge destination for a selected movable dish: a match, a recipe partner, or a blocked dish that merges with it. */
 function dishTargets(index: number): number[] {
   const cell = state.board[index];
-  if (!cell || definition(cell.code).generator) return [];
+  if (!cell) return [];
   return state.board.flatMap((other, at) => {
     if (at === index) return [];
     const obstacle = unresolvedObstacle(state,at,data);
@@ -92,8 +92,6 @@ function chooseCell(index: number) {
     });
     return;
   }
-  // One tap on an ingredient source takes an ingredient and selects the source, so its actions stay in view. A drag only moves it.
-  if (cell && definition(cell.code).generator) { select(index); act({ type:'spawn', index }); return; }
   if (selected === index) { stopGuidance(); select(null); redraw(); status(MOVE_HINT); return; }
   const held = selected !== null ? state.board[selected] : null;
   // A click moves into an empty space, merges a matching pair, or cooks a recipe. Any other item is selected instead; swapping needs a drag.
@@ -120,7 +118,7 @@ export function renderBoard() {
     value.dataset.cell = String(index);
     const what = obstacle
       ? `${obstacle.name}, blocked ${itemName(obstacle.ingredient)}. Merge ${partnerNames(obstacle.ingredient)} into this space to clear it`
-      : !cell ? 'empty' : definition(cell.code).generator ? `${itemName(cell.code)}, source of ${sourceOutput(cell.code)}: tap to take an ingredient, ${takePrice(cell.code)}` : itemName(cell.code);
+      : !cell ? 'empty' : itemName(cell.code);
     value.setAttribute('aria-label', `Row ${Math.floor(index / data.board.columns) + 1}, column ${index % data.board.columns + 1}: ${what}${obstacle?.context ? `. ${obstacle.context}` : ''}`);
     if (targets.includes(index)) value.setAttribute('aria-label', `${value.getAttribute('aria-label')}. Tap to merge into the selected blocked space`);
     if (matches.includes(index)) value.setAttribute('aria-label', `${value.getAttribute('aria-label')}. Tap to merge the selected ${itemName(state.board[selected!]!.code)}${obstacle ? ' here and clear this blocker' : ' here'}`);
@@ -129,15 +127,7 @@ export function renderBoard() {
     // One tab stop for the whole board; the arrow keys move between spaces.
     value.tabIndex = index === (selected ?? boardFocus) ? 0 : -1;
     value.setAttribute('aria-pressed', String(selected === index));
-    if (cell) {
-      value.append(food(cell.code));
-      if (definition(cell.code).generator) {
-        value.append(sourceMark());
-        // A paid source shows the coins of one take beside its mark. Each take of the prologue is free.
-        const cost = state.prologue ? 0 : takeCost(definition(cell.code), data, gardenStage(state.taskIndex, data));
-        if (cost) { const price = element('span', 'take-cost', String(cost)); price.prepend(coinMark()); price.setAttribute('aria-hidden', 'true'); value.append(price); }
-      }
-    }
+    if (cell) value.append(food(cell.code));
     // The thief rat's hole lies under the ingredient that it dropped.
     if (obstacle?.type === 'rat-hole') { const hole = element('span', 'rat-hole-art'); hole.setAttribute('aria-hidden', 'true'); value.append(hole); }
     if (obstacle) value.append(food(obstacle.ingredient));
@@ -156,9 +146,8 @@ export function renderBoard() {
     board.append(value);
   });
 }
-/** The selection strip's note: how a source works, or which neighbours on the tickets want the item. */
+/** The selection strip's note: which neighbours on the tickets want the item. */
 function detailNote(code: string) {
-  if (definition(code).generator) return `Tap again for ${sourceOutput(code)}: ${takePrice(code)}. No limit.`;
   const waiting = [...new Set(activeQuests().filter(quest => quest.requirements.some(requirement => requirement.item === code)).map(quest => character(quest.character).name))];
   return waiting.length ? `${names.format(waiting)} ${waiting.length === 1 ? 'is' : 'are'} waiting for one.` : 'No quest on the counter needs it now.';
 }
@@ -175,7 +164,6 @@ export function renderDetail(feedback = '') {
   container.classList.toggle('guided', !!guided);
   container.setAttribute('aria-label', obstacle ? 'Selected blocker' : 'Selected item');
   const cell = selected !== null ? state.board[selected] : null;
-  container.classList.toggle('source-detail', !!cell && !!definition(cell.code).generator);
   if(feedback&&(cell||obstacle)) {
     container.append(element('p','detail-feedback',feedback),clearSelectionButton());
     fitPin();return;
@@ -193,7 +181,7 @@ export function renderDetail(feedback = '') {
   words.append(element('h3','',def.name));
   if (guided) words.append(element('p','detail-next',guided.short));
   else {
-    if (!def.generator) words.append(element('p','detail-next',def.next ? `Two make ${state.discovered.includes(def.next) ? itemName(def.next) : 'a new dish'}`
+    words.append(element('p','detail-next',def.next ? `Two make ${state.discovered.includes(def.next) ? itemName(def.next) : 'a new dish'}`
       : knownPartners(cell.code).length ? `Cook it with ${partnerNames(cell.code)}` : mergePartners(cell.code, data).length ? 'Cook it with a new dish' : 'Final dish'));
     words.append(element('p','detail-description',detailNote(cell.code)));
   }
@@ -207,15 +195,15 @@ export function renderDetail(feedback = '') {
 }
 function findMatch() {
   for(let from=0;from<state.board.length;from++) {
-    const cell=state.board[from];if(!cell||definition(cell.code).generator)continue;
+    const cell=state.board[from];if(!cell)continue;
     const blocker=matchingBlocker(cell.code);
     if(blocker){select(from);redraw();pulse([blocker.position]);status(`Tap the blocked ${itemName(blocker.ingredient)} to merge and clear it.`);return;}
     const to=state.board.findIndex((other,index)=>index!==from&&!!other&&!!mergeResult(cell.code,other.code,data));
     // One item of the pair is selected and the other pulses, so the instruction names a single target.
     if(to>=0){const other=state.board[to]!.code;select(from);redraw();pulse([to]);status(other===cell.code?`Tap the other ${itemName(cell.code)} to merge them.`:`Tap the ${itemName(other)} to cook ${itemName(mergeResult(cell.code,other,data)!)}.`);return;}
   }
-  const index=state.board.findIndex(cell=>cell&&definition(cell.code).generator);
-  if(index>=0){const code=state.board[index]!.code;select(index);redraw();status(`No matches yet. Tap the ${itemName(code)} to take ${sourceOutput(code)}.`);return;}
+  const chain=state.sources[0];
+  if(chain){const code=sourceOf(chain).id;select(null);redraw();pulseSource(chain);status(`No matches yet. Tap the ${itemName(code)} to take ${sourceOutput(code)}.`);return;}
   status('No matches yet.');
 }
 /** A dish that a drag takes off the board asks before its sale. The safe choice holds focus, so a stray Enter keeps the dish. */
@@ -246,10 +234,11 @@ window.addEventListener('pointerup',event=>{
   if(!moved)return;
   ignoreClick=true;setTimeout(()=>ignoreClick=false,0);
   const to=target?Number(target.dataset.cell):from;if(to!==from){select(to);act({type:'move',from,to});return;}
+  // A dish dropped anywhere off the board and the source tab is offered for sale. The prologue has no purse. The redraw replaces the
+  // dropped-on element, so the check comes first.
+  const sale=!drop?.closest('#board,#sources')&&!!state.board[from]&&!state.prologue;
   select(from);redraw();
-  // A dish dropped anywhere off the board is offered for sale. Sources stay, and the prologue has no purse.
-  const cell=state.board[from];
-  if(!drop?.closest('#board')&&cell&&!definition(cell.code).generator&&!state.prologue)offerSale(from);
+  if(sale)offerSale(from);
 });
 window.addEventListener('pointercancel',cancelDrag);window.addEventListener('blur',cancelDrag);document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelDrag();});
 $('#board').addEventListener('keydown',event=>{
@@ -268,6 +257,7 @@ function cancelGuideFromControl(event: KeyboardEvent) {
 }
 $('#item-detail').addEventListener('keydown',cancelGuideFromControl);
 $('#hint-button').addEventListener('keydown',cancelGuideFromControl);
+$('#sources').addEventListener('keydown',cancelGuideFromControl);
 // The board keeps a single tab stop where focus last was; the skip link lands on it too.
 $('#board').addEventListener('focusin',event=>{
   const target=(event.target as Element).closest<HTMLElement>('[data-cell]');if(!target)return;boardFocus=Number(target.dataset.cell);

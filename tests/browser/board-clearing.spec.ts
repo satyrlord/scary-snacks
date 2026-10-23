@@ -5,8 +5,8 @@ import { checkpoint, data, saved, start, tile, know, mergeFlour } from './suppor
 test('new board explains blocked spaces and counts only usable empty cells', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await start(page);
-  // The pickle barrel of winter takes one cell of the new board.
-  await expect(page.locator('#board')).toHaveAttribute('aria-label', /24 free spaces/);
+  // The sources stand in the source tab, so they take no cell of the board.
+  await expect(page.locator('#board')).toHaveAttribute('aria-label', /28 free spaces/);
   await expect(tile(page, 0)).toHaveAttribute('aria-label', /Old crate, blocked Loaf/);
   await expect(tile(page, 0).locator('.clutter-overlay')).toHaveCount(1);
   await expect(tile(page, 0).locator('.food')).toBeVisible();
@@ -72,13 +72,11 @@ test('forced colours distinguish the selected dish from its matching targets', a
   await expect(tile(page, 14)).toHaveClass(/merge-target/);
 });
 
-test('sources, final dishes, and cleared selections show no merge targets', async ({ page }) => {
+test('final dishes and cleared selections show no merge targets', async ({ page }) => {
   const state = checkpoint(0);
   state.board[18] = { code: 'grain_6' };
   know(state,'grain_6');
   await start(page, state);
-  await tile(page, 1).click();
-  await expect(page.locator('#board .merge-target')).toHaveCount(0);
   await tile(page, 18).click();
   await expect(page.locator('#board .merge-target')).toHaveCount(0);
   await tile(page, 13).click();
@@ -152,7 +150,7 @@ test('touch merges the two Flours and releases the tied dough with one more tap'
 
 test('Find a match selects movable food and points to matching clutter', async ({ page }) => {
   const state = checkpoint(0);
-  state.board = state.board.map(cell => cell && data.items[cell.code].generator ? cell : null);
+  state.board = state.board.map(() => null);
   state.board[13] = { code: 'grain_3' };
   if (!state.discovered.includes('grain_3')) know(state,'grain_3');
   await start(page, state); await page.getByRole('button', { name: 'Find a match', exact: true }).click();

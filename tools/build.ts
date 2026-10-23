@@ -6,7 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { stripTypeScriptTypes } from 'node:module';
 
 // Keep this list explicit: only the authored runtime files are inputs.
-export const runtimeFiles = ['index.html', 'src/app.ts', 'src/art.ts', 'src/board.ts', 'src/content.ts', 'src/dialog.ts', 'src/dishes.ts', 'src/dom.ts', 'src/engine.ts', 'src/model.ts', 'src/night.ts', 'src/options.ts', 'src/preferences.ts', 'src/room.ts', 'src/session.ts', 'src/storage.ts', 'src/story.ts', 'src/style.css', 'src/tickets.ts'];
+export const runtimeFiles = ['index.html', 'src/app.ts', 'src/art.ts', 'src/board.ts', 'src/content.ts', 'src/dialog.ts', 'src/dishes.ts', 'src/dom.ts', 'src/engine.ts', 'src/model.ts', 'src/night.ts', 'src/options.ts', 'src/preferences.ts', 'src/room.ts', 'src/session.ts', 'src/sources.ts', 'src/storage.ts', 'src/story.ts', 'src/style.css', 'src/tickets.ts'];
 export const fontFiles = ['assets/fonts/inter-variable.woff2', 'assets/fonts/grenze-gotisch-variable.woff2', 'assets/fonts/OFL-Inter.txt', 'assets/fonts/OFL-Grenze-Gotisch.txt'];
 // The PNG masters are not shipped; the build publishes their AVIF and WebP variants (npm run assets:build).
 export const variantTypes = new Set(['.avif', '.webp']);

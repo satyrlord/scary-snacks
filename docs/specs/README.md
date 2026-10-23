@@ -33,7 +33,7 @@ The status column gives the state of each specification. The status of a specifi
 | --- | --- | --- | --- |
 | 001 | [Visible renovation and areas](001-visible-renovation.md), with its [room states art plan](001-visible-renovation-art-plan.md) | Implemented | None |
 | 002 | [Decoration choices](002-decoration-choices.md) | Implemented | 001 |
-| 003 | [Ingredient sources](003-generator-progression.md) | Implemented | None |
+| 003 | [Ingredient sources and the source tab](003-generator-progression.md) | Implemented | None |
 | 004 | [Character quests and introductions](004-character-quests.md) | Implemented | 008 for scene continuation |
 | 005 | [Campaign goals and economy](005-campaign-goals-and-economy.md) | Implemented | None |
 | 006 | [Board clearing](006-board-clearing.md) | Implemented | None |
@@ -69,7 +69,7 @@ A dependency is a specification that the complete feature needs. A reference to 
 
 ## Shared save compatibility
 
-Current saves use game state version 18 in envelope version 17 at `scary-snacks-save-v17`.
+Current saves use game state version 19 in envelope version 18 at `scary-snacks-save-v18`.
 The game supports only this format.
 Load reads only this key.
 If no current save exists, the game starts a new campaign.
@@ -78,7 +78,7 @@ Import rejects earlier formats.
 
 Keep this key and both versions. Each deployed update must load and import every valid current save without lost progress or a required new campaign. This rule applies to partial feature work and to content and validation changes, not only to the shape of the state. A new optional field must accept its absence. Keep the saved IDs and their progress valid. A completed specification can introduce a new format, with a new key and new versions, when its owner documents change.
 
-`tests/fixtures/save-v17.json` holds fixed saves for this compatibility boundary. The Node.js and browser save-compatibility tests load these files without creating replacement saves from the current engine. Keep these fixtures while this boundary applies. Do not regenerate them or weaken their assertions to make an incompatible change pass. Add a fixture when another supported case needs coverage.
+`tests/fixtures/save-v18.json` holds fixed saves for this compatibility boundary. The Node.js and browser save-compatibility tests load these files without creating replacement saves from the current engine. Keep these fixtures while this boundary applies. Do not regenerate them or weaken their assertions to make an incompatible change pass. Add a fixture when another supported case needs coverage.
 
 The optional preparation blocker record uses this format. The record holds the baseline and the placement history. A missing record receives no past preparation batches. The record starts at the next paid preparation. `PRODUCT.md` owns the queue and placement rules.
 

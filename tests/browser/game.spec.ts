@@ -4,7 +4,7 @@ import { boardObstacles, firstFreeBoardCell, generatorOutputs, mergePartners, re
 import { createGame } from '../../src/engine.ts';
 import { appVersion } from '../../tools/build.ts';
 import type { GameState } from '../../src/model.ts';
-import { actOneTasks, KEY, act, naturalSize, recovery, supper, appearance, checkpoint, data, deliverButton, dialogDeliver, dismissDialogs, exportText, forward, goal, importSaveFile, journal, mergeFlour, newGame, onTicket, opened, openQuest, options, painting, pay, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, startAgain, startNewGame, stateText, supplies, supply, tile, ticket, toast, unselect, know, madeLine, prologueServed } from './support.ts';
+import { actOneTasks, KEY, act, naturalSize, recovery, supper, appearance, checkpoint, data, deliverButton, dialogDeliver, dismissDialogs, exportText, forward, goal, importSaveFile, journal, mergeFlour, newGame, onTicket, opened, openQuest, options, painting, pay, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, startAgain, startNewGame, stateText, supplies, supply, source, tile, ticket, toast, unselect, know, madeLine, prologueServed } from './support.ts';
 
 const welcome=quest('mara-welcome'),welcomeSupplied=()=>supply(checkpoint(0),supplies(welcome));
 /** Earn the first preparation through legal actions: every required quest but the last delivered, and the dishes of the last on the board. */
@@ -15,7 +15,7 @@ function beforeFirstPreparation(){
     if(generatorOutputs(state,source,data).includes(code)){
       // A purse that cannot pay a take earns its coins with the recovery quest, cooked from free herbs.
       if(!data.items[source].generator!.free)while(state.coins<data.economy.takeCost){produce(recovery.requirements[0].item);state=act(state,{type:'deliverQuest',id:recovery.id});}
-      const empty=firstFreeBoardCell(state,data);expect(empty).toBeGreaterThanOrEqual(0);state=act(state,{type:'spawn',index:state.board.findIndex(cell=>cell?.code===source)});return empty;
+      const empty=firstFreeBoardCell(state,data);expect(empty).toBeGreaterThanOrEqual(0);state=act(state,{type:'spawn',chain:item.chain});return empty;
     }
     const lower=Object.values(data.items).find(candidate=>candidate.next===code)!;const first=produce(lower.id),second=produce(lower.id);state=act(state,{type:'move',from:first,to:second});return second;
   };
@@ -36,8 +36,7 @@ test('the bistro produces, merges, delivers a quest, and survives reload',async(
   // Mara's welcome waits for one more Herb bunch.
   await start(page,supply(checkpoint(0),['herbs_2','herbs_4']));await mergeFlour(page);
   // A free take from the Herb basket and the Elderflowers on the board merge into the second Herb bunch.
-  const herbs=(await saved(page)).board.findIndex(cell=>cell?.code==='generator_herbs');
-  await tile(page,herbs).click();
+  await source(page,'herbs').click();
   const flowers=(await saved(page)).board.flatMap((cell,index)=>cell?.code==='herbs_1'?[index]:[]);expect(flowers).toHaveLength(2);expect((await saved(page)).coins).toBe(0);
   for(const index of flowers)await tile(page,index).click();
   expect((await saved(page)).board[flowers[1]]?.code).toBe('herbs_2');
@@ -53,7 +52,7 @@ test('pointer drag and keyboard merge agree, and the selected dish offers only C
   expect((await saved(page)).board[14]?.code).toBe('grain_2');await expect(tile(page,14)).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('#item-detail').getByRole('button')).toHaveText(['']);await expect(page.locator('#item-detail').getByRole('button')).toHaveAccessibleName('Clear selection');
   expect((await saved(page)).coins).toBe(0);
-  await unselect(page);for(let take=0;take<3;take++)await tile(page,31).click();
+  await unselect(page);for(let take=0;take<3;take++)await source(page,'herbs').click();
   const state=await saved(page);const pair=state.board.map((cell,index)=>({cell,index})).filter(({cell})=>cell?.code==='herbs_1').slice(0,2);
   await unselect(page);await tile(page,pair[0].index).focus();await page.keyboard.press('Space');await tile(page,pair[1].index).focus();await page.keyboard.press('Space');expect((await saved(page)).board[pair[1].index]?.code).toBe('herbs_2');
 });
@@ -95,10 +94,10 @@ test('selection marks each recipe partner and match, and Find a match points at 
   await unselect(page);
   // With the blockers cleared and only one recipe pair on the board, Find a match selects one part and names the dish that the other cooks.
   const single=supply(checkpoint(5,{coins:100}),['grain_2','poultry_1']);
-  for(const [index,cell] of single.board.entries())if(cell&&!data.items[cell.code].generator&&!['grain_2','poultry_1'].includes(cell.code))single.board[index]=null;
+  for(const [index,cell] of single.board.entries())if(cell&&!['grain_2','poultry_1'].includes(cell.code))single.board[index]=null;
   for(const obstacle of boardObstacles(single,data)){single.resolvedObstacles.push(obstacle.id);if(!single.discovered.includes(obstacle.ingredient))know(single,obstacle.ingredient);}
   await replaceSave(page,single);await page.locator('#hint-button').click();
-  const [part,partner]=single.board.flatMap((cell,index)=>cell&&!data.items[cell.code].generator?[index]:[]);
+  const [part,partner]=single.board.flatMap((cell,index)=>cell?[index]:[]);
   await expect(tile(page,part)).toHaveAttribute('aria-pressed','true');await expect(tile(page,partner)).toHaveClass(/hint/);
   await expect(page.locator('#status')).toHaveText(`Tap the ${data.items[single.board[partner]!.code].name} to cook ${sweetDough.name}.`);
   await tile(page,partner).click();expect((await saved(page)).board[partner]?.code).toBe(sweetDough.id);
@@ -108,7 +107,6 @@ test('clicking a different item selects it for single-item actions; only a drag 
   await start(page);const before=await saved(page);await tile(page,13).click();await tile(page,22).click();
   expect(await saved(page)).toEqual(before);await expect(tile(page,22)).toHaveAttribute('aria-pressed','true');await expect(tile(page,13)).toHaveAttribute('aria-pressed','false');
   await tile(page,23).click();let state=await saved(page);expect(state.board[22]).toBeNull();expect(state.board[23]?.code).toBe('corn_1');expect(state.board[13]?.code).toBe('grain_1');
-  await tile(page,1).click();await tile(page,4).click();expect((await saved(page)).board[1]?.code).toBe('generator_grain');await expect(tile(page,4)).toHaveAttribute('aria-pressed','true');
   await tile(page,13).click();await tile(page,22).click();state=await saved(page);expect(state.board[22]?.code).toBe('grain_1');expect(state.board[13]).toBeNull();
   const from=(await tile(page,22).boundingBox())!;const to=(await tile(page,27).boundingBox())!;
   await page.mouse.move(from.x+from.width/2,from.y+from.height/2);await page.mouse.down();await page.mouse.move(to.x+to.width/2,to.y+to.height/2,{steps:8});await page.mouse.up();
@@ -513,7 +511,7 @@ test('a chain with all its dishes discovered shows its completion mark across re
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'])test(`the recipe book shows each chain, then the mixed dishes, and a mixed dish guides to its nearest part at ${viewport.width}px in ${theme}`,async({page},testInfo)=>{
   // Sweet dough is known but not on the board. Eggs are one take away, and Dough is three steps away, because no Flour is on the board.
   const state=checkpoint(5,{coins:100});
-  for(const [index,cell] of state.board.entries())if(cell&&!data.items[cell.code].generator)state.board[index]=null;
+  state.board.fill(null);
   for(const code of ['grain_2','poultry_1',sweetDough.id])if(!state.discovered.includes(code))know(state,code);
   await page.setViewportSize(viewport);await start(page,state,theme);
   await page.locator(viewport.width<1024?'#recipes-button':'#collection-button').click();
@@ -544,16 +542,15 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   await page.getByRole('button',{name:'Close dialog'}).click();await sections.last().getByRole('button',{name:sweetDough.name,exact:true}).click();
   // Show me on the board follows the part with the fewest steps: one take of Eggs, not three steps to Dough.
   await page.getByRole('button',{name:'Show me on the board'}).click();await expect(page.locator('#modal')).toBeHidden();
-  const nest=state.board.findIndex(cell=>cell?.code==='generator_poultry');
   await expect(page.locator('#status')).toHaveText(`Tap the ${data.items.generator_poultry.name} to take ${data.items.poultry_1.name} for ${sweetDough.name}, 1 coin each.`);
-  await expect(tile(page,nest)).toHaveAttribute('aria-pressed','true');await expect(tile(page,nest)).toBeFocused();
+  await expect(source(page,'poultry')).toHaveClass(/guide-target/);await expect(source(page,'poultry')).toBeFocused();
   await expect(page.getByRole('button',{name:`Stop guide for ${sweetDough.name}`}).first()).toBeVisible();
   expect(await saved(page)).toEqual(state);
 });
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'])test(`a mixed dish guide counts the missing second copy of a part at ${viewport.width}px in ${theme}`,async({page},testInfo)=>{
   const state=checkpoint(5,{coins:100}),soup=data.items['mixed_chicken-noodle-soup'];
-  for(const [index,cell] of state.board.entries())if(cell&&!data.items[cell.code].generator)state.board[index]=null;
+  state.board.fill(null);
   for(const obstacle of boardObstacles(state,data)){
     if(!state.resolvedObstacles.includes(obstacle.id))state.resolvedObstacles.push(obstacle.id);
     if(!state.discovered.includes(obstacle.ingredient))know(state,obstacle.ingredient);
@@ -564,9 +561,8 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   await page.locator(viewport.width<1024?'#recipes-button':'#collection-button').click();
   await page.getByRole('button',{name:soup.name,exact:true}).click();
   await page.getByRole('button',{name:'Show me on the board'}).click();
-  const windmill=initial.board.findIndex(cell=>cell?.code==='generator_grain');
-  await expect(tile(page,windmill)).toBeFocused();
-  await expect(tile(page,windmill)).toHaveAttribute('aria-pressed','true');
+  await expect(source(page,'grain')).toBeFocused();
+  await expect(source(page,'grain')).toHaveClass(/guide-target/);
   await expect(page.locator('#status')).toHaveText(`Tap the ${data.items.generator_grain.name} to take ${data.items.grain_1.name} for ${soup.name}, 1 coin each.`);
   expect(await saved(page)).toEqual(initial);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&document.documentElement.scrollHeight<=innerHeight)).toBe(true);
@@ -700,46 +696,44 @@ test('Clear selection returns focus to the selected space and ends the selection
   expect((await saved(page)).board[13]?.code).toBe('grain_1');await expect(tile(page,13)).toBeFocused();await expect(tile(page,13)).toHaveAttribute('aria-pressed','false');
 });
 
-test('one tap on an ingredient source takes one ingredient and selects the source; a drag only moves it',async({page})=>{
+test('one tap on an ingredient source takes one ingredient and keeps the board selection; a drag to the board takes nothing',async({page})=>{
   await start(page,checkpoint(0));const items=async()=>(await saved(page)).board.filter(Boolean).length,before=await items();
-  const source=tile(page,31);await expect(source).toHaveAttribute('aria-label',/Herb basket, source of Elderflowers: tap to take an ingredient, free$/);
-  await source.click();expect(await items()).toBe(before+1);await expect(source).toHaveAttribute('aria-pressed','true');await expect(page.locator('#item-detail.source-detail')).toContainText('Tap again for Elderflowers');
-  await source.click();expect(await items()).toBe(before+2);
+  const basket=source(page,'herbs');await expect(basket).toHaveAccessibleName(/^Herb basket, source of Elderflowers: tap to take an ingredient, free\. Place 3 of 4$/);
+  await tile(page,13).click();await expect(tile(page,13)).toHaveAttribute('aria-pressed','true');
+  await basket.click();expect(await items()).toBe(before+1);await expect(tile(page,13)).toHaveAttribute('aria-pressed','true');
+  await basket.click();expect(await items()).toBe(before+2);
   // Enter on the focused source takes one too.
-  await source.focus();await page.keyboard.press('Enter');expect(await items()).toBe(before+3);
-  // A drag moves the source and takes nothing.
-  const from=(await source.boundingBox())!,to=(await tile(page,39).boundingBox())!;
+  await basket.focus();await page.keyboard.press('Enter');expect(await items()).toBe(before+3);
+  // A drag from the tab to the board takes nothing and moves nothing.
+  const placed=await saved(page),from=(await basket.boundingBox())!,to=(await tile(page,39).boundingBox())!;
   await page.mouse.move(from.x+from.width/2,from.y+from.height/2);await page.mouse.down();await page.mouse.move(to.x+to.width/2,to.y+to.height/2,{steps:8});await page.mouse.up();
-  const moved=await saved(page);expect(moved.board[39]?.code).toBe('generator_herbs');expect(moved.board.filter(Boolean).length).toBe(before+3);expect(moved.coins).toBe(0);
+  expect(await saved(page)).toEqual(placed);expect(placed.coins).toBe(0);
 });
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'])test(`a paid source shows its take cost, refuses a take that the purse cannot pay, and the Herb basket is free at ${viewport.width}px in ${theme}`,async({page},testInfo)=>{
   await page.setViewportSize(viewport);await start(page,checkpoint(0),theme);
-  const windmill=tile(page,1),basket=tile(page,4),herbs=tile(page,31);
+  const windmill=source(page,'grain'),basket=source(page,'corn'),herbs=source(page,'herbs');
   // A paid source shows a coin mark and the cost of one take; the Herb basket shows none.
-  for(const source of [windmill,basket]){
-    await expect(source.locator('.take-cost')).toHaveText(String(data.economy.takeCost));await expect(source.locator('.take-cost .coin')).toBeVisible();
-    await expect(source.locator('.take-cost')).toHaveAttribute('aria-hidden','true');
-    const [badge,cell]=await Promise.all([source.locator('.take-cost').boundingBox(),source.boundingBox()]);
+  for(const paid of [windmill,basket]){
+    await expect(paid.locator('.take-cost')).toHaveText(String(data.economy.takeCost));await expect(paid.locator('.take-cost .coin')).toBeVisible();
+    await expect(paid.locator('.take-cost')).toHaveAttribute('aria-hidden','true');
+    const [badge,cell]=await Promise.all([paid.locator('.take-cost').boundingBox(),paid.boundingBox()]);
     expect(badge!.x).toBeGreaterThanOrEqual(cell!.x);expect(badge!.y+badge!.height).toBeLessThanOrEqual(cell!.y+cell!.height+.5);
-    const colors=await source.locator('.take-cost').evaluate(e=>({back:getComputedStyle(e).backgroundColor,text:getComputedStyle(e).color}));
+    const colors=await paid.locator('.take-cost').evaluate(e=>({back:getComputedStyle(e).backgroundColor,text:getComputedStyle(e).color}));
     expect(ratio(colors.back,colors.text)).toBeGreaterThanOrEqual(4.5);
-    // The badge and the source mark sit in different corners, so neither covers the other.
-    const mark=(await source.locator('.source-mark').boundingBox())!;
-    expect(badge!.x+badge!.width<=mark.x||badge!.y+badge!.height<=mark.y,'the badge clears the source mark').toBe(true);
   }
-  await expect(windmill).toHaveAttribute('aria-label',/Windmill, source of Flour: tap to take an ingredient, 1 coin each$/);
-  await expect(herbs.locator('.take-cost')).toHaveCount(0);await expect(herbs.locator('.source-mark')).toBeVisible();
+  await expect(windmill).toHaveAccessibleName(/^Windmill, source of Flour: tap to take an ingredient, 1 coin each\. Place 1 of 4$/);
+  await expect(herbs.locator('.take-cost')).toHaveCount(0);
   await page.screenshot({path:testInfo.outputPath(`take-cost-${viewport.width}-${theme}.png`)});
   // An empty purse: the Windmill takes nothing, and Mara names the source and the cost.
   const before=await saved(page);expect(before.coins).toBe(0);await windmill.click();
   await expect(page.locator('#status')).toHaveText('The Windmill costs 1 coin for each take, and the purse cannot pay. Deliver a quest, or take free herbs from the Herb basket.');
-  expect(await saved(page)).toEqual(before);await expect(windmill).toHaveAttribute('aria-pressed','true');
+  expect(await saved(page)).toEqual(before);
   // The Herb basket takes for free.
-  await herbs.click();let after=await saved(page);expect(after.coins).toBe(0);expect(after.board[2]?.code).toBe('herbs_1');
+  await herbs.click();let after=await saved(page);expect(after.coins).toBe(0);expect(after.board[1]?.code).toBe('herbs_1');
   // With coins, the Windmill spends one coin for each take.
   const paid=checkpoint(0);paid.coins=3;await replaceSave(page,paid);
-  await windmill.click();after=await saved(page);expect(after.coins).toBe(2);expect(after.board[2]?.code).toBe('grain_1');
+  await windmill.click();after=await saved(page);expect(after.coins).toBe(2);expect(after.board[1]?.code).toBe('grain_1');
   await expect(page.locator('#status')).toHaveText(`Took ${data.items.grain_1.name} for 1 coin.`);await expect(page.locator('#coins')).toHaveText('2');
 });
 
@@ -798,7 +792,7 @@ test('Mara offers an affordable preparation with Pay on a phone; it pays once an
   expect(await saved(page)).toEqual(after);await expect(offer).toBeHidden();await expect(story).not.toHaveAttribute('data-ready');await expect(story).toHaveAccessibleName('Story');
 });
 
-test('a dish dragged off the board asks before its sale at no profit, and a source dragged off stays',async({page})=>{
+test('a dish dragged off the board asks before its sale at no profit, and a dish dropped on the source tab stays',async({page})=>{
   await start(page);const before=await saved(page);
   const dragOff=async(index: number)=>{const from=(await tile(page,index).boundingBox())!;
     await page.mouse.move(from.x+from.width/2,from.y+from.height/2);await page.mouse.down();await page.mouse.move(40,500,{steps:8});await page.mouse.up();};
@@ -810,7 +804,9 @@ test('a dish dragged off the board asks before its sale at no profit, and a sour
   await dragOff(13);await page.getByRole('button',{name:'Sell',exact:true}).click();await expect(page.locator('#modal')).toBeHidden();
   const sold=await saved(page);expect(sold.board[13]).toBeNull();expect(sold.coins).toBe(before.coins+data.economy.takeCost);
   await expect(page.locator('#status')).toContainText(`Sold ${data.items.grain_1.name} for ${data.economy.takeCost} coin`);
-  await dragOff(1);await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(sold);
+  const from=(await tile(page,14).boundingBox())!,tab=(await source(page,'grain').boundingBox())!;
+  await page.mouse.move(from.x+from.width/2,from.y+from.height/2);await page.mouse.down();await page.mouse.move(tab.x+tab.width/2,tab.y+tab.height/2,{steps:8});await page.mouse.up();
+  await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(sold);
 });
 
 test('a second pointer during a drag leaves no ghost behind',async({page})=>{
@@ -906,7 +902,7 @@ test('a valid save from another tab restores play after load recovery',async({pa
   const other=await context.newPage();await other.goto('./');
   await other.evaluate(({key,text})=>localStorage.setItem(key,text),{key:KEY,text:serialize(checkpoint(9))});
   await expect(page.locator('#modal')).not.toBeVisible();await expect(page.locator('#status')).toContainText('another tab');
-  const before=await saved(page);await tile(page,31).click();
+  const before=await saved(page);await source(page,'herbs').click();
   expect((await saved(page)).board.filter(Boolean).length).toBe(before.board.filter(Boolean).length+1);await other.close();
 });
 
@@ -932,7 +928,7 @@ for(const writer of ['this tab','another tab'] as const)test(`a corrupt live sav
       await expect(page.locator('html')).toHaveAttribute('data-live-save-changed','');
       await expect(page.getByRole('button',{name:'Retry saved game',exact:true})).toBeVisible();await page.keyboard.press('Escape');
     }
-    await tile(page,31).click();
+    await source(page,'herbs').click();
     await page.evaluate(key=>navigator.locks.request(key,()=>{}),KEY);
     expect(await page.locator('#board button').evaluateAll(cells=>cells.map(cell=>cell.getAttribute('aria-label')))).toEqual(before);
     expect(await page.evaluate(key=>localStorage.getItem(key),KEY)).toBe('broken-live-save');
@@ -949,17 +945,17 @@ for(const writer of ['this tab','another tab'] as const)test(`a corrupt live sav
       await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(await newGame(page));
     }
     // Start again opens the prologue, whose first board has the bean sacks.
-    const recovered=await saved(page),source=other?31:recovered.board.findIndex(cell=>cell?.code==='generator_beans');await tile(page,source).click();
+    const recovered=await saved(page);await source(page,other?'herbs':'beans').click();
     expect((await saved(page)).board.filter(Boolean)).toHaveLength(recovered.board.filter(Boolean).length+1);
     await options(page);await expect(page.getByRole('button',{name:'Retry saved game',exact:true})).toHaveCount(0);
   }finally{await other?.close();}
 });
 
 test('a previous-format campaign stays untouched beside a new campaign',async({page})=>{
-  // The previous format: its own key and envelope, and state version 17.
-  const oldKey='scary-snacks-save-v16';expect(KEY).toBe('scary-snacks-save-v17');
+  // The previous format: its own key and envelope, and state version 18.
+  const oldKey='scary-snacks-save-v17';expect(KEY).toBe('scary-snacks-save-v18');
   const earlier=checkpoint(0);
-  const old=JSON.stringify({format:'scary-snacks',version:16,state:{...earlier,version:17}});
+  const old=JSON.stringify({format:'scary-snacks',version:17,state:{...earlier,version:18}});
   await page.addInitScript(({key,value})=>{
     if(!sessionStorage.getItem('previous-save-seeded')){
       localStorage.setItem(key,value);sessionStorage.setItem('previous-save-seeded','true');
@@ -1070,12 +1066,13 @@ test('phone shows the room, the tickets, the board and Mara in one screen, with 
 test('desktop first screen shows the uncovered room beside the tickets, the whole board, Mara, the story and the recipe book',async({page},testInfo)=>{
   for(const viewport of [{width:1440,height:900},{width:1280,height:800},{width:1920,height:1080}]){
     await page.setViewportSize(viewport);await start(page,checkpoint(0));await expect(page.locator('#tickets .ticket')).toHaveCount(4);
-    const room=(await page.locator('#room-stage').boundingBox())!;expect([room.x,room.y,room.height]).toEqual([0,0,viewport.height]);expect(room.width).toBeGreaterThanOrEqual(viewport.width*.5-1);
+    const room=(await page.locator('#room-stage').boundingBox())!;expect([room.x,room.y,room.height]).toEqual([0,0,viewport.height]);expect(room.width).toBeCloseTo(Math.min(viewport.width*.5,viewport.height*.75),0);
     for(const selector of ['.masthead','#drawer']){const box=(await page.locator(selector).boundingBox())!;expect(box.x,`${selector} beside the room`).toBeGreaterThanOrEqual(room.x+room.width);}
     const first=['.tickets','#board','.mara-line','#story','#collection-button'];
     for(const selector of first){const box=(await page.locator(selector).boundingBox())!;expect(box.y+box.height,`${selector} at ${viewport.width}`).toBeLessThanOrEqual(viewport.height);}
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-    expect((await tile(page,0).boundingBox())!.width).toBeGreaterThanOrEqual(44);
+    // Only the width of the kitchen beside the source tab takes a cell below 44px.
+    expect((await tile(page,0).boundingBox())!.width).toBeGreaterThanOrEqual(40);
     await page.screenshot({path:testInfo.outputPath(`desktop-first-screen-${viewport.width}.png`)});
   }
   await page.setViewportSize({width:1440,height:900});
@@ -1118,10 +1115,11 @@ test('the skip link lands on the board without scrolling, and the board is one t
   // Escape clears a selection and Mara names the move gesture again.
   await tile(page,13).focus();await page.keyboard.press('Enter');await expect(tile(page,13)).toHaveAttribute('aria-pressed','true');
   await page.keyboard.press('Escape');await expect(page.locator('#board [aria-pressed="true"]')).toHaveCount(0);await expect(page.locator('#status')).toHaveText('Tap an item, then tap where it should go.');
-  // Sources say what they are, and their badge is drawn, not typed.
-  await expect(page.locator('#board [aria-label*="source of"]').first()).toBeVisible();await expect(page.locator('#board .source-mark').first()).toBeVisible();
-  // The only words on the board are the take costs of the paid sources, which the labels already say.
-  expect(await page.locator('#board').evaluate(e=>[...e.querySelectorAll('.cell')].map(cell=>{const copy=cell.cloneNode(true) as Element;for(const badge of copy.querySelectorAll('[aria-hidden="true"].take-cost'))badge.remove();return copy.textContent;}).join(''))).toBe('');
+  // Sources say what they are, and they are never on the board.
+  await expect(page.locator('#sources [aria-label*="source of"]').first()).toBeVisible();await expect(page.locator('#board [aria-label*="source of"]')).toHaveCount(0);
+  // The board has no words, and the only words in the source tab are the take costs of the paid sources, which the labels already say.
+  expect(await page.locator('#board').evaluate(e=>e.textContent)).toBe('');
+  expect(await page.locator('#sources').evaluate(e=>{const copy=e.cloneNode(true) as Element;for(const badge of copy.querySelectorAll('[aria-hidden="true"].take-cost'))badge.remove();return copy.textContent;})).toBe('');
 });
 
 test('dialogs hold focus on the safe choice, on the title, and on the story buttons',async({page})=>{
@@ -1146,15 +1144,15 @@ test('a second tab takes up the progress saved in the first instead of overwriti
   const first=await context.newPage();await start(first);const second=await context.newPage();await start(second);
   await mergeFlour(first);
   await expect(second.locator('#status')).toContainText('another tab');await expect(tile(second,13)).toHaveAttribute('aria-label',/: empty$/);
-  const source=(await saved(second)).board.findIndex(cell=>cell?.code==='generator_herbs');await tile(second,source).click();await tile(second,source).click();
+  await source(second,'herbs').click();await source(second,'herbs').click();
   const state=await saved(second);expect(state.board[14]?.code).toBe('grain_2');expect(state.board.filter(cell=>cell?.code==='herbs_1')).toHaveLength(3);
   await second.getByRole('button',{name:/The recipe book/}).click();await expect(second.getByRole('dialog')).toBeVisible();
-  await tile(first,source).click();await tile(first,source).click();await expect(second.getByRole('dialog')).toBeHidden();
+  await source(first,'herbs').click();await source(first,'herbs').click();await expect(second.getByRole('dialog')).toBeHidden();
   // Each take is its own save, so wait for the second tab to show both before the drag measures a cell.
   const settled=await saved(first);
   await expect(second.locator('#board .cell:not(.empty):not(.obstacle)')).toHaveCount(settled.board.filter(Boolean).length);
   const box=(await tile(second,14).boundingBox())!;await second.mouse.move(box.x+box.width/2,box.y+box.height/2);await second.mouse.down();await second.mouse.move(box.x+box.width/2+30,box.y+box.height/2+30,{steps:3});
-  await expect(second.locator('.drag-ghost')).toHaveCount(1);await tile(first,source).click();await expect(second.locator('.drag-ghost')).toHaveCount(0);await second.mouse.up();
+  await expect(second.locator('.drag-ghost')).toHaveCount(1);await source(first,'herbs').click();await expect(second.locator('.drag-ghost')).toHaveCount(0);await second.mouse.up();
 });
 
 test('a kitchen that cannot load offers to try again',async({page})=>{
@@ -1218,8 +1216,8 @@ test('narrow phones keep the whole dish name in the strip, and short screens kee
     else await expect(page.locator('#item-detail .detail-next')).toBeVisible();
     await expect(page.locator('#status')).toHaveText(line);
     expect((await page.locator('#item-detail').boundingBox())!.y+(await page.locator('#item-detail').boundingBox())!.height).toBeLessThanOrEqual((await page.locator('.phone-bar').boundingBox())!.y+1);
-    // Cells never drop below 44px, within half a pixel of rounding.
-    expect((await tile(page,0).boundingBox())!.width).toBeGreaterThanOrEqual(43.5);
+    // Cells drop below 44px only as far as the width needs for the board and the source tab, within half a pixel of rounding.
+    expect((await tile(page,0).boundingBox())!.width).toBeGreaterThanOrEqual(Math.min(43.5,(width-42)/7.75-.5));
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   }
   // Down to 740px tall the room gives up height, so the board and Mara's line still fit above the bar without scrolling.
@@ -1290,12 +1288,11 @@ test('a recipe guide can be stopped with Escape and does not survive a replaced 
 
 test('a full board rejects a guided take without ending the dish guide',async({page})=>{
   const initial=checkpoint(0);
-  initial.board=initial.board.map((cell,index)=>unresolvedObstacle(initial,index,data)?null:cell&&data.items[cell.code].generator?cell:{code:'grain_6'});
+  initial.board=initial.board.map((cell,index)=>unresolvedObstacle(initial,index,data)?null:{code:'grain_6'});
   know(initial,'grain_6');
   await start(page,initial);await ticket(page,quest('sorin-first-ride')).locator('.ticket-face').click();
   await page.getByRole('button',{name:'Find the next step for Dough on the board'}).click();
-  const source=initial.board.findIndex(cell=>cell?.code==='generator_grain');
-  await tile(page,source).click();
+  await source(page,'grain').click();
   await expect(page.locator('#status')).toHaveText('The board is full. No delivery or merge can free space for Dough.');
   await expect(page.getByRole('button',{name:'Stop guide for Dough'})).toBeVisible();
   expect(await saved(page)).toEqual(initial);
@@ -1335,21 +1332,21 @@ test('a delayed storage event cannot let a stale action overwrite another tab',a
   await mergeFlour(first);const newer=await saved(first);
   await expect(tile(second,14)).toHaveAttribute('aria-label',/: Flour$/);
   // The first tap finds the newer progress and is cancelled, so it takes nothing.
-  await tile(second,31).click();
+  await source(second,'herbs').click();
   await expect(second.locator('#status')).toContainText('another tab');expect(await saved(second)).toEqual(newer);
   await expect(tile(second,14)).toHaveAttribute('aria-label',/: Dough$/);
   // The next deliberate action applies to the updated board.
-  await tile(second,31).click();await tile(second,31).click();const after=await saved(second);expect(after.board[14]?.code).toBe('grain_2');expect(after.board[2]?.code).toBe('herbs_1');
+  await source(second,'herbs').click();await source(second,'herbs').click();const after=await saved(second);expect(after.board[14]?.code).toBe('grain_2');expect(after.board[1]?.code).toBe('herbs_1');
 });
 
 test('game writes wait for the shared save lock and recheck progress before changing it',async({context})=>{
   const first=await context.newPage();await start(first);const second=await context.newPage();await start(second);
-  await tile(first,31).click();await tile(second,31).click();const before=await saved(first);
+  await source(first,'herbs').click();await source(second,'herbs').click();const before=await saved(first);
   await first.evaluate(key=>{void navigator.locks.request(key,()=>new Promise<void>(resolve=>{
     document.documentElement.dataset.saveLocked='true';window.addEventListener('release-save-lock',()=>resolve(),{once:true});
   }));},KEY);
   await expect(first.locator('html')).toHaveAttribute('data-save-locked','true');
-  await tile(first,31).click();await tile(second,31).click();expect(await saved(first,false)).toEqual(before);
+  await source(first,'herbs').click();await source(second,'herbs').click();expect(await saved(first,false)).toEqual(before);
   await first.evaluate(()=>window.dispatchEvent(new Event('release-save-lock')));
   await expect.poll(async()=> (await saved(first)).board.filter(Boolean).length).toBe(before.board.filter(Boolean).length+1);
   await expect(second.locator('#status')).toContainText('another tab');

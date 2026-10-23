@@ -1,7 +1,7 @@
 // The prologue in the browser: the first event, the change of event, the deferred scenes, the wait at event 7, the family kitchen, Miez, and the start of act 1.
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { KEY, act, data, forward, journal, painting, prologueAt, readNow, saved, start, startNewGame, story, supply, tile, unselect } from './support.ts';
+import { KEY, act, data, forward, journal, painting, prologueAt, readNow, saved, start, startNewGame, story, supply, tile, unselect , source  } from './support.ts';
 
 const events = data.prologue.events;
 const title = (page: Page) => page.locator('#modal-title');
@@ -42,8 +42,7 @@ test('a new game opens the funeral scene at once, shows the date without coins o
   await expect.poll(async () => (await saved(page)).completedQuests).toEqual([first.id]);
   expect((await saved(page)).coins).toBe(0);
   // Four free takes and four merges make the Bean dip. The last delivery of the event opens its closing scene at once.
-  const sacks = (await cells(page, 'generator_beans'))[0];
-  for (let take = 0; take < 4; take++) await tile(page, sacks).click();
+  for (let take = 0; take < 4; take++) await source(page, 'beans').click();
   await expect.poll(async () => (await cells(page, 'beans_1')).length).toBe(4);
   await page.keyboard.press('Escape');
   await merge(page, 'beans_1'); await merge(page, 'beans_1'); await merge(page, 'beans_2'); await merge(page, 'beans_3');
@@ -85,7 +84,7 @@ test('each event shows its painted state of the family kitchen, and the room kee
   const expected = ['family-kitchen-mourning', 'family-kitchen-christmas', 'family-kitchen-christmas', 'family-kitchen-new-year', 'family-kitchen-new-year', 'family-kitchen-mourning', 'family-kitchen-farewell'];
   await start(page, prologueAt(1));
   for (const [index, room] of expected.entries()) {
-    if (index) await page.evaluate(([key, value]) => localStorage.setItem(key, value), [KEY, JSON.stringify({ format: 'scary-snacks', version: 17, state: prologueAt(index + 1) })]), await page.reload();
+    if (index) await page.evaluate(([key, value]) => localStorage.setItem(key, value), [KEY, JSON.stringify({ format: 'scary-snacks', version: 18, state: prologueAt(index + 1) })]), await page.reload();
     await expect.poll(() => painting(page)).toMatch(new RegExp(`^${room}-`));
     await expect(page.locator('#room-frame')).toHaveAttribute('data-current', room);
     await expect(page.locator('.window-weather')).toBeHidden();
@@ -174,7 +173,7 @@ test('prepared prologue dishes keep their board counts and usable guidance witho
   await page.getByRole('dialog').getByRole('button', { name: 'Cozonac', exact: true }).click();
   await expect(page.getByRole('dialog')).toContainText('You have none yet.');
   await page.getByRole('button', { name: 'Show me on the board' }).click();
-  await expect(tile(page, 3)).toBeFocused();
+  await expect(source(page, 'fruits')).toBeFocused();
   await expect(page.locator('#status')).toHaveText('Tap the Cornucopia to take Plums for Cozonac, free.');
 });
 
