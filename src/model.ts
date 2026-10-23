@@ -253,6 +253,7 @@ export type GameState = {
 export type Action =
   | { type: 'move'; from: number; to: number }
   | { type: 'spawn'; index: number }
+  | { type: 'sell'; index: number }
   | { type: 'deliverQuest'; id: string }
   | { type: 'lantern'; id: string }
   | { type: 'seeNight' }
@@ -467,9 +468,12 @@ export function menuPrice(code: string, data: GameData, stage = 0): number {
 /** The menu value of a quest at a garden stage: the sum of the prices of its portions. */
 export const menuValue = (quest: Pick<Quest, 'requirements'>, data: GameData, stage = 0) =>
   quest.requirements.reduce((sum, { item, quantity }) => sum + menuPrice(item, data, stage) * quantity, 0);
+/** The coins that the ingredients of a dish cost at their sources at a garden stage. A sale pays this price, so it makes no profit. */
+export const salePrice = (code: string, data: GameData, stage = 0) =>
+  [...dishParts(code, data).ingredients].reduce((cost, [chain, count]) => cost + count * chainTakeCost(chain, stage, data), 0);
 /** The coins that the ingredients of a quest cost at their sources at a garden stage. */
-export const stapleCost = (quest: Pick<Quest, 'requirements'>, data: GameData, stage = 0) => quest.requirements.reduce((sum, { item, quantity }) =>
-  sum + [...dishParts(item, data).ingredients].reduce((cost, [chain, count]) => cost + count * chainTakeCost(chain, stage, data), 0) * quantity, 0);
+export const stapleCost = (quest: Pick<Quest, 'requirements'>, data: GameData, stage = 0) =>
+  quest.requirements.reduce((sum, { item, quantity }) => sum + salePrice(item, data, stage) * quantity, 0);
 /** The reward of a delivery: a repeating quest and the recovery quest pay their menu value at the current garden stage. */
 export const questReward = (quest: Quest, state: Pick<GameState, 'taskIndex'>, data: GameData) =>
   quest.repeating || quest.recovery ? menuValue(quest, data, gardenStage(state.taskIndex, data)) : quest.reward;

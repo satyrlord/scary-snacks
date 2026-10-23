@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { freeBoardCells, menuPrice, pendingPreparationObstacles, unresolvedObstacle } from '../src/model.ts';
+import { freeBoardCells, menuPrice, pendingPreparationObstacles, salePrice, unresolvedObstacle } from '../src/model.ts';
 import { dataProblems, economyProblems } from '../src/content.ts';
-import { KEEP_FREE } from '../src/engine.ts';
+import { createGame, KEEP_FREE } from '../src/engine.ts';
 import type { GameData } from '../src/model.ts';
-import { act, addOpenLayout, checkpoint, data, openGame, player, rejected, status, know, recovery } from './support.ts';
+import { act, actOne, addOpenLayout, checkpoint, data, openGame, player, rejected, status, know, recovery } from './support.ts';
 
 addOpenLayout();
 
@@ -129,4 +129,29 @@ test('authored economy rejects missing, malformed, unsupported, or inconsistent 
     assert.ok(economyProblems(content).length, String(mutate));
     assert.ok(dataProblems(content).length, String(mutate));
   }
+});
+
+test('a sold dish leaves the board and pays back the take costs of its ingredients at the current garden stage, so a sale makes no profit', () => {
+  for (const item of Object.values(data.items)) if (!item.generator) assert.equal(salePrice(item.id, data), formula(item.id).staples * data.economy.takeCost, item.id);
+  // The Vegetable crate is free from garden stage 1, so its dishes then sell for nothing, also where the menu counts the garden value.
+  assert.deepEqual([0, 1, 2, 3].map(stage => salePrice('vegetables_3', data, stage)), [4 * data.economy.takeCost, 0, 0, 0]);
+  const state = openGame(), flour = act(state, { type: 'sell', index: 13 });
+  assert.equal(flour.board[13], null);
+  assert.equal(flour.coins, state.coins + data.economy.takeCost);
+  assert.equal(act(state, { type: 'sell', index: 27 }).coins, state.coins, 'Elderflowers from the free Herb basket sell for nothing.');
+  const tea = act(state, { type: 'sell', index: 32 });
+  assert.equal(tea.board[32], null);
+  assert.equal(tea.coins, state.coins);
+});
+
+test('a sale refuses a source, an empty space, a blocked space, and the prologue, and changes nothing', () => {
+  const state = openGame();
+  assert.match(rejected(state, { type: 'sell', index: 1 }).message, /source stays on the board/);
+  rejected(state, { type: 'sell', index: 0 });
+  const blocked = actOne(), at = blocked.board.findIndex((_, index) => unresolvedObstacle(blocked, index, data));
+  assert.ok(at >= 0);
+  rejected(blocked, { type: 'sell', index: at });
+  const prologue = createGame(data, 1), dish = prologue.board.findIndex(cell => cell && !data.items[cell.code].generator);
+  assert.ok(dish >= 0);
+  assert.match(rejected(prologue, { type: 'sell', index: dish }).message, /from act 1/);
 });

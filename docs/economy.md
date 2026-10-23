@@ -157,6 +157,7 @@ The table gives the prices before garden stage 1. The seasonal chains and the fo
 ## Quest rewards
 
 Quests and cleared blockers are the only income.
+A sale of a dish pays back only the take costs of its ingredients at the current garden stage, so it earns nothing. For example, Bulz sells for 16 coins.
 Every quest except a finale quest and the piper's fee pays its menu value: the sum of the prices of its portions.
 So a delivery repays the ingredients of its dishes and earns the work rate for each merge. The supper, the feast, and the piper's fee pay nothing.
 A campaign quest of act 2 pays its menu value at the garden stage of the preparation after which it opens. A repeating quest and the recovery quest pay their menu value at the current garden stage.

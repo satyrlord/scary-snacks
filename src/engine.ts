@@ -1,5 +1,5 @@
 // The deterministic rules of the bistro game: the new game, the actions, and the acceptance of an untrusted save.
-import { actOf, arrivalScene, availableChains, boardLayout, boardObstacles, canDeliverQuest, canLightLanterns, chainSeason, clockMinutes, clockText, currentEvent, cycleMember, dateText, decorationUnlocked, deliveriesSince, dayMerges, dishOpen, earnedObstacles, earnedPrologue, earnedScenes, eventComplete, eventDishes, eveningOpen, finaleQuest, findQuest, firstFreeBoardCell, fixedBooking, freeBoardCells, gardenStage, getItem, holdOf, holding, holdsDay, integer, isSunday, levers, looseRaw, looseRawCells, marchOpens, mergePartners, mergeResult, own, pendingPreparationObstacles, playable, prerequisitesMet, present, prologueQuests, prologueScenes, questDeliveryCells, questEvent, questFinale, questHoliday, questPredecessors, questReward, released, requiredQuests, resolveChapters, resolveQuests, seasonPaid, sourceCell, sourceNeeded, storyOrder, supperComplete, takeCost, taskEligibility, ticketNote, unresolvedObstacle } from './model.ts';
+import { actOf, arrivalScene, availableChains, boardLayout, boardObstacles, canDeliverQuest, canLightLanterns, chainSeason, clockMinutes, clockText, currentEvent, cycleMember, dateText, decorationUnlocked, deliveriesSince, dayMerges, dishOpen, earnedObstacles, earnedPrologue, earnedScenes, eventComplete, eventDishes, eveningOpen, finaleQuest, findQuest, firstFreeBoardCell, fixedBooking, freeBoardCells, gardenStage, getItem, holdOf, holding, holdsDay, integer, isSunday, levers, looseRaw, looseRawCells, marchOpens, mergePartners, mergeResult, own, pendingPreparationObstacles, playable, prerequisitesMet, present, prologueQuests, prologueScenes, questDeliveryCells, questEvent, questFinale, questHoliday, questPredecessors, questReward, released, salePrice, requiredQuests, resolveChapters, resolveQuests, seasonPaid, sourceCell, sourceNeeded, storyOrder, supperComplete, takeCost, taskEligibility, ticketNote, unresolvedObstacle } from './model.ts';
 import type { Action, Cell, GameData, GameState, NightReport, Placed, Result } from './model.ts';
 
 /** At most this many preparation blockers wait on the board at one time. */
@@ -534,6 +534,20 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       message = made(next, code, name, cost ? `Took ${name} for ${cost} ${cost === 1 ? 'coin' : 'coins'}.` : `Took ${name}.`);
       break;
     }
+    case 'sell': {
+      const cell = itemAt(next, action.index);
+      const item = cell && getItem(cell.code, data);
+      if (!cell || !item || unresolvedObstacle(next, action.index, data)) return fail('Choose a dish to sell.');
+      if (item.generator) return fail('An ingredient source stays on the board.');
+      if (next.prologue) return fail('Dishes are sold from act 1.');
+      // A sale pays back the takes of the ingredients at the current garden stage, so it makes no profit.
+      const price = salePrice(cell.code, data, gardenStage(next.taskIndex, data));
+      if (!integer(next.coins + price, -1_000_000_000)) return fail('Spend some coins before you sell this dish.');
+      next.board[action.index] = null;
+      next.coins += price;
+      message = price ? `Sold ${item.name} for ${price} ${price === 1 ? 'coin' : 'coins'}.` : `Sold ${item.name}.`;
+      break;
+    }
     case 'task': {
       if (next.prologue) return fail('The preparations of the bistro start in act 1.');
       const eligibility = taskEligibility(next, data);
@@ -567,7 +581,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
     revealTickets(next, data);
     return { state: next, ok: true, message, event };
   }
-  if (['task', 'move', 'spawn', 'deliverQuest'].includes(action.type)) {
+  if (['task', 'move', 'spawn', 'sell', 'deliverQuest'].includes(action.type)) {
     for (const source of placeSeasonalSources(next, data)) message += ` The ${source} is on the board.`;
     const placed = placePreparationObstacles(next, data), batch = data.board.preparations.find(value => value.after === data.tasks[next.taskIndex - 1]?.id);
     if (action.type === 'task' && batch) message += ` ${batch.context}`;

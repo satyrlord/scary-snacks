@@ -1,11 +1,13 @@
-// The merge board: its spaces and blockers, the selected item and its actions under the board, and tap, drag, and keyboard play.
-import { freeBoardCells, gardenStage, mergePartners, mergeResult, pendingPreparationObstacles, takeCost, unresolvedObstacle } from './model.ts';
-import { $, button, either, element, names, pulse, status } from './dom.ts';
+// The merge board: its spaces and blockers, the selected item and its actions under the board, tap, drag, and keyboard play, and the
+// sale of a dish that a drag takes off the board.
+import { freeBoardCells, gardenStage, mergePartners, mergeResult, pendingPreparationObstacles, salePrice, takeCost, unresolvedObstacle } from './model.ts';
+import { $, button, coinText, either, element, names, pulse, status } from './dom.ts';
 import { blockerMark, clutterArt, coinMark, crossMark, food, sourceMark } from './art.ts';
 import { activeQuests } from './tickets.ts';
 import { guidanceGoal, guidanceStep, stopGuidance } from './dishes.ts';
 import { fitPin } from './room.ts';
-import { act, character, data, definition, itemName, matchingBlocker, onReplace, redraw, select, selected, sourceOutput, state, takePrice } from './session.ts';
+import { modal, showModal } from './dialog.ts';
+import { act, apply, changeGame, character, data, definition, itemName, matchingBlocker, onReplace, redraw, select, selected, sourceOutput, state, takePrice } from './session.ts';
 import { onMotionResume, phone } from './preferences.ts';
 
 // Mara's note when nothing is selected: the move gesture, in the same words as the other board guidance.
@@ -216,6 +218,15 @@ function findMatch() {
   if(index>=0){const code=state.board[index]!.code;select(index);redraw();status(`No matches yet. Tap the ${itemName(code)} to take ${sourceOutput(code)}.`);return;}
   status('No matches yet.');
 }
+/** A dish that a drag takes off the board asks before its sale. The safe choice holds focus, so a stray Enter keeps the dish. */
+function offerSale(index: number) {
+  const code=state.board[index]!.code,price=salePrice(code,data,gardenStage(state.taskIndex,data));
+  const keep=button('Keep it','secondary-button',()=>modal.close()),choice=element('div','settings-actions');
+  // The sale applies only to the same dish in the same space, so a board that changed meanwhile keeps it.
+  choice.append(button('Sell','primary-button',()=>{modal.close();changeGame(()=>{if(state.board[index]?.code===code)apply({type:'sell',index},null);});}),keep);
+  const confirm=element('div');confirm.append(element('p','modal-copy',`Are you sure you want to sell ${itemName(code)}, for ${coinText(price)}?`),choice);
+  showModal('Sell this dish?',confirm,keep);
+}
 function cancelDrag() { dragging?.ghost?.remove();dragging=null; }
 $('#board').addEventListener('pointerdown',event=>{
   const target=(event.target as Element).closest<HTMLElement>('[data-cell]');if(!target||event.button!==0)return;
@@ -231,8 +242,14 @@ window.addEventListener('pointermove',event=>{
 },{passive:false});
 window.addEventListener('pointerup',event=>{
   if(!dragging||dragging.id!==event.pointerId)return;
-  const from=dragging.index,moved=Boolean(dragging.ghost);const target=document.elementFromPoint(event.clientX,event.clientY)?.closest<HTMLElement>('[data-cell]');cancelDrag();
-  if(moved){ignoreClick=true;setTimeout(()=>ignoreClick=false,0);const to=target?Number(target.dataset.cell):from;if(to!==from){select(to);act({type:'move',from,to});}else{select(from);redraw();}}
+  const from=dragging.index,moved=Boolean(dragging.ghost),drop=document.elementFromPoint(event.clientX,event.clientY),target=drop?.closest<HTMLElement>('[data-cell]');cancelDrag();
+  if(!moved)return;
+  ignoreClick=true;setTimeout(()=>ignoreClick=false,0);
+  const to=target?Number(target.dataset.cell):from;if(to!==from){select(to);act({type:'move',from,to});return;}
+  select(from);redraw();
+  // A dish dropped anywhere off the board is offered for sale. Sources stay, and the prologue has no purse.
+  const cell=state.board[from];
+  if(!drop?.closest('#board')&&cell&&!definition(cell.code).generator&&!state.prologue)offerSale(from);
 });
 window.addEventListener('pointercancel',cancelDrag);window.addEventListener('blur',cancelDrag);document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelDrag();});
 $('#board').addEventListener('keydown',event=>{

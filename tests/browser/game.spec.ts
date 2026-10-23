@@ -798,6 +798,21 @@ test('Mara offers an affordable preparation with Pay on a phone; it pays once an
   expect(await saved(page)).toEqual(after);await expect(offer).toBeHidden();await expect(story).not.toHaveAttribute('data-ready');await expect(story).toHaveAccessibleName('Story');
 });
 
+test('a dish dragged off the board asks before its sale at no profit, and a source dragged off stays',async({page})=>{
+  await start(page);const before=await saved(page);
+  const dragOff=async(index: number)=>{const from=(await tile(page,index).boundingBox())!;
+    await page.mouse.move(from.x+from.width/2,from.y+from.height/2);await page.mouse.down();await page.mouse.move(40,500,{steps:8});await page.mouse.up();};
+  await dragOff(13);
+  await expect(page.locator('#modal-title')).toHaveText('Sell this dish?');
+  await expect(page.locator('#modal')).toContainText(`Are you sure you want to sell ${data.items.grain_1.name}, for ${data.economy.takeCost} coin?`);
+  await expect(page.getByRole('button',{name:'Keep it',exact:true})).toBeFocused();
+  await page.getByRole('button',{name:'Keep it',exact:true}).click();await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(before);
+  await dragOff(13);await page.getByRole('button',{name:'Sell',exact:true}).click();await expect(page.locator('#modal')).toBeHidden();
+  const sold=await saved(page);expect(sold.board[13]).toBeNull();expect(sold.coins).toBe(before.coins+data.economy.takeCost);
+  await expect(page.locator('#status')).toContainText(`Sold ${data.items.grain_1.name} for ${data.economy.takeCost} coin`);
+  await dragOff(1);await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(sold);
+});
+
 test('a second pointer during a drag leaves no ghost behind',async({page})=>{
   await start(page);const before=await saved(page);const from=(await tile(page,13).boundingBox())!;
   await page.mouse.move(from.x+from.width/2,from.y+from.height/2);await page.mouse.down();await page.mouse.move(from.x+from.width/2+40,from.y+from.height/2+40,{steps:4});
