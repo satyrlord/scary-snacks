@@ -295,4 +295,4 @@ The test prints the purse, the takes, the coins from blockers, and the free cell
 - A paid source shows its take cost on its tile: a coin mark and the figure. The Herb basket shows no take cost.
 - A cleared blocker adds the blocker coin to the merge notice, and the purse shows the gain.
 - The recovery ticket is a fourth column of the ticket row, with a dashed edge.
-- A ticket with more than four dishes shows its first three dishes and the count of the others. The supper ticket is an example. The supper dialog lists each plate with the name of its guest. Serve replaces Deliver.
+- A ticket with more than four dishes shows its first three dishes and the board count and required quantity of the other portions together. The supper ticket is an example. The supper dialog lists each plate with the name of its guest. Serve replaces Deliver.

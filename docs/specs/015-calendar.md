@@ -305,7 +305,7 @@ The cycle of spec 014 has seven repeating quests. Four are new. Three are season
 | `ana-pickles` | Ana | After `ana-mittens`, while the pickle barrel is on the board | 1 Pogăcele and 1 Mixed pickles | Pickles keep the night nurses awake. |
 | `ilie-lenten-bowl` | Ilie | After `ilie-cellar`, during Lent | 1 Green beans, 1 Mămăligă, and 1 Socată | A plain bowl for a fasting man. |
 | `victor-nettles` | Victor | After `victor-thesis`, while the forage basket is on the board | 1 Nettle soup, 1 Loaf, and 1 Linden tea | Nettles are good for the nerves, Victor read. |
-| `costel-tower-tea` | Costel | After the delivery of `costel-clock` | 1 Papanași and 2 Socată | Tea for the man who winds the church clock. |
+| `costel-tower-tea` | Costel | After the delivery of `costel-clock` | 1 Linden tea, 1 Fruit tea, and 1 Cozonac | Tea for the man who winds the church clock. |
 
 A repeating quest joins after the campaign quest that puts its dishes in the recipe book.
 

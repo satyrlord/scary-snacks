@@ -15071,19 +15071,23 @@
       "repeating": true,
       "requirements": [
         {
-          "item": "mixed_papanasi",
+          "item": "herbs_4",
           "quantity": 1
         },
         {
-          "item": "herbs_3",
-          "quantity": 2
+          "item": "mixed_fruit-tea",
+          "quantity": 1
+        },
+        {
+          "item": "mixed_cozonac",
+          "quantity": 1
         }
       ],
-      "reward": 28,
+      "reward": 35,
       "opening": [
         {
           "speaker": "costel",
-          "text": "The church clock wants winding again, and the tower stairs are long. Papanași and two socată, please: one for me and one for the clock. I drink both."
+          "text": "The church clock wants winding again, and the tower stairs are long. A linden tea, a fruit tea, and a slice of cozonac, please: one tea for me and one for the clock. I drink both."
         }
       ],
       "completion": []

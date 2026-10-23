@@ -118,7 +118,7 @@ test('clicking a different item selects it for single-item actions; only a drag 
 test('a ticket opens its quest, a dish row says how to get the dish, Show me points at the next step, and the story card shows Pay disabled',async({page})=>{
   await start(page);const dishes=ticket(page,welcome).locator('.ticket-face');
   const dish=data.items[welcome.requirements[0].item];
-  await expect(dishes).toHaveAccessibleName(`${welcome.title}: ${welcome.requirements.map(({item,quantity})=>`${quantity} ${data.items[item].name}, 0 on the board`).join('; ')}`);await dishes.click();
+  await expect(dishes).toHaveAccessibleName(`${welcome.title}: ${welcome.requirements.map(({item,quantity})=>`${quantity} ${data.items[item].name}, 0 on the board`).join('; ')}. Prepare`);await dishes.click();
   const dialog=page.getByRole('dialog',{name:welcome.title,exact:true});await expect(dialog.locator('.quest-person')).toHaveText('Mara');
   await dialog.getByRole('button',{name:`${welcome.requirements[0].quantity} ${dish.name}: 0 of ${welcome.requirements[0].quantity} on the board`,exact:true}).click();
   await expect(page.locator('#modal-title')).toHaveText(dish.name);await expect(page.locator('#modal .item-how')).toHaveText(/^(Tap the .+ to take .+|Merge two .+ to make .+)\.$/);
@@ -1028,7 +1028,7 @@ test('a phone ticket with two dishes is one 44px target, and each dish row of it
   await page.setViewportSize({width:360,height:740});await start(page);
   const dishes=ticket(page,two).locator('.ticket-face');await expect(dishes.locator('.ticket-item')).toHaveCount(2);
   const box=(await dishes.boundingBox())!;expect(Math.min(box.width,box.height)).toBeGreaterThanOrEqual(44);
-  await expect(dishes).toHaveAccessibleName(`${two.title}: ${two.requirements.map(({item,quantity})=>`${quantity} ${data.items[item].name}, 0 on the board`).join('; ')}`);
+  await expect(dishes).toHaveAccessibleName(`${two.title}: ${two.requirements.map(({item,quantity})=>`${quantity} ${data.items[item].name}, 0 on the board`).join('; ')}. Prepare`);
   for(const card of await page.locator('#tickets .ticket').all())for(const target of await card.getByRole('button').all())expect((await target.boundingBox())!.width).toBeGreaterThanOrEqual(44);
   await dishes.click();const dialog=page.getByRole('dialog',{name:two.title,exact:true});await expect(dialog).toBeVisible();
   for(const line of two.opening)await expect(dialog).toContainText(line.text);

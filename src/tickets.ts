@@ -99,7 +99,16 @@ export function renderTickets() {
     const booking = ticketNote(state, quest, data);
     words.append(element('span', 'ticket-name', person.name), booking ? element('span', 'ticket-title ticket-booking', booking) : element('span', 'ticket-title', quest.title));
     if (booking) face.setAttribute('aria-label', `${face.getAttribute('aria-label')}. ${booking}`);
-    // A long order, such as the supper, shows its first dishes and the count of the others; its dialog lists every plate.
+    // The phone status names the next action for the whole order. A later day takes precedence over prepared dishes.
+    const later = laterDay(state, quest, data), lanterns = canLightLanterns(state, quest, data);
+    const statusText = later ? 'Later' : ready ? serves(quest) ? 'Serve' : 'Deliver' : lanterns ? 'Light lanterns' : 'Prepare';
+    const status = element('span', `ticket-status${!later && (ready || lanterns) ? ' ready' : ''}`);
+    const mark = later ? moonMark() : !lanterns && awaitsLanterns(state, quest, data) ? lanternMark() : null;
+    if (mark) { const wait = element('span', 'ticket-wait'); wait.append(mark); status.append(wait); }
+    status.append(statusText);
+    face.setAttribute('aria-label', `${face.getAttribute('aria-label')}. ${statusText}`);
+    if (later) card.classList.add('later-ticket');
+    // A long order shows its first dishes and progress on the other portions; its dialog lists every plate.
     const shown = quest.requirements.length > 4 ? quest.requirements.slice(0, 3) : quest.requirements;
     const dishes = element('span', `ticket-items${quest.requirements.length > 2 ? ' many' : ''}`);
     for (const { item, quantity } of shown) {
@@ -108,8 +117,16 @@ export function renderTickets() {
       value.append(element('span', `ticket-count${quantity === 1 ? ' single-portion' : ''}`, `${onBoard(item, quantity)}/${quantity}`));
       dishes.append(value);
     }
-    if (shown.length < quest.requirements.length) dishes.append(element('span', 'ticket-item ticket-more', `+${quest.requirements.length - shown.length}`));
-    face.append(picture, words, dishes);
+    if (shown.length < quest.requirements.length) {
+      const hidden = questDeliveryCells(state, quest).slice(shown.reduce((total, requirement) => total + requirement.quantity, 0));
+      const have = hidden.filter(index => index >= 0).length, more = element('span', `ticket-item ticket-more${have === hidden.length ? ' ready' : ''}`);
+      const progress = `${have} of ${hidden.length} additional portions on the board`;
+      more.setAttribute('aria-label', progress);
+      face.setAttribute('aria-label', `${face.getAttribute('aria-label')}. ${progress}`);
+      more.append(element('span', 'ticket-count', `${have}/${hidden.length}`), element('span', 'ticket-more-label', 'more'));
+      dishes.append(more);
+    }
+    face.append(picture, words, dishes, status);
     // Wider screens deliver from the counter. Phone tickets keep their names and counts, and open the dialog to deliver.
     const deliverButton = button('', 'primary-button deliver-button', () => deliver(quest));
     if (guided?.ticket === quest.id) deliverButton.classList.add('guide-target');
@@ -243,7 +260,6 @@ function showQuest(quest: Quest) {
   deliverButton.setAttribute('aria-label',serves(quest)?`Serve ${quest.title}`:`Deliver ${quest.title} for ${coinText(reward)}`);deliverButton.disabled=!canDeliverQuest(state,quest,data);
   // A quest that waits for its time says when, and the lanterns or Later take the place of Deliver.
   const name=character(quest.character).name,wait=waitText(quest,name);
-  if(wait)content.append(element('p','quest-booking',wait));
   const control=waitControl(quest,name);
   control?.addEventListener('click',()=>modal.close());
   const actions=element('div','quest-actions');actions.append(control??deliverButton);
@@ -251,7 +267,16 @@ function showQuest(quest: Quest) {
   const pay=quest.finale?`${finaleMeal(quest)[0].toUpperCase()}${finaleMeal(quest).slice(1)} pays nothing. Serving it opens the finale.`
     :quest.piper?`The piper’s fee pays nothing. His tune keeps the thief rats away for ${count.format(PIPER_NIGHTS)} Sunday nights.`
     :serves(quest)?'A family meal pays nothing.':`Reward: ${coinText(reward)}`;
-  content.append(requirements,element('p','quest-reward',pay),actions,
-    element('p','quest-note',quest.finale?'One plate for each guest, to each one’s taste. There is no deadline.':quest.recovery?'Ana returns while the purse runs low. Herbs from the Herb basket are free.':'Delivery uses dishes on the board. There is no deadline.'));
+  const rewardText=element('p','quest-reward',pay),bookingText=wait?element('p','quest-booking',wait):null;
+  // An available action comes before the art and story, with its reward and timing. There is only one action control.
+  if(!(control??deliverButton).disabled){
+    const ready=element('div','quest-ready');ready.append(actions,rewardText);
+    if(bookingText)ready.append(bookingText);
+    head.after(ready);content.append(requirements);
+  }else{
+    if(bookingText)content.append(bookingText);
+    content.append(requirements,rewardText,actions);
+  }
+  content.append(element('p','quest-note',quest.finale?'One plate for each guest, to each one’s taste. There is no deadline.':quest.recovery?'Ana returns while the purse runs low. Herbs from the Herb basket are free.':'Delivery uses dishes on the board. There is no deadline.'));
   showModal(quest.title,content);
 }

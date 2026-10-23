@@ -236,7 +236,10 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .ticket-items.many .ticket-item { width: 34px; }.ticket-items.many .food { width: 30px; height: 30px; }
 /* The recovery quest is an offer, not a campaign quest: its ticket has a dashed edge. */
 .recovery-ticket { grid-column: -2; border-style: dashed; }
-.ticket-more { color: var(--muted); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ticket-more { display: flex; flex-direction: column; justify-content: center; gap: 2px; color: var(--muted); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ticket-more .ticket-count { position: static; translate: none; }
+.ticket-more-label { font-size: 10px; line-height: 12px; }
+.ticket-more.ready::after { display: none; }
 .tickets-empty { grid-column: 1 / -1; margin: 0; padding: 12px; color: var(--muted); font-size: 13px; text-align: center; }
 .ticket-row:has(.recovery-ticket) .tickets-empty { grid-column: 1 / -2; }
 /* After the last dish of the prologue, the counter carries Read now beside its line. */
@@ -247,6 +250,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .deliver-button.guide-target { outline: 2px dotted color-mix(in srgb, var(--muted) 50%, transparent); outline-offset: -4px; }
 /* A booked ticket gives its evening in the place of the title. Before the booking time, the lanterns take the place of Deliver. */
 .ticket-booking { color: var(--muted); }
+.ticket-status { display: none; }
 .lantern-mark,.moon-mark { width: 16px; height: 16px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .quest-booking { font-weight: 600; }
 .deliver-button.guide-target:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
@@ -507,6 +511,9 @@ dialog:has(.quest-page-content) {
 .quest-reward { margin: 12px 0 8px; color: var(--gold); font-weight: 600; font-size: 14px; }
 .quest-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .quest-actions>button { flex: 1 1 auto; }
+.quest-ready { margin-bottom: 18px; }
+.quest-ready .quest-reward { margin: 8px 0 0; }
+.quest-ready .quest-booking { margin: 6px 0 0; font-size: 13px; line-height: 1.6; }
 .quest-journal { padding: 14px 0; border-top: 1px solid var(--line); }
 .quest-journal .journal-entry { width: 100%; }
 .chapter-journal { display: flex; flex-direction: column; gap: 8px; padding: 14px 0; border-top: 1px solid var(--line); }
@@ -649,19 +656,19 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   /* Phones stack the day over the time, so the masthead keeps room for the coins. */
   .day-clock { font-size: 12px; }.clock-face { display: grid; justify-items: end; }.clock-dot { display: none; }
   .game-layout {
-    --gap: 3px; --runner-h: 8px; --drawer-chrome: calc(160px + var(--prologue-space, 0px) + var(--feedback-space, 0px)); --frame-w: 100cqw;
+    --gap: 3px; --runner-h: 8px; --ticket-h: 74px; --drawer-chrome: calc(102px + var(--ticket-h) + var(--prologue-space, 0px) + var(--feedback-space, 0px)); --frame-w: 100cqw;
     --cell: clamp(44px, min(calc((100vw - 40px) / 6), calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7)), 60px);
     --drawer-h: calc(var(--cell) * 7 + 18px + var(--drawer-chrome));
     --view-base: calc(100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-h));
     /* Lowered, the drawer shows the whole painting and keeps its tickets in view. */
-    --drop-full: max(0px, calc(min(100vw * 4 / 3, 100dvh - var(--head-h) - var(--bar-h) - var(--safe) - 68px - var(--prologue-space, 0px)) - var(--view-base)));
+    --drop-full: max(0px, calc(min(100vw * 4 / 3, 100dvh - var(--head-h) - var(--bar-h) - var(--safe) - 18px - var(--ticket-h) - var(--prologue-space, 0px)) - var(--view-base)));
     --view-h: calc(var(--view-base) + var(--drawer-drop));
     transition: --drawer-drop .6s cubic-bezier(.65,0,.35,1);
   }
   .game-layout:is(.lowered,.revealing) { --drawer-drop: var(--drop-full); }
   .game-layout:has(.action-feedback) { --feedback-space: 24px; }
   /* The wrapped final-scene counter needs room above the board and must stay visible when the drawer lowers. */
-  .game-layout:has(.prologue-wait) { --prologue-space: 40px; }
+  .game-layout:has(.prologue-wait) { --ticket-h: 58px; --prologue-space: 40px; }
   .room { position: fixed; z-index: 0; inset: var(--head-h) 0 0; }
   .drawer { position: fixed; z-index: 10; inset: auto 0 calc(var(--bar-h) + var(--safe)); height: var(--drawer-h); translate: 0 var(--drawer-drop); display: flex; flex-direction: column; border-radius: var(--dialog-radius) var(--dialog-radius) 0 0; box-shadow: 0 -8px 12px -6px #1a0f0a73; }
   .drawer>:not(.drawer-handle),.drawer-body>* { width: min(100%, 560px); margin-inline: auto; }
@@ -671,12 +678,18 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   .drawer-handle:focus-visible { outline-offset: -3px; }
   .tickets { flex: none; padding: 14px 8px 4px; }
   .ticket-row { gap: 6px; }
-  .ticket { height: 58px; padding: 2px 3px; }
+  .ticket { height: var(--ticket-h); padding: 2px 3px; }
   /* One full-width target leaves room for the neighbour and every visible portion count. Delivery stays in the quest dialog. */
   .ticket-face { position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; min-width: 44px; }
   .ticket-words { display: block; width: 100%; padding-left: 20px; }
   .ticket-name { display: block; font-size: 12px; line-height: 16px; }
   .ticket-title { display: none; }
+  /* The whole order has a text status. Only food art dims for a later day; counts keep their contrast. */
+  .ticket-status { display: flex; flex: none; align-items: center; justify-content: center; gap: 2px; width: 100%; height: 16px; margin-top: auto; color: var(--muted); font-size: 11px; line-height: 16px; white-space: nowrap; }
+  .ticket-status.ready { color: var(--ready); font-weight: 600; }
+  .ticket-wait { display: flex; flex: none; }
+  .ticket-wait svg { display: block; width: 12px; height: 12px; }
+  .later-ticket .ticket-items .food { opacity: .55; }
   .ticket .portrait { position: absolute; left: 0; top: 0; width: 16px; height: 16px; }
   .ticket-items,.ticket-items.many { display: flex; justify-content: center; width: 100%; min-width: 0; gap: 0; }
   .ticket-items .ticket-item,.ticket-items.many .ticket-item { flex: 1 1 0; min-width: 0; max-width: 36px; width: auto; height: 36px; align-content: start; }
@@ -684,12 +697,13 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   .ticket-count,.ticket-count.single-portion { display: block; left: 50%; bottom: 0; translate: -50% 0; padding: 0 1px; line-height: 12px; }
   .ticket-item.ready .ticket-count { color: var(--ready); }
   .ticket-item.ready::after { display: none; }
-  .ticket-items.many .ticket-more { align-content: center; font-size: 12px; }
+  .ticket-items.many .ticket-more { align-content: center; gap: 0; }
+  .ticket-more-label { line-height: 10px; }
   .ticket>.deliver-button { display: none; }
   .ticket-face:has(~ .guide-target) { outline: 2px dotted color-mix(in srgb, var(--muted) 50%, transparent); outline-offset: -2px; }
   .ticket-face:has(~ .guide-target):focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
   /* The line is as tall as a ticket, so the board stays still when a ticket replaces it. */
-  .tickets-empty { display: grid; place-items: center; min-height: 58px; padding: 0 12px; }
+  .tickets-empty { display: grid; place-items: center; min-height: var(--ticket-h); padding: 0 12px; }
   .prologue-wait { display: flex; padding-block: 6px; }
   /* The source mark holds the lower corner of a small tile, so the cost of a take sits in the upper corner. */
   .take-cost { top: 2px; bottom: auto; left: 2px; }
@@ -725,6 +739,7 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
 @media (max-width: 410px) { .header-controls:has(.long) { flex-direction: column; align-items: end; gap: 0; }.header-controls:has(.long) .clock-face { display: block; }.header-controls:has(.long) .clock-dot { display: inline; } }
 @media (max-width: 359px) { .header-controls { flex-direction: column; align-items: end; gap: 0; }.clock-face { display: block; }.clock-dot { display: inline; } }
 @media (max-width: 410px) { .tickets:has(.recovery-ticket) { padding-inline: 4px; }.ticket-row:has(.recovery-ticket) { gap: 4px; } }
+@media (max-width: 410px) { .ticket-row:has(.recovery-ticket) .ticket-status { font-size: 10px; }.ticket-row:has(.recovery-ticket) .ticket-wait svg { width: 10px; height: 10px; } }
 /* Narrow phones give the strip's words the room: a smaller dish, and below 361px no dish at all. */
 @media (max-width: 410px) { .detail-head .food { width: 34px; height: 34px; } }
 @media (max-width: 360px) { .detail-head .food,.detail-next { display: none; }.item-actions button { padding-inline: 9px; } }
@@ -733,12 +748,17 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
 /* A fourth dish keeps its own count even on the narrowest phone. */
 @media (max-width: 359px) {
   .game-layout:has(.prologue-wait) { --prologue-space: 64px; }
-  .game-layout:has(.ticket-items>:nth-child(4)) { --drawer-chrome: calc(176px + var(--feedback-space, 0px)); }
-  .tickets:has(.ticket-items>:nth-child(4)) .ticket { height: 74px; }
+  .game-layout:has(.ticket-items>:nth-child(4)) { --ticket-h: 90px; }
   .ticket-items:has(>:nth-child(4)) { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
   .ticket-items:has(>:nth-child(4)) .ticket-item { display: flex; align-items: center; justify-content: center; max-width: none; height: 26px; }
   .ticket-items:has(>:nth-child(4)) .food { width: 16px; height: 16px; }
   .ticket-items:has(>:nth-child(4)) .ticket-count { position: static; translate: none; }
+}
+/* Compact phones keep room for the pin's 44px target and its clearance without reducing board cells or the instruction strip. */
+@media (max-width: 1023px) and (min-height: 601px) and (max-height: 700px) {
+  .game-layout { --runner-h: 4px; --drawer-chrome: calc(84px + var(--ticket-h) + var(--prologue-space, 0px) + var(--feedback-space, 0px)); }
+  .table { margin-top: 2px; }
+  .board { padding-block: 2px; }
 }
 /* Landscape phones and 200% zoom leave too little height for a fixed drawer over the room, so the room, the drawer and the bar return to the page flow. */
 @media (max-width: 1023px) and (max-height: 600px) {

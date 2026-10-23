@@ -47,12 +47,14 @@ for (const width of [1440, 390]) test(`a holiday ticket names its holiday before
   const before = supply(on(paid, day(21, 2)), supplies(dragobete));
   await start(page, before);
   if (width >= 1024) await expect(ticket(page, dragobete).locator('.ticket-booking')).toHaveText('For Dragobete, Monday 24 February');
+  else await expect(ticket(page, dragobete).locator('.ticket-wait .moon-mark')).toBeVisible();
   await openQuest(page, dragobete);
   await expect(page.locator('#modal .quest-booking')).toContainText('For Dragobete, Monday 24 February. Cook it whenever you like');
   await expect(page.locator('#modal').getByRole('button', { name: 'A sweet for two: For Dragobete, Monday 24 February' })).toBeDisabled();
   await page.keyboard.press('Escape');
   await replaceSave(page, on(before, day(25, 2)));
   if (width >= 1024) await expect(ticket(page, dragobete).locator('.ticket-booking')).toHaveText('Late for Dragobete');
+  else await expect(ticket(page, dragobete).locator('.ticket-wait')).toHaveCount(0);
   await openQuest(page, dragobete);
   await page.locator('#modal').getByRole('button', { name: /^Deliver A sweet for two/ }).click();
   await expect(toast(page)).toContainText(`A sweet for two: delivered. Earned ${dragobete.reward} coins.`);

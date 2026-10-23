@@ -1533,8 +1533,8 @@ const repeatingRows: [id: string, character: string, title: string, after: strin
     'A plain bowl for a fasting man, please: green beans, mămăligă, and a socată. My grandmother would call it a feast.', undefined, ['3 Mar', '19 Apr']],
   ['victor-nettles', 'victor', 'Nettles for the nerves', 'victor-thesis', [['Nettle soup', 1], ['Loaf', 1], ['Linden tea', 1]],
     'I read that nettles are good for the nerves. Mine have an exam on Friday. A nettle soup, a loaf, and a linden tea, please.'],
-  ['costel-tower-tea', 'costel', 'Tea for the tower', 'costel-clock', [['Papanași', 1], ['Socată', 2]],
-    'The church clock wants winding again, and the tower stairs are long. Papanași and two socată, please: one for me and one for the clock. I drink both.'],
+  ['costel-tower-tea', 'costel', 'Tea for the tower', 'costel-clock', [['Linden tea', 1], ['Fruit tea', 1], ['Cozonac', 1]],
+    'The church clock wants winding again, and the tower stairs are long. A linden tea, a fruit tea, and a slice of cozonac, please: one tea for me and one for the clock. I drink both.'],
 ];
 const repeating: Quest[] = repeatingRows.map(([id, character, title, after, requirements, opening, companions, during]) => ({ id, character, title, afterTask: null,
   ...(after ? { afterQuest: after } : {}), repeating: true, ...(companions ? { companions } : {}), ...(during ? { during: { from: on(during[0]), to: on(during[1]) } } : {}),

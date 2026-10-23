@@ -403,8 +403,8 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   expect(supper.requirements).toHaveLength(11);expect(supper.reward).toBe(0);expect(supper.guests).toHaveLength(11);
   const card=page.locator(`#tickets .ticket[data-quest="${supper.id}"]`),button=card.locator('.deliver-button');
   await expect(page.locator('#tickets .ticket')).toHaveCount(1);await expect(card).toBeInViewport();
-  await expect(card.locator('.ticket-item:not(.ticket-more)')).toHaveCount(3);await expect(card.locator('.ticket-more')).toHaveText('+8');
-  await expect(card.locator('.ticket-face')).toHaveAccessibleName(`${supper.title}: ${supper.requirements.map(({item,quantity})=>`${quantity} ${data.items[item].name}, 0 on the board`).join('; ')}. Booked for 20:00`);
+  await expect(card.locator('.ticket-item:not(.ticket-more)')).toHaveCount(3);await expect(card.locator('.ticket-more .ticket-count')).toHaveText('0/8');await expect(card.locator('.ticket-more-label')).toHaveText('more');
+  await expect(card.locator('.ticket-face')).toHaveAccessibleName(`${supper.title}: ${supper.requirements.map(({item,quantity})=>`${quantity} ${data.items[item].name}, 0 on the board`).join('; ')}. Booked for 20:00. Prepare. 0 of 8 additional portions on the board`);
   await expect(button).toBeDisabled();await expect(button).toHaveText('Serve');await expect(button.locator('.coin')).toHaveCount(0);
   if(viewport.width>=1024)await expect(button).toHaveAccessibleName(`Serve ${supper.title}`);else await expect(button).toBeHidden();
   const fits=async()=>{

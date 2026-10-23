@@ -170,3 +170,8 @@ test('a save keeps the repeating record, loads without it, and rejects a broken 
   // A failed delivery changes nothing.
   rejected(state, { type: 'deliverQuest', id: 'sorin-staff-meal' });
 });
+
+test('Costel’s tea for the tower asks for two kinds of tea and a cozonac', () => {
+  const names = quest('costel-tower-tea').requirements.map(({ item, quantity }) => `${quantity} ${data.items[item].name}`);
+  assert.deepEqual(names, ['1 Linden tea', '1 Fruit tea', '1 Cozonac']);
+});

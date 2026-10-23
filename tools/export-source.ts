@@ -14,7 +14,7 @@ export const sourceFiles=[...runtimeFiles,'public/data/game.json',...fontFiles.m
   'tests/board-clearing.test.ts','tests/browser/board-clearing.spec.ts',
   'tests/preparation-blockers.test.ts','tests/browser/preparation-blockers.spec.ts',
   'tests/browser/blocker-help.spec.ts','tests/browser/full-board-guidance.spec.ts','tests/browser/browser-launch.spec.ts',
-  'tests/browser/guidance.spec.ts','tests/browser/responsive-quests.spec.ts','tests/browser/room-occlusion.spec.ts','tests/browser/recipes.spec.ts',
+  'tests/browser/guidance.spec.ts','tests/browser/responsive-quests.spec.ts','tests/browser/quest-tickets.spec.ts','tests/browser/room-occlusion.spec.ts','tests/browser/recipes.spec.ts',
   'tests/story.test.ts','tests/browser/story.spec.ts','tests/prologue.test.ts','tests/browser/prologue.spec.ts','tests/browser/journal.spec.ts','tests/calendar.test.ts','tests/browser/calendar.spec.ts','tests/image-variants.test.ts',
   'tests/checkpoint-saves.test.ts','tests/support.ts','tests/browser/support.ts','tests/browser/portrait-framing.spec.ts','tests/browser/day.spec.ts',
   'tests/save-compatibility.test.ts','tests/browser/save-compatibility.spec.ts','tests/fixtures/save-v17.json',

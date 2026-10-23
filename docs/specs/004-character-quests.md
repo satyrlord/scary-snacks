@@ -144,14 +144,16 @@ The content generator refuses invalid quest data.
 
 ## Interface
 
-A ticket shows the character portrait, name, dishes, and Deliver with the reward. A wider screen also shows the quest title.
+A ticket shows the character portrait, name, and dishes. A wider screen also shows the quest title and Deliver with the reward. A phone ticket shows Prepare, Later, Deliver, Serve, or Light lanterns. The status follows the current action rules. Later takes priority when the day prevents delivery. The phone ticket face opens the dialog for the action.
 The supper ticket and its dialog show Serve in place of Deliver. The supper dialog names the guest of each plate.
 The accessible name of the ticket face gives the board count of each dish.
 On a wider screen, a dish that needs more than one portion also shows that count on the ticket.
+On phones, every shown dish has its count. Counts keep full opacity when a quest waits. A ticket with more than four dishes shows its first three and the board count and required quantity of the other portions together.
 Deliver is unavailable until the board holds every required item.
-A tap on the face of the ticket (the portrait, name, title, and dishes) opens the quest dialog.
+A tap on the face of the ticket (the portrait, name, title, dishes, and phone status) opens the quest dialog.
 The dialog explains who asks and why.
 It shows each dish with its count on the board, the reward, and Deliver.
+If delivery or the lantern action is available, its single action control and reward or booking explanation come before the artwork and opening dialogue. The story and all dish rows remain available below them.
 Each dish row opens ingredient help. If the board lacks a portion, Find beside that row closes the dialog. Find then starts a temporary guide for another portion. The guide updates its next step after each action of the player. The guide ends when the player makes that portion or stops the guide.
 
 Deliver takes the dishes from the board. The dishes fly to the ticket, and a temporary notice reports the delivery and reward. The notice offers the reply of the character. The completion scene stays unread in Story. The next open quest takes the ticket.

@@ -56,6 +56,11 @@ for(const width of [1440,390])test(`tonight’s booked ticket lights the lantern
   const vlad = ticket(page, quest('vlad-after-dark')), elisabeta = ticket(page, quest('elisabeta-papers'));
   await expect(vlad.locator('.ticket-booking')).toHaveText('Booked for 20:00');
   await expect(elisabeta.locator('.ticket-booking')).toHaveText('Booked for another evening');
+  // Phone tickets name the ready lantern action, and the moon marks a ticket for another evening.
+  if(width<1024){
+    await expect(vlad.locator('.ticket-status.ready')).toHaveText('Light lanterns');await expect(vlad).not.toHaveClass(/later-ticket/);
+    await expect(elisabeta.locator('.ticket-wait .moon-mark')).toBeVisible();await expect(elisabeta).toHaveClass(/later-ticket/);
+  }else await expect(page.locator('.ticket-wait').first()).toBeHidden();
   if(width<1024)await openQuest(page,quest('elisabeta-papers'));
   await expect((width<1024?page.locator('#modal'):elisabeta).getByRole('button', { name: 'The estate papers: Booked for another evening' })).toBeDisabled();
   if(width<1024){await page.keyboard.press('Escape');await openQuest(page,quest('vlad-after-dark'));}

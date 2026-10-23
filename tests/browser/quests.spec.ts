@@ -477,7 +477,7 @@ test('a merge that completes a quest marks its dishes ready and enables Deliver 
   await expect(deliverButton(page,value)).toBeEnabled();await expect(ticket(page,value).locator('.ticket-item.ready')).toHaveCount(value.requirements.length);
   await expect(page.locator('#modal')).toBeHidden();await expect(tile(page,fixture.second)).toBeFocused();
   const merged=await saved(page);expect(merged.completedQuests).toEqual(fixture.state.completedQuests);
-  await expect(ticket(page,value).locator('.ticket-face')).toHaveAccessibleName(`${value.title}: ${value.requirements.map(({item,quantity})=>`${quantity} ${itemName(item)}, ${quantity} on the board`).join('; ')}`);
+  await expect(ticket(page,value).locator('.ticket-face')).toHaveAccessibleName(`${value.title}: ${value.requirements.map(({item,quantity})=>`${quantity} ${itemName(item)}, ${quantity} on the board`).join('; ')}. Deliver`);
 });
 
 test('another tab that delivers a quest takes it off this tab’s ticket, and the reward is paid once',async({page,context})=>{
