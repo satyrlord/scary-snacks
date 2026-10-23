@@ -5,14 +5,14 @@ import { clockText, dateText, dayHours, dayMerges, isSunday } from '../../src/mo
 import { moveTo } from '../../tools/create-checkpoint-saves.ts';
 import { reduceGame, revealTickets } from '../../src/engine.ts';
 import type { GameState, NightReport } from '../../src/model.ts';
-import { actOne, act, supper, checkpoint, data, dialogDeliver, KEY, mergeFlour, opened, openQuest, options, quest, replaceSave, saved, serialize, start, supplies, supply, svgImageSizes, ticket, tile, toast, validate } from './support.ts';
+import { actOneTasks, actOne, act, supper, checkpoint, data, dialogDeliver, KEY, mergeFlour, opened, openQuest, options, quest, replaceSave, saved, serialize, start, supplies, supply, svgImageSizes, ticket, tile, toast, validate } from './support.ts';
 
 // The start of act 1 has two Flours at 13 and 14, a Corn cob at 22, and Elderflowers at 27.
-const upkeep = data.day.upkeep;
+const upkeep = data.acts[0].day.upkeep;
 /** The report of the closing of a day: a rat only on Sunday night. */
 const report = (values: Partial<NightReport> = {}): NightReport => {
   const day = values.day ?? 2;
-  return { day, upkeep, rat: isSunday(day, data) ? 'soricescu' : null, taken: [], trapped: null, gift: null, departed: [], purse: 30, seen: true, ...values };
+  return { day, upkeep, rat: isSunday(day, data) ? 'soricescu' : null, taken: [], trapped: null, gift: null, departed: [], purse: 30, seen: true, piper: false, ...values };
 };
 /** A new game one merge before the closing of Sunday 23 February, day 9. Only a Sunday night brings a rat. */
 const SUNDAY = 9;
@@ -314,8 +314,8 @@ for (const [name, night, words] of unreported) test(`after a reload, the morning
 });
 
 test('after the supper, the supper card gives the result of act 1, also with a debt', async ({ page }) => {
-  const evening = on({ ...checkpoint(data.tasks.length), coins: 0 }, data.calendar.supper);
-  evening.clock.merges = (data.day.booking - data.day.opening) / data.day.mergeMinutes;
+  const evening = on({ ...checkpoint(actOneTasks), coins: 0 }, data.calendar.supper);
+  evening.clock.merges = (data.acts[0].day.booking - data.acts[0].day.opening) / data.acts[0].day.mergeMinutes;
   const served = reduceGame(supply(evening, supplies(supper)), { type: 'deliverQuest', id: supper.id }, data).state;
   await start(page, { ...served, coins: -40, act1: { purse: -40 }, pendingScenes: [] });
   await expect(page.locator('#story .act-result')).toHaveText('The bistro worked from 15 February to 1 May. The shop notebook holds a debt of 40 coins.');

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { dayMerges, requiredQuests, yearDay } from '../../src/model.ts';
 import type { GameState } from '../../src/model.ts';
 import { moveTo } from '../../tools/create-checkpoint-saves.ts';
-import { actOne, act, checkpoint, data, mergeFlour, openQuest, quest, replaceSave, saved, start, startStill, supper, supplies, supply, ticket, toast, tile } from './support.ts';
+import { actOneTasks, actOne, act, checkpoint, data, mergeFlour, openQuest, quest, replaceSave, saved, start, startStill, supper, supplies, supply, ticket, toast, tile } from './support.ts';
 
 /** The day of act 1 of a date of year 1. */
 const day = (date: number, month: number) => yearDay(month, date) - data.calendar.start + 1;
@@ -14,7 +14,7 @@ const lateEvening = (state: GameState): GameState => ({ ...structuredClone(state
 test('a weekday closing pays the upkeep with a notice and no dialog, and play goes on', async ({ page }) => {
   await start(page, lateEvening(on(actOne(1), day(17, 2))));
   await mergeFlour(page);
-  await expect(toast(page)).toHaveText(`The bistro closed for the night. Upkeep: ${data.day.upkeep} coins. Good morning, Tuesday 18 February.`);
+  await expect(toast(page)).toHaveText(`The bistro closed for the night. Upkeep: ${data.acts[0].day.upkeep} coins. Good morning, Tuesday 18 February.`);
   await expect(page.locator('#modal')).not.toBeVisible();
   await expect(page.locator('#day-clock .clock-face')).toHaveText('Tue 18 Feb · 07:00');
   expect((await saved(page)).night!.rat).toBeNull();
@@ -59,7 +59,7 @@ for (const width of [1440, 390]) test(`a holiday ticket names its holiday before
 });
 
 test('the supper is booked for 1 May, and on its day the lanterns bring the guests before Serve', async ({ page }) => {
-  const finished = checkpoint(data.tasks.length);
+  const finished = checkpoint(actOneTasks);
   await start(page, supply(finished, supplies(supper)));
   await expect(ticket(page, supper).locator('.ticket-booking')).toHaveText('Booked for 1 May');
   await replaceSave(page, supply(on(finished, data.calendar.supper), supplies(supper)));
@@ -70,7 +70,7 @@ test('the supper is booked for 1 May, and on its day the lanterns bring the gues
 });
 
 test('30 April holds until the last preparation, and Mara says why', async ({ page }) => {
-  await start(page, lateEvening(on(checkpoint(data.tasks.length - 1), data.calendar.supper - 1)));
+  await start(page, lateEvening(on(checkpoint(actOneTasks - 1), data.calendar.supper - 1)));
   await mergeFlour(page);
   await expect(page.locator('#status')).toContainText('Walpurgis Night lasts until the bistro is ready.');
   await expect(page.locator('#day-clock .clock-face')).toHaveText('Wed 30 Apr · 21:45');

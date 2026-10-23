@@ -37,11 +37,19 @@ The files in `tests/` check these areas.
 | `decorations.test.ts` | Decoration slots, quest unlocks, finish choices, rejected choices, and saved choices. |
 | `economy.test.ts` | Formula prices, paid and free takes, a take without the coins, and the recovery quest after the last preparation. One Linden tea in four free cells, and work budgets. |
 | `campaign-goals.test.ts` | Required quests, coins, the free cell for a source, failed payments, quest order, the supper and recovery quest records, and sufficient campaign work. |
-| `campaign-balance.test.ts` | A complete campaign through valid actions, with accounts for actions, coins, and upkeep. The efficient strategy for 20 seeds: days, a purse never below zero, and the balance band after the supper. The efficient strategy has no merges only to move the clock. Free cells at each preparation, and the recovery quest before each preparation. |
-| `campaign-missed-bookings.test.ts` | For 20 seeds, a strategy that misses each booking once finishes act 1. The strategy delivers repeating quests while the bistro has no work. |
+| `campaign-balance.test.ts` | Both acts through valid actions, with separate accounts for coins, upkeep, and repeating work. The efficient strategy for 20 seeds keeps each act inside its balance band and reaches no held position except the festival. The check covers the orchard date, free cells at each payment, and recovery before each payment. |
+| `campaign-missed-bookings.test.ts` | For 20 seeds, a strategy that misses each booking without a fixed evening once finishes both acts. The strategy delivers repeating quests while the bistro has no work. |
 | `campaign-debt.test.ts` | For 20 seeds, a strategy starts each preparation window with a debt of 20 coins. The strategy reaches each preparation through the recovery quest. |
 | `day.test.ts` | The clock, the closing order, the thief rat and its seed, and rat holes. Șoricescu's gift, the gift space and the recovery quest, debt, and the evening guest. Booked tickets, the lantern control, and the result of act 1. The day levers and the booked quests, and saves of the day fields. |
 | `calendar.test.ts` | Dates, chapter openings, holidays, weather, seasonal sources, outdoor quests, the held days, bookings, and saved calendar progress. |
+| `act-change.test.ts` | The clock of act 2, the change after the supper, unread scenes and March quests, the news of Mina and Avram, and the funding check of act 2. |
+| `held-days.test.ts` | Release requirements, ticket order, discovery, late players, debt recovery on each held day, Ambrozie's fixed evening, and the feast. |
+| `garden.test.ts` | Garden sources, free takes, prices at each garden stage, paid pickles, and retention of a seasonal source. |
+| `festival.test.ts` | The five stall quests, their order, the festival hold, and the festival painting. |
+| `hail.test.ts` | Hail placement, the queue, free cells, and saved blocker history. |
+| `piper.test.ts` | Four Sunday closings without the thief rat, weekday counts, and saved piper progress. |
+| `orchard.test.ts` | The purchase date, required quests, the result of act 2, the stopped clock, and rejection of an unaffordable orchard in the efficient check. |
+| `save-compatibility.test.ts` | Fixed current-format saves through load, import, export, and continued play. Earlier formats fail without a change to the current save. |
 | `quests.test.ts` | Quest data, three tickets and the recovery ticket, authored order, delivery requirements, and failed deliveries. The coin limit on delivery, visitor order, cathedral sizes, and one-meal sizes. The one-merge rule for quest dishes, diets, favourites, and the supper plates. |
 | `guests.test.ts` | Red wine quests, Ionatan's dinner and journal entry, the shared vegetarian meal, visitor departure, and later local news. |
 | `regulars.test.ts` | Arrival pairs, arrival scenes, quest timing, favourite dishes, diets, the neighbours list, and cast validation. |
@@ -58,14 +66,14 @@ The files in `tests/` check these areas.
 | `art-image.test.ts` | Art generation request fields, image dimensions, masks, composites, paper copies and patches, and rejected inputs. |
 
 Generator checks cover stage-1 production, paid and free takes, and a full board.
-The efficient campaign fixture completes all 24 preparations, all 89 campaign quests, and the five March quests without injected coins or items.
-Then the fixture serves the supper.
-The purse after the supper is inside the balance band.
-The balance band is 0 to 20% of the coins that the fixture spent on preparations, takes, and upkeep.
-The fixture checks 20 seeds. Each run has 75 closings and 11 Sunday rat visits. The day tests also check theft with given seeds.
-Each holiday quest is delivered on its holiday, and each March quest is delivered in March.
-Repeating quests use at most 20% of the merges. No three consecutive days have only repeating work.
-An outdoor quest waits at most two rain days. The last preparation needs no hold on 30 April.
+The efficient campaign fixture completes all 48 preparations, the 190 campaign quests of both acts, and the five March quests without injected coins or items.
+It serves both finales and buys the orchard on 31 August.
+The purse at the end of each act is inside the balance band.
+The balance band is 0 to 20% of the coins that the fixture spent in that act on preparations, takes, upkeep, and the orchard.
+The fixture checks 20 seeds. Act 1 has 75 closings and 11 Sunday rat visits. Act 2 has 122 closings and 17 Sunday rat visits. The day tests also check theft with given seeds.
+Each holiday quest is delivered on its holiday, except that a holiday quest of 21 to 24 June can wait up to three days while the festival stalls take the tickets first. Each March quest is delivered in March.
+In each act, repeating quests use at most 20% of the merges. No three consecutive days have only repeating work.
+An outdoor quest waits at most two rain days. The efficient run reaches no held position except the festival on 21 June.
 The fixture reports actions, takes, merges, deliveries, recovery deliveries, income, and free cells for each preparation and chapter.
 Before each preparation, a check buys one spare ingredient so that the purse cannot pay.
 Then the check reaches the preparation through the recovery quest.
@@ -78,11 +86,11 @@ Local news requires three later deliveries.
 Preparation blocker checks include adoption by existing saves and repeated use of a cell after resolution.
 Save checks cover export, import, reload, invalid blocker history, and the kept save after a failed write.
 
-Story checks cover every chapter boundary and one finale.
+Story checks cover every chapter boundary and both finales.
 A complete campaign can keep all earned preparation, quest, and chapter scenes in its queue.
 The coins of a complete campaign buy the ingredients of the supper. The recovery quest checks cover a short purse.
 Scene checks cover unique scene identifiers and queue order.
-A save with all preparations complete and no served supper opens the supper quest. Load and import remove the unread finale from that save.
+A save with every preparation of an act complete and its finale not served opens the finale quest. A save with an unread finale before its delivery is invalid. Load and import reject it and keep its bytes.
 
 ## Browser coverage
 
@@ -108,6 +116,8 @@ The files in `tests/browser/` check these areas.
 | `portrait-framing.spec.ts` | Each portrait crop at ticket and dialogue sizes in both themes. |
 | `day.spec.ts` | The clock, a debt in the purse, booked tickets, the lantern control, the closing dialog, and Skip. The night of a theft and of a gift. Taps and keys that do not stop a watched night. The drawer on a phone, reduced motion, and a hidden page during the closing dialog or the night. The morning dialog after a reload, and unread reports after a save replacement. The result of act 1 on the supper card. |
 | `calendar.spec.ts` | Desktop and phone dates, chapter opening text, holidays, seasonal notices, window views, decorations, and the supper date. |
+| `act-two.spec.ts` | Hail, the piper, festival tickets and painting, Ambrozie, the feast, the orchard, act-specific areas and chapter counts, garden prices, save failures, and saved progress. |
+| `save-compatibility.spec.ts` | Fixed current-format saves through reload and continued browser play. |
 | `recipes.spec.ts` | Recipe book sections, return focus and scroll, outside dismissal, and help for absent seasonal sources. |
 
 Play checks include pointer drag, keyboard input, selection, and delivery.

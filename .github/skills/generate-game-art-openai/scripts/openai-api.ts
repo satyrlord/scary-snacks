@@ -13,8 +13,8 @@ const MAX_REFERENCE_BYTES = 50_000_000;
 // State 00 of the front room shows the new game. Each other state shows its area after one preparation.
 // The family kitchen of the prologue has one state for each group of events.
 const gameData: GameData = JSON.parse(readFileSync(new URL('../../../../public/data/game.json', import.meta.url), 'utf8'));
-type RoomStateId = `front-room-${string}` | `courtyard-${string}` | `family-kitchen-${string}`;
-type PencilSheetId = 'sketch-sheet-1' | 'sketch-sheet-2' | 'sketch-sheet-3' | 'scene-sheet-1' | 'scene-sheet-2' | 'scene-sheet-3' | 'scene-sheet-4' | 'scene-sheet-5' | 'scene-sheet-6';
+type RoomStateId = `front-room-${string}` | `courtyard-${string}` | `family-kitchen-${string}` | `summer-kitchen-${string}` | `vegetable-garden-${string}` | `town-square-${string}`;
+type PencilSheetId = 'sketch-sheet-1' | 'sketch-sheet-2' | 'sketch-sheet-3' | 'sketch-sheet-4' | 'scene-sheet-1' | 'scene-sheet-2' | 'scene-sheet-3' | 'scene-sheet-4' | 'scene-sheet-5' | 'scene-sheet-6';
 type FoodAtlasId = `food-${string}`;
 type WindowViewId = 'window-view-late-winter' | 'window-view-early-spring' | 'window-view-spring';
 export type AssetId =
@@ -34,7 +34,11 @@ export type AssetId =
   | 'holiday-front'
   | 'holiday-courtyard'
   | 'finale-supper'
+  | 'finale-feast'
+  | 'festival'
   | 'board-clutter'
+  | 'hail-clutter'
+  | 'summer-guests'
   | 'rat-thief-reference'
   | 'rat-soricescu-reference'
   | 'rat-thief'
@@ -83,6 +87,8 @@ const foodAtlases: [id: string, pictures: number][] = [
   ['beans', 6], ['lamb', 6], ['veal', 7], ['fish', 5], ['soups', 8], ['mains', 7], ['sweets', 7], ['breads', 8],
   // The seasonal chains of spec 017: the pickle barrel and the forage basket.
   ['pickles', 5], ['greens', 5],
+  // The summer garden of act 2, and the mixed dishes of the summer.
+  ['garden', 5], ['summer', 4],
 ];
 const foodAtlas = (pictures: number): AssetContract => ({ background: 'transparent', shape: 'landscape-2x1', columns: 4, rows: 2,
   ...(pictures < 8 ? { blankCells: Array.from({ length: 8 - pictures }, (_, index) => pictures + index) } : {}), defaultSize: '2048x1024' });
@@ -93,6 +99,8 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   'sketch-sheet-1': sketchSheet,
   'sketch-sheet-2': sketchSheet,
   'sketch-sheet-3': sketchSheet,
+  // The new characters of act 2: Ambrozie, Gavril Hămălescu, and Tarka Miklós. The other cells stay blank for later acts.
+  'sketch-sheet-4': { ...sketchSheet, blankCells: [3, 4, 5, 6, 7] },
   'scene-sheet-1': sceneSheet,
   'scene-sheet-2': sceneSheet,
   'scene-sheet-3': sceneSheet,
@@ -113,6 +121,11 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   'holiday-courtyard': roomState,
   // The supper painting: the courtyard of the last state with the guests of the supper.
   'finale-supper': roomState,
+  // The paintings of act 2: the festival in the square of its garlands, and the feast of the cathedral at the laid feast tables.
+  festival: roomState,
+  'finale-feast': roomState,
+  // The two weather blockers of the hail, each with an open centre: a heap of hailstones and a pot broken by the hail.
+  'hail-clutter': { background: 'transparent', shape: 'landscape-2x1', columns: 2, rows: 1, defaultSize: '2048x1024' },
   'board-clutter': {
     background: 'transparent',
     shape: 'landscape-3x2',
@@ -121,10 +134,12 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
     defaultSize: '1536x1024',
   },
   portraits: portraitAtlas,
-  // Ten regulars use these atlases in arrival order. The last atlas has two empty lower cells.
+  // The regulars use these atlases in arrival order. The mayor of act 2 has the last cell.
   'regulars-1': portraitAtlas,
   'regulars-2': portraitAtlas,
-  'regulars-3': { ...portraitAtlas, blankCells: [3] },
+  'regulars-3': portraitAtlas,
+  // The two visitors of act 2: Ambrozie and Tarka Miklós. The lower cells stay empty.
+  'summer-guests': { ...portraitAtlas, blankCells: [2, 3] },
   mascots: portraitAtlas,
   // Mara's parents in the prologue: the two upper cells hold their portraits, and the lower cells stay empty.
   'family-portraits': { ...portraitAtlas, blankCells: [2, 3] },

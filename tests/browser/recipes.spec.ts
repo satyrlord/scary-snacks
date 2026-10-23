@@ -3,7 +3,7 @@ import { checkpoint, data, know, ratio, replaceSave, saved, startStill, supply, 
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:320,height:568}])for(const theme of ['light','dark']){
   test(`recipe book browsing fits ${viewport.width}px in ${theme}`,async({page},testInfo)=>{
-    const state=checkpoint(24);know(state,...Object.values(data.items).filter(item=>!item.generator).map(item=>item.id));
+    const state=checkpoint(data.tasks.length);know(state,...Object.values(data.items).filter(item=>!item.generator).map(item=>item.id));
     await page.setViewportSize(viewport);await startStill(page,state,theme);
     const opener=page.locator(viewport.width<1024?'#recipes-button':'#collection-button');await opener.click();
     const book=page.getByRole('dialog',{name:'The recipe book',exact:true}),body=page.locator('#modal-body');

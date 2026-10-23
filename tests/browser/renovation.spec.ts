@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { resolveRooms, latestArea } from '../../src/model.ts';
+import { resolveRooms, latestArea, roomPaintings } from '../../src/model.ts';
 import { createHash } from 'node:crypto';
-import { checkpoint, data, options, painting, replaceSave, revealed, saved, serialize, start, startAgain, prologueAt } from './support.ts';
+import { actOneTasks, checkpoint, data, options, painting, replaceSave, revealed, saved, serialize, start, startAgain, prologueAt } from './support.ts';
 
 /** The save after count preparations, ready to pay the next one when ready is set. */
 const saveAfter=(count: number,ready=false)=>serialize(checkpoint(count,{ready}));
@@ -13,15 +13,15 @@ const completedAt=(count: number)=>data.tasks.slice(0,count).map(task=>task.id);
 // The room checks do not depend on the theme, so each viewport uses one theme.
 for(const {theme,...viewport} of [{name:'desktop',width:1440,height:1000,theme:'light'},{name:'phone',width:390,height:844,theme:'dark'}]){
   test(`every renovation checkpoint shows its painted room at ${viewport.name} in ${theme}`,async({page},testInfo)=>{
-    test.setTimeout(180000);await page.setViewportSize(viewport);await page.emulateMedia({reducedMotion:'reduce'});
+    test.setTimeout(360000);await page.setViewportSize(viewport);await page.emulateMedia({reducedMotion:'reduce'});
     // One navigation per checkpoint also proves that every state can be reconstructed from its save.
     await start(page,saveAfter(0),theme);
     let previous='';
-    for(let count=0;count<=24;count++){
+    for(let count=0;count<=data.tasks.filter(task=>!task.purchase).length;count++){
       if(count>0)await replaceSave(page,saveAfter(count));
       const before=await saved(page);
-      // The room follows the area of the latest change and shows the state of its highest completed preparation.
-      const area=latestArea(completedAt(count),data),view=resolveRooms(completedAt(count),data).find(value=>value.id===area)!;
+      // The room follows the area of the latest change in the act of the payment, and shows the state of its highest completed preparation.
+      const act=count>actOneTasks?2:1,area=latestArea(completedAt(count),data,act),view=resolveRooms(completedAt(count),data,roomPaintings,act).find(value=>value.id===area)!;
       const frame=page.locator('#room-frame');
       await expect(frame,`checkpoint ${count}`).toHaveAttribute('data-area',area);await expect(frame).toHaveAttribute('data-current',view.current!.id);await expect(frame).toHaveAttribute('data-painting',view.painting!.id);
       await expect.poll(()=>painting(page),{message:`checkpoint ${count}`}).toMatch(new RegExp(`^${view.painting!.id}-(768x1024|1536x2048)\\.avif$`));

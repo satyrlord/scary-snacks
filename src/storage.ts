@@ -1,7 +1,7 @@
 /** Local-only persistence. */
 const FORMAT = 'scary-snacks';
 /** Only the current save format is supported. */
-const VERSION = 16;
+const VERSION = 17;
 export const SAVE_KEY = `scary-snacks-save-v${VERSION}`;
 export const MAX_SAVE_BYTES = 2 * 1024 * 1024;
 
@@ -9,8 +9,6 @@ type SaveStatus = 'loaded' | 'empty' | 'invalid' | 'unsupported' | 'unavailable'
 type SaveStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 /** Only a result of exactly true admits a state. */
 type Validator = (state: unknown) => unknown;
-/** Changes a parsed state before its check. */
-type Repair = (state: unknown) => unknown;
 /** Text is the stored save as read, so a caller can tell a later change by comparing text alone. */
 export type LoadResult<State> = { state: State | null; status: SaveStatus; error: string | null; text: string | null };
 /** Text is the save that the write stored. */
@@ -53,7 +51,7 @@ function validateState(state: unknown, validate: Validator | undefined): asserts
   if (valid !== true) throw new SaveError('The saved game has damaged or unknown game data.');
 }
 
-function parseSave<State>(text: unknown, validate: Validator | undefined, repair?: Repair): State {
+function parseSave<State>(text: unknown, validate: Validator | undefined): State {
   if (typeof text !== 'string') throw new SaveError('The save must be JSON text.');
   // Check string length first to avoid allocating a large UTF-8 buffer.
   if (text.length > MAX_SAVE_BYTES || new TextEncoder().encode(text).byteLength > MAX_SAVE_BYTES) {
@@ -74,7 +72,7 @@ function parseSave<State>(text: unknown, validate: Validator | undefined, repair
   if (!Object.hasOwn(envelope, 'state')) {
     throw new SaveError('The saved game has no game data in it.');
   }
-  const state = repair ? repair(envelope.state) : envelope.state;
+  const state = envelope.state;
   validateState(state, validate);
   return state as State;
 }
@@ -89,7 +87,7 @@ export function savedText(storage: SaveStorage | null): string | null {
 }
 
 /** Returns state only after the complete envelope and game state pass validation. */
-export function loadSave<State>(storage: SaveStorage | null, validate: Validator | undefined, repair?: Repair): LoadResult<State> {
+export function loadSave<State>(storage: SaveStorage | null, validate: Validator | undefined): LoadResult<State> {
   let text = null;
   try {
     text = available(storage).getItem(SAVE_KEY);
@@ -98,7 +96,7 @@ export function loadSave<State>(storage: SaveStorage | null, validate: Validator
   }
   if (text === null) return { state: null, status: 'empty', error: null, text: null };
   try {
-    const state = parseSave<State>(text, validate, repair);
+    const state = parseSave<State>(text, validate);
     accepted.set(validate!, text);
     return { state, status: 'loaded', error: null, text };
   } catch (error) {
@@ -122,8 +120,8 @@ export function exportSave(state: unknown, validate: Validator | undefined) {
 }
 
 /** Parse before replacing live state. The caller decides when to adopt this state. */
-export function importSave<State>(text: unknown, validate: Validator | undefined, repair?: Repair): State {
-  return parseSave<State>(text, validate, repair);
+export function importSave<State>(text: unknown, validate: Validator | undefined): State {
+  return parseSave<State>(text, validate);
 }
 
 /** One atomic setItem. Never remove an existing save to make room for a write, and never replace a save that cannot be read. */

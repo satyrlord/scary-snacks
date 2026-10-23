@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { arrivalScene, deliveriesSince, journalCharacters, prologueScenes, resolveChapters, resolveQuests, supperComplete } from '../../src/model.ts';
+import { actOf, arrivalScene, deliveriesSince, journalCharacters, prologueScenes, resolveChapters, resolveQuests, supperComplete } from '../../src/model.ts';
 import { act, supper, supperEvening, checkpoint, data, deliverable, forward, journal, opened, prologueServed, quest, ratio, readTo, saved, start, supplies, supply, validate } from './support.ts';
 
 /** Earned scenes left unread at representative campaign positions. */
@@ -18,7 +18,8 @@ for(const count of [0,10,24])for(const width of [1440,390])for(const theme of ['
   const list=page.locator('.journal-list'),unread=page.getByRole('region',{name:'Unread scenes',exact:true});
   expect(await unread.locator('[data-scene]').evaluateAll(rows=>rows.map(row=>(row as HTMLElement).dataset.scene))).toEqual(state.pendingScenes);
   if(!count)await expect(unread).toContainText('No unread scenes.');
-  const current=resolveChapters(state,data).find(view=>view.status==='current')??resolveChapters(state,data).at(-1)!;
+  // The journal holds the chapters of the act of the day and the acts before it.
+  const views=resolveChapters(state,data).filter(view=>view.chapter.act<=actOf(state.clock.day,data)),current=views.find(view=>view.status==='current')??views.at(-1)!;
   await expect(list.locator('[data-current-chapter]')).toHaveAttribute('data-chapter',current.chapter.id);
   const order=await list.evaluate(node=>[...node.children].map(child=>child.className));
   expect(order.indexOf('journal-unread')).toBeLessThan(order.indexOf('chapter-journal'));
@@ -30,7 +31,7 @@ for(const count of [0,10,24])for(const width of [1440,390])for(const theme of ['
   const completed=resolveQuests(state,data).filter(view=>view.status==='complete'&&people.some(person=>person.id===view.quest.character));
   for(const {quest} of completed)if(quest.completion.length)expected.add(quest.id);
   for(const quest of data.quests)if(quest.followUp&&deliveriesSince(state,quest.id)>=quest.followUp.afterDeliveries)expected.add(quest.followUp.id);
-  if(supperComplete(state,data))expected.add(data.finale.id);
+  if(supperComplete(state,data))expected.add(data.finales[0].id);
   const ids=await list.locator('[data-scene]').evaluateAll(rows=>rows.map(row=>(row as HTMLElement).dataset.scene!));
   expect(ids.length).toBe(new Set(ids).size);expect([...ids].sort()).toEqual([...expected].sort());
   await expect(list.locator('[data-journal^="opening-"]')).toHaveCount(completed.filter(view=>!view.quest.completion.length).length);
@@ -78,12 +79,12 @@ test('reading the last unread conversation moves its single entry into the repla
 
 test('earlier conversations follow delivery order, and the latest chapter remains after the supper',async({page})=>{
   let state=supply(supperEvening(checkpoint(24,{coins:data.economy.recoveryFloor})),supplies(supper));
-  state=act(state,{type:'deliverQuest',id:supper.id});state=act(state,{type:'readScene',id:data.finale.id});
+  state=act(state,{type:'deliverQuest',id:supper.id});state=act(state,{type:'readScene',id:data.finales[0].id});
   await start(page,state);await journal(page,['conversations']);
-  await expect(page.locator('[data-current-chapter]')).toHaveAttribute('data-chapter',data.chapters.at(-1)!.id);
+  await expect(page.locator('[data-current-chapter]')).toHaveAttribute('data-chapter',data.chapters.findLast(chapter=>chapter.act===1)!.id);
   const people=journalCharacters(state,data),expected=[...state.completedQuests].reverse().filter(id=>!prologueServed.includes(id)&&people.some(person=>person.id===quest(id).character));
   expect(await page.locator('[data-group="conversations"] [data-quest]').evaluateAll(rows=>rows.map(row=>(row as HTMLElement).dataset.quest!))).toEqual(expected);
-  const replay=page.getByRole('button',{name:`Replay ${data.finale.title}`,exact:true});await expect(replay).toBeVisible();expect(await saved(page)).toEqual(state);
+  const replay=page.getByRole('button',{name:`Replay ${data.finales[0].title}`,exact:true});await expect(replay).toBeVisible();expect(await saved(page)).toEqual(state);
 });
 
 
@@ -104,7 +105,7 @@ test('reading one combined quest keeps another waiting scene',async({page})=>{
 
 for(const width of [1440,390])for(const theme of ['light','dark'])test(`each regular’s journal row names their favourite dishes at ${width}px in ${theme}`,async({page},testInfo)=>{
   await page.setViewportSize({width,height:width===1440?900:844});await page.emulateMedia({reducedMotion:'reduce'});
-  await start(page,checkpoint(24),theme);await journal(page,['neighbours']);
+  await start(page,checkpoint(data.tasks.length),theme);await journal(page,['neighbours']);
   const regulars=data.characters.filter(person=>person.regular);expect(regulars.every(person=>person.favourites?.length)).toBe(true);
   for(const person of regulars){
     const favourites=`Favourites: ${new Intl.ListFormat('en',{type:'conjunction'}).format(person.favourites!.map(code=>data.items[code].name))}`;

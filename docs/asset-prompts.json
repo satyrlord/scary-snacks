@@ -1,5 +1,5 @@
 {
-  "mode": "The built-in chat image generator supplies references for the mascots and two decoration paintings. The generator also supplies visitor portraits, guest portraits, both clutter atlases, the parchment texture, and the first versions of the pencil sketches and quest scenes. The OpenAI Images application programming interface (API) uses gpt-image-2.5-flare at high quality. The API supplies the 18 food atlases, mascots, core portraits, three regulars atlases, timber-tabletop, and embroidered-runner. The API also supplies counter-band, courtyard, the room states, the two decoration paintings, the supper painting, the two rat sheets with their identity references, the rat hole, and the night sky. The API also supplies the three sheets of character sketches and the six sheets of quest scenes. The prompt records preserve the exact requests and their processing evidence.",
+  "mode": "The built-in chat image generator supplies references for the mascots and two decoration paintings. The generator also supplies visitor portraits, guest portraits, both clutter atlases, the parchment texture, and the first versions of the pencil sketches and quest scenes. The OpenAI Images application programming interface (API) uses gpt-image-2.5-flare at high quality. The API supplies the 20 food atlases, mascots, core portraits, three regulars atlases, the portraits of the summer guests, the hail atlas, timber-tabletop, and embroidered-runner. The API also supplies counter-band, courtyard, the room states, the two decoration paintings, the supper painting, the two rat sheets with their identity references, the rat hole, and the night sky. The API also supplies the four sheets of character sketches and the six sheets of quest scenes. The prompt records preserve the exact requests and their processing evidence.",
   "originalGameImageReferences": false,
   "prompts": [
     {
@@ -1812,6 +1812,711 @@
         "reference": "public/assets/original/notebook-pages.png, the painting that the edit changes; the typeset copy of the prayer in Noto Serif, with дж for џ and иа for ꙗ",
         "mask": "the right page of the left view (515,100,535,520), 24px feather"
       }
+    },
+    {
+      "id": "summer-kitchen-00-run1",
+      "prompt": "Paint a new place in the exact style of the reference paintings: hand-painted gouache with delicate coloured-pencil edges, an accomplished illustrated travel-journal feel, believable proportions and architectural perspective, the same Saxon Transylvanian village, the same plum-blue summer dusk with a little pink, the same warm palette. The reference images are style references only; do not copy their buildings. Not glossy mobile-game art.\n\nSubject: a tall 3:4 portrait painting of an old summer kitchen shed in the yard behind a village bistro, seen straight from the front at standing eye level, so its front wall is parallel to the picture and its interior is visible through a wide open doorway. Front-facing, symmetrical structure, horizontal front edges; only short side walls recede.\n\nComposition:\n- Top (0 to 20 percent of the height): the front eave of an old red clay-tile roof, slightly sagging, with several cracked and missing tiles that show dark gaps and battens. Under the left end of the eave, a small swallows' mud nest. A thin strip of dusk sky above the roof.\n- Front wall: cream limewashed wall with old timber framing. In its middle, a wide open doorway with no doors, its wooden lintel at about 24 percent of the height, its sides at about 24 and 76 percent of the width, reaching down to a worn stone threshold step near the bottom. In the front wall left of the doorway, a small square four-pane window with a deep flat wooden sill at about 46 percent of the height; the sill is clear and empty.\n- Interior, seen through the doorway: a plain plastered back wall, parallel to the picture, with old cracks; an earth floor. In the right half, a heap of grain sacks, a broken chair, and an old cartwheel cover an old black iron cooking stove, of which only one corner and a stove leg show. The back left corner of the interior is empty bare floor. The upper back wall is bare. In the right side wall of the interior, near the back, a small empty doorway lets in pale light from the garden.\n- Bottom (88 to 100 percent): the swept dirt yard in front of the threshold step, with a few tufts of grass.\n- Keep empty, because later paintings add things there: the back left corner of the interior, the upper back wall, the floor, the small side doorway, the space above the doorway on the front wall, and the roof.\n\nLight: cool blue dusk outside; the interior in soft shadow with a little warm light from an unseen lamp, balanced and readable, not dark or gloomy.\n\nNothing floats or intersects. No people, no cats, no animals, no food, no text, letters, numbers, signs or logos, no watermark.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/summer-kitchen-00-run1",
+        "reference": "2 project-generated images (hashes in the run record)"
+      },
+      "disposition": "Leads to the shipped master summer-kitchen-00, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "summer-kitchen-01-run1",
+      "prompt": "Edit this painting of an old summer kitchen shed, seen from the front through its wide open doorway. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe shed is cleared and swept: inside the shed, the heap of grain sacks, the broken chair, the cartwheel and the loose boards in the right part of the interior are gone. Where they were, Mamaia's old black cast-iron cooking stove now stands free in the back right corner of the interior, dusty and a little rusty, with four short legs, a small oven door, round hot plates on top, and no chimney pipe yet. The earth floor is swept clean and even. The old ceiling beams show faint carvings.\n\nThe front wall, the doorway, the window with its empty sill, the roof with its gaps, the swallows' nest, the back wall, the empty back left corner, the small side doorway and the yard stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/summer-kitchen-01-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master summer-kitchen-01, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "summer-kitchen-02-run1",
+      "prompt": "Edit this painting of an old summer kitchen shed, seen from the front. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe roof is mended: every cracked or missing clay tile of the roof is replaced, so the roof is whole, with no gaps and no visible battens. The new tiles are a fresher, brighter red than the old weathered ones, mixed among them, in the same rows and the same perspective, and the roof edge is straight. The small swallows' mud nest under the left end of the eave stays exactly where it is.\n\nThe front wall, the window and its empty sill, the doorway, the interior with the old iron stove, the yard and the sky stay unchanged.\n\nNo people, no cats, no birds, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/summer-kitchen-02-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master summer-kitchen-02, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "summer-kitchen-03-run1",
+      "prompt": "Edit this painting of an old summer kitchen shed with a mended red-tile roof, seen from the front through its wide open doorway. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe clay oven is built: in the back left corner of the shed's interior, on the floor against the back wall, stands a round domed village bread oven of smooth ochre clay and straw, about waist high, on a square base of old reused red bricks, front-facing, with a small arched opening at its front that glows with the warm embers of its first bake, and a faint wisp of heat. It casts soft shadows on the wall and the floor.\n\nThe old black iron stove at the right of the interior, the back wall, the floor, the doorway, the front wall, the window and its empty sill, the roof and the yard stay unchanged.\n\nNo people, no cats, no animals, no bread, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/summer-kitchen-03-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master summer-kitchen-03, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "summer-kitchen-04-run1",
+      "prompt": "Edit this painting of a summer kitchen shed with a clay bread oven inside, seen from the front through its wide open doorway. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe stove is set: the old black cast-iron cooking stove at the right of the interior now stands firmly against the back wall, cleaned, with a small warm fire glowing behind its little door, and a new black stovepipe chimney rises straight up from the back of the stove, along the back wall, through the ceiling. On the roof above, the top of the same black stovepipe sticks up out of the red tiles near the top of the picture, a little right of the middle, with a small conical rain cap and a thin curl of smoke.\n\nThe clay oven in the back left corner, the floor, the doorway, the front wall, the window and its empty sill, the rest of the roof, the yard and the sky stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/summer-kitchen-04-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "The agent rejected this candidate: it drew a modern stove with a glass door. The corrective request summer-kitchen-04-run2 replaced it."
+    },
+    {
+      "id": "summer-kitchen-04-run2",
+      "prompt": "Edit this painting of a summer kitchen shed with a clay bread oven inside, seen from the front through its wide open doorway. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe old stove is set up: the same old black cast-iron village kitchen range that stands at the right of the interior keeps its old shape exactly: a low wide box on four short curved legs, a flat top with two round hot plates, a small square oven door with a brass handle at the front, and a small firebox door. It now stands firmly against the back wall, cleaned, and a small warm fire glows through the gap of its firebox door. It is not a modern stove and has no glass window. A new black stovepipe chimney rises straight up from the back of the range, along the back wall, through the ceiling. On the roof above, the top of the same black stovepipe sticks up out of the red tiles near the top of the picture, a little right of the middle, with a small conical rain cap and a thin curl of smoke.\n\nThe clay oven in the back left corner, the floor, the doorway, the front wall, the window and its empty sill, the rest of the roof, the yard and the sky stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/summer-kitchen-04-run2",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master summer-kitchen-04, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "vegetable-garden-05-run1",
+      "prompt": "Paint a new place in the exact style of the reference paintings: hand-painted gouache with delicate coloured-pencil edges, an accomplished illustrated travel-journal feel, believable proportions and architectural perspective, the same Saxon Transylvanian village, the same plum-blue summer dusk with a little pink, the same warm palette. The reference images are style references only; do not copy their buildings. Not glossy mobile-game art.\n\nSubject: a tall 3:4 portrait painting of a small village vegetable garden behind an old summer kitchen, just cleared of weeds, seen from standing eye level looking straight across the garden, so the back fence is parallel to the picture.\n\nComposition:\n- Left edge (0 to 18 percent of the width): the cream limewashed side wall of the summer kitchen, parallel to the picture, with an old red-tile roof edge and a metal rain gutter and downpipe at its top and left. In this wall, a small closed window with a deep flat wooden sill at about 42 percent of the height; the sill is clear and empty. The foot of the wall below the downpipe is bare ground.\n- Back: an old grey wooden picket fence runs straight across the picture at about 55 to 62 percent of the height, with a few broken and missing pickets, a leaning post, and a sagging little gate in its middle. Beyond the fence, the neglected orchard of the village: old gnarled apple and plum trees, then the village roofs, the church spire and the layered Carpathian hills under the dusk sky, filling the top half.\n- Middle: one tall sunflower stands alone near the fence, a little right of the gate.\n- Right (78 to 96 percent of the width, 48 to 72 percent of the height): an old rusty cast-iron hand well pump with a long handle on a square stone platform, front-facing.\n- Lower half: freshly cleared dark brown earth, raked flat, with small piles of pulled weeds at the edges. The ground is empty.\n- Keep empty, because later paintings add things there: the whole cleared ground, the stretch in front of the fence on the left, the ground at the foot of the summer kitchen wall, the space between the sunflower and the pump.\n\nLight: summer blue hour, a warm glow of lamplight from the open summer kitchen at the left edge onto the ground, cool dusk elsewhere; balanced and readable.\n\nNothing floats or intersects. No people, no cats, no animals, no plants planted yet, no text, letters, numbers, signs or logos, no watermark.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/vegetable-garden-05-run1",
+        "reference": "2 project-generated images (hashes in the run record)"
+      },
+      "disposition": "Leads to the shipped master vegetable-garden-05, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "vegetable-garden-06-run1",
+      "prompt": "Edit this painting of a small village vegetable garden at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe beds are dug: on the cleared earth in the lower part of the picture, four long rectangular garden beds now lie straight across the picture, parallel to the fence, one behind the other, edged with old wooden boards, with narrow earth paths between them. Young plants stand in neat rows: small tomato plants tied to short canes in the nearest bed, pepper plants in the second, aubergine plants in the third, and green onion shoots in the farthest bed. The beds reach from the summer kitchen wall on the left to about two thirds of the width; the bare ground in the lower right corner, in front of the pump, stays bare and empty.\n\nThe summer kitchen wall, its window and empty sill, the gutter and downpipe, the fence and its gate, the sunflower, the orchard, the rusty pump on its stone platform, the sky and everything else stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/vegetable-garden-06-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master vegetable-garden-06, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "vegetable-garden-13-run1",
+      "prompt": "Edit this painting of a village vegetable garden with planted beds at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe fence is mended: the old grey picket fence across the back of the garden now has eight new pale wooden pickets in the places of the broken and missing ones, and a new straight post in place of the leaning one. The little gate in its middle hangs straight on new hinges and closes properly. The fence stays in the same place, straight across the picture, at the same height.\n\nThe sunflower in front of the fence, the orchard and the village beyond, the rusty pump on its stone platform, the planted beds, the summer kitchen wall and everything else stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/vegetable-garden-13-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "The agent rejected this candidate: it drew a second well pump and hid the stem of the sunflower. The corrective request vegetable-garden-13-run2 replaced it."
+    },
+    {
+      "id": "vegetable-garden-13-run2",
+      "prompt": "Edit this painting of a village vegetable garden with planted beds at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change in the masked part of the back fence only.\n\nThe fence is mended: in the old grey picket fence across the back of the garden, the broken and missing pickets are replaced by new pale wooden pickets, the leaning post stands straight, and the little gate in its middle hangs straight on new hinges and closes properly. The fence stays in the same place, straight across the picture, at the same height and in the same perspective.\n\nThese stay exactly as they are and must not move or change: the tall sunflower standing in front of the fence just right of the gate, with its whole green stem and its leaves; the single old rusty cast-iron hand well pump with its long curved handle on its square stone platform on the right; the four planted beds; the summer kitchen wall, its window and downpipe on the left; the orchard, the village and the sky. There is only one pump.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/vegetable-garden-13-run2",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master vegetable-garden-13, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "vegetable-garden-14-run1",
+      "prompt": "Edit this painting of a village vegetable garden with planted beds and a mended fence at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe well pump is repaired: the old cast-iron hand pump on its square stone platform on the right is cleaned of rust and painted dark green, with a new wooden handle in place of the old one, in the same place, size and shape. A thin stream of clear water runs from its spout into a wooden bucket that stands under the spout on the stone platform. The fence behind the pump has the same new pale pickets as the rest of the mended fence.\n\nThe sunflower, the gate, the planted beds, the summer kitchen wall, the orchard, the village and the sky stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/vegetable-garden-14-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master vegetable-garden-14, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "vegetable-garden-17-run1",
+      "prompt": "Edit this painting of a village vegetable garden with planted beds, a mended fence and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe bean trellis is built: along the inside of the mended fence, on the left between the summer kitchen wall and the gate, a straight row of tall thin hazel poles stands upright against the fence, tied together with string, and green climbing bean plants with heart-shaped leaves and a few white flowers twine up the poles and the strings. The trellis is front-facing, parallel to the fence.\n\nThe fence and its gate, the sunflower, the pump and its bucket, the planted beds, the summer kitchen wall with its window and downpipe, the orchard, the village and the sky stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/vegetable-garden-17-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master vegetable-garden-17, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "town-square-07-run1",
+      "prompt": "Paint a new place in the exact style of the reference paintings: hand-painted gouache with delicate coloured-pencil edges, an accomplished illustrated travel-journal feel, believable proportions and architectural perspective, the same Saxon Transylvanian village with the same white church and spire, the same plum-blue summer dusk with a little pink, the same warm palette. The reference images are style references only. Not glossy mobile-game art.\n\nSubject: a tall 3:4 portrait painting of the village square, just swept clean, seen from standing eye level at the front edge of the square, looking straight at the church, so the church front and the fountain are parallel to the picture.\n\nComposition:\n- Back centre (30 to 70 percent of the width, 18 to 52 percent of the height): the front of an old fortified Saxon church with its tall spire, a round-arched door, and a wide flight of stone steps down to the square.\n- Left and right: two big old plane trees, their trunks at about 8 percent and 88 percent of the width; the right tree is the biggest, and its wide crown spreads over the top right. Old village houses with tiled roofs line the square behind the trees. Carpathian hills under the dusk sky at the top.\n- Middle (38 to 62 percent of the width, 50 to 64 percent of the height): a round stone fountain with a low wide basin and a small spout, front-facing; its wide flat rim is clear.\n- Ground: clean grey cobbles fill the lower 40 percent, swept, with a few leaves at the edges and a broom leaning on the left tree.\n- Keep empty, because later paintings add things there: the whole cobbled foreground, the open ground along the left side of the square, the ground under the big right tree, and the open air between the two trees above the square.\n\nLight: summer blue hour; warm light in a few house windows; cool dusk elsewhere; balanced and readable, not dark.\n\nNothing floats or intersects. No people, no cats, no animals, no tables, no stalls, no lights strung yet, no text, letters, numbers, signs or logos, no watermark.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/town-square-07-run1",
+        "reference": "2 project-generated images (hashes in the run record)"
+      },
+      "disposition": "Leads to the shipped master town-square-07, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "town-square-08-run1",
+      "prompt": "Edit this painting of the village square in front of the church at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nTables and benches from the church hall now stand on the cobbles in the foreground: two long plain wooden trestle tables, each with a long bench on its near side and its far side, standing straight across the picture, parallel to the bottom edge, one behind the other, in the lower part of the picture in front of the fountain. The tables are bare. Their legs stand firmly on the cobbles, with soft shadows.\n\nThe church, its steps, the fountain with its clear rim, the two plane trees, the broom on the left tree, the houses, the sky and everything else stay unchanged. The open ground along the left side of the square and under the big right tree stays empty.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/town-square-08-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master town-square-08, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "town-square-09-run1",
+      "prompt": "Edit this painting of the village square in front of the church at summer blue hour, with two long tables in the foreground. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe food stalls are built: five small simple wooden market stalls, each with a plain plank counter and a canvas roof in faded red and cream stripes, stand side by side in one straight row along the left side of the square, in front of the houses on the left, between the left plane tree and the church steps. Each stall is front-facing to the square, the row recedes gently toward the church, and the stalls get smaller with distance. The stalls are empty, with no food and no signs.\n\nThe church, its steps, the fountain, the two long tables and their benches, the plane trees, the broom on the left tree, the houses on the right, the open ground under the big right tree, the sky and everything else stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/town-square-09-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master town-square-09, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "town-square-10-run1",
+      "prompt": "Edit this painting of the village square in front of the church at summer blue hour, with five striped market stalls on the left and two long tables in the foreground. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe stage is raised: under the big plane tree on the right, in front of the houses on the right, a low wooden stage now stands on the cobbles, front-facing to the square, about knee high, made of planks on trestles, with three wooden steps at its left side and a simple plank rail at its back. It is empty, with no instruments.\n\nThe church, its steps, the fountain, the stalls, the two long tables and their benches, the plane trees, the broom on the left tree, the houses and the sky stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/town-square-10-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master town-square-10, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "town-square-11-run1",
+      "prompt": "Edit this painting of the village square in front of the church at summer blue hour, with striped market stalls on the left, a low stage on the right, and long tables in the foreground. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe lanterns are hung: three cords now hang in gentle curves across the square from the left plane tree to the big right plane tree, high above the square, in front of the church, each cord hung with round paper lanterns in cream, red and ochre, about forty in all, lit from inside with a soft warm glow, so a little warm light falls on the trees and the church front.\n\nThe church, its spire and steps, the fountain, the stalls, the stage, the long tables and benches, the trees, the broom, the houses and the sky stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/town-square-11-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "The agent rejected this candidate: it repainted the church. The corrective request town-square-11-run2 replaced it."
+    },
+    {
+      "id": "town-square-11-run2",
+      "prompt": "Edit this painting of the village square in front of the church at summer blue hour, with striped market stalls on the left, a low stage on the right, and long tables in the foreground. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe lanterns are hung, only at the two sides of the square: on the left, cords hang in gentle swags from the low branches of the left plane tree over the row of striped stalls, and on the right, cords hang in gentle swags from the low branches of the big right plane tree over the stage. The cords carry round paper lanterns in cream, red and ochre, about twenty on each side, lit from inside with a soft warm glow that falls on the stall roofs, the stage and the tree trunks. No cord and no lantern crosses in front of the church.\n\nThe church with its spire, its facade and its steps stays exactly as it is. The fountain, the stalls, the stage, the long tables and benches, the trees, the broom, the houses and the sky stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/town-square-11-run2",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master town-square-11, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "food-garden-1",
+      "prompt": "The two provided images are approved food atlases from the same game. Use them ONLY as the style reference: match their hand-painted gouache and coloured-pencil rendering, their slightly top-down three-quarter view, their warm palette, their lighting, their level of detail, their clean edges, and the size of their icons within their cells. Do NOT copy any of their subjects: no wicker baskets, potatoes, whole cabbages, glass jars with checked cloth lids, herb bundles, nettles, bottles of wine or cups may appear.\n\nUse case: production sprite atlas for an original Transylvanian bistro merge game. Create ONE landscape bitmap atlas, 2:1, a precisely regular grid of 4 columns by 2 rows of equal square cells. Five cells hold one icon each; the last three cells (row 2, columns 2, 3 and 4) stay completely empty.\n\nEdges: every icon has hard, clean, cut-out edges, like the style reference. No glow, no halo, no rim light, no haze, no vignette, no soft fringe, no fuzz. No steam, no smoke, no splashes, no drips in the air, no sparkles, no floating leaves or particles anywhere. The background is truly TRANSPARENT everywhere: alpha zero around every icon and in the empty cells. No checkerboard, no coloured matte, no grid lines, no frames, no cast shadow on a floor.\n\nLayout rules: centre each icon in its own cell. Every icon fits inside the central 72% width and 72% height of its own cell, with a fully transparent margin on all four sides. Nothing crosses into a neighbouring cell. No text, numbers, letters, labels or logos anywhere.\n\nExact order, left to right, then top to bottom. This is the summer garden chain of a village vegetable garden in June, and the dishes made from it.\n\nROW 1\n1. GARDEN BEDS (the source): a small raised garden bed seen from slightly above: a low rectangular box of weathered grey-brown planks full of dark soil, with three young tomato plants tied to short wooden stakes carrying a few red and green tomatoes, one cucumber vine with a yellow flower, and a glossy dark-purple aubergine hanging near the front edge. A small wooden-handled trowel leans on the corner.\n2. TOMATOES: three ripe round red tomatoes, still joined on one short green vine with their green star-shaped tops, lying on their side.\n3. SUMMER SALAD: a shallow round cream ceramic bowl with a thin blue rim, holding a fresh salad of red tomato wedges, pale green cucumber slices with dark green skin, and thin rings of white onion, with a little chopped green dill on top.\n4. AUBERGINE SALAD: a small round glazed brown earthenware bowl holding a smooth mound of pale beige-green roasted aubergine spread (salata de vinete), its surface swirled with the back of a spoon, topped with a few small cubes of white onion and one small red tomato slice on the side.\n\nROW 2\n5. BULION: one tall clear glass bottle, sealed with a cork and tied with a short piece of string, full of thick deep-red tomato passata, with a small fresh basil leaf lying at its foot. NO label.\n6. EMPTY.\n7. EMPTY.\n8. EMPTY.\n\nNo animals, no people, no brand names, no flags. Every filled cell has exactly one coherent grouped icon. One 2:1 landscape image, high resolution, crisp silhouettes, true alpha transparency.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "2048x1024",
+        "run": "act2-atlases/food-garden-1",
+        "reference": "2 project-generated images (hashes in the run record)"
+      },
+      "disposition": "Leads to the shipped master food-garden, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "food-summer-1",
+      "prompt": "The two provided images are approved food atlases of mixed dishes from the same game. Use them ONLY as the style reference: match their hand-painted gouache and coloured-pencil rendering, their slightly top-down three-quarter view, their warm palette, their lighting, their level of detail, their clean edges, their plates and bowls, and the size of their icons within their cells. Do NOT copy any of their dishes.\n\nUse case: production sprite atlas for an original Transylvanian bistro merge game. Create ONE landscape bitmap atlas, 2:1, a precisely regular grid of 4 columns by 2 rows of equal square cells. Four cells hold one icon each; the whole second row (row 2, columns 1, 2, 3 and 4) stays completely empty.\n\nEdges: every icon has hard, clean, cut-out edges, like the style reference. No glow, no halo, no rim light, no haze, no vignette, no soft fringe, no fuzz. No steam, no smoke, no splashes, no drips in the air, no sparkles, no floating leaves or particles anywhere. The background is truly TRANSPARENT everywhere: alpha zero around every icon and in the empty cells. No checkerboard, no coloured matte, no grid lines, no frames, no cast shadow on a floor.\n\nLayout rules: centre each icon in its own cell. Every icon fits inside the central 72% width and 72% height of its own cell, with a fully transparent margin on all four sides. Nothing crosses into a neighbouring cell. No text, numbers, letters, labels or logos anywhere.\n\nExact order, left to right, then top to bottom. These are summer dishes of a Transylvanian village bistro.\n\nROW 1\n1. WORMWOOD WINE (vin pelin): a small round-bellied glazed brown clay jug of red wine and one short stemmed glass of dark ruby red wine beside it, with a fresh sprig of silvery-grey feathery wormwood leaves tucked into the neck of the jug.\n2. TOMATO SALAD WITH TELEMEA: a shallow round cream ceramic plate with a thin green rim, holding red tomato wedges, a few pale green cucumber slices and thin white onion rings, with crumbled cubes of white brined sheep's cheese (telemea) scattered on top and a little chopped green dill.\n3. MONK'S STEW (ghiveci calugaresc): a small round brown glazed clay pot with two little handles, full of a thick vegetable stew in red tomato sauce: green beans, cubes of aubergine, carrot rounds, pieces of red pepper and small onions, with a sprig of green parsley on top. No meat. A wooden spoon rests against the rim.\n4. MEATBALLS IN TOMATO SAUCE (chiftele marinate): a shallow round white ceramic plate with a thin brown rim, holding five round browned meatballs in a thick glossy red tomato sauce, with two bay leaves and a sprig of green parsley.\n\nROW 2\n5. EMPTY.\n6. EMPTY.\n7. EMPTY.\n8. EMPTY.\n\nNo animals, no people, no brand names, no flags. Every filled cell has exactly one coherent grouped icon. One 2:1 landscape image, high resolution, crisp silhouettes, true alpha transparency.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "2048x1024",
+        "run": "act2-atlases/food-summer-1",
+        "reference": "2 project-generated images (hashes in the run record)"
+      },
+      "disposition": "Leads to the shipped master food-summer, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "summer-guests-1",
+      "prompt": "Create ONE new character atlas for a cosy, slightly eerie Transylvanian bistro game. The reference images are the game's accepted 2 by 2 portrait atlases of bistro guests and neighbours. Use them ONLY as the reference for style, framing, scale, and transparency: hand-painted gouache with delicate coloured-pencil edges, an illustrated travel-journal feel, natural adult proportions, warm and dignified, gentle warm lamplight from the upper left. The two people below are NEW, invented identities. Do not reproduce any face or costume from the references.\n\nOutput: one square image divided into a regular 2 by 2 grid of four equal square cells, with a true transparent background (no checkerboard, no coloured matte, no grid lines). Only the TOP TWO cells hold a portrait. The BOTTOM-LEFT and BOTTOM-RIGHT cells stay entirely EMPTY and fully transparent. Framing, the same in both portraits and the same as the references: the figure faces the viewer, very slightly turned, head and full natural shoulders and upper arms, cut STRAIGHT ACROSS horizontally at mid-chest at about 92% of the cell height, shoulders at their full natural width (about 80 to 88% of the cell width) down to that straight cut. No oval vignette, no faded or rounded bottom. Eyes at about 36% of the cell height. Transparent space above the head and on both sides; nothing crosses into another cell; no shadow on the background. Every pixel of each figure is fully opaque; everything around the figures is fully transparent, with no soft halo and no detached specks.\n\nTop left, Ambrozie, an Orthodox monk of the old cathedral on the hill, about 50: a long, kind, tired face with light olive complexion, deep-set warm brown eyes with heavy lids and soft dark shadows under them, because he has not slept for weeks; a long greying dark beard and greying hair tied back. A plain black monastic cassock with a high collar and a tall soft black monk's hat (kamilavka) without a veil. A simple wooden prayer rope around one wrist, and in one hand, at chest height, a small glass jar of pickled gherkins with a cloth lid tied with string. A gentle, patient, very sleepy half smile. No jewels, no gold, no cross pendant, no glasses.\n\nTop right, Tarka Miklos, a travelling piper, about 45: lean and wiry, light weathered complexion, sharp lively green eyes, a thin dark moustache and a short pointed beard, dark hair curling from under a narrow-brimmed black Hungarian felt hat with one long pheasant feather. A long coat sewn from patches of many bright colours (red, yellow, green, blue, and white), pied, mended with visible stitches, over a plain white shirt. He holds a simple long wooden shepherd's pipe (fluier) diagonally across his chest. A sly, merry, knowing smile.\n\nNo text, names, letters, numbers, logos, frames, food other than the jar, animals, rats, scenery, background haze, blood, fangs, or supernatural effects. Each complete bust stays wholly inside its own cell, with transparent margins on every side.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x1536",
+        "run": "act2-atlases/summer-guests-1",
+        "reference": "2 project-generated images (hashes in the run record)"
+      },
+      "disposition": "Leads to the shipped master summer-guests, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "regulars-3-gavril-1",
+      "prompt": "Edit image 1, the accepted 2 by 2 portrait atlas of bistro neighbours for a cosy, slightly eerie Transylvanian bistro game. Keep the TOP-LEFT portrait (Catalina, the bell-ringer), the TOP-RIGHT portrait (Bran, the night-bus driver) and the BOTTOM-LEFT portrait (Bela, the graveyard keeper) exactly as they are, pixel for pixel. Paint ONE new portrait, only in the BOTTOM-RIGHT cell, the masked region.\n\nMatch the three existing portraits exactly in style, framing, scale, and transparency: hand-painted gouache with delicate coloured-pencil edges, an illustrated travel-journal feel, natural adult proportions, warm and dignified, gentle warm lamplight from the upper left. Framing: the figure faces the viewer, very slightly turned, head and full natural shoulders and upper arms, cut STRAIGHT ACROSS horizontally at mid-chest at about 92% of the cell height, shoulders at their full natural width (about 80 to 88% of the cell width) down to that straight cut. No oval vignette, no faded or rounded bottom. Eyes at about 36% of the cell height. The head is the same size as the heads of the three existing portraits. Transparent space above the head and on both sides; nothing crosses into another cell; no shadow on the background. Every pixel of the figure is fully opaque; everything around the figure is fully transparent, with no soft halo and no detached specks.\n\nBottom right, Gavril Hamalescu, the village mayor, about 55: portly and well fed, a round ruddy face with light complexion, a well-kept thick dark-brown moustache with greying ends, short receding dark hair combed back with care, small shrewd grey eyes. A dark charcoal three-piece suit: jacket, a buttoned dark waistcoat with a thin gold watch chain across it, a white shirt and a dark tie. He holds a small leather-bound ledger against his chest with one hand, a pencil in the other. A polite, slightly calculating smile, as if he is adding up the bill. Grounded, practical small-town clothing; one quiet hint of an old story, never a costume or a horror effect.\n\nNo text, names, letters, numbers, logos, frames, sashes with writing, badges, medals, food, animals, rats, scenery, background haze, blood, fangs, wounds, or supernatural effects. The complete bust stays wholly inside the bottom-right cell, with transparent margins on every side.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x1536",
+        "run": "act2-atlases/regulars-3-gavril-1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master regulars-3, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "sketch-sheet-4-1",
+      "prompt": "One sheet of quick character sketches from Victor's pencil journal. Victor draws them at a bistro table while he waits for his meal and listens to the other guests. One artist, one pencil and one line weight in all cells. A landscape image divided into a precisely regular grid of 4 columns by 2 rows of equal square cells. Only the FIRST THREE cells of the top row hold a drawing, one character each. The fourth cell of the top row and all four cells of the bottom row stay EMPTY plain white paper, with no mark at all. No lines, frames or borders between the cells.\n\nImage 1 is the accepted master sheet of this journal. Match its style EXACTLY in every drawn cell: the same line, the same faces, the same amount of shading, detail and texture, the same full figures at the same scale. Do not copy its people: none of its faces, headscarves, beards, hats or clothes appear here.\n\nTOP ROW, left to right:\n1. Ambrozie, an Orthodox monk of the old cathedral, about fifty, tall and thin, with a long greying beard and his greying hair tied back, under a tall soft cylindrical monk's hat without a veil, in a long plain black cassock to his ankles. Tired, kind, heavy-lidded eyes that are OPEN, as if he has not slept for weeks. He stands and holds a small glass jar of pickled gherkins with a cloth lid in both hands at his waist, a wooden prayer rope looped over one wrist. He wears no cross pendant, no glasses, no hat brim.\n2. Gavril Hamalescu, the village mayor, about fifty-five, portly, with a thick moustache and short hair combed back, in a three-piece suit with a buttoned waistcoat and a watch chain across it. He stands and writes in a small open ledger with a pencil, his reading glasses pushed up on his forehead, smiling a little as he adds up a sum. He wears no hat, no beard, no sash, no medal.\n3. Tarka Miklos, a travelling piper, about forty-five, lean and wiry, with a thin moustache and a short pointed beard, curly hair under a narrow-brimmed felt hat with one long feather, in a long coat sewn from many patches with visible stitches over a plain shirt. He stands with one foot forward and plays a long wooden shepherd's pipe held to his lips, his eyes open and merry. Three small rats sit at his feet and look up at him, listening. Comic, not frightening.\n4. EMPTY.\nBOTTOM ROW: 5, 6, 7 and 8 are EMPTY.\n\nHow to draw, the same in all three drawings:\n- Full figure, head to feet, standing on the ground, with room around it. Each figure is about 75 percent of its cell height.\n- One clear outline for the body and the clothes, with several fold lines on each garment.\n- A face with a little more character than a cartoon: open eyes with a small iris and a lid line, brows, a nose with a little shadow on one side, a mouth with a hint of the lips, and age lines where the character is old. Still drawn lightly, with no full shading.\n- Hands are simple but correct, with the right number of fingers.\n- Soft monochrome shading, between a quick sketch and a finished drawing: on the shadow side of each form (light from the upper left), a soft tone laid with the side of the pencil in short parallel strokes that fade at their edges. Shade the shadow side of the face and neck lightly, the folds of the clothes, the underside of the arms, the inside of the hat brim, the dark garments (the cassock, the suit, the waistcoat) with a medium tone, the side of the props, and a soft cast shadow on the ground. About a third of each figure carries tone; light areas stay white paper; no area is solid.\n- Hair and beards have soft strokes and a band of tone.\n- The setting is only two or three light lines, and the ground is one short line or a few grass strokes.\n- Accurate anatomy and proportions; head, body and props share one coherent perspective; feet stand on the ground. No figure touches another figure.\n\nColour: warm sepia-brown pencil only. No other colour.\n\nEvery mark, including the hat feather and the pipe, stays at least 40 pixels inside its own cell; nothing crosses into a neighbouring cell. No text, letters, numbers, labels, signature or logo. The reference image shows pencil drawings on white paper. One landscape image drawn on plain flat pure white paper (#FFFFFF) that fills the whole image: no paper texture, grain, stains, vignette, shadow, border or frame. Skin, clothes, objects and background between the lines stay the same pure white as the paper: no cream, beige, grey or coloured fill, no tonal wash.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "2688x1344",
+        "run": "act2-atlases/sketch-sheet-4-1",
+        "reference": "1 project-generated image (hashes in the run record)"
+      },
+      "disposition": "Leads to the shipped master sketch-sheet-4, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "sketch-sheet-4-2",
+      "prompt": "Edit image 1, an accepted sheet of quick pencil character sketches on plain white paper. Keep the whole sheet exactly as it is: every line, every figure, the shading, the paper, and the blank cells. Change ONLY the masked region: the face of the portly mayor in the second drawing from the left.\n\nRedraw his face in the same pencil hand, the same size and the same position: the same round face, the same thick moustache, the same short hair combed back, the same reading glasses pushed up on his forehead. His head is now raised a little, and he looks out at the viewer over his open ledger with his eyes clearly OPEN: each eye with a lid line, a small round iris and a pupil, and brows raised a little, with a small pleased smile under the moustache, as if he has just finished adding up a sum. Light, steady pencil lines and soft sepia-brown shading on the shadow side, exactly like the other faces of the sheet.\n\nWarm sepia-brown pencil only. Plain flat pure white paper (#FFFFFF) around the lines, with no fill, no grey wash, no texture. No text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "2688x1344",
+        "run": "act2-atlases/sketch-sheet-4-2",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master sketch-sheet-4, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "hail-clutter-1",
+      "prompt": "The provided image is the approved preparation blocker atlas of the same game. Use it ONLY as the style reference: match its warm low-saturation hand-painted gouache and coloured-pencil detail, its slightly top-down view, its scale, and above all its form: every blocker is an OPEN RING or open frame of material around a large empty centre, through which a food sprite will show. Do not copy its subjects.\n\nCreate ONE transparent PNG, 2:1 landscape, a precisely regular grid of 2 columns by 1 row of two equal SQUARE cells. Exactly one open-centre blocker in each cell, centred in its cell.\n\nCell 1 (left): HAILSTONES. A ring of large round white and pale grey hailstones, some clear like ice and some milky, the size of walnuts and plums, heaped among a few wet torn green leaves of a vine and a broken bean stalk, forming a thick round wreath. A few hailstones glisten with melt water on their tops.\nCell 2 (right): A POT BROKEN BY THE HAIL. The shards of a glazed clay cooking pot, its glaze deep green outside and pale cream inside, with a curved piece of the rim with one small handle, arranged as a rough open ring, with a little spilled dark earth and two small round hailstones among the shards.\n\nRules for both cells: the middle 50 percent of the width AND the height of each cell is genuinely alpha zero, with no material crossing it. Each complete ring stays within the central 72 percent of its cell, with completely transparent margins on all four sides. Make each an open ring, NOT a pile or a solid object. True alpha transparency in the centres and in the background: no checkerboard, no matte, no scenery, no food in the centre, no people, no grid lines, no shadows outside the sprites, no glow, no halo, no haze, no sparkles, no floating particles, no detached flecks. No text, letters, numbers or logos.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "2048x1024",
+        "run": "act2-atlases/hail-clutter-1",
+        "reference": "1 project-generated image (hashes in the run record)"
+      },
+      "disposition": "Leads to the shipped master hail-clutter, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "summer-kitchen-window-run1",
+      "prompt": "Edit this painting of a summer kitchen shed seen from the front, at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, light and colours, with one change.\n\nThe small window on the front wall, to the left of the doorway, looks into the dark inside of the shed. In its four marked glass panes, paint old window glass seen from outside at dusk: behind the glass is only the dim, shadowy plaster interior of the shed, deep warm brown and almost black, with no objects. Over it lies a faint, soft sheen of the blue and rose evening sky, reflected on the old glass as a gentle diagonal gleam in the upper corner of each pane. No trees, no landscape, no view through the window.\n\nThe wooden window frame, its cross bars and its sill, the wall and everything else stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/summer-kitchen-window-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped masters summer-kitchen-00, summer-kitchen-01, summer-kitchen-02, summer-kitchen-03, summer-kitchen-04, summer-kitchen-15, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "summer-kitchen-15-run3",
+      "prompt": "Edit this painting of a summer kitchen shed with a clay bread oven and an old black range inside, seen from the front through its wide open doorway. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe shelves are hung: on the back wall of the interior, between the clay oven and the black stovepipe, above the oven, two plain wooden plank shelves now hang one above the other on iron brackets, straight and level, parallel to the picture. They hold earthenware pots, glass jars of preserves, and a stack of blue painted bowls, neatly arranged.\n\nThe clay oven, the old black range and its stovepipe, the floor, the doorway, the front wall, the window and its empty sill, the roof with its stovepipe, the yard and the sky stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers, no labels.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/summer-kitchen-15-run3",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master summer-kitchen-15, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "summer-kitchen-16-run1",
+      "prompt": "Edit this painting of a summer kitchen shed with a clay bread oven, two shelves of jars and an old black range inside, seen from the front through its wide doorway. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe screen door is fitted: the wide doorway now holds a pair of plain wooden screen doors, closed, flat and parallel to the picture, set inside the old timber door frame. Each door is a simple frame of light new pine with one cross rail at the middle and a fine grey mosquito netting stretched over it. The netting is thin and almost transparent, so the clay oven with its glowing fire, the shelves of jars, the black range, its stovepipe and the floor stay clearly visible through it, only a little softened. A small iron latch and a wooden handle sit where the two doors meet.\n\nThe timber door frame, the front wall, the window and its empty sill, the roof with its stovepipe and smoke, the swallows' nest, the stone step, the yard and the sky stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers, no labels.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/summer-kitchen-16-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "The agent rejected this candidate: it repainted the whole interior behind the doors. The corrective request summer-kitchen-16-run2 masked only the pine frames."
+    },
+    {
+      "id": "summer-kitchen-16-run2",
+      "prompt": "Edit this painting of a summer kitchen shed with a clay bread oven, two shelves of jars and an old black range inside, seen from the front through its wide doorway. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe screen door is fitted: inside the old dark timber door frame, a pair of closed screen doors of light new pine now fills the doorway, flat and parallel to the picture. Paint only the pine frames of the two doors in the marked strips: a top rail, a deep bottom rail, a narrow middle rail, a stile at each side against the old timber frame, and two stiles that meet in the middle of the doorway, with a small black iron latch and a short wooden handle on each meeting stile. The pine is pale honey-coloured, with straight square edges and a few small nail heads. The mosquito netting is so fine that it cannot be seen, so the interior behind the doors shows unchanged between the pine frames.\n\nEvery pine part is a straight band: the rails are exactly horizontal, the stiles are exactly vertical. The old timber door frame, the interior, the front wall, the window, the roof, the stone step, the yard and the sky stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers, no labels.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/summer-kitchen-16-run2",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master summer-kitchen-16, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "summer-kitchen-19-run1",
+      "prompt": "Edit this painting of a summer kitchen shed seen from the front at summer blue hour, with closed pine screen doors in its wide doorway and a small window on the front wall. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, light and colours, with one change.\n\nThe vine arbour is planted: in front of the shed, a simple arbour of rough peeled hazel poles now frames the doorway, flat and parallel to the picture. One straight upright pole stands on the ground on each side of the doorway, just outside the old timber door frame, and one straight horizontal pole rests across their tops, just below the eaves and above the door lintel. A young grapevine is planted at the foot of each upright pole and climbs it, tied with twine: thin woody stems, fresh green vine leaves, curling tendrils, and a few leaves already reaching along the top pole. The vines are young, so the poles still show through the leaves and there are no grapes yet.\n\nUnder the window, to the left of the doorway, a plain wooden bench stands against the stone base of the wall, parallel to the picture.\n\nThe screen doors, the old timber door frame, the window and its sill, the wall, the roof, the swallows' nest, the stone step, the yard and the sky stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/summer-kitchen-19-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master summer-kitchen-19, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "summer-kitchen-20-run1",
+      "prompt": "Edit this painting of a summer kitchen shed seen from the front at summer blue hour, through a pair of open-framed pine screen doors: inside are a clay bread oven on a brick base, two shelves of jars, and an old black range with its stovepipe. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, light and colours, with one change.\n\nThe brick floor is laid: the bare earth floor inside the shed, seen through the two door panes, is now paved with old weathered red barn bricks laid flat on sand in a simple running-bond pattern. The rows of bricks run straight across the picture, parallel to the bottom edge, and their joints recede towards the back wall with the same perspective as the floor, the rows getting a little narrower towards the back. The bricks are a warm faded red and ochre, worn and uneven in colour, with pale sandy joints, lit warmly by the fire of the oven.\n\nThe clay oven and its brick base, the shelves, the black range and its legs, the stovepipe, the walls of the interior, the pine screen doors and their frames, the old timber door frame, the vines, the outside wall and everything outside the shed stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/summer-kitchen-20-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master summer-kitchen-20, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "vegetable-garden-18-run2",
+      "prompt": "Edit this painting of a village vegetable garden with planted beds, a bean trellis, a mended fence and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe scarecrow is up: in the middle of the planted beds, a little left of the centre of the picture, a village scarecrow stands on a wooden post among the young plants, facing the viewer: a straw head, a patched old brown coat with straw sticking out of the sleeves held out on a crossbar, and a battered black felt hat with a broken brim. At its feet, on the earth path between two beds, two small black kittens play together, one batting at a dangling straw.\n\nThe beds and their plants around the scarecrow, the bean trellis, the fence and its gate, the sunflower, the pump and its bucket, the summer kitchen wall with its window and downpipe, the orchard, the village and the sky stay unchanged.\n\nNo people, no other animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/vegetable-garden-18-run2",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "The agent rejected this candidate: it drew a thin, bent scarecrow cut by the mask and hid the gate. The corrective request vegetable-garden-18-run3 moved the scarecrow to the open earth."
+    },
+    {
+      "id": "vegetable-garden-18-run3",
+      "prompt": "Edit this painting of a village vegetable garden with raised beds, a bean trellis, a mended picket fence with a gate, a sunflower and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe scarecrow is up: in the marked area of bare brown earth at the lower right of the garden, to the right of the raised beds and below the stone base of the pump, a whole village scarecrow stands upright on a straight wooden post driven into the earth, facing the viewer, complete from its hat to the foot of its post. It has a round straw head with a calm stitched face, a patched old brown coat with straw sticking out of the cuffs, its arms held straight out to the sides on a horizontal crossbar, and a battered black felt hat with a broken brim. At the foot of the post, on the earth, two small black kittens play together, one batting at a dangling straw, the other crouched to pounce.\n\nThe raised beds and their plants, the bean trellis, the fence and its gate, the sunflower, the pump, its stone base and its bucket, the wall of the house, the orchard, the village and the sky stay unchanged.\n\nNo people, no other animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/vegetable-garden-18-run3",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "The agent rejected this candidate: the scarecrow had no head. The corrective request vegetable-garden-18-run4 asked for a smaller scarecrow."
+    },
+    {
+      "id": "vegetable-garden-18-run4",
+      "prompt": "Edit this painting of a village vegetable garden with raised beds, a bean trellis, a mended picket fence with a gate, a sunflower and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe scarecrow is up: in the marked area of bare brown earth at the lower right of the garden, to the right of the raised beds and below the stone base of the pump, a whole village scarecrow stands upright on a straight wooden post driven into the earth, facing the viewer, complete from its hat to the foot of its post. It is small, about as tall as a child, so the whole scarecrow, its hat included, fits inside the marked area with clear earth above the hat. It has a round straw head with a calm stitched face, a patched old brown coat with straw sticking out of the cuffs, its arms held straight out to the sides on a horizontal crossbar, and a battered black felt hat with a broken brim. At the foot of the post, on the earth, two small black kittens play together, one batting at a dangling straw, the other crouched to pounce.\n\nThe raised beds and their plants, the bean trellis, the fence and its gate, the sunflower, the pump, its stone base and its bucket, the wall of the house, the orchard, the village and the sky stay unchanged.\n\nNo people, no other animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/vegetable-garden-18-run4",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master vegetable-garden-18, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "vegetable-garden-21-run1",
+      "prompt": "Edit this painting of a village vegetable garden with raised beds, a bean trellis against the house, a mended picket fence with a gate, a sunflower, a scarecrow and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe rain barrels are set: in the marked area at the foot of the grey metal downpipe of the house, two old oak wine barrels now stand upright side by side on the earth, in front of the lowest leaves of the bean trellis and just behind the back edge of the onion bed, facing the viewer. They are dark weathered oak with rusty iron hoops and open tops full of rainwater. The downpipe now ends just above the open top of the left barrel, and a short tin overflow spout runs from the left barrel into the right one. The barrels are about half as tall as the bean trellis.\n\nThe bean trellis above the barrels, the onion bed and every other bed, the wall and window of the house, the fence and its gate, the sunflower, the scarecrow and the kittens, the pump, the orchard, the village and the sky stay unchanged.\n\nNo people, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/vegetable-garden-21-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "The user rejected this candidate: the left barrel stood over the wall corner and the downpipe. The corrective request vegetable-garden-21-run2 replaced it."
+    },
+    {
+      "id": "vegetable-garden-22-run1",
+      "prompt": "Edit this painting of a village vegetable garden with raised beds, a bean trellis, two rain barrels, a mended picket fence with a gate, a sunflower, a scarecrow and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe drying racks are built: in the marked area, in front of the picket fence between the sunflower and the pump, a homemade wooden drying rack now stands on four short legs on the earth, flat and parallel to the picture, facing the viewer, about as tall as the fence. It is a simple frame of plain pine with four shallow trays stacked one above the other, each tray floored with fine pale netting. The trays hold halved red tomatoes, sliced green and red peppers, and small rings of onion laid out to dry, and a few bunches of herbs hang upside down from the top bar on twine. Every rail is straight: the trays are exactly horizontal and the posts exactly vertical.\n\nThe fence behind the rack, the sunflower, the pump, its bucket and its stone base, the raised beds, the rain barrels, the bean trellis, the scarecrow and the kittens, the house, the orchard, the village and the sky stay unchanged.\n\nNo people, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/vegetable-garden-22-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "The agent rejected this candidate: the rack was wider than the mask and lost its right side. The corrective request vegetable-garden-22-run2 asked for a narrower rack."
+    },
+    {
+      "id": "vegetable-garden-22-run2",
+      "prompt": "Edit this painting of a village vegetable garden with raised beds, a bean trellis, two rain barrels, a mended picket fence with a gate, a sunflower, a scarecrow and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe drying racks are built: in the marked area, in front of the picket fence between the sunflower and the pump, a homemade wooden drying rack now stands on four short legs on the earth, flat and parallel to the picture, facing the viewer, about as tall as the fence and narrower than the marked area, with a strip of clear fence on each side of it, so both of its corner posts show whole. It is a simple frame of plain pine with four shallow trays stacked one above the other, each tray floored with fine pale netting. The trays hold halved red tomatoes, sliced green and red peppers, and small rings of onion laid out to dry, and a few bunches of herbs hang upside down on twine from a straight top bar that joins the two corner posts above the top tray. Every rail is straight: the trays are exactly horizontal and the posts exactly vertical.\n\nThe fence behind the rack, the sunflower, the pump, its bucket and its stone base, the raised beds, the rain barrels, the bean trellis, the scarecrow and the kittens, the house, the orchard, the village and the sky stay unchanged.\n\nNo people, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/vegetable-garden-22-run2",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master vegetable-garden-22, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "town-square-12-run2",
+      "prompt": "Edit this painting of the village square in front of the church at summer blue hour, with a row of five striped market stalls on the left under paper lanterns, a low stage on the right, and long tables in the foreground. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nSânziana's garlands hang over the stalls: thick hand-woven garlands of yellow bedstraw flowers and green leaves now hang in swags along the front edge of every striped stall roof, and a small round crown of yellow bedstraw flowers hangs at each corner post of the stalls. The flowers are a soft golden yellow and catch the warm light of the lanterns.\n\nThe stalls themselves, the lanterns above them, the church, the fountain, the stage, the long tables and benches, the trees, the broom, the houses and the sky stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/town-square-12-run2",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "The agent rejected this candidate: it rebuilt the five stalls as one blue arcade. The corrective request town-square-12-run3 masked only a strip along the roofs."
+    },
+    {
+      "id": "town-square-12-run3",
+      "prompt": "Edit this painting of the village square in front of the church at summer blue hour, with a row of five wooden market stalls with red-and-white striped canvas roofs on the left under paper lanterns, a low stage on the right, and long tables in the foreground. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nSânziana's garlands hang over the stalls: in the marked strip along the scalloped front edges of the five striped stall roofs, thick hand-woven garlands of small yellow bedstraw flowers and green leaves now hang in soft swags from post to post, just below the red-and-white scalloped edge of each roof, and a small round crown of yellow bedstraw flowers hangs at the top of each front corner post. The flowers are a soft golden yellow and catch the warm light of the lanterns. The swags follow the row of stalls as it recedes towards the church, smaller on the farther stalls.\n\nThe striped roofs keep their red-and-white stripes and their shapes, the wooden posts and counters of the stalls stay the same, and the lanterns, the church, the fountain, the stage, the long tables and benches, the trees, the broom, the houses and the sky stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/town-square-12-run3",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master town-square-12, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "town-square-23-run1",
+      "prompt": "Edit this painting of the village square in front of the church at summer blue hour, with five garlanded market stalls on the left under paper lanterns, a low stage on the right, two plane trees framing the view, and two long wooden tables with benches in the foreground. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe awnings are raised over the long tables, and the viewer stands under them: across the very top of the picture, in the marked band, hangs the front edge of a large awning of plain cream canvas with a faded ochre stripe along its hem, straight and level, parallel to the picture, with a row of soft scallops along its lower edge. Above the edge, the shadowed underside of the canvas fills the top of the picture. Two straight, upright wooden poles hold the awning: one stands on the cobbles at the left end of the front table, one at its right end, each rising from the ground to the canvas edge, exactly vertical, with a rope tied at the top.\n\nThe plane trees below the canvas, the lanterns, the stalls and their garlands, the church, the fountain, the stage, the tables and benches, the broom, the houses and the cobbles stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/town-square-23-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master town-square-23, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "town-square-24-run1",
+      "prompt": "Edit this painting of the village square in front of the church at summer blue hour, seen from under a cream canvas awning held by two wooden poles, with two long wooden tables and benches in the foreground, a fountain, garlanded stalls and lanterns behind. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe feast tables are laid: both long tables in the foreground now wear long white linen tablecloths that hang a little over their front edges, straight and level, parallel to the picture. On the tables stand ten simple place settings in all, five along each table, each a plain earthenware plate with a cup. Short white candles in brass holders burn along the middle of each table, and a round braided loaf of bread lies at both ends of each table. At the left end of the front table, the head of the feast, stands a small stack of old plates mended with fine golden seams.\n\nThe wooden legs and benches of the tables below the cloths, the poles, the awning, the fountain, the stalls, the lanterns, the trees, the church and the cobbles stay unchanged.\n\nNo people, no cats, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/town-square-24-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped master town-square-24, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "festival-run1",
+      "prompt": "Edit the first image, a painting of the village square in front of the church at summer blue hour, with five market stalls under Sânziana's yellow bedstraw garlands on the left, a fountain in the middle, a low wooden stage on the right, paper lanterns in the plane trees, and two long tables with benches in the foreground. Keep the whole painting as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, scale, blue-hour sky, warm lantern light and colours. Add the midsummer festival on the evening of 21 June: the square is full of happy villagers, and eight named people are among them. The mood is a cosy, happy, slightly spooky village festival: music, talk and laughter, nobody posing for the viewer.\n\nThe other images are identity references only. Copy each named person's face, age, hair, headwear and clothes from their portrait, and paint them as full-figure people in the gouache style of the first image, lit by the warm lanterns. Do not copy the portrait backgrounds. Only these eight named people appear:\n- Image 2, top left: Mara, the bistro owner, red patterned headscarf, white embroidered blouse, dark green apron. Top right: Ilie, the old baker, round wire glasses, big grey moustache, black lambskin cap, brown sheepskin vest. Bottom left: Eszter, the potter, short auburn bob, pearl necklace, red bodice. Bottom right: Sorin, the young helper, curly brown hair, black embroidered vest.\n- Image 3, bottom right: Gavril Hămălescu, the mayor, with his reading glasses. The other three people in image 3 are NOT at the festival.\n- Image 4, top right: Tarka Miklós, the piper, in his patched coat of many colours and feathered hat, with his long shepherd's pipe. The monk at the top left of image 4 is NOT at the festival.\n- Image 5, top left: Mama, Mara's mother, grey-streaked hair in a low bun, embroidered blouse, green cardigan. Top right: Tata, Mara's father, grey hair, grey moustache, glasses, checked shirt, brown cardigan.\n\nWho is where:\n1. Tarka stands on the low wooden stage on the right and plays his long pipe, facing the viewer. A neat line of six small, comical grey rats follows his tune in single file across the front of the stage, their tails up, as if dancing.\n2. Gavril stands in the near foreground, a little left of the centre, between the two tables, one hand raised, making a speech to nobody in particular; a few villagers half listen.\n3. Mara works at the nearest stall on the left, which is now a grill stall with a smoking charcoal grill of sausages and skewers; she turns them with tongs and smiles.\n4. Mama and Tata sit side by side on the near bench of the front table, facing the viewer, with plates and cups before them; Tata looks around at the full square in quiet surprise, Mama smiles at him.\n5. Ilie, Eszter and Sorin walk between the stalls in the middle distance, Ilie carrying a basket of bread, Eszter with a garland crown in her hand, Sorin carrying a tray of cups.\n6. Around them, about twenty villagers in simple village summer clothes fill the square: talking in small groups, sitting at the far table, a few children by the fountain. They are smaller towards the church, in the perspective of the square.\n\nEach person is in the scale of the benches, the stalls and the fountain, stands or sits on the cobbles with a soft shadow, and is painted in the perspective of the square. The church, the sky, the mountains, the plane trees, the lanterns, the garlands, the stall roofs, the fountain and the stage stay as they are.\n\nNo text, letters or numbers, no signature.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/festival-run1",
+        "reference": "5 project-generated images (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "The agent rejected this candidate: it zoomed in and cut the heads of the people at the edge of the mask. The corrective request festival-run2 is a whole edit with a fixed camera and scale."
+    },
+    {
+      "id": "festival-run2",
+      "prompt": "Edit the first image, a painting of the village square in front of the church at summer blue hour, with five market stalls under Sânziana's yellow bedstraw garlands on the left, a fountain in the middle, a low wooden stage on the right, paper lanterns in the plane trees, and two long tables with benches in the foreground. Keep the whole painting as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, scale, blue-hour sky, warm lantern light and colours. Add the midsummer festival on the evening of 21 June: the square is full of happy villagers, and eight named people are among them. The mood is a cosy, happy, slightly spooky village festival: music, talk and laughter, nobody posing for the viewer.\n\nThe other images are identity references only. Copy each named person's face, age, hair, headwear and clothes from their portrait, and paint them as full-figure people in the gouache style of the first image, lit by the warm lanterns. Do not copy the portrait backgrounds. Only these eight named people appear:\n- Image 2, top left: Mara, the bistro owner, red patterned headscarf, white embroidered blouse, dark green apron. Top right: Ilie, the old baker, round wire glasses, big grey moustache, black lambskin cap, brown sheepskin vest. Bottom left: Eszter, the potter, short auburn bob, pearl necklace, red bodice. Bottom right: Sorin, the young helper, curly brown hair, black embroidered vest.\n- Image 3, bottom right: Gavril Hămălescu, the mayor, with his reading glasses. The other three people in image 3 are NOT at the festival.\n- Image 4, top right: Tarka Miklós, the piper, in his patched coat of many colours and feathered hat, with his long shepherd's pipe. The monk at the top left of image 4 is NOT at the festival.\n- Image 5, top left: Mama, Mara's mother, grey-streaked hair in a low bun, embroidered blouse, green cardigan. Top right: Tata, Mara's father, grey hair, grey moustache, glasses, checked shirt, brown cardigan.\n\nWho is where:\n1. Tarka stands on the low wooden stage on the right and plays his long pipe, facing the viewer. A neat line of six small, comical grey rats follows his tune in single file across the front of the stage, their tails up, as if dancing.\n2. Gavril stands in the near foreground, a little left of the centre, between the two tables, one hand raised, making a speech to nobody in particular; a few villagers half listen.\n3. Mara works at the nearest stall on the left, which is now a grill stall with a smoking charcoal grill of sausages and skewers; she turns them with tongs and smiles.\n4. Mama and Tata sit side by side on the near bench of the front table, facing the viewer, with plates and cups before them; Tata looks around at the full square in quiet surprise, Mama smiles at him.\n5. Ilie, Eszter and Sorin walk between the stalls in the middle distance, Ilie carrying a basket of bread, Eszter with a garland crown in her hand, Sorin carrying a tray of cups.\n6. Around them, about twenty villagers in simple village summer clothes fill the square: talking in small groups, sitting at the far table, a few children by the fountain. They are smaller towards the church, in the perspective of the square.\n\nEach person is in the scale of the benches, the stalls and the fountain, stands or sits on the cobbles with a soft shadow, and is painted in the perspective of the square. The church, the sky, the mountains, the plane trees, the lanterns, the garlands, the stall roofs, the fountain and the stage stay as they are.\nKeep the camera exactly as in the first image: the same viewpoint, the same framing, the same distance. Do not zoom in. The people are small in the picture, in the scale of the square: a standing adult in the near foreground is about as tall as a quarter of the picture height, and people beside the fountain are about three times as tall as its low stone basin wall. Every named person shows whole, from head to feet or from head to the table, and nobody is cut by the edge of the picture.\n\nNo text, letters or numbers, no signature.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/festival-run2",
+        "reference": "5 project-generated images (hashes in the run record)"
+      },
+      "disposition": "Leads to the shipped master festival, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "finale-feast-run1",
+      "prompt": "Edit the first image, a painting of the village square in front of the church at summer blue hour, seen from under a cream canvas awning held by two wooden poles, with two long tables laid with white cloths, candles and braided loaves in the foreground, a fountain, garlanded stalls and paper lanterns in the plane trees behind. Keep the whole painting as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, scale, blue-hour sky, warm candle and lantern light and colours. Add the feast of the cathedral on the evening of 15 August: nine named guests at the feast, and villagers in the background. The mood is a cosy, warm, slightly spooky village feast: quiet joy, talk and candlelight, nobody posing for the viewer.\n\nThe other images are identity references only. Copy each named person's face, age, hair, headwear and clothes from their portrait, and paint them as full-figure people in the gouache style of the first image, lit by the candles and the lanterns. Do not copy the portrait backgrounds. Only these nine named people appear:\n- Image 2, top left: Mara, the bistro owner, red patterned headscarf, white embroidered blouse, dark green apron. Top right: Ilie, the old baker, round wire glasses, big grey moustache, black lambskin cap, brown sheepskin vest. Bottom left: Eszter, the potter, short auburn bob, pearl necklace, red bodice. Bottom right: Sorin, the young helper, curly brown hair, black embroidered vest.\n- Image 3, top left: Adrian, the warrior, black lambskin cap, moustache, steel breastplate under a red cloak. Top right: Monica, the scout, red patterned headscarf over a long dark braid, green cloak. Bottom left: Janos, the old scholar, brimmed black hat, grey beard, blue embroidered vest, a carved staff. The young man at the bottom right of image 3 is NOT at the feast.\n- Image 4, top left: Ambrozie, the monk of the cathedral, tall, in a black cassock and black monk's hat, a prayer rope on his wrist. The piper at the top right of image 4 is NOT at the feast.\n- Image 5, top left: Cătălina, the bell-ringer, red headscarf, sheepskin vest. The other three people in image 5 are NOT at the feast.\n\nWho is where:\n1. The two long tables now hold the fasting feast of the Dormition: grilled fish on platters, earthenware pots of bean and vegetable stew, the braided loaves, bowls of salad, jugs of red wine and cups, and the candles. No meat and no cheese.\n2. Ambrozie stands at the left end of the front table, the head of the feast, facing the viewer, one hand raised in blessing over the table.\n3. Mara stands behind the front table, a little right of the centre, facing the viewer, carrying the last steaming earthenware pot to the table; her face is the most carefully painted.\n4. Ilie, Eszter and Sorin sit on the far bench of the front table, behind it, facing the viewer across the table, each at a plate, talking and smiling.\n5. At the right end of the front table stands one empty plain wooden chair, Mamaia's chair. Nobody sits on it. In front of it on the cloth: one lit candle and one old plate mended with fine golden seams, holding a small mound of colivă, boiled wheat decorated with a cross of sugar, and two small round braided colaci.\n6. Adrian, Monica and Janos have just come up from below: they step out of a small arched red wooden door at the foot of the church steps, in the middle distance, dusty from the road, Janos leaning on his staff, Adrian raising a hand in greeting.\n7. Cătălina is up in the church tower: small and far away, she leans out of the open belfry arch and pulls the rope of the bell.\n8. Behind the tables, about fifteen villagers in simple village summer clothes stand and sit near the fountain and the far table, smaller towards the church, and the doors of the church stand open with warm light inside.\n\nKeep the camera exactly as in the first image: the same viewpoint, the same framing, the same distance. Do not zoom in. The people are small in the picture, in the scale of the tables and the fountain. Every named person shows whole, from head to the table or to the feet, and nobody is cut by the edge of the picture. Each person is in the scale of the benches and the tables, and is painted in the perspective of the square. The church, the sky, the mountains, the plane trees, the lanterns, the stalls, the fountain, the awning and its poles stay as they are.\n\nNo text, letters or numbers, no signature.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "act2-rooms/finale-feast-run1",
+        "reference": "5 project-generated images (hashes in the run record)"
+      },
+      "disposition": "Leads to the shipped master finale-feast, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "bed-ends-run1",
+      "prompt": "Edit this painting of a village vegetable garden with raised wooden beds, a bean trellis against the house wall, rain barrels, a picket fence, a scarecrow and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, light and colours, with one change.\n\nThe left ends of the raised beds are finished: in the marked strip at the lower left of the picture, each raised bed now ends properly. Its long front and back boards meet a short wooden end board, so each bed is a closed wooden box whose left end shows clearly, a little way in from the left edge of the picture, in the same perspective as the beds. The plants of each bed stop inside its end board. To the left of the bed ends, between the beds and the foot of the house wall, a narrow path of bare brown earth with a few dry weeds runs down to the bottom of the picture, and the plaster wall of the house meets the earth along a natural line.\n\nThe plants in the beds, the onion bed, the rain barrels, the house wall above the path, the trellis, the fence, the scarecrow, the pump, the orchard, the village and the sky stay unchanged.\n\nNo people, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "vg-bed-ends/bed-ends-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped masters vegetable-garden-06, vegetable-garden-13, vegetable-garden-14, vegetable-garden-17, vegetable-garden-18, vegetable-garden-21, vegetable-garden-22, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "front-end-run2",
+      "prompt": "Edit this painting of a village vegetable garden with raised wooden beds, a bean trellis, a picket fence and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, light and colours, with one change.\n\nThe front raised bed, the bed of staked tomato plants nearest the viewer, now ends at its left end exactly like the bed directly behind it: in the marked strip, a short wooden end board stands straight and upright, exactly vertical, directly below the upright end board of the bed behind it and in line with it, joining the left end of the front board to the left end of the back board. It is seen almost edge-on, as narrow as the end board of the bed behind it. Nothing of the bed shows to the left of the end board: the soil and the tomato plants stay inside it, and to its left is only the earth path with a few dry weeds.\n\nThe tomato plants inside the bed, the other beds, the path, the house wall and everything else stay unchanged.\n\nNo people, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "vg-bed-ends/front-end-run2",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped masters vegetable-garden-06, vegetable-garden-13, vegetable-garden-14, vegetable-garden-17, vegetable-garden-18, vegetable-garden-21, vegetable-garden-22, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "front-right-run2",
+      "prompt": "Edit this painting of a village vegetable garden with raised wooden beds, a scarecrow with two black kittens, a picket fence and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, light and colours, with one change.\n\nThe front raised bed, the bed of staked tomato plants nearest the viewer, gets its right side wall. Copy the right side wall of the pepper bed directly behind it: that wall is one long weathered plank, seen from outside, that runs diagonally from the back right corner of the pepper bed down and a little to the right to its front right corner post. Paint the same kind of long plank for the tomato bed in the marked strip: it starts at the bottom of the pepper bed's front right corner, runs diagonally down and a little to the right as one continuous plank without gaps, and ends at the right end of the tomato bed's front board, where a short corner post joins the two. The plank is as tall as the front board, grey-brown weathered wood like all the bed walls, and its top edge is a straight sloping line. The soil of the tomato bed stays inside the wall, and to its right is only the earth path.\n\nThe tomato plants, the other beds, the front board of the tomato bed, the scarecrow and its post, the two kittens, the path and everything else stay unchanged.\n\nNo people, no other animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "vg-bed-ends/front-right-run2",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped masters vegetable-garden-06, vegetable-garden-13, vegetable-garden-14, vegetable-garden-17, vegetable-garden-18, vegetable-garden-21, vegetable-garden-22, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "front-right-shadow-run2",
+      "prompt": "Edit this painting of a village vegetable garden with raised wooden beds, a bean trellis, a picket fence and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, light and colours, with one change.\n\nIn the marked area, repaint the earth path along the outside of the right side walls of the pepper bed and of the tomato bed in front of it. Each sloped right side wall casts the same narrow, soft shadow onto the ground at its foot: a band about as wide as the wall is tall, darkest right against the wood and fading out softly to the right, with no hard edges. The two shadow bands join into one continuous line that follows the walls of both beds. Further to the right, the path is evenly lit crumbly brown soil with a few small stones, the same as the rest of the path. No dark blocks, no patches.\n\nThe wooden walls and corner posts of both beds, the plants, and everything outside the marked area stay unchanged.\n\nNo people, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "vg-bed-ends/front-right-shadow-run2",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped masters vegetable-garden-06, vegetable-garden-13, vegetable-garden-14, vegetable-garden-17, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "vegetable-garden-21-run2",
+      "prompt": "Edit this painting of a village vegetable garden with raised beds, a bean trellis on hazel poles beside the house, a mended picket fence with a gate, a sunflower, a scarecrow and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, summer blue-hour light and colours, with one change.\n\nThe rain barrels are set: in the marked area, to the right of the grey metal downpipe at the corner of the house, two old oak wine barrels now stand upright side by side on the earth, in front of the lowest leaves of the bean trellis and just behind the back edge of the onion bed, facing the viewer. Both barrels stand wholly inside the marked area, clear of the house wall and of the downpipe: the left barrel stands just to the right of the downpipe, not in front of it. They are dark weathered oak with rusty iron hoops and open tops full of rainwater. A short curved tin spout leaves the downpipe at the height of the barrel tops, at the left edge of the marked area, and pours into the left barrel; below the spout the downpipe continues straight down the corner of the wall to the ground. A short tin overflow pipe runs from the left barrel into the right one. The barrels are about half as tall as the bean trellis.\n\nThe house wall, the downpipe, the bean trellis above the barrels, the onion bed and every other bed, the fence and its gate, the sunflower, the scarecrow and the kittens, the pump, the orchard, the village and the sky stay unchanged.\n\nNo people, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "vg-bed-ends/vegetable-garden-21-run2",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "Leads to the shipped masters vegetable-garden-21, vegetable-garden-22, which the user accepted on 2026-10-23."
+    },
+    {
+      "id": "onion-end-run1",
+      "prompt": "Edit this painting of a village vegetable garden with raised wooden beds, two rain barrels against the house wall, a bean trellis, a picket fence, a scarecrow and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, light and colours, with one change.\n\nThe back raised bed, the bed of young onions just in front of the rain barrels, now ends properly at its left end, like the beds in front of it: in the marked area, its long front board meets a short wooden end board, so the onion bed is a closed wooden box whose left end shows clearly, a little way from the house wall. The young onions stop inside the end board. To the left of the end board, the narrow earth path with a few dry weeds runs up between the beds and the house wall to the foot of the wall, and the plaster wall meets the earth along one straight, natural line.\n\nThe rain barrels, the house wall above, the other beds and their plants, the path below, the trellis and everything else stay unchanged.\n\nNo people, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "vg-bed-ends/onion-end-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "The user rejected this edit: the onion bed needed no end board."
+    },
+    {
+      "id": "onion-end-run2",
+      "prompt": "Edit this painting of a village vegetable garden with raised wooden beds, a bean trellis against the house wall, a picket fence, a scarecrow and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, light and colours, with one change.\n\nThe back raised bed, the bed of young onions just in front of the bean trellis, now ends properly at its left end, like the beds in front of it: in the marked area, its long front board meets a short wooden end board, so the onion bed is a closed wooden box whose left end shows clearly, a little way from the house wall. The young onions stop inside the end board. To the left of the end board, the narrow earth path with a few dry weeds runs up between the beds and the house wall to the foot of the wall, and the plaster wall meets the earth along one straight, natural line.\n\nThe bean trellis, the house wall above, the other beds and their plants, the path below, the trellis and everything else stay unchanged.\n\nNo people, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "vg-bed-ends/onion-end-run2",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "The user rejected this edit: the onion bed needed no end board."
+    },
+    {
+      "id": "front-end-run1",
+      "prompt": "Edit this painting of a village vegetable garden with raised wooden beds, rain barrels, a bean trellis, a picket fence, a scarecrow and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, light and colours, with one change.\n\nThe front raised bed, the bed of staked tomato plants nearest the viewer, now ends properly at its left end, like the beds behind it: in the marked area, its long front board and back board meet a short wooden end board, so the tomato bed is a closed wooden box whose left end shows clearly, directly below the left end of the bed behind it. The soil and the tomato plants stay inside the end board. To the left of the end board is only the earth path with a few dry weeds.\n\nThe other beds and their plants, the path, the house wall and everything else stay unchanged.\n\nNo people, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "vg-bed-ends/front-end-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "The user rejected this candidate: its end board of the front bed was wrong. The corrective request front-end-run2 replaced it."
+    },
+    {
+      "id": "front-right-run1",
+      "prompt": "Edit this painting of a village vegetable garden with raised wooden beds, a scarecrow with two black kittens, a picket fence and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, light and colours, with one change.\n\nThe front raised bed, the bed of staked tomato plants nearest the viewer, now has its right side wall, like the pepper bed directly behind it: in the marked strip, a weathered wooden plank as tall as the front board of the bed runs from the right end of the front board back to the right end of the pepper bed behind it. Its top edge slopes the same way as the right side wall of the pepper bed, and its outer face shows as a narrow plank in the same grey-brown wood, with a corner post where it meets the front board. The soil of the tomato bed stays inside the wall, and to its right is only the earth path.\n\nThe tomato plants, the other beds, the scarecrow and its post, the two kittens, the path and everything else stay unchanged.\n\nNo people, no other animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "vg-bed-ends/front-right-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "The agent rejected this candidate: it drew a short post and a gap, not a wall. The corrective request front-right-run2 replaced it."
+    },
+    {
+      "id": "front-right-run3",
+      "prompt": "Edit this painting of a village vegetable garden with raised wooden beds, a bean trellis, a picket fence and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, light and colours, with one change.\n\nThe front raised bed, the bed of staked tomato plants nearest the viewer, gets its right side wall. Copy the right side wall of the pepper bed directly behind it: that wall is one long weathered plank, seen from outside, that runs diagonally from the back right corner of the pepper bed down and a little to the right to its front right corner post. Paint the same kind of long plank for the tomato bed in the marked strip: it starts at the bottom of the pepper bed's front right corner, runs diagonally down and a little to the right as one continuous plank without gaps, and ends at the right end of the tomato bed's front board, where a short corner post joins the two. The plank is as tall as the front board, grey-brown weathered wood like all the bed walls, and its top edge is a straight sloping line. The soil of the tomato bed stays inside the wall, and to its right is only the earth path. The wall casts a soft, even shadow onto the path to its right, in the same evening light as the other beds, and the shadow of the pepper bed on the path above joins it smoothly.\n\nThe tomato plants, the other beds, the front board of the tomato bed, the pump, the path and everything else stay unchanged.\n\nNo people, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "vg-bed-ends/front-right-run3",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "The agent rejected this candidate: its wall rose over the corner of the pepper bed and did not match the wall of states 18 to 22."
+    },
+    {
+      "id": "front-right-shadow-run1",
+      "prompt": "Edit this painting of a village vegetable garden with raised wooden beds, a bean trellis, a picket fence and a green well pump at summer blue hour. Keep the whole painting exactly as it is, in the same hand-painted gouache with delicate coloured-pencil edges, the same composition, perspective, objects, light and colours, with one change.\n\nIn the marked area, the earth path just to the right of the sloped right side wall of the front tomato bed is repainted so that its light and shadow make sense: the soft shadow that the pepper bed casts onto the path continues smoothly down along the outside of the tomato bed's right side wall, as one even band of shade that follows the wall and fades gently into the lit earth further right. No hard edges and no patches: the earth is the same crumbly brown soil with a few small stones as the rest of the path.\n\nThe plank of the right side wall, the tomato bed, the pepper bed and everything else stay unchanged.\n\nNo people, no animals, no text, letters or numbers.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1536x2048",
+        "run": "vg-bed-ends/front-right-shadow-run1",
+        "reference": "1 project-generated image (hashes in the run record)",
+        "mask": "a mask of the changed region, made with art-composite.ts mask"
+      },
+      "disposition": "The user rejected this candidate: its shadow was a dark block between the beds. The corrective request front-right-shadow-run2 replaced it."
     }
   ]
 }

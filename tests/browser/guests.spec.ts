@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { firstFreeBoardCell, generatorOutputs } from '../../src/model.ts';
 import type { SceneLine } from '../../src/model.ts';
-import { atBookingTime, checkpoint, data, deliverButton, dismissDialogs, forward, journal, onTicket, opened, openQuest, person, portraitCell, quest, saved, start, supplies, supply, svgImageSizes, ticket, tile, toast } from './support.ts';
+import { actOneTasks, atBookingTime, checkpoint, data, deliverButton, dismissDialogs, forward, journal, onTicket, opened, openQuest, person, portraitCell, quest, saved, start, supplies, supply, svgImageSizes, ticket, tile, toast } from './support.ts';
 
 const dinner=quest('ionatan-castle-dinner');
 const search=quest('mina-avram-search');
@@ -16,7 +16,7 @@ const portrait=(target: Locator,sprite: number)=>portraitCell(target,'guests',sp
 
 test('Ionatan, Mina, and Avram visit in act 2, so act 1 shows no ticket and no introduction of them',async({page})=>{
   expect([dinner.act,search.act]).toEqual([2,2]);
-  await start(page,checkpoint(data.tasks.length));
+  await start(page,checkpoint(actOneTasks));
   await expect(ticket(page,dinner)).toHaveCount(0);await expect(ticket(page,search)).toHaveCount(0);
   await journal(page,['chapters','conversations','neighbours']);
   for(const id of ['ionatan',...companions])await expect(page.getByRole('button',{name:`Meet ${person(id).name}`,exact:true})).toHaveCount(0);

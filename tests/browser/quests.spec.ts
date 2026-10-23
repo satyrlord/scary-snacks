@@ -6,7 +6,7 @@ import { act, checkpoint, naturalSize, data, deliverButton, deliverable, dialogD
 
 /** The first campaign quest of each neighbour who lives in the village. The recovery quest stands outside the order of quests. */
 const campaign=data.quests.filter(value=>!value.recovery);
-const firstQuests=data.characters.filter(character=>!character.visitor&&campaign.some(value=>value.character===character.id)).map(character=>campaign.find(value=>value.character===character.id)!);
+const firstQuests=data.characters.filter(character=>!character.visitor&&!character.family&&campaign.some(value=>value.character===character.id)).map(character=>campaign.find(value=>value.character===character.id)!);
 const itemName=(code: string)=>getItem(code,data)!.name;
 
 async function combinedConversation(page: Page,value: Quest){

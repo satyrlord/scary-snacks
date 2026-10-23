@@ -2,7 +2,7 @@
 import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { eveningOpen, firstFreeBoardCell, prologueQuests, resolveQuests, supperQuest } from '../../src/model.ts';
+import { eveningOpen, firstFreeBoardCell, levers, playable, prologueQuests, resolveQuests, supperQuest } from '../../src/model.ts';
 import { actOneStart, checkpointState, deliverRequired, moveTo } from '../../tools/create-checkpoint-saves.ts';
 import { runPrologue } from '../../tools/campaign-balance.ts';
 import { createGame, reduceGame, revealTickets, validateGame } from '../../src/engine.ts';
@@ -16,6 +16,8 @@ export const serialize=(state: GameState)=>exportSave(state,validate);
 export function act(state: GameState,action: Action){const result=reduceGame(state,action,data);expect(result.ok,result.message).toBe(true);return result.state;}
 /** The prologue quests, which an act 1 save lists first among its delivered quests. */
 export const prologueServed=prologueQuests(data).map(value=>value.id);
+/** The number of preparations of act 1. Its last one is the last payment before the supper. */
+export const actOneTasks=data.tasks.filter(task=>data.chapters[task.chapter-1].act===1).length;
 export const quest=(id: string)=>data.quests.find(value=>value.id===id)!;
 export const recovery=data.quests.find(value=>value.recovery)!,supper=supperQuest(data)!;
 export const person=(id: string)=>data.characters.find(value=>value.id===id)!;
@@ -49,13 +51,13 @@ export function onTicket(target: Quest){
     // A dated quest is delivered on its date, so the day moves to it.
     for(const earlier of data.quests.slice(0,data.quests.indexOf(target)).filter(value=>!value.recovery)){
       // A quest that waits only for its opening date opens when the day moves to it.
-      if(earlier.opens&&state.clock.day<earlier.opens&&!earlier.act&&!earlier.march&&resolveQuests(state,data).find(value=>value.quest===earlier)!.status==='locked')moveTo(state,earlier.opens,data);
+      if(earlier.opens&&state.clock.day<earlier.opens&&playable(earlier,data)&&!earlier.march&&resolveQuests(state,data).find(value=>value.quest===earlier)!.status==='locked')moveTo(state,earlier.opens,data);
       const view=resolveQuests(state,data).find(value=>value.quest.id===earlier.id)!;
       if(view.status!=='active'&&view.status!=='waiting')continue;
       moveTo(state,Math.max(state.clock.day,earlier.opens??1,data.calendar.holidays.find(holiday=>holiday.id===earlier.holiday)?.day??1),data);
       state.completedQuests.push(earlier.id);
     }
-    if(target.opens&&state.clock.day<target.opens&&!target.act&&!target.march&&resolveQuests(state,data).find(value=>value.quest===target)!.status==='locked')moveTo(state,target.opens,data);
+    if(target.opens&&state.clock.day<target.opens&&playable(target,data)&&!target.march&&resolveQuests(state,data).find(value=>value.quest===target)!.status==='locked')moveTo(state,target.opens,data);
     revealTickets(state,data);
     if(resolveQuests(state,data).find(value=>value.quest.id===target.id)!.status==='active'){expect(validate(state)).toBe(true);return state;}
   }
@@ -65,14 +67,16 @@ export const supplies=(value: Quest)=>value.requirements.flatMap(({item,quantity
 /** A copy at 20:00 on 1 May, the evening of the supper, so Serve works when the plates are on the board. */
 export function supperEvening(state: GameState): GameState{
   const next=structuredClone(state);moveTo(next,data.calendar.supper,data);
-  next.clock.merges=(data.day.booking-data.day.opening)/data.day.mergeMinutes;return next;
+  next.clock.merges=(data.acts[0].day.booking-data.acts[0].day.opening)/data.acts[0].day.mergeMinutes;return next;
 }
 /** A copy in which a booked quest has this evening at the booking time, so Deliver serves it. The day tests cover the choice of the evening. */
 export function atBookingTime(state: GameState,value: Quest): GameState{
   if(!value.booked)return state;
   // A Sunday and Saint George's Eve have no evening guest, so the booking waits for the next evening.
-  const next=structuredClone(state);while(!eveningOpen(next.clock.day,data))moveTo(next,next.clock.day+1,data);
-  return {...next,evening:{...next.evening,guest:value.character,delivered:false},clock:{...next.clock,merges:(data.day.booking-data.day.opening)/data.day.mergeMinutes}};
+  const next=structuredClone(state);if(value.evening!==undefined)moveTo(next,value.evening,data);
+  while(!eveningOpen(next.clock.day,data))moveTo(next,next.clock.day+1,data);
+  const {booking,opening,mergeMinutes}=levers(next.clock.day,data);
+  return {...next,evening:{...next.evening,guest:value.character,delivered:false},clock:{...next.clock,merges:(booking-opening)/mergeMinutes}};
 }
 /** The new game that the page saved: a new game with the seed that the page drew. */
 export async function newGame(page: Page){return createGame(data,(await saved(page)).seed);}

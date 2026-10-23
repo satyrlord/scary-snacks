@@ -28,6 +28,9 @@ const sketches: Record<string,string>={
   cezar:'Cezar walks the night streets in his long coat and cap, a lantern in his hand.',
   catalina:'Cătălina pulls the bell rope in the tower.',
   bran:'Bran, his scarf wrapped high, stands beside his horse and holds its rein.',
+  ambrozie:'Ambrozie, a tall monk in a black cassock, holds a jar of pickled gherkins, a prayer rope on his wrist.',
+  gavril:'Gavril, the mayor, writes a sum in his small ledger, his reading glasses pushed up on his forehead.',
+  tarka:'Tarka plays a long shepherd’s pipe in his patched coat and feathered hat, and three small rats sit at his feet and listen.',
 };
 const questScenes: Record<string,readonly [string,string]>={
   'adrian-first-pack':['scene-cathedral-1','Adrian, Monica, and Janos stand above a staircase descending behind the cathedral altar.'],
@@ -96,6 +99,7 @@ const portraitFrames: Record<string, readonly [number, number, number]> = {
   dochia: [.08,.015,.84], victor: [.08,0,.84], ana: [.08,0,.84], costel: [.07,0,.86],
   sanziana: [.07,.015,.86], dorian: [.08,0,.84], ileana: [.09,.015,.82], cezar: [.07,.01,.86],
   catalina: [.1,.06,.82], bran: [.1,.03,.82], bela: [.1,.06,.82], mama: [.12,.2,.8], tata: [.07,.2,.8],
+  gavril: [.08,0,.84], ambrozie: [.08,0,.84], tarka: [.09,0,.82],
 };
 export function portrait(id: string) {
   const person = character(id);
@@ -132,11 +136,13 @@ export function food(code: string, extra = '') {
 // This brings the frame towards the tile edge without shrinking the ingredient or exposing a neighbouring sprite.
 const blockerFrames = [[47,44,446],[518,8,504],[1041,30,476],[33,515.5,470],[529,512,482],[1047,514,461]];
 const preparationFrames = [[54.5,56,263],[422,56.5,267],[766,45.5,277],[1135,65,259],[51,396,275],[419,389.5,274],[769,391,282],[1130,399,274],[40,730.5,287],[410,728,292],[768,730,286],[1120,732.5,288]];
-export function clutterArt(index: number, className: string, preparation = false) {
-  const prefix = preparation ? 'preparation-art' : 'clutter-art';
+const hailFrames = [[30,27,456],[547,42,429]];
+/** The art of a blocker: the board clutter, a preparation blocker, or a hail blocker, in its square crop of its atlas variant. */
+export function clutterArt(index: number, className: string, atlas?: 'preparation' | 'hail') {
+  const prefix = atlas ? `${atlas}-art` : 'clutter-art';
   const value = element('span', `${prefix} ${prefix}-${index} ${className}`);
-  const [x,y,side] = (preparation ? preparationFrames : blockerFrames)[index];
-  const [width,height] = preparation ? [1448,1086] : [1536,1024];
+  const [x,y,side] = (atlas === 'preparation' ? preparationFrames : atlas === 'hail' ? hailFrames : blockerFrames)[index];
+  const [width,height] = atlas === 'preparation' ? [1448,1086] : atlas === 'hail' ? [1024,512] : [1536,1024];
   value.style.backgroundSize = `${100*width/side}% ${100*height/side}%`;
   value.style.backgroundPosition = `${100*x/(width-side)}% ${100*y/(height-side)}%`;
   value.setAttribute('aria-hidden', 'true');

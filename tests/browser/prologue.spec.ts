@@ -1,7 +1,7 @@
 // The prologue in the browser: the first event, the change of event, the deferred scenes, the wait at event 7, the family kitchen, Miez, and the start of act 1.
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { act, data, forward, journal, painting, prologueAt, readNow, saved, start, startNewGame, story, supply, tile, unselect } from './support.ts';
+import { KEY, act, data, forward, journal, painting, prologueAt, readNow, saved, start, startNewGame, story, supply, tile, unselect } from './support.ts';
 
 const events = data.prologue.events;
 const title = (page: Page) => page.locator('#modal-title');
@@ -85,7 +85,7 @@ test('each event shows its painted state of the family kitchen, and the room kee
   const expected = ['family-kitchen-mourning', 'family-kitchen-christmas', 'family-kitchen-christmas', 'family-kitchen-new-year', 'family-kitchen-new-year', 'family-kitchen-mourning', 'family-kitchen-farewell'];
   await start(page, prologueAt(1));
   for (const [index, room] of expected.entries()) {
-    if (index) await page.evaluate(([key, value]) => localStorage.setItem(key, value), ['scary-snacks-save-v16', JSON.stringify({ format: 'scary-snacks', version: 16, state: prologueAt(index + 1) })]), await page.reload();
+    if (index) await page.evaluate(([key, value]) => localStorage.setItem(key, value), [KEY, JSON.stringify({ format: 'scary-snacks', version: 17, state: prologueAt(index + 1) })]), await page.reload();
     await expect.poll(() => painting(page)).toMatch(new RegExp(`^${room}-`));
     await expect(page.locator('#room-frame')).toHaveAttribute('data-current', room);
     await expect(page.locator('.window-weather')).toBeHidden();

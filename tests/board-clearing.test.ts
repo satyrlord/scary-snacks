@@ -32,7 +32,7 @@ function dairyOpen(): GameState {
 test('act 1 starts with eight obstacle cells, and knows its board, the dishes of its tickets, and the prologue discoveries', () => {
   const state = actOne();
   assert.equal(state.layoutId, 'workbench-clutter-1');
-  assert.equal(state.version, 17);
+  assert.equal(state.version, 18);
   assert.equal(state.coins, data.prologue.gift);
   assert.equal(freeBoardCells(state, data), 24);
   assert.equal(firstFreeBoardCell(state, data), 2);

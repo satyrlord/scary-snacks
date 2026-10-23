@@ -8,7 +8,7 @@ import { exportSave, importSave } from '../src/storage.ts';
 import { imageVariants } from '../tools/build-image-variants.ts';
 import type { Action, GameData, GameState, Quest } from '../src/model.ts';
 import { deliverRequired } from '../tools/create-checkpoint-saves.ts';
-import { actOne, act, addOpenLayout, data, openGame, player, rejected, validate, know } from './support.ts';
+import { actOne, actOneTasks, act, addOpenLayout, data, openGame, player, rejected, validate, know } from './support.ts';
 addOpenLayout();
 // Large funds and quests marked delivered isolate production, placement, and room art from the campaign effort.
 const funded = () => ({ ...openGame(), coins: 100000 });
@@ -48,22 +48,23 @@ function addMixed(content: GameData, id: string, recipe: string[]) {
   content.items[id] = { id, name: 'Test dish', chain: 'mixed', stage: 2, next: null, art: { atlas: 'mains', cell: 7 }, price: 1, tags, recipe: recipe as [string, string] };
 }
 
-test('original data has 14 chains of four to six dishes, 30 mixed dishes, 14 sources, 25 characters, and 24 tasks', () => {
+test('original data has 15 chains of four to six dishes, 34 mixed dishes, 15 sources, 28 characters, and 48 preparations and a purchase', () => {
   assert.equal(data.board.columns * data.board.rows, 42);
-  assert.equal(Object.keys(data.items).length, 113);
-  assert.deepEqual(data.chains.map(chain => chain.id), ['grain', 'corn', 'herbs', 'dairy', 'poultry', 'vegetables', 'fruits', 'pork', 'beans', 'lamb', 'veal', 'fish', 'pickles', 'greens']);
-  assert.equal(data.characters.length, 25);
+  assert.equal(Object.keys(data.items).length, 122);
+  assert.deepEqual(data.chains.map(chain => chain.id), ['grain', 'corn', 'herbs', 'dairy', 'poultry', 'vegetables', 'fruits', 'pork', 'beans', 'lamb', 'veal', 'fish', 'pickles', 'greens', 'garden']);
+  assert.equal(data.characters.length, 28);
   assert.equal(data.characters.filter(person => !person.visitor && !person.regular && !person.family).length, 4);
   assert.deepEqual(data.characters.filter(person => person.family).map(person => person.name), ['Mama', 'Tata']);
-  assert.equal(data.characters.filter(person => person.regular).length, 13);
-  assert.equal(data.characters.filter(person => person.visitor).length, 6);
-  assert.equal(data.tasks.length, 24);
-  assert.equal(new Set(data.tasks.map(task => task.id)).size, 24);
+  assert.equal(data.characters.filter(person => person.regular).length, 14);
+  assert.equal(data.characters.filter(person => person.visitor).length, 8);
+  assert.equal(data.tasks.length, 49);
+  assert.equal(new Set(data.tasks.map(task => task.id)).size, 49);
+  assert.deepEqual(data.tasks.filter(task => task.purchase).map(task => task.id), ['act2-orchard']);
   for (const task of data.tasks) {
-    assert.equal(task.dialogue.length, 3);
+    if (!task.purchase) assert.equal(task.dialogue.length, 3);
     assert.ok(task.dialogue.every(line => data.characters.some(person => person.id === line.speaker) && line.text.length > 0));
   }
-  const lengths: Record<string, number> = { grain: 6, corn: 4, herbs: 4, dairy: 6, poultry: 4, vegetables: 6, fruits: 6, pork: 5, beans: 5, lamb: 5, veal: 6, fish: 4, pickles: 4, greens: 4 };
+  const lengths: Record<string, number> = { grain: 6, corn: 4, herbs: 4, dairy: 6, poultry: 4, vegetables: 6, fruits: 6, pork: 5, beans: 5, lamb: 5, veal: 6, fish: 4, pickles: 4, greens: 4, garden: 4 };
   for (const chain of data.chains) {
     const length = lengths[chain.id];
     assert.equal(Object.values(data.items).filter(item => item.chain === chain.id && !item.generator).length, length, chain.id);
@@ -75,7 +76,7 @@ test('original data has 14 chains of four to six dishes, 30 mixed dishes, 14 sou
     assert.deepEqual(data.items[`generator_${chain.id}`].generator?.outputs, [`${chain.id}_1`]);
   }
   const mixed = Object.values(data.items).filter(item => item.chain === 'mixed');
-  assert.equal(mixed.length, 30);
+  assert.equal(mixed.length, 34);
   for (const item of mixed) {
     assert.match(item.id, /^mixed_[a-z-]+$/);
     assert.equal(item.recipe?.length, 2);
@@ -84,14 +85,14 @@ test('original data has 14 chains of four to six dishes, 30 mixed dishes, 14 sou
   }
 });
 
-test('dish and drink names use only English and Romanian letters, with the é of purée and a hyphen in a compound word', () => {
-  for (const item of Object.values(data.items)) if (!item.generator) assert.match(item.name, /^[A-Za-zĂÂÎȘȚăâîșțé ]+(-[a-z]+)?[A-Za-zĂÂÎȘȚăâîșțé ]*$/, item.name);
+test('dish and drink names use only English and Romanian letters, with the é of purée, a hyphen in a compound word, and the apostrophe of a possessive', () => {
+  for (const item of Object.values(data.items)) if (!item.generator) assert.match(item.name, /^[A-Za-zĂÂÎȘȚăâîșțé ]+(-[a-z]+|’s)?[A-Za-zĂÂÎȘȚăâîșțé ]*$/, item.name);
 });
 
 test('a new game starts at the first event of the prologue, and new games are valid, identical, and independent', () => {
   const state = createGame(data, 1);
   assert.equal(validateGame(state, data), true);
-  assert.equal(state.version, 17);
+  assert.equal(state.version, 18);
   assert.deepEqual(state, createGame(data, 1));
   assert.deepEqual([state.prologue, state.coins, state.taskIndex, state.completedQuests, state.pendingScenes], [{ event: 1 }, 0, 0, [], [data.prologue.events[0].opening.id]]);
   state.board[0] = { code: 'beans_1' };
@@ -249,8 +250,8 @@ test('invalid, unknown, and unavailable actions do not change state', () => {
 test('save validation rejects invalid numeric fields, codes, closed dishes, quest records, and unsupported versions', () => {
   // Some corruptions write a value that the GameState type does not admit.
   const corruptions: ((state: any) => void)[] = [
-    state => { state.version = 1; }, state => { state.version = 16; }, state => { state.version = 18; }, state => { state.coins = -1_000_000_001; },
-    state => { state.coins = 0.5; }, state => { state.taskIndex = 25; },
+    state => { state.version = 1; }, state => { state.version = 17; }, state => { state.version = 19; }, state => { state.coins = -1_000_000_001; },
+    state => { state.coins = 0.5; }, state => { state.taskIndex = 50; },
     state => { state.board.pop(); }, state => { state.board[0] = { code: '__proto__' }; },
     state => { state.board[0] = { code: 'grain_1', hidden: true }; },
     state => { state.board[0] = { code: 'bakery_1' }; know(state, 'bakery_1'); },
@@ -292,26 +293,32 @@ test('a short purse names the missing coins, and a preparation that brings a new
 });
 
 const completedAt = (count: number) => data.tasks.slice(0, count).map(task => task.id);
-const roomsAt = (count: number, painted?: readonly string[]) => resolveRooms(completedAt(count), data, painted);
-// The art plan: the front room has a state for the start of act 1 and after preparations 1 to 12, 17 and 24; the courtyard after 13 to 16 and 18 to 23.
-const plan: Record<string, number[]> = { 'front-room': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 17, 24], courtyard: [13, 14, 15, 16, 18, 19, 20, 21, 22, 23] };
+/** The rooms after count payments: those of act 1 until its last preparation, and then those of act 2. */
+const roomsAt = (count: number, painted?: readonly string[]) => resolveRooms(completedAt(count), data, painted, count > actOneTasks ? 2 : 1);
+/** The payments of the acts before the act of an area. */
+const offset = (area: string) => data.areas.find(value => value.id === area)!.act === 2 ? actOneTasks : 0;
+// The art plan. Act 1: the front room has a state for the start of act 1 and after preparations 1 to 12, 17 and 24; the courtyard after
+// 13 to 16 and 18 to 23. Act 2, by the preparations of act 2: the summer kitchen at its start and after 1 to 4, 15, 16, 19, and 20; the
+// vegetable garden after 5, 6, 13, 14, 17, 18, 21, and 22; the town square after 7 to 12, 23, and 24.
+const plan: Record<string, number[]> = { 'front-room': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 17, 24], courtyard: [13, 14, 15, 16, 18, 19, 20, 21, 22, 23],
+  'summer-kitchen': [0, 1, 2, 3, 4, 15, 16, 19, 20], 'vegetable-garden': [5, 6, 13, 14, 17, 18, 21, 22], 'town-square': [7, 8, 9, 10, 11, 12, 23, 24] };
+const unlocks: Record<string, number> = { 'front-room': 0, courtyard: 13, 'summer-kitchen': 0, 'vegetable-garden': 5, 'town-square': 7 };
 
 test('the authored rooms resolve at every checkpoint and show only approved, shipped paintings', () => {
   assert.deepEqual(roomProblems(data), []);
-  assert.deepEqual(data.areas.map(area => area.id), ['front-room', 'courtyard']);
-  assert.equal(data.rooms.length, 25);
+  assert.deepEqual(data.areas.map(area => [area.id, area.act]), [['front-room', 1], ['courtyard', 1], ['summer-kitchen', 2], ['vegetable-garden', 2], ['town-square', 2]]);
+  assert.equal(data.rooms.length, 50);
   for (const [area, numbers] of Object.entries(plan)) assert.deepEqual(data.rooms.filter(state => state.area === area).map(state => state.id).sort(), numbers.map(n => `${area}-${String(n).padStart(2, '0')}`).sort());
   // The approved-image list and the variant plan name the same room paintings, so a painting shows only once its variants ship.
-  assert.deepEqual([...roomPaintings].sort(), Object.keys(imageVariants).filter(id => /^(front-room|courtyard)-\d\d$/.test(id)).sort());
+  assert.deepEqual([...roomPaintings].sort(), Object.keys(imageVariants).filter(id => /^(front-room|courtyard|summer-kitchen|vegetable-garden|town-square)-\d\d$/.test(id)).sort());
   for (const id of roomPaintings) assert.ok(data.rooms.some(state => state.id === id), `${id} is a room state`);
 });
 
-test('each area shows the state of its highest completed preparation, and the courtyard stays locked until it opens', () => {
+test('each area shows the state of its highest completed preparation, and each later area stays locked until it opens', () => {
   for (let count = 0; count <= data.tasks.length; count++) {
-    const views = roomsAt(count);
-    for (const view of views) {
-      const earned = plan[view.id].filter(n => n <= count);
-      assert.equal(view.open, view.id === 'front-room' || count >= 13, `${view.id} open at ${count}`);
+    for (const view of roomsAt(count)) {
+      const local = count - offset(view.id), earned = plan[view.id].filter(n => n <= local);
+      assert.equal(view.open, local >= unlocks[view.id], `${view.id} open at ${count}`);
       if (!view.open) { assert.deepEqual([view.states, view.current, view.painting], [[], null, null]); continue; }
       assert.deepEqual(view.states.map(state => state.id), earned.map(n => `${view.id}-${String(n).padStart(2, '0')}`), `${view.id} at ${count}`);
       assert.equal(view.current, view.states.at(-1));
@@ -320,11 +327,14 @@ test('each area shows the state of its highest completed preparation, and the co
   const unlock = data.tasks.findIndex(task => task.id === data.areas[1].unlock);
   assert.equal(data.tasks[unlock].title, 'Clear the courtyard');
   assert.equal(data.tasks[unlock].chapter, 4);
+  assert.deepEqual(data.areas.slice(3).map(area => data.tasks.find(task => task.id === area.unlock)!.title), ['Clear the weeds', 'Sweep the square']);
 });
 
 test('a state that waits for its painting shows the latest earlier painting of its area, with its own words', () => {
-  // Every state has its painting; the fallback covers a later state that waits for its painting.
+  // Every state of both acts has its painting. A list without some paintings shows how the fallback covers a state that waits.
   assert.deepEqual(data.rooms.filter(state => !roomPaintings.includes(state.id)), []);
+  const square = resolveRooms(data.tasks.slice(0, actOneTasks + 12).map(task => task.id), data, roomPaintings.filter(id => id !== 'town-square-12'), 2).find(view => view.id === 'town-square')!;
+  assert.deepEqual([square.current!.id, square.painting!.id], ['town-square-12', 'town-square-11']);
   const [front, courtyard] = roomsAt(23, roomPaintings.filter(id => id !== 'courtyard-23'));
   assert.equal(courtyard.current!.id, 'courtyard-23');
   assert.equal(courtyard.painting!.id, 'courtyard-22');
@@ -339,9 +349,11 @@ test('a state that waits for its painting shows the latest earlier painting of i
   assert.match(roomProblems(data, roomPaintings.filter(id => id !== 'courtyard-13')).join(' '), /courtyard: needs a painting for its first state/);
 });
 
-test('the room follows the area of the latest change', () => {
+test('the room follows the area of the latest change in its act', () => {
   const expected: [number, string][] = [[0, 'front-room'], [12, 'front-room'], [13, 'courtyard'], [16, 'courtyard'], [17, 'front-room'], [18, 'courtyard'], [23, 'courtyard'], [24, 'front-room']];
   for (const [count, area] of expected) assert.equal(latestArea(completedAt(count), data), area, `at ${count}`);
+  const actTwo: [number, string][] = [[0, 'summer-kitchen'], [4, 'summer-kitchen'], [5, 'vegetable-garden'], [7, 'town-square'], [15, 'summer-kitchen'], [22, 'vegetable-garden'], [24, 'town-square']];
+  for (const [count, area] of actTwo) assert.equal(latestArea(completedAt(actOneTasks + count), data, 2), area, `at act 2 ${count}`);
 });
 
 test('the start of act 1 shows the webs and the spiders, and the mended window clears them but for one', () => {
@@ -389,10 +401,10 @@ test('a preparation paid with exactly its cost empties the purse and adds one ro
 test('fresh, mid-campaign, and completed saves resolve the same rooms after reload and export', () => {
   for (const count of [0, 12, 13, data.tasks.length]) {
     const state = pay(funded(), count);
-    const reloaded = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 16, state: JSON.parse(JSON.stringify(state)) }), validate);
+    const reloaded = importSave<GameState>(JSON.stringify({ format: 'scary-snacks', version: 17, state: JSON.parse(JSON.stringify(state)) }), validate);
     const exported = importSave<GameState>(exportSave(reloaded, validate), validate);
-    assert.deepEqual(resolveRooms(reloaded.decorations, data), roomsAt(count), `reload at ${count}`);
-    assert.deepEqual(resolveRooms(exported.decorations, data), roomsAt(count), `export at ${count}`);
+    assert.deepEqual(resolveRooms(reloaded.decorations, data, undefined, count > actOneTasks ? 2 : 1), roomsAt(count), `reload at ${count}`);
+    assert.deepEqual(resolveRooms(exported.decorations, data, undefined, count > actOneTasks ? 2 : 1), roomsAt(count), `export at ${count}`);
   }
 });
 

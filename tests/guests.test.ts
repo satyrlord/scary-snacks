@@ -4,7 +4,7 @@ import { journalCharacters } from '../src/model.ts';
 import { questProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import type { GameData, GameState } from '../src/model.ts';
-import { actOne, afterMarch, checkpoint, data, deliver, opened, player, status, tags, tonight, validate } from './support.ts';
+import { actOne, afterMarch, checkpoint, supperEvening, data, deliver, opened, player, status, tags, tonight, validate } from './support.ts';
 
 const search = data.quests.find(quest => quest.id === 'mina-avram-search')!;
 const predecessor = search.afterQuest!;
@@ -38,22 +38,23 @@ test('Ionatan dines on his way to the castle in May, after act 1, so act 1 never
   assert.equal(person.visitor, true);
   const quests = data.quests.filter(quest => quest.character === person.id);
   assert.deepEqual(quests.map(quest => quest.id), [predecessor]);
-  assert.deepEqual([quests[0].afterTask, quests[0].afterQuest, quests[0].act], ['task_9', 'vlad-guest', 2]);
-  assert.deepEqual(quests[0].requirements, [['fruits_5', 1], ['mixed_sharing-board', 1], ['mixed_tochitura', 1]]
-    .map(([item, quantity]) => ({ item, quantity })));
+  assert.deepEqual([quests[0].afterTask, quests[0].afterQuest, quests[0].act, quests[0].holiday], ['task_24', 'vlad-guest', 2, 'ionatan-journey']);
+  assert.deepEqual(quests[0].requirements, [['fruits_5', 1], ['mixed_sharing-board', 1]].map(([item, quantity]) => ({ item, quantity })));
   const shown = (state: GameState) => journalCharacters(state, data).map(character => character.id);
   assert.deepEqual(shown(actOne()), data.characters.filter(character => !character.singleVisit && !character.arrivesAfter && !character.family).map(character => character.id));
+  // On the evening of the supper his dinner is still locked. After act 2, the single visitors have left the journal.
+  assert.equal(status(supperEvening(), predecessor), 'locked');
   const finished = checkpoint(data.tasks.length);
-  assert.equal(status(finished, predecessor), 'locked');
-  for (const id of ['ionatan', 'mina', 'avram']) assert.equal(shown(finished).includes(id), false);
+  assert.equal(status(finished, predecessor), 'complete');
+  for (const id of ['ionatan', 'mina', 'avram', 'tarka']) assert.equal(shown(finished).includes(id), false);
 });
 
 test('Mina and Avram share one vegetarian, kosher-style quest after Ionatan, in act 2', () => {
   assert.equal(search.character, 'mina');
   assert.deepEqual(search.companions, ['avram']);
   assert.equal(predecessor, 'ionatan-castle-dinner');
-  assert.deepEqual([search.afterTask, search.act], ['task_10', 2]);
-  assert.deepEqual(search.requirements, [['vegetables_5', 2], ['vegetables_4', 2], ['dairy_4', 1], ['mixed_fruit-tea', 1]].map(([item, quantity]) => ({ item, quantity })));
+  assert.deepEqual([search.afterTask, search.act], ['act2-prep-20', 2]);
+  assert.deepEqual(search.requirements, [['vegetables_5', 1], ['vegetables_4', 1], ['dairy_4', 1], ['mixed_fruit-tea', 2]].map(([item, quantity]) => ({ item, quantity })));
   // Mina eats no meat or fish. Avram eats no pork, and keeps meat and dairy apart.
   const shared = data.quests.filter(quest => ['mina', 'avram'].some(id => quest.character === id || quest.companions?.includes(id)));
   assert.deepEqual(shared, [search]);
@@ -62,7 +63,7 @@ test('Mina and Avram share one vegetarian, kosher-style quest after Ionatan, in 
     assert.ok(!(tags(quest).includes('meat') && tags(quest).includes('dairy')), quest.id);
   }
   for (const id of ['ionatan', 'mina', 'avram']) assert.equal(data.characters.find(person => person.id === id)!.singleVisit, true);
-  assert.equal(status(checkpoint(data.tasks.length), search.id), 'locked');
+  assert.equal(status(supperEvening(), search.id), 'locked');
   // The news of the road comes three deliveries after their meal, and only local speakers tell it.
   const report = search.followUp!.dialogue.map(line => line.text).join(' ');
   assert.equal(search.followUp!.afterDeliveries, 3);

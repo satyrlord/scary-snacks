@@ -1,11 +1,12 @@
 // Shared fixtures for the Node tests: the game data, checked actions, checkpoint saves, quest deliveries, balance runs, and a storage in memory.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { canLightLanterns, firstFreeBoardCell, generatorOutputs, getItem, prologueQuests, questHoliday, requiredQuests, resolveQuests } from '../src/model.ts';
-import { createGame, reduceGame, revealTickets, validateGame } from '../src/engine.ts';
+import { canLightLanterns, dayMerges, eveningOpen, firstFreeBoardCell, generatorOutputs, getItem, prologueQuests, questFinale, questHoliday, questPredecessors, requiredQuests, resolveQuests } from '../src/model.ts';
+import { reduceGame, revealTickets, validateGame } from '../src/engine.ts';
 import { dataProblems } from '../src/content.ts';
-import type { Action, GameData, GameState } from '../src/model.ts';
-import { actOneStart, checkpointState, deliverRequired, moveTo } from '../tools/create-checkpoint-saves.ts';
+import { exportSave, importSave } from '../src/storage.ts';
+import type { Action, GameData, GameState, Quest } from '../src/model.ts';
+import { actOneStart, checkpointState, deliverRequired, finaleCheckpoint, moveTo } from '../tools/create-checkpoint-saves.ts';
 import { BALANCE_SEEDS, runCampaignBalance } from '../tools/campaign-balance.ts';
 import type { CampaignBalance, CampaignStrategy } from '../tools/campaign-balance.ts';
 
@@ -91,9 +92,39 @@ export const payDay = (taskIndex: number, content = data) => Math.max(content.ch
  */
 export function afterMarch(state: GameState): GameState {
   const next = structuredClone(state);
-  moveTo(next, Math.max(next.clock.day, data.calendar.lent.fish[0] + 8), data);
+  moveTo(next, Math.max(next.clock.day, data.calendar.fasts[0].fish[0] + 8), data);
   next.completedQuests.push(...next.march.filter(id => !next.completedQuests.includes(id)));
   return withTickets(next);
+}
+/** A save that goes through export and import, as a reload does. */
+export const reload = (state: GameState): GameState => importSave(exportSave(state, validate), validate);
+/** Closes the day with the merge of two Elderflowers, one merge before the closing time. */
+export function closeDay(state: GameState) {
+  const next = structuredClone(state), cells: number[] = [];
+  for (let count = 0; count < 2; count++) {
+    const cell = firstFreeBoardCell(next, data);
+    assert.notEqual(cell, -1);
+    next.board[cell] = { code: 'herbs_1' };
+    cells.push(cell);
+  }
+  know(next, 'herbs_1');
+  next.clock.merges = dayMerges(next.clock.day, data) - 1;
+  return act(next, { type: 'move', from: cells[0], to: cells[1] });
+}
+/**
+ * The checkpoint at which a campaign quest waits on its ticket: the preparation that first needs it is next, and every other quest
+ * that this preparation needs, and each March quest, is delivered. A quest that waits for this one waits again. A booked quest waits
+ * for a day with an evening.
+ */
+export function onTicket(target: Quest): GameState {
+  const state = checkpointState(data, data.tasks.findIndex((_, at) => requiredQuests(at, data).includes(target)));
+  const waits = (id: string) => { const other = data.quests.find(value => value.id === id); return !!other && questPredecessors(other, data).includes(target.id); };
+  state.completedQuests = state.completedQuests.filter(id => id !== target.id && !waits(id));
+  const ready = afterMarch(state);
+  if (target.booked) { let day = ready.clock.day; while (!eveningOpen(day, data)) day++; moveTo(ready, day, data); }
+  assert.equal(validate(ready), true, target.id);
+  assert.equal(resolveQuests(ready, data).find(view => view.quest === target)!.status, 'active', target.id);
+  return ready;
 }
 /** The status of a quest in a state. */
 export const status = (state: GameState, id: string) => resolveQuests(state, data).find(view => view.quest.id === id)!.status;
@@ -122,7 +153,8 @@ export function tonight(state: GameState, id: string): GameState {
 /** Delivers a quest from supplied items. A booked quest gets this evening, the supper waits for its day, and the lanterns bring the guests. */
 export function deliver(state: GameState, id: string) {
   let next = tonight(supply(state, id), id);
-  if (quest(id).finale) moveTo(next, data.calendar.supper, data);
+  const finale = questFinale(quest(id), data);
+  if (finale) moveTo(next, finale.day, data);
   if (canLightLanterns(next, quest(id), data)) next = act(next, { type: 'lantern', id });
   return act(next, { type: 'deliverQuest', id });
 }
@@ -181,3 +213,7 @@ export function memoryStorage(initial: [string, string][] = []) {
     removeItem(key: string) { values.delete(key); },
   };
 }
+
+/** The preparations of act 1, and the evening of the supper: every preparation of act 1 paid, at the booking time of 1 May. */
+export const actOneTasks = data.tasks.filter(task => data.chapters[task.chapter - 1].act === 1).length;
+export const supperEvening = () => finaleCheckpoint(data, 1);

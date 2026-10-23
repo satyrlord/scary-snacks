@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { getItem } from '../../src/model.ts';
-import { checkpoint, data, deliverable, dialogDeliver, exportText, finishScene, journal, opened, openQuest, options, person, portraitCell, saved, start, startAgainAndImport, supplies, ticket, toast } from './support.ts';
+import { actOneTasks, checkpoint, data, deliverable, dialogDeliver, exportText, finishScene, journal, opened, openQuest, options, person, portraitCell, saved, start, startAgainAndImport, supplies, ticket, toast } from './support.ts';
 
-const visitors=data.characters.filter(value=>value.visitor&&!value.singleVisit);
+const visitors=data.characters.filter(value=>value.visitor&&!value.singleVisit&&value.provisions);
 const quests=data.quests.filter(value=>visitors.some(visitor=>visitor.id===value.character));
 const firstQuests=visitors.map(visitor=>quests.find(value=>value.character===visitor.id)!);
 const guest=data.characters.find(value=>value.singleVisit&&data.quests.some(other=>other.character===value.id))!;
@@ -67,6 +67,6 @@ async function guestAbsent(page: Page){
 
 test('the castle guest dines in act 2, so he stays hidden through act 1',async({page})=>{
   expect(dinner.act).toBe(2);
-  const state=checkpoint(data.tasks.length);
+  const state=checkpoint(actOneTasks);
   await start(page,state);await guestAbsent(page);expect(await saved(page)).toEqual(state);
 });

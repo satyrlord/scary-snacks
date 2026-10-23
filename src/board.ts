@@ -1,5 +1,5 @@
 // The merge board: its spaces and blockers, the selected item and its actions under the board, and tap, drag, and keyboard play.
-import { freeBoardCells, mergePartners, mergeResult, pendingPreparationObstacles, takeCost, unresolvedObstacle } from './model.ts';
+import { freeBoardCells, gardenStage, mergePartners, mergeResult, pendingPreparationObstacles, takeCost, unresolvedObstacle } from './model.ts';
 import { $, button, either, element, names, pulse, status } from './dom.ts';
 import { blockerMark, clutterArt, coinMark, crossMark, food, sourceMark } from './art.ts';
 import { activeQuests } from './tickets.ts';
@@ -132,7 +132,7 @@ export function renderBoard() {
       if (definition(cell.code).generator) {
         value.append(sourceMark());
         // A paid source shows the coins of one take beside its mark. Each take of the prologue is free.
-        const cost = state.prologue ? 0 : takeCost(definition(cell.code), data);
+        const cost = state.prologue ? 0 : takeCost(definition(cell.code), data, gardenStage(state.taskIndex, data));
         if (cost) { const price = element('span', 'take-cost', String(cost)); price.prepend(coinMark()); price.setAttribute('aria-hidden', 'true'); value.append(price); }
       }
     }
@@ -140,7 +140,7 @@ export function renderBoard() {
     if (obstacle?.type === 'rat-hole') { const hole = element('span', 'rat-hole-art'); hole.setAttribute('aria-hidden', 'true'); value.append(hole); }
     if (obstacle) value.append(food(obstacle.ingredient));
     if (obstacle?.type === 'clutter') {
-      value.append(clutterArt(obstacle.sprite!, 'clutter-object', obstacle.atlas === 'preparation'));
+      value.append(clutterArt(obstacle.sprite!, 'clutter-object', obstacle.atlas));
       // The webs cover only the clutter of the neglected bistro, not the things of the grandmother's house in the prologue.
       if (state.taskIndex === 0 && !state.prologue) value.append(clutterArt(4, 'clutter-overlay'));
     }

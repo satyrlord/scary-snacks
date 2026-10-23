@@ -20,9 +20,10 @@ test('Dorian is a gentleman of leisure who sits for a portrait and entertains gu
   assert.match(quests.find(quest => quest.id === 'dorian-sitter')!.opening[0].text, /invited me to a candlelit supper/);
 });
 
-test('thirteen regulars: five at the start, then pairs with preparations 4, 8, and 12, and the nobles also with preparation 8', () => {
+test('fourteen regulars: five at the start, then pairs with preparations 4, 8, and 12, the nobles also with preparation 8, and the mayor with preparation 6 of act 2', () => {
   assert.deepEqual(characterProblems(data), []);
-  assert.deepEqual(regulars.map(person => person.id), ['vlad', 'elisabeta', 'dochia', 'victor', 'ana', 'costel', 'bela', 'sanziana', 'dorian', 'ileana', 'cezar', 'catalina', 'bran']);
+  assert.deepEqual(regulars.map(person => person.id), ['vlad', 'elisabeta', 'dochia', 'victor', 'ana', 'costel', 'bela', 'sanziana', 'dorian', 'ileana', 'cezar', 'catalina', 'bran', 'gavril']);
+  assert.equal(data.characters.find(person => person.id === 'gavril')!.arrivesAfter, 'act2-prep-6');
   const arrived = (count: number) => resolveNeighbours(checkpoint(count), data).filter(view => view.arrived && view.person.regular).map(view => view.person.id);
   assert.deepEqual(arrived(0), ['dochia', 'victor', 'ana', 'costel', 'bela']);
   assert.deepEqual(arrived(3), ['dochia', 'victor', 'ana', 'costel', 'bela']);
@@ -69,13 +70,13 @@ test('each regular asks only after arrival, and the journal shows only arrived n
   assert.ok(resolveQuests(before, data).every(view => !['vlad', 'elisabeta'].includes(view.quest.character) || view.status === 'locked'));
   const after = payNext(before);
   assert.ok(resolveQuests(after, data).some(view => view.quest.character === 'vlad' && view.status !== 'locked'));
-  const delivered = resolveNeighbours(checkpoint(24), data);
+  const delivered = resolveNeighbours(checkpoint(data.tasks.length), data).filter(view => view.person.regular);
   assert.ok(delivered.every(view => view.arrived && view.delivered === requiredQuests(data.tasks.length, data).filter(quest => quest.character === view.person.id).length));
   const fresh = actOne();
   const shown = journalCharacters(fresh, data).map(person => person.id);
   assert.ok(shown.includes('dochia') && !shown.includes('sanziana') && !shown.includes('vlad'));
   assert.equal(hasArrived(fresh, data.characters.find(person => person.id === 'vlad')!), false);
-  assert.equal(resolveNeighbours(fresh, data).filter(view => !view.arrived).length, 8);
+  assert.equal(resolveNeighbours(fresh, data).filter(view => !view.arrived).length, 9);
 });
 
 test('the cast check rejects a bad arrival, bad favourite dishes, bad diets, a missing scene, and a shared portrait cell', () => {
@@ -113,14 +114,14 @@ test('the data check rejects a regular quest before its character arrives', () =
   assert.match(dataProblems(late).join(' '), /character must arrive before the quest opens/);
 });
 
-test('each regular has two or three favourite dishes, asks for one in each quest, and has one open at the window of each quest', () => {
+test('each regular has two or three favourite dishes, asks for one in each quest but a stall, and has one open at the window of each quest', () => {
   for (const person of regulars) {
     const favourites = person.favourites!;
     assert.ok(favourites.length >= 2 && favourites.length <= 3, person.id);
     assert.equal(new Set(favourites).size, favourites.length, person.id);
     assert.ok(favourites.every(code => data.items[code] && !data.items[code].generator), person.id);
     for (const quest of data.quests.filter(quest => quest.character === person.id)) {
-      assert.ok(quest.requirements.some(({ item }) => favourites.includes(item)), `${quest.id} asks for a favourite dish.`);
+      if (!quest.stall) assert.ok(quest.requirements.some(({ item }) => favourites.includes(item)), `${quest.id} asks for a favourite dish.`);
       // A repeating quest opens in no window. It follows a campaign quest of its character.
       if (quest.repeating) continue;
       const chains = availableChains({ taskIndex: window(quest), clock: { day: 1 } }, data);

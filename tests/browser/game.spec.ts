@@ -4,7 +4,7 @@ import { boardObstacles, firstFreeBoardCell, generatorOutputs, mergePartners, re
 import { createGame } from '../../src/engine.ts';
 import { appVersion } from '../../tools/build.ts';
 import type { GameState } from '../../src/model.ts';
-import { KEY, act, naturalSize, recovery, supper, appearance, checkpoint, data, deliverButton, dialogDeliver, dismissDialogs, exportText, forward, goal, importSaveFile, journal, mergeFlour, newGame, onTicket, opened, openQuest, options, painting, pay, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, startAgain, startNewGame, stateText, supplies, supply, tile, ticket, toast, unselect, know, madeLine, prologueServed } from './support.ts';
+import { actOneTasks, KEY, act, naturalSize, recovery, supper, appearance, checkpoint, data, deliverButton, dialogDeliver, dismissDialogs, exportText, forward, goal, importSaveFile, journal, mergeFlour, newGame, onTicket, opened, openQuest, options, painting, pay, payAndRead, quest, ratio, replaceSave, revealed, saved, serialize, start, startAgain, startNewGame, stateText, supplies, supply, tile, ticket, toast, unselect, know, madeLine, prologueServed } from './support.ts';
 
 const welcome=quest('mara-welcome'),welcomeSupplied=()=>supply(checkpoint(0),supplies(welcome));
 /** Earn the first preparation through legal actions: every required quest but the last delivered, and the dishes of the last on the board. */
@@ -140,7 +140,7 @@ test('act 1 opens on the unfinished front room, with Miez on the windowsill and 
 
 test('after the last preparation the room is ready for the supper, with the sleeping cat on the counter and only the supper quest on the counter',async({page})=>{
   // A purse at the recovery floor keeps Ana's recovery quest away.
-  await start(page,checkpoint(data.tasks.length,{coins:data.economy.recoveryFloor}));
+  await start(page,checkpoint(actOneTasks,{coins:data.economy.recoveryFloor}));
   await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','front-room-24');await expect.poll(()=>painting(page)).toMatch(/^front-room-24-/);
   await expect(page.locator('#story .task-content')).toContainText(supper.title);await expect(page.locator('.counter-cat')).toBeVisible();await expect(page.locator('#cat-button')).toBeVisible();
   await expect(page.locator('#tickets .ticket')).toHaveCount(1);await expect(page.locator('#tickets .ticket')).toHaveAttribute('data-quest',supper.id);
@@ -277,7 +277,7 @@ test('with reduced motion the change shows at once, and nothing animates',async(
 });
 
 test('a painting that cannot load leaves the room in words, and play goes on',async({page})=>{
-  await page.route('**/assets/variants/front-room-*',route=>route.fulfill({status:404,body:''}));await start(page,checkpoint(data.tasks.length));
+  await page.route('**/assets/variants/front-room-*',route=>route.fulfill({status:404,body:''}));await start(page,checkpoint(actOneTasks));
   await expect(page.locator('#room-stage')).toHaveAttribute('data-failed','');
   const caption=page.locator('#room-caption');await expect(caption).toBeVisible();await expect(caption).toContainText('The painting of this room could not load, so here it is in words.');
   await expect(caption.locator('li')).toHaveText(data.rooms.filter(state=>state.area==='front-room').map(state=>state.text));
@@ -941,10 +941,10 @@ for(const writer of ['this tab','another tab'] as const)test(`a corrupt live sav
 });
 
 test('a previous-format campaign stays untouched beside a new campaign',async({page})=>{
-  // The previous format: its own key and envelope, and state version 16.
-  const oldKey='scary-snacks-save-v15';expect(KEY).toBe('scary-snacks-save-v16');
+  // The previous format: its own key and envelope, and state version 17.
+  const oldKey='scary-snacks-save-v16';expect(KEY).toBe('scary-snacks-save-v17');
   const earlier=checkpoint(0);
-  const old=JSON.stringify({format:'scary-snacks',version:15,state:{...earlier,version:16}});
+  const old=JSON.stringify({format:'scary-snacks',version:16,state:{...earlier,version:17}});
   await page.addInitScript(({key,value})=>{
     if(!sessionStorage.getItem('previous-save-seeded')){
       localStorage.setItem(key,value);sessionStorage.setItem('previous-save-seeded','true');
@@ -1189,7 +1189,7 @@ test('blocked browser storage keeps the game playable for the visit and says tha
 
 test('narrow phones keep the whole dish name in the strip, and short screens keep the board clear of the bar',async({page})=>{
   // Every chain is open, so the longest dish name can stand on the board.
-  const state=checkpoint(data.tasks.length,{coins:data.economy.recoveryFloor});
+  const state=checkpoint(actOneTasks,{coins:data.economy.recoveryFloor});
   const longest=Object.keys(data.items).filter(code=>!data.items[code].generator).sort((a,b)=>data.items[b].name.length-data.items[a].name.length)[0];const at=firstFreeBoardCell(state,data);state.board[at]={code:longest};know(state,longest);
   const line=mergePartners(longest,data).length?'Tap a marked dish to merge, or an empty space to move it.':'A final dish. Deliver it, or tap an empty space to move it.';
   await page.addInitScript(([key,save])=>localStorage.setItem(key,save),[KEY,serialize(state)]);

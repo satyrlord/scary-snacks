@@ -1,27 +1,27 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { campaignQuest, dishWork, requiredQuests, stapleCost, taskEligibility, unresolvedObstacle } from '../src/model.ts';
+import { campaignQuest, requiredQuests, stapleCost, taskEligibility, unresolvedObstacle } from '../src/model.ts';
 import { validateGame } from '../src/engine.ts';
 import { dataProblems, questProblems } from '../src/content.ts';
 import type { Action, Quest } from '../src/model.ts';
-import { act, addOpenLayout, data, openCheckpoint, openGame, prologueServed, rejected } from './support.ts';
+import { act, actOneTasks, addOpenLayout, data, openCheckpoint, openGame, prologueServed, rejected } from './support.ts';
 
 addOpenLayout();
 /** The checkpoint before the quests that open with the previous preparation are delivered. */
 const withoutWindow = (count: number) => ({ ...openCheckpoint(count), completedQuests: openCheckpoint(count - 1).completedQuests });
-/** The work value of a quest: the merges of its dishes at the work rate. The funding check counts this, not the staples. */
-const work = (quest: Quest) => quest.requirements.reduce((sum, { item, quantity }) => sum + dishWork(item, data).merges * data.economy.workRate * quantity, 0);
+/** The funding of a quest of act 1: its reward less the staples of its dishes. The funding check counts this. */
+const funding = (quest: Quest) => quest.reward - stapleCost(quest, data);
 
 test('each preparation needs every campaign quest that opens before it, and the last one needs every campaign quest', () => {
   assert.deepEqual(questProblems(data), []);
-  assert.deepEqual(requiredQuests(0, data).map(quest => quest.id), data.quests.filter(quest => quest.afterTask === null && !quest.afterQuest && campaignQuest(quest)).map(quest => quest.id));
+  assert.deepEqual(requiredQuests(0, data).map(quest => quest.id), data.quests.filter(quest => quest.afterTask === null && !quest.afterQuest && campaignQuest(quest, data)).map(quest => quest.id));
   for (let index = 1; index < data.tasks.length; index++) {
     const earlier = requiredQuests(index - 1, data), now = requiredQuests(index, data);
     assert.deepEqual(now.slice(0, earlier.length), earlier, 'Each preparation keeps the quests of the one before it.');
     assert.ok(now.length > earlier.length, `${data.tasks[index].id} adds at least one quest.`);
   }
   // The March quests of Dochia and the quests of later acts are not needed.
-  assert.deepEqual(requiredQuests(data.tasks.length - 1, data), data.quests.filter(campaignQuest));
+  assert.deepEqual(requiredQuests(data.tasks.length - 1, data), data.quests.filter(quest => campaignQuest(quest, data)));
 });
 
 test('eligibility lists the unmet coins and quests and keeps the exact totals above a requirement', () => {
@@ -72,47 +72,61 @@ test('generator placement is part of eligibility and failed completion leaves ev
   assert.equal(completed.coins, 0);
 });
 
-test('the funding check rejects a preparation that the work of the quests before it cannot pay for', () => {
+test('the funding check rejects a preparation that the funding of the quests before it cannot pay for', () => {
   const costly = structuredClone(data);
-  const earned = requiredQuests(0, data).reduce((sum, quest) => sum + work(quest), 0);
+  const earned = requiredQuests(0, data).reduce((sum, quest) => sum + funding(quest), 0);
   costly.tasks[0].work.materials += earned - costly.tasks[0].cost + 1;
   costly.tasks[0].cost = earned + 1;
-  assert.match(questProblems(costly).join(' '), new RegExp(`^task_1: the quests before it earn ${earned} coins of work, less than the ${earned + 1} that the preparations cost\\.`));
+  assert.match(questProblems(costly).join(' '), new RegExp(`^task_1: the quests before it fund ${earned} coins, less than the ${earned + 1} that the preparations of its act cost\\.`));
   assert.ok(dataProblems(costly).length);
   // Quests with less work earn less, even when their rewards match their menu values.
   const cheap = structuredClone(data);
   for (const { id } of requiredQuests(0, data)) Object.assign(cheap.quests.find(quest => quest.id === id)!, { requirements: [{ item: 'herbs_2', quantity: 1 }], reward: data.items.herbs_2.price });
-  assert.match(questProblems(cheap).join(' '), new RegExp(`^task_1: the quests before it earn \\d+ coins of work, less than the ${data.tasks[0].cost}`));
-  // The shortfall carries forward: the totals are cumulative.
-  const surplus = requiredQuests(data.tasks.length, data).reduce((sum, quest) => sum + work(quest), 0) - data.tasks.reduce((sum, task) => sum + task.cost, 0);
+  assert.match(questProblems(cheap).join(' '), new RegExp(`^task_1: the quests before it fund -?\\d+ coins, less than the ${data.tasks[0].cost}`));
+  // The shortfall carries forward in its act: the totals are cumulative.
+  const surplus = requiredQuests(actOneTasks, data).filter(quest => !quest.act).reduce((sum, quest) => sum + funding(quest), 0)
+    - data.tasks.slice(0, actOneTasks).reduce((sum, task) => sum + task.cost, 0);
   const later = structuredClone(data);
   later.tasks[23].work.materials += surplus + 1;
   later.tasks[23].cost += surplus + 1;
-  assert.match(questProblems(later).join(' '), /^task_24: the quests before it earn/);
-  // The coins left after the last preparation must buy the staples of the supper.
-  const supper = data.quests.find(quest => quest.finale)!;
+  assert.match(questProblems(later).join(' '), /^task_24: the quests before it fund/);
+  // The coins left after the last preparation of act 1 must buy the ingredients of the supper.
+  const supper = data.quests.find(quest => quest.finale === 'finale')!;
   const staples = stapleCost(supper, data);
   const lean = structuredClone(data);
   lean.tasks[23].work.materials += surplus - staples + 1;
   lean.tasks[23].cost += surplus - staples + 1;
-  assert.deepEqual(questProblems(lean), [`${supper.id}: the quests leave ${staples - 1} coins, less than the ${staples} that its staples cost.`]);
+  assert.deepEqual(questProblems(lean), [`${supper.id}: the quests leave ${staples - 1} coins, less than the ${staples} that its ingredients cost.`]);
+  // The purse of act 1 does not fund act 2: its first preparation needs the quests of act 2.
+  const rich = structuredClone(data);
+  rich.tasks[actOneTasks].work.materials += 5000;
+  rich.tasks[actOneTasks].cost += 5000;
+  assert.match(questProblems(rich).join(' '), new RegExp(`^${data.tasks[actOneTasks].id}: the quests before it fund`));
 });
 
-test('the quest check rejects quests out of opening order, a quest that opens with the last preparation, a second or misplaced supper, and a broken recovery quest', () => {
+test('the quest check rejects quests out of opening order, a quest that opens with the last payment of its act, a second or misplaced finale, and a broken recovery quest', () => {
   const late = structuredClone(data);
-  late.quests.findLast(campaignQuest)!.afterTask = data.tasks.at(-1)!.id;
-  assert.ok(questProblems(late).includes('Every quest must open before the last preparation.'));
+  const last = late.quests.findLast(quest => campaignQuest(quest, data) && !quest.act)!;
+  last.afterTask = 'task_24';
+  assert.ok(questProblems(late).includes(`${last.id}: must open before the last preparation of its act.`));
+  // A quest opens after a preparation, never after a purchase.
+  const bought = structuredClone(data);
+  bought.quests.findLast(quest => campaignQuest(quest, data))!.afterTask = data.tasks.at(-1)!.id;
+  assert.ok(questProblems(bought).some(problem => problem.endsWith('unknown opening preparation.')));
   const swapped = structuredClone(data);
-  const first = swapped.quests.findIndex(quest => quest.afterTask === 'task_1');
-  [swapped.quests[1], swapped.quests[first]] = [swapped.quests[first], swapped.quests[1]];
+  const opened = swapped.quests.findIndex(quest => quest.afterTask === 'task_1');
+  [swapped.quests[1], swapped.quests[opened]] = [swapped.quests[opened], swapped.quests[1]];
   assert.ok(questProblems(swapped).includes('Quests must be in the order in which they open.'));
   assert.ok(dataProblems(swapped).length);
   const second = structuredClone(data);
-  Object.assign(second.quests[1], { finale: true, reward: 0, completion: [] });
-  assert.ok(questProblems(second).includes('The finale needs exactly one supper quest.'));
-  const early = structuredClone(data);
-  early.quests.find(quest => quest.finale)!.afterTask = data.tasks.at(-2)!.id;
-  assert.ok(questProblems(early).includes('The supper quest opens after the last preparation.'));
+  Object.assign(second.quests[1], { finale: 'finale', reward: 0, completion: [] });
+  assert.ok(questProblems(second).includes(`${second.quests[1].id}: invalid finale.`));
+  const misplaced = structuredClone(data);
+  misplaced.quests.find(quest => quest.finale === 'finale')!.afterTask = 'task_23';
+  assert.ok(questProblems(misplaced).includes('mara-community-supper: a finale quest opens after the last preparation of its act.'));
+  const crossed = structuredClone(data);
+  delete crossed.quests.find(quest => quest.finale === 'finale-act-2')!.act;
+  assert.ok(questProblems(crossed).includes('finale-act-2: needs one finale quest of its act.'));
   const twice = structuredClone(data);
   Object.assign(twice.quests[1], { recovery: true, completion: [] });
   assert.ok(questProblems(twice).includes('The game needs exactly one recovery quest.'));
@@ -122,14 +136,14 @@ test('the quest check rejects quests out of opening order, a quest that opens wi
   const paid = structuredClone(data);
   Object.assign(paid.quests[0], { requirements: [{ item: 'grain_3', quantity: 1 }], reward: data.items.grain_3.price });
   assert.ok(questProblems(paid).includes('ana-night-ward-tea: the recovery quest asks only for open dishes of free sources.'));
-  for (const change of [{ afterTask: 'task_1' }, { afterQuest: 'mara-welcome' }, { finale: true }, { recovery: 'yes' }]) {
+  for (const change of [{ afterTask: 'task_1' }, { afterQuest: 'mara-welcome' }, { finale: 'finale' }, { recovery: 'yes' }]) {
     const broken = structuredClone(data);
     Object.assign(broken.quests[0], change);
     assert.ok(questProblems(broken).includes('ana-night-ward-tea: invalid recovery quest.'), JSON.stringify(change));
   }
 });
 
-test('the last preparation needs its own quests and repeated completion changes nothing', () => {
+test('the last preparation of act 1 needs its own quests, and only the purchase of act 2 leaves no payment', () => {
   const ready = openCheckpoint(23);
   const state = withoutWindow(23);
   assert.ok(validateGame(state, data));
@@ -139,8 +153,13 @@ test('the last preparation needs its own quests and repeated completion changes 
   const completed = act(ready, { type: 'task' });
   assert.equal(completed.taskIndex, 24);
   assert.equal(completed.coins, 0);
-  assert.deepEqual(taskEligibility(completed, data), { task: null, ready: false, requirements: [], blockers: ['The community supper is ready.'] });
+  // The next payment is the first preparation of act 2. It waits for its chapter.
+  assert.equal(taskEligibility(completed, data).task, data.tasks[24]);
+  assert.ok(taskEligibility(completed, data).blockers.includes('This preparation opens on Friday 2 May.'));
   rejected(completed, { type: 'task' });
+  const bought = openCheckpoint(data.tasks.length);
+  assert.deepEqual(taskEligibility(bought, data), { task: null, ready: false, requirements: [], blockers: ['Every preparation is paid.'] });
+  rejected(bought, { type: 'task' });
 });
 
 test('board actions never count as quests, and invalid actions change nothing', () => {

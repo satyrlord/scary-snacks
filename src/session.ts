@@ -1,7 +1,7 @@
 // The game in this tab: its data, its state, the selected space, and the saves that keep them. The other modules read these
 // bindings, and only the functions here change them. Each game change asks the interface to draw the game again.
-import { boardObstacles, getItem, mergeResult, takeCost } from './model.ts';
-import { createGame, reduceGame, repairSave, validateGame } from './engine.ts';
+import { boardObstacles, gardenStage, getItem, mergeResult, takeCost } from './model.ts';
+import { createGame, reduceGame, validateGame } from './engine.ts';
 import type { Action, GameData, GameState, Result } from './model.ts';
 import { loadSave, saveGame, savedText, SAVE_KEY } from './storage.ts';
 import type { LoadResult, WriteResult } from './storage.ts';
@@ -17,7 +17,6 @@ const BLOCKED_STORAGE = 'Not saved: this browser blocks storage, so this game la
 export const validate = (candidate: unknown) => validateGame(candidate, data);
 /** A new game with a random seed for the thief rat. */
 export const newGame = () => createGame(data, crypto.getRandomValues(new Uint32Array(1))[0]);
-export const repair = (candidate: unknown) => repairSave(candidate, data);
 export const definition = (code: string) => getItem(code,data)!;
 export const itemName = (code: string) => definition(code).name;
 export const character = (id: string) => data.characters.find(value => value.id === id)!;
@@ -28,7 +27,7 @@ export const sourceOutput = (code: string) => itemName(definition(code).generato
 export const matchingBlocker = (code: string) => boardObstacles(state,data).find(obstacle =>
   !state.resolvedObstacles.includes(obstacle.id) && !!mergeResult(code, obstacle.ingredient, data));
 /** The coins that one take from a source spends, in words. Each take of the prologue is free. */
-export const takePrice = (source: string) => { const cost = state.prologue ? 0 : takeCost(definition(source), data); return cost ? `${cost} ${cost === 1 ? 'coin' : 'coins'} each` : 'free'; };
+export const takePrice = (source: string) => { const cost = state.prologue ? 0 : takeCost(definition(source), data, gardenStage(state.taskIndex, data)); return cost ? `${cost} ${cost === 1 ? 'coin' : 'coins'} each` : 'free'; };
 
 /** What the interface shows after a change: the result of an action and the state before it, or null for a redraw alone. */
 export type Change = { result: Result; before: GameState } | null;
@@ -47,7 +46,7 @@ export const select = (index: number | null) => { selected = index; };
 /** Reads the save of this browser under the game lock and adopts it, or a new game. The data must pass its checks first. */
 export async function open(value: GameData): Promise<LoadResult<GameState>> {
   data = value;
-  const load = () => loadSave<GameState>(storage, validate, repair);
+  const load = () => loadSave<GameState>(storage, validate);
   const saved = storage&&navigator.locks?await navigator.locks.request(SAVE_KEY,load):load();
   state = saved.state ?? newGame();
   // A reload cannot open blocked storage, so that game plays for this visit without the recovery block.
@@ -85,7 +84,7 @@ export function adopt(next: GameState, result: WriteResult) {
 export function syncSavedGame() {
   if (!recoveryRequired && savedText(storage) === observedSave) return false;
   // A read that fails, or a save that cannot open, leaves the observed text alone, so this tab never takes its own save for a newer one.
-  const saved = loadSave<GameState>(storage, validate, repair);
+  const saved = loadSave<GameState>(storage, validate);
   if (saved.status === 'invalid' || saved.status === 'unsupported') {
     const wasRecovering = recoveryRequired;
     recoveryRequired = true;

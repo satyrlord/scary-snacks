@@ -57,6 +57,20 @@
         "sketch-mara-stove"
       ]
     },
+    "sketch-sheet-4": {
+      "columns": 4,
+      "rows": 2,
+      "names": [
+        "sketch-ambrozie",
+        "sketch-gavril",
+        "sketch-tarka",
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
     "scene-sheet-1": {
       "columns": 2,
       "rows": 2,
@@ -1288,12 +1302,12 @@
     {
       "file": "public/assets/variants/regulars-3-640x640.webp",
       "master": "regulars-3",
-      "masterSha256": "8db6830c2508e889745a9eb95aadd293990c1b583365bac4b12b1b7880bb9ede",
+      "masterSha256": "80196995cc0ee993652491fd63f33b4d3b6d7fe0a93df1e0cbe9874371936b97",
       "width": 640,
       "height": 640,
       "format": "webp",
-      "bytes": 85918,
-      "sha256": "940bef9f48ad22682bfc45d5076612f1ae1bb3fdff9082a6098f589f9caa5002"
+      "bytes": 114962,
+      "sha256": "e597bb99ec6d658519336144ed5359cde99910a96188aacacfa4dc868f6f2796"
     },
     {
       "file": "public/assets/variants/parchment-page-1254x1254.webp",
@@ -1348,22 +1362,22 @@
     {
       "file": "public/assets/variants/food-grain-1024x512.webp",
       "master": "food-grain",
-      "masterSha256": "00a2e8b485f1013e1c370b78a2fb7fb6c2bed5d9a033512497c93563fda5305b",
+      "masterSha256": "c3642705c3954722915bf89be801ced01cff241b8f5758cb28c4c75ae9f83806",
       "width": 1024,
       "height": 512,
       "format": "webp",
-      "bytes": 145982,
-      "sha256": "d218e5996d2dea9c3159455fcda31d45e0c0a893f7d7aec6ac4482acaca5696a"
+      "bytes": 146014,
+      "sha256": "238568e3a844b24dea10fa3bd60c121ff0f904016192e1f5ee868ce5f87184ec"
     },
     {
       "file": "public/assets/variants/food-corn-1024x512.webp",
       "master": "food-corn",
-      "masterSha256": "68a872a99c1cbf21f017ee47146bf28402211ee302785d6933077348e7683f0d",
+      "masterSha256": "10306b5b3a7c4a8b929dae3a95785c08a8680c19dc102f442c4568b807e7d110",
       "width": 1024,
       "height": 512,
       "format": "webp",
-      "bytes": 115760,
-      "sha256": "0a3b060cc8d1d08c1ea8b168d1a2591a42fda5c7508166edcc5869c330473218"
+      "bytes": 115336,
+      "sha256": "977e11e45cddfd8483ac0bba925d26197ec2adc97111625a83ca433c8ecb44d3"
     },
     {
       "file": "public/assets/variants/food-herbs-1024x512.webp",
@@ -1388,22 +1402,22 @@
     {
       "file": "public/assets/variants/food-poultry-1024x512.webp",
       "master": "food-poultry",
-      "masterSha256": "849e6118368643d69c096999d0861f7b11d35d34ee575a9ab4305c00501be322",
+      "masterSha256": "e7755cdd3e4c963ab70d1b42e4586d08dd234d5002108914a67a7c758bd5e1e5",
       "width": 1024,
       "height": 512,
       "format": "webp",
-      "bytes": 96240,
-      "sha256": "510df42445cade9957d28d6f14de16bd0a9b66749072697cab16fa9e52598919"
+      "bytes": 95722,
+      "sha256": "5c318dc953eb868eaf5a3b405d2253a76ffec87a003b4a932781e889c90bbcd8"
     },
     {
       "file": "public/assets/variants/food-vegetables-1024x512.webp",
       "master": "food-vegetables",
-      "masterSha256": "cfaaad0c55e508a995242a74ad7df1948cf0a621d2154591bf174856ae497843",
+      "masterSha256": "dc0557346963f39d820c5ba962e526650bfa20af079e4ed45ac64a4a650859b5",
       "width": 1024,
       "height": 512,
       "format": "webp",
-      "bytes": 169842,
-      "sha256": "5839fef420e9a20f4cf454f73a93a356df3bb1296d9daa7fd738005a44be5e8a"
+      "bytes": 169638,
+      "sha256": "91b4abd8f3df605f9263df665ccc9afbb832f664e94b4aa29d615fd679cb89e1"
     },
     {
       "file": "public/assets/variants/food-fruits-1024x512.webp",
@@ -1428,22 +1442,22 @@
     {
       "file": "public/assets/variants/food-beans-1024x512.webp",
       "master": "food-beans",
-      "masterSha256": "1c8f2e4e72947abf416a40b99484bcb565b7100ae27ecb94237b5e7888e27323",
+      "masterSha256": "130fd2144c17a642a07b174c005212ebf54eff2d6b127dd1fd9e86ee921a6e68",
       "width": 1024,
       "height": 512,
       "format": "webp",
-      "bytes": 139694,
-      "sha256": "0b671d819dae48f3467038a58f865be6cef3f1c97736590fc04ff1444715e218"
+      "bytes": 139686,
+      "sha256": "2537d2004fbacde0de52f08fc8b20fda3f3ca472157c52918c2e020fdcd3f8b5"
     },
     {
       "file": "public/assets/variants/food-lamb-1024x512.webp",
       "master": "food-lamb",
-      "masterSha256": "ca5b9bb182352328e48e7f6a90a6f82a9cc81241e045742edd484c8044576b25",
+      "masterSha256": "51b51dfb64fb0adba673bb25031b9379b1e8feb50e9696acfd018779ac818629",
       "width": 1024,
       "height": 512,
       "format": "webp",
-      "bytes": 155512,
-      "sha256": "5186f39bda4bb0b7371109cb52f2518e38795012dd30bbc34c837f5fecdd74ab"
+      "bytes": 155320,
+      "sha256": "e3044fd32ae7dd6b521a496fd8a7b144af0f545380de6190da92776a3fbc0a8f"
     },
     {
       "file": "public/assets/variants/food-veal-1024x512.webp",
@@ -1478,22 +1492,22 @@
     {
       "file": "public/assets/variants/food-mains-1024x512.webp",
       "master": "food-mains",
-      "masterSha256": "a34227f8f79520dc05a2d69da4d534da4b3fdf522aa6cfdbfd2f3c81b4a3609a",
+      "masterSha256": "11e792614f97ddb9144ca6f06cdf972cff15f6d0f4d887730c8285771ffcf387",
       "width": 1024,
       "height": 512,
       "format": "webp",
-      "bytes": 181840,
-      "sha256": "faf90f0eef2a6d57881128ab96f5cbb9e5dc7042b4708f24a3639a9cb898926b"
+      "bytes": 182636,
+      "sha256": "ce01771c41543c8d1d6de9c48782fb3083073a99300ec9019b619b69996dc4d1"
     },
     {
       "file": "public/assets/variants/food-sweets-1024x512.webp",
       "master": "food-sweets",
-      "masterSha256": "02c83965385640bd8ee1b0df98b6197dba7b8de04137fcaca5d28e6ce0bc4548",
+      "masterSha256": "c2a253020562f8915f5932c12a0fccae490afebe09d45310303c65fa1da8effb",
       "width": 1024,
       "height": 512,
       "format": "webp",
-      "bytes": 176082,
-      "sha256": "4a6411a80570d900f6ba474eec91ea0c5132a63c512f0a4bac2b3dfb9991c8e4"
+      "bytes": 174760,
+      "sha256": "beff7c9283819eefb5a0d5121a3ea4b0cc1c14d8f78245b144e78b54424ec311"
     },
     {
       "file": "public/assets/variants/rat-thief-1024x512.webp",
@@ -1938,32 +1952,32 @@
     {
       "file": "public/assets/variants/food-breads-1024x512.webp",
       "master": "food-breads",
-      "masterSha256": "da6f7facac43ac49a775755fef55df0ddfd5dbc99b904ae9e797be8808b5d9a6",
+      "masterSha256": "269a351d22ae5e586530e205c641e19334b35de2940fd6091314861c7b7cc366",
       "width": 1024,
       "height": 512,
       "format": "webp",
-      "bytes": 210924,
-      "sha256": "9a72dccbc2dcd58680c120fb5a9fe0f4e558ebb39851db057daea2a59a85d14c"
+      "bytes": 210638,
+      "sha256": "086c9a76f8996ec02a4fe220e047af4e74efb478677b61ce2f73e439373260a8"
     },
     {
       "file": "public/assets/variants/food-pickles-1024x512.webp",
       "master": "food-pickles",
-      "masterSha256": "24a18e48b29a523c612e45746382cfcd4cdb1322ef0d88527cf668f98bfc75ed",
+      "masterSha256": "dbd0e56eaf2c76ac214d08b1b1c846eb969b9f05a6a47aa20658237b1cea02ea",
       "width": 1024,
       "height": 512,
       "format": "webp",
-      "bytes": 109654,
-      "sha256": "88eec438b240b34022b768a0e235e187731ac78b6f3d927e1b7589327ae969af"
+      "bytes": 109646,
+      "sha256": "6d03ebc6e0923380887c59f60875f63d9d23ac74f7033ea930b0ba3490b55830"
     },
     {
       "file": "public/assets/variants/food-greens-1024x512.webp",
       "master": "food-greens",
-      "masterSha256": "72f8f92894bc9856061e927633f3749c73c6bbed1cd951be701eec487b549103",
+      "masterSha256": "0c9f014683e022569ffbc0d2ab671ea7c2d6a554fc68a810225c1ed9c5c92830",
       "width": 1024,
       "height": 512,
       "format": "webp",
-      "bytes": 119800,
-      "sha256": "672487fd1a4f978b2b9ed64b073c964144420cc5742b0d3f11e2822add7b5ce0"
+      "bytes": 119814,
+      "sha256": "4c34a95fbef20b99e0652d9d03c3c5d2481082c79efb029bcfca55af1ad4b01a"
     },
     {
       "file": "public/assets/variants/window-view-late-winter-576x768.webp",
@@ -2274,6 +2288,1156 @@
       "format": "webp",
       "bytes": 40120,
       "sha256": "18843cb46dcc58474e0079566a7ed59f81479cddc8676c6ad6b2e1a35f668a32"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-00-768x1024.avif",
+      "master": "summer-kitchen-00",
+      "masterSha256": "a9cd3417926692a5bf390ef5b9a2cb607185673c3c2e6f1bde14513a26b4f359",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 179310,
+      "sha256": "ad2ecef222c0dbf6bdaf280cb9f937c2ea6ffbf78a770d232b44dc37e348b39c"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-00-768x1024.webp",
+      "master": "summer-kitchen-00",
+      "masterSha256": "a9cd3417926692a5bf390ef5b9a2cb607185673c3c2e6f1bde14513a26b4f359",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 272232,
+      "sha256": "5a6b87c612c208e5202ae870aaac2d247375713c91d304e49702f92551c9a9b1"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-00-1536x2048.avif",
+      "master": "summer-kitchen-00",
+      "masterSha256": "a9cd3417926692a5bf390ef5b9a2cb607185673c3c2e6f1bde14513a26b4f359",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 555898,
+      "sha256": "570c7edaf58921732e886fc352f07c22f7fc54760b9d6e21aaf16f67cfdca785"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-00-1536x2048.webp",
+      "master": "summer-kitchen-00",
+      "masterSha256": "a9cd3417926692a5bf390ef5b9a2cb607185673c3c2e6f1bde14513a26b4f359",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 883490,
+      "sha256": "4f0ed4f3c34bd0b93a38d69f963b10d0edf34054b629f3be9eaba8c64f4026c3"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-01-768x1024.avif",
+      "master": "summer-kitchen-01",
+      "masterSha256": "84aabb2be154630c79320b2215ca3bc84090e5516a661e4a5df52195db7f5453",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 176875,
+      "sha256": "9f571c5575d40d0afdb25394599017a98bf7d607443fc11864c60fb0f7d9bcd6"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-01-768x1024.webp",
+      "master": "summer-kitchen-01",
+      "masterSha256": "84aabb2be154630c79320b2215ca3bc84090e5516a661e4a5df52195db7f5453",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 271848,
+      "sha256": "b176f2c0d3c61d415158920d5f79d3ef971b1df07c6b21590e9f8cc3d282ea3d"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-01-1536x2048.avif",
+      "master": "summer-kitchen-01",
+      "masterSha256": "84aabb2be154630c79320b2215ca3bc84090e5516a661e4a5df52195db7f5453",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 546555,
+      "sha256": "0684bcd9007de96534d7fd2cd558e0057efebebee871bb8c33fb8b83817fd5ba"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-01-1536x2048.webp",
+      "master": "summer-kitchen-01",
+      "masterSha256": "84aabb2be154630c79320b2215ca3bc84090e5516a661e4a5df52195db7f5453",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 876880,
+      "sha256": "c064fe65c79fb5e76156b97933e3dbba3b184fe2de30e3e6c814c291253587c1"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-02-768x1024.avif",
+      "master": "summer-kitchen-02",
+      "masterSha256": "e2f1a423636ba2e3603190a7b6bda8211444a3506d2680279b4e94b36a141640",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 171258,
+      "sha256": "056971f1b790e604fac089ec4e4c99bcd08ac7c0bafe3f986abbeb93822df6f4"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-02-768x1024.webp",
+      "master": "summer-kitchen-02",
+      "masterSha256": "e2f1a423636ba2e3603190a7b6bda8211444a3506d2680279b4e94b36a141640",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 265458,
+      "sha256": "86f200544a155fca9aaf8ac2e8cbfb393381d75a114df2896acd8b26333d0bd8"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-02-1536x2048.avif",
+      "master": "summer-kitchen-02",
+      "masterSha256": "e2f1a423636ba2e3603190a7b6bda8211444a3506d2680279b4e94b36a141640",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 530208,
+      "sha256": "fcf059ffd3189192a38608c95bfd15ff147944eb01819d812ef450bc2b82f0a5"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-02-1536x2048.webp",
+      "master": "summer-kitchen-02",
+      "masterSha256": "e2f1a423636ba2e3603190a7b6bda8211444a3506d2680279b4e94b36a141640",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 850614,
+      "sha256": "d652587e06f9ce5c8f751fae4bed5414b52f9c9e11e25e1db115d5e77e214ced"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-03-768x1024.avif",
+      "master": "summer-kitchen-03",
+      "masterSha256": "3cb562c31fed7c4d86f5580a92a3b51ac1f8cb98f84dc58517bbf09f73d3f302",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 173270,
+      "sha256": "700f1ba84309417c840775bb5ef71a089d20d7a174b36925d48bf1478d15c11c"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-03-768x1024.webp",
+      "master": "summer-kitchen-03",
+      "masterSha256": "3cb562c31fed7c4d86f5580a92a3b51ac1f8cb98f84dc58517bbf09f73d3f302",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 266326,
+      "sha256": "564dd914be030ef4e33429281d198fd02b487af0b831430d7e9bba099b1e59db"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-03-1536x2048.avif",
+      "master": "summer-kitchen-03",
+      "masterSha256": "3cb562c31fed7c4d86f5580a92a3b51ac1f8cb98f84dc58517bbf09f73d3f302",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 535251,
+      "sha256": "50c39e29abecc407fc73afa63f2c629d5d718bcdcf4ea8b320af5c271a1bfb7f"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-03-1536x2048.webp",
+      "master": "summer-kitchen-03",
+      "masterSha256": "3cb562c31fed7c4d86f5580a92a3b51ac1f8cb98f84dc58517bbf09f73d3f302",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 861052,
+      "sha256": "5ac017b30d99031eb10f0c2f932b9d5bccc536f8961efcc04bfa131c72d1c907"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-04-768x1024.avif",
+      "master": "summer-kitchen-04",
+      "masterSha256": "692f1630220bc9f65365db68212701ba12c9906f199300c0e248fd967978d78a",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 172786,
+      "sha256": "0318d59b012f40813c930b3ff593f71d886e3b26b55d115a1b713e2b1b40384d"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-04-768x1024.webp",
+      "master": "summer-kitchen-04",
+      "masterSha256": "692f1630220bc9f65365db68212701ba12c9906f199300c0e248fd967978d78a",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 266122,
+      "sha256": "797c09c4eecbb79b79b972a8f014fec659b9d9910c366c259ad28a5a6b2077ed"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-04-1536x2048.avif",
+      "master": "summer-kitchen-04",
+      "masterSha256": "692f1630220bc9f65365db68212701ba12c9906f199300c0e248fd967978d78a",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 531846,
+      "sha256": "e2f3f14e913938bcf2a8e548327b411b62677000d7276ab6a4e9ae175301aeec"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-04-1536x2048.webp",
+      "master": "summer-kitchen-04",
+      "masterSha256": "692f1630220bc9f65365db68212701ba12c9906f199300c0e248fd967978d78a",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 853944,
+      "sha256": "7d3fb53697d954b491a20ee51c1606d58cd190829532db8f48bda9b73e75c41e"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-05-768x1024.avif",
+      "master": "vegetable-garden-05",
+      "masterSha256": "722a2225b9e6fd2e9c4b02d3ee5ddac7525512aebfa61153eb35074b8f7c91c2",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 228996,
+      "sha256": "6c20f5d285d17f5b22546d3f565660f02ca9733a8a66e48715485597d8c24364"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-05-768x1024.webp",
+      "master": "vegetable-garden-05",
+      "masterSha256": "722a2225b9e6fd2e9c4b02d3ee5ddac7525512aebfa61153eb35074b8f7c91c2",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 343934,
+      "sha256": "ab6bd5c89e6784d757bc8d50a92ec942ab310c0f241e09df5297a741e6790529"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-05-1536x2048.avif",
+      "master": "vegetable-garden-05",
+      "masterSha256": "722a2225b9e6fd2e9c4b02d3ee5ddac7525512aebfa61153eb35074b8f7c91c2",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 686051,
+      "sha256": "bea573df1d1ecb7448f24f91c2ff1fdfbadbdc6103ad385df8db7eed89faf4b3"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-05-1536x2048.webp",
+      "master": "vegetable-garden-05",
+      "masterSha256": "722a2225b9e6fd2e9c4b02d3ee5ddac7525512aebfa61153eb35074b8f7c91c2",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1164256,
+      "sha256": "6ff4d154a7f035c5babc424c6a5bf276e51342356bd1cc81a2684a8175c7905f"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-06-768x1024.avif",
+      "master": "vegetable-garden-06",
+      "masterSha256": "0161a9e6487225a45247854a603575f64922e86f19bd3ae31c3275003b3949c7",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 232037,
+      "sha256": "87f8c1e907d7bf59c504afddfa5118dd63f2d32327c784f491bd561d0fd1518f"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-06-768x1024.webp",
+      "master": "vegetable-garden-06",
+      "masterSha256": "0161a9e6487225a45247854a603575f64922e86f19bd3ae31c3275003b3949c7",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 335058,
+      "sha256": "c9583ba988969df0e5f18e55fc0a5a98661667cee068a960b4b29c3ec055d3af"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-06-1536x2048.avif",
+      "master": "vegetable-garden-06",
+      "masterSha256": "0161a9e6487225a45247854a603575f64922e86f19bd3ae31c3275003b3949c7",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 691070,
+      "sha256": "30a59ef1bc4943cea66bf628de28b29615a7f088ad4cb5bf26be0409c093dd61"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-06-1536x2048.webp",
+      "master": "vegetable-garden-06",
+      "masterSha256": "0161a9e6487225a45247854a603575f64922e86f19bd3ae31c3275003b3949c7",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1133908,
+      "sha256": "6c1ef0565708184322be435712e64096063eb00194626abfb6187953f89f2d75"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-13-768x1024.avif",
+      "master": "vegetable-garden-13",
+      "masterSha256": "0df23a8ba13bbded6501e57bc569d00433e9ef2649c3113c1b67dac8b74d63b7",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 225981,
+      "sha256": "6329ec5b2743435fc93563f57ef668d052ba42e74df6ab732c0ecac1b098c5b0"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-13-768x1024.webp",
+      "master": "vegetable-garden-13",
+      "masterSha256": "0df23a8ba13bbded6501e57bc569d00433e9ef2649c3113c1b67dac8b74d63b7",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 329876,
+      "sha256": "161fcf607a68ee5ac55a2e3505c506a1cb5b57036a62e657ed73cff397e2a211"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-13-1536x2048.avif",
+      "master": "vegetable-garden-13",
+      "masterSha256": "0df23a8ba13bbded6501e57bc569d00433e9ef2649c3113c1b67dac8b74d63b7",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 670856,
+      "sha256": "f88884a0e31335409efb93068e0e247ed1df6f194e668a0d3292dec491a5806d"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-13-1536x2048.webp",
+      "master": "vegetable-garden-13",
+      "masterSha256": "0df23a8ba13bbded6501e57bc569d00433e9ef2649c3113c1b67dac8b74d63b7",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1085082,
+      "sha256": "5ad252b04cc9c2d01ab133ff3561dd195f25ddabd235638bbcc6732b08d26fa6"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-14-768x1024.avif",
+      "master": "vegetable-garden-14",
+      "masterSha256": "b3323e9adc66fbcd4cc499858ea22b1ea8550b02a7852711a62373219118682a",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 223147,
+      "sha256": "4f3be6e8febd4c9def7e2b6b54b22e44e471a9d367928d27f66c2724989a2e60"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-14-768x1024.webp",
+      "master": "vegetable-garden-14",
+      "masterSha256": "b3323e9adc66fbcd4cc499858ea22b1ea8550b02a7852711a62373219118682a",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 329024,
+      "sha256": "d6612f28b07c50279523bcd6955f75b566e5b6f14cbcd714f17299d7817eb5e3"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-14-1536x2048.avif",
+      "master": "vegetable-garden-14",
+      "masterSha256": "b3323e9adc66fbcd4cc499858ea22b1ea8550b02a7852711a62373219118682a",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 661899,
+      "sha256": "b6e188250d91aedb19df649b46958ea23dbf32b7164f258fc1a05c8cc6d3213d"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-14-1536x2048.webp",
+      "master": "vegetable-garden-14",
+      "masterSha256": "b3323e9adc66fbcd4cc499858ea22b1ea8550b02a7852711a62373219118682a",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1080198,
+      "sha256": "34aba9688a97686ceadae1da04aa18089fd23228ce1f149c66220e2cd5d2f75f"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-17-768x1024.avif",
+      "master": "vegetable-garden-17",
+      "masterSha256": "c58a223b0c9e6fe0f278e615fa0eb5d65cc1d1f731ba104480b9124e5b08dc07",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 226409,
+      "sha256": "cbe8af8b82a16cd0ca5cfb354fc4affad935e047d8edd9c2a81809fcc5b37396"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-17-768x1024.webp",
+      "master": "vegetable-garden-17",
+      "masterSha256": "c58a223b0c9e6fe0f278e615fa0eb5d65cc1d1f731ba104480b9124e5b08dc07",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 332696,
+      "sha256": "cd030f087b5bc4470ae60b4209645a81f0a1a1106d90506d4372f64dc7354579"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-17-1536x2048.avif",
+      "master": "vegetable-garden-17",
+      "masterSha256": "c58a223b0c9e6fe0f278e615fa0eb5d65cc1d1f731ba104480b9124e5b08dc07",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 669815,
+      "sha256": "12cae624485ce6d1bf023c4f3fea3cee97d25269ba2d979d00453a5f32f78190"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-17-1536x2048.webp",
+      "master": "vegetable-garden-17",
+      "masterSha256": "c58a223b0c9e6fe0f278e615fa0eb5d65cc1d1f731ba104480b9124e5b08dc07",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1094560,
+      "sha256": "925794f339513152f86719e71cf4611dab21cf89300c31911fc402bbc1200ce6"
+    },
+    {
+      "file": "public/assets/variants/town-square-07-768x1024.avif",
+      "master": "town-square-07",
+      "masterSha256": "bd27916cfa8e9e91017ebdfb2affe0a62e623163d15f1a70bf686d491776b125",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 239231,
+      "sha256": "0139ae5b1dc5b8c217446828edc49f88e1dc57286f3214eaa13be541f78ad2cb"
+    },
+    {
+      "file": "public/assets/variants/town-square-07-768x1024.webp",
+      "master": "town-square-07",
+      "masterSha256": "bd27916cfa8e9e91017ebdfb2affe0a62e623163d15f1a70bf686d491776b125",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 347454,
+      "sha256": "1ec08d085f28b22ee629637d01aeacbdd0b87612928034c3728bd920b358e1a5"
+    },
+    {
+      "file": "public/assets/variants/town-square-07-1536x2048.avif",
+      "master": "town-square-07",
+      "masterSha256": "bd27916cfa8e9e91017ebdfb2affe0a62e623163d15f1a70bf686d491776b125",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 723693,
+      "sha256": "ae28cf08e5b9c50506f0cd40132e8a5190115dcc123d7e40ff7a4330266a1665"
+    },
+    {
+      "file": "public/assets/variants/town-square-07-1536x2048.webp",
+      "master": "town-square-07",
+      "masterSha256": "bd27916cfa8e9e91017ebdfb2affe0a62e623163d15f1a70bf686d491776b125",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1184574,
+      "sha256": "d039aef872afbfd43fff523c1c15af6064567ed3b1555f0baa5b478b63497e65"
+    },
+    {
+      "file": "public/assets/variants/town-square-08-768x1024.avif",
+      "master": "town-square-08",
+      "masterSha256": "d0046e40df6ab0cf1c0b59825465482474e0eec7e293adb4473b0c11d0c7a60f",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 231776,
+      "sha256": "95c6b26ddbc3cd4a3f5f368af5046864485f86f6e2c8e7b5fdd7a1fbb232843f"
+    },
+    {
+      "file": "public/assets/variants/town-square-08-768x1024.webp",
+      "master": "town-square-08",
+      "masterSha256": "d0046e40df6ab0cf1c0b59825465482474e0eec7e293adb4473b0c11d0c7a60f",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 333272,
+      "sha256": "20a053971bb356920514040c88dc892f5b845da94a7eca1e149a5aceddfd33bc"
+    },
+    {
+      "file": "public/assets/variants/town-square-08-1536x2048.avif",
+      "master": "town-square-08",
+      "masterSha256": "d0046e40df6ab0cf1c0b59825465482474e0eec7e293adb4473b0c11d0c7a60f",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 701283,
+      "sha256": "90f75e5e9f0a5d60669cb2c52380653391cb6253453e921999b0bbc3057c7d6c"
+    },
+    {
+      "file": "public/assets/variants/town-square-08-1536x2048.webp",
+      "master": "town-square-08",
+      "masterSha256": "d0046e40df6ab0cf1c0b59825465482474e0eec7e293adb4473b0c11d0c7a60f",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1109834,
+      "sha256": "1a912114f154c1595c560d546625d59af1cbff006f05497d71a13aca416c8b21"
+    },
+    {
+      "file": "public/assets/variants/town-square-09-768x1024.avif",
+      "master": "town-square-09",
+      "masterSha256": "c660aa76774b2e6f67c226bb71b558470e331ea23d371eb84dea96e20ae4da8d",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 228269,
+      "sha256": "5c4e10ecd5d94f8a454da3e4fb78573e70a7ea4877e40a4e9b94e0577dd57b03"
+    },
+    {
+      "file": "public/assets/variants/town-square-09-768x1024.webp",
+      "master": "town-square-09",
+      "masterSha256": "c660aa76774b2e6f67c226bb71b558470e331ea23d371eb84dea96e20ae4da8d",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 331110,
+      "sha256": "9737635edb8ead59b5729c8e79f79954be0d2533a57d06f10b75b153b1624602"
+    },
+    {
+      "file": "public/assets/variants/town-square-09-1536x2048.avif",
+      "master": "town-square-09",
+      "masterSha256": "c660aa76774b2e6f67c226bb71b558470e331ea23d371eb84dea96e20ae4da8d",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 688941,
+      "sha256": "ccf2732dcd4ae6517323b12b352738ccd8a47f4cf32bc0ebd7ac9014187dc487"
+    },
+    {
+      "file": "public/assets/variants/town-square-09-1536x2048.webp",
+      "master": "town-square-09",
+      "masterSha256": "c660aa76774b2e6f67c226bb71b558470e331ea23d371eb84dea96e20ae4da8d",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1091306,
+      "sha256": "9c8499fc3b8adb61ae616d07e37164b150dd568b645844cdf644351c7420e4c4"
+    },
+    {
+      "file": "public/assets/variants/town-square-10-768x1024.avif",
+      "master": "town-square-10",
+      "masterSha256": "97972b6f340a6bf4a5cdc6b4a17180270a35a0bfb372485f505001839bdaa029",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 227085,
+      "sha256": "5c8667002302e1a2376460094938307fb0b571697ee8931a1ba4f61cfa2544c4"
+    },
+    {
+      "file": "public/assets/variants/town-square-10-768x1024.webp",
+      "master": "town-square-10",
+      "masterSha256": "97972b6f340a6bf4a5cdc6b4a17180270a35a0bfb372485f505001839bdaa029",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 329728,
+      "sha256": "beec84cf47a1cac860fb8fe8c22e56fd47cde52b2cb43a9d4a645143e34216a0"
+    },
+    {
+      "file": "public/assets/variants/town-square-10-1536x2048.avif",
+      "master": "town-square-10",
+      "masterSha256": "97972b6f340a6bf4a5cdc6b4a17180270a35a0bfb372485f505001839bdaa029",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 684490,
+      "sha256": "e84e8162139f94d701565852d72c7c1f299ebadbd95e281fc097a145752f1b09"
+    },
+    {
+      "file": "public/assets/variants/town-square-10-1536x2048.webp",
+      "master": "town-square-10",
+      "masterSha256": "97972b6f340a6bf4a5cdc6b4a17180270a35a0bfb372485f505001839bdaa029",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1082824,
+      "sha256": "e6feae92b920dd92dcaabfeb8310845ee94e9a972553bdec159dc086d20e71bb"
+    },
+    {
+      "file": "public/assets/variants/town-square-11-768x1024.avif",
+      "master": "town-square-11",
+      "masterSha256": "06cd754f1dc36dcdcf62653603c7cd7815aa74b49e82abda691f3e3ab8d883b3",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 231519,
+      "sha256": "f81b3162e41c2fcaa8971d4721185a1b376374dabb6cb00f8d21541b6dba04ef"
+    },
+    {
+      "file": "public/assets/variants/town-square-11-768x1024.webp",
+      "master": "town-square-11",
+      "masterSha256": "06cd754f1dc36dcdcf62653603c7cd7815aa74b49e82abda691f3e3ab8d883b3",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 332092,
+      "sha256": "0d10f0a29ea67790fd612d528a84aa316692c4372749e2b957d2c090bf2662f7"
+    },
+    {
+      "file": "public/assets/variants/town-square-11-1536x2048.avif",
+      "master": "town-square-11",
+      "masterSha256": "06cd754f1dc36dcdcf62653603c7cd7815aa74b49e82abda691f3e3ab8d883b3",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 692555,
+      "sha256": "1962354d83d09b3098d44f0016355184bcc2529ce125d7422736958ae0cd58d6"
+    },
+    {
+      "file": "public/assets/variants/town-square-11-1536x2048.webp",
+      "master": "town-square-11",
+      "masterSha256": "06cd754f1dc36dcdcf62653603c7cd7815aa74b49e82abda691f3e3ab8d883b3",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1087190,
+      "sha256": "749e163243a502b402011682775bbe6837932d01700aeff0e56c225f6b6b0b58"
+    },
+    {
+      "file": "public/assets/variants/food-garden-1024x512.webp",
+      "master": "food-garden",
+      "masterSha256": "086d4731810d38d7cbd9611f52122c274c43d042bc848aace8fd4f1bf4c1ffbf",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 70394,
+      "sha256": "53fae087139cdc6d150387bc98db16ab7a632118c396693714a20ae4c3d365bf"
+    },
+    {
+      "file": "public/assets/variants/food-summer-1024x512.webp",
+      "master": "food-summer",
+      "masterSha256": "d994792993ef9c1b383f1010cc1163960452f2457decd43e0b0727279659fb9e",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 64870,
+      "sha256": "863d18bc97ae2f63faece231b5a779e7ca2493d1e322e35d691eb72f1bb2d2da"
+    },
+    {
+      "file": "public/assets/variants/summer-guests-640x640.webp",
+      "master": "summer-guests",
+      "masterSha256": "cec7024ed31b628d16348d504722adcbda3f11994de3a9302ccf36b96d7cac1b",
+      "width": 640,
+      "height": 640,
+      "format": "webp",
+      "bytes": 46250,
+      "sha256": "0190bb53c5518d100c0251f26af893b44fbd42b5f63e69d316ed624a6a7df3fd"
+    },
+    {
+      "file": "public/assets/variants/sketch-ambrozie-672x672.webp",
+      "master": "sketch-sheet-4",
+      "masterSha256": "4d5905f568331568b4ce32db24fae6d2c1b54399a130c724e21112cbaaa05fa7",
+      "width": 672,
+      "height": 672,
+      "format": "webp",
+      "bytes": 70032,
+      "sha256": "f266430cfb458a6cdc76390d92f98a6c5d72cbd8df99a1c6f82cc3b8c7fff663"
+    },
+    {
+      "file": "public/assets/variants/sketch-gavril-672x672.webp",
+      "master": "sketch-sheet-4",
+      "masterSha256": "4d5905f568331568b4ce32db24fae6d2c1b54399a130c724e21112cbaaa05fa7",
+      "width": 672,
+      "height": 672,
+      "format": "webp",
+      "bytes": 85548,
+      "sha256": "e93b24c848cf2ad75126ead1a1f9268e907c2b8d856c1b0c5b130969639bdd31"
+    },
+    {
+      "file": "public/assets/variants/sketch-tarka-672x672.webp",
+      "master": "sketch-sheet-4",
+      "masterSha256": "4d5905f568331568b4ce32db24fae6d2c1b54399a130c724e21112cbaaa05fa7",
+      "width": 672,
+      "height": 672,
+      "format": "webp",
+      "bytes": 86134,
+      "sha256": "aec3b18db18fbda21a5b2c0ad908a7bf83f0952103e864e46cd6dbad1e8f874a"
+    },
+    {
+      "file": "public/assets/variants/hail-clutter-1024x512.webp",
+      "master": "hail-clutter",
+      "masterSha256": "e8fbd4c37d1978f02bea06c64c0829ce4292c797562755f8c064f3abef340ac6",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 115806,
+      "sha256": "20520a1bd220689ab4e6e1d4358b707e4905242be374877bc32cd0a236fdf29a"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-15-768x1024.avif",
+      "master": "summer-kitchen-15",
+      "masterSha256": "538ab5e3c38e58e26da9c9e95fff6ad73bee9b50b202d9204737431f4e9f1f4a",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 173479,
+      "sha256": "e949cf39f030a3a610cda6c9523d159e044e89f928aa146a8ba45c371ad8805c"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-15-768x1024.webp",
+      "master": "summer-kitchen-15",
+      "masterSha256": "538ab5e3c38e58e26da9c9e95fff6ad73bee9b50b202d9204737431f4e9f1f4a",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 266266,
+      "sha256": "0e3ff81d253ddcf9bde53bf5da737e9aa669e9948fae04036b28d8e4ef8b07c4"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-15-1536x2048.avif",
+      "master": "summer-kitchen-15",
+      "masterSha256": "538ab5e3c38e58e26da9c9e95fff6ad73bee9b50b202d9204737431f4e9f1f4a",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 533849,
+      "sha256": "ce644d1c21697decc22bd0fd13d69fafb7fdf72a1c60f86137d55545daa5c051"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-15-1536x2048.webp",
+      "master": "summer-kitchen-15",
+      "masterSha256": "538ab5e3c38e58e26da9c9e95fff6ad73bee9b50b202d9204737431f4e9f1f4a",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 858190,
+      "sha256": "e2a2b27cf186323be5b3b3e989fc682959aaa143b16a6ed94b1e548b6c8166eb"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-16-768x1024.avif",
+      "master": "summer-kitchen-16",
+      "masterSha256": "5c2291f42f67a7b125efa57f75c850e8f8976ef69984027ac12483b4311e8f5f",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 163230,
+      "sha256": "af556de8599881fab312695ba0b9426e97e1da40cb0713d912d3ff72552fecd1"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-16-768x1024.webp",
+      "master": "summer-kitchen-16",
+      "masterSha256": "5c2291f42f67a7b125efa57f75c850e8f8976ef69984027ac12483b4311e8f5f",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 249600,
+      "sha256": "a0b4757856206d301b52b96c0d7f1a6375b1fa87530e9e89df1dc0a71fca52e7"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-16-1536x2048.avif",
+      "master": "summer-kitchen-16",
+      "masterSha256": "5c2291f42f67a7b125efa57f75c850e8f8976ef69984027ac12483b4311e8f5f",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 522613,
+      "sha256": "87faf46831d6ed89cd43f13c99b0dbbf12955a737f5eeb718c30c2a888e9aefc"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-16-1536x2048.webp",
+      "master": "summer-kitchen-16",
+      "masterSha256": "5c2291f42f67a7b125efa57f75c850e8f8976ef69984027ac12483b4311e8f5f",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 849374,
+      "sha256": "eb2fc24d5ba7cc4c4e1a4112aa514f1a7ad1e8de1deed0e9f68b27d6548066f3"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-19-768x1024.avif",
+      "master": "summer-kitchen-19",
+      "masterSha256": "b189fbf54e2c7f5d7f904e648a4336daced284ff603ecfb3baf9d0134c9a1353",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 166962,
+      "sha256": "ec06da58beb415517fb691d07a66d49de73dd78a12b320f6bb053c93164b65e4"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-19-768x1024.webp",
+      "master": "summer-kitchen-19",
+      "masterSha256": "b189fbf54e2c7f5d7f904e648a4336daced284ff603ecfb3baf9d0134c9a1353",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 259566,
+      "sha256": "a7c4fdcfbdcd34146c60f578ebe4fac1ed103495514686131f004b5af4ebd11d"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-19-1536x2048.avif",
+      "master": "summer-kitchen-19",
+      "masterSha256": "b189fbf54e2c7f5d7f904e648a4336daced284ff603ecfb3baf9d0134c9a1353",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 531468,
+      "sha256": "80968325dd9e6fa47f0d1c83622202ee2d24f8068b01ac06e99b66c2b04d953f"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-19-1536x2048.webp",
+      "master": "summer-kitchen-19",
+      "masterSha256": "b189fbf54e2c7f5d7f904e648a4336daced284ff603ecfb3baf9d0134c9a1353",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 855004,
+      "sha256": "04ff01610f965b3f36aec391ba2ac138fadf815aee56b038a7958eec446b20a8"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-20-768x1024.avif",
+      "master": "summer-kitchen-20",
+      "masterSha256": "9e1c6e5537016d7e06f45f8752d3726aeb9fc65e53a8162909b1b00e2d0b270a",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 168921,
+      "sha256": "e0c547004a082546fb1650cffa529b58958446c38cadfbe6a6dcaeb8f5a9233d"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-20-768x1024.webp",
+      "master": "summer-kitchen-20",
+      "masterSha256": "9e1c6e5537016d7e06f45f8752d3726aeb9fc65e53a8162909b1b00e2d0b270a",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 260844,
+      "sha256": "3b76cb32c35e4f2733aa8767ac804883068ae695c325bdedea43a6515688059d"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-20-1536x2048.avif",
+      "master": "summer-kitchen-20",
+      "masterSha256": "9e1c6e5537016d7e06f45f8752d3726aeb9fc65e53a8162909b1b00e2d0b270a",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 535744,
+      "sha256": "ff4238576a334df47fec257107d2ab505dc54a6d7dc8df0be54abd0f913ee078"
+    },
+    {
+      "file": "public/assets/variants/summer-kitchen-20-1536x2048.webp",
+      "master": "summer-kitchen-20",
+      "masterSha256": "9e1c6e5537016d7e06f45f8752d3726aeb9fc65e53a8162909b1b00e2d0b270a",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 854816,
+      "sha256": "34ac041ce7dab89bda8ceddc2290d6aaef795a454c12ea0ce385de6d69b1c615"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-18-768x1024.avif",
+      "master": "vegetable-garden-18",
+      "masterSha256": "8d62be0f01de5f12462e12c8b05a4b217db331780aa334c93b50b4a9abade4da",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 226393,
+      "sha256": "a727ef5061e4a3d2c3514afad14a2b34588561e7ade487f4a44b5db71c6b7d5b"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-18-768x1024.webp",
+      "master": "vegetable-garden-18",
+      "masterSha256": "8d62be0f01de5f12462e12c8b05a4b217db331780aa334c93b50b4a9abade4da",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 332816,
+      "sha256": "0ef335b95ea186e124ff13d50cd0a6e59fd4f879e5b4ccd79ebe196369e86851"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-18-1536x2048.avif",
+      "master": "vegetable-garden-18",
+      "masterSha256": "8d62be0f01de5f12462e12c8b05a4b217db331780aa334c93b50b4a9abade4da",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 668861,
+      "sha256": "274d33f488c812d3cd72485c0636819cec78e57e78f70fdbe5f295c75e86ab6a"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-18-1536x2048.webp",
+      "master": "vegetable-garden-18",
+      "masterSha256": "8d62be0f01de5f12462e12c8b05a4b217db331780aa334c93b50b4a9abade4da",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1091090,
+      "sha256": "769e37a57231f7ae76355f046fdc9f009dcd5d7e8efcdc9383eb87bcedc1b4b1"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-21-768x1024.avif",
+      "master": "vegetable-garden-21",
+      "masterSha256": "64450f580a15972916491d8674c6fb5354c8e3bede332c22abe4753e728036d2",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 225186,
+      "sha256": "2a75b7bb16ea5a5d6c7be9f4d6684a530013bf89e3a0543ab21903b3e99d9794"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-21-768x1024.webp",
+      "master": "vegetable-garden-21",
+      "masterSha256": "64450f580a15972916491d8674c6fb5354c8e3bede332c22abe4753e728036d2",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 331250,
+      "sha256": "55316e14e8f7fd18c5910730012a230bb2340ca56c129a48ba80d4e87c680a68"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-21-1536x2048.avif",
+      "master": "vegetable-garden-21",
+      "masterSha256": "64450f580a15972916491d8674c6fb5354c8e3bede332c22abe4753e728036d2",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 665120,
+      "sha256": "6507b4d620ab2f1bf7d98ea1a1bd1b76c7a6d6ac1492ec274bafa2cc08d40da6"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-21-1536x2048.webp",
+      "master": "vegetable-garden-21",
+      "masterSha256": "64450f580a15972916491d8674c6fb5354c8e3bede332c22abe4753e728036d2",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1088804,
+      "sha256": "c06fcc08855c00f226704cb83e9fa003a19d196ed327d7670a279a52e15331d2"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-22-768x1024.avif",
+      "master": "vegetable-garden-22",
+      "masterSha256": "5b7ceb45ee86dbbfa61c2da8d04e1f168a3218673c4a867dc4c8a5fc31d7a239",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 225932,
+      "sha256": "30307343da2f877f8d3743fcb567b455cc016c5df9097c80b4fd92ddd9ee8f52"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-22-768x1024.webp",
+      "master": "vegetable-garden-22",
+      "masterSha256": "5b7ceb45ee86dbbfa61c2da8d04e1f168a3218673c4a867dc4c8a5fc31d7a239",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 332048,
+      "sha256": "639fab3769b39be71cd3c35a54548f82b9833474c50c25a2732878e0ccaf410a"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-22-1536x2048.avif",
+      "master": "vegetable-garden-22",
+      "masterSha256": "5b7ceb45ee86dbbfa61c2da8d04e1f168a3218673c4a867dc4c8a5fc31d7a239",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 667522,
+      "sha256": "39a1a3a3366d5a3c0c83b2c7642dd4af69da6e04a9172c8686c66d32d2be790e"
+    },
+    {
+      "file": "public/assets/variants/vegetable-garden-22-1536x2048.webp",
+      "master": "vegetable-garden-22",
+      "masterSha256": "5b7ceb45ee86dbbfa61c2da8d04e1f168a3218673c4a867dc4c8a5fc31d7a239",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1091450,
+      "sha256": "2d045ae599865b659d129efc7fae068c60cb170da9e44b16a1ba1afa519c2f61"
+    },
+    {
+      "file": "public/assets/variants/town-square-12-768x1024.avif",
+      "master": "town-square-12",
+      "masterSha256": "522d2b485f005989a464df00412d178ce31d0fa6050dd46f9e3a865e082b67a9",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 232372,
+      "sha256": "5e6c0f31dcfa44586e1048c75fdee4b8f5d1b1579c8de49654f48245cca58600"
+    },
+    {
+      "file": "public/assets/variants/town-square-12-768x1024.webp",
+      "master": "town-square-12",
+      "masterSha256": "522d2b485f005989a464df00412d178ce31d0fa6050dd46f9e3a865e082b67a9",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 333302,
+      "sha256": "ad80545e2ae35342869b7568da81e2cd45862b192c646f8866dad677a9cc3354"
+    },
+    {
+      "file": "public/assets/variants/town-square-12-1536x2048.avif",
+      "master": "town-square-12",
+      "masterSha256": "522d2b485f005989a464df00412d178ce31d0fa6050dd46f9e3a865e082b67a9",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 695678,
+      "sha256": "3e3b03ad458e3504dfa5e8c1dce2b58e6894b3959f0f4c7864dc35415f9939a6"
+    },
+    {
+      "file": "public/assets/variants/town-square-12-1536x2048.webp",
+      "master": "town-square-12",
+      "masterSha256": "522d2b485f005989a464df00412d178ce31d0fa6050dd46f9e3a865e082b67a9",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1093458,
+      "sha256": "d733a7accea6955b29c046b7aabb5f9e293ff54bc49b7e5049168f7c603d0f29"
+    },
+    {
+      "file": "public/assets/variants/town-square-23-768x1024.avif",
+      "master": "town-square-23",
+      "masterSha256": "1c01c692963035afcd62cba7c7a9ae502ae35162b6bdb27ef39f7b885adbad46",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 204090,
+      "sha256": "4aed82601b74e1b6182e7ab70f94fc3a371c6d54390af54c99231a35ea7ecbed"
+    },
+    {
+      "file": "public/assets/variants/town-square-23-768x1024.webp",
+      "master": "town-square-23",
+      "masterSha256": "1c01c692963035afcd62cba7c7a9ae502ae35162b6bdb27ef39f7b885adbad46",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 297560,
+      "sha256": "0167fd525eb8d044c98b1460aff784be35474391acbf8a378261cb33816afd8a"
+    },
+    {
+      "file": "public/assets/variants/town-square-23-1536x2048.avif",
+      "master": "town-square-23",
+      "masterSha256": "1c01c692963035afcd62cba7c7a9ae502ae35162b6bdb27ef39f7b885adbad46",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 624949,
+      "sha256": "cd4872b7b8fddf10fe7b3932356985d86cd1f982922d4d4eff498a3d6ad65d8d"
+    },
+    {
+      "file": "public/assets/variants/town-square-23-1536x2048.webp",
+      "master": "town-square-23",
+      "masterSha256": "1c01c692963035afcd62cba7c7a9ae502ae35162b6bdb27ef39f7b885adbad46",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 997170,
+      "sha256": "96951a9acfc7cc1198741d295a826bc771a3ff559b7cd6f2f2239e7f96add1d7"
+    },
+    {
+      "file": "public/assets/variants/town-square-24-768x1024.avif",
+      "master": "town-square-24",
+      "masterSha256": "fcd393274e6ab7aeb21950faab5405d71c063a203f82e5687272c87e1a9e5612",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 199546,
+      "sha256": "46349fadda184ed78ed77598941b5d84f260611c413d884291e9d103bb69d19f"
+    },
+    {
+      "file": "public/assets/variants/town-square-24-768x1024.webp",
+      "master": "town-square-24",
+      "masterSha256": "fcd393274e6ab7aeb21950faab5405d71c063a203f82e5687272c87e1a9e5612",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 290892,
+      "sha256": "b8472457fe49e28d61c0c34e6797ea9dcab047feaaa8fbfbf4cea60dfd88bdcd"
+    },
+    {
+      "file": "public/assets/variants/town-square-24-1536x2048.avif",
+      "master": "town-square-24",
+      "masterSha256": "fcd393274e6ab7aeb21950faab5405d71c063a203f82e5687272c87e1a9e5612",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 612173,
+      "sha256": "13e24f597cdaa45243cad465d9aa911d78ab06942d0090c5f478c025fef16906"
+    },
+    {
+      "file": "public/assets/variants/town-square-24-1536x2048.webp",
+      "master": "town-square-24",
+      "masterSha256": "fcd393274e6ab7aeb21950faab5405d71c063a203f82e5687272c87e1a9e5612",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 976764,
+      "sha256": "d70ed90e9ccd3c8b6a9d03666a540881470bd428949776f70c0bce222c5e8396"
+    },
+    {
+      "file": "public/assets/variants/festival-768x1024.avif",
+      "master": "festival",
+      "masterSha256": "c75ea75968188ed3b2ff380b9ffb7beb5e719c5cd7724d60f5813fb685cd7dfa",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 243247,
+      "sha256": "9730980ee165454d238279f5c98f3bcd6d163c0d860b35c3b107490760249257"
+    },
+    {
+      "file": "public/assets/variants/festival-768x1024.webp",
+      "master": "festival",
+      "masterSha256": "c75ea75968188ed3b2ff380b9ffb7beb5e719c5cd7724d60f5813fb685cd7dfa",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 347620,
+      "sha256": "d99739da9e064d310e876bb81a04f061e78e60941ca857b8f8a831b6ab08fd59"
+    },
+    {
+      "file": "public/assets/variants/festival-1536x2048.avif",
+      "master": "festival",
+      "masterSha256": "c75ea75968188ed3b2ff380b9ffb7beb5e719c5cd7724d60f5813fb685cd7dfa",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 733087,
+      "sha256": "ed2e3a1e093a35b10bde1181272c064cbd69353606fefac630d5b031b5c8ef6d"
+    },
+    {
+      "file": "public/assets/variants/festival-1536x2048.webp",
+      "master": "festival",
+      "masterSha256": "c75ea75968188ed3b2ff380b9ffb7beb5e719c5cd7724d60f5813fb685cd7dfa",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1118802,
+      "sha256": "5df0b3bee8ad6403253a05dcd10171245c2dd71fe03142121d0177ed5b5840d0"
+    },
+    {
+      "file": "public/assets/variants/finale-feast-768x1024.avif",
+      "master": "finale-feast",
+      "masterSha256": "547bb2b5fa56c1933bfa84773bd3277cc75266df65d0356b0e36d189877e45c5",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 226603,
+      "sha256": "0a26b0b516c1f3abf8d1daf998efefa25b2646b23c3ccbb8c7b567c76d035b67"
+    },
+    {
+      "file": "public/assets/variants/finale-feast-768x1024.webp",
+      "master": "finale-feast",
+      "masterSha256": "547bb2b5fa56c1933bfa84773bd3277cc75266df65d0356b0e36d189877e45c5",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 325228,
+      "sha256": "82c9e167b6e1934c0fd264edb962a0bd6ce1544dc2747448c7a13122173d83d5"
+    },
+    {
+      "file": "public/assets/variants/finale-feast-1536x2048.avif",
+      "master": "finale-feast",
+      "masterSha256": "547bb2b5fa56c1933bfa84773bd3277cc75266df65d0356b0e36d189877e45c5",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 690366,
+      "sha256": "6d198fc22ad49f35ca13117e917fcce0d86433d9141a6805f80d868444f88606"
+    },
+    {
+      "file": "public/assets/variants/finale-feast-1536x2048.webp",
+      "master": "finale-feast",
+      "masterSha256": "547bb2b5fa56c1933bfa84773bd3277cc75266df65d0356b0e36d189877e45c5",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1071332,
+      "sha256": "9aba4ab5476a6071dfc66859eed083719153b7d70c67a7b7fa7071b79c4957c9"
     }
   ]
 }

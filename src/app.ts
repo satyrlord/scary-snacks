@@ -1,10 +1,10 @@
 // The game page: it opens the game, draws every part of the interface after each change, and plays the effects of a change.
-import { clockMinutes, clockText, currentEvent, dateText, eventComplete, gameDay, unresolvedObstacle } from './model.ts';
+import { clockMinutes, clockText, currentEvent, dateText, eventComplete, fixedBooking, gameDay, unresolvedObstacle } from './model.ts';
 import { dataProblems } from './content.ts';
 import { $, coinText, coinWord, compact, count, element, reason, status } from './dom.ts';
 import { portrait } from './art.ts';
 import { modal } from './dialog.ts';
-import { changeGame, data, definition, onDraw, open, persist, saveFailed, select, selected, state, syncSavedGame } from './session.ts';
+import { changeGame, character, data, definition, onDraw, open, persist, saveFailed, select, selected, state, syncSavedGame } from './session.ts';
 import { SAVE_KEY } from './storage.ts';
 import { drawerLayout, onMotionResume, phone, playTone } from './preferences.ts';
 import { introduceFirstQuest, renderBoard, renderDetail } from './board.ts';
@@ -103,16 +103,22 @@ onDraw(change => {
   else if (!result.ok) status(nextStep);
   else if (selected === null) status(guidanceStep()?.short ?? nextStep);
   else status(`${result.message} ${nextStep}`);
-  // The closing of a Sunday brings the night. Another closing only leaves a notice, so play goes on.
+  // The closing of a Sunday brings the night. A Sunday of the piper's tune with no rat opens only the morning dialog. Another closing
+  // only leaves a notice, so play goes on.
   if (result.ok && state.clock.day !== before.clock.day) {
     if (state.night?.rat) playNight();
+    else if (state.night?.piper) morning();
     else if (state.night) toast(closingText(state.night.upkeep, state.night.departed, before));
   }
 });
-/** The notice of a closing without rats: the upkeep, the seasonal sources that left or came, and the new date. */
+/**
+ * The notice of a closing without rats: the guest who sleeps over after a fixed evening, the upkeep, the seasonal sources that left or
+ * came, and the new date.
+ */
 function closingText(upkeep: number, departed: string[], before: typeof state) {
   const came = data.chains.filter(chain => chain.season && !before.board.some(cell => cell?.code === `generator_${chain.id}`) && state.board.some(cell => cell?.code === `generator_${chain.id}`));
-  return [`The bistro closed for the night. Upkeep: ${coinText(upkeep)}.`, ...departed.map(id => data.chains.find(chain => chain.id === id)!.season!.departure),
+  const guest = fixedBooking(before.clock.day, data), sleeps = guest && state.completedQuests.includes(guest.id) ? [`${character(guest.character).name} sleeps in the courtyard.`] : [];
+  return [...sleeps, `The bistro closed for the night. Upkeep: ${coinText(upkeep)}.`, ...departed.map(id => data.chains.find(chain => chain.id === id)!.season!.departure),
     ...came.map(chain => `The ${definition(`generator_${chain.id}`).name} is on the board.`), `Good morning, ${dateText(state.clock.day, data)}.`].join(' ');
 }
 // The end of a paid preparation's story reveals its change, and then opens the scene that the payment earned.

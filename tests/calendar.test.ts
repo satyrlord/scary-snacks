@@ -1,14 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calendarDate, clockMinutes, dateText, dayHours, dayMerges, eveningOpen, firstFreeBoardCell, freeBoardCells, getItem, holidayDecorations, isSunday, looseRaw, requiredQuests, resolveQuests, sourceCell, supperQuest, taskEligibility, ticketNote, unresolvedObstacle, windowView, yearDay } from '../src/model.ts';
+import { calendarDate, clockMinutes, dateText, dayHours, dayMerges, eveningOpen, firstFreeBoardCell, freeBoardCells, getItem, holidayDecorations, isSunday, looseRaw, playable, requiredQuests, resolveQuests, sourceCell, supperQuest, taskEligibility, ticketNote, unresolvedObstacle, windowView, yearDay } from '../src/model.ts';
 import { reduceGame, validateGame } from '../src/engine.ts';
 import { calendarProblems, questProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import type { GameData, GameState } from '../src/model.ts';
 import { moveTo } from '../tools/create-checkpoint-saves.ts';
-import { act, addOpenLayout, checkpoint, data, deliver, know, openGame, quest, ready, rejected, status, supply, validate } from './support.ts';
+import { act, actOneTasks, addOpenLayout, checkpoint, data, deliver, know, openGame, quest, ready, rejected, status, supperEvening, supply, validate } from './support.ts';
 
 addOpenLayout();
+/** The levers of the day of act 1. */
+const levers = data.acts[0].day;
 /** The day of act 1 of a date of year 1. */
 const day = (date: number, month: number) => yearDay(month, date) - data.calendar.start + 1;
 /** A copy on a later morning, after quiet nights. */
@@ -56,9 +58,9 @@ test('a weekday closing pays the upkeep without a rat, and the Saturday closing 
   const closed = closeDay(before);
   assert.deepEqual(closed.clock, { day: 2, merges: 0 });
   assert.equal(clockMinutes(closed, data), 600);
-  assert.equal(closed.coins, 30 - data.day.upkeep);
+  assert.equal(closed.coins, 30 - levers.upkeep);
   assert.equal(closed.seed, 9, 'A closing without a rat uses no random number.');
-  assert.deepEqual(closed.night, { day: 1, upkeep: data.day.upkeep, rat: null, taken: [], trapped: null, gift: null, departed: [], purse: closed.coins, seen: true });
+  assert.deepEqual(closed.night, { day: 1, upkeep: levers.upkeep, rat: null, taken: [], trapped: null, gift: null, departed: [], purse: closed.coins, seen: true, piper: false });
   assert.equal(closed.board[22]?.code, 'corn_1', 'The loose Corn stays on the board.');
   assert.deepEqual(closed.ratHoles, []);
   rejected(closed, { type: 'seeNight' });
@@ -115,9 +117,9 @@ test('a save rejects a paid preparation before the opening date of its chapter',
 });
 
 test('a save rejects a served supper before 1 May or before its booking time', () => {
-  const served = deliver(checkpoint(data.tasks.length), supperQuest(data)!.id);
+  const served = deliver(supperEvening(), supperQuest(data)!.id);
   assert.equal(served.clock.day, data.calendar.supper);
-  assert.equal(clockMinutes(served, data), data.day.booking);
+  assert.equal(clockMinutes(served, data), levers.booking);
   assert.deepEqual(importSave(exportSave(served, validate), validate), served);
   for (const [day, merges] of [[data.calendar.supper - 1, served.clock.merges], [data.calendar.supper, served.clock.merges - 1]]) {
     const early = structuredClone(served);
@@ -174,13 +176,17 @@ test('a March quest opens only in March, stays open after March, and no preparat
   assert.equal(validateGame(save, data), false, 'A March quest that opened is recorded.');
 });
 
-test('a quest of a later act never opens and never counts as a predecessor', () => {
-  const later = data.quests.filter(value => value.act);
-  assert.deepEqual(later.map(value => value.id).sort(), ['ana-saint-andrew', 'bran-pumpkins', 'catalina-hail', 'cezar-long-night', 'ilie-pickles', 'ionatan-castle-dinner', 'mina-avram-search', 'sanziana-meadow', 'sanziana-midsummer']);
+test('a quest of an act that the calendar does not reach never opens and never counts as a predecessor, and a quest of act 2 opens only in act 2', () => {
+  const later = data.quests.filter(value => !playable(value, data));
+  assert.deepEqual(later.map(value => value.id).sort(), ['ana-saint-andrew', 'bran-pumpkins', 'cezar-long-night', 'ilie-pickles']);
   assert.deepEqual(later.filter(value => value.act === 4).map(value => value.id).sort(), ['ana-saint-andrew', 'cezar-long-night'], 'The winter quests wait for act 4.');
   const finished = checkpoint(data.tasks.length);
   for (const value of later) assert.equal(status(finished, value.id), 'locked');
   assert.equal(status(checkpoint(5), 'ilie-clean-monday') !== 'locked' || checkpoint(5).completedQuests.includes('ilie-clean-monday'), true, 'Ilie does not wait for his jars for winter.');
+  // On the evening of the supper, the quests of act 2 wait for 2 May, also those that follow the last preparation of act 1.
+  const supper = supperEvening();
+  for (const value of data.quests.filter(value => value.act === 2)) assert.equal(status(supper, value.id), 'locked', value.id);
+  assert.notEqual(status(checkpoint(actOneTasks), 'mara-summer-heat'), 'locked');
 });
 
 test('the data check enforces Lent for Ilie and Cătălina, with fish on 25 March and 13 April', () => {
@@ -194,7 +200,7 @@ test('the data check enforces Lent for Ilie and Cătălina, with fish on 25 Marc
   assert.deepEqual(questProblems(data), []);
   assert.match(changed(copy => serve(copy, 'ilie-clean-monday', 'dairy_2')), /ilie-clean-monday: breaks a diet/);
   // The first fish of Lent is permitted on its holiday, and not on another day.
-  assert.match(changed(copy => { copy.calendar.lent.fish = [copy.calendar.lent.fish[1]]; }), /ilie-annunciation: breaks a diet/);
+  assert.match(changed(copy => { copy.calendar.fasts[0].fish = [copy.calendar.fasts[0].fish[1]]; }), /ilie-annunciation: breaks a diet/);
   assert.match(changed(copy => serve(copy, 'catalina-silent-bells', 'fish_2')), /catalina-silent-bells: breaks a diet/);
   // After Lent, Ilie eats the Easter lamb.
   assert.ok(quest('mara-easter-lunch').companions?.includes('ilie'));
@@ -213,14 +219,15 @@ test('the calendar checks reject late snow, long April rain, rain on the supper 
   assert.match(changed(copy => { copy.quests.find(value => value.id === 'dochia-lunch')!.opens = day(2, 4); }), /opens in March/);
   assert.match(changed(copy => { copy.quests.find(value => value.id === 'bran-last-bus')!.outdoor = true; copy.quests.find(value => value.id === 'bran-last-bus')!.afterTask = 'task_12'; }), /outdoor quest opens after the courtyard/);
   // The dated graph: a holiday after the closing of 30 April leaves no time for the last preparation.
-  assert.match(changed(copy => { copy.calendar.holidays.find(value => value.id === 'blajini')!.day = 76; copy.quests.find(value => value.id === 'mara-blajini')!.opens = 75; }), /last preparation cannot come/);
+  assert.match(changed(copy => { copy.calendar.holidays.find(value => value.id === 'blajini')!.day = 76; copy.quests.find(value => value.id === 'mara-blajini')!.opens = 75; }), /The hold of 30 April: mara-blajini cannot be delivered before its closing/);
 });
 
-test('the pickle barrel gives free gherkins, leaves at the closing of 20 March, and the forage basket comes the next morning', () => {
+test('the pickle barrel of the cathedral sells gherkins for the take cost, leaves at the closing of 20 March, and the forage basket comes the next morning', () => {
   const start = openGame(), barrel = sourceCell(start, 'pickles');
   assert.ok(barrel >= 0);
   const taken = act(start, { type: 'spawn', index: barrel });
-  assert.equal(taken.coins, start.coins, 'A take from a seasonal source is free.');
+  assert.equal(taken.coins, start.coins - data.economy.takeCost, 'A take from the pickle barrel spends the take cost.');
+  assert.match(rejected({ ...start, coins: 0 }, { type: 'spawn', index: barrel }).message, /costs 1 coin for each take/);
   assert.ok(looseRaw('pickles_1', data), 'Gherkins are a loose raw ingredient.');
   // The quests of the first windows that ask for pickles are delivered.
   const last = on(checkpoint(2), day(20, 3)), closed = closeDay(last);
@@ -285,7 +292,7 @@ test('an outdoor quest waits for a terrace day: fair weather from 1 April', () =
 });
 
 test('30 April holds until the last preparation, its payment closes the day, and 1 May holds until the supper at 20:00', () => {
-  const eve = on(checkpoint(data.tasks.length - 1), data.calendar.supper - 1), supper = supperQuest(data)!;
+  const eve = on(checkpoint(actOneTasks - 1), data.calendar.supper - 1), supper = supperQuest(data)!;
   const held = act(lateEvening(withBoard(eve, [[13, 'grain_1'], [14, 'grain_1']])), { type: 'move', from: 13, to: 14 });
   assert.deepEqual(held.clock, { day: eve.clock.day, merges: dayMerges(eve.clock.day, data) - 1 });
   const again = act(withBoard(held, [[13, 'grain_1'], [14, 'grain_1']]), { type: 'move', from: 13, to: 14 });
@@ -303,9 +310,18 @@ test('30 April holds until the last preparation, its payment closes the day, and
   const waiting = act(lateEvening(withBoard(plates, [[13, 'grain_1'], [14, 'grain_1']])), { type: 'move', from: 13, to: 14 });
   assert.equal(waiting.clock.day, data.calendar.supper);
   const lit = act(plates, { type: 'lantern', id: supper.id });
-  assert.equal(clockMinutes(lit, data), data.day.booking);
+  assert.equal(clockMinutes(lit, data), levers.booking);
   const served = act(lit, { type: 'deliverQuest', id: supper.id });
   assert.deepEqual(served.act1, { purse: served.coins });
+  // The supper served before the held position keeps the clock: the merge that reaches the closing time closes 1 May once.
+  const closing = act(lateEvening(withBoard(served, [[13, 'grain_1'], [14, 'grain_1']])), { type: 'move', from: 13, to: 14 });
+  assert.deepEqual([closing.clock, closing.night!.day, closing.coins], [{ day: data.calendar.supper + 1, merges: 0 }, data.calendar.supper, served.coins - levers.upkeep]);
+  // The supper served at the held position closes 1 May in the same change, with one upkeep.
+  const [first, second] = plates.board.flatMap((cell, index) => !cell && !unresolvedObstacle(plates, index, data) ? [index] : []);
+  const late = act(lateEvening(withBoard(plates, [[first, 'grain_1'], [second, 'grain_1']])), { type: 'move', from: first, to: second });
+  const closed = act(late, { type: 'deliverQuest', id: supper.id });
+  assert.deepEqual([closed.clock, closed.act1, closed.coins], [{ day: data.calendar.supper + 1, merges: 0 }, { purse: late.coins }, late.coins - levers.upkeep]);
+  assert.deepEqual(importSave(exportSave(closed, validate), validate), closed);
 });
 
 test('while 30 April holds, each booked delivery ends its evening, and the next booked guest comes at once', () => {
@@ -339,6 +355,6 @@ test('the new holiday dishes are mixed dishes on the breads atlas', () => {
     const item = Object.values(data.items).find(value => value.name === name)!;
     assert.deepEqual([item.art.atlas, item.art.cell, !!item.recipe], ['breads', cell, true], name);
   }
-  assert.equal(getItem('generator_pickles', data)!.generator!.free, true);
+  assert.equal(getItem('generator_pickles', data)!.generator!.free, undefined);
   assert.equal(getItem('generator_greens', data)!.generator!.free, true);
 });

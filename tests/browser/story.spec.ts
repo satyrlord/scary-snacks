@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { requiredQuests } from '../../src/model.ts';
 import type { GameState, SceneLine } from '../../src/model.ts';
-import { deliverRequired } from '../../tools/create-checkpoint-saves.ts';
-import { KEY, prologueServed, act, recovery, supper, supperEvening, deliverMarch, checkpoint, data, deliverable, deliverButton, exportText, failWrites, forward, journal, opened, openQuest, options, painting, payAndRead, ratio, readNow, readTo, replaceSave, revealed, saved, start, startAgainAndImport, story, supplies, supply, tile } from './support.ts';
+import { checkpointState, deliverRequired } from '../../tools/create-checkpoint-saves.ts';
+import { actOneTasks, KEY, prologueServed, act, recovery, supper, supperEvening, deliverMarch, checkpoint, data, deliverable, deliverButton, exportText, failWrites, forward, journal, opened, openQuest, options, painting, payAndRead, ratio, readNow, readTo, replaceSave, revealed, saved, start, startAgainAndImport, story, supplies, supply, tile } from './support.ts';
 
 const closing=(index: number)=>`Chapter ${index+1} complete: ${data.chapters[index].title}`;
 /** The regulars whose arrival scenes the payment of a preparation queues. */
@@ -16,8 +16,8 @@ async function readWithArrivals(page: Page,index: number){
   for(const [at,person] of people.entries()){await expect(scene(page,`${person.name} arrives`)).toBeVisible();await readTo(page,at<people.length-1?'Next scene':'Back to the kitchen');}
 }
 const scene=(page: Page,title: string)=>page.getByRole('dialog',{name:title,exact:true});
-/** Every preparation is paid and each plate of the supper is on the board. A purse at the recovery floor keeps the recovery quest away. */
-const supperReady=()=>supply(supperEvening(checkpoint(data.tasks.length,{coins:data.economy.recoveryFloor})),supplies(supper));
+/** Every preparation of act 1 is paid and each plate of the supper is on the board. A purse that can pay the first preparation of act 2 keeps the recovery quest away. */
+const supperReady=()=>supply(supperEvening(checkpoint(actOneTasks,{coins:data.tasks[actOneTasks].cost})),supplies(supper));
 /** Phone tickets open the quest to serve; desktop tickets serve directly. */
 async function serveSupper(page: Page){
   if(page.viewportSize()!.width<1024){await openQuest(page,supper);await scene(page,supper.title).getByRole('button',{name:`Serve ${supper.title}`,exact:true}).click();}
@@ -26,7 +26,7 @@ async function serveSupper(page: Page){
 /** The supper painting after the finale: its picture has loaded, it names the guests, and the ending line stands under it. */
 async function supperPainting(page: Page){
   const dialog=scene(page,'The supper'),image=dialog.locator('img');await expect(dialog).toBeVisible();
-  await expect(image).toHaveAttribute('alt',/Mara stands at the long table/);await expect(dialog.locator('.completion-message')).toHaveText(data.finale.ending);
+  await expect(image).toHaveAttribute('alt',/Mara stands at the long table/);await expect(dialog.locator('.completion-message')).toHaveText(data.finales[0].ending);
   await expect.poll(()=>image.evaluate(e=>{const value=e as HTMLImageElement;return value.complete?value.naturalWidth:0;})).toBeGreaterThan(0);
   return dialog;
 }
@@ -91,18 +91,18 @@ for(const dismiss of ['Escape','Close'] as const)test(`${dismiss} on the next wa
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`the finale stays out of the journal until the supper is served at ${viewport.width}`,async({page})=>{
   await page.setViewportSize(viewport);await start(page,supperReady());
-  await journal(page,['chapters','conversations','neighbours']);await expect(page.locator(`[data-journal="${data.finale.id}"]`)).toHaveCount(0);
+  await journal(page,['chapters','conversations','neighbours']);await expect(page.locator(`[data-journal="${data.finales[0].id}"]`)).toHaveCount(0);
   await expect(page.getByRole('heading',{name:'The finale',exact:true})).toHaveCount(0);
   await page.keyboard.press('Escape');await serveSupper(page);
-  await expect(scene(page,data.finale.title)).toBeVisible();await page.keyboard.press('Escape');
-  await journal(page,['chapters','conversations','neighbours']);await expect(page.getByRole('button',{name:`Read ${data.finale.title}`,exact:true})).toBeVisible();
+  await expect(scene(page,data.finales[0].title)).toBeVisible();await page.keyboard.press('Escape');
+  await journal(page,['chapters','conversations','neighbours']);await expect(page.getByRole('button',{name:`Read ${data.finales[0].title}`,exact:true})).toBeVisible();
 });
 
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`a failed supper save warns inside the finale before reading at ${viewport.width}`,async({page,context})=>{
   const initial=supperReady();
   await page.setViewportSize(viewport);await start(page,initial);await failWrites(page);
   await serveSupper(page);
-  const dialog=scene(page,data.finale.title),warning=dialog.locator('.scene-unsaved');
+  const dialog=scene(page,data.finales[0].title),warning=dialog.locator('.scene-unsaved');
   await expect(warning).toHaveText('This session is not saved. You can keep reading. Use Retry save in Options before you leave.');
   // The native modal excludes the outside toast from Chromium's accessibility tree.
   const cdp=await context.newCDPSession(page),tree=await cdp.send('Accessibility.getFullAXTree');
@@ -115,7 +115,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`aft
   await page.setViewportSize(viewport);await start(page,{...supperReady(),decorationChoices:{textiles:'blue'}});
   await expect.poll(()=>painting(page)).toMatch(/^front-room-24-/);
   await serveSupper(page);
-  await expect(scene(page,data.finale.title)).toBeVisible();await page.keyboard.press('Escape');
+  await expect(scene(page,data.finales[0].title)).toBeVisible();await page.keyboard.press('Escape');
   const supperRoom=async()=>{
     await expect(page.locator('#room-frame')).toHaveAttribute('data-painting','finale-supper');await expect.poll(()=>painting(page)).toMatch(/^finale-supper-/);
     await expect(page.getByRole('button',{name:'Courtyard',exact:true})).toHaveAttribute('aria-pressed','true');await expect(page.locator('#room-pin')).toBeHidden();
@@ -138,7 +138,7 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])test(`the
   }
 });
 
-test('serving the supper pays nothing and opens the finale and the supper painting; reading and replay change nothing else, and only a repeating quest waits',async({page})=>{
+test('serving the supper pays nothing and opens the finale and the supper painting; reading and replay change nothing else, and the empty purse keeps the recovery quest',async({page})=>{
   const initial=supply(payable(23),supplies(supper));await start(page,initial);await payAndRead(page);await expect(scene(page,closing(5))).toBeVisible({timeout:8000});
   const paid=await saved(page);expect(paid.pendingScenes).toEqual(['chapter-6']);expect(paid.coins).toBe(0);
   await readTo(page,'Back to the kitchen');await expect(page.locator('#modal')).toBeHidden();
@@ -149,7 +149,7 @@ test('serving the supper pays nothing and opens the finale and the supper painti
   expect(await page.locator('#tickets .ticket').evaluateAll(cards=>cards.map(card=>(card as HTMLElement).dataset.quest))).toEqual([supper.id,recovery.id]);
   const button=deliverButton(page,supper);await expect(button).toHaveText('Serve');await expect(button).toHaveAccessibleName(`Serve ${supper.title}`);
   await expect(button).toBeEnabled();await button.click();
-  await expect(scene(page,data.finale.title)).toBeVisible();await expect(page.locator('#story-line')).toContainText(data.finale.dialogue[0].text);
+  await expect(scene(page,data.finales[0].title)).toBeVisible();await expect(page.locator('#story-line')).toContainText(data.finales[0].dialogue[0].text);
   const supped=await saved(page);expect(supped.coins).toBe(0);expect(supped.pendingScenes).toEqual(['finale']);expect(supped.completedQuests.at(-1)).toBe(supper.id);
   expect(supped.board.filter(Boolean).length).toBe(paid.board.filter(Boolean).length-supplies(supper).length);
   await page.getByRole('button',{name:'See the supper',exact:true}).click();
@@ -159,12 +159,13 @@ test('serving the supper pays nothing and opens the finale and the supper painti
   // The supper has no completion scene of its own: the journal keeps its quest and replays the finale instead.
   await journal(page,['chapters','conversations','neighbours']);await expect(page.getByRole('button',{name:`Read quest: ${supper.title}`,exact:true})).toBeVisible();
   await expect(page.getByRole('button',{name:`Replay ${supper.title}`,exact:true})).toHaveCount(0);
-  await page.getByRole('button',{name:`Replay ${data.finale.title}`,exact:true}).click();
-  await transcript(page,data.finale.dialogue);await page.getByRole('button',{name:'See the supper',exact:true}).click();
+  await page.getByRole('button',{name:`Replay ${data.finales[0].title}`,exact:true}).click();
+  await transcript(page,data.finales[0].dialogue);await page.getByRole('button',{name:'See the supper',exact:true}).click();
   await (await supperPainting(page)).getByRole('button',{name:'Continue',exact:true}).click();
-  await expect(page.getByRole('button',{name:`Replay ${data.finale.title}`,exact:true})).toBeFocused();expect(await saved(page)).toEqual(read);
+  await expect(page.getByRole('button',{name:`Replay ${data.finales[0].title}`,exact:true})).toBeFocused();expect(await saved(page)).toEqual(read);
   await page.keyboard.press('Escape');await page.reload();await opened(page);expect(await saved(page)).toEqual(read);
-  await expect(page.locator('#modal')).toBeHidden();await onlyRepeating(page);
+  // The empty purse cannot pay the first preparation of act 2, so only Ana's recovery quest stays on the counter.
+  await expect(page.locator('#modal')).toBeHidden();expect(await page.locator('#tickets .ticket').evaluateAll(cards=>cards.map(card=>(card as HTMLElement).dataset.quest))).toEqual([recovery.id]);
 });
 
 test('a reload during the last preparation story resumes the waiting scenes in order, an empty purse brings the recovery quest, and the board still plays',async({page})=>{
@@ -240,7 +241,7 @@ test('a fresh save plays through every payment, chapter scene, the supper, and t
   test.setTimeout(300000);await page.emulateMedia({reducedMotion:'reduce'});
   const errors: string[]=[];page.on('pageerror',error=>errors.push(error.message));
   await start(page);let state: GameState=await saved(page);
-  for(const [index,task] of data.tasks.entries()){
+  for(const [index,task] of data.tasks.slice(0,actOneTasks).entries()){
     // The quests that the payment needs are delivered and its coins earned; the rules tests cover how. The interface pays, tells, reveals, and closes each chapter.
     deliverRequired(state,data);deliverMarch(state);
     state.coins=task.cost;
@@ -269,14 +270,15 @@ test('a fresh save plays through every payment, chapter scene, the supper, and t
     }else await expect(page.locator('#modal')).toBeHidden();
     state=await saved(page);expect(state.taskIndex).toBe(index+1);expect(state.pendingScenes).toEqual([]);
   }
-  expect(new Set(state.completedQuests.filter(id=>!prologueServed.includes(id)&&!data.quests.find(value=>value.id===id)!.march))).toEqual(new Set(requiredQuests(data.tasks.length,data).map(value=>value.id)));
-  // Each plate of the supper is on the board; the rules tests cover how they are cooked.
-  state=supply(supperEvening(state),supplies(supper));await replaceSave(page,state);
-  await deliverButton(page,supper).click();await expect(scene(page,data.finale.title)).toBeVisible();
-  await transcript(page,data.finale.dialogue);await readTo(page,'See the supper');
+  expect(new Set(state.completedQuests.filter(id=>!prologueServed.includes(id)&&!data.quests.find(value=>value.id===id)!.march))).toEqual(new Set(requiredQuests(actOneTasks,data).filter(value=>!value.act).map(value=>value.id)));
+  // Each plate of the supper is on the board; the rules tests cover how they are cooked. A purse that can pay the first preparation of act 2
+  // keeps the recovery quest away, so a repeating quest opens after the supper.
+  state={...supply(supperEvening(state),supplies(supper)),coins:data.tasks[actOneTasks].cost};await replaceSave(page,state);
+  await deliverButton(page,supper).click();await expect(scene(page,data.finales[0].title)).toBeVisible();
+  await transcript(page,data.finales[0].dialogue);await readTo(page,'See the supper');
   await (await supperPainting(page)).getByRole('button',{name:'Back to the kitchen',exact:true}).click();await expect(page.locator('#modal')).toBeHidden();
   await expect(page.locator('#story')).toContainText('The table is ready.');await onlyRepeating(page);
-  await journal(page,['chapters','conversations','neighbours']);await expect(page.getByRole('button',{name:`Replay ${data.finale.title}`,exact:true})).toBeVisible();
+  await journal(page,['chapters','conversations','neighbours']);await expect(page.getByRole('button',{name:`Replay ${data.finales[0].title}`,exact:true})).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -373,11 +375,11 @@ test('completing a paid transcript starts the room change before the next chapte
 });
 
 test('the finale opens as one transcript, Escape and reload leave it waiting, and its action opens the supper',async({page})=>{
-  const state=paidSupper();await start(page,state);await readNow(page,data.finale.title);await transcript(page,data.finale.dialogue);
+  const state=paidSupper();await start(page,state);await readNow(page,data.finales[0].title);await transcript(page,data.finales[0].dialogue);
   await expect(page.locator('#modal-title')).toBeFocused();await page.keyboard.press('Escape');await expect(page.locator('#modal')).toBeHidden();
-  await page.reload();await opened(page);expect(await saved(page)).toEqual(state);await readNow(page,data.finale.title);await transcript(page,data.finale.dialogue);
+  await page.reload();await opened(page);expect(await saved(page)).toEqual(state);await readNow(page,data.finales[0].title);await transcript(page,data.finales[0].dialogue);
   await page.getByRole('button',{name:'See the supper',exact:true}).click();await supperPainting(page);
-  expect(await saved(page)).toEqual(act(state,{type:'readScene',id:data.finale.id}));
+  expect(await saved(page)).toEqual(act(state,{type:'readScene',id:data.finales[0].id}));
 });
 
 test('a regular’s arrival scene waits in Story after a reload and then opens their journal entry',async({page})=>{
@@ -397,7 +399,7 @@ test('a regular’s arrival scene waits in Story after a reload and then opens t
 for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const theme of ['light','dark'] as const)test(`the supper ticket, its plates, and the supper painting fit ${viewport.width}x${viewport.height} in ${theme}`,async({page},testInfo)=>{
   await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});
   // On the evening of the supper without its plates, the supper ticket shows its first three plates and the count of the others. Serve waits for them.
-  await start(page,supperEvening(checkpoint(data.tasks.length,{coins:data.economy.recoveryFloor})),theme);
+  await start(page,supperEvening(checkpoint(actOneTasks,{coins:data.economy.recoveryFloor})),theme);
   expect(supper.requirements).toHaveLength(11);expect(supper.reward).toBe(0);expect(supper.guests).toHaveLength(11);
   const card=page.locator(`#tickets .ticket[data-quest="${supper.id}"]`),button=card.locator('.deliver-button');
   await expect(page.locator('#tickets .ticket')).toHaveCount(1);await expect(card).toBeInViewport();
@@ -462,4 +464,38 @@ test('a reply transcript keeps the failed delivery save warning after Close and 
   await readNow(page,value.title);await transcript(page,value.completion);await expect(warning).toBeVisible();
   await forward(page).click();await expect(page.locator('#modal')).toBeHidden();expect(await saved(page)).toEqual(initial);
   await options(page);const text=await exportText(page);expect(JSON.parse(text).state).toEqual(act(delivered,{type:'readScene',id:value.id}));
+});
+
+test('after the purchase of the orchard, the game opens on the result card of act 2, and the purchase scene reads and replays', async ({ page }) => {
+  const finished = checkpointState(data, data.tasks.length), purchase = data.tasks.at(-1)!;
+  expect(finished.pendingScenes).toEqual([purchase.id]);
+  await start(page, finished);
+  await story(page);
+  const card = page.locator('#story');
+  await expect(card).toContainText('The orchard is yours.');
+  await expect(card).toContainText('The trees creak, and they wait for autumn.');
+  await expect(card).toContainText(`The purse holds ${finished.act2!.purse} coins.`);
+  await card.getByRole('button', { name: `Read now: ${purchase.title}`, exact: true }).click();
+  await expect(page.locator('#modal-title')).toHaveText(purchase.title);
+  await page.getByRole('button', { name: 'Back to the kitchen', exact: true }).click();
+  expect((await saved(page)).pendingScenes).toEqual([]);
+  await journal(page);
+  await expect(page.getByRole('button', { name: `Replay ${purchase.title}`, exact: true })).toBeVisible();
+});
+
+test('on 31 August the orchard shows as a payment with its price, and its payment opens the purchase scene and then the result card', async ({ page }) => {
+  const ready = checkpointState(data, data.tasks.length - 1), purchase = data.tasks.at(-1)!;
+  await start(page, ready);
+  await story(page);
+  const card = page.locator('#story');
+  await expect(card.locator('h3')).toHaveText(purchase.title);
+  await expect(card.locator('.task-ready')).toHaveText('Ready to buy.');
+  await card.getByRole('button', { name: `Pay ${purchase.cost.toLocaleString('en')} coins: ${purchase.title}`, exact: true }).click();
+  await expect(page.locator('#modal-title')).toHaveText(purchase.title);
+  await page.getByRole('button', { name: 'Back to the kitchen', exact: true }).click();
+  await expect(card).toContainText('The orchard is yours.');
+  const done = await saved(page);
+  expect(done.taskIndex).toBe(data.tasks.length);
+  expect(done.act2).toEqual({ purse: ready.coins - purchase.cost });
+  expect(done.pendingScenes).toEqual([]);
 });

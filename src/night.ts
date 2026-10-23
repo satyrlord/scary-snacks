@@ -1,6 +1,6 @@
 // The night: the closing dialog, the short sequence of a closing over the room and the board, and the morning dialog that reports the night.
 // The closing has already changed the game. The sequence only shows it. The player watches it or skips it, and a watched night plays to its end.
-import { dateText } from './model.ts';
+import { dateText, levers } from './model.ts';
 import type { NightReport } from './model.ts';
 import { $, button, coinText, count, element, names } from './dom.ts';
 import { food, ratPose, ratSprite } from './art.ts';
@@ -33,14 +33,16 @@ function nightText(report: NightReport) {
     for (const { item } of placed) counted.set(itemName(item), (counted.get(itemName(item)) ?? 0) + 1);
     return names.format([...counted].map(([name, number]) => number > 1 ? `${count.format(number)} ${name}` : name));
   };
-  const lines = [`The upkeep took ${coinText(report.upkeep)}.`];
+  const lines = [`The upkeep took ${coinText(report.upkeep)}.`], dayLevers = levers(report.day, data);
   if (report.rat === 'thief') {
     if (report.trapped) lines.push(`${report.taken.length ? `The thief rat took ${dishes(report.taken)}, and it dropped` : 'The thief rat dropped'} the ${itemName(report.trapped.item)} into a new rat hole.`);
-    else lines.push(`The thief rat took ${dishes(report.taken)}. All ${count.format(data.day.ratHoles)} rat holes are open, so it made no new one.`);
+    else lines.push(`The thief rat took ${dishes(report.taken)}. All ${count.format(dayLevers.ratHoles)} rat holes are open, so it made no new one.`);
+  } else if (report.piper && !report.rat) {
+    lines.push('The piper’s tune still plays in the cellar. No rat came.');
   } else if (report.gift) {
     const name = itemName(report.gift.item);
     lines.push(`Șoricescu lifted his hat and left ${name} as a gift.${report.gift.first ? ` ${newDishLine(name)}` : ''}`);
-  } else lines.push(`Șoricescu found no room for his gift. He needs ${count.format(data.day.giftSpace)} free spaces.`);
+  } else lines.push(`Șoricescu found no room for his gift. He needs ${count.format(dayLevers.giftSpace)} free spaces.`);
   for (const chain of report.departed) lines.push(data.chains.find(value => value.id === chain)!.season!.departure);
   lines.push(report.purse < 0 ? `Mara writes the debt pe caiet: the shop notebook holds a debt of ${coinText(-report.purse)}.` : `The purse holds ${coinText(report.purse)}.`);
   return lines.join(' ');
@@ -50,9 +52,12 @@ export function morning() {
   const report = state.night;
   if (!report || report.seen) return;
   clearMorning();
-  const content = element('div'), body = element('div', 'night-morning'), picture = ratSprite(report.rat ?? 'soricescu', 'morning-rat');
-  ratPose(picture, 5);
-  body.append(picture, element('p', 'modal-copy', nightText(report)));
+  const content = element('div'), body = element('div', 'night-morning');
+  if (report.rat) {
+    const picture = ratSprite(report.rat, 'morning-rat');
+    ratPose(picture, 5); body.append(picture);
+  }
+  body.append(element('p', 'modal-copy', nightText(report)));
   const done = button('Open the bistro', 'primary-button', () => modal.close()), controls = element('div', 'story-controls');
   controls.append(done); content.append(body, controls);
   closeMorning = () => {

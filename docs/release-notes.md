@@ -60,7 +60,7 @@ Art candidates are not in the published assets.
 
 ## Art provenance
 
-The game ships image variants from 83 masters.
+The game ships image variants from 115 masters.
 [Asset provenance](asset-provenance.json) records each master, its references, processing, review limits, and hash.
 [Asset prompts](asset-prompts.json) preserves the exact generation prompts.
 These records describe the source of the current assets. These records do not give legal clearance.
@@ -83,11 +83,14 @@ The OpenAI Images application programming interface (API) supplies these assets 
 - The timber tabletop and embroidered runner, from text prompts.
 - The core portraits, with a project-generated candidate as their reference.
 - The three regulars atlases, with project-generated portraits as style references.
-- The 25 room states, with project-generated room paintings as the base references.
+- The summer-guests portrait atlas, with project-generated portrait atlases as style references.
+- The 25 room states of act 1, with project-generated room paintings as the base references.
+- The 25 room states of act 2. The first state of each area is a new base painting, with accepted room paintings as style references only. Each later state is a masked edit of the state before it.
 - The two decoration paintings, with project-generated design references.
 - The supper painting, with the final courtyard state and project-generated portraits as references.
-- The three sheets of character sketches and the six sheets of quest scenes, with earlier sheets of the same task as style references.
-- The 18 food atlases, with two accepted food atlases of the same set as style references.
+- The four sheets of character sketches and the six sheets of quest scenes, with earlier sheets of the same task as style references.
+- The 20 food atlases, with two accepted food atlases of the same set as style references.
+- The hail-clutter atlas, with the preparation-clutter atlas as its style reference.
 - The three window views, with a front-room painting as their style reference.
 - The two holiday images, as masked edits of room states.
 - The two rat sheets, with project-generated reference poses as identity references.
@@ -99,14 +102,16 @@ The OpenAI Images application programming interface (API) supplies these assets 
 
 A correction edit keeps each pose of the mascot atlas inside its grid cell.
 A masked edit changes one cell of the first regulars atlas.
-A masked edit adds Bela to the last regulars atlas, and a fit places him inside his cell.
+A masked edit adds Bela to the last regulars atlas, and a fit places him inside his cell. A second masked edit adds Gavril to its lower-right cell.
 A masked edit removes paint from one sleeve in the second regulars atlas.
-A fixed conversion makes the white paper of the pencil sheets transparent. A fixed colour mapping gives every pencil line one sepia colour and keeps the alpha of each pixel. A masked edit redraws one bell in the second sketch sheet. Masked edits redraw three scenes of the fourth scene sheet and then all of its bottom-left scene. A box clear removes the willow tips that cross from one scene of that sheet into the scene above it, and an edge fade makes the willow fade into the paper at the top of its scene.
+A fixed conversion makes the white paper of the pencil sheets transparent. A fixed colour mapping gives every pencil line one sepia colour and keeps the alpha of each pixel. A masked edit redraws one bell in the second sketch sheet, and a masked edit opens the eyes of Gavril in the fourth sketch sheet. Masked edits redraw three scenes of the fourth scene sheet and then all of its bottom-left scene. A box clear removes the willow tips that cross from one scene of that sheet into the scene above it, and an edge fade makes the willow fade into the paper at the top of its scene.
 The Sharp image library scales the two portraits of the third regulars atlas inside their cells.
-Alpha cuts, moves, box clears, and cell copies between candidates correct the food atlases without painted pixels.
+Alpha cuts, moves, box clears, and cell copies between candidates correct the food atlases without painted pixels. A pixel move centres each picture that sat off the centre of its cell. Halo clears and fits that only scale and move each picture correct the two food atlases of act 2, the summer-guests atlas, and the hail-clutter atlas.
 A cell trim keeps each pose of the thief rat sheet inside its grid cell without painted pixels.
 Each later room state edits the previous state of its area.
 A composite applies only the changed region.
 The decoration composites also apply only their changed regions.
 Each holiday decoration is cut out of its masked edit by its difference from the room state, without painted pixels.
 The game displays the authored decoration regions.
+
+A script draws the netting of the screen door in the summer kitchen over the generated paintings: a faint grey veil and a fine square grid.

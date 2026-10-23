@@ -37,14 +37,14 @@ function mergeOne(state: GameState) {
 }
 const active = (state: GameState) => state.preparationObstacles!.placed.filter(entry => !state.resolvedObstacles.includes(entry.id));
 
-test('all 24 preparations have two or three contextual blockers with new art and available low-stage rewards', () => {
+test('all 48 preparations have two or three contextual blockers with new art and available low-stage rewards, and the purchase has none', () => {
   assert.deepEqual(dataProblems(data), []);
-  assert.equal(data.board.preparations.length, 24);
-  const chains = new Set(['grain', 'corn', 'herbs']);
+  const tasks = data.tasks.filter(task => !task.purchase);
+  assert.equal(data.board.preparations.length, 48);
   let total = 0;
   for (const [index, batch] of data.board.preparations.entries()) {
-    if (data.tasks[index].unlock) chains.add(data.tasks[index].unlock!);
-    assert.equal(batch.after, data.tasks[index].id);
+    const task = data.tasks.indexOf(tasks[index]), chains = new Set(availableChains({ taskIndex: task + 1, clock: { day: data.chapters[tasks[index].chapter - 1].opens } }, data));
+    assert.equal(batch.after, tasks[index].id);
     assert.ok(batch.context.trim());
     assert.ok([2, 3].includes(batch.obstacles.length));
     assert.equal(batch.obstacles.filter(obstacle => obstacle.atlas === 'preparation').length, 1, 'Each batch has one blocker with a contextual picture.');
@@ -55,7 +55,7 @@ test('all 24 preparations have two or three contextual blockers with new art and
     }
     total += batch.obstacles.length;
   }
-  assert.equal(total, 60);
+  assert.equal(total, 120);
 });
 
 test('payment places a batch once and preserves existing items and quest progress', () => {

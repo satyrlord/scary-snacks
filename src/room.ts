@@ -1,6 +1,6 @@
 // The room: the painting of an area as the completed preparations leave it, the reveal of a paid change, the area switch,
 // the decoration finishes, the kitchen drawer over the room, and the cats.
-import { currentEvent, decorationUnlocked, holidayDecorations, latestArea, resolveDecorations, resolveRooms, supperComplete, weather, windowView } from './model.ts';
+import { actOf, chapterNumber, currentEvent, decorationUnlocked, finaleServed, holidayDecorations, latestArea, resolveDecorations, resolveRooms, roomPaintings, scenePaintings, taskAct, weather, windowView } from './model.ts';
 import type { DecorationSlot, DecorationVariant, RoomState, RoomView, Task } from './model.ts';
 import { $, button, element, status, svg } from './dom.ts';
 import { swapMark } from './art.ts';
@@ -16,14 +16,22 @@ const ROOM_SIZES = '(max-width: 1023px) 100vw, max(50vw, 75vh)';
 let viewArea = '', held: { task: Task; scene: string | null } | null = null, revealToken = 0, paintingToken = 0, preloaded: HTMLPictureElement | null = null, swipe = 0;
 export let lowered = false;
 let catAsleep = false;
-/** The text alternative of the supper painting, which names each guest. */
-export const SUPPER_PICTURE='The supper in the courtyard under the string lights. Mara stands at the long table with a steaming pot. Ilie, Costel, Sorin and Victor sit on one bench, and Eszter, Ana, Ileana and Bran on the other. Cătălina and Cezar share the small table by the lantern, and two black cats wait for scraps.';
-// After the supper, the courtyard shows the supper painting with no finishes, because the guests sit where the finishes would go.
-const SUPPER: RoomState = { id: 'finale-supper', area: 'courtyard', after: null, focus: { x: 50, y: 55 }, mark: { x: 50, y: 55 }, label: 'the supper', text: SUPPER_PICTURE };
 // The room opens on the player's chosen area while it is open, and otherwise on the area of the latest change.
 try{viewArea=storage?.getItem(AREA_KEY)??'';}catch{/* Follow the latest change. */}
-/** The area of the latest change: the supper's courtyard once the supper is served. */
-const latestView = () => supperComplete(state, data) ? SUPPER.area : latestArea(roomCompleted(), data);
+/** The act whose areas the room shows: the act of the current day. */
+const roomAct = () => actOf(state.clock.day, data);
+/**
+ * After the finale of the room's act, its area shows the finale painting with no finishes, because the guests sit where the finishes
+ * would go. A painting that does not ship leaves the area as it is.
+ */
+function finaleState(): RoomState | null {
+  const finale = data.finales.find(value => actOf(value.day, data) === roomAct());
+  if (!finale || !finaleServed(state, finale, data) || !scenePaintings.includes(finale.painting.image)) return null;
+  const { image, area, title, text, focus } = finale.painting;
+  return { id: image, area, after: null, focus, mark: focus, label: title.replace(/^The /, 'the '), text };
+}
+/** The area of the latest change: the area of the finale painting once the finale is served. */
+const latestView = () => finaleState()?.area ?? latestArea(roomCompleted(), data, roomAct());
 onReplace(() => {
   held = null; revealToken++; preloaded = null; viewArea = latestView();
   $('.game-layout').classList.remove('revealing'); $('#room-stage').removeAttribute('data-reveal'); setLowered(false);
@@ -47,7 +55,7 @@ export function roomPicture(id: string, sizes = ROOM_SIZES) {
 /** While a paid preparation's story plays, its painting downloads, so the reveal does not wait for it. */
 export function preloadRoom(task: Task) {
   const area=data.rooms.find(room=>room.after===task.id)!.area;
-  const painting=resolveRooms(state.decorations,data).find(view=>view.id===area)!.painting!;
+  const painting=resolveRooms(state.decorations,data,roomPaintings,taskAct(task,data)).find(view=>view.id===area)!.painting!;
   if(painting.id!==$('#room-frame').dataset.painting)preloaded=roomPicture(painting.id);
 }
 /** Shows a painting in the frame. With a fade, the new painting comes into focus over the old one once it has decoded. */
@@ -73,16 +81,16 @@ async function showPainting(id: string, fade: number) {
 function kitchenView(): RoomView | null {
   const event=currentEvent(state,data);if(!event)return null;
   const room=data.prologue.rooms.find(value=>value.id===event.room)!;
-  return {id:room.area,name:'The family kitchen',unlock:null,open:true,states:[room],current:room,painting:room};
+  return {id:room.area,name:'The family kitchen',unlock:null,act:0,open:true,states:[room],current:room,painting:room};
 }
 /** The area the room shows: the family kitchen in the prologue, and else the player's open choice, or the area of the latest change. */
 function currentView() {
   const kitchen=kitchenView();if(kitchen)return {views:[kitchen],view:kitchen};
-  const supper=supperComplete(state,data),views=resolveRooms(roomCompleted(),data).map(view=>supper&&view.id===SUPPER.area?{...view,states:[...view.states,SUPPER],current:SUPPER,painting:SUPPER}:view);
+  const finale=finaleState(),views=resolveRooms(roomCompleted(),data,roomPaintings,roomAct()).map(view=>finale&&view.id===finale.area?{...view,states:[...view.states,finale],current:finale,painting:finale}:view);
   return {views,view:views.find(view=>view.id===viewArea&&view.open)??views.find(view=>view.id===latestView())!};
 }
-/** Serving the supper turns the room to the supper. */
-export function showSupperRoom() { viewArea=SUPPER.area;try{storage?.setItem(AREA_KEY,viewArea);}catch{/* The room still shows the supper. */}renderRoom(); }
+/** Serving a finale turns the room to its painting. */
+export function showFinaleRoom() { const area=finaleState()?.area;if(area){viewArea=area;try{storage?.setItem(AREA_KEY,viewArea);}catch{/* The room still shows the finale. */}}renderRoom(); }
 /** The kitchen changes its state with the event, so the new state comes into focus over the old one. */
 export function renderRoom() {
   const {views,view}=currentView(),frame=$('#room-frame'),change=frame.dataset.area===view.id&&view.id==='family-kitchen'&&frame.dataset.painting!==view.painting!.id;
@@ -100,8 +108,9 @@ function drawRoom(view: RoomView, fade = 0) {
   Object.assign(frame.dataset,{area:view.id,current:current.id});
   // The frame centres the change a little low, so the pin above it has room inside the visible room.
   frame.style.setProperty('--fx',String(painting.focus.x/100));frame.style.setProperty('--fy',String(Math.max(0,painting.focus.y-4)/100));
-  // The area switch keeps to the side of the room away from the change, and in the front room away from Miez on the windowsill.
-  $('#area-switch').dataset.side=view.id===data.areas[0].id||painting.focus.x>=50?'left':'right';
+  // The area switch keeps to the side of the room away from the change, and away from Miez: on the right of the front room, and on
+  // the left of the summer kitchen and the vegetable garden.
+  $('#area-switch').dataset.side=view.id==='front-room'?'left':['summer-kitchen','vegetable-garden'].includes(view.id)||painting.focus.x<50?'right':'left';
   // The pin marks a painted change, so a state that waits for its painting is told only in words.
   const marked=current.after!==null&&painting===current;
   if(!marked)frame.style.removeProperty('--pin-pan');
@@ -112,7 +121,7 @@ function drawRoom(view: RoomView, fade = 0) {
     const words=element('span','','New');words.append(element('span','pin-label',`: ${current.label}`));
     pin.replaceChildren(dot,words);pin.setAttribute('aria-label',`New: ${current.text}`);
   }
-  const area=painting===SUPPER?'':view.id,decorations=resolveDecorations(roomCompleted(),state.decorationChoices,data).filter(slot=>slot.unlocked&&slot.area===area);
+  const area=painting.id===finaleState()?.id?'':view.id,decorations=resolveDecorations(roomCompleted(),state.decorationChoices,data).filter(slot=>slot.unlocked&&slot.area===area);
   drawDecorations($('#room-decorations'),area,roomCompleted(),state.decorationChoices);renderFinishes(area);
   // The day gives the weather, the view behind the window, and the holiday decorations. The broken window shows no view and no decoration.
   const day=state.clock.day,holidays=painting.id==='front-room-00'?[]:holidayDecorations(day,area,data);
@@ -144,7 +153,7 @@ function renderAreaSwitch(views: RoomView[], view: RoomView) {
     choice.setAttribute('aria-pressed',String(area===view));
     if(area.open)choice.removeAttribute('aria-disabled');else choice.setAttribute('aria-disabled','true');
     const task=data.tasks.find(value=>value.id===area.unlock);
-    note.textContent=area.open||!task?'':`${area.name} opens with “${task.title}” in chapter ${task.chapter}.`;
+    note.textContent=area.open||!task?'':`${area.name} opens with “${task.title}” in chapter ${chapterNumber(data.chapters[task.chapter-1],data)}.`;
     if(area.open)choice.removeAttribute('aria-describedby');else choice.setAttribute('aria-describedby',note.id);
   }
 }

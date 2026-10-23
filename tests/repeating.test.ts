@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { bookedTonight, menuPrice, requiredQuests, resolveQuests, unresolvedObstacle } from '../src/model.ts';
+import { bookedTonight, menuPrice, requiredQuests, resolveQuests, supperQuest, unresolvedObstacle } from '../src/model.ts';
 import { dataProblems, questProblems } from '../src/content.ts';
 import type { GameState } from '../src/model.ts';
-import { afterMarch, act, checkpoint, data, deliver, payNext, quest, ready, rejected, recovery, status, supply, validate } from './support.ts';
+import { afterMarch, act, checkpoint, data, deliver, payNext, quest, ready, rejected, recovery, status, supperEvening, supply, validate } from './support.ts';
 
 const cycle = data.quests.filter(value => value.repeating);
 const open = (state: GameState) => resolveQuests(state, data).filter(view => view.status === 'active' || view.status === 'waiting').map(view => view.quest.id);
@@ -118,20 +118,22 @@ test('a campaign quest takes the ticket of a repeating quest, which waits and ge
 test('the repeating quests do not change the two cases of the recovery quest', () => {
   // Another quest is open and the purse is short: the recovery quest opens beside a saved repeating quest.
   assert.equal(status({ ...idle(), coins: 5 }, recovery.id), 'active');
-  // After the supper, no next preparation needs coins, and a repeating quest is not another quest.
-  const after = act(supply(afterMarch(checkpoint(24)), quest(data.quests.find(value => value.finale)!.id).id), { type: 'deliverQuest', id: data.quests.find(value => value.finale)!.id });
-  assert.equal(status({ ...after, coins: 0 }, recovery.id), 'locked');
+  // After the supper, no quest of act 1 is open, and the first preparation of act 2 needs coins: a short purse opens the recovery quest.
+  // A repeating quest is not another quest.
+  const supper = supperQuest(data)!, after = act(supply({ ...afterMarch(supperEvening()), coins: 1000 }, supper.id), { type: 'deliverQuest', id: supper.id });
+  assert.equal(status(after, recovery.id), 'locked');
+  assert.equal(status({ ...after, coins: 0, repeating: { last: null, open: null } }, recovery.id), 'active');
 });
 
-test('after the supper, the repeating quests continue, the clock stays stopped, and the result of act 1 stays', () => {
-  const supper = data.quests.find(value => value.finale)!;
-  let state = act(supply(afterMarch(checkpoint(24)), supper.id), { type: 'deliverQuest', id: supper.id });
+test('after the supper, the repeating quests continue, the clock runs on into act 2, and the result of act 1 stays', () => {
+  const supper = supperQuest(data)!;
+  let state = act(supply({ ...afterMarch(supperEvening()), coins: 1000 }, supper.id), { type: 'deliverQuest', id: supper.id });
   const result = state.act1, clock = state.clock;
   assert.equal(state.repeating?.open, 'sorin-staff-meal');
   state = act(supply(state, 'sorin-staff-meal'), { type: 'deliverQuest', id: 'sorin-staff-meal' });
   assert.equal(state.repeating?.open, 'bela-cold-night');
   assert.deepEqual(state.act1, result);
-  assert.deepEqual(state.clock, clock);
+  assert.deepEqual(state.clock, clock, 'A delivery moves no clock.');
 });
 
 test('the data check rejects a large or broken repeating quest and a cycle that cannot start with act 1', () => {

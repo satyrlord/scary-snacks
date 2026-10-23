@@ -4,10 +4,14 @@ import { availableChains, firstFreeBoardCell, requiredQuests, resolveChapters, r
 import { validateGame } from '../src/engine.ts';
 import { dataProblems, storyProblems } from '../src/content.ts';
 import type { GameData } from '../src/model.ts';
-import { actOne, afterMarch, deliver, act, data, payNext, prologueServed, ready, rejected, supply, withTickets } from './support.ts';
+import { actOne, act, actOneTasks, data, deliver, payNext, prologueServed, ready, rejected, status, supperEvening, withTickets } from './support.ts';
 
-const titles = ['Open the shutters', 'A kitchen for everyone', 'Around one table', 'The courtyard', 'Recipes to share', 'The first community supper'];
-const boundaries = [4, 8, 12, 16, 20, 24];
+const titles = ['Open the shutters', 'A kitchen for everyone', 'Around one table', 'The courtyard', 'Recipes to share', 'The first community supper',
+  'A kitchen outside', 'Beds and benches', 'The summer festival', 'A guest who snores', 'The missing page', 'What the family owes'];
+const ids = [...titles.slice(0, 6).map((_, index) => `chapter-${index + 1}`), ...titles.slice(6).map((_, index) => `act2-chapter-${index + 1}`)];
+/** The number of payments that complete each chapter. The purchase of act 2 belongs to no chapter. */
+const boundaries = titles.map((_, index) => 4 * (index + 1));
+const preparations = data.tasks.filter(task => !task.purchase);
 /** A synthetic checkpoint after count payments, with every scene that the payments queued still waiting. */
 function checkpoint(count: number, content = data) {
   let state = actOne(content);
@@ -42,12 +46,13 @@ test('Janos reports the archbishop eating a dish from Monica’s preceding deliv
   for (const item of mentioned) assert.ok(previous.requirements.some(requirement => requirement.item === item.id), `${item.name} was in the preceding pack.`);
 });
 
-test('six chapters keep their titles and cover all 24 preparations, each with a painted result', () => {
+test('twelve chapters, six in each act, keep their titles and cover all 48 preparations, each with a painted result', () => {
   assert.deepEqual(storyProblems(data), []);
   assert.deepEqual(data.chapters.map(chapter => chapter.title), titles);
-  assert.deepEqual(data.chapters.map(chapter => chapter.id), titles.map((_, index) => `chapter-${index + 1}`));
+  assert.deepEqual(data.chapters.map(chapter => chapter.id), ids);
+  assert.deepEqual(data.chapters.map(chapter => chapter.act), titles.map((_, index) => index < 6 ? 1 : 2));
   const covered = resolveChapters(actOne(), data).flatMap(view => view.tasks.map(task => task.id));
-  assert.deepEqual(covered, data.tasks.map(task => task.id));
+  assert.deepEqual(covered, preparations.map(task => task.id));
   for (const view of resolveChapters(actOne(), data)) {
     assert.equal(view.tasks.length, 4);
     for (const key of ['objective', 'opening', 'payoff'] as const) assert.ok(view.chapter[key].trim(), `${view.chapter.id} needs its ${key}.`);
@@ -58,7 +63,7 @@ test('six chapters keep their titles and cover all 24 preparations, each with a 
 test('each chapter has a neighbour contribution that opens during it, and the four core characters all contribute and speak in the finale', () => {
   const characters = data.characters.filter(character => !character.visitor && !character.regular && !character.family).map(character => character.id);
   assert.deepEqual(new Set(data.chapters.map(chapter => data.quests.find(quest => quest.id === chapter.contribution)!.character)), new Set(characters));
-  assert.deepEqual(new Set(data.finale.dialogue.map(line => line.speaker)), new Set(characters));
+  for (const finale of data.finales) for (const character of characters) assert.ok(finale.dialogue.some(line => line.speaker === character), `${finale.id}: ${character}`);
   for (const [index, chapter] of data.chapters.entries()) {
     const quest = data.quests.find(value => value.id === chapter.contribution)!;
     const earlier = data.quests.filter(value => value.character === quest.character && data.quests.indexOf(value) < data.quests.indexOf(quest)).map(value => value.id);
@@ -73,21 +78,25 @@ test('story content checks reject missing scenes, invalid speakers, duplicate ID
   const cases: [string, (content: GameData) => void, RegExp][] = [
     ['missing closing', content => { content.chapters[0].closing = []; }, /invalid closing scene/],
     ['invalid speaker', content => { content.chapters[1].closing[0].speaker = 'nobody'; }, /invalid closing scene/],
-    ['blank line', content => { content.finale.dialogue[0].text = ' '; }, /finale has an invalid scene/],
+    ['blank line', content => { content.finales[0].dialogue[0].text = ' '; }, /finale: invalid scene/],
     ['duplicate chapter', content => { content.chapters[1].id = 'chapter-1'; }, /stable and unique/],
-    ['finale reuses a chapter ID', content => { content.finale.id = 'chapter-6'; }, /stable and unique/],
+    ['finale reuses a chapter ID', content => { content.finales[1].id = 'chapter-6'; }, /stable and unique/],
     ['unstable ID', content => { content.chapters[2].id = 'Chapter 3'; }, /stable and unique/],
     ['missing objective', content => { content.chapters[3].objective = ''; }, /needs its objective/],
-    ['missing ending', content => { content.finale.ending = ''; }, /title and an ending/],
+    ['missing ending', content => { content.finales[1].ending = ''; }, /title and an ending/],
     ['unknown contribution', content => { content.chapters[0].contribution = 'absent'; }, /unknown neighbour contribution/],
     ['contribution after the chapter', content => { content.chapters[0].contribution = 'eszter-bowls'; }, /must open during the chapter/],
     ['contribution before the chapter', content => { content.chapters[5].contribution = 'ilie-counter'; }, /must open during the chapter/],
-    ['finale without a character', content => { content.finale.dialogue = content.finale.dialogue.filter(line => line.speaker !== 'sorin'); }, /finale must include Sorin/],
-    ['character without a contribution', content => { content.chapters[2].contribution = 'mara-table'; }, /Eszter needs a chapter contribution/],
+    ['finale without a character', content => { content.finales[1].dialogue = content.finales[1].dialogue.filter(line => line.speaker !== 'sorin'); }, /finale-act-2 must include Sorin/],
+    ['character without a contribution', content => { content.chapters[2].contribution = 'mara-table'; }, /Eszter needs a chapter contribution in act 1/],
+    ['character without a contribution in act 2', content => { content.chapters[6].contribution = 'sorin-creaking-orchard'; content.chapters[10].contribution = 'mara-missing-page'; }, /Eszter needs a chapter contribution in act 2/],
+    ['finale on a day of another act', content => { content.finales[1].day = content.finales[0].day; }, /finale-act-2: needs a day of its act/],
+    ['finale painting in an area of another act', content => { content.finales[1].painting.area = content.finales[0].painting.area; }, /needs a painting of an area of its act/],
+    ['chapter in an earlier act after a later one', content => { content.chapters[7].act = 1; }, /needs an act, in story order/],
     ['empty chapter', content => { content.tasks.slice(16, 20).forEach(task => { task.chapter = 4; }); }, /Chapter 5 has no preparation/],
-    ['unknown chapter', content => { content.tasks[23].chapter = 7; }, /known chapter, in story order/],
+    ['unknown chapter', content => { content.tasks[47].chapter = 13; }, /known chapter, in story order/],
     ['chapter out of order', content => { content.tasks[4].chapter = 1; content.tasks[3].chapter = 2; }, /known chapter, in story order/],
-    ['missing finale', content => { delete (content as Partial<GameData>).finale; }, /chapters and a finale/],
+    ['missing finale', content => { content.finales.pop(); }, /one finale for each act/],
     ['malformed chapter', content => { (content.chapters as unknown[])[0] = null; }, /Chapter 1 needs a record/],
   ];
   for (const [name, change, problem] of cases) {
@@ -109,7 +118,7 @@ test('a chapter opens at its first preparation and completes only with its last 
     const after = payNext(before);
     assert.equal(resolveChapters(after, data)[index].status, 'complete');
     assert.deepEqual(after.pendingScenes, [...before.pendingScenes, data.tasks[boundary - 1].id, data.chapters[index].id, ...arrivals(boundary - 1)]);
-    if (boundary < 24) {
+    if (boundary < preparations.length) {
       assert.equal(resolveChapters(after, data)[index + 1].status, 'current');
       assert.equal(resolveChapters(after, data)[index + 1].done, 0);
       // The next preparation never waits for the closing scene. It queues only its own scene.
@@ -136,13 +145,14 @@ test('a failed payment, a missing required quest, or a full destination complete
   assert.equal(resolveChapters(full, data)[1].status, 'current');
 });
 
-test('the last preparation queues its scene and the chapter scene once, with no second charge or reward', () => {
+test('the last preparation of an act queues its scene and the chapter scene once, with no second charge or reward', () => {
   const before = ready(checkpoint(23));
   const after = act(before, { type: 'task' });
   assert.deepEqual(after.pendingScenes.slice(-2), [data.tasks[23].id, 'chapter-6']);
   assert.equal(supperComplete(after, data), false);
   assert.equal(after.coins, before.coins - data.tasks[23].cost);
-  assert.match(rejected(after, { type: 'task' }).message, /community supper is ready/);
+  // The first preparation of act 2 waits for its chapter, after the supper.
+  assert.match(rejected({ ...after, coins: 1000 }, { type: 'task' }).message, /This preparation opens on Friday 2 May\./);
   const read = act(after, { type: 'readScene', id: 'chapter-6' });
   assert.deepEqual(read.pendingScenes, queued(24).filter(id => id !== 'chapter-6'));
   for (const key of ['coins', 'taskIndex', 'board', 'completedQuests', 'decorations'] as const) {
@@ -153,35 +163,38 @@ test('the last preparation queues its scene and the chapter scene once, with no 
   rejected(read, { type: 'readScene', id: 'finale' });
   rejected(read, { type: 'readScene', id: 'unknown' });
   rejected(read, { type: 'readScene', id: undefined as unknown as string });
+  // The last preparation of act 2 completes its chapter, and the purchase that follows it belongs to no chapter.
+  const last = act(ready(checkpoint(47)), { type: 'task' });
+  assert.deepEqual(last.pendingScenes.slice(-2), [data.tasks[47].id, 'act2-chapter-6']);
+  assert.equal(data.tasks[48].purchase, true);
+  assert.ok(resolveChapters(last, data).every(view => !view.tasks.includes(data.tasks[48])));
 });
 
-test('the supper quest has no cost, earns the finale, leaves only a repeating ticket, and keeps the board playable', () => {
-  const supper = supperQuest(data)!, campaign = requiredQuests(data.tasks.length, data);
+test('the supper quest has no cost, earns the finale, and keeps the board playable', () => {
+  const supper = supperQuest(data)!, campaign = requiredQuests(actOneTasks, data).filter(quest => !quest.act);
   const before = ready(checkpoint(23));
-  assert.deepEqual(new Set(before.completedQuests), new Set([...prologueServed, ...campaign.map(quest => quest.id)]), 'Every campaign quest is required before the supper.');
+  assert.deepEqual(new Set(before.completedQuests), new Set([...prologueServed, ...campaign.map(quest => quest.id)]), 'Every campaign quest of act 1 is required before the supper.');
   for (const quest of campaign) rejected({ ...before, completedQuests: before.completedQuests.filter(id => id !== quest.id) }, { type: 'task' });
-  // The March quests of Dochia that opened are delivered too, so only the supper is left.
-  const paid = afterMarch(act(before, { type: 'task' }));
-  assert.equal(paid.coins, 0);
-  assert.equal(resolveQuests(paid, data).find(view => view.quest.id === supper.id)!.status, 'active');
+  // On the evening of the supper, the March quests of Dochia are delivered too, so only the supper is left.
+  const paid = { ...supperEvening(), coins: 0 };
+  assert.equal(status(paid, supper.id), 'active');
   assert.match(rejected(paid, { type: 'deliverQuest', id: supper.id }).message, /every required item/);
   // An empty purse serves the supper: it takes no coins and pays none.
   let state = deliver(paid, supper.id);
   assert.equal(state.coins, 0);
-  assert.deepEqual(state.pendingScenes, [...queued(24), 'finale']);
+  assert.deepEqual(state.pendingScenes, [...paid.pendingScenes, 'finale']);
   assert.deepEqual(state.completedQuests.slice(-1), [supper.id]);
   state = act(state, { type: 'readScene', id: 'finale' });
-  // After the supper, the bistro has no other work, so a repeating quest opens.
-  assert.ok(resolveQuests(state, data).every(view => view.status === 'complete' || view.status === 'locked' || (view.quest.repeating && view.status === 'active')));
-  assert.equal(resolveQuests(state, data).filter(view => view.status === 'active').length, 1);
+  // No quest of act 1 is left open, except a March quest of Dochia that waits for its delivery.
+  assert.ok(resolveQuests(state, data).filter(view => view.status === 'active' || view.status === 'waiting').every(view => view.quest.act === 2 || view.quest.march || view.quest.repeating || view.quest.recovery));
   const source = state.board.findIndex(cell => cell?.code === 'generator_herbs');
   state = act(state, { type: 'spawn', index: source });
-  assert.deepEqual(state.pendingScenes, queued(24));
+  assert.deepEqual(state.pendingScenes, paid.pendingScenes);
 });
 
 test('saved scene queues hold only earned scenes, once each, in story order', () => {
   const middle = checkpoint(12);
-  assert.deepEqual(storyScenes(data), [...data.tasks.map(task => task.id), ...data.quests.map(quest => quest.id), ...data.chapters.map(chapter => chapter.id), 'finale', 'mina-avram-news',
+  assert.deepEqual(storyScenes(data), [...data.tasks.map(task => task.id), ...data.quests.map(quest => quest.id), ...data.chapters.map(chapter => chapter.id), 'finale', 'finale-act-2', 'mina-avram-news',
     ...data.characters.flatMap(person => person.arrival ? [`arrival-${person.id}`] : []), ...data.prologue.events.flatMap(event => [event.opening.id, event.closing.id])]);
   const quest = data.quests.find(value => middle.completedQuests.includes(value.id))!;
   const undelivered = data.quests.find(value => !value.recovery && !middle.completedQuests.includes(value.id))!;
@@ -196,9 +209,10 @@ test('saved scene queues hold only earned scenes, once each, in story order', ()
   }
   const { pendingScenes: _scenes, ...missing } = middle;
   assert.equal(validateGame(missing, data), false);
-  const finished = checkpoint(24), supped = deliver(afterMarch(finished), supperQuest(data)!.id);
+  const finished = supperEvening(), supped = deliver(finished, supperQuest(data)!.id);
   assert.equal(validateGame({ ...finished, pendingScenes: ['finale'] }, data), false, 'The finale waits for the supper.');
   assert.equal(validateGame({ ...supped, pendingScenes: ['finale'] }, data), true);
+  assert.equal(validateGame({ ...supped, pendingScenes: ['finale-act-2'] }, data), false, 'The feast waits for its own quest.');
   assert.equal(validateGame({ ...supped, pendingScenes: ['finale', 'chapter-6'] }, data), false);
   assert.equal(validateGame({ ...supped, pendingScenes: ['finale', 'task_24'] }, data), false);
   assert.equal(validateGame({ ...supped, pendingScenes: [supperQuest(data)!.id] }, data), false, 'The supper has no completion scene.');
@@ -208,7 +222,7 @@ test('scene IDs must be unique across preparations, quests, local news, chapters
   const news = data.quests.find(quest => quest.followUp)!;
   const cases: [string, (content: GameData) => void][] = [
     ['chapter reuses a preparation ID', content => { content.chapters[0].id = content.tasks[0].id; }],
-    ['finale reuses a quest ID', content => { content.finale.id = content.quests[0].id; }],
+    ['finale reuses a quest ID', content => { content.finales[0].id = content.quests[0].id; }],
     ['news reuses a preparation ID', content => { content.quests.find(quest => quest.id === news.id)!.followUp!.id = content.tasks[3].id; }],
     ['news reuses a quest ID', content => { content.quests.find(quest => quest.id === news.id)!.followUp!.id = content.quests[1].id; }],
   ];

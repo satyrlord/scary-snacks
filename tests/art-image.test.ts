@@ -49,15 +49,16 @@ test('atlas requests preserve the square sheet and square cells', () => {
   assert.throws(() => planAsset('portraits', '1536x1024'), /square size/u);
 });
 
-test('the last regulars atlas requires three portraits and a blank last cell', async () => {
-  const plan = planAsset('regulars-3');
+test('each regulars atlas requires four portraits, and the visitors of act 2 require two portraits and two blank lower cells', async () => {
+  const plan = planAsset('summer-guests');
   const portrait = await sharp({ create: { width: 8, height: 8, channels: 4, background: { r: 120, g: 80, b: 40, alpha: 1 } } }).png().toBuffer();
   const sheet = (cells: number[]) => sharp({ create: { width: 64, height: 64, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
     .composite(cells.map(cell => ({ input: portrait, left: (cell % 2) * 32 + 12, top: Math.floor(cell / 2) * 32 + 12 }))).png().toBuffer();
-  assert.ok(inspectPng(await sheet([0, 1, 2]), plan).valid);
-  assert.equal(inspectPng(await sheet([0, 1]), plan).valid, false, 'Three portraits are required.');
-  assert.equal(inspectPng(await sheet([0, 1, 2, 3]), plan).valid, false, 'The last cell must stay blank.');
-  assert.equal(inspectPng(await sheet([0, 1, 2]), planAsset('regulars-1')).valid, false, 'Other regulars atlases require four portraits.');
+  assert.ok(inspectPng(await sheet([0, 1]), plan).valid);
+  assert.equal(inspectPng(await sheet([0]), plan).valid, false, 'Two portraits are required.');
+  assert.equal(inspectPng(await sheet([0, 1, 2]), plan).valid, false, 'The lower cells must stay blank.');
+  assert.ok(inspectPng(await sheet([0, 1, 2, 3]), planAsset('regulars-3')).valid, 'The mayor fills the last cell of regulars-3.');
+  assert.equal(inspectPng(await sheet([0, 1, 2]), planAsset('regulars-1')).valid, false, 'Each regulars atlas requires four portraits.');
 });
 
 test('a food atlas is a 2:1 four-by-two sheet whose cells after the last picture stay blank', async () => {

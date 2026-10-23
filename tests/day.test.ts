@@ -6,9 +6,11 @@ import { dayProblems } from '../src/content.ts';
 import { exportSave, importSave } from '../src/storage.ts';
 import type { GameData, GameState } from '../src/model.ts';
 import { actOneStart, moveTo } from '../tools/create-checkpoint-saves.ts';
-import { act, addOpenLayout, checkpoint, data, deliver, openGame, player, ready, rejected, status, supply, validate, know, quest, recovery, withTickets } from './support.ts';
+import { act, addOpenLayout, checkpoint, data, deliver, openGame, player, ready, rejected, status, supperEvening, supply, validate, know, quest, recovery, withTickets } from './support.ts';
 
 addOpenLayout();
+/** The levers of the day of act 1. */
+const levers = data.acts[0].day;
 // The open layout: the Windmill at 1, the Pickle barrel at 3, the Corn basket at 4, Flour at 13 and 14, Corn at 22, Elderflowers at 27, the Herb basket at 31, Socată at 32 and 33.
 /** A copy with these dishes in these cells. */
 function withBoard(state: GameState, cells: [number, string | null][]): GameState {
@@ -37,7 +39,7 @@ const tidy = (state = sunday()) => withBoard(state, [[22, null]]);
 test('each successful merge adds the merge time, and other actions and failures leave the clock', () => {
   let state = { ...openGame(), coins: 5 };
   assert.deepEqual(state.clock, { day: 1, merges: 0 });
-  assert.equal(clockMinutes(state, data), data.day.opening);
+  assert.equal(clockMinutes(state, data), levers.opening);
   rejected(state, { type: 'move', from: 0, to: 2 });
   rejected(withBoard(state, [[0, 'herbs_4'], [2, 'herbs_4']]), { type: 'move', from: 0, to: 2 });
   for (const action of [{ type: 'move', from: 22, to: 23 }, { type: 'spawn', index: 31 }, { type: 'spawn', index: 1 }] as const) {
@@ -45,7 +47,7 @@ test('each successful merge adds the merge time, and other actions and failures 
     assert.equal(state.clock.merges, 0, action.type);
   }
   state = act(state, { type: 'move', from: 13, to: 14 });
-  assert.equal(clockMinutes(state, data), data.day.opening + data.day.mergeMinutes);
+  assert.equal(clockMinutes(state, data), levers.opening + levers.mergeMinutes);
   const delivered = act(supply({ ...state, coins: 0 }, recovery.id), { type: 'deliverQuest', id: recovery.id });
   assert.deepEqual(delivered.clock, state.clock);
   const paid = act(ready(state), { type: 'task' });
@@ -61,11 +63,11 @@ test('the merge that reaches the closing time of a Sunday pays the upkeep, bring
   const state = result.state;
   assert.equal(validateGame(state, data), true);
   assert.equal(state.board[14]?.code, 'grain_2', 'The merge applies first.');
-  assert.equal(state.coins, 25 - data.day.upkeep);
+  assert.equal(state.coins, 25 - levers.upkeep);
   assert.deepEqual(state.clock, { day: 3, merges: 0 });
   // The Corn is the only loose raw ingredient, so the thief rat drops it into a new rat hole.
   assert.deepEqual(state.ratHoles, [{ item: 'corn_1', position: 22 }]);
-  assert.deepEqual(state.night, { day: 2, upkeep: data.day.upkeep, rat: 'thief', taken: [], trapped: { item: 'corn_1', position: 22 }, gift: null, departed: [], purse: 25 - data.day.upkeep, seen: false });
+  assert.deepEqual(state.night, { day: 2, upkeep: levers.upkeep, rat: 'thief', taken: [], trapped: { item: 'corn_1', position: 22 }, gift: null, departed: [], purse: 25 - levers.upkeep, seen: false, piper: false });
   assert.match(result.message, /closes for the night/);
   // The report is seen once.
   const seen = act(state, { type: 'seeNight' });
@@ -82,7 +84,7 @@ test('with a given seed, the thief rat picks the same loose raw ingredients, at 
     const state = close(seed), night = state.night!;
     assert.deepEqual(close(seed), state, 'The same seed picks the same ingredients.');
     const taken = [...night.taken, night.trapped!].map(value => value.position);
-    assert.equal(taken.length, data.day.ratTake);
+    assert.equal(taken.length, levers.ratTake);
     assert.ok(taken.every(index => raw.includes(index)), `Seed ${seed} picks only loose raw ingredients.`);
     for (const index of [9, 10, 12]) assert.ok(state.board[index], 'Herbs and cooked dishes stay.');
     assert.equal(state.board[37], null);
@@ -104,7 +106,7 @@ test('a closing that exceeds a saved counter limit rejects the whole merge and k
     assert.equal(validateGame(state, data), true, 'The rejected closing keeps a valid save.');
   }
   // Reaching the limits is legal; only crossing them rejects the change.
-  assert.equal(closeDay({ ...debt, coins: -limit + data.day.upkeep }).coins, -limit);
+  assert.equal(closeDay({ ...debt, coins: -limit + levers.upkeep }).coins, -limit);
   assert.equal(closeDay({ ...gifts, gifts: limit - 1 }).gifts, limit);
   assert.equal(closeDay(crowd(gifts, 3)).gifts, limit, 'A closing without a gift does not increase the gift counter.');
 });
@@ -189,7 +191,7 @@ test('a purse of −20 takes free herbs only, and the recovery quest and the blo
   assert.equal(cleared.coins, -20 + data.economy.blockerCoin);
   // The upkeep deepens the debt, and the recovery quest stays open across the closing.
   const night = act(lateEvening(state), { type: 'move', from: 13, to: 14 });
-  assert.equal(night.coins, -20 - data.day.upkeep);
+  assert.equal(night.coins, -20 - levers.upkeep);
   assert.equal(resolveQuests(night, data).find(view => view.quest === recovery)!.status, 'active');
 });
 
@@ -259,7 +261,7 @@ test('a booked ticket names 20:00 only for the evening guest, and delivers once 
   assert.equal(ticketNote(shared, quest('mara-candles'), data), null);
   assert.match(rejected(shared, { type: 'deliverQuest', id: 'vlad-after-dark' }).message, /booked/);
   // At the booking time, Deliver works without the lanterns.
-  const evening = { ...shared, clock: { ...shared.clock, merges: (data.day.booking - data.day.opening) / data.day.mergeMinutes } };
+  const evening = { ...shared, clock: { ...shared.clock, merges: (levers.booking - levers.opening) / levers.mergeMinutes } };
   assert.equal(canDeliverQuest(evening, 'vlad-after-dark', data), true);
   const served = act(evening, { type: 'deliverQuest', id: 'vlad-after-dark' });
   assert.equal(served.evening.delivered, true);
@@ -281,7 +283,7 @@ test('the lanterns bring tonight’s booked guest at once, before the booking ti
   rejected(supplied, { type: 'lantern', id: 'elisabeta-papers' });
   rejected(supplied, { type: 'lantern', id: 'mara-candles' });
   const lit = act(supplied, { type: 'lantern', id: 'vlad-after-dark' });
-  assert.equal(clockMinutes(lit, data), data.day.booking);
+  assert.equal(clockMinutes(lit, data), levers.booking);
   assert.equal(lit.clock.day, supplied.clock.day);
   assert.equal(lit.coins, supplied.coins);
   rejected(lit, { type: 'lantern', id: 'vlad-after-dark' });
@@ -289,34 +291,35 @@ test('the lanterns bring tonight’s booked guest at once, before the booking ti
 });
 
 test('a booked delivery at its evening with a missing dish asks for the dishes, not for another evening', () => {
-  const shared = both(), evening = { ...shared, clock: { ...shared.clock, merges: (data.day.booking - data.day.opening) / data.day.mergeMinutes } };
+  const shared = both(), evening = { ...shared, clock: { ...shared.clock, merges: (levers.booking - levers.opening) / levers.mergeMinutes } };
   assert.match(rejected(evening, { type: 'deliverQuest', id: 'vlad-after-dark' }).message, /needs every required item/);
 });
 
-test('the supper stops the clock and records the result of act 1, which keeps its purse after the purse changes', () => {
-  const finished: GameState = { ...on(checkpoint(data.tasks.length), data.calendar.supper), coins: 0 };
+test('the supper records the result of act 1, which keeps its purse after the purse changes, and the clock runs on into act 2', () => {
+  const finished: GameState = { ...supperEvening(), coins: 0 };
   const served = deliver(finished, supperQuest(data)!.id);
   assert.deepEqual(served.act1, { purse: 0 });
-  // A merge after the supper moves no clock and brings no night.
+  // A merge after the supper moves the clock: the supper no longer ends the game.
   const merged = closeWithHerbs(served);
-  assert.equal(merged.clock.day, served.clock.day);
-  assert.deepEqual(merged.night, served.night);
+  assert.equal(merged.clock.day, served.clock.day + 1);
   const spent = act({ ...merged, coins: 5 }, { type: 'spawn', index: merged.board.findIndex(cell => cell?.code === 'generator_grain') });
   assert.deepEqual(spent.act1, { purse: 0 });
   assert.equal(validateGame({ ...spent, act1: null }, data), false, 'A served supper has its result.');
   assert.equal(validateGame({ ...finished, act1: { purse: 0 } }, data), false, 'Only the supper records a result.');
 });
 
-test('each meal fits in one weekday, and only Vlad and Elisabeta book their quests', () => {
+test('each meal fits in one weekday of its act, Vlad and Elisabeta take turns on the evenings, and Ambrozie owns one fixed evening', () => {
   assert.deepEqual(dayProblems(data), []);
-  assert.deepEqual([...new Set(data.quests.filter(value => value.booked).map(value => value.character))], ['vlad', 'elisabeta']);
+  assert.deepEqual([...new Set(data.quests.filter(value => value.booked && value.evening === undefined).map(value => value.character))], ['vlad', 'elisabeta']);
+  assert.deepEqual(data.quests.filter(value => value.evening !== undefined).map(value => value.id), ['ambrozie-dinner']);
   assert.ok(data.quests.filter(value => ['vlad', 'elisabeta'].includes(value.character)).every(value => value.booked));
   const changed = (change: (copy: GameData) => void) => { const copy = structuredClone(data); change(copy); return dayProblems(copy).join(' '); };
   assert.match(changed(copy => { copy.quests.find(value => value.id === 'mara-table')!.requirements[0].quantity = 999; }), /more than the 60/);
+  assert.match(changed(copy => { copy.quests.find(value => value.id === 'mara-summer-heat')!.requirements[0].quantity = 999; }), /more than the 36/);
   assert.match(changed(copy => { copy.quests.find(value => value.id === 'mara-table')!.booked = true; }), /Exactly two guests/);
   assert.match(changed(copy => { delete copy.quests.find(value => value.id === 'vlad-guest')!.booked; }), /every quest of a booked guest/);
-  assert.match(changed(copy => { copy.day.giftSpace = 4; }), /at least 5 free cells/);
-  assert.match(changed(copy => { copy.day.booking = 1201; }), /merge grid/);
+  assert.match(changed(copy => { copy.acts[0].day.giftSpace = 4; }), /at least 5 free cells/);
+  assert.match(changed(copy => { copy.acts[1].day.booking = 1180; }), /Act 2: the day needs .* merge grid/);
 });
 
 test('a save keeps the clock, the seed, the rat holes, the gifts, the evening, the night report, the act 1 result, and a debt', () => {
@@ -327,7 +330,7 @@ test('a save keeps the clock, the seed, the rat holes, the gifts, the evening, t
     assert.equal(validateGame(state, data), true);
     assert.deepEqual(importSave(exportSave(state, validate), validate), state);
   }
-  assert.equal(theft.coins, 3 - data.day.upkeep, 'The upkeep leaves a debt.');
+  assert.equal(theft.coins, 3 - levers.upkeep, 'The upkeep leaves a debt.');
   // Some corruptions write a value that the GameState type does not admit.
   const corruptions: ((state: any) => void)[] = [
     state => { state.clock.day = 0; }, state => { state.clock.merges = dayMerges(state.clock.day, data); }, state => { state.clock.extra = 1; },
