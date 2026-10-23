@@ -11,7 +11,7 @@ Play it at https://satyrlord.github.io/scary-snacks/.
 
 ## Build and run
 
-You need Node.js 24.2 or newer.
+Use Node.js 24.22.1 or a newer 24.x release. Node.js 26.12.1 or newer is also supported.
 
 ```powershell
 npm ci
