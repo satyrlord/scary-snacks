@@ -2,7 +2,7 @@
 
 ## Tools
 
-The source is TypeScript 7 in strict mode, Hypertext Markup Language (HTML), and Cascading Style Sheets (CSS). The repository has no JavaScript source files. Node.js 24.2 or newer runs the tools and the tests from the `.ts` files directly. The build removes the types from the runtime modules and publishes them as browser scripts in `dist/`. `npm run typecheck` runs the compiler without output.
+The source is TypeScript 7 in strict mode, Hypertext Markup Language (HTML), and Cascading Style Sheets (CSS). The repository has no JavaScript source files. Use Node.js 24.22.1 or a newer 24.x release. Node.js 26.12.1 or newer is also supported. Node.js runs the tools and the tests from the `.ts` files directly. These minimum versions include the fix for the Brotli decoder vulnerability [CVE-2026-111497](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases). Update the installed Node.js runtime before you install dependencies or run the tools. The build removes the types from the runtime modules and publishes them as browser scripts in `dist/`. `npm run typecheck` runs the compiler without output.
 
 Playwright, TypeScript, Sharp (for image variants), Fallow (for dead code), and the Node.js type definitions are development dependencies.
 
@@ -22,7 +22,9 @@ The build version does not change the save format. Each deployed build keeps the
 
 The game has no backend and no runtime dependency. Relative Uniform Resource Locators (URLs) support a repository subdirectory. The deployment address is https://satyrlord.github.io/scary-snacks/.
 
-The workflow in `.github/workflows/pages.yml` runs on every push to `main`. A person can also start the workflow manually. The workflow gets the full Git history for the build number. The workflow runs the type check and the Node.js tests, builds the game, and uploads only `dist/`. The workflow does not run the dead-code check or the browser tests.
+The workflow in `.github/workflows/pages.yml` runs on every push to `main`. A person can also start the workflow manually. The workflow uses Node.js 24.22.1 and gets the full Git history for the build number. The workflow runs the type check and the Node.js tests, builds the game, and uploads only `dist/`. The workflow does not run the dead-code check or the browser tests.
+
+The workflow in `.github/workflows/pr-quality.yml` runs on pull requests to `main`. It uses Node.js 24.22.1, gets the full Git history, installs Chromium, and runs `npm run quality:full`. Its repository permission is read-only. It does not deploy or upload a Pages artifact.
 
 The Pages source of the repository must be GitHub Actions. A branch deployment serves the source tree, and the source tree cannot run.
 
@@ -55,6 +57,8 @@ The parchment is 1254px square. Each sketch sheet is 2688 by 1344px, with 672px 
 [Asset provenance](docs/asset-provenance.json) records the masters and their hashes. [Prompts](docs/asset-prompts.json) records the generation instructions. The repository skill `generate-game-art` (repository only) gives the procedure to add or replace a master. The procedure covers a room painting.
 
 The game makes its sounds as tones that code generates in the browser. The interface text uses the font Inter. The wordmark uses the font Grenze Gotisch. The project self-hosts both fonts as Web Open Font Format 2 (WOFF2) files. The WOFF2 files hold the downloaded fonts without loss. Each font includes its SIL Open Font License (OFL) 1.1 text. [Font provenance](docs/font-provenance.json) records the fonts.
+
+Font conversion is optional maintenance. The build uses the checked-in WOFF2 files and does not run Python. Before you use Python with fontTools to convert or verify fonts, update the Brotli package in that Python environment with `python -m pip install --upgrade "Brotli>=1.2.1"`. Brotli 1.2.1 includes the decoder fix. Keep the conversion versions in the font provenance record accurate for the files that they describe. Change that record only after a new conversion, with the new file hashes.
 
 ## Game data
 

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { mergePartners } from '../../src/model.ts';
-import { checkpoint, data, saved, start, tile, know } from './support.ts';
+import { checkpoint, data, saved, start, tile, know, mergeFlour } from './support.ts';
 
 test('new board explains blocked spaces and counts only usable empty cells', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -113,8 +113,7 @@ test('a pointer merge clears only its destination and can then clear the adjacen
 test('dragging a matching item into an anchor clears it', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await start(page);
-  await tile(page, 13).click();
-  await tile(page, 14).click();
+  await mergeFlour(page);
   const from = (await tile(page, 14).boundingBox())!;
   const to = (await tile(page, 6).boundingBox())!;
   await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
