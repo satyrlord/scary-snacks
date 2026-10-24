@@ -26,7 +26,10 @@ for(const {theme,...viewport} of [{name:'desktop',width:1440,height:1000,theme:'
       await expect(frame,`checkpoint ${count}`).toHaveAttribute('data-area',area);await expect(frame).toHaveAttribute('data-current',view.current!.id);await expect(frame).toHaveAttribute('data-painting',view.painting!.id);
       await expect.poll(()=>painting(page),{message:`checkpoint ${count}`}).toMatch(new RegExp(`^${view.painting!.id}-(768x1024|1536x2048)\\.avif$`));
       await expect(page.locator('#room-caption li')).toHaveText(view.states.map(state=>state.text));
-      await expect(page.locator('#room-pin')).toBeVisible({visible:count>0&&view.painting===view.current});
+      // The pin marks each painted change. On a phone it can wait under the raised drawer while its whole target does not fit above it.
+      const marked=count>0&&view.painting===view.current,pin=page.locator('#room-pin');
+      await expect(pin).toHaveJSProperty('hidden',!marked);
+      if(marked&&!await pin.evaluate(element=>element.hasAttribute('data-covered')))await expect(pin).toBeVisible();
       // Only the room is captured, with the cats masked, so a change must be in the painting's pixels.
       const stage=page.locator('#room-stage');
       await stage.screenshot({path:testInfo.outputPath('renovation',`${String(count).padStart(2,'0')}-${area}.png`),animations:'disabled'});
@@ -85,6 +88,8 @@ test('room pins stay in the visible room and clear the area switch on short phon
     await page.emulateMedia({reducedMotion});
     await page.setViewportSize({width,height});
     await replaceSave(page,saveAfter(count));await loaded(page);
+    // A pin that cannot fit above the raised drawer waits under it until the player lowers the drawer.
+    if(await page.locator('#room-pin').evaluate(element=>element.hasAttribute('data-covered')))await page.locator('#drawer-handle').click();
     await expect.poll(()=>page.evaluate(()=>{
       const box=(selector: string)=>document.querySelector(selector)!.getBoundingClientRect();
       const pin=box('#room-pin'),room=box('#room-stage'),drawer=box('#drawer'),area=box('#area-switch');

@@ -1,16 +1,16 @@
 // The game page: it opens the game, draws every part of the interface after each change, and plays the effects of a change.
 import { clockMinutes, clockText, currentEvent, dateText, eventComplete, fixedBooking, gameDay, unresolvedObstacle } from './model.ts';
 import { dataProblems } from './content.ts';
-import { $, coinText, coinWord, compact, count, element, reason, status } from './dom.ts';
+import { $, button, coinText, coinWord, compact, count, element, reason, status } from './dom.ts';
 import { portrait } from './art.ts';
-import { modal } from './dialog.ts';
-import { changeGame, character, data, definition, onDraw, open, persist, saveFailed, select, selected, state, syncSavedGame } from './session.ts';
+import { modal, showModal } from './dialog.ts';
+import { apply, changeGame, character, data, definition, onDraw, open, persist, saveFailed, select, selected, state, syncSavedGame } from './session.ts';
 import { SAVE_KEY } from './storage.ts';
 import { drawerLayout, onMotionResume, phone, playTone } from './preferences.ts';
 import { introduceFirstQuest, renderBoard, renderDetail } from './board.ts';
 import { renderSources } from './sources.ts';
 import { renderTickets, toast } from './tickets.ts';
-import { guidanceStep, markRecipeBook, noteNewDishes, updateGuidance } from './dishes.ts';
+import { guidanceStep, markRecipeBook, noteNewDishes, stopGuidance, updateGuidance } from './dishes.ts';
 import { endSceneFlow, renderOffer, showScene, storyContent } from './story.ts';
 import { lowered, renderRoom, reveal, setLowered, syncRoomControls, takeHeldChange } from './room.ts';
 import { options } from './options.ts';
@@ -48,6 +48,22 @@ function renderClock() {
   if (time) face.append(element('span', 'clock-dot', ' · '), element('span', 'clock-time', time));
   clock.replaceChildren(element('span', 'visually-hidden', time ? `${dateText(shown, data)}, ${time}` : dateText(shown, data)), face);
 }
+/**
+ * The tutorial is the prologue. Skip tutorial asks first, because the prologue does not come back, and the safe choice holds focus.
+ * The skip ends the prologue as its last scene does, and the game saves act 1 as after any action. The board then takes focus, because
+ * the link leaves the masthead.
+ */
+function offerSkip() {
+  const keep=button('Keep playing','secondary-button',()=>modal.close()),choice=element('div','settings-actions');
+  choice.append(button('Skip to act 1','primary-button',()=>{modal.close();changeGame(()=>{
+    if(!state.prologue||!apply({type:'skipPrologue'},null).ok)return;
+    setLowered(false);
+    $('#board').querySelector<HTMLElement>('[tabindex="0"]')?.focus({preventScroll:true});
+  });}),keep);
+  const confirm=element('div');
+  confirm.append(element('p','modal-copy','Mara leaves for the village now, and act 1 begins at the bistro. The family meals count as served, and the story journal keeps every scene of the prologue to read later. You cannot return to the prologue.'),choice);
+  showModal('Skip the tutorial?',confirm,keep);
+}
 function celebrateCoins(gain: number) {
   const purse = $('#coin-count');
   purse.querySelector('.coin-delta')?.remove();
@@ -67,7 +83,7 @@ function render() {
   // While an item is selected, its actions take the place of Mara's line.
   $('.game-layout').toggleAttribute('data-selected', selected !== null);
   renderRoom();
-  renderCoins(); renderClock();
+  renderCoins(); renderClock(); $('#skip-tutorial').hidden = state.prologue === null;
   renderBoard(); renderSources();
   renderTickets(); $('#story').replaceChildren(storyContent(false)); renderDetail(actionFeedback); renderOffer();
   markRecipeBook();
@@ -82,6 +98,7 @@ function render() {
 }
 // After an action: the drawing, its tone, the coins it earned, the dishes it made, and Mara's line about it.
 onDraw(change => {
+  if (change?.result.ok && change.result.event === 'skipPrologue') stopGuidance();
   const nextStep=updateGuidance(change);
   // Selection changes and later actions replace a refusal. Resizing keeps it until the player acts.
   actionFeedback=change&&!change.result.ok?(nextStep??change.result.message):'';
@@ -135,6 +152,7 @@ $('.skip-link').addEventListener('click',event=>{
   if(lowered)setLowered(false);
   event.preventDefault();stop.focus({preventScroll:true});stop.scrollIntoView({block:'nearest'});
 });
+$('#skip-tutorial').addEventListener('click',offerSkip);
 phone.addEventListener('change',()=>{if(state){renderCoins();renderClock();renderDetail(actionFeedback);}});
 drawerLayout.addEventListener('change',()=>{setLowered(false);if(state){renderOffer();renderTickets();}});
 window.addEventListener('storage',event=>{
@@ -154,8 +172,8 @@ try {
   requestAnimationFrame(()=>requestAnimationFrame(()=>{$('#room-frame').classList.add('settled');syncRoomControls();}));
   if(saved.status==='empty')await changeGame(persist);
   // After the last dish of the prologue, the counter offers the waiting scene.
-  const event=currentEvent(state,data),waiting=!state.pendingScenes.length?'':event&&eventComplete(state,event)?' Read now on the counter opens the waiting scene.':' A story scene is waiting in Story.';
-  status(saved.status==='loaded'?`Welcome back. The stove is still warm.${waiting}`:introduceFirstQuest());
+  const event=currentEvent(state,data),waiting=Boolean(state.pendingScenes.length&&event&&eventComplete(state,event));
+  status(saved.status==='loaded'?(waiting?'Read now on the counter opens the waiting scene.':`Welcome back. The stove is still warm.${state.pendingScenes.length?' A story scene is waiting in Story.':''}`):introduceFirstQuest());
   // A new game opens the first scene of the prologue at once. A reload opens no scene.
   if(saved.status==='empty'&&state.pendingScenes.length)showScene(state.pendingScenes[0]);
   if(saveFailed)options();

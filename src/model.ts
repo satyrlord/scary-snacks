@@ -265,6 +265,7 @@ export type Action =
   | { type: 'seeNight' }
   | { type: 'decorate'; slot: string; variant: string }
   | { type: 'readScene'; id: string }
+  | { type: 'skipPrologue' }
   | { type: 'task' };
 export type Result = { state: GameState; ok: boolean; message: string; event: string | null };
 export const own = (object: object, key: unknown): key is string => typeof key === 'string' && Object.hasOwn(object, key);

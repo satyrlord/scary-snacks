@@ -15,14 +15,12 @@ const ROOM_SIZES = '(max-width: 1023px) 100vw, max(50vw, 75vh)';
 // and the next painting while it downloads.
 let viewArea = '', held: { task: Task; scene: string | null } | null = null, revealToken = 0, paintingToken = 0, preloaded: HTMLPictureElement | null = null, swipe = 0;
 export let lowered = false;
-/** A marked change can need more room than a fixed drawer leaves above a 44px board. */
-export const drawerCanMove = () => movableDrawer.matches && !$('.game-layout').hasAttribute('data-room-flow');
 /**
  * The scrolling layout of a phone can leave the room or the board outside the screen. Where a movable drawer lowers or rises, the page
  * scrolls that part into view. The promise settles when the scroll ends.
  */
 export function showInPage(part: Element) {
-  if(!drawerLayout.matches||drawerCanMove())return Promise.resolve();
+  if(!drawerLayout.matches||movableDrawer.matches)return Promise.resolve();
   const box=part.getBoundingClientRect(),top=Math.min(Math.max(0,scrollY+box.top-Math.max(0,(innerHeight-box.height)/2)),document.documentElement.scrollHeight-innerHeight);
   if(box.top>=0&&box.bottom<=innerHeight||Math.abs(top-scrollY)<1)return Promise.resolve();
   return new Promise<void>(resolve=>{
@@ -194,7 +192,7 @@ export async function reveal(task: Task) {
   // The player pays in the kitchen, so a scrolling page brings the room back into view. The repaint does not wait for the scroll.
   void showInPage(stage);
   if(!still()){
-    layout.classList.add('revealing');if(drawerCanMove()){$('#drawer-body').inert=true;await pause(LOWER_MS);}
+    layout.classList.add('revealing');if(movableDrawer.matches){$('#drawer-body').inert=true;await pause(LOWER_MS);}
     if(token!==revealToken)return false;
   }
   renderAreaSwitch(views,view);
@@ -202,27 +200,34 @@ export async function reveal(task: Task) {
   if(token!==revealToken)return false;
   land();status(changed.text);
   // The pin is described by the change, so focus lands where the change is.
-  if(!$('#room-pin').hidden)$('#room-pin').focus({preventScroll:true});
+  if($('#room-pin').checkVisibility({visibilityProperty:true}))$('#room-pin').focus({preventScroll:true});
   if(!still())await pause(SETTLE_MS);
   if(token!==revealToken)return false;
   layout.classList.remove('revealing');$('#drawer-body').inert=lowered;stage.dataset.reveal='done';
-  // A failed painting has no pin. Return focus only after the board can take input again.
-  if($('#room-pin').hidden)(lowered?$('#drawer-handle'):$('#board').querySelector<HTMLElement>('[tabindex="0"]'))?.focus({preventScroll:true});
+  // A failed painting or a thin room strip has no visible pin. Return focus after the board can take input again.
+  if(!$('#room-pin').checkVisibility({visibilityProperty:true}))(lowered?$('#drawer-handle'):$('#board').querySelector<HTMLElement>('[tabindex="0"]'))?.focus({preventScroll:true});
   batFlight();
   return true;
 }
 /** Where the kitchen is a drawer, its handle lowers it to show the whole room and raises it again. */
 export function setLowered(value: boolean) {
-  lowered=value&&drawerCanMove();const handle=$('#drawer-handle'),layout=$('.game-layout');
+  lowered=value&&movableDrawer.matches;const handle=$('#drawer-handle'),layout=$('.game-layout');
   layout.classList.toggle('lowered',lowered);$('#drawer-body').inert=lowered||layout.classList.contains('revealing');
   handle.setAttribute('aria-expanded',String(!lowered));handle.setAttribute('aria-label',lowered?'Raise the kitchen':'Lower the kitchen to see the room');
   syncRoomControls();
 }
 /** Room controls take input only while their detail is inside the visible painting, above the drawer. */
 export function syncRoomControls() {
-  fitPin();
+  // A marked change asks the phone board for room above the drawer: the pin's target and the centre of the change. The board gives it
+  // while its cells keep 44px.
+  const frame=$('#room-frame'),current=data.rooms.find(room=>room.id===frame.dataset.current);
+  const reserve=current?.after&&frame.dataset.painting===current.id?Math.max(132,Math.abs(current.focus.y-current.mark.y)*frame.getBoundingClientRect().height/100+36):80;
+  $('.game-layout').style.setProperty('--room-space',`${reserve}px`);
   const stage=$('#room-stage').getBoundingClientRect(),failed=$('#room-stage').hasAttribute('data-failed');
   const bottom=drawerLayout.matches?Math.min(stage.bottom,$('#drawer').getBoundingClientRect().top):stage.bottom;
+  // A thin strip of room above a raised drawer has no space for the area switch. It returns when the drawer lowers.
+  $('.game-layout').toggleAttribute('data-thin-room',drawerLayout.matches&&bottom-stage.top<56);
+  fitPin();
   for(const control of document.querySelectorAll<HTMLElement>('#cat-button,.room-finish')){
     const box=control.getBoundingClientRect();
     const visibleWidth=Math.min(box.right,stage.right)-Math.max(box.left,stage.left);
@@ -237,19 +242,8 @@ export function syncRoomControls() {
  * a mark near the edge. The tail stays on the authored mark when the pin slides sideways.
  */
 export function fitPin() {
-  const pin=$('#room-pin'),frame=$('#room-frame'),layout=$('.game-layout');
-  const current=data.rooms.find(room=>room.id===frame.dataset.current),marked=current?.after&&frame.dataset.painting===current.id;
-  const reserve=marked?Math.max(132,Math.abs(current.focus.y-current.mark.y)*frame.getBoundingClientRect().height/100+36):80;
-  layout.style.setProperty('--room-space',`${reserve}px`);
-  const chrome=parseFloat(getComputedStyle(layout).getPropertyValue('--ticket-h'))+158
-    +(parseFloat(getComputedStyle(layout).getPropertyValue('--prologue-space'))||0)+(parseFloat(getComputedStyle(layout).getPropertyValue('--feedback-space'))||0);
-  const available=innerHeight-$('.masthead').getBoundingClientRect().height-$('.phone-bar').getBoundingClientRect().height-chrome-44*8.2645;
-  const flow=drawerLayout.matches&&movableDrawer.matches&&reserve>available;
-  layout.toggleAttribute('data-room-flow',flow);
-  if(flow&&lowered)setLowered(false);
-  // A reveal can move from a scrolling room to a movable drawer after its new painting changes the room budget.
-  if(layout.classList.contains('revealing')&&drawerCanMove())$('#drawer-body').inert=true;
-  if(pin.hidden)return;
+  const pin=$('#room-pin');if(pin.hidden)return;
+  const frame=$('#room-frame'),current=data.rooms.find(room=>room.id===frame.dataset.current);
   const stage=$('#room-stage').getBoundingClientRect(),area=$('#area-switch').getBoundingClientRect(),handle=$('#drawer-handle').getBoundingClientRect(),below=Boolean(current?.mark.below);
   // The handle reaches above the drawer. Its transparent target must also stay clear of the pin.
   const obstacles=[area,...(handle.width&&handle.height?[handle]:[])];
@@ -285,6 +279,10 @@ export function fitPin() {
     .sort((a,b)=>Math.abs(a-left)-Math.abs(b-left));
   left=candidates.find(value=>!meets(new DOMRect(value,box.top,box.width,box.height)))??left;
   pin.style.setProperty('--shift',`${Math.round(left-box.left)}px`);
+  // A raised drawer can leave too little room for the whole target. The pin then waits under the drawer, and its focus goes to the board.
+  const covered=drawerLayout.matches&&(box.top<stage.top-1||box.bottom>bottom+1);
+  pin.toggleAttribute('data-covered',covered);
+  if(covered&&document.activeElement===pin)$('#board').querySelector<HTMLElement>('[tabindex="0"]')?.focus({preventScroll:true});
 }
 /** An image of the size of a room painting, cropped to a region in percentages of the painting. */
 function croppedImage(crop: DecorationSlot['crop'], image: string) {

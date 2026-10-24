@@ -20,6 +20,8 @@ for (const viewport of [{ width: 320, height: 740 }, { width: 360, height: 640 }
   test(`all act 2 room names and targets fit at ${viewport.width}px in ${theme}`, async ({ page }) => {
     await page.setViewportSize(viewport); await page.emulateMedia({ reducedMotion: 'reduce' });
     await start(page, checkpoint(40), theme);
+    // A thin strip of room above the raised drawer has no area switch, so the player lowers the drawer to change the area.
+    if (await page.locator('.game-layout').evaluate(element => element.hasAttribute('data-thin-room'))) await page.locator('#drawer-handle').click();
     for (const name of ['Summer kitchen', 'Vegetable garden', 'Town square']) {
       const choice = page.getByRole('button', { name, exact: true });
       await choice.click(); await expect(choice).toHaveAttribute('aria-pressed', 'true');

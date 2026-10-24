@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { boardObstacles } from '../../src/model.ts';
-import { actOne, checkpoint, data, know, payAndRead, prologueAt, revealed, saved, scrollFullyIntoView, source, start, startStill, supply, tile } from './support.ts';
+import { actOne, checkpoint, data, know, payAndRead, prologueAt, revealed, saved, source, start, startStill, supply, tile } from './support.ts';
 
 test.use({ hasTouch:true });
 
@@ -114,14 +114,15 @@ test('a native touch swipe scrolls the ribbon without taking or reordering an in
   } finally { await cdp.detach(); }
 });
 
-for (const theme of ['light', 'dark']) for (const viewport of [{ width:390, height:844 }, { width:360, height:740 }, { width:320, height:700 }]) {
-  test(`the board and ribbon have usable targets without sideways page overflow in ${theme} at ${viewport.width} by ${viewport.height}`, async ({ page }) => {
+for (const theme of ['light', 'dark']) for (const viewport of [{ width:390, height:844 }, { width:360, height:740 }, { width:320, height:700 }, { width:360, height:601 }]) {
+  test(`the board and ribbon fit the screen with usable targets in ${theme} at ${viewport.width} by ${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport); await startStill(page, actOne(), theme);
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
     const board = (await page.locator('#board').boundingBox())!, tray = (await page.locator('.source-tray').boundingBox())!;
     const cell = (await tile(page, 0).boundingBox())!;
-    expect(cell.width).toBeGreaterThanOrEqual(viewport.width === 390 ? 50 : 44);
-    expect(cell.height).toBeGreaterThanOrEqual(44);
+    // The room strip gives way first, so cells keep 44px down to about 740px tall, and never drop below 30px.
+    expect(cell.width).toBeGreaterThanOrEqual(viewport.width === 390 ? 50 : viewport.height >= 740 ? 44 : 30);
+    expect(cell.height).toBeGreaterThanOrEqual(cell.width - .5);
     expect(tray.y).toBeGreaterThanOrEqual(board.y + board.height);
     for (const target of [source(page, 'grain'), page.locator('#sources-previous'), page.locator('#sources-next')]) {
       const box = (await target.boundingBox())!;
@@ -131,18 +132,39 @@ for (const theme of ['light', 'dark']) for (const viewport of [{ width:390, heig
     const slot = (await page.locator('.line-slot').boundingBox())!, bar = (await page.locator('.phone-bar').boundingBox())!;
     expect(tray.y + tray.height).toBeLessThanOrEqual(slot.y);
     expect(slot.y + slot.height).toBeLessThanOrEqual(bar.y + 1);
-    if (viewport.height > 820) {
-      expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).toBe(true);
-      await expect(page.locator('#drawer-handle')).toBeVisible();
-    } else {
-      expect(await page.evaluate(() => document.documentElement.scrollHeight > innerHeight)).toBe(true);
-      await expect(page.locator('#drawer-handle')).toBeHidden();
-      await page.locator('#sources-next').scrollIntoViewIfNeeded();
-      await expect(page.locator('#sources-next')).toBeInViewport();
-      await expect(page.locator('#drawer-body')).not.toHaveAttribute('inert');
+    expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).toBe(true);
+    await expect(page.locator('#drawer-handle')).toBeVisible();
+    // A room strip too thin for the area switch hides it until the drawer lowers.
+    const thin = await page.locator('.game-layout').evaluate(element => element.hasAttribute('data-thin-room'));
+    await expect(page.locator('#area-switch')).toHaveCSS('visibility', thin ? 'hidden' : 'visible');
+    if (thin) {
+      await page.locator('#drawer-handle').click();
+      await expect(page.locator('.game-layout')).not.toHaveAttribute('data-thin-room');
+      await expect(page.locator('#area-switch')).toBeVisible();
     }
   });
 }
+
+test('on a short landscape phone a vertical swipe on the board scrolls the page, and a tap still selects', async ({ page, context }) => {
+  await page.setViewportSize({ width:844, height:390 });
+  await startStill(page, actOne());
+  await expect(page.locator('#drawer')).toHaveCSS('position', 'static');
+  await tile(page, 20).scrollIntoViewIfNeeded();
+  const before = await saved(page), cell = (await tile(page, 20).boundingBox())!, top = await page.evaluate(() => scrollY);
+  const cdp = await context.newCDPSession(page);
+  try {
+    const x = cell.x + cell.width / 2, y = cell.y + cell.height / 2;
+    await cdp.send('Input.dispatchTouchEvent', { type:'touchStart', touchPoints:[{ x, y }] });
+    for (let step = 1; step <= 10; step++) {
+      await cdp.send('Input.dispatchTouchEvent', { type:'touchMove', touchPoints:[{ x, y:y - step * 15 }] });
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type:'touchEnd', touchPoints:[] });
+  } finally { await cdp.detach(); }
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(top + 20);
+  expect(await saved(page)).toEqual(before);
+  await tile(page, 13).tap(); await expect(tile(page, 13)).toHaveAttribute('aria-pressed', 'true');
+});
 
 test('a lowered drawer and a room reveal prevent focus and input on the ingredient ribbon', async ({ page }) => {
   await page.setViewportSize({ width:390, height:844 });
@@ -189,27 +211,18 @@ test('a guide reveals an offscreen source when a board merge changes its next st
   expect(await page.evaluate(() => scrollY)).toBe(top);
 });
 
-for (const scenario of ['prologue boundary', 'late room with safe area']) test(`the phone ribbon fits the ${scenario}`, async ({ page }) => {
+for (const scenario of ['prologue counter', 'late room with safe area']) test(`the phone ribbon fits the ${scenario} without scrolling`, async ({ page }) => {
   const late = scenario === 'late room with safe area';
-  await page.setViewportSize(late ? { width:390, height:844 } : { width:320, height:821 });
+  await page.setViewportSize(late ? { width:390, height:844 } : { width:320, height:640 });
   await startStill(page, late ? fullRibbon() : prologueAt(7, { served:true }));
   if (late) await page.evaluate(() => document.documentElement.style.setProperty('--safe', '20px'));
   const cell = (await tile(page, 0).boundingBox())!, line = (await page.locator('.line-slot').boundingBox())!, bar = (await page.locator('.phone-bar').boundingBox())!;
-  expect(cell.width).toBeGreaterThanOrEqual(44); expect(cell.height).toBeGreaterThanOrEqual(44);
+  expect(cell.width).toBeGreaterThanOrEqual(late ? 44 : 30); expect(cell.height).toBeGreaterThanOrEqual(late ? 44 : 30);
   expect(line.y + line.height).toBeLessThanOrEqual(bar.y + 1);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  if (!late) {
-    await expect(page.locator('.game-layout')).toHaveAttribute('data-room-flow', '');
-    await expect(page.locator('#drawer-handle')).toBeHidden();
-    await expect(page.locator('#drawer-body')).not.toHaveAttribute('inert');
-    for (const selector of ['.prologue-wait', '#board', '.source-tray', '.line-slot', '.phone-bar']) {
-      await scrollFullyIntoView(page.locator(selector));
-    }
-  } else {
-    expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).toBe(true);
-    await expect(page.locator('#drawer-handle')).toBeVisible();
-  }
-  if (late) {
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight)).toBe(true);
+  await expect(page.locator('#drawer-handle')).toBeVisible();
+  if (!late) await expect(page.locator('.prologue-wait')).toBeInViewport({ ratio:1 });
+  else {
     const area = (await page.locator('#area-switch').boundingBox())!, handle = (await page.locator('#drawer-handle').boundingBox())!;
     expect(Math.min(area.x + area.width, handle.x + handle.width) > Math.max(area.x, handle.x)
       && Math.min(area.y + area.height, handle.y + handle.height) > Math.max(area.y, handle.y)).toBe(false);
@@ -257,7 +270,7 @@ test('a late-game New pin keeps its full touch target clear of the phone switch,
   })).toEqual({ height:44, inside:true, clear:true, reachable:true });
 });
 
-for (const scenario of [{ width:390, height:700, preparations:30, motion:'no-preference' }, { width:390, height:830, preparations:5, motion:'reduce' }] as const) {
+for (const scenario of [{ width:390, height:560, preparations:30, motion:'no-preference' }, { width:844, height:390, preparations:5, motion:'reduce' }] as const) {
   test(`a reveal on a scrolled page brings its change into view at ${scenario.width} by ${scenario.height} with ${scenario.motion} motion`, async ({ page }) => {
     await page.setViewportSize(scenario); await page.emulateMedia({ reducedMotion:scenario.motion });
     await start(page, checkpoint(scenario.preparations, { ready:true }));
@@ -272,44 +285,54 @@ for (const scenario of [{ width:390, height:700, preparations:30, motion:'no-pre
   });
 }
 
-for (const [preparations, roomId] of [[23, 'courtyard-23'], [43, 'summer-kitchen-19']] as const) {
-  test(`the ${roomId} change uses page flow when the room and board need more height`, async ({ page }) => {
-    await page.setViewportSize({ width:390, height:844 });
-    const initial = checkpoint(preparations, { coins:100 }); await startStill(page, initial);
-    const layout = page.locator('.game-layout'), handle = page.locator('#drawer-handle'), body = page.locator('#drawer-body');
-    await expect(page.locator('#room-frame')).toHaveAttribute('data-painting', roomId);
-    await expect(layout).toHaveAttribute('data-room-flow', ''); await expect(handle).toBeHidden();
-    await expect(body).not.toHaveAttribute('inert');
-    expect((await tile(page, 0).boundingBox())!.width).toBeGreaterThanOrEqual(44);
-    const current = data.rooms.find(room => room.id === roomId)!;
-    await expect.poll(() => page.evaluate(({ focus, mark }) => {
-      const frame = document.querySelector('#room-frame')!.getBoundingClientRect(), room = document.querySelector('#room-stage')!.getBoundingClientRect();
-      const at = (point: { x:number; y:number }) => ({ x:frame.left + frame.width * point.x / 100, y:frame.top + frame.height * point.y / 100 });
-      const center = at(focus), anchor = at(mark), pin = document.querySelector<HTMLElement>('#room-pin')!, capsule = pin.getBoundingClientRect();
-      const extension = getComputedStyle(pin, '::before'), target = { left:capsule.left + parseFloat(extension.left), right:capsule.right - parseFloat(extension.right),
-        top:capsule.top + parseFloat(extension.top), bottom:capsule.bottom - parseFloat(extension.bottom) };
-      const inside = (point: { x:number; y:number }) => point.x >= room.left && point.x <= room.right && point.y >= room.top && point.y <= room.bottom;
-      const covered = ['#area-switch', '#drawer-handle', '#room-pin', '.masthead', '#drawer', '.phone-bar'].some(selector => {
-        const box = document.querySelector(selector)!.getBoundingClientRect();
-        return box.width > 0 && center.x >= box.left && center.x <= box.right && center.y >= box.top && center.y <= box.bottom;
-      });
-      const points = [target.left + 1, (target.left + target.right) / 2, target.right - 1]
-        .flatMap(x => [target.top + 1, (target.top + target.bottom) / 2, target.bottom - 1].map(y => ({ x, y })));
-      return { focusVisible:inside(center) && !covered, markVisible:inside(anchor), pinHeight:target.bottom - target.top,
-        pinReachable:points.every(({ x, y }) => pin.contains(document.elementFromPoint(x, y))) };
-    }, { focus:current.focus, mark:current.mark })).toEqual({ focusVisible:true, markVisible:true, pinHeight:44, pinReachable:true });
-    const next = page.locator('#sources-next'); await next.scrollIntoViewIfNeeded(); await next.tap();
-    await expect.poll(() => scroll(page)).toBeGreaterThan(0);
-    const chain = initial.sources.at(-1)!, card = source(page, chain), output = data.items[`generator_${chain}`].generator!.outputs[0];
-    await card.scrollIntoViewIfNeeded(); const before = await saved(page); await card.tap();
-    await expect.poll(async () => (await saved(page)).board.filter(cell => cell?.code === output).length)
-      .toBe(before.board.filter(cell => cell?.code === output).length + 1);
-    await page.setViewportSize({ width:390, height:1000 });
-    await expect(layout).not.toHaveAttribute('data-room-flow'); await expect(handle).toBeVisible();
-    await handle.click(); await expect(body).toHaveAttribute('inert', '');
-    await page.setViewportSize({ width:390, height:844 });
-    await expect(layout).toHaveAttribute('data-room-flow', ''); await expect(layout).not.toHaveClass(/lowered/);
-    await expect(handle).toBeHidden(); await expect(handle).toHaveAttribute('aria-expanded', 'true');
-    await expect(body).not.toHaveAttribute('inert');
-  });
-}
+test('on a thin room strip the reveal lowers the drawer to show the pin, then hides the pin and returns focus to the board', async ({ page }) => {
+  await page.setViewportSize({ width:390, height:664 });
+  await page.emulateMedia({ reducedMotion:'no-preference' }); await start(page, checkpoint(22, { ready:true }));
+  const layout = page.locator('.game-layout'), pin = page.locator('#room-pin');
+  await expect(layout).toHaveAttribute('data-thin-room', '');
+  await payAndRead(page);
+  await expect(pin).toBeFocused(); await expect(layout).not.toHaveAttribute('data-thin-room');
+  await expect(pin).toBeInViewport({ ratio:1 });
+  await revealed(page);
+  await expect(layout).toHaveAttribute('data-thin-room', '');
+  await expect(pin).toHaveCSS('visibility', 'hidden'); await expect(page.locator('#area-switch')).toHaveCSS('visibility', 'hidden');
+  await expect(page.locator('#board [tabindex="0"]')).toBeFocused();
+  expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).toBe(true);
+});
+
+for (const theme of ['light', 'dark']) test(`the final prologue counter keeps the full grip and board clear at the minimum fixed height in ${theme}`, async ({ page }) => {
+  await page.setViewportSize({ width:320, height:601 });
+  await startStill(page, prologueAt(7, { served:true }), theme);
+  await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() => document.documentElement.style.setProperty('--safe', '20px'));
+  const handle = page.locator('#drawer-handle'), head = (await page.locator('.masthead').boundingBox())!;
+  const grip = (await handle.boundingBox())!, cell = (await tile(page, 0).boundingBox())!;
+  const skip = (await page.locator('#skip-tutorial').boundingBox())!;
+  expect(skip.y).toBeGreaterThanOrEqual(head.y);
+  expect(skip.y + skip.height).toBeLessThanOrEqual(head.y + head.height);
+  expect(skip.height).toBeGreaterThanOrEqual(44);
+  expect(grip.y).toBeGreaterThanOrEqual(head.y + head.height);
+  expect(grip.height).toBeGreaterThanOrEqual(44);
+  expect(Math.min(cell.width, cell.height)).toBeGreaterThanOrEqual(30);
+  expect(await handle.evaluate(element => {
+    const box = element.getBoundingClientRect();
+    // Sample the top, middle, and bottom away from the rounded corners.
+    return [box.left + 10, box.left + box.width / 2, box.right - 10].every(x => [box.top + 1, box.top + box.height / 2, box.bottom - 1].every(y => element.contains(document.elementFromPoint(x, y))));
+  })).toBe(true);
+  await expect(page.locator('.prologue-wait')).toBeInViewport({ ratio:1 });
+  const words = (await page.locator('#status').boundingBox())!, line = (await page.locator('.line-slot').boundingBox())!, bar = (await page.locator('.phone-bar').boundingBox())!;
+  expect(words.y).toBeGreaterThanOrEqual(line.y - 1);
+  expect(words.y + words.height).toBeLessThanOrEqual(bar.y + 1);
+  expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).toBe(true);
+  await handle.click(); await expect(page.locator('.game-layout')).toHaveClass(/lowered/);
+  await expect(page.locator('.prologue-wait')).toBeInViewport({ ratio:1 });
+});
+
+test('a reduced-motion reveal returns focus to the board when the pin cannot fit above the drawer', async ({ page }) => {
+  await page.setViewportSize({ width:390, height:664 });
+  await startStill(page, checkpoint(22, { ready:true }));
+  await payAndRead(page); await revealed(page);
+  await expect(page.locator('#room-pin')).toHaveCSS('visibility', 'hidden');
+  await expect(page.locator('#drawer-body')).not.toHaveAttribute('inert');
+  await expect(page.locator('#board [tabindex="0"]')).toBeFocused();
+});

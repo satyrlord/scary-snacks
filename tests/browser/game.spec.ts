@@ -297,7 +297,7 @@ test('the framed change, the New pin and the area switch never collide, and no i
       const geometry=await page.evaluate(({focus})=>{
         const box=(selector: string)=>{const e=document.querySelector(selector);const r=e?.getBoundingClientRect();return r&&r.width?{left:r.left,top:r.top,right:r.right,bottom:r.bottom}:null;};
         const f=document.querySelector<HTMLElement>('#room-frame')!.getBoundingClientRect(),at=(point: {x: number; y: number})=>({x:f.left+f.width*point.x/100,y:f.top+f.height*point.y/100});
-        const room=box('#room-stage')!,drawer=box('#drawer')!,pin=box('#room-pin');
+        const room=box('#room-stage')!,drawer=box('#drawer')!,pin=document.querySelector('#room-pin')!.hasAttribute('data-covered')?null:box('#room-pin');
         return {...at(focus),room,visibleBottom:Math.min(room.bottom,innerWidth<1024?drawer.top:room.bottom),pin,covers:['#area-switch','.masthead','#drawer','.phone-bar'].map(selector=>({selector,box:box(selector)})),scroll:document.documentElement.scrollWidth<=innerWidth};
       },{focus:current.focus});
       // The pin stays inside the visible room and does not cover the centre of the change.
@@ -1223,10 +1223,14 @@ test('narrow phones keep the whole dish name in the strip, and short screens kee
     expect((await tile(page,0).boundingBox())!.width).toBeGreaterThanOrEqual(44);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   }
-  // Short phones scroll the page to keep the full-width board and its ingredient ribbon clear of the bar.
-  await page.setViewportSize({width:390,height:740});await start(page);
-  expect(await page.evaluate(()=>document.documentElement.scrollHeight>innerHeight)).toBe(true);
-  await expect(page.locator('#drawer-handle')).toBeHidden();
+  // Down to 601px tall the room strip and then the cells give way, so the board and Mara's line fit above the bar without scrolling.
+  for(const [width,height] of [[390,664],[360,640],[320,601]]){
+    await page.setViewportSize({width,height});await start(page);
+    expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBe(true);
+    await expect(page.locator('#drawer-handle')).toBeVisible();
+    expect((await tile(page,0).boundingBox())!.width).toBeGreaterThanOrEqual(30);
+    expect((await page.locator('.line-slot').boundingBox())!.y+(await page.locator('.line-slot').boundingBox())!.height).toBeLessThanOrEqual((await page.locator('.phone-bar').boundingBox())!.y+1);
+  }
   // A new game on a short phone: the opening line fits the line under the board.
   await page.addInitScript(key=>localStorage.removeItem(key),KEY);
   const first=data.prologue.events[0].quests[0];

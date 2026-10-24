@@ -11,8 +11,9 @@ const disabledFeatures = [
   'TcpPortRandomizationWin',
 ];
 export default defineConfig({
-  // Each test has its own browser context and save, so tests run in parallel. More workers slow the game start past the expect timeout.
-  testDir:'./tests/browser', fullyParallel:true, workers:'40%', timeout:30000,
+  // Each test has its own browser context and save, so tests run in parallel. More workers slow the game start past the expect timeout
+  // and leave no processor time for other local tools.
+  testDir:'./tests/browser', fullyParallel:true, workers:'25%', timeout:30000,
   use:{viewport:{width:1440,height:1000},trace:'retain-on-failure',
     launchOptions:process.platform==='win32'?{args:[`--disable-features=${disabledFeatures.join(',')}`]}:undefined},
   webServer:[

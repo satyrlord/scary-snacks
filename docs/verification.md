@@ -12,7 +12,7 @@ The board-access browser tests cover keyboard and touch sale and full-board swap
 4. The build.
 5. The Playwright browser tests on Chromium, against the build.
 
-The browser tests use 40% of the logical processors. Each test has its own browser context and save.
+The browser tests use 25% of the logical processors, so other local tools keep processor time. Each test has its own browser context and save.
 The full browser suite runs under `/scary-snacks/`, the GitHub Pages path.
 The asset and path test also runs at the root path.
 `playwright.config.ts` controls these settings.

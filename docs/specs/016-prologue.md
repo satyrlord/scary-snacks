@@ -21,7 +21,7 @@ The feature covers these parts:
 - the seven events, their dates, their boards, their quests, and their scenes;
 - two new dishes: colaci and turte;
 - the play rules of the prologue, and the order of its scenes;
-- the change from the prologue to act 1;
+- the change from the prologue to act 1, and the skip of the prologue;
 - the prologue discoveries in act 1;
 - the family kitchen in the room, and Miez;
 - the prologue in Story and in the journal;
@@ -31,7 +31,6 @@ The feature covers these parts:
 
 The feature does not include these parts:
 
-- a skip of the prologue;
 - a clock, coins, preparations, or a night in the prologue;
 - a return to the prologue after act 1 starts.
 
@@ -184,6 +183,8 @@ A journal replay of a prologue scene changes nothing: the board, the purse, the 
 If the player closes closing 7 with Close or Escape, the scene stays pending, and act 1 does not start. The counter offers the scene with Read now. The Story sheet also offers the scene.
 
 When act 1 starts, no prologue scene is pending. The journal keeps the prologue scenes for replay.
+
+The player can also skip the prologue at any time in the prologue, with Skip tutorial and a confirmation. The skip starts act 1 by the same rules, with each event quest served and the discoveries of a full run of each event in the recipe book. The journal keeps each prologue scene for replay. `PRODUCT.md` gives the rules, and `DESIGN.md` gives the link and its confirmation.
 
 The starting gift is 20 coins. It lets the bistro pay for its first takes, so the first days of act 1 do not need recovery teas.
 The gift is a lever from 10 to 20 coins. Its value keeps the purse of the act 1 balance run in the balance band. `docs/economy.md` records the balance evidence.
@@ -362,7 +363,7 @@ In act 1, a discovered item is a source or a dish of an open chain, or a source 
 The board rules of act 1 do not change: each dish on the board belongs to chains that are open by the source rules of act 1.
 So Flour and Colaci on the board are valid on day 1, because the Grain and Herbs chains are open. Cozonac on the board before the Fruits chain opens is invalid.
 
-The save shape changes. The game state version and the envelope version change together. The game does not read a save of an earlier version.
+The save uses game state version 19 in envelope version 18 at `scary-snacks-save-v18`. The skip keeps this format. Every valid save in this format must still load and import without lost progress. The game does not read a save of an earlier format.
 
 ## Owner contracts
 
@@ -396,6 +397,7 @@ The save shape changes. The game state version and the envelope version change t
   Close, Escape, a reload, and an export and import each keep this state.
 - Start of act 1: the completion of closing 7 starts act 1. The board becomes the initial board of act 1. The purse holds the starting gift. The clock shows Saturday 15 February at 07:00.
   A second completion of the same scene changes nothing. A journal replay of any prologue scene leaves the board, the purse, the date, and the pending scenes unchanged. No scene of a later event becomes pending.
+- Skip: at each event, and during the wait for closing 7, the skip gives the act 1 start that a legal run from the same state gives, with the same seed. The recipe book is the same as after the legal run: it keeps the earlier discoveries and gets the discoveries of a full run of each event. Each prologue scene replays from the journal. In act 1, the skip changes nothing.
 - Recipe book: the dishes that the prologue discovered stay in the recipe book in act 1. A dish of a closed chain shows that its source comes later, and has no "Show me on the board".
 - Discoveries: a reload, an export, and an import immediately after the start of act 1 keep each prologue discovery, including Cozonac and other dishes of chains that act 1 opens later.
 - Act 1 board: an act 1 save with Flour or Colaci on the board on day 1 is valid. An act 1 save with Cozonac on the board before the Fruits chain opens is invalid.
@@ -405,7 +407,7 @@ The save shape changes. The game state version and the envelope version change t
 - Balance: the balance run plays all seven events with legal actions only and with no injected items. It continues into the act 1 balance run, and the purse after the supper stays in the balance band with the starting gift.
 - Story and journal: Story shows the seven event steps. The journal replays each completed prologue scene with no reward.
 - Save: a reload, an export, and an import keep the part of the game, the event, the board, and the pending scenes. Import rejects a save of an earlier version.
-- Browser: the tests cover the first event, the change of event, the deferred scenes, the wait at event 7, the room state of each event, Miez, and the start of act 1. Phone and desktop in both themes. Reduced motion.
+- Browser: the tests cover the first event, the change of event, the deferred scenes, the wait at event 7, the room state of each event, Miez, the start of act 1, and Skip tutorial with its confirmation and a reload. Phone and desktop in both themes. Reduced motion.
 
 ## Open decisions
 

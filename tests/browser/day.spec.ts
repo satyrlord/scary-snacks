@@ -162,7 +162,7 @@ test('on a phone, the drawer lowers for the rat of the room and rises for the ra
 });
 
 test('on a short phone, the page shows the rat of the room on the floor and then the rats on the board', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 700 });
+  await page.setViewportSize({ width: 390, height: 560 });
   await start(page, lateEvening());
   await mergeFlour(page);
   await expect(page.locator('#drawer')).toHaveCSS('position', 'static');

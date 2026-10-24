@@ -2,9 +2,12 @@ import { expect, test } from '@playwright/test';
 import sharp from 'sharp';
 import { checkpoint, painting, payAndRead, revealed, start, startStill } from './support.ts';
 
-for(const theme of ['light','dark'])test(`the New pin keeps its whole touch target above the raised drawer in ${theme}`,async({page})=>{
+for(const theme of ['light','dark'])test(`a short phone shows the whole New pin target above the lowered drawer in ${theme}`,async({page})=>{
   await page.setViewportSize({width:360,height:640});await startStill(page,checkpoint(6),theme);
   await expect.poll(()=>painting(page)).toMatch(/^front-room-/);
+  // This short phone has no room above the raised drawer for the pin, so the player lowers the drawer to see it.
+  await expect(page.locator('#room-pin')).toHaveAttribute('data-covered','');await page.locator('#drawer-handle').click();
+  await expect(page.locator('#room-pin')).not.toHaveAttribute('data-covered');
   await expect.poll(()=>page.evaluate(()=>{
     const pin=document.querySelector<HTMLElement>('#room-pin')!,box=pin.getBoundingClientRect(),extension=getComputedStyle(pin,'::before');
     const left=box.left+parseFloat(extension.left),right=box.right-parseFloat(extension.right);
@@ -15,11 +18,11 @@ for(const theme of ['light','dark'])test(`the New pin keeps its whole touch targ
       allReachable:points.every(({x,y})=>pin.contains(document.elementFromPoint(x,y)))};
   })).toEqual({height:44,inside:true,allReachable:true});
   const pin=page.locator('#room-pin'),box=(await pin.boundingBox())!;
-  // The lower-left transparent edge must dispatch the action, not lower the kitchen with the handle behind it.
+  // The lower-left transparent edge must dispatch the action, not raise the kitchen with the handle behind it.
   await page.mouse.click(box.x-3,box.y+box.height+7);
   await expect(page.locator('#status')).toHaveText((await pin.getAttribute('aria-label'))!.replace(/^New: /,''));
   await expect(page.locator('#modal')).not.toBeVisible();
-  await expect(page.locator('#drawer-handle')).toHaveAttribute('aria-expanded','true');
+  await expect(page.locator('#drawer-handle')).toHaveAttribute('aria-expanded','false');
 });
 
 test('the bat crosses the repaired glass while the painted mullion and transoms stay unchanged',async({page},testInfo)=>{

@@ -6,8 +6,8 @@ import { $, button, coinText, count, element, names } from './dom.ts';
 import { food, ratPose, ratSprite } from './art.ts';
 import { modal, showModal } from './dialog.ts';
 import { apply, changeGame, data, itemName, onReplace, state } from './session.ts';
-import { drawerLayout, onMotionReduce, still } from './preferences.ts';
-import { drawerCanMove, setLowered, showInPage } from './room.ts';
+import { drawerLayout, movableDrawer, onMotionReduce, still } from './preferences.ts';
+import { setLowered, showInPage } from './room.ts';
 import { newDishLine } from './engine.ts';
 
 // The timeline: the tint comes over 400ms, the rat of the room runs for RUN_MS, the rats on the board act, and the tint goes over 400ms.
@@ -154,7 +154,7 @@ export function playNight() {
     asking = false; modal.close();
     window.addEventListener('keydown', key, true);
     frame.classList.add('night');
-    dropped = drawerCanMove(); if (dropped) setLowered(true);
+    dropped = movableDrawer.matches; if (dropped) setLowered(true);
     else if (drawerLayout.matches) { focusY = frame.style.getPropertyValue('--fy'); frame.style.setProperty('--fy', String(floorOf(frame) / 100)); }
     await Promise.all([pause(dropped ? DRAWER_MS : TINT_MS), showInPage($('#room-stage'))]); if (!running) return;
     await roomRun(frame, rat); if (!running) return;

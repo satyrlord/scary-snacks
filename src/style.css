@@ -78,6 +78,9 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .coin-count.gained .coin { animation: coin-flip .7s cubic-bezier(.16,1,.3,1); }
 @keyframes coin-rise { 0% { opacity: 0; transform: translateY(14px); } 25% { opacity: 1; } 100% { opacity: 0; transform: translateY(-4px); } }
 @keyframes coin-flip { to { transform: rotateY(360deg); } }
+/* Skip tutorial takes the place of the purse, which the prologue does not have. Its 44px target extends above and below its line,
+   so the masthead keeps its height, also where the date stacks over it. */
+.skip-tutorial { flex-shrink: 0; margin-block: -12px; white-space: nowrap; }
 .options-button { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 16px 0 12px; border: 1px solid var(--control-line); border-radius: var(--control-radius); background: var(--surface); font-size: 14px; font-weight: 600; white-space: nowrap; }
 .icon-button { width: 44px; height: 44px; border: 1px solid var(--control-line); border-radius: var(--control-radius); display: grid; place-items: center; padding: 9px; background: var(--surface); }
 /* An accent-tinted fill plus border keeps hover visible on both themes. */
@@ -682,6 +685,7 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   .header-controls { display: grid; grid-template-columns: auto auto; gap: 2px 16px; }
   .day-clock { grid-column: 1; text-align: right; }
   .coin-count { grid-column: 1; align-self: last baseline; justify-content: end; padding-right: 0; border-right: 0; }
+  .skip-tutorial { grid-column: 1; justify-self: end; align-self: last baseline; }
   .options-button { grid-column: 2; grid-row: 1 / 3; align-self: center; }
 }
 /* The narrowest panels have tighter margins, and Pay takes its own row above Cost details. */
@@ -727,9 +731,12 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   /* Phones stack the day over the time, so the masthead keeps room for the coins. */
   .day-clock { font-size: 12px; }.clock-face { display: grid; justify-items: end; }.clock-dot { display: none; }
   .game-layout {
-    --ticket-h: 74px; --drawer-chrome: calc(158px + var(--ticket-h) + var(--prologue-space, 0px) + var(--feedback-space, 0px)); --frame-w: 100cqw;
-    /* The full-width board keeps 44px cells. Taller screens reserve 80px of room above the drawer; shorter screens scroll. */
-    --cell: clamp(44px, min(calc((min(100vw, 560px) - 16px) / 6.89), calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - var(--room-space, 80px)) / 8.2645)), 60px);
+    --ticket-h: 74px; --chrome-base: 158px; --drawer-chrome: calc(var(--chrome-base) + var(--ticket-h) + var(--prologue-space, 0px) + var(--feedback-space, 0px)); --frame-w: 100cqw;
+    /* The drawer always fits the screen. The room above it asks for --room-space: 80px, or the room for the pin of a marked change. It
+       gives that up first, down to a 24px strip for the handle, so the cells keep 44px. Then the cells shrink, down to 30px. --fit is
+       the height that the board and the room share. */
+    --fit: calc(100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome));
+    --cell: clamp(30px, min(calc((min(100vw, 560px) - 16px) / 6.89), max(calc((var(--fit) - var(--room-space, 80px)) / 8.2645), min(44px, calc((var(--fit) - 24px) / 8.2645)))), 60px);
     --drawer-h: calc(var(--cell) * 8.2645 + var(--drawer-chrome));
     --view-base: calc(100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-h));
     /* Lowered, the drawer shows the whole painting and keeps its tickets in view. */
@@ -744,6 +751,7 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   .room { position: fixed; z-index: 0; inset: var(--head-h) 0 0; }
   .area-switch { top: max(2px, calc(var(--view-h) - 80px)); max-width: calc(100% - 132px); }
   .area-choice { padding-inline: 6px; }
+  .game-layout[data-thin-room] #area-switch,#room-pin[data-covered] { visibility: hidden; }
   .drawer { position: fixed; z-index: 10; inset: auto 0 calc(var(--bar-h) + var(--safe)); height: var(--drawer-h); translate: 0 var(--drawer-drop); display: flex; flex-direction: column; border-radius: var(--dialog-radius) var(--dialog-radius) 0 0; box-shadow: 0 -8px 12px -6px #1a0f0a73; }
   .drawer>:not(.drawer-handle),.drawer-body>* { width: min(100%, 560px); margin-inline: auto; }
   /* The handle's target reaches up over the room's edge, so it stays 44px tall without pushing the tickets down. */
@@ -834,12 +842,16 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
 /* A large total on a narrow phone puts the clock on one line above the purse. */
 @media (max-width: 410px) { .header-controls:has(.long) { flex-direction: column; align-items: end; gap: 0; }.header-controls:has(.long) .clock-face { display: block; }.header-controls:has(.long) .clock-dot { display: inline; } }
 @media (max-width: 359px) { .header-controls { flex-direction: column; align-items: end; gap: 0; }.clock-face { display: block; }.clock-dot { display: inline; } }
+/* The stacked skip label stays in place while its full target stays inside the masthead. */
+@media (max-width: 359px) { .skip-tutorial { margin-block: -18px -6px; padding-block: 16px 4px; } }
 @media (max-width: 410px) { .tickets:has(.recovery-ticket) { padding-inline: 4px; }.ticket-row:has(.recovery-ticket) { gap: 4px; } }
 @media (max-width: 410px) { .ticket-row:has(.recovery-ticket) .ticket-status { font-size: 10px; }.ticket-row:has(.recovery-ticket) .ticket-wait svg { width: 10px; height: 10px; } }
 /* Narrow phones give the strip's words the room: a smaller dish, and below 361px no dish at all. */
 @media (max-width: 410px) { .detail-head .food { width: 34px; height: 34px; } }
 @media (max-width: 360px) { .detail-head .food,.detail-next { display: none; }.item-actions button { padding-inline: 9px; } }
 .guided .detail-next { display: block; }
+/* The narrowest phones give the area switch the room's width, so three area names fit; the pin moves aside from it. */
+@media (max-width: 359px) { .area-switch { max-width: calc(100% - 24px); } }
 /* A fourth dish keeps its own count even on the narrowest phone. */
 @media (max-width: 359px) {
   .game-layout:has(.prologue-wait) { --prologue-space: 64px; }
@@ -849,8 +861,21 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   .ticket-items:has(>:nth-child(4)) .food { width: 16px; height: 16px; }
   .ticket-items:has(>:nth-child(4)) .ticket-count { position: static; translate: none; }
 }
-/* Short phones keep large board cells and return the room, kitchen, and navigation to page flow. */
-@media (max-width: 1023px) and (max-height: 820px) {
+/* Compact phones trim the drawer's padding, so the board keeps 18px more of the height. */
+@media (max-width: 1023px) and (min-height: 601px) and (max-height: 720px) {
+  .game-layout { --chrome-base: 140px; }
+  .tickets { padding-top: 10px; }
+  .table { margin-top: 2px; }
+  .worktop { padding-block: 2px; gap: 4px; }
+  /* Keep the final counter on one row so its words cannot push the grip behind the masthead. */
+  .game-layout:has(.prologue-wait) { --prologue-space: 0px; }
+  .prologue-wait { flex-wrap: nowrap; font-size: 13px; line-height: 1.2; padding-block: 2px; }
+  .prologue-wait p { flex: 1; min-width: 0; }
+  .prologue-wait button { flex: none; padding-inline: 12px; }
+}
+/* Landscape phones and 200% zoom leave too little height for a fixed drawer over the room, so the room, the drawer and the bar return
+   to the page flow. A vertical swipe on the board scrolls the page; a sideways drag still moves a dish. */
+@media (max-width: 1023px) and (max-height: 600px) {
   .game-layout { --cell: clamp(44px, calc((min(100vw, 560px) - 16px) / 6.89), 60px); --view-h: 240px; --drawer-drop: 0px; transition: none; }
   .room { position: relative; inset: auto; height: 240px; }
   .area-switch { max-width: calc(100% - 24px); }
@@ -858,15 +883,8 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   .drawer-handle { display: none; }
   .line-slot { min-height: 56px; }
   .phone-bar { position: static; }
+  .cell { touch-action: pan-y; }
 }
-/* A marked change whose true edge and centre cannot fit above a 44px board uses the same scrolling layout as a short phone. */
-.game-layout[data-room-flow] { --cell: clamp(44px, calc((min(100vw, 560px) - 16px) / 6.89), 60px); --view-h: max(240px, var(--room-space), calc(100vw * 4 / 3)); --drawer-drop: 0px; transition: none; }
-.game-layout[data-room-flow] .room { position: relative; inset: auto; height: var(--view-h); }
-.game-layout[data-room-flow] .area-switch { max-width: calc(100% - 24px); }
-.game-layout[data-room-flow] .drawer { position: static; height: auto; translate: none; box-shadow: none; }
-.game-layout[data-room-flow] .drawer-handle { display: none; }
-.game-layout[data-room-flow] .line-slot { min-height: 56px; }
-body:has(.game-layout[data-room-flow]) .phone-bar { position: static; }
 /* A quest's completion notice: it reports itself and clears on its own, so delivering a quest never stops play for a tap. */
 .toast-stack { position: fixed; z-index: 100; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
 .toast { pointer-events: none; max-width: 340px; padding: 10px 14px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: var(--card-radius); box-shadow: var(--shadow); font-size: 14px; line-height: 1.4; text-wrap: pretty; }

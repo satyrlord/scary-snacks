@@ -1,7 +1,8 @@
-// The prologue in the browser: the first event, the change of event, the deferred scenes, the wait at event 7, the family kitchen, Miez, and the start of act 1.
+// The prologue in the browser: the first event, the change of event, the deferred scenes, the wait at event 7, the family kitchen, Miez,
+// the start of act 1, and Skip tutorial.
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { KEY, act, data, forward, journal, painting, prologueAt, readNow, saved, start, startNewGame, story, supply, tile, unselect , source  } from './support.ts';
+import { KEY, act, actOne, data, forward, journal, painting, prologueAt, readNow, saved, start, startNewGame, story, supply, tile, unselect , source  } from './support.ts';
 
 const events = data.prologue.events;
 const title = (page: Page) => page.locator('#modal-title');
@@ -96,7 +97,7 @@ test('the wait at event 7 has no ticket, and closing 7 starts act 1 with the gif
   await start(page, prologueAt(7, { served: true }));
   await expect(page.locator('#tickets .ticket')).toHaveCount(0);
   await expect(page.locator('#tickets .prologue-wait')).toContainText('Every dish is served. One scene waits before Mara leaves.');
-  await expect(page.locator('#status')).toHaveText('Welcome back. The stove is still warm. Read now on the counter opens the waiting scene.');
+  await expect(page.locator('#status')).toHaveText('Read now on the counter opens the waiting scene.');
   await expect(page.locator('#day-clock .clock-face')).toHaveText('Thu 13 Feb');
   // The counter alone offers the scene on a wide screen: the story card beside it has no Read now.
   const read = page.getByRole('button', { name: /^Read now/ });
@@ -114,6 +115,7 @@ test('the wait at event 7 has no ticket, and closing 7 starts act 1 with the gif
   await expect(page.locator('#day-clock .clock-face')).toHaveText('Sat 15 Feb · 07:00');
   await expect.poll(() => painting(page)).toMatch(/^front-room-00-/);
   await expect(page.locator('#area-switch')).toBeVisible();
+  await expect(page.locator('#skip-tutorial')).toBeHidden();
   // In act 1, the neighbours do not include Mama or Tata, and the prologue stays in the journal for replay.
   await journal(page, ['neighbours', 'chapters']);
   await expect(page.locator('.neighbour-entry[data-journal="mama"],.neighbour-entry[data-journal="tata"]')).toHaveCount(0);
@@ -234,13 +236,10 @@ for (const viewport of [{ width: 320, height: 700 }, { width: 360, height: 740 }
     await read.focus(); await page.keyboard.press('Enter');
     await expect(title(page)).toHaveText(events[0].opening.title);
     await page.keyboard.press('Escape'); await expect(read).toBeFocused();
-    if(await page.locator('#drawer').evaluate(element=>getComputedStyle(element).position==='static')){
-      await expect(page.locator('#drawer-handle')).toBeHidden();await read.scrollIntoViewIfNeeded();
-    }else await page.getByRole('button', { name: 'Lower the kitchen to see the room' }).click();
+    await page.getByRole('button', { name: 'Lower the kitchen to see the room' }).click();
     const lowered = await read.boundingBox();
     expect(lowered!.height).toBeGreaterThanOrEqual(44);
-    expect(lowered!.y + lowered!.height).toBeLessThanOrEqual((await page.locator('.phone-bar').boundingBox())!.y);
-    await expect(read).toBeInViewport({ratio:1});
+    expect(lowered!.y + lowered!.height).toBeLessThanOrEqual(bar!.y);
     await read.click(); await expect(title(page)).toHaveText(events[0].opening.title);
   });
 }
@@ -257,3 +256,89 @@ for (const [label, viewport] of [['phone', { width: 390, height: 844 }], ['deskt
     await expect(page.getByRole('list', { name: 'Prologue events' }).locator('visible=true').locator('li')).toHaveCount(7);
   });
 }
+
+const skipLink = (page: Page) => page.getByRole('button', { name: 'Skip tutorial', exact: true });
+test('Skip tutorial raises a lowered kitchen and ends its prologue guide before focusing the act 1 board', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await start(page, prologueAt(3));
+  await page.locator('#recipes-button').click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Cozonac', exact: true }).click();
+  await page.getByRole('button', { name: 'Show me on the board' }).click();
+  await expect(page.getByRole('button', { name: 'Stop guide for Cozonac', exact: true })).toBeVisible();
+  await page.locator('#drawer-handle').click();
+  await expect(page.locator('#drawer-body')).toHaveAttribute('inert', '');
+  await skipLink(page).click();
+  await page.getByRole('button', { name: 'Skip to act 1', exact: true }).click();
+  await expect(page.locator('.game-layout')).not.toHaveClass(/lowered/);
+  await expect(page.locator('#drawer-body')).not.toHaveAttribute('inert');
+  await expect(page.locator('#board [tabindex="0"]')).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Stop guide for Cozonac', exact: true })).toHaveCount(0);
+  await expect(page.locator('#status')).toHaveText('Mara arrives at the bistro. Act 1 begins.');
+  await source(page, 'grain').click();
+  expect((await saved(page)).board.filter(cell => cell?.code === 'grain_1')).toHaveLength(3);
+});
+
+for (const [label, viewport] of [['desktop', { width: 1440, height: 900 }], ['phone', { width: 390, height: 844 }]] as const) for (const theme of ['light', 'dark']) {
+  test(`Skip tutorial shows in the ${label} masthead in the ${theme} theme, asks first, and starts act 1 that a reload keeps`, async ({ page }) => {
+    await page.setViewportSize(viewport); await page.emulateMedia({ reducedMotion: 'reduce' });
+    const state = prologueAt(4), link = skipLink(page);
+    await start(page, state, theme);
+    await page.evaluate(() => document.fonts.ready);
+    await expect(link).toBeInViewport({ ratio: 1 });
+    // The link takes the place of the purse, beside the wordmark, with a 44px target.
+    const box = (await link.boundingBox())!, head = (await page.locator('.masthead').boundingBox())!, wordmark = (await page.locator('.wordmark').boundingBox())!;
+    expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(44);
+    expect(box.y + box.height / 2).toBeLessThan(head.y + head.height);
+    expect(box.x).toBeGreaterThanOrEqual(wordmark.x + wordmark.width + 12);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    // The keyboard opens the confirmation with the safe choice focused. Keep playing and Escape change nothing.
+    await link.focus(); await page.keyboard.press('Enter');
+    await expect(title(page)).toHaveText('Skip the tutorial?');
+    const keep = page.getByRole('button', { name: 'Keep playing', exact: true });
+    await expect(keep).toBeFocused();
+    await keep.click(); await expect(page.locator('#modal')).toBeHidden();
+    await link.click(); await expect(title(page)).toHaveText('Skip the tutorial?');
+    await page.keyboard.press('Escape'); await expect(page.locator('#modal')).toBeHidden();
+    expect(await saved(page)).toEqual(state);
+    await link.click(); await page.getByRole('button', { name: 'Skip to act 1', exact: true }).click();
+    await expect(page.locator('#modal')).toBeHidden();
+    await expect(link).toBeHidden();
+    await expect(page.locator('#status')).toHaveText('Mara arrives at the bistro. Act 1 begins.');
+    await expect(page.locator('#board [tabindex="0"]')).toBeFocused();
+    // The save is the act 1 start of a legal run, with the recipe book of the skip.
+    const skipped = await saved(page);
+    expect({ ...skipped, discovered: [] }).toEqual({ ...actOne(), discovered: [] });
+    await expect(page.locator('#coins')).toHaveText(String(data.prologue.gift));
+    await expect(page.locator('#day-clock .clock-face')).toHaveText('Sat 15 Feb · 07:00');
+    await page.reload(); await expect(page.locator('#board button')).toHaveCount(42);
+    expect(await saved(page)).toEqual(skipped);
+    await expect(link).toBeHidden();
+    await expect.poll(() => painting(page)).toMatch(/^front-room-00-/);
+  });
+}
+
+test('Skip tutorial works from the first scene of a new game, and the journal keeps every prologue scene for replay', async ({ page }) => {
+  await startNewGame(page);
+  await expect(title(page)).toHaveText(events[0].opening.title);
+  await page.keyboard.press('Escape');
+  await skipLink(page).click(); await page.getByRole('button', { name: 'Skip to act 1', exact: true }).click();
+  await expect(skipLink(page)).toBeHidden();
+  const state = await saved(page);
+  expect([state.prologue, state.pendingScenes, state.coins]).toEqual([null, [], data.prologue.gift]);
+  // The farewell was never reached, and its closing scene still replays from the journal.
+  await journal(page, ['neighbours', 'chapters']);
+  await expect(page.locator('.journal-unread')).toContainText('No unread scenes.');
+  await page.locator(`[data-journal="${events[6].closing.id}"]`).click();
+  await expect(title(page)).toHaveText(events[6].closing.title);
+  await page.getByRole('button', { name: 'Return', exact: true }).click();
+  expect(await saved(page)).toEqual(state);
+});
+
+test('Skip tutorial stays during the wait for closing 7 and leaves no scene pending', async ({ page }) => {
+  await start(page, prologueAt(7, { served: true }));
+  await skipLink(page).click(); await page.getByRole('button', { name: 'Skip to act 1', exact: true }).click();
+  await expect(page.locator('#tickets .prologue-wait')).toHaveCount(0);
+  const state = await saved(page);
+  expect(state).toEqual(actOne());
+});

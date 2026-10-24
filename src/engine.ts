@@ -155,10 +155,16 @@ function startEvent(state: GameState, number: number, data: GameData) {
   for (const code of event.board.filter(present)) discover(state, code);
 }
 /**
- * The start of act 1: the sources and the initial board of act 1, the starting gift in the purse, and the first morning. The recipe
- * book keeps the prologue discoveries.
+ * The end of the prologue and the start of act 1. Each event quest is served. Each event discovers its sources, the ingredients that they
+ * give, its prepared dishes, and its quest dishes with every dish on their way, so a player who skips the prologue knows what a full run
+ * makes. No prologue scene is pending, and the journal keeps each one for replay. Act 1 starts with its sources and its initial board, the
+ * starting gift in the purse, and the first morning. The recipe book keeps the prologue discoveries. The completion of the last scene and
+ * the skip of the prologue both end the prologue here.
  */
-function startActOne(state: GameState, data: GameData) {
+function finishPrologue(state: GameState, data: GameData) {
+  for (const event of data.prologue.events) for (const code of [...eventItems(event), ...event.sources.map(chain => `${chain}_1`), ...event.quests.flatMap(quest => quest.requirements.flatMap(({ item }) => onTheWay(item, data)))]) discover(state, code);
+  state.completedQuests.push(...prologueQuests(data).map(quest => quest.id).filter(id => !state.completedQuests.includes(id)));
+  state.pendingScenes = [];
   state.prologue = null;
   state.board = data.board.initial.map(code => code ? { code } : null);
   state.layoutId = data.board.defaultLayout; state.resolvedObstacles = []; state.sources = [];
@@ -166,6 +172,13 @@ function startActOne(state: GameState, data: GameData) {
   for (const chain of data.board.sources) addSource(state, chain, data);
   for (const code of data.board.initial.filter(present)) discover(state, code);
 }
+/** A dish and the dishes that make it: the lower stages of its chain, and the parts of its recipe with their own ways. */
+function onTheWay(code: string, data: GameData): string[] {
+  const item = getItem(code, data)!;
+  return [code, ...(item.recipe ? item.recipe.flatMap(part => onTheWay(part, data)) : item.stage > 1 ? onTheWay(`${item.chain}_${item.stage - 1}`, data) : [])];
+}
+/** The line of the start of act 1. */
+const ACT_ONE = 'Mara arrives at the bistro. Act 1 begins.';
 /** The items that an event discovers: its sources and its prepared dishes. */
 const eventItems = (event: PrologueEvent) => [...event.sources.map(chain => `generator_${chain}`), ...event.board.filter(present)];
 /** A new game, at the first event of the prologue with its opening scene earned. The session gives it a random seed, so the rules themselves stay deterministic. */
@@ -181,15 +194,12 @@ export function createGame(data: GameData, seed = 0): GameState {
   return state;
 }
 /**
- * The start of act 1 after a prologue that served each quest and discovered only its boards and its quest dishes. The data check uses
- * it to confirm that the initial board of act 1 makes a valid game.
+ * The start of act 1 after a prologue with each quest served and every event's sources, ingredients, prepared dishes, quest dishes,
+ * and prerequisite dishes discovered. The data check uses it to confirm that the initial board of act 1 makes a valid game.
  */
 export function actOneGame(data: GameData, seed = 0): GameState {
   const state = createGame(data, seed);
-  for (const event of data.prologue.events) for (const code of [...eventItems(event), ...event.quests.flatMap(quest => quest.requirements.map(({ item }) => item))]) discover(state, code);
-  state.completedQuests = prologueQuests(data).map(quest => quest.id);
-  state.pendingScenes = [];
-  startActOne(state, data);
+  finishPrologue(state, data);
   revealTickets(state, data);
   return state;
 }
@@ -491,13 +501,20 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       next.pendingScenes.splice(at, 1);
       // The last scene of the prologue starts act 1.
       if (action.id === scenes.at(-1)!.id) {
-        startActOne(next, data);
-        message = 'Mara arrives at the bistro. Act 1 begins.';
+        finishPrologue(next, data);
+        message = ACT_ONE;
         break;
       }
       // A guest who visits once has no journal replay after the visit.
       const guest = data.characters.find(person => person.id === data.quests.find(quest => quest.id === action.id)?.character);
       message = guest?.singleVisit ? 'The scene is finished.' : 'The scene is in the story journal.';
+      break;
+    }
+    case 'skipPrologue': {
+      // The skip ends the prologue as the last scene does, so act 1 starts as after a full run, with the same seed.
+      if (!next.prologue) return fail('The prologue is over.');
+      finishPrologue(next, data);
+      message = ACT_ONE;
       break;
     }
     case 'move': {

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { currentEvent, dateText, earnedPrologue, eventDishes, firstFreeBoardCell, gameDay, getItem, mergeResult, prologueScenes, resolveQuests, unresolvedObstacle } from '../src/model.ts';
-import { createGame, reduceGame, validateGame } from '../src/engine.ts';
+import { actOneGame, createGame, reduceGame, validateGame } from '../src/engine.ts';
 import { dataProblems, prologueProblems } from '../src/content.ts';
 import { exportSave, importSave, loadSave, saveGame } from '../src/storage.ts';
 import { runPrologue } from '../tools/campaign-balance.ts';
@@ -228,6 +228,50 @@ test('the last delivery of event 7 waits for closing 7, and its completion start
   // The prologue discoveries stay, also Cozonac and the other dishes of chains that act 1 opens later.
   assert.ok(started.discovered.includes('mixed_cozonac') && started.discovered.includes('generator_pork'));
   assert.deepEqual(roundTrip(started), started);
+});
+
+/** Ends the prologue from a state by legal play: it reads each waiting scene and serves each quest on a ticket, until act 1 starts. */
+function finish(state: GameState): GameState {
+  for (;;) {
+    state = readAll(state);
+    if (!state.prologue) return state;
+    state = serve(state, resolveQuests(state, data).find(view => view.status === 'active')!.quest);
+  }
+}
+const skip = (state: GameState) => act(state, { type: 'skipPrologue' });
+
+test('the skip of the prologue at each event gives the act 1 start of a legal run from there, with the same seed and earlier discoveries', () => {
+  const starts: [string, GameState][] = [['a new game', createGame(data, 1)], ['the wait for closing 7', waiting()]];
+  for (const event of events.keys()) starts.push([`event ${event + 1}, scenes read`, playTo(event + 1)], [`event ${event + 1}, scenes deferred`, playTo(event + 1, { read: false })]);
+  // A served quest of the current event stays first, as a legal run keeps it.
+  const partly = serve(playTo(4), events[3].quests[1]);
+  starts.push(['event 4, one quest served', partly]);
+  for (const [name, state] of starts) {
+    const skipped = skip(state), legal = finish(state);
+    assert.deepEqual({ ...skipped, discovered: [] }, { ...legal, discovered: [] }, name);
+    assert.equal(skipped.seed, 1, name);
+    assert.deepEqual(skipped.pendingScenes, [], name);
+    // The journal keeps every prologue scene for replay.
+    assert.deepEqual(earnedPrologue(skipped, data), scenes, name);
+    // The recipe book keeps each earlier discovery and gets the same dishes as a legal run, also the dishes on the way to a quest dish.
+    assert.ok(state.discovered.every(code => skipped.discovered.includes(code)), name);
+    assert.deepEqual([...skipped.discovered].sort(), [...legal.discovered].sort(), name);
+    assert.deepEqual(roundTrip(skipped), skipped, name);
+  }
+  assert.deepEqual(partly.completedQuests.at(-1), events[3].quests[1].id);
+  assert.deepEqual(skip(partly).completedQuests.slice(0, partly.completedQuests.length), partly.completedQuests);
+  // From a new game, the skip gives the act 1 start that the data check uses, and the legal act 1 start of the test fixtures.
+  const skipped = skip(createGame(data, 1));
+  assert.deepEqual(skipped, actOneGame(data, 1));
+  assert.deepEqual({ ...skipped, discovered: [] }, { ...actOne(), discovered: [] });
+  // A skip knows every dish that the full run of the fixtures made: its ingredients and the dishes on the way to its quest dishes.
+  assert.deepEqual([...skipped.discovered].sort(), [...actOne().discovered].sort());
+});
+
+test('the skip of the prologue is refused in the acts and changes nothing', () => {
+  rejected(actOne(), { type: 'skipPrologue' });
+  rejected(skip(playTo(3)), { type: 'skipPrologue' });
+  assert.equal(reduceGame(actOne(), { type: 'skipPrologue' }, data).message, 'The prologue is over.');
 });
 
 test('act 1 keeps the board rules of act 1: Flour and Colaci are valid on day 1, and Cozonac before the Fruits chain is not', () => {
