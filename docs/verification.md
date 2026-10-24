@@ -125,7 +125,7 @@ The files in `tests/browser/` check these areas.
 Play checks include pointer drag, keyboard input, selection, and delivery.
 Room checks include reduced motion, failed image loads, and text that is available after an image failure.
 Layout checks include the desktop and phone screens, the drawer, the phone bar, and 44px control targets.
-Checks on a narrow screen that is 600px high or less require a drawer that stays in place.
+Checks on a narrow screen that is 700px high or less require a drawer that stays in place.
 These checks also require an active drawer body and a reveal that does not wait for the drawer.
 Theme checks include Light, Dark, System, and 4.5:1 contrast for main and muted text.
 

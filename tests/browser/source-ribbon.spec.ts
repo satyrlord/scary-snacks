@@ -114,7 +114,7 @@ test('a native touch swipe scrolls the ribbon without taking or reordering an in
   } finally { await cdp.detach(); }
 });
 
-for (const theme of ['light', 'dark']) for (const viewport of [{ width:390, height:844 }, { width:360, height:740 }, { width:320, height:700 }, { width:360, height:601 }]) {
+for (const theme of ['light', 'dark']) for (const viewport of [{ width:390, height:844 }, { width:360, height:740 }, { width:320, height:720 }, { width:360, height:701 }]) {
   test(`the board and ribbon fit the screen with usable targets in ${theme} at ${viewport.width} by ${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport); await startStill(page, actOne(), theme);
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
@@ -213,7 +213,7 @@ test('a guide reveals an offscreen source when a board merge changes its next st
 
 for (const scenario of ['prologue counter', 'late room with safe area']) test(`the phone ribbon fits the ${scenario} without scrolling`, async ({ page }) => {
   const late = scenario === 'late room with safe area';
-  await page.setViewportSize(late ? { width:390, height:844 } : { width:320, height:640 });
+  await page.setViewportSize(late ? { width:390, height:844 } : { width:320, height:701 });
   await startStill(page, late ? fullRibbon() : prologueAt(7, { served:true }));
   if (late) await page.evaluate(() => document.documentElement.style.setProperty('--safe', '20px'));
   const cell = (await tile(page, 0).boundingBox())!, line = (await page.locator('.line-slot').boundingBox())!, bar = (await page.locator('.phone-bar').boundingBox())!;
@@ -270,7 +270,8 @@ test('a late-game New pin keeps its full touch target clear of the phone switch,
   })).toEqual({ height:44, inside:true, clear:true, reachable:true });
 });
 
-for (const scenario of [{ width:390, height:560, preparations:30, motion:'no-preference' }, { width:844, height:390, preparations:5, motion:'reduce' }] as const) {
+for (const scenario of [{ width:390, height:560, preparations:30, motion:'no-preference' }, { width:844, height:390, preparations:5, motion:'reduce' },
+  { width:390, height:601, preparations:30, motion:'no-preference' }, { width:390, height:700, preparations:5, motion:'reduce' }] as const) {
   test(`a reveal on a scrolled page brings its change into view at ${scenario.width} by ${scenario.height} with ${scenario.motion} motion`, async ({ page }) => {
     await page.setViewportSize(scenario); await page.emulateMedia({ reducedMotion:scenario.motion });
     await start(page, checkpoint(scenario.preparations, { ready:true }));
@@ -286,7 +287,7 @@ for (const scenario of [{ width:390, height:560, preparations:30, motion:'no-pre
 }
 
 test('on a thin room strip the reveal lowers the drawer to show the pin, then hides the pin and returns focus to the board', async ({ page }) => {
-  await page.setViewportSize({ width:390, height:664 });
+  await page.setViewportSize({ width:390, height:701 });
   await page.emulateMedia({ reducedMotion:'no-preference' }); await start(page, checkpoint(22, { ready:true }));
   const layout = page.locator('.game-layout'), pin = page.locator('#room-pin');
   await expect(layout).toHaveAttribute('data-thin-room', '');
@@ -301,7 +302,7 @@ test('on a thin room strip the reveal lowers the drawer to show the pin, then hi
 });
 
 for (const theme of ['light', 'dark']) test(`the final prologue counter keeps the full grip and board clear at the minimum fixed height in ${theme}`, async ({ page }) => {
-  await page.setViewportSize({ width:320, height:601 });
+  await page.setViewportSize({ width:320, height:701 });
   await startStill(page, prologueAt(7, { served:true }), theme);
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(() => document.documentElement.style.setProperty('--safe', '20px'));
@@ -329,7 +330,7 @@ for (const theme of ['light', 'dark']) test(`the final prologue counter keeps th
 });
 
 test('a reduced-motion reveal returns focus to the board when the pin cannot fit above the drawer', async ({ page }) => {
-  await page.setViewportSize({ width:390, height:664 });
+  await page.setViewportSize({ width:390, height:701 });
   await startStill(page, checkpoint(22, { ready:true }));
   await payAndRead(page); await revealed(page);
   await expect(page.locator('#room-pin')).toHaveCSS('visibility', 'hidden');

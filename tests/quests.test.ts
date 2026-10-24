@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { campaignQuest, canDeliverQuest, dishChains, gardenStage, menuPrice, menuValue, playable, QUEST_TICKETS, questDeliveryCells, questOpening, questPredecessors, requiredQuests, resolveQuests, supperQuest } from '../src/model.ts';
+import { campaignQuest, canDeliverQuest, dishChains, gardenStage, menuPrice, menuValue, playable, QUEST_TICKETS, questDeliveryCells, questOpening, questPredecessors, requiredQuests, resolveQuests, supperQuest, waitCause } from '../src/model.ts';
 import { reduceGame, validateGame } from '../src/engine.ts';
 import { dataProblems, dietBreaks, discoveryProblems, questProblems } from '../src/content.ts';
 import type { GameData, GameState, Quest } from '../src/model.ts';
 import { moveTo } from '../tools/create-checkpoint-saves.ts';
-import { actOne, actOneTasks, act, afterMarch, checkpoint, data, deliver, opened, player, prologueServed, rejected, status, supperEvening, supply, know, recovery } from './support.ts';
+import { actOne, actOneTasks, act, afterMarch, checkpoint, closeDay, data, deliver, opened, player, prologueServed, rejected, reload, status, supperEvening, supply, know, recovery } from './support.ts';
 
 /** The campaign quests with a status. The recovery quest has its own ticket, so the tests of the tickets leave it out. */
 const ids = (state: GameState, status: string) => resolveQuests(state, data).filter(view => !view.quest.recovery && view.status === status).map(view => view.quest.id);
@@ -65,6 +65,41 @@ test('tickets show at most three active quests in authored order, and a waiting 
     const order = [...active, ...waiting];
     assert.deepEqual(order, data.quests.filter(quest => order.includes(quest.id)).map(quest => quest.id));
   }
+});
+
+/**
+ * The window of preparation 8 on 12 March, with each quest before Mara's "Three months" in authored order delivered. Monica, Vlad,
+ * and Elisabeta hold the tickets, and "Three months" opens on 13 March.
+ */
+function beforeThreeMonths(): GameState {
+  const base = opened(8), at = data.quests.findIndex(quest => quest.id === 'mara-three-months');
+  let state: GameState = { ...base, clock: { day: 26, merges: 0 }, night: { ...base.night!, day: 25 } };
+  for (let next; (next = resolveQuests(state, data).find(view => view.status === 'active' && !view.quest.recovery && data.quests.indexOf(view.quest) < at));) state = deliver(state, next.quest.id);
+  assert.deepEqual(ids(state, 'active'), ['monica-first-pack', 'vlad-after-dark', 'elisabeta-papers']);
+  return state;
+}
+
+test('a quest that loses its ticket to a dated quest steps back, names the dated quest, and leaves the list on its next ticket', () => {
+  const before = beforeThreeMonths();
+  // The deliveries lifted the purse above the recovery floor. The recovery quest closed and never waits, so nothing stepped back.
+  assert.equal(before.steppedBack, undefined);
+  const morning = closeDay(before);
+  assert.deepEqual(ids(morning, 'active'), ['mara-three-months', 'monica-first-pack', 'vlad-after-dark']);
+  assert.deepEqual(morning.steppedBack, ['elisabeta-papers']);
+  assert.deepEqual(reload(morning).steppedBack, ['elisabeta-papers']);
+  const cause = waitCause(morning, data.quests.find(quest => quest.id === 'elisabeta-papers')!, data);
+  assert.deepEqual([cause.hold, cause.dated.map(quest => quest.id)], [undefined, ['mara-three-months']]);
+  // A delivery frees a ticket. Elisabeta gets it back, and the list is gone.
+  const back = deliver(morning, 'monica-first-pack');
+  assert.equal(status(back, 'elisabeta-papers'), 'active');
+  assert.equal(back.steppedBack, undefined);
+});
+
+test('a save lists only unique open quests that wait for a ticket', () => {
+  const morning = closeDay(beforeThreeMonths());
+  assert.equal(validateGame(morning, data), true);
+  for (const steppedBack of [[], ['elisabeta-papers', 'elisabeta-papers'], ['monica-first-pack'], ['unknown-quest'], 'elisabeta-papers'])
+    assert.equal(validateGame({ ...morning, steppedBack } as unknown as GameState, data), false, JSON.stringify(steppedBack));
 });
 
 test('a waiting quest cannot be delivered even with every item on the board', () => {

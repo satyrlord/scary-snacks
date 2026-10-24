@@ -221,7 +221,7 @@ test('the journal marks a completed event done when both scenes are still unread
   expect(await saved(page)).toEqual(state);
 });
 
-for (const viewport of [{ width: 320, height: 700 }, { width: 360, height: 740 }, { width: 390, height: 844 }, { width: 768, height: 1024 }]) for (const theme of ['light', 'dark']) {
+for (const viewport of [{ width: 320, height: 701 }, { width: 360, height: 740 }, { width: 390, height: 844 }, { width: 768, height: 1024 }]) for (const theme of ['light', 'dark']) {
   test(`the final prologue counter keeps its control and Mara's line clear of the phone bar at ${viewport.width}px in ${theme}`, async ({ page }) => {
     await page.setViewportSize(viewport); await page.emulateMedia({ reducedMotion: 'reduce' });
     const state = prologueAt(7, { served: true });

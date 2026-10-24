@@ -17,7 +17,7 @@ async function visibleCopy(target: Locator, region: string) {
   },region)).toBe(true);
 }
 
-for(const theme of ['light','dark'])for(const [width,height] of [[360,640],[390,844],[1280,720]]) {
+for(const theme of ['light','dark'])for(const [width,height] of [[360,720],[390,844],[1280,720]]) {
   test(`Escape from a guided source stops the guide and keeps focus at ${width} in ${theme}`,async({page})=>{
     const initial=checkpoint(0);initial.board[13]=null;initial.board[14]=null;
     await page.setViewportSize({width,height});await startStill(page,initial,theme);

@@ -393,8 +393,13 @@ export function validateGame(candidate: unknown, data: GameData): candidate is G
     const repeating = state.repeating;
     if (repeating !== undefined && (!record(repeating, ['last', 'open']) || ![repeating.last, repeating.open].every(id => id === null
       || (typeof id === 'string' && data.quests.some(quest => quest.id === id && cycleMember(state, quest, data)))))) return false;
-    if (!resolveQuests(state, data).every(view => view.status !== 'active' || (view.quest.repeating && view.quest.id !== repeating?.open)
+    const views = resolveQuests(state, data);
+    if (!views.every(view => view.status !== 'active' || (view.quest.repeating && view.quest.id !== repeating?.open)
       || view.quest.requirements.every(({ item }) => state.discovered.includes(item)))) return false;
+    // Each quest that stepped back waits for a ticket now.
+    const stepped = state.steppedBack;
+    if (stepped !== undefined && (!Array.isArray(stepped) || !stepped.length || new Set(stepped).size !== stepped.length
+      || !stepped.every(id => views.find(view => view.quest.id === id)?.status === 'waiting'))) return false;
     return true;
   } catch {
     return false;
@@ -603,6 +608,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
   // The prologue has no seasonal sources, no preparation blockers, and no clock.
   if (state.prologue) {
     revealTickets(next, data);
+    stepBack(state, next, data);
     return { state: next, ok: true, message, event };
   }
   if (['task', 'move', 'spawn', 'sell', 'deliverQuest'].includes(action.type)) {
@@ -631,5 +637,17 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
   const repeating = resolveQuests(next, data).find(view => view.quest.repeating && view.status !== 'locked')?.quest.id ?? null;
   if (repeating !== (next.repeating?.open ?? null)) next.repeating = { last: next.repeating?.last ?? null, open: repeating };
   revealTickets(next, data);
+  stepBack(state, next, data);
   return { state: next, ok: true, message, event };
+}
+/**
+ * A quest that loses its ticket in a change without its delivery steps back: it waits for a free ticket, and the counter lists it.
+ * It leaves the list when it gets a ticket again. The recovery quest closes and never waits, so it never steps back.
+ */
+function stepBack(before: GameState, next: GameState, data: GameData) {
+  const views = resolveQuests(next, data), waits = (id: string) => views.find(view => view.quest.id === id)?.status === 'waiting';
+  const had = resolveQuests(before, data).filter(view => view.status === 'active').map(view => view.quest.id);
+  const stepped = [...new Set([...before.steppedBack ?? [], ...had])].filter(waits);
+  if (stepped.length) next.steppedBack = stepped;
+  else delete next.steppedBack;
 }

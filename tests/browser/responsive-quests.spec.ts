@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { data, onTicket, quest, replaceSave, saved, startStill, supply, ticket, tile } from './support.ts';
 
-for(const theme of ['light','dark'])for(const [width,height] of [[320,740],[360,640],[390,844]])test(`phone quest names and portion counts fit ${width}px in ${theme}`,async({page})=>{
+for(const theme of ['light','dark'])for(const [width,height] of [[320,740],[360,720],[390,844]])test(`phone quest names and portion counts fit ${width}px in ${theme}`,async({page})=>{
   await page.setViewportSize({width,height});
   const order=quest('monica-first-pack');
   await startStill(page,onTicket(order),theme);

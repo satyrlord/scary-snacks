@@ -254,6 +254,8 @@ export type GameState = {
   repeating?: { last: string | null; open: string | null };
   /** The March quests that opened. An open March quest stays open after March. */
   march: string[];
+  /** The open quests that lost their ticket without a delivery, in the order that they lost it. A missing record means none. */
+  steppedBack?: string[];
 };
 export type Action =
   | { type: 'move'; from: number; to: number }
@@ -632,6 +634,15 @@ export function resolveQuests(state: GameState, data: GameData): QuestView[] {
   const repeating = openRepeating(state, views, data);
   if (repeating) views[data.quests.indexOf(repeating)].status = tickets++ < QUEST_TICKETS ? 'active' : 'waiting';
   return views;
+}
+/**
+ * Why a quest waits for a ticket: the hold of a day whose release requirements take the tickets first, when the quest is not one of
+ * them, and the dated quests on the tickets that come before the quest in authored order.
+ */
+export function waitCause(state: GameState, quest: Quest, data: GameData): { hold?: Hold; dated: Quest[] } {
+  const hold = holdsDay(state, data) ? holdOf(state.clock.day, data) : undefined, at = data.quests.indexOf(quest);
+  const dated = resolveQuests(state, data).filter(view => view.status === 'active' && view.quest.opens !== undefined && data.quests.indexOf(view.quest) < at).map(view => view.quest);
+  return hold && !releaseRequirements(hold, data).has(quest) ? { hold, dated } : { dated };
 }
 /** The quest whose delivery earns a finale. */
 export const finaleQuest = (finale: Finale, data: GameData) => data.quests.find(quest => quest.finale === finale.id);

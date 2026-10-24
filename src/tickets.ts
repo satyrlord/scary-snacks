@@ -1,5 +1,5 @@
 // The quest tickets on the drawer: who asks for which dishes, the delivery and its flight, and the quest dialog.
-import { awaitsLanterns, bookedTonight, canDeliverQuest, canLightLanterns, cellsOf, clockText, dateText, laterDay, levers, prologueScenes, QUEST_TICKETS, questDeliveryCells, questEvent, questFinale, questHoliday, questReward, resolveQuests, ticketNote } from './model.ts';
+import { awaitsLanterns, bookedTonight, canDeliverQuest, canLightLanterns, cellsOf, clockText, dateText, findQuest, laterDay, levers, prologueScenes, QUEST_TICKETS, questDeliveryCells, questEvent, questFinale, questHoliday, questReward, resolveQuests, ticketNote, waitCause } from './model.ts';
 import { PIPER_NIGHTS } from './engine.ts';
 import { guidanceGoal, guidanceStep, showItem, showMissingStep } from './dishes.ts';
 import type { GameState, Quest } from './model.ts';
@@ -138,9 +138,36 @@ export function renderTickets() {
     if (guided?.ticket === quest.id) deliverButton.setAttribute('aria-label', `${deliverButton.getAttribute('aria-label')}. Next step toward ${goal}`);
     card.append(face, waitControl(quest, person.name) ?? deliverButton); container.append(card);
   });
+  // A quest that lost its ticket waits off the counter. The count above the last quest ticket opens their list.
+  const stepped = state.steppedBack ?? [], last = [...container.querySelectorAll<HTMLElement>('.ticket:not(.recovery-ticket)')].at(-1);
+  if (stepped.length && last) {
+    const more = button('', 'waiting-count', showWaiting);
+    more.append(element('span', 'waiting-pill', `+${count.format(stepped.length)}`));
+    more.setAttribute('aria-label', `${stepped.length === 1 ? 'One quest waits' : `${count.format(stepped.length)} quests wait`} for a ticket`);
+    last.append(more);
+  }
   // The recovery ticket keeps its own column beside the line, so the line still says why no quest waits.
   // Without work, a repeating quest opens, so an empty counter means that the next preparation is ready to pay.
   if (tickets.every(quest => quest.recovery)) container.prepend(state.prologue ? prologueWait() : element('p', 'tickets-empty', 'No quests wait now. Pay for the next preparation.'));
+}
+/** The quests that lost their ticket, in the order that they lost it: who asks, the title, and why the quest waits. */
+function showWaiting() {
+  const content = element('div', 'waiting-view'), list = element('ul', 'waiting-list');
+  for (const id of state.steppedBack ?? []) {
+    const quest = findQuest(id, data)!, person = character(quest.character), row = element('li', 'waiting-entry'), words = element('div');
+    words.append(element('p', 'waiting-name', `${person.name}: ${quest.title}`), element('p', 'waiting-reason', stepReason(quest)));
+    row.append(portrait(person.id), words); list.append(row);
+  }
+  content.append(list, element('p', 'quest-note', 'Each quest comes back to a ticket when one is free. Its dishes stay on the board, and there is no deadline.'));
+  showModal('Waiting quests', content);
+}
+/** Why a quest that lost its ticket waits, in words. */
+function stepReason(quest: Quest) {
+  const cause = waitCause(state, quest, data), dated = cause.dated;
+  if (cause.hold) return `${cause.hold.line} The quests for this day come first.`;
+  if (quest.repeating) return 'The story quests of the neighbours come first.';
+  if (dated.length) return `${names.format(dated.map(value => `${character(value.character).name}’s “${value.title}”`))} ${dated.length === 1 ? 'opened on its date and comes' : 'opened on their dates and come'} first.`;
+  return 'The quests from earlier in the story come first.';
 }
 /** The prologue waits for its unread scenes after its last dish. The counter names them and opens the first one, so the way to act 1 stays in view. */
 function prologueWait() {

@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { canDeliverQuest, canLightLanterns } from '../../src/model.ts';
+import { canDeliverQuest, canLightLanterns, resolveQuests } from '../../src/model.ts';
 import { moveTo } from '../../tools/create-checkpoint-saves.ts';
-import { act, actOneTasks, atBookingTime, checkpoint, data, dialogDeliver, onTicket, openQuest, quest, ratio, replaceSave, saved, startStill, supper, supperEvening, supplies, supply, ticket } from './support.ts';
+import { act, actOne, actOneTasks, atBookingTime, checkpoint, data, dialogDeliver, onTicket, openQuest, quest, ratio, replaceSave, saved, startStill, supper, supperEvening, supplies, supply, ticket } from './support.ts';
 
 /** Counts must remain legible even when an ancestor dims the pictures of a later ticket. */
 async function readableCounts(counts: Locator){
@@ -22,8 +22,8 @@ async function readableCounts(counts: Locator){
   }
 }
 
-async function phoneFits(page: Page){
-  for(const selector of ['#board','#status','.phone-bar','#tickets'])await expect(page.locator(selector)).toBeInViewport({ratio:1});
+async function phoneFits(page: Page,line='#status'){
+  for(const selector of ['#board',line,'.phone-bar','#tickets'])await expect(page.locator(selector)).toBeInViewport({ratio:1});
   for(const status of await page.locator('.ticket-status').all()){
     await expect(status).toBeVisible();
     expect(await status.evaluate(element=>element.scrollWidth<=element.clientWidth+1&&element.scrollHeight<=element.clientHeight+1)).toBe(true);
@@ -111,4 +111,90 @@ for(const theme of ['light','dark'])test(`a long order reports hidden portions a
   await expect(card.locator('.ticket-status.ready')).toHaveText('Serve');await phoneFits(page);await readableCounts(card.locator('.ticket-count'));await loweredTicketsFit(page);
   await openQuest(page,supper);const serve=page.locator('#modal .quest-actions').getByRole('button',{name:`Serve ${supper.title}`,exact:true});
   await readyAction(page,serve);await serve.click();expect((await saved(page)).completedQuests).toContain(supper.id);
+});
+
+for(const theme of ['light','dark'])for(const width of [1440,390,320])test(`the waiting count has a clear target and opens its list at ${width}px in ${theme}`,async({page})=>{
+  await page.setViewportSize({width,height:width===1440?900:844});
+  const start=actOne(),waiting=resolveQuests(start,data).filter(view=>view.status==='waiting').map(view=>view.quest).slice(0,2);
+  expect(waiting).toHaveLength(2);
+  await startStill(page,{...start,coins:20,steppedBack:waiting.map(value=>value.id)},theme);
+  await expect(page.locator('html')).toHaveAttribute('data-theme',theme);
+  for(const coins of [20,0]){
+    await replaceSave(page,{...start,coins,steppedBack:waiting.map(value=>value.id)});
+    const count=page.locator('#tickets .ticket').nth(2).locator('.waiting-count');
+    await expect(count).toHaveText('+2');await expect(count).toHaveAccessibleName('2 quests wait for a ticket');await expect(count).toBeInViewport({ratio:1});
+    const box=(await count.boundingBox())!;expect(box.width).toBeGreaterThanOrEqual(44);expect(box.height).toBeGreaterThanOrEqual(44);
+    // The full target must receive input, including the transparent area outside the small pill.
+    expect(await count.evaluate(button=>{
+      const box=button.getBoundingClientRect();
+      return [[box.left+1,box.top+box.height/2],[box.right-1,box.top+box.height/2],[box.left+box.width/2,box.top+1],[box.left+box.width/2,box.bottom-1]]
+        .every(([x,y])=>button.contains(document.elementFromPoint(x,y)));
+    })).toBe(true);
+    const colors=await count.locator('.waiting-pill').evaluate(element=>{const style=getComputedStyle(element);return [style.color,style.backgroundColor];});
+    expect(ratio(colors[0],colors[1])).toBeGreaterThanOrEqual(4.5);
+    // Neither the quest names nor another control shares the count's target.
+    for(const other of await page.locator('.ticket-face,.drawer-handle:visible').all()){
+      const area=(await other.boundingBox())!;
+      expect(box.x+box.width<=area.x||area.x+area.width<=box.x||box.y+box.height<=area.y||area.y+area.height<=box.y).toBe(true);
+    }
+    await page.mouse.click(box.x+box.width/2,box.y+1);await expect(page.locator('#modal-title')).toHaveText('Waiting quests');
+    const rows=page.locator('#modal .waiting-entry');await expect(rows).toHaveCount(2);
+    for(const [at,value] of waiting.entries()){
+      await expect(rows.nth(at).locator('.waiting-name')).toHaveText(`${data.characters.find(person=>person.id===value.character)!.name}: ${value.title}`);
+      await expect(rows.nth(at).locator('.waiting-reason')).toHaveText('The quests from earlier in the story come first.');
+    }
+    await page.keyboard.press('Escape');await expect(count).toBeFocused();
+    await page.keyboard.press('Enter');await expect(page.locator('#modal-title')).toHaveText('Waiting quests');
+    await page.keyboard.press('Escape');await expect(count).toBeFocused();
+    if(coins===0){
+      const face=page.locator('.recovery-ticket .ticket-face'),area=(await face.boundingBox())!;
+      await page.mouse.click(area.x+2,area.y+2);
+      await expect(page.locator('#modal-title')).toHaveText('Tea for the night ward');await page.keyboard.press('Escape');
+    }
+    if(width<1024){await phoneFits(page);await loweredTicketsFit(page);}
+  }
+  await replaceSave(page,start);await expect(page.locator('.waiting-count')).toHaveCount(0);
+});
+
+for(const theme of ['light','dark'])for(const width of [320,390])test(`a waiting count remains reachable at 601px with action feedback at ${width}px in ${theme}`,async({page})=>{
+  const start=actOne(),waiting=resolveQuests(start,data).find(view=>view.status==='waiting')!.quest;
+  await page.setViewportSize({width,height:844});await startStill(page,{...start,coins:0,steppedBack:[waiting.id]},theme);
+  await page.locator('#drawer-handle').click();await expect(page.locator('#drawer-body')).toHaveAttribute('inert','');
+  await page.setViewportSize({width,height:601});
+  await expect(page.locator('#drawer-handle')).toBeHidden();await expect(page.locator('#drawer-body')).not.toHaveAttribute('inert');
+  const count=page.locator('.waiting-count');
+  for(const feedback of [false,true]){
+    if(feedback){
+      await page.locator('[data-cell="13"]').click();await page.locator('[data-source="grain"]').click();
+      await expect(page.locator('#item-detail')).toHaveClass(/action-feedback/);
+    }
+    await count.scrollIntoViewIfNeeded();await expect(count).toBeInViewport({ratio:1});
+    expect(await count.evaluate(button=>{const box=button.getBoundingClientRect();return button.contains(document.elementFromPoint(box.x+box.width/2,box.y+box.height/2));})).toBe(true);
+    await count.click();await expect(page.locator('#modal-title')).toHaveText('Waiting quests');await page.keyboard.press('Escape');
+  }
+  await page.locator('[data-source="herbs"]').click();expect((await saved(page)).board.filter(cell=>cell?.code==='herbs_1')).toHaveLength(start.board.filter(cell=>cell?.code==='herbs_1').length+1);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+
+for(const theme of ['light','dark'])for(const width of [320,390])test(`the fixed drawer fits waiting quests and a long order at 701px in ${theme} at ${width}px`,async({page})=>{
+  const start=onTicket(quest('dochia-sheepskin'));
+  await page.setViewportSize({width,height:701});
+  await startStill(page,{...start,coins:0,repeating:{last:null,open:'sorin-staff-meal'},steppedBack:['sorin-staff-meal']},theme);
+  await expect(page.locator('#tickets .ticket')).toHaveCount(4);await expect(page.locator('.ticket-items>:nth-child(4)')).toHaveCount(1);
+  for(const feedback of [false,true]){
+    if(feedback){
+      await page.locator(`[data-cell="${start.board.findIndex(cell=>cell!==null)}"]`).click();await page.locator('[data-source="grain"]').click();
+      await expect(page.locator('#item-detail')).toHaveClass(/action-feedback/);
+    }
+    await phoneFits(page,feedback?'#item-detail':'#status');
+    for(const control of [page.locator('#drawer-handle'),page.locator('.waiting-count')]){
+      await expect(control).toBeInViewport({ratio:1});
+      expect(await control.evaluate(button=>{
+        const box=button.getBoundingClientRect();
+        return [[box.left+box.width/2,box.top+1],[box.left+box.width/2,box.bottom-1]]
+          .every(([x,y])=>button.contains(document.elementFromPoint(x,y)));
+      })).toBe(true);
+    }
+  }
+  await loweredTicketsFit(page);
 });

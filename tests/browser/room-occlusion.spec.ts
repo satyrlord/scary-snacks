@@ -3,7 +3,7 @@ import sharp from 'sharp';
 import { checkpoint, painting, payAndRead, revealed, start, startStill } from './support.ts';
 
 for(const theme of ['light','dark'])test(`a short phone shows the whole New pin target above the lowered drawer in ${theme}`,async({page})=>{
-  await page.setViewportSize({width:360,height:640});await startStill(page,checkpoint(6),theme);
+  await page.setViewportSize({width:360,height:701});await startStill(page,checkpoint(6),theme);
   await expect.poll(()=>painting(page)).toMatch(/^front-room-/);
   // This short phone has no room above the raised drawer for the pin, so the player lowers the drawer to see it.
   await expect(page.locator('#room-pin')).toHaveAttribute('data-covered','');await page.locator('#drawer-handle').click();

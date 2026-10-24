@@ -107,12 +107,14 @@ test('a campaign quest takes the ticket of a repeating quest, which waits and ge
   state = act(ready(state), { type: 'task' });
   assert.equal(state.repeating?.open, 'sorin-staff-meal');
   assert.equal(status(state, 'sorin-staff-meal'), 'waiting');
+  assert.deepEqual(state.steppedBack, ['sorin-staff-meal']);
   for (let turn = 0; turn < 20 && status(state, 'sorin-staff-meal') === 'waiting'; turn++) {
     const next = resolveQuests(state, data).find(view => view.status === 'active' && !view.quest.repeating && !view.quest.recovery && view.quest.id !== later && !view.quest.march)!;
     state = deliver(state, next.quest.id);
   }
   assert.equal(status(state, 'sorin-staff-meal'), 'active');
   assert.equal(state.repeating?.open, 'sorin-staff-meal');
+  assert.equal(state.steppedBack, undefined);
 });
 
 test('the repeating quests do not change the two cases of the recovery quest', () => {

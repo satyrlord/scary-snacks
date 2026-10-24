@@ -244,6 +244,11 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .ticket-more .ticket-count { position: static; translate: none; }
 .ticket-more-label { font-size: 10px; line-height: 12px; }
 .ticket-more.ready::after { display: none; }
+/* The waiting count has its own target above the tickets, clear of their faces and the phone drawer handle. */
+.game-layout:has(.waiting-count) { --waiting-space: 54px; }
+.ticket-row:has(.waiting-count) { padding-top: var(--waiting-space); }
+.waiting-count { position: absolute; top: -45px; right: 0; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: var(--control-radius); background: transparent; }
+.waiting-pill { min-width: 22px; height: 22px; padding: 0 6px; border: 2px solid var(--panel); border-radius: 11px; background: var(--accent); color: var(--surface); font-size: 11px; font-weight: 700; line-height: 18px; font-variant-numeric: tabular-nums; box-shadow: 0 1px 2px #2a1a1029; }
 .tickets-empty { grid-column: 1 / -1; margin: 0; padding: 12px; color: var(--muted); font-size: 13px; text-align: center; }
 .ticket-row:has(.recovery-ticket) .tickets-empty { grid-column: 1 / -2; }
 /* After the last dish of the prologue, the counter carries Read now beside its line. */
@@ -563,6 +568,12 @@ dialog:has(.quest-page-content) {
 .quest-person,.quest-note,.quest-count { color: var(--muted); font-size: 13px; line-height: 1.6; }
 .quest-person { margin: 2px 0 0; }
 .quest-note { margin: 8px 0 14px; }
+.waiting-list { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.waiting-entry { display: flex; align-items: center; gap: 12px; }
+.waiting-entry .portrait { flex-shrink: 0; width: 44px; height: 44px; }
+.waiting-entry p { margin: 0; }
+.waiting-name { font-size: 14px; font-weight: 600; }
+.waiting-reason { color: var(--muted); font-size: 13px; line-height: 1.5; }
 .quest-lines { display: grid; gap: 12px; margin-bottom: 14px; }
 .quest-line { margin: 0; }
 /* In an exchange, each turn starts with its speaker's name on its own line. */
@@ -656,7 +667,7 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
     --view-h: 100dvh; --frame-w: max(100cqw, 75cqh);
     --side-w: clamp(220px, calc(var(--panel-w) * .3), 300px); --chrome-w: 128px;
     /* Only the width can take a cell below 44px: the board and the source tab share the kitchen column. */
-    --cell: clamp(40px, min(calc((var(--panel-w) - var(--side-w) - var(--chrome-w) + 31px) / 9.654), max(44px, calc((100dvh - 388px) / 8.2645))), 96px);
+    --cell: clamp(40px, min(calc((var(--panel-w) - var(--side-w) - var(--chrome-w) + 31px) / 9.654), max(44px, calc((100dvh - 388px - var(--waiting-space, 0px)) / 8.2645))), 96px);
     padding: 0 24px 16px;
   }
   .room { position: fixed; z-index: 0; inset: 0 auto 0 0; width: calc(100vw - var(--panel-w)); }
@@ -731,7 +742,7 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   /* Phones stack the day over the time, so the masthead keeps room for the coins. */
   .day-clock { font-size: 12px; }.clock-face { display: grid; justify-items: end; }.clock-dot { display: none; }
   .game-layout {
-    --ticket-h: 74px; --chrome-base: 158px; --drawer-chrome: calc(var(--chrome-base) + var(--ticket-h) + var(--prologue-space, 0px) + var(--feedback-space, 0px)); --frame-w: 100cqw;
+    --ticket-h: 74px; --chrome-base: 158px; --drawer-chrome: calc(var(--chrome-base) + var(--ticket-h) + var(--waiting-space, 0px) + var(--prologue-space, 0px) + var(--feedback-space, 0px)); --frame-w: 100cqw;
     /* The drawer always fits the screen. The room above it asks for --room-space: 80px, or the room for the pin of a marked change. It
        gives that up first, down to a 24px strip for the handle, so the cells keep 44px. Then the cells shrink, down to 30px. --fit is
        the height that the board and the room share. */
@@ -740,7 +751,7 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
     --drawer-h: calc(var(--cell) * 8.2645 + var(--drawer-chrome));
     --view-base: calc(100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-h));
     /* Lowered, the drawer shows the whole painting and keeps its tickets in view. */
-    --drop-full: max(0px, calc(min(100vw * 4 / 3, 100dvh - var(--head-h) - var(--bar-h) - var(--safe) - 18px - var(--ticket-h) - var(--prologue-space, 0px)) - var(--view-base)));
+    --drop-full: max(0px, calc(min(100vw * 4 / 3, 100dvh - var(--head-h) - var(--bar-h) - var(--safe) - 18px - var(--ticket-h) - var(--waiting-space, 0px) - var(--prologue-space, 0px)) - var(--view-base)));
     --view-h: calc(var(--view-base) + var(--drawer-drop));
     transition: --drawer-drop .6s cubic-bezier(.65,0,.35,1);
   }
@@ -862,7 +873,7 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   .ticket-items:has(>:nth-child(4)) .ticket-count { position: static; translate: none; }
 }
 /* Compact phones trim the drawer's padding, so the board keeps 18px more of the height. */
-@media (max-width: 1023px) and (min-height: 601px) and (max-height: 720px) {
+@media (max-width: 1023px) and (min-height: 701px) and (max-height: 720px) {
   .game-layout { --chrome-base: 140px; }
   .tickets { padding-top: 10px; }
   .table { margin-top: 2px; }
@@ -875,7 +886,7 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
 }
 /* Landscape phones and 200% zoom leave too little height for a fixed drawer over the room, so the room, the drawer and the bar return
    to the page flow. A vertical swipe on the board scrolls the page; a sideways drag still moves a dish. */
-@media (max-width: 1023px) and (max-height: 600px) {
+@media (max-width: 1023px) and (max-height: 700px) {
   .game-layout { --cell: clamp(44px, calc((min(100vw, 560px) - 16px) / 6.89), 60px); --view-h: 240px; --drawer-drop: 0px; transition: none; }
   .room { position: relative; inset: auto; height: 240px; }
   .area-switch { max-width: calc(100% - 24px); }
@@ -904,7 +915,7 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
 }
 /* Forced colours drop the tile fills and the inset rings: spaces, buttons and the selection keep system-colour edges. */
 @media (forced-colors: active) {
-  .cell,.source,.primary-button,.secondary-button,.ticket-item,.ticket,.area-choice,.room-pin { border: 1px solid ButtonBorder; }
+  .cell,.source,.primary-button,.secondary-button,.ticket-item,.ticket,.area-choice,.room-pin,.waiting-pill { border: 1px solid ButtonBorder; }
   .source.guide-target { outline: 3px dotted Highlight; outline-offset: -3px; }
   .source-slot.drop-target { outline: 3px solid Highlight; outline-offset: -3px; }
   .cell.obstacle { border: 2px dashed ButtonText; }

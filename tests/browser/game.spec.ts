@@ -206,7 +206,7 @@ test('the handle lowers the drawer to show the room and raises it again',async({
   await mergeFlour(page);
 });
 
-for(const height of [390,600])test(`a lowered drawer restores board input on a short screen at ${height}px`,async({page})=>{
+for(const height of [390,600,601,700])test(`a lowered drawer restores board input on a short screen at ${height}px`,async({page})=>{
   await page.setViewportSize({width:390,height:844});await start(page);
   const handle=page.locator('#drawer-handle'),body=page.locator('#drawer-body');
   await handle.click();await expect(body).toHaveAttribute('inert','');
@@ -1223,8 +1223,8 @@ test('narrow phones keep the whole dish name in the strip, and short screens kee
     expect((await tile(page,0).boundingBox())!.width).toBeGreaterThanOrEqual(44);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   }
-  // Down to 601px tall the room strip and then the cells give way, so the board and Mara's line fit above the bar without scrolling.
-  for(const [width,height] of [[390,664],[360,640],[320,601]]){
+  // Down to 701px tall the room strip and then the cells give way, so the board and Mara's line fit above the bar without scrolling.
+  for(const [width,height] of [[390,720],[360,720],[320,701]]){
     await page.setViewportSize({width,height});await start(page);
     expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBe(true);
     await expect(page.locator('#drawer-handle')).toBeVisible();

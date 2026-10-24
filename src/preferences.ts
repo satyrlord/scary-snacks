@@ -13,7 +13,7 @@ export const phone = matchMedia('(max-width: 720px)');
 // Up to this width the kitchen uses sheets; wider screens dock it beside the room.
 export const drawerLayout = matchMedia('(max-width: 1023px)');
 // Short screens put the kitchen in page flow and have no drawer handle.
-export const movableDrawer = matchMedia('(max-width: 1023px) and (height > 600px)');
+export const movableDrawer = matchMedia('(max-width: 1023px) and (height > 700px)');
 // Reduced motion keeps every outcome and line of text, without the flights, the drawer's movement, the fades, or the bats.
 // The Motion choice in Options follows the device (System), or stills or plays the motion whatever the device asks.
 const deviceStill = matchMedia('(prefers-reduced-motion: reduce)');
