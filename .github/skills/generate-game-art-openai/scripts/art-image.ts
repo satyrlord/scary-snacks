@@ -116,20 +116,20 @@ export function verifyReferenceHash(bytes: Buffer, expectedHash: unknown) {
     throw new Error('The reference does not match its recorded image hash.');
 }
 
-// Use only project-generated images as references.
-// Accept shipped bitmaps, helper candidates, and the composites and paper copies that art-composite.ts makes from those images.
+// A reference is a shipped bitmap, an image that the helpers made with its record, or another PNG that the user supplies, such as a mock.
+// A shipped bitmap or a helper image must match its recorded hash. No image from private/ leaves the computer.
 export async function readReference(file: string): Promise<ReferenceImage & { sha256: string }> {
   const resolved = await realpath(path.resolve(file));
+  if (isInside(await resolveWithAncestors(path.join(REPO, 'private')), resolved)) throw new Error('Do not use an image from private/ as a reference.');
   const shipping = await resolveWithAncestors(SHIPPING_ROOT);
   const tasks = await resolveWithAncestors(TASK_ROOT);
+  if (isInside(await resolveWithAncestors(path.join(REPO, 'analysis')), resolved) && !isInside(tasks, resolved))
+    throw new Error('Use only analysis/art-generation/ for art references in analysis/.');
   const isShipping = isInside(shipping, resolved);
   const record = { 'candidate.png': 'generation.json', 'composite.png': 'composite.json', 'paper.png': 'paper.json', 'halo.png': 'halo.json', 'text.png': 'text.json' }[path.basename(resolved)];
-  const isCandidate =
-    isInside(tasks, resolved) && record !== undefined && (await pathExists(path.join(path.dirname(resolved), record)));
-  if (!isShipping && !isCandidate)
-    throw new Error(
-      'Use only a shipped bitmap, a candidate that this helper generated, a composite, a paper copy, or a cleared halo of them, or a typeset text as a reference.',
-    );
+  const isCandidate = isInside(tasks, resolved) && record !== undefined;
+  if (isCandidate && !await pathExists(path.join(path.dirname(resolved), record)))
+    throw new Error('The helper reference needs its image record.');
   const bytes = await readFile(resolved);
   if (isShipping) {
     const record = JSON.parse(await readFile(path.join(REPO, 'docs', 'asset-provenance.json'), 'utf8')) as {
@@ -139,7 +139,7 @@ export async function readReference(file: string): Promise<ReferenceImage & { sh
     if (!asset || asset.sourceGameImageInput !== false)
       throw new Error('Use a shipped bitmap from the project provenance record.');
     verifyReferenceHash(bytes, asset.sha256);
-  } else {
+  } else if (isCandidate) {
     const generation = JSON.parse(await readFile(path.join(path.dirname(resolved), record!), 'utf8')) as {
       sourceSha256?: unknown;
     };

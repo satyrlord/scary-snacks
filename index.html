@@ -16,10 +16,8 @@
 </head>
 <body>
   <a class="skip-link" href="#board">Skip to the board</a>
-  <!-- One repeat of the runner bitmap (x 161, width 503) tiles without a seam; the whole bitmap does not. -->
-  <svg class="runner-source" aria-hidden="true" focusable="false"><defs><pattern id="runner-repeat" patternUnits="userSpaceOnUse" width="503" height="512"><image href="./assets/variants/embroidered-runner-384x128.webp" x="-161" y="0" width="1536" height="512"/></pattern></defs></svg>
   <!-- Six glass panes measured on front-room-01 and later. The broken window has different wood and never shows a bat. -->
-  <svg class="runner-source" aria-hidden="true" focusable="false"><defs><clipPath id="window-panes-mended" clipPathUnits="objectBoundingBox">
+  <svg class="svg-defs" aria-hidden="true" focusable="false"><defs><clipPath id="window-panes-mended" clipPathUnits="objectBoundingBox">
     <rect x=".018" y=".008" width=".399" height=".292"/><rect x=".582" y=".008" width=".412" height=".292"/>
     <rect x=".018" y=".34" width=".399" height=".299"/><rect x=".582" y=".34" width=".412" height=".299"/>
     <rect x=".018" y=".682" width=".399" height=".294"/><rect x=".582" y=".682" width=".412" height=".294"/>
@@ -61,10 +59,8 @@
       <div class="drawer-body" id="drawer-body">
         <section class="kitchen" aria-label="Kitchen">
           <div class="table">
-            <svg class="runner" viewBox="0 0 40000 512" preserveAspectRatio="xMinYMid slice" aria-hidden="true" focusable="false"><rect width="40000" height="512" fill="url(#runner-repeat)"/></svg>
-            <!-- The source tab holds a place for every source of the game, so the board keeps its size and position as sources come. -->
+            <!-- The source rack keeps a place for each source in the tab, so the board keeps its size and position as sources come. -->
             <div class="worktop"><div id="sources" class="sources" role="group" aria-label="Ingredient sources"></div><div id="board" class="board" role="group" aria-label="Merge board, 6 columns and 7 rows" tabindex="-1"></div></div>
-            <svg class="runner" viewBox="0 0 40000 512" preserveAspectRatio="xMinYMid slice" aria-hidden="true" focusable="false"><rect width="40000" height="512" fill="url(#runner-repeat)"/></svg>
           </div>
           <div class="line-slot">
             <div class="mara-line"><span class="portrait portrait-0" role="img" aria-label="Mara, the bistro owner"></span><p id="status" role="status" aria-live="polite">Opening the kitchen…</p><button type="button" class="text-button" id="hint-button">Find a match</button></div>

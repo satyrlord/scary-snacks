@@ -45,11 +45,12 @@ It requires an edge of at most 3840 pixels and 655,360 to 8,294,400 pixels in to
 It also requires the shape of the asset:
 
 - Square for the core portrait, regular portrait, family portrait, and mascot atlases, and the timber.
-  Also square for the rat hole and the two rat reference poses.
+  Also square for the rat hole, and the two rat reference poses.
 - 2:1 for the food atlases, the character sketch sheets, the family photographs, the two rat sheets, and the night sky.
-- 3:1 for the runner and the notebook pages.
+- 3:1 for the notebook pages.
 - 3:2 for the board-clutter atlas and the quest scenes.
 - 3:4 for a room state, a decoration painting, the supper painting, and a window view.
+- 1:3 for the source rack.
 
 The size must divide into equal grid cells.
 The plan sets `experimentalResolution` for a size of more than 3,686,400 pixels (2560 by 1440).
@@ -69,18 +70,18 @@ It does not show provider access or visual quality.
 
 ## Prepare the references
 
-Use text-only generation for a new asset.
+Use a text prompt for a new asset, with references when they help.
 For a revision, use one `--reference <image>` for each accepted image that the revision must keep.
-The helper accepts only these references:
+A reference can be any PNG image that the user supplies, for example a layout mock.
+The helper checks the hash of these references:
 
-- A shipped bitmap in `public/assets/original/` that matches its provenance hash.
-- A `candidate.png` in `analysis/art-generation/` that matches its generation-record hash.
-- A `composite.png` there that matches its `composite.json` hash.
-- A `paper.png` there that matches its `paper.json` hash.
-- A `halo.png` there that matches its `halo.json` hash.
-- A `text.png` there that matches its `text.json` hash.
+- A shipped bitmap in `public/assets/original/` must match its provenance hash.
+- A `candidate.png` in `analysis/art-generation/` must match its generation-record hash.
+- A `composite.png`, `paper.png`, `halo.png`, or `text.png` there must match the hash in its record.
 
-The helper rejects every other path, including `private/` and the other folders under `analysis/`.
+The helper rejects each image in `private/`.
+In `analysis/`, the helper accepts references only from `analysis/art-generation/`.
+The helper rejects a helper image when its record is missing.
 The helper accepts at most 16 references. Each reference must be a PNG image of less than 50 MB.
 The prompt and each reference leave the computer. Do not put a secret or private data in them.
 Give each reference a role in the prompt.
@@ -290,7 +291,7 @@ It sets the exit code to 1 for an `issues` entry. An issue is one of these items
 
 - The size does not agree with `--size`, or the width is not more than 1000 pixels.
 - The image does not divide into the grid.
-- A required blank cell in a food atlas, `regulars-3`, or `family-portraits` has a pixel that is not transparent.
+- A required blank cell in a food atlas, a pencil sheet, `summer-guests`, or `family-portraits` is not fully transparent.
 - A transparent asset has no alpha channel or no fully transparent pixel.
 - A cell of a transparent asset has no visible object. A visible object has pixels with an alpha of 128 or more.
 - An opaque painting has a transparent or partly transparent pixel.
@@ -318,8 +319,8 @@ Add these route details:
   Change the top-level `mode` field so that it names each route that made an entry.
 - Examine the statements that name the built-in chat image generator in `docs/release-notes.md` (section "Art provenance").
   Change a statement that is not true.
-- Set `sourceGameImageInput` to `false` only if each reference comes from this project.
-  References can include the helper's composites, paper copies, cleared halos, and typeset text.
+- Set `sourceGameImageInput` to `false` only if no reference comes from another game.
+- Record each reference that the user supplied, with its hash, in the `reference` key of the prompt record.
 
 Run `npm run assets:build`, `npm test`, `npm run build`, and `npm run test:browser`.
 Examine the changed assets in the game in both themes at the desktop size and the phone size.

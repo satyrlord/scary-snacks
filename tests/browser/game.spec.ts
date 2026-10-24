@@ -103,7 +103,7 @@ test('selection marks each recipe partner and match, and Find a match points at 
   await tile(page,partner).click();expect((await saved(page)).board[partner]?.code).toBe(sweetDough.id);
 });
 
-test('clicking a different item selects it for single-item actions; only a drag swaps',async({page})=>{
+test('ordinary taps select different dishes, and dragging swaps them',async({page})=>{
   await start(page);const before=await saved(page);await tile(page,13).click();await tile(page,22).click();
   expect(await saved(page)).toEqual(before);await expect(tile(page,22)).toHaveAttribute('aria-pressed','true');await expect(tile(page,13)).toHaveAttribute('aria-pressed','false');
   await tile(page,23).click();let state=await saved(page);expect(state.board[22]).toBeNull();expect(state.board[23]?.code).toBe('corn_1');expect(state.board[13]?.code).toBe('grain_1');
@@ -717,8 +717,9 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844}])for(const
   for(const paid of [windmill,basket]){
     await expect(paid.locator('.take-cost')).toHaveText(String(data.economy.takeCost));await expect(paid.locator('.take-cost .coin')).toBeVisible();
     await expect(paid.locator('.take-cost')).toHaveAttribute('aria-hidden','true');
-    const [badge,cell]=await Promise.all([paid.locator('.take-cost').boundingBox(),paid.boundingBox()]);
-    expect(badge!.x).toBeGreaterThanOrEqual(cell!.x);expect(badge!.y+badge!.height).toBeLessThanOrEqual(cell!.y+cell!.height+.5);
+    // The cost hangs over the pocket, centred under its picture, over only the clear lower edge of the picture box.
+    const [badge,card,picture]=await Promise.all([paid.locator('.take-cost').boundingBox(),paid.boundingBox(),paid.locator('.food').boundingBox()]);
+    expect(badge!.x).toBeGreaterThanOrEqual(card!.x);expect(badge!.x+badge!.width).toBeLessThanOrEqual(card!.x+card!.width);expect(badge!.y).toBeGreaterThanOrEqual(picture!.y+picture!.height*.85);
     const colors=await paid.locator('.take-cost').evaluate(e=>({back:getComputedStyle(e).backgroundColor,text:getComputedStyle(e).color}));
     expect(ratio(colors.back,colors.text)).toBeGreaterThanOrEqual(4.5);
   }
@@ -753,6 +754,7 @@ for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'phone',wid
     await appearance(page,mode);await unselect(page);await page.keyboard.press('Tab');
     await expect(viewport.name==='phone'?page.locator('#offer .pay-button'):page.locator('#hint-button')).toBeFocused();
     await tile(page,13).click();await page.keyboard.press('Tab');
+    await expect(page.locator('#item-detail summary')).toBeFocused();await page.keyboard.press('Tab');
     await expect(page.locator('#item-detail').getByRole('button',{name:'Clear selection',exact:true})).toBeFocused();
     await expect(page.locator('.mara-line').getByRole('status')).toContainText(/tap a marked dish to merge/i);
     await unselect(page);await page.keyboard.press('Tab');
@@ -856,12 +858,12 @@ test('export, import, and reset keep portable new-game progress',async({page})=>
   await options(page);await importSaveFile(page,text);expect(await saved(page)).toEqual(before);
 });
 
-test('Options holds only the save, appearance, motion, sounds, the saved game, about, a fresh start, and the version',async({page})=>{
+test('Options holds the save, appearance, motion, sounds, source order, the saved game, about, a fresh start, and the version',async({page})=>{
   await start(page,checkpoint(12));await options(page);const dialog=page.getByRole('dialog',{name:'Options',exact:true});
   await expect(page.locator('[data-options]:visible')).toHaveAccessibleName('Options');await expect(page.locator('[data-options]:visible')).toContainText('Options');
   await expect(dialog.locator('.save-status').first()).toHaveText('Saved in this browser');
-  await expect(dialog.locator('legend, h3')).toHaveText(['Appearance','Motion','Kitchen sounds','Your saved game','About Scary Snacks','A fresh start']);
-  await expect(dialog.getByRole('button')).toHaveText(['','Turn sound on','Export saved game','Import saved game','Start a new game']);
+  await expect(dialog.locator('legend, h3')).toHaveText(['Appearance','Motion','Kitchen sounds','Arrange sources','Your saved game','About Scary Snacks','A fresh start']);
+  await expect(dialog.getByRole('button')).toHaveText(['','Turn sound on','Move source','Export saved game','Import saved game','Start a new game']);
   await expect(dialog.locator('p').last()).toHaveText(`Version ${appVersion()}`);
   for(const name of ['Retry saved game','Retry save'])await expect(page.getByRole('button',{name,exact:true})).toHaveCount(0);
   await page.setViewportSize({width:390,height:844});await page.keyboard.press('Escape');
@@ -983,7 +985,7 @@ test('only approved assets load from the active root or Pages prefix, and only t
   page.on('response',r=>{if(r.status()>=400&&!r.url().endsWith('/favicon.ico'))failures.push(r.url());else loaded.push(new URL(r.url()).pathname);});page.on('pageerror',e=>errors.push(e.message));
   await start(page);
   // The page loads the AVIF or WebP variants of every master it shows, never a PNG master.
-  for(const id of ['front-room-00','timber-tabletop','embroidered-runner','food-grain','food-corn','food-herbs','portraits','mascots','regulars-1'])await expect.poll(()=>loaded.some(path=>path.includes(`/assets/variants/${id}-`)),{message:id}).toBe(true);await expect(page).toHaveTitle('Scary Snacks');
+  for(const id of ['front-room-00','timber-tabletop','cutting-board','source-rack','food-grain','food-corn','food-herbs','portraits','mascots','regulars-1'])await expect.poll(()=>loaded.some(path=>path.includes(`/assets/variants/${id}-`)),{message:id}).toBe(true);await expect(page).toHaveTitle('Scary Snacks');
   const rooms=()=>[...new Set(loaded.filter(path=>/\/assets\/variants\/(front-room|courtyard)-\d\d-/.test(path)).map(path=>path.match(/(front-room|courtyard)-\d\d/)![0]))];
   expect(rooms()).toEqual(['front-room-00']);
   await ticket(page,welcome).locator('.ticket-face').click();
@@ -1054,7 +1056,8 @@ test('phone shows the room, the tickets, the board and Mara in one screen, with 
   expect(tickets.y).toBeGreaterThanOrEqual(drawer.y);expect(board.y).toBeGreaterThanOrEqual(tickets.y+tickets.height);expect(board.y+board.height).toBeLessThanOrEqual(slot.y);expect(slot.y+slot.height).toBeLessThanOrEqual(bar.y+1);
   await expect(page.locator('#tickets .deliver-button:visible')).toHaveCount(0);
   for(const face of await page.locator('#tickets .ticket-face').all())expect((await face.boundingBox())!.height).toBeGreaterThanOrEqual(44);
-  expect((await tile(page,0).boundingBox())!.width).toBeGreaterThanOrEqual(44);
+  // At 390px the width sets the cell: the board and the source rack share the row.
+  expect((await tile(page,0).boundingBox())!.width).toBeGreaterThanOrEqual((390-12)/9.654-.5);
   await unselect(page);await expect(page.locator('.mara-line')).toBeVisible();await expect(page.locator('#item-detail')).toBeHidden();
   await tile(page,14).click();await expect(page.locator('#item-detail')).toBeVisible();expect((await box('.mara-line')).width).toBeLessThanOrEqual(1);
   await unselect(page);await expect(page.locator('.mara-line')).toBeVisible();
@@ -1079,8 +1082,8 @@ test('desktop first screen shows the uncovered room beside the tickets, the whol
   await tile(page,13).click();await expect(page.locator('#item-detail')).toBeVisible();await expect(page.locator('#item-detail')).toContainText('Flour');
   await page.getByRole('button',{name:'Clear selection'}).click();await expect(page.locator('#board [aria-pressed="true"]')).toHaveCount(0);await expect(page.locator('#item-detail')).toBeHidden();
   await page.locator('#cat-button').click();await expect(page.locator('#cat-button .cat-sleeping')).toBeVisible();await expect(page.locator('#drawer-handle')).toBeHidden();
-  // The runner repeats only the seamless part of its bitmap.
-  await expect(page.locator('#runner-repeat image')).toHaveAttribute('x','-161');await expect(page.locator('#runner-repeat')).toHaveAttribute('width','503');
+  // The board is the cutting-board painting, with its carved wells under the cells.
+  await expect(page.locator('#board')).toHaveCSS('background-image',/cutting-board-1068x1281\.webp/);
 });
 
 test('coins keep clear of the wordmark on narrow phones',async({page})=>{
@@ -1216,8 +1219,8 @@ test('narrow phones keep the whole dish name in the strip, and short screens kee
     else await expect(page.locator('#item-detail .detail-next')).toBeVisible();
     await expect(page.locator('#status')).toHaveText(line);
     expect((await page.locator('#item-detail').boundingBox())!.y+(await page.locator('#item-detail').boundingBox())!.height).toBeLessThanOrEqual((await page.locator('.phone-bar').boundingBox())!.y+1);
-    // Cells drop below 44px only as far as the width needs for the board and the source tab, within half a pixel of rounding.
-    expect((await tile(page,0).boundingBox())!.width).toBeGreaterThanOrEqual(Math.min(43.5,(width-42)/7.75-.5));
+    // Cells drop below 44px only as far as the width needs for the board and the source rack, within half a pixel of rounding.
+    expect((await tile(page,0).boundingBox())!.width).toBeGreaterThanOrEqual(Math.min(43.5,(width-12)/9.654-.5));
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   }
   // Down to 740px tall the room gives up height, so the board and Mara's line still fit above the bar without scrolling.

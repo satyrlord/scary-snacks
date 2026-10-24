@@ -60,7 +60,7 @@ Art candidates are not in the published assets.
 
 ## Art provenance
 
-The game ships image variants from 115 masters.
+The game ships image variants from 117 masters.
 [Asset provenance](asset-provenance.json) records each master, its references, processing, review limits, and hash.
 [Asset prompts](asset-prompts.json) preserves the exact generation prompts.
 These records describe the source of the current assets. These records do not give legal clearance.
@@ -77,10 +77,13 @@ Fixed-cell assembly gives the visitor atlas the complete Ionatan cell.
 The dress of Adrian, Monica, and Janos follows the recorded local references.
 The provenance record distinguishes recorded user acceptance from agent review.
 
+The user supplied the cutting board as a finished painting, and the rack that the source rack edits.
+
 The OpenAI Images application programming interface (API) supplies these assets through `gpt-image-2.5-flare` at high quality:
 
 - The mascots, with a project-generated chat atlas as their reference.
-- The timber tabletop and embroidered runner, from text prompts.
+- The timber tabletop, from a text prompt.
+- The source rack, as an edit of the rack that the user supplied.
 - The core portraits, with a project-generated candidate as their reference.
 - The three regulars atlases, with project-generated portraits as style references.
 - The summer-guests portrait atlas, with project-generated portrait atlases as style references.

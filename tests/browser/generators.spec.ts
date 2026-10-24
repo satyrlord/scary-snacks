@@ -56,7 +56,8 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 390, height: 844 }
     await start(page, initial);
     const crate = source(page, 'vegetables'), before = (await crate.boundingBox())!, board = await page.locator('#board').boundingBox();
     const x = before.x + before.width / 2, y = before.y + before.height / 2;
-    await page.mouse.click(x, y);
+    // A pointer over a card lifts it, so the pointer leaves before the card is measured.
+    await page.mouse.click(x, y); await page.mouse.move(0, 0);
     expect(await crate.boundingBox()).toEqual(before);
     expect(await page.locator('#board').boundingBox()).toEqual(board);
     await page.mouse.click(x, y);
@@ -124,28 +125,55 @@ test('a drag moves a source to another place, a drop on a free place puts it las
   expect(await page.locator('#sources [data-source]').evaluateAll(nodes => nodes.map(node => (node as HTMLElement).dataset.source))).toEqual(['herbs', 'grain', 'corn', 'pickles']);
 });
 
-test('Alt and an arrow key move the focused source by one place, and the focus stays on it', async ({ page }) => {
+test('the arrow keys move along a pocket and between pockets, and Alt with an arrow key moves the focused source the same way', async ({ page }) => {
   await start(page, actOne());
+  // Two cards hang in each pocket: Grain and Corn in the first, Herbs and the Pickle barrel in the second.
   const windmill = source(page, 'grain');
   await windmill.focus();
-  await page.keyboard.press('Alt+ArrowDown');
+  await page.keyboard.press('Alt+ArrowRight');
   expect((await saved(page)).sources).toEqual(['corn', 'grain', 'herbs', 'pickles']);
   await expect(windmill).toBeFocused();
   await expect(windmill).toHaveAccessibleName(/Place 2 of 4$/);
-  await expect(page.locator('#status')).toHaveText(`${data.items.generator_grain.name}: place 2 of 4.`);
-  await page.keyboard.press('Alt+ArrowUp'); await page.keyboard.press('Alt+ArrowUp');
+  await page.keyboard.press('Alt+ArrowDown');
+  expect((await saved(page)).sources).toEqual(['corn', 'herbs', 'pickles', 'grain']);
+  await expect(windmill).toBeFocused();
+  // A move past the last source keeps the place, and Mara names it.
+  await page.keyboard.press('Alt+ArrowDown');
+  expect((await saved(page)).sources).toEqual(['corn', 'herbs', 'pickles', 'grain']);
+  await expect(page.locator('#status')).toHaveText(`${data.items.generator_grain.name}: place 4 of 4.`);
+  await page.keyboard.press('Alt+ArrowUp'); await page.keyboard.press('Alt+ArrowLeft');
   expect((await saved(page)).sources).toEqual(['grain', 'corn', 'herbs', 'pickles']);
   await expect(windmill).toBeFocused();
   // The arrow keys alone move the focus, and the order stays.
-  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowRight');
   await expect(source(page, 'corn')).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(source(page, 'pickles')).toBeFocused();
+  await page.keyboard.press('ArrowLeft');
+  await expect(source(page, 'herbs')).toBeFocused();
+  await page.keyboard.press('ArrowUp');
+  await expect(windmill).toBeFocused();
   await page.keyboard.press('End');
   await expect(source(page, 'pickles')).toBeFocused();
   expect((await saved(page)).sources).toEqual(['grain', 'corn', 'herbs', 'pickles']);
 });
 
+test('the rack opens an eighth pocket only while a fifteenth source is in the tab, and the board stays still', async ({ browser, baseURL }) => {
+  const thirteen = checkpoint(40), fifteen = { ...thirteen, sources: data.chains.map(chain => chain.id), discovered: [...new Set([...thirteen.discovered, ...data.chains.map(chain => `generator_${chain.id}`)])] };
+  const boards = [];
+  for (const [state, pockets, places] of [[thirteen, 7, 14], [fifteen, 8, data.chains.length]] as const) {
+    const context = await browser.newContext({ baseURL }), page = await context.newPage();
+    await start(page, state);
+    await expect(page.locator('#sources .source-pocket')).toHaveCount(pockets);
+    await expect(page.locator('#sources .source-slot')).toHaveCount(places);
+    boards.push(await page.locator('#board').boundingBox());
+    await context.close();
+  }
+  expect(boards[1]).toEqual(boards[0]);
+});
+
 for (const mode of ['Light', 'Dark']) for (const viewport of [{ width: 360, height: 740 }, { width: 390, height: 844 }, { width: 1440, height: 900 }]) {
-  test(`the source tab keeps a place for every source and shares the edges of the board in ${mode} at ${viewport.width} by ${viewport.height}`, async ({ browser, baseURL }) => {
+  test(`the source rack keeps a place for every source and shares the edges of the board in ${mode} at ${viewport.width} by ${viewport.height}`, async ({ browser, baseURL }) => {
     let reserved: { x: number; y: number; width: number; height: number } | null = null;
     for (const state of [actOne(), afterPreparations(20)]) {
       const context = await browser.newContext({ baseURL, viewport }), page = await context.newPage();
@@ -153,7 +181,8 @@ for (const mode of ['Light', 'Dark']) for (const viewport of [{ width: 360, heig
       await appearance(page, mode);
       const tab = page.locator('#sources'), board = page.locator('#board');
       reserved ??= (await tab.boundingBox())!;
-      await expect(tab.locator('.source-slot')).toHaveCount(data.chains.length);
+      const pockets = Math.max(7, Math.ceil(state.sources.length / 2));
+      await expect(tab.locator('.source-slot')).toHaveCount(Math.min(pockets * 2, data.chains.length));
       await expect(tab.locator('[data-source]')).toHaveCount(state.sources.length);
       // The tab keeps its size, so a new source never moves the board.
       const box = (await tab.boundingBox())!, grid = (await board.boundingBox())!;
@@ -161,14 +190,22 @@ for (const mode of ['Light', 'Dark']) for (const viewport of [{ width: 360, heig
       expect(Math.abs(box.y - grid.y)).toBeLessThanOrEqual(1);
       expect(Math.abs(box.y + box.height - grid.y - grid.height)).toBeLessThanOrEqual(1);
       expect(box.x + box.width).toBeLessThan(grid.x);
+      // Seven pockets of two places each. Each card stands in its pocket with its picture above the rail, and the cost tag is centred on
+      // the top edge of the rail and covers only the clear lower edge of the picture box, as the food art keeps a clear margin there.
+      await expect(tab.locator('.source-pocket')).toHaveCount(pockets);
       for (const chain of state.sources) {
-        const place = (await source(page, chain).boundingBox())!;
-        expect(place.width).toBeGreaterThanOrEqual(34);
+        const card = source(page, chain), place = (await card.boundingBox())!, picture = (await card.locator('.food').boundingBox())!;
+        const row = card.locator('xpath=ancestor::*[contains(@class,"source-pocket")]'), pocket = (await row.boundingBox())!;
+        const rail = pocket.y + pocket.height - await row.evaluate(element => parseFloat(getComputedStyle(element, '::after').height));
+        expect(place.width).toBeGreaterThanOrEqual(24); expect(picture.width).toBeGreaterThanOrEqual(19);
         expect(place.x).toBeGreaterThanOrEqual(box.x - 1); expect(place.x + place.width).toBeLessThanOrEqual(box.x + box.width + 1);
-        const cost = source(page, chain).locator('.take-cost');
+        expect(picture.y + picture.height).toBeLessThanOrEqual(rail + .5);
+        const cost = card.locator('.take-cost');
         if (await cost.count()) {
-          const pill = (await cost.boundingBox())!;
-          expect(pill.x).toBeGreaterThanOrEqual(place.x); expect(pill.y + pill.height).toBeLessThanOrEqual(place.y + place.height + 0.5);
+          const tag = (await cost.boundingBox())!;
+          expect(tag.x).toBeGreaterThanOrEqual(place.x); expect(tag.x + tag.width).toBeLessThanOrEqual(place.x + place.width);
+          expect(tag.y).toBeGreaterThanOrEqual(picture.y + picture.height * .85);
+          expect(Math.abs(tag.y + tag.height / 2 - rail)).toBeLessThanOrEqual(1.5);
         }
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

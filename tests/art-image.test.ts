@@ -2,10 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import type { TestContext } from 'node:test';
 import { crc32, deflateSync } from 'node:zlib';
 import sharp from 'sharp';
-import { checkMask, planAsset, verifyReferenceHash } from '../.github/skills/generate-game-art-openai/scripts/art-image.ts';
+import { checkMask, planAsset, readReference, verifyReferenceHash } from '../.github/skills/generate-game-art-openai/scripts/art-image.ts';
 import { SEPIA_DARK, compositeRegion, inkPatch, makeMask, paperCopy, paperToAlpha, sepiaLines } from '../.github/skills/generate-game-art-openai/scripts/art-composite.ts';
 import { buildImageRequest } from '../.github/skills/generate-game-art-openai/scripts/openai-api.ts';
 import { inspectPng } from '../.github/skills/generate-game-art-openai/scripts/png-facts.ts';
@@ -109,6 +113,61 @@ test('image references require the recorded hash and reject changed candidate or
   assert.throws(() => verifyReferenceHash(Buffer.from('replacement image'), hash), /recorded image hash/u);
   for (const missing of [undefined, null, '', 'not a hash', {}])
     assert.throws(() => verifyReferenceHash(original, missing), /recorded image hash/u);
+});
+
+test('a PNG that the user supplies, such as a layout mock, is a reference without a project record', async (t) => {
+  const directory = await mkdtemp(path.join(tmpdir(), 'art-reference-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const mock = path.join(directory, 'mock.png'), bytes = png(4);
+  await writeFile(mock, bytes);
+  const reference = await readReference(mock);
+  assert.equal(reference.format, 'png');
+  assert.equal(reference.sha256, createHash('sha256').update(bytes).digest('hex'));
+});
+
+async function referenceFixture(t: TestContext) {
+  const root = await mkdtemp(path.join(tmpdir(), 'scary-snacks-art-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const scripts = '.github/skills/generate-game-art-openai/scripts';
+  await mkdir(path.join(root, scripts), { recursive: true });
+  await mkdir(path.join(root, 'public/data'), { recursive: true });
+  for (const name of ['art-image.ts', 'openai-api.ts', 'png-facts.ts'])
+    await copyFile(path.join(scripts, name), path.join(root, scripts, name));
+  await copyFile('public/data/game.json', path.join(root, 'public/data/game.json'));
+  const helper: typeof import('../.github/skills/generate-game-art-openai/scripts/art-image.ts') =
+    await import(pathToFileURL(path.join(root, scripts, 'art-image.ts')).href);
+  return { root, readReference: helper.readReference };
+}
+
+test('helper references require their records even when a record is missing', async (t) => {
+  const fixture = await referenceFixture(t), directory = path.join(fixture.root, 'analysis/art-generation/run');
+  await mkdir(directory, { recursive: true });
+  const bytes = png(4), hash = createHash('sha256').update(bytes).digest('hex');
+  for (const [image, record] of [['candidate.png', 'generation.json'], ['composite.png', 'composite.json'],
+    ['paper.png', 'paper.json'], ['halo.png', 'halo.json'], ['text.png', 'text.json']]) {
+    const file = path.join(directory, image);
+    await writeFile(file, bytes);
+    await assert.rejects(fixture.readReference(file), /record/u, image);
+    await writeFile(path.join(directory, record), JSON.stringify({ sourceSha256: hash }));
+    assert.equal((await fixture.readReference(file)).sha256, hash, image);
+    await writeFile(file, png(4, false, 254));
+    await assert.rejects(fixture.readReference(file), /recorded image hash/u, image);
+  }
+});
+
+test('references reject private files and analysis files outside the art folder', async (t) => {
+  const fixture = await referenceFixture(t);
+  for (const folder of ['private', 'analysis/other']) {
+    const directory = path.join(fixture.root, folder);
+    await mkdir(directory, { recursive: true });
+    const file = path.join(directory, 'mock.png');
+    await writeFile(file, png(4));
+    await assert.rejects(fixture.readReference(file), /private\/|analysis\/art-generation\//u, folder);
+  }
+  const supplied = path.join(fixture.root, 'analysis/art-generation/mock.png');
+  await mkdir(path.dirname(supplied), { recursive: true });
+  await writeFile(supplied, png(4));
+  assert.equal((await fixture.readReference(supplied)).format, 'png');
 });
 
 test('processed sketch and scene inspection checks transparency while raw inspection still requires paper', () => {

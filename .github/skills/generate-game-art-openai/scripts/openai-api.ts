@@ -28,7 +28,6 @@ export type AssetId =
   | 'family-photos'
   | 'notebook-pages'
   | 'timber-tabletop'
-  | 'embroidered-runner'
   | 'decoration-front'
   | 'decoration-courtyard'
   | 'holiday-front'
@@ -45,13 +44,14 @@ export type AssetId =
   | 'rat-soricescu'
   | 'rat-hole'
   | 'night-sky'
+  | 'source-rack'
   | WindowViewId
   | RoomStateId
   | PencilSheetId;
 type Background = 'transparent' | 'opaque';
 interface AssetContract {
   background: Background;
-  shape: 'square' | 'landscape-2x1' | 'landscape-3x1' | 'landscape-3x2' | 'portrait-3x4';
+  shape: 'square' | 'landscape-2x1' | 'landscape-3x1' | 'landscape-3x2' | 'portrait-3x4' | 'portrait-1x3';
   columns: number;
   rows: number;
   blankCells?: readonly number[];
@@ -151,19 +151,14 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   // The rat hole blocker, and the night sky behind the upper panes of the front-room window.
   'rat-hole': { background: 'transparent', shape: 'square', columns: 1, rows: 1, defaultSize: '1024x1024' },
   'night-sky': { background: 'opaque', shape: 'landscape-2x1', columns: 1, rows: 1, defaultSize: '2048x1024' },
+  // The source tab: a walnut wall letter rack beside the board.
+  'source-rack': { background: 'transparent', shape: 'portrait-1x3', columns: 1, rows: 1, defaultSize: '1024x3072' },
   'timber-tabletop': {
     background: 'opaque',
     shape: 'square',
     columns: 1,
     rows: 1,
     defaultSize: '1536x1536',
-  },
-  'embroidered-runner': {
-    background: 'opaque',
-    shape: 'landscape-3x1',
-    columns: 1,
-    rows: 1,
-    defaultSize: '1536x512',
   },
 });
 
@@ -194,6 +189,7 @@ export function validateAssetSize(assetId: unknown, size: unknown) {
     'landscape-3x1': [width === height * 3, 'Use a 3:1 landscape size for this strip.'],
     'landscape-3x2': [width * 2 === height * 3, 'Use a 3:2 landscape size for this asset.'],
     'portrait-3x4': [width * 4 === height * 3, 'Use a 3:4 portrait size for this room state.'],
+    'portrait-1x3': [height === width * 3, 'Use a 1:3 portrait size for this rack.'],
   } as const;
   const [shapeMatches, shapeError] = shapes[asset.shape];
   if (!shapeMatches) throw new Error(shapeError);

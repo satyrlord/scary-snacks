@@ -1,5 +1,5 @@
 {
-  "mode": "The built-in chat image generator supplies references for the mascots and two decoration paintings. The generator also supplies visitor portraits, guest portraits, both clutter atlases, the parchment texture, and the first versions of the pencil sketches and quest scenes. The OpenAI Images application programming interface (API) uses gpt-image-2.5-flare at high quality. The API supplies the 20 food atlases, mascots, core portraits, three regulars atlases, the portraits of the summer guests, the hail atlas, timber-tabletop, and embroidered-runner. The API also supplies counter-band, courtyard, the room states, the two decoration paintings, the supper painting, the two rat sheets with their identity references, the rat hole, and the night sky. The API also supplies the four sheets of character sketches and the six sheets of quest scenes. The prompt records preserve the exact requests and their processing evidence.",
+  "mode": "The built-in chat image generator supplies references for the mascots and two decoration paintings. The generator also supplies visitor portraits, guest portraits, both clutter atlases, the parchment texture, and the first versions of the pencil sketches and quest scenes. The OpenAI Images application programming interface (API) uses gpt-image-2.5-flare at high quality. The API supplies the 20 food atlases, mascots, core portraits, three regulars atlases, the portraits of the summer guests, the hail atlas, and timber-tabletop. The API also supplies counter-band, courtyard, the room states, the two decoration paintings, the supper painting, the two rat sheets with their identity references, the rat hole, the night sky, and the source rack. The API also supplies the four sheets of character sketches and the six sheets of quest scenes. The prompt records preserve the exact requests and their processing evidence.",
   "originalGameImageReferences": false,
   "prompts": [
     {
@@ -54,16 +54,6 @@
         "quality": "high",
         "size": "1536x1536",
         "run": "across-the-table/timber-tabletop-1"
-      }
-    },
-    {
-      "id": "embroidered-runner",
-      "prompt": "Use case: texture. Create an original seamless horizontal border texture, 3:1, for a cosy Transylvanian bistro game. DO NOT PUT ANY TEXT, LETTERS OR NUMBERS in the image. Strict top-down, flat, evenly lit view of a segment of a hand-embroidered cream linen table runner that fills the entire image from edge to edge: one band of traditional Transylvanian-style counted cross-stitch running horizontally across the full width, made of bold, simple eight-point stars, diamonds and stepped zigzag lines in deep madder red with a few black accents, framed above and below by two narrow plain red stitched lines. The motifs are large and simple enough to stay readable when the strip is shown only 14 pixels tall. Hand-painted gouache with delicate colored pencil thread texture, in a mature, cosy European storybook illustration style. The motif repeats exactly three times across the width, and the image must tile seamlessly from left to right. No hooked crosses, no swastika-like shapes, no political or religious emblems, no text, no folds or wrinkles, no shadows, no perspective, no frayed ends, and no background outside the cloth.\n",
-      "generation": {
-        "model": "gpt-image-2.5-flare",
-        "quality": "high",
-        "size": "1536x512",
-        "run": "across-the-table/embroidered-runner-1"
       }
     },
     {
@@ -2517,6 +2507,29 @@
         "mask": "a mask of the changed region, made with art-composite.ts mask"
       },
       "disposition": "The user rejected this candidate: its shadow was a dark block between the beds. The corrective request front-right-shadow-run2 replaced it."
+    },
+    {
+      "id": "source-rack-slim",
+      "prompt": "The provided image is the approved walnut wall letter rack of a cosy, slightly eerie Transylvanian bistro game, supplied by the art director. Repaint it as the same rack with slimmer parts, so that its seven pockets are taller. Keep everything else exactly as in the image: the warm reddish walnut wood and its grain, the glossy hand-painted rendering with soft highlights, the lighting from the upper left, the strict flat front view, the left-right symmetry, the vertical plank back board, the two upright side posts with their small dark nails and their gently curved feet, the carved bat in the middle of the crest, the painted red tulips with green leaves on the crest, the small dark nails at both ends of each rail, and the small painted red tulip with green leaves in the middle of each rail.\n\nThe image is 1024 pixels wide and 3072 pixels tall. Make these changes:\n1. The rack fills the image: the outer edge of the left upright is 12 pixels from the left edge of the image, and the outer edge of the right upright is 12 pixels from the right edge. Each upright is about 60 pixels wide.\n2. The crest is much LOWER: its arched top reaches 12 pixels from the top of the image at the centre, and its straight lower edge is a horizontal line only 150 pixels from the top. Make the carved bat and the two crest tulips smaller so that they fit in this low crest.\n3. The seven rails are THIN: each rail is a flat horizontal board only 52 pixels tall, from the left upright to the right upright. Make the nails and the tulip on each rail smaller so that they fit.\n4. The seven pockets have the SAME height. The first pocket starts under the crest. Rail number 7 is at the bottom of the rack, and its lower edge is 3020 pixels from the top. The rails are evenly spaced: the top edges of the rails are at about 509, 920, 1331, 1742, 2153, 2564, and 2968 pixels from the top.\n5. Below rail number 7, only the two curved feet of the uprights continue to the bottom of the image.\n\nDo NOT paint any cards, letters, paper, food, plates, shelves, or other objects in the pockets: each pocket shows only the empty plank back board. No text, numbers, letters, labels, logos, or watermark anywhere.\n\nEdges: hard, clean, cut-out edges. No glow, no halo, no rim light, no haze, no soft fringe, no faint specks. The background outside the rack is truly TRANSPARENT: alpha exactly zero everywhere outside its outline, and no cast shadow outside it.\n",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "1024x3072",
+        "run": "rack-slim/run-1",
+        "reference": "source-rack-supplied, SHA-256 38a49977f70187dfa01eea51549441bdc020585e65c06ea0be129148c52f4c24"
+      }
+    },
+    {
+      "id": "food-herbs-socata-cork",
+      "prompt": "The provided image is the approved food-herbs atlas of a cosy Transylvanian bistro game: a 2048 by 1024 pixel sheet of four columns and two rows of 512 pixel cells, on a transparent background. The fourth cell of the top row shows socata, a homemade elderflower drink: a tall clear glass bottle of golden socata with a lemon slice and elderflower sprigs inside, beside a small glass of socata.\n\nEdit ONLY the masked region: the top of the socata bottle in the fourth cell of the top row. Replace the swing-top stopper, its red rubber ring, and its thin metal wire clasp with a simple natural WINE CORK: a light tan cork pushed into the open neck of the bottle, with its round top standing a little above the glass lip, with soft pores and gentle shading. The bottle neck below the cork is plain clear glass with a thick rounded lip, in the same glass rendering as the rest of the bottle, with no wire, no metal, no clasp, no ring, no string, and no label. Keep the neck exactly as wide and as centred as the bottle below it, so it joins the unchanged bottle without a seam.\n\nKeep everything else exactly as it is: the rest of the bottle, the drink, the lemon slice, the elderflowers, the small glass, the hand-painted gouache rendering, the lighting from the upper left, and every other cell.\n\nNo text, numbers, letters, labels, logos, or watermark. Edges: hard, clean, cut-out edges with smooth anti-aliasing. No glow, no halo, no haze, no soft fringe, no cast shadow. The background stays truly TRANSPARENT: alpha exactly zero around the bottle.",
+      "generation": {
+        "model": "gpt-image-2.5-flare",
+        "quality": "high",
+        "size": "2048x1024",
+        "run": "socata-cork/run-1",
+        "reference": "food-herbs",
+        "mask": "x 1656, y 0, 150 by 170"
+      }
     }
   ]
 }

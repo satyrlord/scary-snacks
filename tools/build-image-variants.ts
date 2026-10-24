@@ -33,8 +33,6 @@ export const imageVariants = {
   'notebook-pages': { widths: [1024], formats: ['webp'], cells: { columns: 2, rows: 1, names: ['scene-notebook-cabbage-rolls', 'scene-notebook-note'] } },
   // The family photographs of Mama and Tata take the place of their sketches, in cells of the sketch size.
   'family-photos': { widths: [672], formats: ['webp'], cells: { columns: 2, rows: 1, names: ['photo-mama', 'photo-tata'] } },
-  // The page draws the runner at most 14px tall through an SVG pattern, which takes one format.
-  'embroidered-runner': { widths: [384], formats: ['webp'] },
   // The food atlases have 512px cells. The 1024px width gives 256px cells.
   'food-grain': { widths: [1024], formats: ['webp'] },
   'food-corn': { widths: [1024], formats: ['webp'] },
@@ -72,6 +70,11 @@ export const imageVariants = {
   // The rat sheets have 512px cells. The 1024px width gives 256px cells for a rat of at most one board cell.
   'rat-thief': { widths: [1024], formats: ['webp'] },
   'rat-soricescu': { widths: [1024], formats: ['webp'] },
+  // The 512px variants supply the rack and each pocket front.
+  'source-rack': { widths: [512], formats: ['webp'] },
+  'source-rack-eight': { widths: [512], formats: ['webp'] },
+  // The cutting board under the cells is at most about 640px wide on the widest kitchen.
+  'cutting-board': { widths: [1068], formats: ['webp'] },
   // A rat hole fills one board cell.
   'rat-hole': { widths: [256], formats: ['webp'] },
   // The night sky shows only through the two upper panes of the front-room window.

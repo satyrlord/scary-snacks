@@ -1,4 +1,4 @@
-// Options: appearance, motion, sound, the saved game with its export, import, and recovery, a fresh start, and the version.
+// Options: appearance, motion, sound, source order, the saved game with its export, import, and recovery, a fresh start, and the version.
 import type { GameState } from './model.ts';
 import { exportSave, importSave, loadSave, resetSave, MAX_SAVE_BYTES } from './storage.ts';
 import { $, button, coinText, count, element, reason, status } from './dom.ts';
@@ -6,6 +6,7 @@ import { modal, showModal } from './dialog.ts';
 import { adopt, changeGame, data, newGame, onRecovery, persist, recoveryRequired, saveFailed, saveMessage, state, validate } from './session.ts';
 import { MOTIONS, THEMES, motion, motionNote, setMotion, setTheme, soundToggle, storage, theme } from './preferences.ts';
 import { showScene } from './story.ts';
+import { sourceOrderControls } from './sources.ts';
 
 function downloadSave() {
   try { const url=URL.createObjectURL(new Blob([exportSave(state,validate)],{type:'application/json'}));const link=element('a');link.href=url;link.download='scary-snacks-save.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000); }
@@ -21,7 +22,7 @@ function segmented(name: string, legend: string, note: string, values: string[][
   const description=element('p','',note);description.id=`${name}-note`;
   choices.append(element('legend','',legend),description,group);section.append(choices);return section;
 }
-/** Options: appearance, motion, sound, the saved game, About Scary Snacks, a fresh start, and the version. */
+/** Options: appearance, motion, sound, source order, the saved game, About Scary Snacks, a fresh start, and the version. */
 export function options() {
   const content=element('div');content.append(element('p','modal-copy save-status',saveMessage));
   // Writes never replace an unreadable save, so only an import or a new game (an explicit replacement) lets this browser save again.
@@ -31,6 +32,7 @@ export function options() {
   content.append(segmented('appearance','Appearance','System follows your device’s light or dark setting.',THEMES,theme,value=>setTheme(value,true)),
     segmented('motion','Motion',motionNote(),MOTIONS,motion,value=>setMotion(value,true)));
   const audio=element('section','settings-section');audio.append(element('h3','','Kitchen sounds'),element('p','','Soft tones for merging, delivering, and finishing preparations. Sound stays off until you turn it on.'),soundToggle());content.append(audio);
+  content.append(sourceOrderControls());
   const saves=element('section','settings-section');saves.append(element('h3','','Your saved game'),element('p','','Export a copy to keep it safe or to carry on in another browser.'));
   const actions=element('div','settings-actions');actions.append(button('Export saved game','secondary-button',downloadSave));
   const file=element('input','hidden');file.type='file';file.accept='.json,application/json';

@@ -52,7 +52,7 @@ Each portrait atlas and the mascot atlas must be square.
 Each blocker cell must be square.
 A room state and a decoration painting must be 3:4 portrait images.
 Check that each atlas has transparent pixels.
-The room states, the decoration paintings, the timber, and the runner are opaque.
+The room states, the decoration paintings, and the timber are opaque.
 The food atlases and both blocker atlases have transparent backgrounds.
 
 ## Examine each cell

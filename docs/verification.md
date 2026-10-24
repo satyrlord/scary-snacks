@@ -1,5 +1,7 @@
 # Verification
 
+The board-access browser tests cover keyboard and touch sale and full-board swaps, invalid swap destinations, cancellation, opaque state contrast, and the Actions menu geometry. The source-access browser tests cover tap and keyboard ordering in Options and drag cancellation without a trailing take.
+
 ## Gate
 
 `npm run quality:full` is the full gate. The gate runs these steps in order:
@@ -102,7 +104,7 @@ The files in `tests/browser/` check these areas.
 | `full-board-guidance.spec.ts` | Temporary guidance on a full board. A useful merge in either recipe part before a ready delivery, and a campaign quest before the recovery quest. The recovery ticket face on a phone, ordinary merge, blocker merge, no available action that makes a free cell, and unchanged saves. |
 | `renovation.spec.ts` | Room checkpoints, room crops, area changes, and pins. |
 | `decorations.spec.ts` | Finish switches, visible targets, keyboard focus, saved choices, failed writes, and concurrent tabs. |
-| `generators.spec.ts` | Stage-1 production, paid takes across a reload, the free Herb basket, source activation in the source tab, and full boards. Keyboard input, touch emulation, a drag and a keyboard move of a source, the order after a reload, and the tab geometry. |
+| `generators.spec.ts` | Stage-1 production, paid takes across a reload, the free Herb basket, source activation in the source tab, and full boards. Keyboard input, touch emulation, a drag and a keyboard move of a source along a pocket and between pockets, the order after a reload, and the rack geometry. |
 | `campaign-goals.spec.ts` | Unmet requirements, compact readiness, inline cost disclosure, the keyboard toggle, payment with details open, and phone scroll. Exact totals and payment descriptions, a new source on a full board, guide Stop when a delivery makes Pay ready, and layout. |
 | `quests.spec.ts` | Tickets, quest dialogs, direct missing-dish guidance, dish help, deliveries, scenes, saves, focus, input, and concurrent tabs. |
 | `visitors.spec.ts` | Supply quests, visitor portraits, introductions, Ionatan's dinner, departure, and save failures. |
@@ -116,7 +118,7 @@ The files in `tests/browser/` check these areas.
 | `portrait-framing.spec.ts` | Each portrait crop at ticket and dialogue sizes in both themes. |
 | `day.spec.ts` | The clock, a debt in the purse, booked tickets, the lantern control, the closing dialog, and Skip. The night of a theft and of a gift. Taps and keys that do not stop a watched night. The drawer on a phone, reduced motion, and a hidden page during the closing dialog or the night. The morning dialog after a reload, and unread reports after a save replacement. The result of act 1 on the supper card. |
 | `calendar.spec.ts` | Desktop and phone dates, chapter opening text, holidays, seasonal notices, window views, decorations, and the supper date. |
-| `act-two.spec.ts` | Hail, the piper, festival tickets and painting, Ambrozie, the feast, the orchard, act-specific areas and chapter counts, garden prices, save failures, and saved progress. |
+| `act-two.spec.ts` | Hail, the piper, festival tickets and painting, Ambrozie, the feast, the orchard, act-specific areas and chapter counts, garden prices, save failures, and saved progress. Room names and 44px targets within the room in both themes at phone and desktop sizes. |
 | `save-compatibility.spec.ts` | Fixed current-format saves through reload and continued browser play. |
 | `recipes.spec.ts` | Recipe book sections, return focus and scroll, outside dismissal, and help for absent seasonal sources. |
 
@@ -127,7 +129,7 @@ Checks on a narrow screen that is 600px high or less require a drawer that stays
 These checks also require an active drawer body and a reveal that does not wait for the drawer.
 Theme checks include Light, Dark, System, and 4.5:1 contrast for main and muted text.
 
-Source tab geometry checks cover the places, the take cost, and the shared edges of the tab and the board at 360×740, 390×844, and 1440×900 in both themes.
+Source rack geometry checks cover the places, the seven pockets and the eighth for a fifteenth source, the pictures above the rails, the take-cost tags on the rails, and the shared edges of the rack and the board at 360×740, 390×844, and 1440×900 in both themes.
 Repeated source taps keep the board in place at widths of 360px, 390px, and 412px.
 Ticket and story geometry checks cover 1440×900, 390×844, and 390×800 in both themes.
 With the recovery ticket, each ticket target stays 44px wide and inside its ticket at 390px and 360px.

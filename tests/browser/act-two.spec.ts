@@ -15,6 +15,31 @@ function bookingTime(state: GameState, day: number) {
   return next;
 }
 const fits = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
+
+for (const viewport of [{ width: 320, height: 740 }, { width: 360, height: 640 }, { width: 390, height: 844 }, { width: 1440, height: 900 }]) for (const theme of ['light', 'dark']) {
+  test(`all act 2 room names and targets fit at ${viewport.width}px in ${theme}`, async ({ page }) => {
+    await page.setViewportSize(viewport); await page.emulateMedia({ reducedMotion: 'reduce' });
+    await start(page, checkpoint(40), theme);
+    for (const name of ['Summer kitchen', 'Vegetable garden', 'Town square']) {
+      const choice = page.getByRole('button', { name, exact: true });
+      await choice.click(); await expect(choice).toHaveAttribute('aria-pressed', 'true');
+      const geometry = await page.locator('#area-switch').evaluate(group => {
+        const room = document.querySelector('#room')!.getBoundingClientRect(), box = group.getBoundingClientRect();
+        return { left: box.left - room.left, right: room.right - box.right, height: box.height,
+          choices: [...group.querySelectorAll('button')].map(button => {
+            const box = button.getBoundingClientRect(), text = document.createRange(); text.selectNodeContents(button);
+            return { width: box.width, height: box.height, textFits: [...text.getClientRects()].every(line => line.left >= box.left && line.right <= box.right && line.top >= box.top && line.bottom <= box.bottom) };
+          }) };
+      });
+      expect(geometry.left).toBeGreaterThanOrEqual(12); expect(geometry.right).toBeGreaterThanOrEqual(12);
+      expect(geometry.height).toBeLessThanOrEqual(52);
+      for (const target of geometry.choices) {
+        expect(target.width).toBeGreaterThanOrEqual(44); expect(target.height).toBeGreaterThanOrEqual(44); expect(target.textFits).toBe(true);
+      }
+    }
+  });
+}
+
 /**
  * The last merge of 17 July with no blocker waiting and many free cells: two Elderflowers wait for the merge that closes the day, so the
  * hail of 18 July has room for all its blockers in the morning.

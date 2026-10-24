@@ -14,3 +14,4 @@ analysis/
 .playwright-mcp/
 tmp/
 .fallow/
+image-references/

@@ -61,6 +61,21 @@ test('the source export keeps the ignore rules for the local key and the local f
   for (const rule of ['.env.local', 'private/', 'analysis/', '.release/', '.tools/']) assert.ok(rules.includes(rule), rule);
 });
 
+test('local reference images stay ignored without hiding skill reference documents', async t => {
+  const fixture = await mkdtemp(join(tmpdir(), 'scary-snacks-ignore-'));
+  t.after(() => rm(fixture, { recursive: true, force: true }));
+  await writeFile(join(fixture, '.gitignore'), await readFile(new URL('.gitignore', root)));
+  const initialized = spawnSync('git', ['init', '--quiet', fixture], { encoding: 'utf8' });
+  assert.ifError(initialized.error);
+  assert.equal(initialized.status, 0, initialized.stderr);
+  const ignored = spawnSync('git', ['-c', 'core.excludesFile=', 'check-ignore', '--no-index', '--stdin'], {
+    cwd: fixture, encoding: 'utf8', input: 'image-references/user-image.png\n.github/skills/example/references/guide.md\n',
+  });
+  assert.ifError(ignored.error);
+  assert.equal(ignored.status, 0, ignored.stderr);
+  assert.deepEqual(ignored.stdout.trim().split(/\r?\n/), ['image-references/user-image.png']);
+});
+
 test('the exported dead-code command rejects an unused development dependency', async t => {
   assert.ok(sourceFiles.includes('.fallowrc.json'));
   const fixture = await mkdtemp(join(tmpdir(), 'scary-snacks-deadcode-'));

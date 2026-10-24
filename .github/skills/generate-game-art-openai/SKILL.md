@@ -60,8 +60,8 @@ Do not infer a model name from a tool name. The helper records the model that it
 
 Read `PRODUCT.md`, `DESIGN.md`, `docs/asset-prompts.json`, `docs/asset-provenance.json`, and `tests/assets.test.ts`.
 Obey the art direction, the layouts, and the release limits in [generate-game-art](../generate-game-art/SKILL.md).
-These limits prohibit images from `private/` and images that this project did not generate.
-The limits permit new project-generated candidates in `analysis/art-generation/`, with their generation records.
+These limits prohibit images from `private/` and images from another game.
+The limits permit candidates in `analysis/art-generation/` with their generation records, and images that the user supplies.
 Examine the repository status before edits.
 
 The helper always sends the model `gpt-image-2.5-flare`, high quality, Portable Network Graphics (PNG) output, and one image.
@@ -72,10 +72,9 @@ The helper reads each other value from the contract of the asset:
 | `food-<atlas>` for each food atlas: `grain`, `corn`, `herbs`, `dairy`, `poultry`, `vegetables`, `fruits`, `pork`, `beans`, `lamb`, `veal`, `fish`, `soups`, `mains`, `sweets`, `breads`, and the seasonal `pickles` and `greens` | `2048x1024` | `transparent` | 4 columns by 2 rows; the cells after the last picture stay fully transparent |
 | `portraits` | `1536x1536` | `transparent` | 2 columns by 2 rows |
 | `regulars-1`, `regulars-2` | `1536x1536` | `transparent` | 2 columns by 2 rows |
-| `regulars-3` | `1536x1536` | `transparent` | 2 columns by 2 rows; the lower-right cell stays fully transparent |
+| `regulars-3` | `1536x1536` | `transparent` | 2 columns by 2 rows; four portraits, with Gavril in the lower-right cell |
 | `mascots` | `1536x1536` | `transparent` | 2 columns by 2 rows |
 | `timber-tabletop` | `1536x1536` | `opaque` | One image, square, tileable |
-| `embroidered-runner` | `1536x512` | `opaque` | One image, 3:1, repeats horizontally |
 | Each room state and each family kitchen state in `public/data/game.json` | `1536x2048` | `opaque` | One image, 3:4 portrait, a painted room state |
 | `decoration-front`, `decoration-courtyard` | `1536x2048` | `opaque` | One image, 3:4 portrait, a decoration edit of a room state |
 | `holiday-front`, `holiday-courtyard` | `1536x2048` | `opaque` | One image, 3:4 portrait, a room state with the holiday decorations painted in; the decorations are then cut out |
@@ -85,6 +84,7 @@ The helper reads each other value from the contract of the asset:
 | `rat-thief`, `rat-soricescu` | `2048x1024` | `transparent` | 4 columns by 2 rows, eight poses of one rat |
 | `rat-hole` | `1024x1024` | `transparent` | One image, square, the rat hole blocker |
 | `night-sky` | `2048x1024` | `opaque` | One image, 2:1, the night sky behind the window glass |
+| `source-rack` | `1024x3072` | `transparent` | One image, 1:3 portrait, the walnut wall letter rack of the source tab |
 | `sketch-sheet-1` to `sketch-sheet-3` | `2688x1344` | `opaque`, then `ink` and `sepia` | 4 columns by 2 rows, eight character sketches in one request |
 | `scene-sheet-1` to `scene-sheet-5` | `2304x1536` | `opaque`, then `ink` and `sepia` | 2 columns by 2 rows, four quest scenes in one request |
 | `scene-sheet-6` | `2304x1536` | `opaque`, then `ink` and `sepia` | 2 columns by 2 rows; the quest scenes of the mourning year; the cells after the last scene stay blank |

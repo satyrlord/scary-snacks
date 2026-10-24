@@ -1,6 +1,6 @@
 ---
 name: generate-game-art
-description: Generate, review, repair, or replace Scary Snacks bitmap art with the built-in chat image generator. If the agent has no image generator, give the user a complete prompt. Start here for the OpenAI Images API route also. This skill gives that request to generate-game-art-openai. Use for food, portrait, mascot, and blocker atlases, the timber, and the runner. Also use for room states, decoration paintings, the supper painting, and the night sky. Also use for the rat sheets, the rat hole, the parchment, character sketches, and quest scenes. Also use for cell defects and for prompt and provenance records.
+description: Generate, review, repair, or replace Scary Snacks bitmap art with the built-in chat image generator. If the agent has no image generator, give the user a complete prompt. Start here for the OpenAI Images API route also. This skill gives that request to generate-game-art-openai. Use for food, portrait, mascot, and blocker atlases, the timber, the source rack, and the board. Also use for room states, decoration paintings, the supper painting, and the night sky. Also use for the rat sheets, the rat hole, the parchment, character sketches, and quest scenes. Also use for cell defects and for prompt and provenance records.
 ---
 
 # Generate game art in chat
@@ -48,12 +48,13 @@ The next table lists the layouts of the Portable Network Graphics (PNG) masters 
 | `visitor-portraits.png` | Adrian, Monica, Janos, and Ionatan | 2 columns by 2 rows | Transparent |
 | `guests.png` | Vlad, Elisabeta, Mina, and Avram | 2 columns by 2 rows | Transparent |
 | `regulars-1.png`, `regulars-2.png` | Eight regulars, in arrival order | 2 columns by 2 rows | Transparent |
-| `regulars-3.png` | Three regulars; the lower-right cell stays empty | 2 columns by 2 rows | Transparent |
+| `regulars-3.png` | Cătălina, Bran, Bela, and Gavril, in row order | 2 columns by 2 rows | Transparent |
 | `board-clutter.png` | Six blockers with open centres | 3 columns by 2 rows | Transparent |
 | `preparation-clutter.png` | Twelve blockers with open centres | 4 columns by 3 rows, 1448 by 1086 pixels | Transparent |
 | `mascots.png` | Three poses of the black cat and one bat | 2 columns by 2 rows | Transparent |
 | `timber-tabletop.png` | The timber under the board | One tileable square | Opaque |
-| `embroidered-runner.png` | The runner strips beside the board | One image, 3:1. The game repeats only the region at x 161 with width 503 | Opaque |
+| `cutting-board.png` | The board, with its 42 carved wells | One image, 1068 by 1281 pixels, that the user supplied | Transparent |
+| `source-rack.png`, `source-rack-eight.png` | The source tab, with seven or eight pockets | One image, 1:3, 1024 by 3072 pixels; `source-rack-eight.png` rebuilds the rows of the rack | Transparent |
 | `front-room-NN.png`, `courtyard-NN.png` | One painted room state | One image, 3:4, 1536 by 2048 pixels | Opaque |
 | `decoration-front.png`, `decoration-courtyard.png` | One decoration edit of a room state | One image, 3:4, 1536 by 2048 pixels | Opaque |
 | `finale-supper.png` | The supper painting: an edit of `courtyard-23` with the guests | One image, 3:4, 1536 by 2048 pixels | Opaque |
@@ -101,10 +102,11 @@ These limits protect the release. They have no exceptions:
 
 - Do not open, upload, or refer to an image from `private/`.
   In `analysis/`, use only `analysis/art-generation/`.
-- Use `analysis/art-generation/` only for project-generated candidates, their run records, and the reference images in `references/`.
+- Use `analysis/art-generation/` only for candidates, their run records, and the reference images in `references/`.
   For an API reference, verify the candidate hash against its generation record.
-- Give the generator only names and style references that this project authored.
-- As an image input, use only a bitmap that this project generated before.
+- An image input can be a bitmap that this project generated, or an image that the user supplies, for example a layout mock.
+  Record each image input in the prompt record.
+- Do not give the generator an image from another game.
 - Set `sourceGameImageInput` to `false` only if that statement is accurate.
 
 Provenance is a record. It is not legal clearance.

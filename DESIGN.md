@@ -2,6 +2,9 @@
 name: Scary Snacks
 description: A lamplit Transylvanian bistro with black cats, bats, and local dishes.
 colors:
+  board-state-ink: "#2e2117"
+  board-state-track: "#fff6ea"
+  board-state-focus: "#27605b"
   blocker-red-overlay: "rgb(184 38 44 / 20%)"
   plum-brandy: "#6e3d50"
   light-on-action: "#fff6ea"
@@ -226,26 +229,24 @@ components:
     padding: "14px"
   timber-table-phone:
     rounded: "{rounded.card}"
-    padding: "6px 8px"
-  table-runner:
-    height: "14px"
-  table-runner-phone:
-    height: "8px"
+    padding: "6px"
   board-tile:
     backgroundColor: "{colors.light-tile-a}"
     rounded: "{rounded.tile}"
-    padding: "5px"
-    size: "clamp(40px, min(calc((var(--panel-w) - var(--side-w) - var(--chrome-w)) / 7.75), max(44px, calc((100dvh - 432px) / 7))), 96px)"
+    padding: "calc(var(--cell) * .06)"
+    size: "clamp(40px, min(calc((var(--panel-w) - var(--side-w) - var(--chrome-w) + 31px) / 9.654), max(44px, calc((100dvh - 388px) / 8.2645))), 96px)"
   board-tile-phone:
     backgroundColor: "{colors.light-tile-a}"
     rounded: "{rounded.tile}"
-    padding: "3px"
-    size: "clamp(34px, min(calc((min(100vw, 560px) - 42px) / 7.75), max(44px, calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7))), 60px)"
-  source-place:
-    backgroundColor: "{colors.light-tile-a}"
-    rounded: "{rounded.tile}"
-    padding: "3px"
-    size: "calc((var(--cell) * 7 - var(--gap)) / 8)"
+    padding: "calc(var(--cell) * .06)"
+    size: "clamp(30px, min(calc((min(100vw, 560px) - 12px) / 9.654), max(44px, calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) + 16px - 29.5dvh) / 8.2645))), 60px)"
+  source-rack:
+    width: "calc(var(--cell) * 8.2645 * 964 / 3005)"
+    height: "calc(var(--cell) * 8.2645)"
+  source-card:
+    backgroundColor: "#f5e6c4"
+    textColor: "#2e2117"
+    rounded: "3px"
   mara-line:
     textColor: "{colors.light-ink}"
     typography: "{typography.body}"
@@ -294,7 +295,7 @@ The kitchen is a parchment drawer over the room. On phones, the drawer is half o
 
 The setting is a homely room with lamps. The eerie parts stay at the window: black cats on the sill and bats in the dusk. The owner sets these parts: the setting, the title, the cats, the bats, and the village dress of the neighbours. The interface looks hand-made.
 
-Paper tickets show the quests of the neighbours. The board is on timber between two strips of cross-stitch runner. The interface has these small hand-made details:
+Paper tickets show the quests of the neighbours. The board is an end-grain cutting board with carved wells, on timber, beside a walnut wall letter rack. The interface has these small hand-made details:
 - a copper coin with a crescent moon
 - a cat on the wordmark baseline
 - a copper-glow "New" pin
@@ -308,7 +309,7 @@ Light mode uses cream and parchment with plum and dark brown ink. Dark mode uses
 - The kitchen is one parchment surface. It holds three paper tickets, the board on timber, and Mara's line. While the recovery quest is open, it also holds the recovery ticket. On wider screens, it also holds the story and the recipe book.
 - Each preparation has its own complete painted state.
 - The signature motion is the reveal. The room repaints in place, and the pin lands on the change. A movable drawer lowers first.
-- Food, portraits, mascots, rooms, timber, and the runner are gouache bitmaps that this project made. Each control icon is a vector that this project drew.
+- Food, portraits, mascots, rooms, timber, and the source rack are gouache bitmaps that this project made. The cutting board is a painting that the user supplied. Each control icon is a vector that this project drew.
 - Each of the two themes has its own complete design. A theme is never an inversion of the other theme.
 
 ## Colors
@@ -379,16 +380,16 @@ The sizes attribute is `(max-width: 1023px) 100vw, max(50vw, 75vh)`. The browser
 
 The frame puts the latest change near the middle of the visible room, a little low. The pin then has room above the change. Two numbers (`--fx`, `--fy`) give the focus point of the change. The frame never shows an area outside the edges of the painting. A change of focus takes 0.9s.
 
-The area switch is in a lower corner of the visible room. The top of the switch is 64px above the lower edge of the visible room. The switch stays on the side opposite the change. In the front room, the switch always stays on the left, away from Miez. In the summer kitchen and the vegetable garden, the switch always stays on the right, away from Miez.
+The area switch is in a lower corner of the visible room. The top of the switch is 64px above the lower edge of the visible room. The switch stays at least 12px from each side of the room. On a narrow screen, the room names wrap inside their 44px-high targets. The switch stays on the side opposite the change. In the front room, the switch always stays on the left, away from Miez. In the summer kitchen and the vegetable garden, the switch always stays on the right, away from Miez.
 
 **Wider screens (1024px or more).** The room has a fixed position on the left at full height. The docked panel has the width `max(50vw, 100vw - 75dvh, 620px)` on the right. So the room is never wider than its 3:4 painting at full height, and a wide screen gives the rest to the kitchen. The panel holds these parts, from top to bottom:
 - The masthead, with padding of 18px 24px 12px.
 - The three tickets, in three equal columns 12px apart. While the recovery quest is open, a fourth column holds the recovery ticket.
 - The drawer body: the kitchen column, then the side column, 20px apart.
 
-The kitchen column is as wide as the source tab, an 8px gap, the board, and 28px of timber padding. It holds the timber table and Mara's line, 12px apart. The side column has a hairline on its left and 20px of padding (14px from 1024px to 1279px). It holds the story and the recipe book as sections between hairlines. The sections are 14px apart (10px from 1024px to 1365px).
+The kitchen column is as wide as the source tab, a gap of 0.11 cells, the board, and 28px of timber padding. It holds the timber table and Mara's line, 12px apart. The side column has a hairline on its left and 20px of padding (14px from 1024px to 1279px). It holds the story and the recipe book as sections between hairlines. The sections are 14px apart (10px from 1024px to 1365px).
 
-At a wider-screen height of 799px or less, the masthead has 10px top and 8px bottom padding. The wordmark is 43px. Tickets have 6px padding and 4px gaps. Their portraits are 28px, and their dishes are 26px in 28px-high slots. The drawer gap is 10px, the kitchen gap is 8px, and the board has 10px vertical padding. The status strip has 4px vertical padding. These sizes keep the board and its instructions visible at 1280 by 720px.
+At a wider-screen height of 799px or less, the masthead has 10px top and 8px bottom padding. The wordmark is 43px. Tickets have 6px padding and 4px gaps. Their portraits are 28px, and their dishes are 26px in 28px-high slots. The drawer gap is 10px, the kitchen gap is 8px, and the worktop has 10px vertical padding. The status strip has 4px vertical padding. These sizes keep the board and its instructions visible at 1280 by 720px.
 
 **Phones (1023px or less).** The masthead is 48px tall on the page colour, with 14px gutters. The room fills the screen below the masthead. The painting is as wide as the screen. The drawer has a fixed position above the bar, with an 18px radius on its top corners. The content of the drawer is at most 560px wide and in the centre. The drawer holds these parts, from top to bottom:
 - The grip. The grip is a 40px by 4px bar in Control Line, on a 96px by 44px target. The target extends over the room.
@@ -401,10 +402,10 @@ The bar is 56px tall plus the safe area. The safe area is the space that the dev
 **The lowered drawer.** The grip is a button. Its accessible name is "Lower the kitchen to see the room". While the drawer is lowered, its accessible name is "Raise the kitchen". The grip lowers the drawer, and the drawer then shows the whole painting. The tickets and their status lines stay visible. The height budget reserves 92px above the bar, or 108px below 360px when a ticket has four shown dishes. The final-scene counter of the prologue reserves 116px for its line and Read now, or 140px below 360px. The drawer moves over 0.6s. While the drawer is lowered, the board does not accept input.
 
 **The height budget.** The cell size and the visible room share one budget:
-- Wider screens: `--cell: clamp(40px, min(calc((var(--panel-w) - var(--side-w) - var(--chrome-w)) / 7.75), max(44px, calc((100dvh - 432px) / 7))), 96px)`, with 4px gaps. The value of `--side-w` is `clamp(220px, 30% of the panel, 300px)`, and `--chrome-w` is 128px. From 1024px to 1279px, `--side-w` is 200px, `--chrome-w` is 100px, and the panel has 16px side padding. Only the width can take a cell below 44px.
-- Phones: `--cell: clamp(34px, min(calc((min(100vw, 560px) - 42px) / 7.75), max(44px, calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - 18px - 29.5dvh) / 7))), 60px)`, with 3px gaps. On a phone narrower than 391px, the width takes the cell below 44px, so the board and the source tab fit side by side. The drawer keeps the height of 44px cells, so the room keeps its view. The value of `--drawer-chrome` is 102px plus the ticket height, normally 176px in total. Below 360px, a ticket with four shown dishes uses 192px in total. The final-scene counter of the prologue uses a 58px base height and adds 40px, or 64px below 360px. Its totals are 200px and 224px, so its wrapped line and button leave room for Mara's line. A visible action failure adds 24px for its explanation. If the cell size allows it, the room shows at least 29.5dvh above the drawer. The unit dvh is one percent of the dynamic viewport height.
+- Wider screens: `--cell: clamp(40px, min(calc((var(--panel-w) - var(--side-w) - var(--chrome-w) + 31px) / 9.654), max(44px, calc((100dvh - 388px) / 8.2645))), 96px)`. The source rack and the board together are 9.654 cells wide and 8.2645 cells tall. The value of `--side-w` is `clamp(220px, 30% of the panel, 300px)`, and `--chrome-w` is 128px. From 1024px to 1279px, `--side-w` is 200px, `--chrome-w` is 100px, and the panel has 16px side padding. Only the width can take a cell below 44px.
+- Phones: `--cell: clamp(30px, min(calc((min(100vw, 560px) - 12px) / 9.654), max(44px, calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) + 16px - 29.5dvh) / 8.2645))), 60px)`. On a phone narrower than 437px, the width takes the cell below 44px, so the board and the source rack fit side by side. The drawer keeps at least 326px for the board, so the room keeps its view. The value of `--drawer-chrome` is 102px plus the ticket height, normally 176px in total. Below 360px, a ticket with four shown dishes uses 192px in total. The final-scene counter of the prologue uses a 58px base height and adds 40px, or 64px below 360px. Its totals are 200px and 224px, so its wrapped line and button leave room for Mara's line. A visible action failure adds 24px for its explanation. If the cell size allows it, the room shows at least 29.5dvh above the drawer. The unit dvh is one percent of the dynamic viewport height.
 
-**Compact phones (601px to 700px tall).** The runners are 4px tall, the board has 2px vertical padding, and the table has a 2px top margin. The value of `--drawer-chrome` uses 84px plus the ticket height and the same prologue and failure additions. This saves 18px while the board cells and controls keep their minimum sizes. At 360 by 640px, the room has 52px above the drawer for the New pin and its full touch target.
+**Compact phones (601px to 700px tall).** The worktop has 2px vertical padding, and the table has a 2px top margin. The value of `--drawer-chrome` uses 84px plus the ticket height and the same prologue and failure additions. This saves 18px while the board cells and controls keep their minimum sizes. At 360 by 640px, the room has 52px above the drawer for the New pin and its full touch target.
 
 **Short screens.** On a short screen, the room, the drawer, and the bar do not have a fixed position. They follow each other in the page, and the page scrolls. The room is 240px tall. The grip does not show. A change to this layout clears the lowered drawer state, so the kitchen accepts input after rotation.
 
@@ -472,7 +473,7 @@ Portraits are circles. Food and mascots keep their own transparent outlines. The
 ## Components
 
 ### Buttons
-Buttons are solid and warm. Button targets are at least 44px tall, except for the board and source tiles. Those tiles use the sizes in "Layout" and "Board and tiles".
+Buttons are solid and warm. Button targets are at least 44px tall, except for the board tiles and the source cards. They use the sizes in "Layout" and "Board and tiles".
 - **Shape:** slightly rounded (9px).
 - **Primary:** in light mode, the fill is Plum Brandy with Light On-Action text. In dark mode, the fill is Candle Amber with Dark On-Action text. The weight is 600, and the padding is 11px × 15px. A pointer that can hover makes an enabled button 7% brighter. A touch screen has no hover brightness. A press moves the button down 1px.
 - **Not yet:** an action that the player cannot afford has a transparent fill. The border is a dashed Control Line, and the text is Smoke. The button never has a dimmed colour.
@@ -546,13 +547,13 @@ Buttons are solid and warm. Button targets are at least 44px tall, except for th
 - **Recovery ticket:** while the recovery quest is open, the last column of the ticket row holds that quest. The ticket has a dashed edge, because it is an offer and not a campaign quest. The four columns have equal widths. On phones, all tickets show their faces, and their quest dialogs deliver. At 410px and below, while the recovery ticket shows, the row has 4px gaps and 4px side padding. Each target on a ticket stays at least 44px wide down to 320px.
 - **Delivery motion:** the dishes fly to the ticket over 600ms. Each dish starts 60ms after the dish before it. The sixth and later dishes start together. The delivery notice appears after all dishes arrive. The next quest arrives on the same ticket over 450ms, 700ms after the delivery. With reduced motion, the notice shows at once, and the next ticket appears without motion.
 
-### Timber table and runners
+### Timber table and cutting board
 - **Table:** a timber-tabletop variant covers the table, in the centre. On wider screens, the variant is 1536px wide. On phones, the variant is 1024px wide. On wider screens, the table has a 14px radius and the resting table shadow. On phones, the table has a 12px radius.
-- **Runner:** a Scalable Vector Graphics (SVG) strip. The pattern in the strip repeats only the source rectangle of the runner that has no seam. The rectangle is x 161, width 503, in master pixels. The strip is 14px tall on wider screens and 8px tall on phones. Two strips frame the top and the bottom of the board.
+- **Cutting board:** the cutting-board painting is the board, with its 42 wells carved in. The cells lie on the wells: each well is 155px of the painting (1068 by 1281px), the wells are 166px apart across and 167.5px apart down, and the first well is 39.5px from the left edge and 40.5px from the top edge. So the board is 6.89 cells wide and 8.2645 cells tall. The board has a 2.4% by 2% radius and a soft shadow on the timber. The board is a painting, so it keeps the colours of the Light theme in both themes. A gap of 0.11 cells separates the source rack from the board. On phones, the table has 6px padding.
 
 ### Board and tiles
 - **Food pictures:** each food picture has a square box in every place: on a tile, on a ticket, in a dialog, and in the recipe book. A box that is not square shows a slice of the neighbouring atlas cell, so a style rule never gives a food picture a different width and height. Each picture is centred in its atlas cell.
-- **Board:** six columns by seven rows of tiles in a checkerboard. Each tile has the tile lift, a 6px radius, and 5px padding (3px on phones). A free cell shows a 4px Smoke dot at 30% opacity.
+- **Board:** six columns by seven rows of cells on the painted wells. The painting gives each well its groove, so a cell draws no tile. A free cell shows only the wood of its well. A cell has a 15% radius and padding of 6% of the cell. An ingredient on the board casts a dark, tight shadow on the wood: 3.5% of the cell down, with a 3% blur, in `#3a1a06` at 70%, and a faint shadow all around its edge, with a 1.5% blur, in `#3a1a06` at 40%.
 - **Blocked cells:** every blocked tile shows an ordinary food picture behind a painted blocker with a transparent centre. Four edge cells use crate slats, sack fabric, crock pieces, or linen from the board-clutter atlas. Webs cover these four cells until the first preparation. Four other edge cells use old twine and a nail.
 
   All blockers keep the ingredient visible and use the same merge rule. A matching dish of the chain or a recipe partner clears them. A blocked tile has a distinct inset boundary and a red overlay at 20% opacity (`rgb(184 38 44 / 20%)`). The overlay is above the food and blocker art and below the help mark. The overlay clears with the blocker. Every blocked tile stays in the keyboard path.
@@ -569,16 +570,18 @@ Buttons are solid and warm. Button targets are at least 44px tall, except for th
   A frame near a cell edge keeps a small offset. The offset keeps the full silhouette and keeps the frame out of the next cell. The transparent opening stays clear, and the ingredient keeps 70% of the ordinary food box. Do not make the ingredient smaller to compensate for too much outer padding.
 - **Blocker help:** every initial blocker and every preparation blocker has a 16px question mark in its lower-right corner. The vector uses the panel fill, ink, and Control Line. The whole tile is the touch target. Hover gives the rule to clear the blocker.
 
-  When the player selects a blocker, the strip under the board shows three parts. These parts are the name of the blocker, the exact instruction to clear it, and Clear selection. Help marks the movable matching ingredients with a 2px dotted Smoke outline at 50% opacity inside each tile. All blockers say "Tap a marked [ingredient] to merge here." A tap on a marked item clears the blocker. The accessible name of the marked item names that action.
+  When the player selects a blocker, the strip under the board shows three parts. These parts are the name of the blocker, the exact instruction to clear it, and Clear selection. Help marks the movable matching ingredients with the board target outline described in States. All blockers say "Tap a marked [ingredient] to merge here." A tap on a marked item clears the blocker. The accessible name of the marked item names that action.
 
   The accessible names describe the marked cells. The selected tile refers to the visible instruction. Help adds no dialog, no vertical row, and no motion. `PRODUCT.md` gives the ways to leave the help.
-- **States:** hover draws a 2px inset outline in Selected Clay (Candle Amber in dark mode). Selection draws a 3px inset outline. A selected mergeable dish marks each matching movable dish and blocked destination. The mark is a 2px dotted Smoke outline at 50% opacity inside each tile. A source and a final dish mark no target. A hint pulses a 4px Teal Focus inset outline three times. In forced colours, matching targets have an opaque dotted Highlight outline. Keyboard focus stays a solid outline.
-- **Source tab:** the sources stand beside the left edge of the board, never on it. The tab has one square place for each source of the game, in columns of eight. The first column is next to the board, and the order runs down each column. The eight places of a column span the seven rows of the board, so the tab and the board share their top and bottom edges. A dark well (`#1e120c47`, 10px radius, an inset shadow) lies 4px around all the places, so the tab keeps its size while places are free. A free place shows nothing. A source is a tile in Tile A with the tile lift and 3px padding.
-  A paid source shows its take cost in its lower-right corner: a 14px coin mark and an 11px figure at weight 600, on a Panel pill with a Control Line ring. The free sources show no cost.
-  Hover draws the 2px Selected Clay ring. A drag lifts the source to 35% opacity, a ghost follows the pointer, and the place of the drop has the 3px Selected Clay ring. The guide marks its source with the dotted mark of a matching item. A hint pulses the source as it pulses a cell.
-  The accessible name of a source is "[Source], source of [ingredient]: tap to take an ingredient, [price]. Place N of M." The tab is one Tab stop. The Up and Down arrow keys move between the sources, and Home and End go to the first and the last. Alt and the Up or Down arrow key move the focused source by one place, and the focus stays on it. In forced colours, a source has a ButtonBorder edge.
-- **Sale:** a dish that a drag drops outside the board and the source tab opens the dialog "Sell this dish?". The dialog has one line, "Are you sure you want to sell [dish], for [price] coins?", then Sell, the primary button, and Keep it, the secondary button. Keep it has focus. The dish stays selected in its cell until the player chooses.
-- **Keyboard:** the board is one Tab stop. Arrow keys move between cells. Home and End go to the ends of the row. With Control, Home and End go to the first and the last cell. Escape clears the selection.
+- **States:** on the board, hover draws a 2px inset outline in dark walnut (`#4a2c18`), in both themes. Selection draws a 3px solid Board State Ink outline. A selected mergeable dish marks each matching movable dish and blocked destination. A swap choice marks only its legal destinations. Targets use a 2px dotted Board State Ink outline. Each outline is inset 4px over a 5px opaque Board State Track ring, so the wood never forms its contrast background. Keyboard focus uses a 3px solid Board State Focus outline on the same track. A hint pulses a 4px Board State Focus outline three times, inset 5px on a 6px track. Ink and focus each contrast with the track by at least 3:1. A source and a final dish mark no merge target. Forced colours use solid Highlight for selection and focus, and dotted Highlight for targets.
+- **Source tab:** the sources stand beside the left edge of the board, never on it. The tab is the source rack: the source-rack painting at its own proportions, as tall as the board, so the tab and the board share their top and bottom edges. The transparent margins of the painting lie outside the box of the rack. The rack casts a small contact shadow on the timber.
+  The painting has seven equal pockets between the crest and the last rail. While a fifteenth source is in the tab, the rack shows source-rack-eight, the same rack with eight pockets. Each pocket holds two places. So the rack keeps its size while places are free. The order runs along each pocket from left to right, then down the rack. Each pocket shows its own rail again in front of the lower edge of its two cards, so the cards stand in the pocket. Each pocket lies over the pocket below it. A free place shows only its empty pocket.
+  A source is a parchment card: the parchment texture on cream paper (`#f5e6c4`), a 1px edge in `#b0916a`, a 3px radius, and a small contact shadow. Darker sheets lie behind each card, 4px wider on each side and 2px higher, so the card is a small stack of letters. The card keeps this paper in both themes, as the quest pages do. The card fills its pocket between the two rails, and its lower edge stands behind the rail. The picture of the source is square and centred above the rail.
+  A paid source shows its take cost on a cream pill under its picture, centred on the card and on the top edge of the rail: a coin mark and a figure at weight 800 in dark brown ink (`#2e2117`), with a 1px edge in `#c4a77a` and a small contact shadow. The tag is 10.6% of the rack width tall, from 14px to 30px. The coin mark is 78% and the figure 68% of that height. The tag covers only the clear lower edge of the picture box. The free sources show no tag.
+  A pointer over a card lifts the card 2px out of its pocket, and a press pushes the card 2px into it, over 160ms. A drag lifts the card 6px out of its pocket at 55% opacity, a ghost follows the pointer, and the place of the drop has a 3px Candle Amber ring. Keyboard focus draws a 3px solid ring in the Teal Focus of the quest pages, inside the card. The guide marks its source with a 2px dotted ring in the brown ink of the quest pages at 50% opacity. A hint pulses the source as it pulses a cell.
+  The accessible name of a source is "[Source], source of [ingredient]: tap to take an ingredient, [price]. Place N of M." The tab is one Tab stop. The Left and Right arrow keys move along the order, and the Up and Down arrow keys move to the same side of the pocket above or below. Home and End go to the first and the last source. Alt and an arrow key move the focused source in the same way, and the focus stays on it. A move past the first or the last source keeps the place. In forced colours, a source has a ButtonBorder edge.
+- **Sale:** Sell in the selected dish's Actions menu, or a drag outside the board and the source tab, opens the dialog "Sell this dish?". The dialog has one line, "Are you sure you want to sell [dish], for [price] coins?", then Sell, the primary button, and Keep it, the secondary button. Keep it has focus. The dish stays selected in its cell until the player chooses.
+- **Keyboard:** the board is one Tab stop. Arrow keys move between cells. Home and End go to the ends of the row. With Control, Home and End go to the first and the last cell. Escape clears the selection and ends a swap choice. During a board or source drag, Escape cancels the drag and prevents the release from applying it.
 - **Motion:** a merged item settles over 180ms from 82% scale. The first of each dish arrives over 700ms with a small tilt.
 
 ### Mara's line, the offer, and the selected item
@@ -594,7 +597,7 @@ If an action on a selected cell fails, its reason and recovery text replace the 
 
   At 720px and below, if the name takes two lines, the ordinary rule line does not show. The goal line of the guide stays visible. Clear selection or Stop follows the name or rule.
 
-  Keyboard focus uses the Teal Focus ring. The 44px Clear or Stop control follows. The selected item and its control fit at 360px without horizontal scroll. On a phone that is taller than 600px, the ordinary strip is 52px high. A refusal gives the strip more room for its full explanation. The strip keeps blocker help and the offer visible.
+  Keyboard focus uses the Teal Focus ring. The 44px Clear or Stop control follows. The selected item and its controls fit at 320px without horizontal scroll. An Actions disclosure sits before Clear or Stop. Its accessible name gives the dish. It opens upward and holds Swap and Sell as 44px controls. Sell is absent in the prologue. During a swap choice, Cancel swap takes the place of Swap. The choice names its next step in the rule line and live status, and returns focus to the board. The menu uses the panel fill, Control Line border, and Control radius. On a phone that is taller than 600px, the ordinary strip is 52px high. A refusal gives the strip more room for its full explanation. The strip keeps blocker help and the offer visible.
 
 ### Story and recipe book
 - **Wider screens:** the story and the recipe book are sections of the docked panel between hairlines. They are not cards. The story section starts with the chapter title, the objective, and the steps. If an unread scene exists, its line follows. An unread scene is a story scene that the player has earned and not read.
@@ -793,7 +796,7 @@ The switch adds no motion.
 
 ### Options
 
-Options shows the save state. If the state needs one, Options also shows the Retry saved game control or the Retry save control. Its other sections are Appearance, Motion, Kitchen sounds, Your saved game, About Scary Snacks, and A fresh start. The sections use the dialog, section, button, ink, muted, and focus styles. Below the last section, one small centred muted line shows the version, for example "Version 1.1.30".
+Options shows the save state. If the state needs one, Options also shows the Retry saved game control or the Retry save control. Its other sections are Appearance, Motion, Kitchen sounds, Arrange sources, Your saved game, About Scary Snacks, and A fresh start. Arrange sources holds labelled Source and Position lists, a Move source button, and a live result line. The lists are at least 44px tall and use the surface fill, ink, Control Line border, Control radius, and focus ring. The sections use the dialog, section, button, ink, muted, and focus styles. Below the last section, one small centred muted line shows the version, for example "Version 1.1.30".
 
 ### Inputs / Fields
 - **Segmented choice:** the Appearance setting and the Motion setting each use a segmented choice. The track is Flour Dust with a Control Line border. The options are 44px tall. The checked option has the chosen fill, weight 600, a 2px inset accent ring, and the pressed choice shadow.
@@ -801,15 +804,16 @@ Options shows the save state. If the state needs one, Options also shows the Ret
 ## Design instructions
 
 ### Required actions
-- Use only the 115 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
+- Use only the 117 registered Portable Network Graphics (PNG) masters in public/assets/original. Load only their variants from public/assets/variants.
   - The 25 room masters of act 1 are front-room-00 to front-room-12, front-room-17, front-room-24, courtyard-13 to courtyard-16, and courtyard-18 to courtyard-23.
   - The 25 room masters of act 2 are summer-kitchen-00 to summer-kitchen-04, summer-kitchen-15, summer-kitchen-16, summer-kitchen-19, summer-kitchen-20, vegetable-garden-05, vegetable-garden-06, vegetable-garden-13, vegetable-garden-14, vegetable-garden-17, vegetable-garden-18, vegetable-garden-21, vegetable-garden-22, town-square-07 to town-square-12, town-square-23, and town-square-24. The screen door of the summer kitchen has netting that a script draws over its two panes.
   - The four family kitchen masters of the prologue are family-kitchen-mourning, family-kitchen-christmas, family-kitchen-new-year, and family-kitchen-farewell. Christmas and the farewell are edits of the mourning state, and the new year is an edit of Christmas.
   - The supper master is finale-supper, an edit of courtyard-23 with the guests of the supper. The feast master is finale-feast, an edit of town-square-24 with the guests of the feast. The festival master is festival, an edit of town-square-12 with the people of the festival.
   - The two decoration masters are decoration-front and decoration-courtyard. The two holiday masters are holiday-front and holiday-courtyard: transparent pictures at the size of the room states, with each decoration at its place.
   - The three window views are window-view-late-winter, window-view-early-spring, and window-view-spring, each 1152 by 1536px and opaque.
-  - The 27 other masters are these:
-    - board-clutter, preparation-clutter, portraits, visitor-portraits, guests, regulars-1, regulars-2, regulars-3, summer-guests, family-portraits, mascots, timber-tabletop, embroidered-runner, and parchment-page
+  - The 29 other masters are these:
+    - source-rack and source-rack-eight, 1024 by 3072px walnut wall letter racks with seven and eight pockets, and cutting-board, a 1068 by 1281px end-grain board with 42 carved wells; all on transparency
+    - board-clutter, preparation-clutter, portraits, visitor-portraits, guests, regulars-1, regulars-2, regulars-3, summer-guests, family-portraits, mascots, timber-tabletop, and parchment-page
     - hail-clutter, one row of two cells: the hailstones and the broken pot
     - sketch-sheet-1 to sketch-sheet-4, each a grid of four columns and two rows of 672px character sketches; sketch-sheet-4 holds Ambrozie, Gavril, and Tarka in its first three cells, with five empty cells
     - scene-sheet-1 to scene-sheet-6, each a grid of two columns and two rows of 1152 by 768px quest scenes; scene-sheet-5 holds the four event scenes of the prologue, and scene-sheet-6 holds the memorial of three months in its first cell, with three empty cells
@@ -822,11 +826,11 @@ Options shows the save state. If the state needs one, Options also shows the Ret
   - The 20 food atlas masters are grids of four columns and two rows. A dish shows its whole cell, with no measured bounds. Each picture is centred in its cell. A chain atlas holds the source in cell 0 and the dishes in stage order. The food atlas masters are these:
     - food-grain, food-corn, food-herbs, food-dairy, food-poultry, food-vegetables, food-fruits, food-pork, food-beans, food-lamb, food-veal, food-fish, food-pickles, food-greens, food-garden, food-soups, food-mains, food-sweets, food-breads, and food-summer
 - Paint each room state as a complete 3:4 painting, 1536 by 2048, opaque. Keep every pixel outside the change the same as in the state before it.
-- Ship room states, the family kitchen states, the supper painting, the festival painting, and the feast painting as AVIF and WebP at 768 and 1536px wide, AVIF first. Ship the timber as AVIF and WebP at 1024 and 1536px wide. Ship the decoration paintings and the holiday images as WebP at 1536px wide. Ship the window views as WebP at 576px wide. Ship the transparent atlases and the runner as WebP. Ship the rat sheets and the night sky as WebP at 1024px wide. Ship the rat hole as WebP at 256px square.
+- Ship room states, the family kitchen states, the supper painting, the festival painting, and the feast painting as AVIF and WebP at 768 and 1536px wide, AVIF first. Ship the timber as AVIF and WebP at 1024 and 1536px wide. Ship the decoration paintings and the holiday images as WebP at 1536px wide. Ship the window views as WebP at 576px wide. Ship the transparent atlases as WebP. Ship the rat sheets and the night sky as WebP at 1024px wide. Ship the rat hole as WebP at 256px square. Ship the two source racks as WebP at 512px wide, and the cutting board as WebP at its native 1068px width.
 - Ship the parchment as a WebP at its native 1254px square size. Cut each cell of a pencil sheet into its own variant. Ship each character sketch as a transparent WebP at its native 672px square. Ship each quest scene as a transparent WebP at 1024px wide, and each notebook page as a WebP at 1024px wide. Ship each family photograph as a transparent WebP at 672px square.
 - Keep the neighbours in working village dress: Mara, Ilie, and Sorin in Romanian dress, and Eszter in Székely dress.
 - Draw every control icon as a vector with a 1.7 stroke and round caps and joins.
-- Give every interactive boundary `--control-line`. Keep targets at least 44px, except for the board and source tiles, which use their specified sizes.
+- Give every interactive boundary `--control-line`. Keep targets at least 44px, except for the board tiles and the source cards, which use their specified sizes.
 - Keep the wordmark as the top-level heading (h1) of the page.
 - If `--cell` or the visible room changes, recompute both together. Check the sizes of The One Screen Rule.
 - Obey reduced motion. Reduced motion is the Motion choice Reduced, or the Motion choice System on a device that asks for reduced motion. Reduced motion removes every animation and transition. Reduced motion keeps every outcome and line of text. The Motion choice Full keeps every animation and transition.
@@ -844,5 +848,5 @@ Options shows the save state. If the state needs one, Options also shows the Ret
 - Do not show an unaffordable action in a dimmed colour. Use the dashed "not yet" style.
 - Do not let the coin figures touch the wordmark at any width.
 - Do not put Story, Recipes, or Options in the phone masthead.
-- Do not repeat the whole runner bitmap. Do not tile the timber vertically. Both actions show seams.
+- Do not tile the timber vertically. It shows seams.
 - Do not use emoji or Unicode characters as icons.

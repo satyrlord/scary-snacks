@@ -60,7 +60,7 @@ onMotionResume(() => { $('#coin-count').classList.remove('gained'); document.que
 function render() {
   const active = document.activeElement;
   const region = active?.closest<HTMLElement>(FOCUS_REGIONS) ?? null;
-  const position = region ? [...region.querySelectorAll('button')].indexOf(active as HTMLButtonElement) : -1;
+  const position = region ? [...region.querySelectorAll('button,summary')].indexOf(active as HTMLElement) : -1;
   const board = $('#board'), previousCell = board.querySelector<HTMLElement>('.selected')?.dataset.cell;
   // A delivery can use up the selected item.
   if (selected !== null && !state.board[selected] && !unresolvedObstacle(state,selected,data)) select(null);
@@ -72,8 +72,8 @@ function render() {
   renderTickets(); $('#story').replaceChildren(storyContent(false)); renderDetail(actionFeedback); renderOffer();
   markRecipeBook();
   if (region && position >= 0) {
-    const controls = [...region.querySelectorAll('button')];
-    const target = [controls[position], ...controls].find(control => control && !control.disabled && control.checkVisibility({ visibilityProperty:true }))
+    const controls = [...region.querySelectorAll<HTMLElement>('button,summary')];
+    const target = [controls[position], ...controls].find(control => control && !control.matches(':disabled') && control.checkVisibility({ visibilityProperty:true }))
       ?? (previousCell === undefined || board.closest('[inert]') ? null : board.querySelector<HTMLElement>(`[data-cell="${previousCell}"]`))
       ?? (region.id === 'tickets' ? [...document.querySelectorAll<HTMLElement>('#story .story-waiting button,#story-button')].find(control => control.checkVisibility({ visibilityProperty:true })) : null);
     target?.focus({ preventScroll:true });

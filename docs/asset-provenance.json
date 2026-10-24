@@ -42,19 +42,6 @@
       "sourceGameImageInput": false
     },
     {
-      "id": "embroidered-runner",
-      "file": "public/assets/original/embroidered-runner.png",
-      "sha256": "a4351bbe4ed91e98851d49dd034a4e22af2268555d94520cde01204388aa6a04",
-      "bytes": 1759851,
-      "width": 1536,
-      "height": 512,
-      "mode": "RGB",
-      "hasTransparency": false,
-      "promptId": "embroidered-runner",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality",
-      "sourceGameImageInput": false
-    },
-    {
       "id": "front-room-00",
       "file": "public/assets/original/front-room-00.png",
       "sha256": "310dd73281c6d683d553afd009a740cc7965ab87228a3489d5ce6979c7cb8962",
@@ -823,16 +810,16 @@
     {
       "id": "food-herbs",
       "file": "public/assets/original/food-herbs.png",
-      "sha256": "cf4779f6bf205b6b9d99888d8a7b3165488a2c464f13482f7005f65953f0482c",
-      "bytes": 3874911,
+      "sha256": "c2ca56ba20fca809424941ef0c58337bbf5b8a99d34ea1dc09a6d8ee6e01636d",
+      "bytes": 3858891,
       "width": 2048,
       "height": 1024,
       "mode": "RGBA",
       "hasTransparency": true,
-      "promptId": "food-herbs-clean",
-      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked repaint of the first candidate removes its glow; no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts; a user-approved alpha clear makes unused cells 6, 7, 8 fully transparent and preserves every used pixel",
+      "promptId": "food-herbs-socata-cork",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; an unmasked repaint of the first candidate removes its glow; no pixel is painted (012-food runs), with tools in .github/skills/generate-game-art-openai/scripts; a user-approved alpha clear makes unused cells 6, 7, 8 fully transparent and preserves every used pixel; then a masked edit of the top of the Socată bottle replaced its swing-top stopper and wire clasp with a cork; a halo clear of that candidate set each alpha below 32 to 0, and a composite with a 12px feather took only the masked region (x 1656, y 0, 150 by 170)",
       "sourceGameImageInput": false,
-      "review": "The food atlas of the Herbs chain for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Herb basket, Elderflowers, Herb bunch, Socată, and Linden tea, in stage order. The agent measured the soft-alpha fringe (0.046 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it. Decoded pixel comparison confirms that the unused-cell clear preserves every used cell exactly.",
+      "review": "The food atlas of the Herbs chain for spec 012, a 2048 by 1024 grid of 4 by 2 cells: Herb basket, Elderflowers, Herb bunch, Socată, and Linden tea, in stage order. The agent measured the soft-alpha fringe (0.046 of the solid pixels), confirmed that no solid pixel touches a cell line and that unused cells are clear, and examined it on light and dark backgrounds. The user accepted it. Decoded pixel comparison confirms that the unused-cell clear preserves every used cell exactly. The Socată bottle has a cork in a plain glass neck, as the thin wire clasp aliased at board size. The agent checked that the outline has no hard steps and no faint fringe, and that the other cells are unchanged.",
       "visualAcceptance": {
         "status": "accepted",
         "by": "user"
@@ -2224,9 +2211,55 @@
         "by": "user",
         "date": "2026-10-23"
       }
+    },
+    {
+      "id": "source-rack",
+      "file": "public/assets/original/source-rack.png",
+      "sha256": "6566c1052bef6714ebcbebdb3b463dfa106d452be57c8098aa80504dd51718f5",
+      "bytes": 6177743,
+      "width": 1024,
+      "height": 3072,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "source-rack-slim",
+      "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; one edit of source-rack-supplied with a lower crest and thinner rails; then a halo clear set each alpha below 32 to 0 and each alpha above 224 to 255, without painted pixels; then a row rebuild between the uprights gave the plank rows between the crest and the last rail equal heights, with the Lanczos filter, and kept the crest, the feet, the uprights, and the rails; with tools in .github/skills/generate-game-art-openai/scripts and a script for this task",
+      "referenceAsset": "source-rack-supplied",
+      "referenceSha256": "38a49977f70187dfa01eea51549441bdc020585e65c06ea0be129148c52f4c24",
+      "review": "A strict front view of a symmetrical walnut wall letter rack in the style of the rack that the user supplied: a crest with the carved bat and two painted tulips that ends at y 226, two uprights with curved feet, and seven rails 59 to 64 pixels tall with a painted tulip each. The rails start at y 555, 943, 1331, 1720, 2111, 2498, and 2890, and the last ends at y 2954. The planks lie between x 106 and 918. The rack spans x 30 to 994 and y 34 to 3039. The agent checked the clear outside and the joins of the rebuilt rows.",
+      "sourceGameImageInput": false
+    },
+    {
+      "id": "source-rack-eight",
+      "file": "public/assets/original/source-rack-eight.png",
+      "sha256": "f40d1a1b2a731c3050b5db502f3227ba3d17955ea9c75fa5ce48bcabf3578fe8",
+      "bytes": 6220461,
+      "width": 1024,
+      "height": 3072,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "promptId": "source-rack-slim",
+      "generation": "Made from the halo clear of the source-rack request: a row rebuild between the uprights gave the plank rows between the crest and the last rail equal heights, with the Lanczos filter, and kept the crest, the feet, the uprights, and the rails, with eight rails; the fourth rail and its plank row are used two times; then the same halo clear",
+      "referenceAsset": "source-rack-supplied",
+      "referenceSha256": "38a49977f70187dfa01eea51549441bdc020585e65c06ea0be129148c52f4c24",
+      "review": "source-rack with eight rails at the same size. The rails start at y 506, 846, 1184, 1525, 1867, 2209, 2547, and 2890. The agent checked that the rows join without a visible seam.",
+      "sourceGameImageInput": false
+    },
+    {
+      "id": "cutting-board",
+      "file": "public/assets/original/cutting-board.png",
+      "sha256": "066e394f960761dbd705f13f3c483eedc575184a80f7c16a9365f7ff343dcd31",
+      "bytes": 3175462,
+      "width": 1068,
+      "height": 1281,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "generation": "Supplied by the user as a finished painting, 1161 by 1355 pixels; a halo clear set each alpha below 32 to 0 and each alpha above 224 to 255, without painted pixels, and a crop to the board; then a patch copy covered the centre dot of each well with a soft-edged disc of wood from a nearby place in the same well, chosen by the best match of the surrounding ring, without painted pixels; with a script for this task",
+      "review": "A top-down end-grain cutting board with rounded corners and a front edge, with six columns and seven rows of carved wells, with no dot in the wells. The wells are 155 pixels, 166 pixels apart across and 167.5 pixels apart down, and the first well is at x 39.5 and y 40.5.",
+      "visualAcceptance": "The user supplied the board.",
+      "sourceGameImageInput": false
     }
   ],
-  "note": "The game uses only project-generated images. The mascots use a generated chat atlas from the references list. The core portraits use a revision of a generated candidate. front-room-00 and courtyard-13 use generated room references. The decoration paintings use generated design references. Each later room state edits the previous state of its area. Each composite retains only the changed region. The board-clutter atlas uses chat generation and cell corrections. The second and third regulars atlases revise their previous versions, and the references list keeps those versions. The new atlases of act 2 use halo clears and fits that only scale and move pictures. Each pencil sheet is drawn in one request, so that its drawings share one hand. The 20 food atlases use alpha cuts, moves, box clears, and cell copies between candidates, without painted pixels. The window views use a front-room painting as their style reference. Each holiday decoration is a masked edit of a room state, cut out by its difference from that state. The two rat sheets use generated identity references from the references list. The thief rat sheet uses a cell trim, without painted pixels. The family kitchen states share one window view. The frost of the new-year state is taken from a candidate by its brightness, without painted pixels. This record preserves the source and review evidence of the current assets. This record does not give legal clearance.",
+  "note": "The game uses project-generated images and the cutting board, a finished painting that the user supplied. The source rack is an edit of a rack that the user supplied. The mascots use a generated chat atlas from the references list. The core portraits use a revision of a generated candidate. front-room-00 and courtyard-13 use generated room references. The decoration paintings use generated design references. Each later room state edits the previous state of its area. Each composite retains only the changed region. The board-clutter atlas uses chat generation and cell corrections. The second and third regulars atlases revise their previous versions, and the references list keeps those versions. The new atlases of act 2 use halo clears and fits that only scale and move pictures. Each pencil sheet is drawn in one request, so that its drawings share one hand. The 20 food atlases use alpha cuts, moves, box clears, and cell copies between candidates, without painted pixels. The window views use a front-room painting as their style reference. Each holiday decoration is a masked edit of a room state, cut out by its difference from that state. The two rat sheets use generated identity references from the references list. The thief rat sheet uses a cell trim, without painted pixels. source-rack and source-rack-eight rebuild the rows of the rack edit with seven and eight equal pockets, without painted pixels. The family kitchen states share one window view. The frost of the new-year state is taken from a candidate by its brightness, without painted pixels. This record preserves the source and review evidence of the current assets. This record does not give legal clearance.",
   "references": [
     {
       "id": "counter-band",
@@ -2587,6 +2620,18 @@
       "generation": "OpenAI Images API, gpt-image-2.5-flare, high quality; a masked edit of summer-kitchen-03, of which only the changed region was composited over summer-kitchen-03, with tools in .github/skills/generate-game-art-openai/scripts",
       "sourceGameImageInput": false,
       "use": "The previous master of summer-kitchen-04, which the window fix changed only in the four panes of the front window. The game does not ship it."
+    },
+    {
+      "id": "source-rack-supplied",
+      "sha256": "38a49977f70187dfa01eea51549441bdc020585e65c06ea0be129148c52f4c24",
+      "bytes": 2361945,
+      "width": 724,
+      "height": 2172,
+      "mode": "RGBA",
+      "hasTransparency": true,
+      "generation": "Supplied by the user as a finished painting",
+      "sourceGameImageInput": false,
+      "use": "The rack that the user supplied, with a tall crest and thick rails. source-rack is an edit of it. The game does not ship it."
     }
   ]
 }

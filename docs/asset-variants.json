@@ -210,16 +210,6 @@
       "sha256": "62f123b906d1e48c39fa2a2f906c7483316ebf092b9b249f8540ad15d0c8c394"
     },
     {
-      "file": "public/assets/variants/embroidered-runner-384x128.webp",
-      "master": "embroidered-runner",
-      "masterSha256": "a4351bbe4ed91e98851d49dd034a4e22af2268555d94520cde01204388aa6a04",
-      "width": 384,
-      "height": 128,
-      "format": "webp",
-      "bytes": 18090,
-      "sha256": "e72e46798bbe79076bab6ead744211c8a61a48cf251082f4d56421baadb3ef51"
-    },
-    {
       "file": "public/assets/variants/front-room-00-768x1024.avif",
       "master": "front-room-00",
       "masterSha256": "310dd73281c6d683d553afd009a740cc7965ab87228a3489d5ce6979c7cb8962",
@@ -1382,12 +1372,12 @@
     {
       "file": "public/assets/variants/food-herbs-1024x512.webp",
       "master": "food-herbs",
-      "masterSha256": "cf4779f6bf205b6b9d99888d8a7b3165488a2c464f13482f7005f65953f0482c",
+      "masterSha256": "c2ca56ba20fca809424941ef0c58337bbf5b8a99d34ea1dc09a6d8ee6e01636d",
       "width": 1024,
       "height": 512,
       "format": "webp",
-      "bytes": 129222,
-      "sha256": "f70552e98a3f7d5c562adedab40f4f7ab21ec45a661f9e54d9198ced60565186"
+      "bytes": 127232,
+      "sha256": "a8a25c296f98b828fdd7bdd5881dae777de7191ff2529658ce4bbb12f43cbc49"
     },
     {
       "file": "public/assets/variants/food-dairy-1024x512.webp",
@@ -3438,6 +3428,36 @@
       "format": "webp",
       "bytes": 1071332,
       "sha256": "9aba4ab5476a6071dfc66859eed083719153b7d70c67a7b7fa7071b79c4957c9"
+    },
+    {
+      "file": "public/assets/variants/source-rack-512x1536.webp",
+      "master": "source-rack",
+      "masterSha256": "6566c1052bef6714ebcbebdb3b463dfa106d452be57c8098aa80504dd51718f5",
+      "width": 512,
+      "height": 1536,
+      "format": "webp",
+      "bytes": 132810,
+      "sha256": "c35e0a7d4f89eb587e4964ee5357373620ed182fb6d496ce784d4d0272169afe"
+    },
+    {
+      "file": "public/assets/variants/source-rack-eight-512x1536.webp",
+      "master": "source-rack-eight",
+      "masterSha256": "f40d1a1b2a731c3050b5db502f3227ba3d17955ea9c75fa5ce48bcabf3578fe8",
+      "width": 512,
+      "height": 1536,
+      "format": "webp",
+      "bytes": 136048,
+      "sha256": "bf31f63576812dffa05d8990d2007330368a1739b80552c20b5246f0b4d15905"
+    },
+    {
+      "file": "public/assets/variants/cutting-board-1068x1281.webp",
+      "master": "cutting-board",
+      "masterSha256": "066e394f960761dbd705f13f3c483eedc575184a80f7c16a9365f7ff343dcd31",
+      "width": 1068,
+      "height": 1281,
+      "format": "webp",
+      "bytes": 167330,
+      "sha256": "7e3b7da1b28c5c0062ebfbc6b47557f62d038ad37ba19f2ec922b0802aed931b"
     }
   ]
 }

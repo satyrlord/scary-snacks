@@ -173,7 +173,9 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       expect(box.x).toBeGreaterThanOrEqual(0); expect(box.y).toBeGreaterThanOrEqual(0);
       expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1);
       expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
-      expect(box.width).toBeGreaterThanOrEqual(43.5); expect(box.height).toBeGreaterThanOrEqual(43.5);
+      // The width sets the cell: the board and the source rack share the row.
+      const least = Math.min(43.5, (viewport.width - 12) / 9.654 - .5);
+      expect(box.width).toBeGreaterThanOrEqual(least); expect(box.height).toBeGreaterThanOrEqual(least);
     }
     const art = page.locator('.preparation-art').first(); await expect(art).toBeVisible();
     await expectPreparationImage(art);

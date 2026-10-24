@@ -53,7 +53,7 @@ test('a selected dish marks movable matches and matching blockers only', async (
   await expect(tile(page, 19)).toHaveAttribute('aria-label', /Tap to merge the selected Dough here$/);
   await expect(tile(page, 6)).toHaveAttribute('aria-label', /Tap to merge the selected Dough here and clear this blocker$/);
   await expect(tile(page, 19)).toHaveCSS('outline-style', 'dotted');
-  await expect(tile(page, 19)).toHaveCSS('outline-color', /0\.5\)$/);
+  await expect(tile(page, 19)).toHaveCSS('outline-color', 'rgb(46, 33, 23)');
   await tile(page, 19).hover();
   await expect(tile(page, 19)).toHaveCSS('outline-style', 'dotted');
   await expect(tile(page, 13)).not.toHaveClass(/merge-target/);
