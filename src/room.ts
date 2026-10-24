@@ -15,6 +15,21 @@ const ROOM_SIZES = '(max-width: 1023px) 100vw, max(50vw, 75vh)';
 // and the next painting while it downloads.
 let viewArea = '', held: { task: Task; scene: string | null } | null = null, revealToken = 0, paintingToken = 0, preloaded: HTMLPictureElement | null = null, swipe = 0;
 export let lowered = false;
+/** A marked change can need more room than a fixed drawer leaves above a 44px board. */
+export const drawerCanMove = () => movableDrawer.matches && !$('.game-layout').hasAttribute('data-room-flow');
+/**
+ * The scrolling layout of a phone can leave the room or the board outside the screen. Where a movable drawer lowers or rises, the page
+ * scrolls that part into view. The promise settles when the scroll ends.
+ */
+export function showInPage(part: Element) {
+  if(!drawerLayout.matches||drawerCanMove())return Promise.resolve();
+  const box=part.getBoundingClientRect(),top=Math.min(Math.max(0,scrollY+box.top-Math.max(0,(innerHeight-box.height)/2)),document.documentElement.scrollHeight-innerHeight);
+  if(box.top>=0&&box.bottom<=innerHeight||Math.abs(top-scrollY)<1)return Promise.resolve();
+  return new Promise<void>(resolve=>{
+    const done=()=>{clearTimeout(timer);removeEventListener('scrollend',done);resolve();},timer=setTimeout(done,1000);
+    addEventListener('scrollend',done);scrollTo({top,behavior:still()?'instant':'smooth'});
+  });
+}
 let catAsleep = false;
 // The room opens on the player's chosen area while it is open, and otherwise on the area of the latest change.
 try{viewArea=storage?.getItem(AREA_KEY)??'';}catch{/* Follow the latest change. */}
@@ -176,8 +191,10 @@ export async function reveal(task: Task) {
   const {views,view}=currentView(),pause=(ms: number)=>new Promise(resolve=>setTimeout(resolve,ms));
   const land=()=>{if(!$('#room-pin').hidden&&!still())$('#room-pin').animate([{opacity:0,transform:'translateY(-14px) scale(.6)'},{opacity:1,transform:'none'}],{duration:450,easing:'cubic-bezier(.16,1,.3,1)'});};
   stage.dataset.reveal='waiting';$('#room-pin').hidden=true;
+  // The player pays in the kitchen, so a scrolling page brings the room back into view. The repaint does not wait for the scroll.
+  void showInPage(stage);
   if(!still()){
-    layout.classList.add('revealing');if(movableDrawer.matches){$('#drawer-body').inert=true;await pause(LOWER_MS);}
+    layout.classList.add('revealing');if(drawerCanMove()){$('#drawer-body').inert=true;await pause(LOWER_MS);}
     if(token!==revealToken)return false;
   }
   renderAreaSwitch(views,view);
@@ -196,7 +213,7 @@ export async function reveal(task: Task) {
 }
 /** Where the kitchen is a drawer, its handle lowers it to show the whole room and raises it again. */
 export function setLowered(value: boolean) {
-  lowered=value&&movableDrawer.matches;const handle=$('#drawer-handle'),layout=$('.game-layout');
+  lowered=value&&drawerCanMove();const handle=$('#drawer-handle'),layout=$('.game-layout');
   layout.classList.toggle('lowered',lowered);$('#drawer-body').inert=lowered||layout.classList.contains('revealing');
   handle.setAttribute('aria-expanded',String(!lowered));handle.setAttribute('aria-label',lowered?'Raise the kitchen':'Lower the kitchen to see the room');
   syncRoomControls();
@@ -220,12 +237,32 @@ export function syncRoomControls() {
  * a mark near the edge. The tail stays on the authored mark when the pin slides sideways.
  */
 export function fitPin() {
-  const pin=$('#room-pin');if(pin.hidden)return;
-  const frame=$('#room-frame'),stage=$('#room-stage').getBoundingClientRect(),area=$('#area-switch').getBoundingClientRect(),handle=$('#drawer-handle').getBoundingClientRect(),below=Boolean(data.rooms.find(room=>room.id===pin.dataset.state)?.mark.below);
+  const pin=$('#room-pin'),frame=$('#room-frame'),layout=$('.game-layout');
+  const current=data.rooms.find(room=>room.id===frame.dataset.current),marked=current?.after&&frame.dataset.painting===current.id;
+  const reserve=marked?Math.max(132,Math.abs(current.focus.y-current.mark.y)*frame.getBoundingClientRect().height/100+36):80;
+  layout.style.setProperty('--room-space',`${reserve}px`);
+  const chrome=parseFloat(getComputedStyle(layout).getPropertyValue('--ticket-h'))+158
+    +(parseFloat(getComputedStyle(layout).getPropertyValue('--prologue-space'))||0)+(parseFloat(getComputedStyle(layout).getPropertyValue('--feedback-space'))||0);
+  const available=innerHeight-$('.masthead').getBoundingClientRect().height-$('.phone-bar').getBoundingClientRect().height-chrome-44*8.2645;
+  const flow=drawerLayout.matches&&movableDrawer.matches&&reserve>available;
+  layout.toggleAttribute('data-room-flow',flow);
+  if(flow&&lowered)setLowered(false);
+  // A reveal can move from a scrolling room to a movable drawer after its new painting changes the room budget.
+  if(layout.classList.contains('revealing')&&drawerCanMove())$('#drawer-body').inert=true;
+  if(pin.hidden)return;
+  const stage=$('#room-stage').getBoundingClientRect(),area=$('#area-switch').getBoundingClientRect(),handle=$('#drawer-handle').getBoundingClientRect(),below=Boolean(current?.mark.below);
   // The handle reaches above the drawer. Its transparent target must also stay clear of the pin.
   const obstacles=[area,...(handle.width&&handle.height?[handle]:[])];
   const bottom=drawerLayout.matches?Math.min(stage.bottom,$('#drawer').getBoundingClientRect().top):stage.bottom;
   frame.style.setProperty('--pin-pan','0px');
+  const focus=()=>{const box=frame.getBoundingClientRect();return {x:box.left+box.width*(current?.focus.x??50)/100,y:box.top+box.height*(current?.focus.y??50)/100};};
+  const clearFocus=(point: {x:number;y:number})=>point.y>stage.top+20&&point.y<bottom-20&&!obstacles.some(box=>point.x>=box.left&&point.x<=box.right&&point.y>=box.top&&point.y<=box.bottom);
+  let focusPan=0;
+  if(drawerLayout.matches&&!clearFocus(focus())){
+    const point=focus(),candidates=[stage.top+21,bottom-21,...obstacles.flatMap(box=>[box.top-4,box.bottom+4])]
+      .filter(y=>clearFocus({x:point.x,y})).sort((a,b)=>Math.abs(a-point.y)-Math.abs(b-point.y));
+    if(candidates.length){focusPan=candidates[0]-point.y;frame.style.setProperty('--pin-pan',`${focusPan}px`);}
+  }
   pin.style.setProperty('--shift','0px');pin.removeAttribute('data-bare');pin.toggleAttribute('data-below',below);
   // Include the transparent extension of the button. Fitting only the painted capsule lets the drawer intercept its lower edge.
   const target=getComputedStyle(pin,'::before'),outset={left:-parseFloat(target.left)||0,top:-parseFloat(target.top)||0,right:-parseFloat(target.right)||0,bottom:-parseFloat(target.bottom)||0};
@@ -235,12 +272,12 @@ export function fitPin() {
   if(box.width>stage.width-16){pin.toggleAttribute('data-bare',true);box=bounds();}
   if(box.top<stage.top+4||box.bottom>bottom-4||meets(box)){
     pin.toggleAttribute('data-below',!below);const alternate=bounds();
-    const cost=(value: DOMRect)=>Math.max(0,stage.top+4-value.top)+Math.max(0,value.bottom-(bottom-4))+(meets(value)?value.height:0);
+    const cost=(value: DOMRect)=>{const pan=Math.max(0,stage.top+4-value.top)-Math.max(0,value.bottom-(bottom-4)),point=focus();return Math.abs(pan)+(meets(value)?value.height:0)+(drawerLayout.matches&&!clearFocus({x:point.x,y:point.y+pan})?1000:0);};
     if(cost(alternate)<cost(box))box=alternate;else pin.toggleAttribute('data-below',below);
   }
   // A short viewport can place the mark itself above the crop. Pan the painting with the mark, not the pin alone.
   const pan=Math.max(0,stage.top+4-box.top)-Math.max(0,box.bottom-(bottom-4));
-  if(pan){frame.style.setProperty('--pin-pan',`${pan}px`);box=bounds();}
+  if(pan&&(!drawerLayout.matches||clearFocus({x:focus().x,y:focus().y+pan}))){frame.style.setProperty('--pin-pan',`${focusPan+pan}px`);box=bounds();}
   if(meets(box)){pin.toggleAttribute('data-bare',true);box=bounds();}
   let left=Math.max(stage.left+8,Math.min(box.left,stage.right-8-box.width));
   const candidates=[left,...obstacles.flatMap(obstacle=>[obstacle.right+8,obstacle.left-8-box.width])]

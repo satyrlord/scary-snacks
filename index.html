@@ -59,8 +59,8 @@
       <div class="drawer-body" id="drawer-body">
         <section class="kitchen" aria-label="Kitchen">
           <div class="table">
-            <!-- The source rack keeps a place for each source in the tab, so the board keeps its size and position as sources come. -->
-            <div class="worktop"><div id="sources" class="sources" role="group" aria-label="Ingredient sources"></div><div id="board" class="board" role="group" aria-label="Merge board, 6 columns and 7 rows" tabindex="-1"></div></div>
+            <!-- Sources use the rack beside a desktop board and a scrolling ribbon below a phone board. -->
+            <div class="worktop"><div class="source-tray"><button type="button" id="sources-previous" class="source-scroll" aria-label="Previous ingredients" aria-controls="sources" disabled><svg viewBox="0 0 28 38" aria-hidden="true"><rect class="scroll-plate" x="3" y="2" width="22" height="34" rx="11"/><path class="scroll-bevel" d="M6 14v-1a8 8 0 0 1 8-8"/><path class="scroll-cut" d="m16 13-6 6 6 6m-6-6h10"/><path class="scroll-pin" d="M13 8h2m-2 22h2"/></svg></button><div id="sources" class="sources" role="group" aria-label="Ingredient sources"></div><button type="button" id="sources-next" class="source-scroll" aria-label="Next ingredients" aria-controls="sources" disabled><svg viewBox="0 0 28 38" aria-hidden="true"><rect class="scroll-plate" x="3" y="2" width="22" height="34" rx="11"/><path class="scroll-bevel" d="M6 14v-1a8 8 0 0 1 8-8"/><path class="scroll-cut" d="m12 13 6 6-6 6m6-6H8"/><path class="scroll-pin" d="M13 8h2m-2 22h2"/></svg></button></div><div id="board" class="board" role="group" aria-label="Merge board, 6 columns and 7 rows" tabindex="-1"></div></div>
           </div>
           <div class="line-slot">
             <div class="mara-line"><span class="portrait portrait-0" role="img" aria-label="Mara, the bistro owner"></span><p id="status" role="status" aria-live="polite">Opening the kitchen…</p><button type="button" class="text-button" id="hint-button">Find a match</button></div>

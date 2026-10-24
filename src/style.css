@@ -278,6 +278,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
    last rail ends at y 2954. The transparent margins of the painting lie outside the box. --u is one master pixel. Each pocket shows its
    own rail again in front of its cards, so the cards stand in the pocket. --picture fits the shortest pocket and the tallest rail. */
 .worktop { display: flex; justify-content: center; gap: calc(var(--cell) * .11); }
+.source-tray { display: contents; }
+.source-scroll { display: none; }
 .sources {
   --rack-h: calc(var(--cell) * 8.2645); --rack-w: calc(var(--rack-h) * 964 / 3005); --u: calc(var(--rack-w) / 964);
   --tag-h: clamp(14px, calc(var(--u) * 102), 30px); --picture: min(calc(var(--u) * 300), calc(var(--u) * 311 - var(--tag-h) / 4 - 2px));
@@ -725,11 +727,10 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   /* Phones stack the day over the time, so the masthead keeps room for the coins. */
   .day-clock { font-size: 12px; }.clock-face { display: grid; justify-items: end; }.clock-dot { display: none; }
   .game-layout {
-    --ticket-h: 74px; --drawer-chrome: calc(102px + var(--ticket-h) + var(--prologue-space, 0px) + var(--feedback-space, 0px)); --frame-w: 100cqw;
-    /* The width gives way below 44px on narrow phones, so the board and the source tab fit side by side. */
-    --cell: clamp(30px, min(calc((min(100vw, 560px) - 12px) / 9.654), max(44px, calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) + 16px - 29.5dvh) / 8.2645))), 60px);
-    /* The drawer keeps at least 326px for the board when the width takes a cell below 44px, so the room keeps its view on narrow phones. */
-    --drawer-h: calc(max(var(--cell) * 8.2645 - 16px, 326px) + var(--drawer-chrome));
+    --ticket-h: 74px; --drawer-chrome: calc(158px + var(--ticket-h) + var(--prologue-space, 0px) + var(--feedback-space, 0px)); --frame-w: 100cqw;
+    /* The full-width board keeps 44px cells. Taller screens reserve 80px of room above the drawer; shorter screens scroll. */
+    --cell: clamp(44px, min(calc((min(100vw, 560px) - 16px) / 6.89), calc((100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-chrome) - var(--room-space, 80px)) / 8.2645)), 60px);
+    --drawer-h: calc(var(--cell) * 8.2645 + var(--drawer-chrome));
     --view-base: calc(100dvh - var(--head-h) - var(--bar-h) - var(--safe) - var(--drawer-h));
     /* Lowered, the drawer shows the whole painting and keeps its tickets in view. */
     --drop-full: max(0px, calc(min(100vw * 4 / 3, 100dvh - var(--head-h) - var(--bar-h) - var(--safe) - 18px - var(--ticket-h) - var(--prologue-space, 0px)) - var(--view-base)));
@@ -741,10 +742,13 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   /* The wrapped final-scene counter needs room above the board and must stay visible when the drawer lowers. */
   .game-layout:has(.prologue-wait) { --ticket-h: 58px; --prologue-space: 40px; }
   .room { position: fixed; z-index: 0; inset: var(--head-h) 0 0; }
+  .area-switch { top: max(2px, calc(var(--view-h) - 80px)); max-width: calc(100% - 132px); }
+  .area-choice { padding-inline: 6px; }
   .drawer { position: fixed; z-index: 10; inset: auto 0 calc(var(--bar-h) + var(--safe)); height: var(--drawer-h); translate: 0 var(--drawer-drop); display: flex; flex-direction: column; border-radius: var(--dialog-radius) var(--dialog-radius) 0 0; box-shadow: 0 -8px 12px -6px #1a0f0a73; }
   .drawer>:not(.drawer-handle),.drawer-body>* { width: min(100%, 560px); margin-inline: auto; }
   /* The handle's target reaches up over the room's edge, so it stays 44px tall without pushing the tickets down. */
-  .drawer-handle { position: absolute; z-index: 1; top: -24px; left: 50%; display: block; width: 96px; height: 44px; translate: -50% 0; padding: 0; border: 0; border-radius: var(--control-radius); background: none; }
+  .drawer-handle { position: absolute; z-index: 1; top: -24px; left: 12px; display: block; width: 96px; height: 44px; padding: 0; border: 0; border-radius: var(--control-radius); background: none; }
+  .game-layout:has(.area-switch[data-side='left']) .drawer-handle { left: auto; right: 12px; }
   .drawer-handle span { position: absolute; left: 50%; bottom: 10px; width: 40px; height: 4px; translate: -50% 0; border-radius: 2px; background: var(--control-line); }
   .drawer-handle:focus-visible { outline-offset: -3px; }
   .tickets { flex: none; padding: 14px 8px 4px; }
@@ -779,8 +783,31 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   .drawer-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   .kitchen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   .table { flex: none; margin-top: 4px; border-radius: var(--card-radius); background-image: url('../assets/variants/timber-tabletop-1024x1024.webp'); background-image: image-set(url('../assets/variants/timber-tabletop-1024x1024.avif') type('image/avif'), url('../assets/variants/timber-tabletop-1024x1024.webp') type('image/webp')); }
-  .worktop { padding: 6px; }
-  .line-slot { flex: 1; display: flex; align-items: center; min-height: 0; padding: 0 10px; }
+  .worktop { padding: 6px; flex-direction: column; align-items: center; gap: 8px; }
+  .board { order: 0; }
+  .source-tray { order: 1; display: flex; align-items: center; gap: 4px; width: 100%; height: 64px; }
+  /* Small copper fittings sit in the timber; the clear 44px target is larger than the visible metal. */
+  .source-scroll { position: relative; display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 12px; background: none; color: #2e2117; }
+  .source-scroll svg { width: 28px; height: 38px; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; transition: translate .16s ease-out; }
+  .scroll-plate { fill: #d39a5c; stroke: #624020; filter: drop-shadow(0 1px 1px #2e211780); }
+  .scroll-bevel { stroke: #f5e6c4; stroke-width: 1; opacity: .7; }
+  .scroll-cut { filter: drop-shadow(0 1px .5px #f5e6c480); }
+  .scroll-pin { stroke: #835121; stroke-width: 1; }
+  .source-scroll:hover:not(:disabled) .scroll-plate { fill: #e8bd83; }
+  .source-scroll:active:not(:disabled) svg { translate: 0 1px; }
+  .source-scroll:disabled .scroll-plate,.source-scroll:disabled .scroll-bevel,.source-scroll:disabled .scroll-pin { visibility: hidden; }
+  .source-scroll:disabled .scroll-cut { opacity: .45; }
+  .source-scroll:focus-visible { outline: 3px solid #27605b; outline-offset: -2px; background: #fff6ea; }
+  @media (forced-colors: active) { .source-scroll { color: ButtonText; }.scroll-plate { fill: ButtonFace; stroke: ButtonText; filter: none; }.scroll-cut { filter: none; }.source-scroll:focus-visible { outline-color: Highlight; } }
+  .sources,.sources[data-rows='8'] { display: flex; flex: 1 1 0; gap: 8px; min-width: 0; width: auto; height: 64px; padding: 2px; overflow-x: auto; overflow-y: hidden; background: none; filter: none; scrollbar-width: none; overscroll-behavior-x: contain; --tag-h: 16px; --picture: 48px; }
+  .sources::-webkit-scrollbar { display: none; }
+  .source-pocket { display: contents; }
+  .source-pocket::after,.source::before,.source-slot:not(.source) { display: none; }
+  .source { position: relative; flex: 0 0 58px; width: 58px; height: 60px; min-height: 60px; display: grid; grid-template-rows: 1fr; place-items: center; padding: 0 2px 10px; border-radius: 6px; touch-action: pan-x pan-y; top: 0; }
+  .source .food { width: 48px; height: 48px; }
+  .source .take-cost { bottom: 0; }
+  .source:hover,.source:active { top: 0; }
+  .line-slot { flex: 1; display: flex; align-items: center; min-height: 52px; padding: 0 10px; }
   .mara-line,.offer { gap: 8px; }.mara-line .portrait,.offer .portrait { width: 28px; height: 28px; }.offer strong { font-size: 13px; }.mara-line p { font-size: 13px; line-height: 1.35; }
   .detail-head { flex: 1 1 0; gap: 8px; }.detail-head .food { width: 40px; height: 40px; }
   .detail-words h3 { line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
@@ -822,21 +849,24 @@ dialog:has(.recipe-content) #modal-body { min-height: 0; overflow-y: auto; overs
   .ticket-items:has(>:nth-child(4)) .food { width: 16px; height: 16px; }
   .ticket-items:has(>:nth-child(4)) .ticket-count { position: static; translate: none; }
 }
-/* Compact phones keep room for the pin's 44px target and its clearance without reducing board cells or the instruction strip. */
-@media (max-width: 1023px) and (min-height: 601px) and (max-height: 700px) {
-  .game-layout { --drawer-chrome: calc(84px + var(--ticket-h) + var(--prologue-space, 0px) + var(--feedback-space, 0px)); }
-  .table { margin-top: 2px; }
-  .worktop { padding-block: 2px; }
-}
-/* Landscape phones and 200% zoom leave too little height for a fixed drawer over the room, so the room, the drawer and the bar return to the page flow. */
-@media (max-width: 1023px) and (max-height: 600px) {
-  .game-layout { --view-h: 240px; --drawer-drop: 0px; transition: none; }
+/* Short phones keep large board cells and return the room, kitchen, and navigation to page flow. */
+@media (max-width: 1023px) and (max-height: 820px) {
+  .game-layout { --cell: clamp(44px, calc((min(100vw, 560px) - 16px) / 6.89), 60px); --view-h: 240px; --drawer-drop: 0px; transition: none; }
   .room { position: relative; inset: auto; height: 240px; }
+  .area-switch { max-width: calc(100% - 24px); }
   .drawer { position: static; height: auto; translate: none; box-shadow: none; }
   .drawer-handle { display: none; }
   .line-slot { min-height: 56px; }
   .phone-bar { position: static; }
 }
+/* A marked change whose true edge and centre cannot fit above a 44px board uses the same scrolling layout as a short phone. */
+.game-layout[data-room-flow] { --cell: clamp(44px, calc((min(100vw, 560px) - 16px) / 6.89), 60px); --view-h: max(240px, var(--room-space), calc(100vw * 4 / 3)); --drawer-drop: 0px; transition: none; }
+.game-layout[data-room-flow] .room { position: relative; inset: auto; height: var(--view-h); }
+.game-layout[data-room-flow] .area-switch { max-width: calc(100% - 24px); }
+.game-layout[data-room-flow] .drawer { position: static; height: auto; translate: none; box-shadow: none; }
+.game-layout[data-room-flow] .drawer-handle { display: none; }
+.game-layout[data-room-flow] .line-slot { min-height: 56px; }
+body:has(.game-layout[data-room-flow]) .phone-bar { position: static; }
 /* A quest's completion notice: it reports itself and clears on its own, so delivering a quest never stops play for a tap. */
 .toast-stack { position: fixed; z-index: 100; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
 .toast { pointer-events: none; max-width: 340px; padding: 10px 14px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: var(--card-radius); box-shadow: var(--shadow); font-size: 14px; line-height: 1.4; text-wrap: pretty; }

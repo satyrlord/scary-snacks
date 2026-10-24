@@ -13,7 +13,7 @@ function label(id: string,current: string){
 async function begin(page: Page,state=checkpoint(24),theme='light'){await page.emulateMedia({reducedMotion:'reduce'});await start(page,state,theme);}
 
 test('finish switches cannot take focus outside the visible room crop on a phone',async({page})=>{
-  await page.setViewportSize({width:390,height:844});await begin(page,checkpoint(10));
+  await page.setViewportSize({width:390,height:844});await begin(page,checkpoint(12));
   const tableware=finish(page,'tableware');
   expect(await tableware.evaluate(element=>element.getBoundingClientRect().bottom<document.querySelector('#room-stage')!.getBoundingClientRect().top)).toBe(true);
   await expect(tableware).toHaveAttribute('inert','');
@@ -45,8 +45,8 @@ for(const viewport of [{name:'desktop',width:1440,height:1000},{name:'phone',wid
     await svgImageSizes(page.locator('#room-frame svg image'));await page.screenshot({path:testInfo.outputPath('front-room.png')});
     await page.reload();await opened(page);expect(await saved(page)).toEqual(committed);
     await expect(layer(page,'tableware','green')).toHaveCount(1);await expect(layer(page,'flowers','lilacs')).toHaveCount(1);
-    await expect(finish(page,'flowers')).toHaveAccessibleName(label('flowers','lilacs'));
     if(viewport.name==='phone')await page.locator('#drawer-handle').click();
+    await expect(finish(page,'flowers')).toHaveAccessibleName(label('flowers','lilacs'));
     await page.getByRole('button',{name:'Courtyard',exact:true}).click();await expect(page.locator('#room-finishes .room-finish')).toHaveCount(1);
     await finish(page,'textiles').click();await expect(layer(page,'textiles','blue')).toHaveCount(1);await expect(finish(page,'textiles')).toHaveAccessibleName(label('textiles','blue'));
     await svgImageSizes(page.locator('#room-frame svg image'));await page.screenshot({path:testInfo.outputPath('courtyard.png')});

@@ -168,18 +168,20 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
     await page.setViewportSize(viewport); const initial = withBatch(); await start(page, initial, theme);
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
     for (const obstacle of active(initial)) {
-      const cell = tile(page, obstacle.position), box = (await cell.boundingBox())!;
+      const cell = tile(page, obstacle.position);
+      if (viewport.width < 1024 && viewport.height <= 820) await cell.scrollIntoViewIfNeeded();
+      const box = (await cell.boundingBox())!;
       expect(await cell.evaluate(element => getComputedStyle(element, '::before').backgroundColor)).toBe('rgba(184, 38, 44, 0.2)');
       expect(box.x).toBeGreaterThanOrEqual(0); expect(box.y).toBeGreaterThanOrEqual(0);
       expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1);
       expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
-      // The width sets the cell: the board and the source rack share the row.
-      const least = Math.min(43.5, (viewport.width - 12) / 9.654 - .5);
+      const least = viewport.width < 1024 ? 44 : Math.min(43.5, (viewport.width - 12) / 9.654 - .5);
       expect(box.width).toBeGreaterThanOrEqual(least); expect(box.height).toBeGreaterThanOrEqual(least);
     }
     const art = page.locator('.preparation-art').first(); await expect(art).toBeVisible();
     await expectPreparationImage(art);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    if (viewport.width >= 1024 || viewport.height > 820) expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath('preparation-blockers.png') });
   });
 }

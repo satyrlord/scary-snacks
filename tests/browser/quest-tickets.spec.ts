@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { canDeliverQuest, canLightLanterns } from '../../src/model.ts';
 import { moveTo } from '../../tools/create-checkpoint-saves.ts';
-import { act, actOneTasks, atBookingTime, checkpoint, data, dialogDeliver, onTicket, openQuest, quest, ratio, replaceSave, saved, startStill, supper, supperEvening, supplies, supply, ticket } from './support.ts';
+import { act, actOneTasks, atBookingTime, checkpoint, data, dialogDeliver, onTicket, openQuest, quest, ratio, replaceSave, saved, scrollFullyIntoView, startStill, supper, supperEvening, supplies, supply, ticket } from './support.ts';
 
 /** Counts must remain legible even when an ancestor dims the pictures of a later ticket. */
 async function readableCounts(counts: Locator){
@@ -23,7 +23,11 @@ async function readableCounts(counts: Locator){
 }
 
 async function phoneFits(page: Page){
-  for(const selector of ['#board','#status','.phone-bar','#tickets'])await expect(page.locator(selector)).toBeInViewport({ratio:1});
+  const pageFlow=await page.locator('#drawer').evaluate(element=>getComputedStyle(element).position==='static');
+  for(const selector of ['#board','#status','.phone-bar','#tickets']){
+    const region=page.locator(selector);
+    if(pageFlow)await scrollFullyIntoView(region);else await expect(region).toBeInViewport({ratio:1});
+  }
   for(const status of await page.locator('.ticket-status').all()){
     await expect(status).toBeVisible();
     expect(await status.evaluate(element=>element.scrollWidth<=element.clientWidth+1&&element.scrollHeight<=element.clientHeight+1)).toBe(true);
@@ -35,6 +39,16 @@ async function phoneFits(page: Page){
 }
 
 async function loweredTicketsFit(page: Page){
+  if(await page.locator('#drawer').evaluate(element=>getComputedStyle(element).position==='static')){
+    await expect(page.locator('#drawer-handle')).toBeHidden();await expect(page.locator('#drawer-body')).not.toHaveAttribute('inert');
+    await page.locator('#tickets').scrollIntoViewIfNeeded();
+    const bar=(await page.locator('.phone-bar').boundingBox())!;
+    for(const status of await page.locator('.ticket-status').all()){
+      await expect(status).toBeInViewport({ratio:1});const box=(await status.boundingBox())!;
+      expect(box.y+box.height).toBeLessThanOrEqual(bar.y);
+    }
+    return;
+  }
   await page.locator('#drawer-handle').click();await expect(page.locator('#drawer-handle')).toHaveAttribute('aria-expanded','false');
   const bar=(await page.locator('.phone-bar').boundingBox())!;
   for(const status of await page.locator('.ticket-status').all()){
@@ -86,7 +100,7 @@ test('a phone booking shows Prepare, then Light lanterns, then Deliver after the
   expect((await saved(page)).completedQuests).toContain(dinner.id);
 });
 
-for(const theme of ['light','dark'])test(`a 320px phone keeps four recovery tickets, the board, and controls in view in ${theme}`,async({page})=>{
+for(const theme of ['light','dark'])test(`a 320px phone keeps four recovery tickets, the board, and controls reachable in ${theme}`,async({page})=>{
   await page.setViewportSize({width:320,height:844});await startStill(page,checkpoint(0),theme);
   await expect(page.locator('#tickets .ticket')).toHaveCount(4);await phoneFits(page);await readableCounts(page.locator('#tickets .ticket-count'));await loweredTicketsFit(page);
   // This evening has four tickets, including a long order, and the longest ready status.

@@ -234,10 +234,13 @@ for (const viewport of [{ width: 320, height: 700 }, { width: 360, height: 740 }
     await read.focus(); await page.keyboard.press('Enter');
     await expect(title(page)).toHaveText(events[0].opening.title);
     await page.keyboard.press('Escape'); await expect(read).toBeFocused();
-    await page.getByRole('button', { name: 'Lower the kitchen to see the room' }).click();
+    if(await page.locator('#drawer').evaluate(element=>getComputedStyle(element).position==='static')){
+      await expect(page.locator('#drawer-handle')).toBeHidden();await read.scrollIntoViewIfNeeded();
+    }else await page.getByRole('button', { name: 'Lower the kitchen to see the room' }).click();
     const lowered = await read.boundingBox();
     expect(lowered!.height).toBeGreaterThanOrEqual(44);
-    expect(lowered!.y + lowered!.height).toBeLessThanOrEqual(bar!.y);
+    expect(lowered!.y + lowered!.height).toBeLessThanOrEqual((await page.locator('.phone-bar').boundingBox())!.y);
+    await expect(read).toBeInViewport({ratio:1});
     await read.click(); await expect(title(page)).toHaveText(events[0].opening.title);
   });
 }

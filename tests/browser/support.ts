@@ -97,6 +97,11 @@ export function supply(state: GameState,codes: string[]){
 export const deliverable=(value: Quest)=>atBookingTime(supply(onTicket(value),supplies(value)),value);
 
 export async function opened(page: Page){await expect(page.locator('#board button')).toHaveCount(42);}
+/** Bring a complete region into view. The painted grid and browser scrolling can round by less than one CSS pixel. */
+export async function scrollFullyIntoView(region: Locator){
+  await region.scrollIntoViewIfNeeded();await expect(region).toBeInViewport();
+  expect(await region.evaluate(element=>{const box=element.getBoundingClientRect();return box.left>=-1&&box.right<=innerWidth+1&&box.top>=-1&&box.bottom<=innerHeight+1;})).toBe(true);
+}
 /** The start of act 1 after a legal run of the prologue. Without a seed, it has the seed of the test fixtures. */
 export const actOne=(seed=1)=>actOneStart(data,seed);
 /**

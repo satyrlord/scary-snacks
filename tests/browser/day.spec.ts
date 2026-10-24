@@ -161,6 +161,26 @@ test('on a phone, the drawer lowers for the rat of the room and rises for the ra
   await expect(page.locator('.game-layout')).not.toHaveClass(/lowered/);
 });
 
+test('on a short phone, the page shows the rat of the room on the floor and then the rats on the board', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 700 });
+  await start(page, lateEvening());
+  await mergeFlour(page);
+  await expect(page.locator('#drawer')).toHaveCSS('position', 'static');
+  const focus = await page.locator('#room-frame').evaluate(element => element.style.getPropertyValue('--fy'));
+  // The player can scroll below the room before the closing.
+  await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+  await closing(page).getByRole('button', { name: 'Watch the night' }).click();
+  const roomRat = page.locator('#room-frame .room-rat');
+  await expect.poll(() => roomRat.evaluate(element => {
+    const rat = element.getBoundingClientRect(), room = document.querySelector('#room-stage')!.getBoundingClientRect(), middle = (rat.top + rat.bottom) / 2;
+    return middle > Math.max(room.top, 0) && middle < Math.min(room.bottom, innerHeight);
+  }).catch(() => false)).toBe(true);
+  await expect(page.locator('.night-rat')).toHaveCount(1, { timeout: 4000 });
+  await expect(page.locator('.night-rat')).toBeInViewport();
+  expect(await page.locator('#room-frame').evaluate(element => element.style.getPropertyValue('--fy'))).toBe(focus);
+  await expect(morning(page)).toBeVisible({ timeout: 8000 });
+});
+
 test('a rat hole shows its trapped ingredient above the hole painting', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await start(page, lateEvening()); await mergeFlour(page);

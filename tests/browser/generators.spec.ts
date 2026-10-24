@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { unresolvedObstacle } from '../../src/model.ts';
-import { actOne, appearance, checkpoint, data, saved, source, start, tile } from './support.ts';
+import { actOne, appearance, checkpoint, data, replaceSave, saved, source, start, tile } from './support.ts';
 
 /** The game after count preparations, with coins for paid takes. */
 const afterPreparations = (count: number) => checkpoint(count, count < data.tasks.length ? { ready: true } : { coins: 100 });
@@ -12,6 +12,37 @@ async function drag(page: Page, from: Locator, to: Locator) {
   await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2); await page.mouse.down();
   await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 8 }); await page.mouse.up();
 }
+
+test('all source cards show the ingredient they take, and a dragged source keeps that picture', async ({ page }) => {
+  const seen = new Set<string>();
+  // These dates cover the winter, spring, and summer sources as well as all year-round chains.
+  for (const preparations of [0, 20, 34]) {
+    const state = checkpoint(preparations, { coins:100 });
+    if (preparations === 0) await start(page, state);
+    else await replaceSave(page, state);
+    const chains = (await saved(page)).sources;
+    for (const chain of chains) {
+      const card = source(page, chain), before = await saved(page);
+      const output = data.items[`generator_${chain}`].generator!.outputs[0], { atlas, cell } = data.items[output].art;
+      const viewBox = `${cell % 4 * 256} ${Math.floor(cell / 4) * 256} 256 256`;
+      await expect(card.locator('.food')).toHaveAttribute('viewBox', viewBox);
+      await expect(card.locator('.food image')).toHaveAttribute('href', new RegExp(`/food-${atlas}-1024x512\\.webp$`));
+      await card.click();
+      const after = await saved(page), added = after.board.findIndex((value, at) => value?.code === output && before.board[at] === null);
+      expect(added).toBeGreaterThanOrEqual(0);
+      await expect(tile(page, added).locator('.food')).toHaveAttribute('viewBox', viewBox);
+      await expect(tile(page, added).locator('.food image')).toHaveAttribute('href', await card.locator('.food image').getAttribute('href') as string);
+      seen.add(chain);
+    }
+  }
+  expect([...seen].sort()).toEqual(data.chains.map(chain => chain.id).sort());
+  const grain = source(page, 'grain'), picture = grain.locator('.food'), box = (await grain.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 12, box.y + box.height / 2, { steps:4 });
+  await expect(page.locator('.drag-ghost')).toHaveAttribute('viewBox', await picture.getAttribute('viewBox') as string);
+  await expect(page.locator('.drag-ghost image')).toHaveAttribute('href', await picture.locator('image').getAttribute('href') as string);
+  await page.keyboard.press('Escape'); await page.mouse.up();
+});
 
 for (const preparations of [0, 12, 20, 24]) test(`sources give only stage-one ingredients after ${preparations} preparations`, async ({ page }) => {
   const initial = afterPreparations(preparations);
@@ -54,7 +85,9 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 390, height: 844 }
     // Quests are open and the purse stays above the recovery floor, so the tickets do not change while the source takes.
     const initial = checkpoint(20, { coins: 100 });
     await start(page, initial);
-    const crate = source(page, 'vegetables'), before = (await crate.boundingBox())!, board = await page.locator('#board').boundingBox();
+    const crate = source(page, 'vegetables');
+    await crate.scrollIntoViewIfNeeded();
+    const before = (await crate.boundingBox())!, board = await page.locator('#board').boundingBox();
     const x = before.x + before.width / 2, y = before.y + before.height / 2;
     // A pointer over a card lifts it, so the pointer leaves before the card is measured.
     await page.mouse.click(x, y); await page.mouse.move(0, 0);
@@ -172,7 +205,7 @@ test('the rack opens an eighth pocket only while a fifteenth source is in the ta
   expect(boards[1]).toEqual(boards[0]);
 });
 
-for (const mode of ['Light', 'Dark']) for (const viewport of [{ width: 360, height: 740 }, { width: 390, height: 844 }, { width: 1440, height: 900 }]) {
+for (const mode of ['Light', 'Dark']) for (const viewport of [{ width: 1440, height: 900 }]) {
   test(`the source rack keeps a place for every source and shares the edges of the board in ${mode} at ${viewport.width} by ${viewport.height}`, async ({ browser, baseURL }) => {
     let reserved: { x: number; y: number; width: number; height: number } | null = null;
     for (const state of [actOne(), afterPreparations(20)]) {

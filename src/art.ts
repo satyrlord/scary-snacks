@@ -124,9 +124,10 @@ export function icon(className: string, viewBox: string, ...shapes: [keyof SVGEl
 /** The coin mark from the purse, for prices inside buttons. */
 export const coinMark = () => icon('coin', '0 0 24 24', ['circle', { class: 'coin-face', cx: '12', cy: '12', r: '9' }],
   ['path', { class: 'coin-moon', d: 'M15.7 7.6a5 5 0 1 0 0 8.8 4.6 4.6 0 0 1 0-8.8z' }]);
-/** A dish or a source: its cell of its food atlas. */
+/** A dish uses its food atlas cell. A source shows the ingredient that it gives. */
 export function food(code: string, extra = '') {
-  const { atlas, cell } = definition(code).art;
+  const item = definition(code);
+  const { atlas, cell } = (item.generator ? definition(item.generator.outputs[0]) : item).art;
   return icon(`food ${extra}`, [cell % 4 * FOOD_CELL, Math.floor(cell / 4) * FOOD_CELL, FOOD_CELL, FOOD_CELL].join(' '),
     ['image', { href: foodAtlas(atlas), width: String(FOOD_CELL * 4), height: String(FOOD_CELL * 2) }]);
 }

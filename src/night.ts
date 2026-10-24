@@ -6,15 +6,17 @@ import { $, button, coinText, count, element, names } from './dom.ts';
 import { food, ratPose, ratSprite } from './art.ts';
 import { modal, showModal } from './dialog.ts';
 import { apply, changeGame, data, itemName, onReplace, state } from './session.ts';
-import { movableDrawer, onMotionReduce, still } from './preferences.ts';
-import { setLowered } from './room.ts';
+import { drawerLayout, onMotionReduce, still } from './preferences.ts';
+import { drawerCanMove, setLowered, showInPage } from './room.ts';
 import { newDishLine } from './engine.ts';
 
 // The timeline: the tint comes over 400ms, the rat of the room runs for RUN_MS, the rats on the board act, and the tint goes over 400ms.
 // On a phone with a movable drawer, the drawer lowers over DRAWER_MS for the rat of the room and rises again for the rats on the board.
+// A scrolling phone page pans the room to its floor and scrolls to the room, then scrolls to the board.
 const TINT_MS = 400, RUN_MS = 2200, DRAWER_MS = 600;
 // The floor of each area, in percentages of the painting from its top, where the rat of the room runs.
 const FLOORS: Record<string, number> = { 'front-room': 77, courtyard: 93 };
+const floorOf = (frame: HTMLElement) => FLOORS[frame.dataset.area ?? ''] ?? 90;
 // Poses: 0 and 1 come out of the board, 2 to 5 act, 6 and 7 scurry.
 const OUT = [0, 1], SCURRY = [6, 7];
 let stop: ((morningNext: boolean) => void) | null = null;
@@ -117,7 +119,7 @@ export function playNight() {
   if (still() || document.hidden) { morning(); return; }
   const frame = $('#room-frame'), layer = element('div', 'night-layer'), timers = new Set<ReturnType<typeof setTimeout>>();
   layer.setAttribute('aria-hidden', 'true');
-  let running = true, asking = true, dropped = false;
+  let running = true, asking = true, dropped = false, focusY: string | null = null;
   const cells = (name: string) => document.querySelectorAll<HTMLElement>(`.cell.${name}`);
   const finish = (morningNext: boolean) => {
     if (!running) return;
@@ -130,6 +132,7 @@ export function playNight() {
     for (const value of document.querySelectorAll('.cell .night-ghost')) value.remove();
     for (const cell of cells('night-hidden')) cell.classList.remove('night-hidden');
     if (dropped) setLowered(false);
+    if (focusY !== null) frame.style.setProperty('--fy', focusY);
     window.removeEventListener('keydown', key, true); document.removeEventListener('visibilitychange', hidden);
     if (morningNext) morning();
     else if (asking && modal.open) modal.close();
@@ -151,10 +154,12 @@ export function playNight() {
     asking = false; modal.close();
     window.addEventListener('keydown', key, true);
     frame.classList.add('night');
-    dropped = movableDrawer.matches; if (dropped) setLowered(true);
-    await pause(dropped ? DRAWER_MS : TINT_MS); if (!running) return;
+    dropped = drawerCanMove(); if (dropped) setLowered(true);
+    else if (drawerLayout.matches) { focusY = frame.style.getPropertyValue('--fy'); frame.style.setProperty('--fy', String(floorOf(frame) / 100)); }
+    await Promise.all([pause(dropped ? DRAWER_MS : TINT_MS), showInPage($('#room-stage'))]); if (!running) return;
     await roomRun(frame, rat); if (!running) return;
     if (dropped) { setLowered(false); dropped = false; await pause(DRAWER_MS); if (!running) return; }
+    else if (focusY !== null) { frame.style.setProperty('--fy', focusY); focusY = null; await showInPage($('#board')); if (!running) return; }
     await (rat === 'thief' ? thief(report, layer, taken, trapped, pause, () => running) : soricescu(report, layer, pause, () => running));
     if (!running) return;
     frame.classList.remove('night');
@@ -170,7 +175,7 @@ export function playNight() {
 /** The rat of the night runs across the floor of the area that the room shows. A painting that did not load shows no rat. */
 function roomRun(frame: HTMLElement, rat: 'thief' | 'soricescu') {
   if ($('#room-stage').hasAttribute('data-failed')) return Promise.resolve();
-  const runner = ratSprite(rat, 'room-rat scurrying'), floor = FLOORS[frame.dataset.area ?? ''] ?? 90;
+  const runner = ratSprite(rat, 'room-rat scurrying'), floor = floorOf(frame);
   runner.style.top = `${floor}%`; frame.append(runner);
   let step = 0; ratPose(runner, SCURRY[0]);
   const timer = setInterval(() => ratPose(runner, SCURRY[++step % 2]), 100);

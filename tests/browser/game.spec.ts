@@ -1051,13 +1051,14 @@ test('phone shows the room, the tickets, the board and Mara in one screen, with 
   const box=async(selector: string)=>(await page.locator(selector).boundingBox())!;
   const bar=await box('.phone-bar'),drawer=await box('#drawer'),tickets=await box('.tickets'),board=await box('#board'),slot=await box('.line-slot');
   expect(Math.round(bar.y+bar.height)).toBe(844);expect(Math.round(drawer.y+drawer.height)).toBe(Math.round(bar.y));
-  // About 250px of room shows above the handle row of tickets; the board and Mara's line follow inside the drawer.
-  expect(drawer.y-height).toBeGreaterThanOrEqual(230);expect(drawer.y-height).toBeLessThanOrEqual(280);
+  // The full-width board leaves a strip of the room above the tickets. Its ingredients stand below it.
+  expect(drawer.y-height).toBeGreaterThan(0);
   expect(tickets.y).toBeGreaterThanOrEqual(drawer.y);expect(board.y).toBeGreaterThanOrEqual(tickets.y+tickets.height);expect(board.y+board.height).toBeLessThanOrEqual(slot.y);expect(slot.y+slot.height).toBeLessThanOrEqual(bar.y+1);
   await expect(page.locator('#tickets .deliver-button:visible')).toHaveCount(0);
   for(const face of await page.locator('#tickets .ticket-face').all())expect((await face.boundingBox())!.height).toBeGreaterThanOrEqual(44);
-  // At 390px the width sets the cell: the board and the source rack share the row.
-  expect((await tile(page,0).boundingBox())!.width).toBeGreaterThanOrEqual((390-12)/9.654-.5);
+  const ribbon=await box('.source-tray');
+  expect(ribbon.y).toBeGreaterThanOrEqual(board.y+board.height);expect(ribbon.y+ribbon.height).toBeLessThanOrEqual(slot.y);
+  expect((await tile(page,0).boundingBox())!.width).toBeGreaterThanOrEqual(50);
   await unselect(page);await expect(page.locator('.mara-line')).toBeVisible();await expect(page.locator('#item-detail')).toBeHidden();
   await tile(page,14).click();await expect(page.locator('#item-detail')).toBeVisible();expect((await box('.mara-line')).width).toBeLessThanOrEqual(1);
   await unselect(page);await expect(page.locator('.mara-line')).toBeVisible();
@@ -1219,14 +1220,13 @@ test('narrow phones keep the whole dish name in the strip, and short screens kee
     else await expect(page.locator('#item-detail .detail-next')).toBeVisible();
     await expect(page.locator('#status')).toHaveText(line);
     expect((await page.locator('#item-detail').boundingBox())!.y+(await page.locator('#item-detail').boundingBox())!.height).toBeLessThanOrEqual((await page.locator('.phone-bar').boundingBox())!.y+1);
-    // Cells drop below 44px only as far as the width needs for the board and the source rack, within half a pixel of rounding.
-    expect((await tile(page,0).boundingBox())!.width).toBeGreaterThanOrEqual(Math.min(43.5,(width-12)/9.654-.5));
+    expect((await tile(page,0).boundingBox())!.width).toBeGreaterThanOrEqual(44);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   }
-  // Down to 740px tall the room gives up height, so the board and Mara's line still fit above the bar without scrolling.
+  // Short phones scroll the page to keep the full-width board and its ingredient ribbon clear of the bar.
   await page.setViewportSize({width:390,height:740});await start(page);
-  expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBe(true);
-  expect((await page.locator('#drawer').boundingBox())!.y).toBeGreaterThan(48+100);
+  expect(await page.evaluate(()=>document.documentElement.scrollHeight>innerHeight)).toBe(true);
+  await expect(page.locator('#drawer-handle')).toBeHidden();
   // A new game on a short phone: the opening line fits the line under the board.
   await page.addInitScript(key=>localStorage.removeItem(key),KEY);
   const first=data.prologue.events[0].quests[0];

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { firstFreeBoardCell, getItem } from '../../src/model.ts';
 import type { GameState, Quest } from '../../src/model.ts';
-import { act, checkpoint, naturalSize, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, forward, importSaveFile, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readNow, readTo, replaceSave, restoreWrites, saved, serialize, start, startAgain, startAgainAndImport, story, supplies, supply, source, tile, ticket, toast, validate, know, prologueServed } from './support.ts';
+import { act, checkpoint, naturalSize, data, deliverButton, deliverable, dialogDeliver, exportText, failWrites, finishScene, forward, importSaveFile, journal, KEY, onTicket, opened, openQuest, options, person, quest, ratio, readNow, readTo, replaceSave, restoreWrites, saved, scrollFullyIntoView, serialize, start, startAgain, startAgainAndImport, story, supplies, supply, source, tile, ticket, toast, validate, know, prologueServed } from './support.ts';
 
 /** The first campaign quest of each neighbour who lives in the village. The recovery quest stands outside the order of quests. */
 const campaign=data.quests.filter(value=>!value.recovery);
@@ -550,12 +550,17 @@ for(const viewport of [{width:1440,height:900},{width:390,height:844},{width:390
   await page.setViewportSize(viewport);await page.emulateMedia({colorScheme:theme,reducedMotion:'reduce'});
   const value=quest('monica-third-pack');expect(value.requirements).toHaveLength(4);await start(page,onTicket(value),theme);
   await expect(page.locator('html')).toHaveAttribute('data-theme',theme);
+  const pageFlow=viewport.width<1024&&await page.locator('#drawer').evaluate(element=>getComputedStyle(element).position==='static');
   await expect(ticket(page,value).locator('.ticket-items')).toHaveClass(/many/);await page.screenshot({path:testInfo.outputPath('tickets.png')});
   for(const card of await page.locator('#tickets .ticket').all()){
+    if(pageFlow){await card.scrollIntoViewIfNeeded();await expect(card).toBeInViewport({ratio:1});}
     expect(await card.evaluate(element=>element.scrollWidth<=element.clientWidth+1)).toBe(true);
     const box=(await card.boundingBox())!;expect(box.x).toBeGreaterThanOrEqual(0);expect(box.x+box.width).toBeLessThanOrEqual(viewport.width);
     for(const control of await card.getByRole('button').all()){const size=(await control.boundingBox())!;expect(size.width).toBeGreaterThanOrEqual(44);expect(size.height).toBeGreaterThanOrEqual(44);}
   }
   for(const food of await ticket(page,value).locator('.ticket-item .food').all()){const box=(await food.boundingBox())!;expect(box.width).toBeGreaterThan(0);}
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&document.documentElement.scrollHeight<=innerHeight)).toBe(true);
+  if(pageFlow)for(const selector of ['#board','.source-tray','.line-slot','.phone-bar']){
+    await scrollFullyIntoView(page.locator(selector));
+  }
+  expect(await page.evaluate(pageFlow=>document.documentElement.scrollWidth<=innerWidth&&(pageFlow||document.documentElement.scrollHeight<=innerHeight),pageFlow)).toBe(true);
 });

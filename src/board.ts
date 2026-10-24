@@ -265,7 +265,7 @@ window.addEventListener('pointerup',event=>{
   const to=target?Number(target.dataset.cell):from;if(to!==from){select(to);act({type:'move',from,to});return;}
   // A dish dropped anywhere off the board and the source tab is offered for sale. The prologue has no purse. The redraw replaces the
   // dropped-on element, so the check comes first.
-  const sale=!drop?.closest('#board,#sources')&&!!state.board[from]&&!state.prologue;
+  const sale=!drop?.closest('#board,.source-tray')&&!!state.board[from]&&!state.prologue;
   select(from);redraw();
   if(sale)offerSale(from);
 });

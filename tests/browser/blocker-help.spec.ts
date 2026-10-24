@@ -192,6 +192,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
   test(`blocker help fits ${viewport.width}x${viewport.height} in ${theme}`, async ({ page }, testInfo) => {
     await page.setViewportSize(viewport); const state = checkpoint(0, { ready: true }); await start(page, state, theme);
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+    const pageFlow = await page.locator('#drawer').evaluate(element => getComputedStyle(element).position === 'static');
     const offer = page.locator(viewport.width < 1024 ? '#offer' : '#story');
     await expect(offer.getByRole('button', { name: /^Pay / })).toBeVisible();
     for (const [position, title, name] of [[0, 'Old crate', 'clutter'], [6, 'Tied dough', 'anchor']] as const) {
@@ -204,6 +205,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
           markAboveTint: Number(getComputedStyle(cell.querySelector('.blocker-mark')!).zIndex) > Number(tint.zIndex) };
       });
       expect(overlay).toEqual({ color: 'rgba(184, 38, 44, 0.2)', pointerEvents: 'none', tintAboveArt: true, markAboveTint: true });
+      if (pageFlow) await help(page).scrollIntoViewIfNeeded();
       const geometry = await help(page).evaluate(element => {
         const box = element.getBoundingClientRect();
         let surface: Element = element;
@@ -232,7 +234,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
     await tile(page, 13).click(); await expect(help(page)).toHaveCount(0);
     await expect(page.locator('#item-detail h3')).toHaveText('Flour');
     expect(await targets(page)).toEqual([]);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth && document.documentElement.scrollHeight <= innerHeight)).toBe(true);
+    expect(await page.evaluate(pageFlow => document.documentElement.scrollWidth <= innerWidth && (pageFlow || document.documentElement.scrollHeight <= innerHeight), pageFlow)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath('normal-item.png') });
     expect(await saved(page)).toEqual(state);
   });
