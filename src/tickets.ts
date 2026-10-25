@@ -70,7 +70,7 @@ export const activeQuests = () => {
   return shown;
 };
 /** The supper and the event quests of the prologue pay nothing, so their tickets serve. */
-const serves = (quest: Quest) => !!quest.finale || !!quest.piper || questEvent(quest, data) > 0;
+const serves = (quest: Quest) => !!quest.finale || !!quest.piper || !!quest.order || questEvent(quest, data) > 0;
 /** The meal of a finale quest in words: "the supper" or "the feast". */
 const finaleMeal = (quest: Quest) => questFinale(quest, data)!.painting.title.replace(/^The /, 'the ');
 /** The portions of a quest that the board holds now, at most the quantity that it needs. */
@@ -200,9 +200,10 @@ function waitControl(quest: Quest, name: string) {
 function waitText(quest: Quest, name: string) {
   const note = ticketNote(state, quest, data);
   if (!note) return null;
-  if (awaitsLanterns(state, quest, data)) return `${note}. When every dish is on the board, light the lanterns, and ${quest.finale ? 'the guests arrive' : `${name} arrives`} at once.`;
+  // The dinner of the sleeper has one eater, so it has dishes, not plates for guests.
+  if (awaitsLanterns(state, quest, data)) return `${note}. When every dish is on the board, light the lanterns, and ${quest.finale ? quest.guests ? 'the guests arrive' : 'the table is ready' : `${name} arrives`} at once.`;
   const finale = questFinale(quest, data);
-  if (finale) return `${note}. Cook the plates whenever you like. The guests come on ${dateText(finale.day, data)} at ${clockText(levers(finale.day, data).booking)}.`;
+  if (finale) return `${note}. Cook the ${quest.guests ? 'plates' : 'dishes'} whenever you like. ${quest.guests ? 'The guests come' : 'The table is set'} on ${dateText(finale.day, data)} at ${clockText(levers(finale.day, data).booking)}.`;
   if (quest.booked) return bookedTonight(state, quest) ? `${note}. ${name} is at the table.`
     : `${note}. ${names.format([...new Set(data.quests.filter(value => value.booked && value.evening === undefined).map(value => character(value.character).name))])} never dine on the same evening, and nobody books on a Sunday.`;
   const holiday = questHoliday(quest, data);
@@ -293,6 +294,7 @@ function showQuest(quest: Quest) {
   // The supper pays nothing and opens the finale. The recovery quest returns while the purse runs low.
   const pay=quest.finale?`${finaleMeal(quest)[0].toUpperCase()}${finaleMeal(quest).slice(1)} pays nothing. Serving it opens the finale.`
     :quest.piper?`The piper’s fee pays nothing. His tune keeps the thief rats away for ${count.format(PIPER_NIGHTS)} Sunday nights.`
+    :quest.order?'A course of the sleeper’s order pays nothing. Adrian, Monica, and Janos carry it down under the cathedral.'
     :serves(quest)?'A family meal pays nothing.':`Reward: ${coinText(reward)}`;
   const rewardText=element('p','quest-reward',pay),bookingText=wait?element('p','quest-booking',wait):null;
   // An available action comes before the art and story, with its reward and timing. There is only one action control.
@@ -304,6 +306,6 @@ function showQuest(quest: Quest) {
     if(bookingText)content.append(bookingText);
     content.append(requirements,rewardText,actions);
   }
-  content.append(element('p','quest-note',quest.finale?'One plate for each guest, to each one’s taste. There is no deadline.':quest.recovery?'Ana returns while the purse runs low. Herbs from the Herb basket are free.':'Delivery uses dishes on the board. There is no deadline.'));
+  content.append(element('p','quest-note',quest.finale&&quest.guests?'One plate for each guest, to each one’s taste. There is no deadline.':quest.recovery?'Ana returns while the purse runs low. Herbs from the Herb basket are free.':'Delivery uses dishes on the board. There is no deadline.'));
   showModal(quest.title,content);
 }

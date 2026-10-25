@@ -1,23 +1,32 @@
 // Original setting, dialogue, progression, and economy authored for this browser game.
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { menuPrice, MIXED, roomPaintings, yearDay } from '../src/model.ts';
+import { menuPrice, MIXED, NO_STAGES, roomPaintings, yearDay } from '../src/model.ts';
 import { dataProblems } from '../src/content.ts';
 import { imageVariants } from './build-image-variants.ts';
-import type { Act, Area, BoardLayout, BoardObstacle, Calendar, Chain, Chapter, Character, DayLevers, DecorationSlot, DishTag, Economy, Finale, FoodAtlas, GameData, Holiday, Hold, Item, PreparationObstacleBatch, Prologue, PrologueEvent, Quest, RoomState, Task, Weather, WeatherObstacleBatch } from '../src/model.ts';
+import type { Act, Area, BoardLayout, BoardObstacle, Calendar, Chain, Chapter, Character, DayLevers, DecorationSlot, DishTag, Economy, Finale, FoodAtlas, GameData, Growth, Holiday, Hold, Item, PreparationObstacleBatch, Prologue, PrologueEvent, Quest, RoomState, Task, Weather, WeatherObstacleBatch } from '../src/model.ts';
 
 // The garden stages follow these preparations of act 2: digging the beds, the well pump, and the drying racks.
 const GARDEN_PREPARATIONS = [6, 14, 22];
+// The orchard stages follow these preparations of act 3: the pruned trees, the apple loft, and the brandy still. From the cold-room
+// door of the cellar, the bistro keeps the pickles of the family.
+const ORCHARD_PREPARATIONS = [2, 10, 13], CELLAR_PREPARATION = 16;
 /** The ID of a preparation of act 2 by its number. */
 const actTwoTask = (number: number) => `act2-prep-${number}`;
+/** The ID of a preparation of act 3 by its number. */
+const actThreeTask = (number: number) => `act3-prep-${number}`;
 // The levers of the economy (docs/economy.md). They are starting values: the campaign balance test measures them.
-const economy: Economy = { takeCost: 1, blockerCoin: 1, workRate: 2, recoveryFloor: 10, garden: { after: GARDEN_PREPARATIONS.map(actTwoTask), values: [1, 2, 3] } };
+const economy: Economy = { takeCost: 1, blockerCoin: 1, workRate: 2, recoveryFloor: 10, garden: { after: GARDEN_PREPARATIONS.map(actTwoTask), values: [1, 2, 3] },
+  orchard: { after: ORCHARD_PREPARATIONS.map(actThreeTask), values: [1, 2, 3] }, cellar: { after: [actThreeTask(CELLAR_PREPARATION)], values: [2] } };
 // The levers of the bistro day of act 1, in minutes after midnight. A weekday holds 60 merges, and a Sunday holds 28. The campaign balance test measures them.
 const actOneDay: DayLevers = { opening: 7 * 60, closing: 22 * 60, booking: 20 * 60, sunday: { opening: 10 * 60, closing: 17 * 60 }, mergeMinutes: 15, upkeep: 20,
   ratTake: 3, ratHoles: 3, giftStage: 4, giftSpace: 5 };
 // The summer kitchen has one clay oven and one stove, so each dish of act 2 takes 25 minutes. A weekday holds 36 merges, and a Sunday holds 18.
 const actTwoDay: DayLevers = { ...actOneDay, booking: 19 * 60 + 30, sunday: { opening: 10 * 60, closing: 17 * 60 + 30 }, mergeMinutes: 25 };
-// Act 1 runs from Saturday 15 February to Thursday 1 May of year 1, and act 2 to Sunday 31 August. A day is a number: 15 February is day 1.
+// In the autumn, Mara cooks in the bistro kitchen again, so act 3 keeps the day of act 1.
+const actThreeDay: DayLevers = actOneDay;
+// Act 1 runs from Saturday 15 February to Thursday 1 May of year 1, act 2 to Sunday 31 August, and act 3 to Friday 31 October, All Hallows'
+// Eve. A day is a number: 15 February is day 1.
 const START = yearDay(2, 15);
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 /** The day of a date such as "27 Feb". A date in December is in year 0. */
@@ -26,13 +35,14 @@ const on = (date: string) => {
   if (!index) throw new Error(`Unknown date: ${date}.`);
   return yearDay(index, Number(number)) - (index === 12 ? 365 : 0) - START + 1;
 };
-// The weather of each day: snow before mid-March, short spring and summer rains, and fair weather on each holiday and each day that holds.
+// The weather of each day: snow before mid-March, short rains in the other seasons, and fair weather on each holiday and each day that holds.
 // The hail falls on Friday 18 July, a day of rain.
 const snow = ['15 Feb', '18 Feb', '19 Feb', '26 Feb', '11 Mar', '12 Mar', '14 Mar'], rain = ['17 Mar', '18 Mar', '26 Mar', '4 Apr', '10 Apr', '11 Apr', '15 Apr', '16 Apr', '24 Apr', '26 Apr', '29 Apr',
-  '9 May', '15 May', '16 May', '27 May', '3 Jun', '12 Jun', '17 Jun', '2 Jul', '8 Jul', '9 Jul', '18 Jul', '25 Jul', '4 Aug', '11 Aug', '22 Aug', '27 Aug'];
-const SUPPER = on('1 May'), END = on('31 Aug');
-const weather: Weather[] = Array.from({ length: END }, (_, index) => snow.some(date => on(date) === index + 1) ? 'snow' : rain.some(date => on(date) === index + 1) ? 'rain' : 'fair');
-const acts: Act[] = [{ from: 1, to: SUPPER, day: actOneDay }, { from: SUPPER + 1, to: END, day: actTwoDay }];
+  '9 May', '15 May', '16 May', '27 May', '3 Jun', '12 Jun', '17 Jun', '2 Jul', '8 Jul', '9 Jul', '18 Jul', '25 Jul', '4 Aug', '11 Aug', '22 Aug', '27 Aug',
+  '4 Sep', '9 Sep', '17 Sep', '23 Sep', '29 Sep', '6 Oct', '8 Oct', '17 Oct', '20 Oct', '28 Oct'];
+const SUPPER = on('1 May'), END = on('31 Aug'), HALLOWS_EVE = on('31 Oct');
+const weather: Weather[] = Array.from({ length: HALLOWS_EVE }, (_, index) => snow.some(date => on(date) === index + 1) ? 'snow' : rain.some(date => on(date) === index + 1) ? 'rain' : 'fair');
+const acts: Act[] = [{ from: 1, to: SUPPER, day: actOneDay }, { from: SUPPER + 1, to: END, day: actTwoDay }, { from: END + 1, to: HALLOWS_EVE, day: actThreeDay }];
 // The holidays that have a quest. On Saint George's Eve, garlic hangs on every door, and on the festival and the feast the whole village is
 // in the square, so no booked guest dines.
 const holidays: Holiday[] = ([
@@ -43,6 +53,8 @@ const holidays: Holiday[] = ([
   ['ionatan-journey', 'Ionatan’s journey', '3 May'], ['ispas', 'Ispas', '29 May'], ['mosii', 'the Saturday of the dead', '7 Jun'], ['rusalii', 'Pentecost', '8 Jun'],
   ['six-months', 'the six-month memorial', '14 Jun'], ['festival', 'the festival', '21 Jun'], ['sanziene-eve', 'Midsummer Eve', '23 Jun'], ['ziua-iei', 'the day of the blouse', '24 Jun'],
   ['saint-elijah', 'Saint Elijah', '20 Jul'], ['dormition', 'the Dormition', '15 Aug'],
+  ['holy-cross', 'Holy Cross Day', '14 Sep'], ['saint-parascheva', 'Saint Parascheva', '14 Oct'], ['mosii-toamna', 'the autumn Saturday of the dead', '25 Oct'],
+  ['samedru', 'Saint Demetrius', '26 Oct'],
 ] as const).map(([id, name, date]) => ({ id, name, day: on(date), ...(['saint-george-eve', 'festival', 'dormition'].includes(id) ? { noEvening: true as const } : {}) }));
 // The window of the front room shows the village in late winter, at the thaw, and in blossom.
 const views = [{ id: 'window-view-late-winter', from: 1 }, { id: 'window-view-early-spring', from: on('10 Mar') }, { id: 'window-view-spring', from: on('6 Apr') }];
@@ -54,7 +66,7 @@ const decorations: Calendar['decorations'] = [
   { id: 'red-eggs', name: 'A bowl of red eggs on the windowsill', area: 'front-room', image: 'holiday-front', from: on('17 Apr'), to: on('27 Apr'), crop: box(1356, 880, 88, 82) },
   { id: 'green-branches', name: 'Green branches tied to the gate', area: 'courtyard', image: 'holiday-courtyard', from: on('22 Apr'), to: on('1 May'), crop: box(1291, 850, 110, 320) },
 ];
-// The days that hold until their release, with Mara's line while they hold. 30 April, 20 June, and 14 August keep their evenings.
+// The days that hold until their release, with Mara's line while they hold. 30 April, 20 June, 14 August, and 30 October keep their evenings.
 const holds: Hold[] = [
   { day: on('30 Apr'), task: 'task_24', line: 'Walpurgis Night lasts until the bistro is ready.', bookings: true },
   { day: SUPPER, quest: 'mara-community-supper', line: 'The village waits for the supper.' },
@@ -65,9 +77,11 @@ const holds: Hold[] = [
   { day: on('14 Aug'), task: actTwoTask(24), line: 'The feast tables must be ready by morning.', bookings: true },
   { day: on('15 Aug'), quest: 'ambrozie-feast', line: 'The village waits for the feast.' },
   { day: END, task: 'act2-orchard', line: 'The cathedral sells the orchard today.' },
+  { day: on('30 Oct'), task: actThreeTask(18), line: 'The hall must be ready before All Hallows’ Eve.', bookings: true },
+  { day: HALLOWS_EVE, quest: 'ambrozie-sleeper-dinner', line: 'The sleeper waits for his dinner.' },
 ];
 // Ilie and Cătălina keep the Great Lent and the Dormition fast. Fish is allowed on the Annunciation, on Palm Sunday, and on the Transfiguration.
-const calendar: Calendar = { start: START, supper: SUPPER, end: END, weather, holidays, holds,
+const calendar: Calendar = { start: START, supper: SUPPER, end: HALLOWS_EVE, weather, holidays, holds,
   fasts: [{ from: on('3 Mar'), to: on('19 Apr'), fish: [on('25 Mar'), on('13 Apr')] }, { from: on('1 Aug'), to: on('14 Aug'), fish: [on('6 Aug')] }],
   terrace: { from: on('1 Apr'), to: on('31 Oct') }, views, decorations };
 // The staple chains. Each chain is one food family: its source gives the raw staple, and its dishes use only foods of that
@@ -91,6 +105,9 @@ const chains: [id: string, name: string, source: string, stages: [name: string, 
   ['greens', 'Spring greens', 'Forage basket', [['Nettles', []], ['Wild garlic and sorrel', ['garlic']], ['Nettle soup', []], ['Nettle purée with garlic', ['garlic']]], true],
   // The summer garden: tomatoes, the summer salad of tomatoes, cucumbers, and onions, the aubergine salad, and the bulion of August.
   ['garden', 'Summer garden', 'Garden beds', [['Tomatoes', []], ['Summer salad', []], ['Aubergine salad', []], ['Bulion', []]], true],
+  // The apple tree of the orchard: apples, the apple rings of the drying racks, baked apples with walnuts and honey, and the strudel of the
+  // Saxon and Hungarian kitchens of Transylvania.
+  ['orchard', 'Orchard', 'Apple tree', [['Apples', []], ['Dried apple rings', []], ['Baked apples', []], ['Apple strudel', []]]],
 ];
 // The seasons of the seasonal chains: the pickle barrel holds the winter pickles of the cathedral, the forage basket the greens of the
 // hill, and the Garden beds the vegetables of the summer, from the day that the beds are dug.
@@ -98,9 +115,11 @@ const seasons: Record<string, Chain['season']> = {
   pickles: { from: on('1 Dec'), to: on('20 Mar'), departure: 'The pickle barrel is empty until next winter.' },
   greens: { from: on('21 Mar'), to: on('31 May'), departure: 'The forage basket waits for next spring.' },
   garden: { from: on('1 Jun'), to: on('30 Sep'), departure: 'The Garden beds rest until next summer.', after: actTwoTask(6) },
+  orchard: { from: on('1 Sep'), to: HALLOWS_EVE, departure: 'The apple tree rests until next autumn.', after: actThreeTask(2) },
 };
-// The garden ingredients: the vegetables of the market crate and of the Garden beds.
-const gardenChains = ['vegetables', 'garden'];
+// The growths: the garden gives the vegetables of the market crate and of the Garden beds, the orchard the fruit of the cornucopia and of
+// the apple tree, and the cellar the pickles of the barrel.
+const growth: Record<string, Growth> = { vegetables: 'garden', garden: 'garden', fruits: 'orchard', orchard: 'orchard', pickles: 'cellar' };
 // The mixed dishes: a slug, the name, the two parts by name, the tags that the dish adds to those of its parts, and its atlas cell.
 // A part that is itself mixed must come earlier in this list.
 const mixedRows: [slug: string, name: string, parts: [string, string], added: DishTag[], atlas: FoodAtlas, cell: number][] = [
@@ -141,6 +160,11 @@ const mixedRows: [slug: string, name: string, parts: [string, string], added: Di
   ['tomato-salad', 'Tomato salad with telemea', ['Summer salad', 'Telemea'], [], 'summer', 1],
   ['monks-stew', 'Monk’s stew', ['Bulion', 'Green beans'], [], 'summer', 2],
   ['meatballs-in-sauce', 'Meatballs in tomato sauce', ['Meatballs', 'Bulion'], [], 'summer', 3],
+  // The feast dishes of the sleeper's order: the suckling pig with an apple, the lamb roasted in red wine, and the wooden platter of roasts
+  // of the Transylvanian kitchens (fatányéros).
+  ['suckling-pig', 'Suckling pig with an apple', ['Roast pork', 'Apples'], [], 'feast', 0],
+  ['lamb-in-red-wine', 'Lamb roasted in red wine', ['Roast lamb', 'Red wine'], [], 'feast', 1],
+  ['wooden-platter', 'Wooden platter', ['Roast veal', 'Sausages'], [], 'feast', 2],
 ];
 const items: Record<string, Item> = {};
 for (const [chain, , source, stages, free] of chains) {
@@ -162,7 +186,7 @@ for (const [slug, name, parts, added, atlas, cell] of mixedRows) {
   const tags = [...new Set([...recipe.flatMap(part => items[part].tags), ...added])];
   items[`mixed_${slug}`] = { id: `mixed_${slug}`, name, chain: MIXED, stage: recipe.some(part => items[part].recipe) ? 2 : 1, next: null, art: { atlas, cell }, price: 0, tags, recipe };
 }
-const chainData = { chains: chains.map(([id, name]) => ({ id, name, ...(gardenChains.includes(id) ? { garden: true } : {}) })), items, economy, characters: [], tasks: [], quests: [] } as unknown as GameData;
+const chainData = { chains: chains.map(([id, name]) => ({ id, name, ...(growth[id] ? { grows: growth[id] } : {}) })), items, economy, characters: [], tasks: [], quests: [] } as unknown as GameData;
 for (const item of Object.values(items)) if (!item.generator) item.price = menuPrice(item.id, chainData);
 
 const characters: Character[] = [
@@ -530,18 +554,19 @@ const purchase: Task = { id: 'act2-orchard', chapter: 12, title: 'Buy the orchar
     { speaker: 'mara', text: 'Then they know. The orchard is ours, and in autumn we find out what it wants.' }] };
 const tasks: Task[] = [...actOneTasks, ...actTwoTasks, purchase];
 // The quest campaign. A quest in window w opens after preparation w (0: in a new game), and preparation w + 1 needs it.
-// Every quest pays the menu value of its dishes at the garden stage while it is open. A requirement row names a dish by its name. The
+// Every quest pays the menu value of its dishes at the stages of the growths while it is open. A requirement row names a dish by its name. The
 // funding of the quests that open before each preparation pays for it; questProblems checks the funds.
-const questTerms = (rows: [string, number][], stage = 0) => ({ requirements: rows.map(([name, quantity]) => ({ item: dish(name), quantity })),
-  reward: rows.reduce((sum, [name, quantity]) => sum + menuPrice(dish(name), chainData, stage) * quantity, 0) });
+const questTerms = (rows: [string, number][], stages = NO_STAGES) => ({ requirements: rows.map(([name, quantity]) => ({ item: dish(name), quantity })),
+  reward: rows.reduce((sum, [name, quantity]) => sum + menuPrice(dish(name), chainData, stages) * quantity, 0) });
 // A quest scene is one line by its character, or an exchange of [speaker, text] turns. The requirement rows list the dishes, so the words need not.
 type Speech = string | [speaker: string, text: string][];
 const lines = (character: string, speech: Speech) => typeof speech === 'string' ? [{ speaker: character, text: speech }] : speech.map(([speaker, text]) => ({ speaker, text }));
 // The calendar of a quest: its opening date, its holiday, a March quest, a later act, an outdoor quest, and the companions who share the meal.
 // A dated quest with followsLine comes after the other quests of its window, so it does not hold up the line of its character. A quest of
-// act 2 can also follow another quest, own a fixed evening, feed a festival stall, keep the rats away, or end with a painting.
+// act 2 can also follow another quest, own a fixed evening, feed a festival stall, keep the rats away, or end with a painting. A scroll of act 3
+// is a part of the sleeper's order.
 type QuestExtra = { opens?: string; holiday?: string; march?: true; act?: 2 | 3 | 4; outdoor?: true; companions?: string[]; followsLine?: true;
-  afterQuest?: string; evening?: string; stall?: true; piper?: true; painting?: Quest['painting'] };
+  afterQuest?: string; evening?: string; stall?: true; piper?: true; painting?: Quest['painting']; order?: true };
 type QuestRow = [id: string, character: string, title: string, window: number, requirements: [string, number][], opening: Speech, completion: Speech, extra?: QuestExtra];
 const questExtra = ({ opens, evening, followsLine: _followsLine, ...rest }: QuestExtra = {}) => ({ ...rest, ...(opens ? { opens: on(opens) } : {}), ...(evening ? { evening: on(evening) } : {}) });
 // Each quest of a regular asks for at least one favourite dish.
@@ -752,9 +777,6 @@ const questRows: QuestRow[] = [
   ['ileana-towels', 'ileana', 'Towels for the gate', 21, [['Stuffed peppers', 2], ['Fried trout', 1]],
     'I am embroidering the towels for the supper gate. Bring stuffed peppers and a fried trout, and I will finish the last corner.',
     'The towels are done. Each corner has a little red rooster. They keep watch better than Cezar.'],
-  ['bran-pumpkins', 'bran', 'The pumpkin fair', 21, [['Langoș', 1], ['Minced veal', 1], ['Cabbage rolls', 1]],
-    'The town has a pumpkin fair this weekend. Last year I carved the best pumpkin head. People said that I understand heads very well. A langoș, minced veal, and cabbage rolls, please.',
-    'The langoș is for the bus. The rest is for me. The pumpkin head is for anyone who needs one.', { act: 3 }],
   ['cezar-sleepwalk', 'cezar', 'A supper to remember', 22, [['Tochitură', 1], ['Mici', 1], ['Cabbage rolls', 1]],
     'Last night I woke up in your courtyard with an empty plate. I do not remember eating. Tochitură, mici, and cabbage rolls, please, so that I remember this time.',
     'I remember every bite. Thank you. If you see me in the courtyard tonight, please wave.'],
@@ -858,12 +880,6 @@ const questRows: QuestRow[] = [
   ['dochia-lambing', 'dochia', 'Lambing time', 7, [['Telemea', 4], ['Pogăcele', 2], ['Socată', 1], ['Mămăligă', 1], ['Loaf', 2], ['Linden tea', 2]],
     'The first lambs came in the night, two of them in the snow. I will sleep in the fold until the rest arrive. Telemea, bread, and hot tea, please. It is a long watch.',
     'Seven lambs, all on their feet. The smallest one sleeps inside my coat. That makes ten sheepskins, and the weather is furious.', { march: true, opens: '14 Mar' }],
-  ['ilie-pickles', 'ilie', 'Jars for winter', 4, [['Bulz', 2], ['Cheese pie', 1]],
-    [['ilie', 'My grandmother pickled everything that stood still long enough. I want to fill the cellar jars her way.'],
-      ['mara', 'Her way takes all afternoon.'],
-      ['ilie', 'That is why I need a proper lunch first.']],
-    [['ilie', 'Full and labelled, in her order. Cabbage, then peppers, then plums.'],
-      ['ilie', 'One label says "Do not open before winter". I did not write that one.']], { act: 3 }],
   ['costel-key', 'costel', 'A key that hums', 4, [['Papanași', 1], ['Smoked cheese', 1], ['Cheese pie', 1]],
     'I found an old key under the counter, and it hums near the cellar door. Papanași, smoked cheese, and cheese pie, and I will find out what it wants.',
     'It wanted oil. It stopped humming and started purring. I am keeping it on a ribbon.'],
@@ -1071,7 +1087,7 @@ const actTwoQuestRows: QuestRow[] = [
     'The summer festival needs music, so I am building a mechanical nightingale for the stage: brass, springs, and one small bellows. Papanași, a cheese pie, and a langoș, please. Small parts need a big lunch.',
     'The nightingale sings now. It sings only when it sees a shiny spoon, but it sings. I will polish a spoon for the festival.'],
   ['bran-extra-buses', 'bran', 'Extra buses', 3, [['Langoș', 1], ['Mici', 1], ['Bean soup in a bread bowl', 1]],
-    'The town wants extra night buses in June: for the festival, and for Midsummer Eve. That is a lot of night. A langoș, mici, and a bean soup in a bread bowl, please.',
+    'The town wants extra night buses in June: for the festival, and for Midsummer Eve. That is a lot of night. A langoș, a vegetable stew, and a bean soup in a bread bowl, please.',
     'I have planned the routes. The horse read the timetable over my shoulder. It did not like the part about the woods.'],
   // Chapter 2, Beds and benches: 19 May to 4 June. The garden gives its first vegetables, and the mayor offers the festival contract.
   ['sorin-contract-news', 'sorin', 'News from the town hall', 4, [['Langoș', 1], ['Linden tea', 1], ['Bean soup', 1]],
@@ -1473,14 +1489,384 @@ const actTwoQuestRows: QuestRow[] = [
       ['sorin', 'Or a question. Trees are hard to read.']], { opens: '29 Aug' }],
 ];
 for (const [id, character, title, window, requirements, opening, completion, extra] of actTwoQuestRows) {
-  const stage = GARDEN_PREPARATIONS.filter(number => number <= window).length, piper = !!extra?.piper;
+  const stages = { ...NO_STAGES, garden: GARDEN_PREPARATIONS.filter(number => number <= window).length }, piper = !!extra?.piper;
   campaign.push({ window: 24 + window, quest: { id, character, title, afterTask: window ? actTwoTask(window) : 'task_24', act: 2, ...questExtra(extra),
-    ...questTerms(requirements, stage), ...(piper ? { reward: 0 } : {}), opening: lines(character, opening), completion: lines(character, completion),
+    ...questTerms(requirements, stages), ...(piper ? { reward: 0 } : {}), opening: lines(character, opening), completion: lines(character, completion),
     ...(bookedGuests.includes(character) || extra?.evening ? { booked: true } : {}),
     ...(id === 'mina-avram-search' ? { followUp: { id: 'mina-avram-news', title: 'News from the road', afterDeliveries: 3,
       dialogue: lines('sorin', [['sorin', 'There is news going round the village. Mina and Doctor Avram found Ionatan gravely ill. All three have left for Britain. They did not stop at our bistro on the way back.'],
         ['mara', 'Then he is no longer alone. I hope that he recovers at home. Thank you for bringing the news, Sorin.']]) } } : {}) } });
 }
+// Act 3: the orchard, the bistro cellar, and the cathedral kitchen, from 1 September to All Hallows' Eve. The sleeper behind the red door
+// wakes every forty years and demands a feast. Ambrozie brings his order in six scrolls, and the closing scenes name the changes that
+// the preparations paint.
+const actThreeChapterRows: typeof chapterRows = [
+  ['The orchard creaks', 'Clear the orchard and wake the old apple tree.',
+    'September comes to the orchard. The trees creak in turns, brambles hide the paths, and Ambrozie climbs the hill with a scroll under his arm.',
+    'The orchard is cleared, the apple tree gives its first fruit, and the stairs of the bistro cellar are open again.', 'sorin-see-sleeper',
+    [['mara', 'The brambles are gone, the trees are pruned, and the cellar stairs are clear.'],
+      ['ilie', 'The apple tree gave its first fruit, and the best that I have tasted this year.'],
+      ['sorin', 'And the sleeper wakes on All Hallows’ Eve. Everybody in this kitchen knows now, and nobody else. I will see to it.'],
+      ['eszter', 'Then there is time. Enough for a good table.']]],
+  ['Jars and gates', 'Ready the bistro cellar and open the kitchen under the cathedral.',
+    'Ilie wants a cellar full of his own jars, and Ambrozie has a key to a kitchen that nobody has opened for forty years.',
+    'The barrels are scrubbed, the wine racks are up, and the gate of the cathedral kitchen stands open.', 'ilie-pickles',
+    [['ilie', 'The barrels smell of oak, the racks hold their bottles, and my first jars wait on the floor for their shelves.'],
+      ['eszter', 'And under the cathedral, a gate is open. Behind it, a kitchen that has waited forty years for a cook.'],
+      ['mara', 'A kitchen. A real kitchen, under the cathedral. Tonight I cross off another day in the notebook: one page, one dinner.'],
+      ['sorin', 'That is a lot of sweeping. I will carry the broom. Only the broom.']]],
+  ['Forty years of dust', 'Clean the cathedral kitchen and light its hearth.',
+    'The kitchen under the cathedral is grey with dust. The oldest villagers remember why nobody cooked there, and they still keep a spare loaf hidden.',
+    'The kitchen is swept, the hearth burns, the orchard wall stands, and everybody knows the story of the raid.', 'eszter-cracked-plate',
+    [['mara', 'The floor is swept, the hearth is lit, and the orchard wall stands straight again.'],
+      ['eszter', 'And my first plate cracked at one snore. The next one will be bigger.'],
+      ['ilie', 'Forty years ago the sleeper woke, and nobody cooked for him. So he went through every pantry in the village but one.'],
+      ['sorin', 'And this year he finds a kitchen with a fire in it. I hope that he wipes his feet.']]],
+  ['The pumpkin fair', 'Fill the apple loft and the winter shelves.',
+    'October fills the orchard with apples and the market with pumpkins. Bran carves heads, and the jars of the bistro need their shelves.',
+    'The apple loft is full, the winter jars stand on their shelves, and the great pots of the cathedral shine.', 'sorin-halfway',
+    [['ilie', 'The loft is full of apples, and the jars stand on their shelves.'],
+      ['eszter', 'And the great pots of the cathedral are ready. You can see them from the top of the stairs.'],
+      ['sorin', 'Not at night. At night the stairs are very dark.'],
+      ['eszter', 'What night?'],
+      ['sorin', 'No night. No stairs.'],
+      ['mara', 'Bran won the pumpkin fair again. His pumpkin head sits on our gate and watches the road.']]],
+  ['Every family’s best brandy', 'Fire the brandy still and stock the cellar for the night.',
+    'The village boils its plum brandy in Mara’s still, and 14 October is the name day of Mamaia.',
+    'The still has done its work, the hams hang in the cellar, and lanterns light the orchard.', 'mara-name-day',
+    [['mara', 'The still is cold again, the hams hang in the cellar, and the orchard has its lanterns.'],
+      ['ilie', 'Every family says that its brandy is the best. I tasted all of them. Every family is right.'],
+      ['eszter', 'You tasted all of them?'],
+      ['ilie', 'One small cup each. For the notebook.'],
+      ['sorin', 'Half the village came up to see the lanterns. The other half came for the brandy.']]],
+  ['A chair for the sleeper', 'Lay the long table and set the sleeper’s chair for All Hallows’ Eve.',
+    'The last scroll is read. The cold room closes, the long table waits for its cloth, and the great chair comes down from the library.',
+    'The long table is laid, the sleeper’s chair waits, and the dinner is ready for All Hallows’ Eve.', 'eszter-cartwheel-plate',
+    [['mara', 'The cold-room door is fitted, the long table is laid, and his chair waits.'],
+      ['eszter', 'And my plate stands at his place. It is the size of a cartwheel, and it will not crack.'],
+      ['ilie', 'Our own pickles in our own cellar. Ambrozie bought a jar.'],
+      ['sorin', 'On All Hallows’ Eve he wakes. I will be in the kitchen. Near the door.']]],
+];
+const actThreeChapterDates = ['1 Sep', '11 Sep', '21 Sep', '1 Oct', '11 Oct', '21 Oct'];
+chapters.push(...actThreeChapterRows.map(chapter('act3-chapter-', 3, actThreeChapterDates)));
+// The preparations of act 3, three in each chapter. Preparations 2, 10, and 13 raise the orchard stage, so their scenes tell that the
+// fruit is worth more. Preparation 16 gives the bistro the pickles of the family.
+const actThreeTaskRows: (typeof taskRows)[number][] = [
+  ['Cut back the brambles', 'sorin', 'The brambles were taller than me. Now they are a heap taller than me.', 'ilie', 'And under them, the old paths of the orchard, laid with river stones.', 'mara', 'The monks walked here once, between the trees. Now the paths are ours.'],
+  ['Prune the old apple trees', 'eszter', 'Every wild shoot is gone. The old trees look like themselves again.', 'ilie', 'The big apple tree still had apples under all that wood. Small, sour, and ours.', 'mara', 'From today the apple tree and the Cornucopia give us fruit for nothing but work. The menu prices stay the same, so the fruit earns more for the bistro.'],
+  ['Clear the cellar stairs', 'mara', 'Under the kitchen, a door that nobody has opened since Mamaia. Behind it, stairs, and under the dust, more stairs.', 'sorin', 'Fourteen steps. I counted them twice. The second time there were fifteen.', 'ilie', 'There are fourteen. The fifteenth is Sorin’s imagination. A rope, a lantern, and the cellar is ours again.'],
+  ['Scrub the old barrels', 'ilie', 'Two oak barrels, a year of dust, and one loose hoop.', 'eszter', 'I hammered the hoop back. The barrel rang like a bell.', 'mara', 'Wine for the sleeper, in Mamaia’s barrels. She would find that very funny.'],
+  ['Build the wine racks', 'eszter', 'A rack of oak laths on the wall, eight bottles across.', 'sorin', 'I put one bottle in to test it. Then I took it out to test it again.', 'mara', 'Put it back, Sorin. That one is for the sleeper.'],
+  ['Unlock the kitchen gate', 'ambrozie', 'This key opens the kitchen of the cathedral. Nobody has turned it since the archbishop left.', 'mara', 'It turned for me at once.', 'eszter', 'A whole hall, a hearth, and pots big enough to bathe in. And dust on everything.'],
+  ['Sweep forty years of dust', 'sorin', 'Forty sacks of dust. I carried every one up the stairs.', 'eszter', 'Under the dust, the floor is old stone, and every flag is still whole.', 'mara', 'And not one footprint in it but ours. Good. Nobody has cooked here without us.'],
+  ['Light the great hearth', 'ilie', 'The chimney was full of old nests. The birds moved out long ago and left their furniture.', 'mara', 'It draws like a bellows. The whole hall is warm.', 'eszter', 'Listen. Under the floor, the snoring is slower now. Like a cat beside a stove.'],
+  ['Mend the stone wall', 'eszter', 'Every stone back in its place, flat side up.', 'sorin', 'I found a coin in the wall. Very old. It has a bishop on it.', 'ilie', 'Put it back. A wall keeps what it is given.'],
+  ['Build the apple loft', 'ilie', 'A loft on four oak legs, with slatted walls, so that the air goes through and the mice do not.', 'mara', 'The apples keep until spring now, and the guests pay more for them.', 'eszter', 'Miez has inspected it. He approves of the ladder.'],
+  ['Shelve the winter jars', 'ilie', 'Two shelves of jars, and every jar has a label that I wrote.', 'eszter', 'And every lid has a ribbon in its own colour.', 'mara', 'Red for peppers, green for cabbage, blue for plums. Even a sleeper can read that.'],
+  ['Scour the giant pots', 'eszter', 'The archbishop came up to help with the pots. He scrubs the way he preaches: for a very long time.', 'sorin', 'I can see myself in the big one. I look worried.', 'mara', 'Everybody looks worried in a copper pot. It is the shape.'],
+  ['Fire the brandy still', 'ilie', 'The old copper still of the orchard, cleaned, mended, and fired with beech.', 'sorin', 'Every family of the village brought its plums, its own barrel, and its own opinion.', 'mara', 'Then we boil every family’s plums in turn. And the guests pay even more for our fruit now.'],
+  ['Hang the smoked hams', 'sorin', 'Six hams from the smokehouse in the village, on the hooks of the beam.', 'ilie', 'They hang until Christmas. Except one.', 'mara', 'Except one. That one is for Ambrozie, for the trouble of the scrolls.'],
+  ['Hang lanterns in the branches', 'eszter', 'Eight lanterns in the apple trees, and every one of them lit.', 'ilie', 'From here, the light reaches the cathedral.', 'sorin', 'Ambrozie says that the sleeper likes a lit path. So does the postman.'],
+  ['Fit the cold-room door', 'eszter', 'An oak door, two inches thick, with felt on its edges.', 'ilie', 'The cold room keeps its cold now, and our own pickles keep in it. We do not buy the barrels of the cathedral any more.', 'mara', 'The pickle barrel is ours now. When it comes back in December, its pickles are free, and the guests pay more for them.'],
+  ['Lay the long table', 'mara', 'White cloths, candles, and bread at both ends.', 'eszter', 'Forty places at the long table. Thirty-nine for nobody, and one for him.', 'ilie', 'Even a sleeper reaches for bread.'],
+  ['Set the sleeper’s chair', 'ambrozie', 'The chair of the sleeper. It stood in the library for forty years, under a sheet.', 'sorin', 'It is very big. And very scratched. On the arms.', 'mara', 'Then it gets a cushion. A guest who waited that long deserves one.'],
+];
+// Materials and labour are scoped estimates in lei-equivalent coins, like those of act 1. The cathedral lends its kitchen, its pots, and its chair.
+const actThreeWorkRows: (typeof workRows)[number][] = [
+  [18, 108, 3, 'Cut back the brambles of an old orchard of about 200 square metres. Burn the cuttings.'],
+  [36, 180, 5, 'Prune six old apple trees and one plum tree. Seal the large cuts.'],
+  [36, 90, 2.5, 'Sweep and wash fourteen stone steps. Fit a rope handrail and hang a lantern.'],
+  [36, 144, 4, 'Scrub two old oak barrels, set a loose hoop, and sweeten them with hot water and salt.'],
+  [126, 90, 2.5, 'Build a wall rack of oak laths for about forty bottles.'],
+  [72, 72, 2, 'Oil and open the old iron gate of the cathedral kitchen. Fit a new chain and a padlock.'],
+  [18, 252, 7, 'Sweep and wash the floor of a stone hall of about 120 square metres. Carry out the dust and the leaves.'],
+  [108, 144, 4, 'Sweep the chimney of the great hearth. Lay and light the first fire with dry beech.'],
+  [36, 216, 6, 'Rebuild about four metres of fallen dry-stone wall with the fallen stones.'],
+  [216, 126, 3.5, 'Build a small slatted apple store on four oak posts, with a shingle roof and a ladder.'],
+  [90, 108, 3, 'Fit three plank shelves on the cellar wall and fill them with the first jars of preserves.'],
+  [36, 180, 5, 'Scour eight large copper pots and cauldrons with sand, salt, and vinegar.'],
+  [162, 108, 3, 'Clean and mend the old copper brandy still of the orchard. Build a brick firebox and fire it.'],
+  [234, 54, 1.5, 'Buy six smoked hams and hang them on the hooks of the cellar beam.'],
+  [144, 72, 2, 'Hang eight oil lanterns in the branches of the orchard.'],
+  [108, 72, 2, 'Fit a thick oak door with felt seals to the cold room of the cellar.'],
+  [144, 108, 3, 'Lay the long table of the cathedral hall with cloths, candles, and the mended plates.'],
+  [72, 144, 4, 'Carry the great oak chair down from the library, mend one leg, and add a cushion.'],
+];
+tasks.push(...actThreeTaskRows.map(([title, a, at, b, bt, c, ct], index): Task => {
+  const [materials, labour, hours, summary] = actThreeWorkRows[index];
+  return { id: actThreeTask(index + 1), chapter: 13 + Math.floor(index / 3), title, cost: materials + labour, work: { summary, materials, labour, hours },
+    dialogue: [{ speaker: a, text: at }, { speaker: b, text: bt }, { speaker: c, text: ct }] };
+}));
+// The finale of act 3: the dinner of the sleeper on All Hallows' Eve, in the hall of the cathedral kitchen. The sleeper eats every course,
+// complains about the cheerful mortals, and goes back to sleep for forty years.
+finales.push({ id: 'finale-act-3', title: 'The dinner of the sleeper', day: HALLOWS_EVE, occasion: 'All Hallows’ Eve', dialogue: [
+  { speaker: 'ambrozie', text: 'Eight o’clock on All Hallows’ Eve. The last course of the old feast, as the sixth scroll writes it: the suckling pig with an apple, the roasts, the wine, and the brandy of every family.' },
+  { speaker: 'mara', text: 'I carry the pig. Adrian, Monica, Janos: aprons on.' },
+  { speaker: 'ilie', text: 'Listen. The snoring has stopped.' },
+  { speaker: 'eszter', text: 'He is lifting my plate. With both hands. Good.' },
+  { speaker: 'sorin', text: 'I can see him through the crack of the door. He has a napkin. He has very good manners.' },
+  { speaker: 'ilie', text: 'Monica is humming. Adrian is humming. Ambrozie is humming in Latin.' },
+  { speaker: 'ambrozie', text: 'He eats everything. Every course, every crumb, and both strudels. Forty years ago he had only Dorian’s.' },
+  { speaker: 'mara', text: 'He puts down his fork. He says: “Your incessant cheerfulness is very tiresome, puny mortals. I shall return to my slumber. See you in forty years!”' },
+  { speaker: 'janos', text: 'Now the chronicle knows which words.' },
+  { speaker: 'sorin', text: 'He is folding his napkin. And he has a nightcap on each horn. That is the biggest news of my life, and I will never tell it. Not one word. Not even to the goat.' },
+  { speaker: 'ilie', text: 'The soup had enough salt. Then the debt is paid.' },
+  { speaker: 'mara', text: 'No debt. A dinner. Mamaia would say that is better.' },
+], ending: 'The dinner is served, and the sleeper sleeps for forty years.', painting: { image: 'finale-dinner', area: 'cathedral-kitchen', focus: { x: 50, y: 62 }, title: 'The dinner',
+  text: 'The dinner of the sleeper in the hall under the cathedral, at the long table with empty plates and bottles. At the far end, in a dark corner, only the two red eyes of the sleeper glow, grumpy like an old man who has just woken up, and his two horns come out of the shadow, each with a tiny nightcap. Mara carries the suckling pig to his place. Ambrozie pours him plum brandy, and Adrian, Monica, and Janos wait in aprons. Ilie, Eszter, and Sorin look in from the kitchen door with trays, and Miez sits under the table.' } });
+// The quests of act 3. A quest in window w opens after preparation w of act 3 (0: at the start of act 3, after the purchase of the
+// orchard), and preparation w + 1 of act 3 needs it. Each reward is the menu value at the stages of the window. Each booked opening names
+// eight o'clock, the booking time of act 3. Ambrozie's scrolls are the parts of the sleeper's order: each pays nothing, Adrian, Monica,
+// and Janos carry it down under the cathedral, and the scroll of the next chapter opens on the date of that chapter.
+const actThreeQuestRows: QuestRow[] = [
+  // Chapter 1, The orchard creaks: 1 to 10 September. The first scroll and the news of the sleeper.
+  ['ambrozie-scroll-1', 'ambrozie', 'The first scroll', 0, [['Sausages', 3], ['Smoked bacon', 2], ['Sharing board', 2], ['Red wine', 2], ['Bread basket', 1]],
+    [['ambrozie', 'The chronicle of the cathedral says that the sleeper behind the red door wakes every forty years, on All Hallows’ Eve, and asks for a feast.'],
+      ['mara', 'And forty years ago?'],
+      ['ambrozie', 'Forty years ago nobody cooked it. This year the debt of the page is paid in service, so the bistro cooks. The library kept his old menus. Here is the first scroll: the cold table.'],
+      ['mara', 'Then I cook it. Who carries it down?']],
+    [['adrian', 'The cold table waits on a shelf in the cellar under the cathedral, by the red door. Nothing spoils down there: the cold keeps a sausage until spring.'],
+      ['monica', 'While we unpacked, the snoring stopped. Then it started again, a little happier.'],
+      ['janos', 'The archbishop still preaches to the door. He asked if he is invited. Ambrozie says that he can wash the pots.']], { order: true }],
+  ['sorin-see-sleeper', 'sorin', 'A look at the sleeper', 0, [['Langoș', 1], ['Bean soup', 1], ['Tochitură', 1]],
+    [['sorin', 'Mara, something sleeps behind the red door and wakes on All Hallows’ Eve. I carry the news of this village. I want to see it first.'],
+      ['mara', 'Nobody sees it, Sorin. We cook for it.'],
+      ['sorin', 'Then I see it first and cook for it second. Feed me while I make a plan.']],
+    [['sorin', 'I asked Adrian to take me down. He said no. I asked Monica. She said no, very slowly.'],
+      ['mara', 'And Janos?'],
+      ['sorin', 'Janos said no in three languages. I will find a fourth.']], { afterQuest: 'ambrozie-scroll-1' }],
+  ['gavril-orchard-deed', 'gavril', 'The orchard deed', 0, [['Mici', 1], ['Beans with sausages', 2]],
+    'The deed of the orchard is ready: one page, three stamps, and a tax that I invented this morning. Mici and two plates of beans with sausages, please. A signature is hungry work for a mayor.',
+    'Signed and stamped. The tax is one basket of apples a year, for the town hall. I shall collect it personally, with a large basket.'],
+  ['ilie-own-recipes', 'ilie', 'Recipes in my own hand', 1, [['Langoș', 1], ['Bulz', 1], ['Zacuscă', 1]],
+    [['ilie', 'This summer I wrote my first recipes in my own hand. This autumn I want to try them: a cellar full of my own jars.'],
+      ['mara', 'The cellar is full of dust.'],
+      ['ilie', 'Then the jars wait, and I write.']],
+    [['ilie', 'Eleven recipes. Plums in honey, peppers in oil, cabbage my way, and eight more.'],
+      ['mara', 'Your grandmother’s way?'],
+      ['ilie', 'Mine. She would argue with every page. That is how I know they are good.']]],
+  ['victor-new-term', 'victor', 'The new term', 0, [['Meatball soup', 1], ['Zacuscă toast', 1], ['Sharing board', 1]],
+    'The new term has started, and the professor wants a skeleton for the lecture hall. The college sent me to the churchyard with a letter. Bela read it and laughed for an hour. A meatball soup, zacuscă toast, and a sharing board, please, while my dignity recovers.',
+    'Bela lent me a plaster skeleton from the church storeroom. It wears a hat. The professor has asked no questions.'],
+  ['vlad-autumn-hunt', 'vlad', 'The hunting season', 1, [['Red wine', 1], ['Roast veal', 1]],
+    'Eight o’clock, if you please. The hunting season opens, and I have caught nothing for three centuries. Decades. I misspoke. Red wine and roast veal, and a table far from the window.',
+    'The hunt was a success. I caught a cold. Your roast veal was better than the deer that I did not catch.'],
+  ['mara-perfect-dinner', 'mara', 'One perfect dinner', 2, [['Apples', 2], ['Cheese pie', 1], ['Chicken noodle soup', 1], ['Tochitură', 1], ['Langoș', 1]],
+    [['mara', 'Our first apples. In August I said I would keep paying. Ambrozie says this dinner pays the page and frees the family. It must be perfect.'],
+      ['ilie', 'Perfect is a big word for a cook.'],
+      ['mara', 'Then I start to practise now. Taste everything, and be honest.']],
+    [['ilie', 'The apples are sour, the pie and the tochitură are good, the langoș is perfect, and the soup needs salt.'],
+      ['mara', 'That is not perfect.'],
+      ['ilie', 'It is September. You have until All Hallows’ Eve.']], { companions: ['ilie'] }],
+  ['dorian-forty-years', 'dorian', 'Forty years ago', 0, [['Cheese board', 1], ['Red wine', 1]],
+    'Forty years ago I dined in this bistro on All Hallows’ Eve. I remember the date, because that night something ate my dessert. A cheese board and a glass of red wine, please. I shall tell you the rest when I feel brave.',
+    'Your grandmother served that night. She said that the dessert walked away. I said that desserts do not walk. We were both a little right.'],
+  // Chapter 2, Jars and gates: 11 to 20 September. The cellar, Ilie's jars, Holy Cross Day, and the kitchen gate.
+  ['ambrozie-scroll-2', 'ambrozie', 'The second scroll', 3, [['Meatball soup', 3], ['Bean soup in a bread bowl', 2], ['Red wine', 2], ['Bread basket', 2], ['Plum brandy', 1]],
+    [['ambrozie', 'The second scroll: the soups of the old feasts. Hot enough to wake a bishop, and gentle enough for a sleeper.'],
+      ['mara', 'Is the menu the same as forty years ago?'],
+      ['ambrozie', 'The same as four hundred years ago. He is a creature of habit, like every monk that I know.']],
+    [['monica', 'The soups are on the shelf by the red door. We kept them warm with a blanket and a prayer.'],
+      ['janos', 'On our way up, the snoring changed its rhythm. I think that he counts the courses.']], { opens: '11 Sep', order: true }],
+  ['sanziana-holy-cross', 'sanziana', 'The last herbs', 3, [['Fruit tea', 3], ['Plum dumplings', 3], ['Socată', 3], ['Linden tea', 2], ['Zacuscă', 2]],
+    'Sunday is Holy Cross Day. The village takes basil to the church for the blessing, and my sisters and I pick the last herbs of the year. It is a long day of picking, so we need food for all of us.',
+    'The basil is blessed, and the herbs hang in bunches. On Holy Cross Day the snakes go under the ground to sleep for the winter, and a grass snake nodded to us on its way. Everything goes to sleep now. Almost everything.',
+    { opens: '11 Sep', holiday: 'holy-cross' }],
+  ['adrian-last-watch', 'adrian', 'The last watch', 3, [['Linden tea', 4], ['Lamb stew', 4], ['Loaf', 4], ['Smoked cheese', 2]],
+    [['adrian', 'The last watch at the red door starts now. Ambrozie wants somebody awake by the door every night until All Hallows’ Eve.'],
+      ['sorin', 'I could take a night.'],
+      ['adrian', 'No. We need food for many nights, and calm food. Nothing that excites the stomach, ours or his.']],
+    'The watch is set, and Monica takes the first night. If you hear a knock from below, it is only us. If you hear a knock from below while we are up here, do not open.',
+    { afterQuest: 'janos-proper-meal' }],
+  ['ilie-pickles', 'ilie', 'Jars for winter', 4, [['Tochitură', 1], ['Bean stew', 1], ['Dried apple rings', 1]],
+    [['ilie', 'The cellar is clean, the barrels smell of oak, and my recipes are ready. Today I fill the first jars for winter.'],
+      ['mara', 'All of them today?'],
+      ['ilie', 'All of them, in my own order.']],
+    [['ilie', 'Thirty jars, full and labelled. The cellar smells like my grandmother’s.'],
+      ['ilie', 'One label says “Do not open before winter”. I did not write that one.']]],
+  ['bela-night-of-the-raid', 'bela', 'The night of the raid', 4, [['Linden tea', 1], ['Sharing board', 1], ['Bean soup in a bread bowl', 1]],
+    'Long ago, when I was a young gravedigger, I worked late. On the All Hallows’ Eve of the raid I sat on the churchyard wall and watched the village. I have never told anybody what I saw. Feed me first. It is a long story for an empty stomach.',
+    'At midnight the pantry doors of the village opened, one after another, all the way down the hill. No lamp, no hand. Only the doors. Every door but one: your grandmother’s stayed shut. In the morning every other pantry was empty, and every door was closed again.'],
+  ['eszter-worthy-table', 'eszter', 'A table for the cathedral', 5, [['Baked apples', 1], ['Bulz', 1], ['Vegetable stew', 1]],
+    [['eszter', 'The old kitchen under the cathedral has a long table for forty, Ambrozie says. The cathedral deserves a table to be proud of.'],
+      ['mara', 'The cathedral, or the sleeper?'],
+      ['eszter', 'The table. I do not set a table that I am ashamed of, for anybody. Feed me, and I will draw the plates.']],
+    [['eszter', 'A plate and a cup at every place, and a jug at each end.'],
+      ['mara', 'He eats alone, Eszter.'],
+      ['eszter', 'Then he eats alone at a proper table.']]],
+  ['elisabeta-harvest', 'elisabeta', 'The grape harvest', 5, [['Red wine', 1], ['Veal stew', 1], ['Roast lamb', 1]],
+    'At eight o’clock, please. My vineyard is harvested, and the count claims half of the grapes, because his crows ate them. Red wine, veal stew, and roast lamb. I need my strength for the lawyers.',
+    'The lawyers agree that the crows owe me the grapes. The count has offered to pay in crows.'],
+  // Chapter 3, Forty years of dust: 21 to 30 September. The kitchen under the cathedral, and the memories of the raid.
+  ['ambrozie-scroll-3', 'ambrozie', 'The third scroll', 6, [['Roast chicken', 3], ['Meatballs in tomato sauce', 2], ['Saramură with mămăligă', 2], ['Red wine', 2], ['Plum brandy', 2]],
+    [['ambrozie', 'The third scroll: the birds, the fish, and the meatballs of the old feasts. And at the bottom, plum brandy, underlined twice.'],
+      ['mara', 'For a sleeper?'],
+      ['ambrozie', 'For his digestion. The scroll is very clear about his digestion.']],
+    [['janos', 'We carried the third course through the open gate and set it on the long table in the dust of the kitchen.'],
+      ['adrian', 'A mouse came to look. It saw the plum brandy and left at once.']], { opens: '21 Sep', order: true }],
+  ['monica-last-watch', 'monica', 'Long nights by the door', 6, [['Cabbage rolls with mămăligă', 2], ['Bean soup in a bread bowl', 2], ['Cozonac', 2]],
+    [['monica', 'The watch goes well. Adrian sleeps through his nights, Janos reads through his, and I listen.'],
+      ['mara', 'To what?'],
+      ['monica', 'To the dust. Under the cathedral, the dust moves on its own, very slowly, towards the red door. We need hot meals for the long nights.']],
+    'Packed. Janos says that the dust moves only in a draught. Janos also reads with his staff in his hand.', { afterQuest: 'adrian-last-watch' }],
+  ['costel-snore-clock', 'costel', 'A clock for the snoring', 6, [['Papanași', 1], ['Zacuscă toast', 1], ['Sharing board', 1]],
+    'I built a clock that measures the snoring under the cathedral. Each snore moves the hand one minute. The clock now says Thursday of next year. A papanași, zacuscă toast, and a sharing board, please, while I repair the future.',
+    'I moved the clock to your cellar, far from the snoring. Now it keeps perfect time, and it ticks very quietly, so that nobody wakes.'],
+  ['eszter-cracked-plate', 'eszter', 'The plate that cracked', 7, [['Bulz', 1], ['Meatballs in tomato sauce', 1], ['Tochitură', 1]],
+    [['eszter', 'I made the first plate for the sleeper. The best clay, three glazes, two firings. I carried it down to the long table myself.'],
+      ['mara', 'And?'],
+      ['eszter', 'He snored once, and it cracked from rim to rim. I need lunch, and then I need to think.']],
+    [['eszter', 'A plate that cracks at one snore is not a plate. It is a suggestion.'],
+      ['mara', 'So you make a stronger one?'],
+      ['eszter', 'I make a bigger one. Much bigger. And I mend the rims before he can crack them.']]],
+  ['mara-hidden-loaf', 'mara', 'A loaf behind the flour', 7, [['Loaf', 2], ['Chicken noodle soup', 1], ['Bean soup in a bread bowl', 2], ['Tochitură', 1]],
+    [['mara', 'The old women of the village keep a loaf hidden behind the flour sack, every autumn. Since the night of the raid.'],
+      ['ilie', 'My mother too. Behind the flour, wrapped in a towel.'],
+      ['mara', 'Forty years of spare loaves. Then this village was more frightened than anybody says.']],
+    [['ilie', 'I asked my mother why. She said: “So that he finds something, and leaves the rest.”'],
+      ['mara', 'This year he finds a whole dinner. Then the loaves can come out from behind the flour.']], { companions: ['ilie'] }],
+  ['dorian-stolen-dessert', 'dorian', 'The dessert that walked away', 7, [['Apple strudel', 1], ['Cheese board', 1], ['Red wine', 1]],
+    'On the night of the raid, your grandmother served me an apple strudel. I turned to pour the wine. When I turned back, the plate was clean, and the curtains were moving. I have not eaten strudel since. Today I am ready to try again.',
+    'Your grandmother’s prayer kept her pantry shut. It did not cover my plate. This time I kept one hand on it, and nothing walked away. I am very relieved, and a little disappointed.'],
+  ['sorin-stay-away', 'sorin', 'Everybody says no', 8, [['Langoș', 1], ['Tochitură', 1], ['Zacuscă toast', 1]],
+    [['sorin', 'I asked Ambrozie if I can carry a course down the stairs. He said no. I asked the priest. He said no and blessed me.'],
+      ['mara', 'Everybody says no, Sorin.'],
+      ['sorin', 'Everybody says no to me. And this morning the baker told me about the scrolls. My own secret, Mara, from a baker.']],
+    [['sorin', 'I kept the secret for a whole month. The whole village kept it with me.'],
+      ['mara', 'Then it is the best-kept secret in the village.'],
+      ['sorin', 'It is the only one. I checked.']]],
+  ['cezar-old-watchman', 'cezar', 'The old watchman', 8, [['Sharing board', 1], ['Bean soup in a bread bowl', 1], ['Mici', 1]],
+    'On the night of the raid, the night watchman was my uncle. On All Hallows’ Eve he walked the village all night and saw nothing. He says that he was resting his eyes. It runs in the family. A sharing board, a bean soup in a bread bowl, and mici, please.',
+    'My uncle says that this year I must keep my eyes open. I have bought coffee. A lot of coffee.'],
+  // Chapter 4, The pumpkin fair: 1 to 10 October. The apple loft, the winter jars, and Bran's fair.
+  ['ambrozie-scroll-4', 'ambrozie', 'The fourth scroll', 9, [['Roast pork', 2], ['Roast lamb', 2], ['Roast veal', 2], ['Red wine', 2], ['Mămăligă', 2], ['Plum brandy', 1]],
+    [['ambrozie', 'The fourth scroll, and the heaviest: the roasts.'],
+      ['mara', 'How many roasts?'],
+      ['ambrozie', 'Two of each animal that the scroll can spell. The brother who wrote it was not a good speller, so there are only three kinds.']],
+    [['adrian', 'The roasts are on the long table under the cathedral. The hearth is lit now, and the whole hall smells of a feast.'],
+      ['monica', 'Behind the red door, something sniffed. A long, polite sniff.']], { opens: '1 Oct', order: true }],
+  ['janos-last-watch', 'janos', 'The end of the watch', 9, [['Tochitură', 2], ['Goulash pot', 2], ['Cozonac', 1]],
+    [['janos', 'The watch ends on All Hallows’ Eve. I have read the whole chronicle by the red door, and I know the end of the story.'],
+      ['mara', 'Tell me.'],
+      ['janos', 'He eats, he says a few words, and he sleeps for forty years. The chronicle does not say which words. We need suppers for the last nights.']],
+    'The last suppers are packed. If the chronicle is right, we have nothing to fear. If the chronicle is wrong, we have good food.', { afterQuest: 'monica-last-watch' }],
+  ['bela-open-pantries', 'bela', 'Locks on the pantries', 9, [['Linden tea', 1], ['Beans with sausages', 1], ['Bread basket', 1]],
+    'I have counted the pantries of the village. In the year of the raid there were sixty-one. This year there are seventy-two, and every one has a new lock. Locks will not help. A linden tea, beans with sausages, and a bread basket, please.',
+    'I told the families: lock your pantries if you like, but this year the bistro feeds him. Three families took the locks off. Two put on a second lock. One family left a cake.'],
+  ['sorin-halfway', 'sorin', 'Halfway to the red door', 10, [['Langoș', 1], ['Roast veal', 1], ['Baked apples', 1]],
+    [['sorin', 'Last night I went down the stairs under the cathedral. Alone. With a candle.'],
+      ['mara', 'Sorin!'],
+      ['sorin', 'I got halfway. Then the snoring came up the stairs and blew out my candle. I need a hot meal and a lot of courage, in that order.']],
+    [['sorin', 'I will not go down again. The red door can keep its secret.'],
+      ['mara', 'Good.'],
+      ['sorin', 'And I can keep mine. I did not tell anybody that I went. Except you. And the candle.']]],
+  ['ilie-trusted-barrels', 'ilie', 'The cathedral barrels', 10, [['Cabbage rolls with mămăligă', 1], ['Bean stew', 1], ['Bread basket', 1]],
+    [['ilie', 'I took my jars to the market. Everybody smelled them, everybody liked them, and everybody bought the pickles of the cathedral.'],
+      ['mara', 'People trust what they know.'],
+      ['ilie', 'People trust a monk with a barrel. I am only a baker with a jar. Feed the baker.']],
+    [['ilie', 'Ambrozie came to the market and tasted my peppers. He said nothing.'],
+      ['mara', 'Nothing at all?'],
+      ['ilie', 'He took a second pepper. For a monk, that is a speech.']]],
+  ['bran-pumpkins', 'bran', 'The pumpkin fair', 10, [['Langoș', 1], ['Vegetable stew', 1], ['Bean soup in a bread bowl', 1]],
+    'The town has a pumpkin fair this weekend. Last year I carved the best pumpkin head. People said that I understand heads very well. A langoș, a vegetable stew, and a bean soup in a bread bowl, please.',
+    'The langoș is for the bus. The rest is for me. The pumpkin head is for anyone who needs one.'],
+  ['vlad-cold-castle', 'vlad', 'A cold castle', 10, [['Red wine', 1], ['Roast lamb', 1], ['Roast pork', 1]],
+    'Eight o’clock, if you please. My castle is cold in October, and the fireplace has forgotten how to burn. Red wine, roast lamb, and roast pork, near your warm stove.',
+    'I have borrowed your recipe for warmth. I shall serve it to my guests. I have no guests, but I am an optimist.'],
+  ['dorian-portrait-crumb', 'dorian', 'A crumb in the portrait', 11, [['Cheese board', 1], ['Cozonac', 1], ['Baked apples', 1]],
+    'My portrait in the attic was painted the week after the raid. The painter put a crumb of apple strudel in its corner, as a memento, and the portrait has looked hungry ever since. A cheese board, a cozonac, and baked apples, please. I shall eat for both of us.',
+    'I told the portrait about this year’s dinner. It looked relieved. Then it looked older. It always does.'],
+  // Chapter 5, Every family's best brandy: 11 to 20 October. The brandy still, and the name day of Mamaia.
+  ['ambrozie-scroll-5', 'ambrozie', 'The fifth scroll', 12, [['Wooden platter', 1], ['Lamb roasted in red wine', 1], ['Tochitură', 2], ['Roast lamb', 1], ['Plum brandy', 2], ['Bread basket', 1]],
+    [['ambrozie', 'The fifth scroll: the great wooden platter and the slow roasts. The old brothers called it the course of the patient guest.'],
+      ['mara', 'Why patient?'],
+      ['ambrozie', 'It takes three hours to cook. He has waited forty years. Three hours is nothing.']],
+    [['monica', 'Everything went down on our shoulders. The stairs creaked at every step.'],
+      ['janos', 'The hall is warm now, Mara. In the firelight, it looks like a church on a feast day.']], { opens: '11 Oct', order: true }],
+  ['mara-name-day', 'mara', 'Mamaia’s name day', 12, [['Colaci', 2], ['Cozonac', 1], ['Red wine', 1], ['Cabbage rolls with mămăligă', 1], ['Bulz', 1]],
+    [['mara', 'Tuesday is Saint Parascheva, Mamaia’s name day. She always baked colaci for the neighbours and kept the last one for herself.'],
+      ['ilie', 'And a glass of wine for the saint.'],
+      ['mara', 'This year I cook a dinner for the thing that she stole a prayer to keep out. I want to bake her colaci, and ask her what she thinks.']],
+    [['mara', 'I put a colac on her chair and a glass of wine beside it.'],
+      ['ilie', 'And what does she think?'],
+      ['mara', 'She thinks that I worry too much. She always did.']], { opens: '11 Oct', holiday: 'saint-parascheva', companions: ['ilie'] }],
+  ['eszter-mended-rims', 'eszter', 'Mended rims', 13, [['Bulz', 1], ['Apple strudel', 1], ['Tochitură', 1]],
+    [['eszter', 'I have mended every plate in the cupboard of the cathedral. Copper on the rims, so that they do not crack.'],
+      ['mara', 'And the sleeper’s plate?'],
+      ['eszter', 'His plate is still in my head. It is too big for my kiln, and for my head. I will measure again.']],
+    [['eszter', 'I measured the long table, the hearth, and the door. The plate goes through the door if we roll it on its edge.'],
+      ['mara', 'Like a wheel?'],
+      ['eszter', 'Like a cartwheel. Thank you, Mara. That is exactly the size.']]],
+  ['ana-restless-ward', 'ana', 'A restless ward', 13, [['Chicken noodle soup', 1], ['Bread basket', 1], ['Baked apples', 1]],
+    'My old patients ask for a loaf under the pillow, “for the night”. I told them that the bistro feeds everybody this year. They do not believe me. A chicken noodle soup, a bread basket, and baked apples, please. The bread is for the pillows.',
+    'I brought them baked apples from your orchard. They ate them and slept like children. One still keeps a loaf under his pillow. He says that it is for me.'],
+  ['dorian-old-acquaintance', 'dorian', 'An old acquaintance', 13, [['Red wine', 1], ['Cheese board', 1]],
+    'I hear that the sleeper dines alone this year. We are old acquaintances, he and I, although we were never introduced. A red wine and a cheese board, please. I shall drink to him, from a safe distance.',
+    'I shall spend All Hallows’ Eve at home, with my portrait and a strudel. We have both decided to keep one hand on the plate.'],
+  ['elisabeta-long-evenings', 'elisabeta', 'Long evenings', 14, [['Red wine', 1], ['Roast lamb', 1], ['Tochitură', 1]],
+    'Eight o’clock, please. The evenings are long now, and I read my estate papers by candlelight. The count reads them too, through my window. Red wine, roast lamb, and a tochitură, and a seat with my back to the wall.',
+    'I have moved my desk. Now the count reads my shopping list. Let him. It says “garlic”.'],
+  ['ileana-aprons', 'ileana', 'Three aprons', 14, [['Zacuscă toast', 1], ['Bean soup in a bread bowl', 1], ['Beans with sausages', 1]],
+    'Ambrozie has ordered three aprons for a dinner under the cathedral: one for a guard, one for a pathfinder, and one for a scholar. He did not tell me who wears them, so I measured by guessing. Zacuscă toast, a bean soup in a bread bowl, and beans with sausages, please.',
+    'The aprons are done: plain linen with a red border and deep pockets. Janos asked for a pocket for a book. I gave him two.'],
+  // Chapter 6, A chair for the sleeper: from 21 October. The last scroll, the long table, and All Hallows' Eve.
+  ['eszter-cartwheel-plate', 'eszter', 'A plate like a cartwheel', 15, [['Bulz', 1], ['Meatball soup', 1], ['Cheese board', 1]],
+    [['eszter', 'The plate is finished. It is the size of a cartwheel, with copper on every seam, and it took three kilns.'],
+      ['mara', 'Three?'],
+      ['eszter', 'I fired it in pieces and mended it whole. A mended plate does not crack twice. Help me roll it to the cathedral.']],
+    [['eszter', 'It stands at his chair now. I signed it on the back.'],
+      ['mara', 'Why on the back?'],
+      ['eszter', 'So that he sees the food, and I see my name when he lifts it. He will lift it. Everybody lifts my plates.']]],
+  ['catalina-friday-menu', 'catalina', 'A menu for a Friday', 15, [['Saramură with mămăligă', 1], ['Bean stew', 1], ['Fruit tea', 1]],
+    'All Hallows’ Eve is a Friday. A Friday! And the menu of the cathedral is roasts and brandy. Ambrozie says that the sleeper keeps his own calendar. I ring the bells by the church calendar, and so does my stomach. Saramură with mămăligă, a bean stew, and a fruit tea, please.',
+    'I asked the priest. He says that a fast is for people, and that the sleeper is not people. I will ring the bell for the dinner anyway. Quietly.'],
+  ['ilie-jar-for-ambrozie', 'ilie', 'A jar for Ambrozie', 16, [['Bean stew', 1], ['Langoș', 1], ['Plum jam', 1]],
+    [['ilie', 'The cold room is closed and cold, and my jars fill every shelf. The bistro keeps its own pickles now.'],
+      ['mara', 'And the barrels of the cathedral?'],
+      ['ilie', 'Ambrozie walked along the shelves twice and asked the price of a jar. A monk who asks a price wants to buy.']],
+    [['ilie', 'He bought a jar of peppers in oil and paid the full price. He did not ask for a discount.'],
+      ['mara', 'Mamaia would have asked for one.'],
+      ['ilie', 'And she would not have got one. I keep my own cellar now.']]],
+  ['bela-autumn-dead', 'bela', 'The autumn Saturday of the dead', 16, [['Colivă', 1], ['Linden tea', 1], ['Bean soup in a bread bowl', 1]],
+    'On the autumn Saturday of the dead, the families bring colivă to the graves. Since the year of the raid, half the village stays home that day instead, to guard the pantry. A colivă, a linden tea, and a bean soup in a bread bowl, please.',
+    'This year the families came to the graves, and the pantries stayed unguarded. Mamaia’s grave had a colac and a jar of peppers. I think that Ilie came early.',
+    { opens: '22 Oct', holiday: 'mosii-toamna' }],
+  ['dochia-samedru', 'dochia', 'Down from the mountain', 16, [['Bulz', 2], ['Drob', 2], ['Mămăligă', 2], ['Linden tea', 2]],
+    'On Sunday it is Sâmedru, and the shepherds come down from the mountains. So do I. I left in March with nine sheepskins and came back with eleven. The flock is in the fold, the shepherds are hungry, and so is the dog. Food for all of us, please.',
+    'The shepherds have eaten, the dog has eaten, and the flock watched. They say that something under the cathedral snored all the way up to the high pasture this summer. The sheep did not mind. Sheep never mind.',
+    { opens: '23 Oct', holiday: 'samedru' }],
+  ['mara-generous', 'mara', 'As Mamaia would', 17, [['Cabbage rolls with mămăligă', 2], ['Plum dumplings', 2], ['Langoș', 1], ['Socată', 2]],
+    [['mara', 'Since the feast I have crossed off a day in the notebook every night. One page, one dinner, and the debt is paid.'],
+      ['ilie', 'And now?'],
+      ['mara', 'Now I think that Mamaia never counted. She fed whoever came to the door, and she fed them well.'],
+      ['mara', 'Tonight I cook for us, as she did. On Friday I cook for him the same way.']],
+    [['mara', 'On Friday I carry the pig to his chair myself.'],
+      ['ilie', 'Not Adrian? He has the arms for it.'],
+      ['mara', 'Adrian has the arms. I have the recipe. A host carries the best dish to the table.']], { companions: ['ilie', 'eszter', 'sorin'] }],
+  ['sorin-kitchen-door', 'sorin', 'A place by the door', 17, [['Langoș', 1], ['Tochitură', 1], ['Socată', 1]],
+    [['sorin', 'Mara, on Friday the visitors serve at the long table, and Ambrozie stands at its end. Where do I stand?'],
+      ['mara', 'In the kitchen, with Ilie and Eszter. With the trays.'],
+      ['sorin', 'The kitchen has a door. And a door has a crack. I accept.']],
+    [['sorin', 'I have oiled the hinges of the kitchen door. It opens without a sound now. Only a crack.'],
+      ['mara', 'Sorin.'],
+      ['sorin', 'For the trays, Mara. Only for the trays.']]],
+];
+for (const [id, character, title, window, requirements, opening, completion, extra] of actThreeQuestRows) {
+  const stages = { garden: GARDEN_PREPARATIONS.length, orchard: ORCHARD_PREPARATIONS.filter(number => number <= window).length, cellar: Number(window >= CELLAR_PREPARATION) };
+  campaign.push({ window: 49 + window, quest: { id, character, title, afterTask: window ? actThreeTask(window) : purchase.id, act: 3, ...questExtra(extra),
+    ...questTerms(requirements, stages), ...(extra?.order ? { reward: 0 } : {}), opening: lines(character, opening), completion: lines(character, completion),
+    ...(bookedGuests.includes(character) ? { booked: true } : {}) } });
+}
+// The sixth scroll is the dinner of the sleeper on All Hallows' Eve, the finale of act 3. It opens with the last chapter, so no
+// preparation needs it, and it pays nothing. It has one eater, the sleeper, so it has no guests: its dialog names the course.
+campaign.push({ window: 49 + 15, quest: { id: 'ambrozie-sleeper-dinner', character: 'ambrozie', title: 'The dinner of the sleeper', afterTask: actThreeTask(15),
+  finale: 'finale-act-3', act: 3, order: true, opens: on('21 Oct'), reward: 0, completion: [],
+  requirements: ([['Suckling pig with an apple', 1], ['Wooden platter', 1], ['Roast veal', 1], ['Lamb roasted in red wine', 1], ['Plum brandy', 2], ['Red wine', 1], ['Apple strudel', 2], ['Bread basket', 1]] as const)
+    .map(([name, quantity]) => ({ item: dish(name), quantity })),
+  opening: lines('ambrozie', [['ambrozie', 'The sixth scroll is the last: the dinner itself, served at his chair on All Hallows’ Eve, at eight o’clock.'],
+    ['mara', 'And at the head of it?'],
+    ['ambrozie', 'A suckling pig with an apple in its mouth. The old menu draws it in the margin, with a smile.'],
+    ['mara', 'Then the bistro cooks it, and this time we carry it down ourselves.']]) } });
 // The feast of the cathedral on the Dormition: one plate for each of the nine guests, and a memorial plate of colivă and colaci at the
 // empty chair of Mamaia. It is a fasting Friday, so the plates have fish, wine, and oil, but no meat, dairy, or egg.
 const feastPlates: [guest: string | null, plate: string][] = [
@@ -1539,14 +1925,14 @@ const repeatingRows: [id: string, character: string, title: string, after: strin
 const repeating: Quest[] = repeatingRows.map(([id, character, title, after, requirements, opening, companions, during]) => ({ id, character, title, afterTask: null,
   ...(after ? { afterQuest: after } : {}), repeating: true, ...(companions ? { companions } : {}), ...(during ? { during: { from: on(during[0]), to: on(during[1]) } } : {}),
   ...questTerms(requirements), opening: lines(character, opening), completion: [] }));
-// The tickets show open quests in authored order, so the quests are listed in the order in which they open: act 1, then act 2.
+// The tickets show open quests in authored order, so the quests are listed in the order in which they open: act 1, act 2, then act 3.
 // A finale comes first in its window. A dated quest comes next, so a holiday quest gets its ticket before the holiday. A March quest
 // opens weeks after its preparation, so it comes after the other quests of its window. A booked guest who takes turns comes last in the
 // window: the quests before the evening bring the dishes of the dinner into the recipe book. The repeating quests follow the campaign,
 // and the quests of the acts that the calendar does not reach come last.
 const rank = ({ quest, followsLine }: (typeof campaign)[number]) => quest.finale ? -1 : quest.booked && quest.evening === undefined ? 3 : quest.march ? 2 : quest.opens === undefined || followsLine ? 1 : 0;
 const ordered = (act: number | undefined) => campaign.filter(({ quest }) => quest.act === act).sort((first, second) => first.window - second.window || rank(first) - rank(second)).map(({ quest }) => quest);
-const quests: Quest[] = [recovery, ...ordered(undefined), ...ordered(2), ...repeating, ...ordered(3), ...ordered(4)];
+const quests: Quest[] = [recovery, ...ordered(undefined), ...ordered(2), ...ordered(3), ...repeating, ...ordered(4)];
 // The prologue: seven events in the family kitchen of the city flat, from the funeral of Mamaia Paraschiva to the farewell dinner.
 // Each event has an authored board with its sources and its prepared dishes, one to three quests that pay nothing, and two scenes.
 // The fasting tags apply to each quest of a fasting day. Wine and garlic are permitted.
@@ -1988,9 +2374,61 @@ const actTwoRoomRows: [after: number, area: string, x: number, y: number, label:
 ];
 rooms.push(...actTwoRoomRows.map(([after, area, x, y, label, markX, markY, text]): RoomState => ({ id: `${area}-${String(after).padStart(2, '0')}`, area,
   after: after ? actTwoTask(after) : null, focus: { x, y }, mark: { x: markX, y: markY }, label, text })));
+// Each preparation of act 3 leaves its own materials to sort on the board, as in act 1 and act 2.
+const actThreeBatchRows: typeof actTwoBatchRows = [
+  ['The brambles are cut; carry the heaps to the fire.', [['brambles', 'Heap of cut brambles', 'clutter', 'herbs_2', 'preparation', 4], ['sack', 'Bramble-cutting sack', 'clutter', 'corn_1', undefined, 1], ['plums', 'Tied windfall plums', 'anchored', 'fruits_1']]],
+  ['The trees are pruned; gather the cuttings.', [['cuttings', 'Apple-tree cuttings', 'clutter', 'grain_1', 'preparation', 0], ['apples', 'Tied first apples', 'anchored', 'orchard_1']]],
+  ['The stairs are clear; sort what the cellar kept.', [['crates', 'Broken cellar crates', 'clutter', 'vegetables_1', 'preparation', 0], ['linen', 'Stair-washing linen bundle', 'clutter', 'dairy_1', undefined, 3]]],
+  ['The barrels are sweet; stack the loose staves and the salt crock.', [['staves', 'Loose barrel staves', 'clutter', 'pork_1', 'preparation', 0], ['crock', 'Covered salt crock', 'clutter', 'beans_1', undefined, 2], ['dough', 'Tied dough for the cooper', 'anchored', 'grain_2']]],
+  ['The racks are up; clear the lath offcuts and the bottle straw.', [['offcuts', 'Rack lath offcuts', 'clutter', 'lamb_1', 'preparation', 0], ['straw', 'Bottle-straw sack', 'clutter', 'corn_2', undefined, 1]]],
+  ['The gate is open; clear the old padlock and the oily cloths.', [['padlock', 'Old padlock in paper', 'clutter', 'veal_1', 'preparation', 7], ['cloths', 'Oily linen bundle', 'clutter', 'poultry_1', undefined, 3]]],
+  ['The hall is swept; carry out the sacks of dust.', [['leaves', 'Swept leaves and dust', 'clutter', 'herbs_2', 'preparation', 4], ['sack', 'Dust sack', 'clutter', 'grain_1', undefined, 1], ['eggs', 'Tied eggs for the sweepers', 'anchored', 'poultry_1']]],
+  ['The hearth burns; clear the spare kindling and the ash crock.', [['kindling', 'Spare beech kindling', 'clutter', 'corn_1', 'preparation', 0], ['crock', 'Covered ash crock', 'clutter', 'fish_1', undefined, 2]]],
+  ['The wall stands; clear the spare stones and the moss.', [['stones', 'Spare wall stones', 'clutter', 'dairy_2', 'preparation', 3], ['moss', 'Moss and leaf sack', 'clutter', 'orchard_1', undefined, 1], ['fruit', 'Tied fruit bowl for the masons', 'anchored', 'fruits_2']]],
+  ['The loft stands; stack the shingle offcuts.', [['shingles', 'Shingle offcuts', 'clutter', 'beans_2', 'preparation', 6], ['straw', 'Loft-straw sack', 'clutter', 'orchard_1', undefined, 1]]],
+  ['The jars are shelved; sort the spare ribbons and jars.', [['ribbons', 'Spare jar ribbons', 'clutter', 'fruits_2', 'preparation', 10], ['jars', 'Covered crock of spare lids', 'clutter', 'vegetables_2', undefined, 2], ['plums', 'Tied plums for the jars', 'anchored', 'fruits_1']]],
+  ['The pots shine; put away the sand and the vinegar cloths.', [['crocks', 'Old scouring crocks', 'clutter', 'lamb_2', 'preparation', 3], ['cloths', 'Vinegar linen bundle', 'clutter', 'orchard_2', undefined, 3]]],
+  ['The still has worked; clear the spare bricks and the plum stones.', [['bricks', 'Spare firebox bricks', 'clutter', 'grain_2', 'preparation', 3], ['crock', 'Covered plum-stone crock', 'clutter', 'fruits_1', undefined, 2], ['plums', 'Tied plums for the still', 'anchored', 'fruits_1']]],
+  ['The hams hang; fold the smokehouse paper.', [['paper', 'Smokehouse paper', 'clutter', 'pork_2', 'preparation', 7], ['sack', 'Ham-hook sack', 'clutter', 'veal_2', undefined, 1]]],
+  ['The lanterns hang; sort the spare lantern and the oil.', [['lantern', 'Spare lantern in packing', 'clutter', 'orchard_2', 'preparation', 2], ['crock', 'Covered lamp-oil crock', 'clutter', 'corn_2', undefined, 2]]],
+  ['The cold room is closed; clear the felt offcuts and the shavings.', [['shavings', 'Oak shavings', 'clutter', 'lamb_1', 'preparation', 0], ['felt', 'Felt-offcut linen bundle', 'clutter', 'beans_1', undefined, 3], ['dough', 'Tied dough for the carpenter', 'anchored', 'grain_2']]],
+  ['The table is laid; clear the wrapped plates and the candle crock.', [['plates', 'Wrapped plates', 'clutter', 'poultry_2', 'preparation', 8], ['crock', 'Covered candle crock', 'clutter', 'orchard_1', undefined, 2]]],
+  ['The chair is set; clear the dust sheet and the library scrolls.', [['sheet', 'Dust-sheet linen bundle', 'clutter', 'veal_1', undefined, 3], ['scrolls', 'Library scrolls', 'clutter', 'fruits_2', 'preparation', 9], ['apples', 'Tied apples for the chair', 'anchored', 'orchard_1']]],
+];
+preparations.push(...actThreeBatchRows.map(([context, obstacles], index): PreparationObstacleBatch => ({ after: actThreeTask(index + 1), context,
+  obstacles: obstacles.map(([slug, name, type, ingredient, atlas, sprite]) => ({ id: `act3-prep-${index + 1}-${slug}`, name, type, ingredient,
+    ...(atlas ? { atlas } : {}), ...(sprite !== undefined ? { sprite } : {}) })) })));
+// The areas of act 3 replace the areas of act 2 in the room from 1 September. The orchard is open from the start of act 3; the bistro
+// cellar opens with its stairs, and the cathedral kitchen with its gate. The area states are numbered by the preparations of act 3.
+areas.push({ id: 'orchard', name: 'The orchard', unlock: null, act: 3 }, { id: 'bistro-cellar', name: 'The bistro cellar', unlock: actThreeTask(3), act: 3 },
+  { id: 'cathedral-kitchen', name: 'The cathedral kitchen', unlock: actThreeTask(6), act: 3 });
+// Preparation number of act 3 (0: the start of act 3), area, focus x and y, the label of the New pin with its mark, and the words for the change.
+const actThreeRoomRows: typeof actTwoRoomRows = [
+  [0, 'orchard', 50, 55, 'the old orchard', 50, 45, 'The neglected orchard of the cathedral: old apple trees grown wild, brambles over the paths, and a dry-stone wall with a fallen gap.'],
+  [1, 'orchard', 42, 80, 'the cut brambles', 42, 70, 'The brambles are cut back, and the old paths of river stones show between the trees.'],
+  [2, 'orchard', 66, 28, 'the pruned trees', 66, 12, 'The old apple trees are pruned, and the big apple tree carries red apples.'],
+  [3, 'bistro-cellar', 15, 56, 'the cellar stairs', 15, 26, 'The cellar under the bistro: clean stone stairs with a rope handrail and a lantern, and dusty barrels below.'],
+  [4, 'bistro-cellar', 50, 62, 'the scrubbed barrels', 50, 52, 'Two oak barrels lie on their cradle, scrubbed clean, with bright hoops.'],
+  [5, 'bistro-cellar', 50, 34, 'the wine rack', 50, 27, 'An oak wine rack hangs on the wall above the barrels, half full of bottles.'],
+  [6, 'cathedral-kitchen', 85, 48, 'the open gate', 85, 32, 'The kitchen hall under the cathedral: an iron gate stands open, and forty years of dust cover the hearth, the cauldrons, and the floor.'],
+  [7, 'cathedral-kitchen', 50, 80, 'the swept hall', 50, 68, 'The dust and the cobwebs are gone, and the stone floor of the hall is clean.'],
+  [8, 'cathedral-kitchen', 50, 46, 'the lit hearth', 50, 30, 'A fire burns in the great hearth, and its light fills the hall.'],
+  [9, 'orchard', 40, 58, 'the mended wall', 40, 53, 'The dry-stone wall stands whole again, its gap rebuilt stone by stone, with a small wooden gate where the path meets it.'],
+  [10, 'orchard', 80, 56, 'the apple loft', 80, 40, 'A slatted apple loft on four oak legs, with a shingle roof and a ladder, stands by the wall.'],
+  [11, 'bistro-cellar', 75, 81, 'the winter jars', 75, 72, 'Shelves of jars with coloured ribbons hold the preserves for winter.'],
+  [12, 'cathedral-kitchen', 50, 54, 'the scoured pots', 25, 52, 'The great copper pots and cauldrons shine in the firelight.'],
+  [13, 'orchard', 19, 72, 'the brandy still', 19, 62, 'A copper brandy still on a brick firebox smokes beside the orchard path.'],
+  [14, 'bistro-cellar', 84, 27, 'the smoked hams', 84, 17, 'Smoked hams hang from the hooks of the cellar beam.'],
+  [15, 'orchard', 60, 30, 'the lanterns', 57, 19, 'Lanterns hang in the branches of the apple trees.'],
+  [16, 'bistro-cellar', 87, 56, 'the cold-room door', 87, 39, 'A thick oak door closes the cold room of the cellar.'],
+  [17, 'cathedral-kitchen', 42, 74, 'the long table', 42, 63, 'A long table with white cloths, candles, and plates stands before the hearth.'],
+  [18, 'cathedral-kitchen', 87, 70, 'the sleeper’s chair', 87, 55, 'A great scratched oak chair with a cushion stands at the end of the long table.'],
+];
+rooms.push(...actThreeRoomRows.map(([after, area, x, y, label, markX, markY, text]): RoomState => ({ id: `${area}-${String(after).padStart(2, '0')}`, area,
+  after: after ? actThreeTask(after) : null, focus: { x, y }, mark: { x: markX, y: markY }, label, text })));
 const data: GameData = {
   board: { columns: 6, rows: 7, sources, initial, defaultLayout: 'workbench-clutter-1', layouts, preparations, hail },
-  chains: chains.map(([id, name]) => ({ id, name, ...(seasons[id] ? { season: seasons[id] } : {}), ...(gardenChains.includes(id) ? { garden: true as const } : {}) })),
+  chains: chains.map(([id, name]) => ({ id, name, ...(seasons[id] ? { season: seasons[id] } : {}), ...(growth[id] ? { grows: growth[id] } : {}) })),
   items, characters, chapters, finales, tasks, areas, rooms, decorationSlots, economy, acts, calendar, quests, prologue,
 };
 // A room shows only paintings whose masters the user accepted; the build ships their variants.

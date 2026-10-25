@@ -105,9 +105,10 @@ test('the quest check rejects quests out of opening order, a quest that opens wi
   const last = late.quests.findLast(quest => campaignQuest(quest, data) && !quest.act)!;
   last.afterTask = 'task_24';
   assert.ok(questProblems(late).includes(`${last.id}: must open before the last preparation of its act.`));
-  // A quest opens after a preparation, never after a purchase.
-  const bought = structuredClone(data);
-  bought.quests.findLast(quest => campaignQuest(quest, data))!.afterTask = data.tasks.at(-1)!.id;
+  // A quest opens after a preparation. Only a quest of a later act opens after a purchase: the quests of act 3 open after the orchard.
+  const bought = structuredClone(data), purchase = data.tasks.find(task => task.purchase)!;
+  bought.quests.findLast(quest => campaignQuest(quest, data) && quest.act === 2)!.afterTask = purchase.id;
+  assert.ok(data.quests.some(quest => quest.act === 3 && quest.afterTask === purchase.id));
   assert.ok(questProblems(bought).some(problem => problem.endsWith('unknown opening preparation.')));
   const swapped = structuredClone(data);
   const opened = swapped.quests.findIndex(quest => quest.afterTask === 'task_1');
@@ -139,7 +140,7 @@ test('the quest check rejects quests out of opening order, a quest that opens wi
   }
 });
 
-test('the last preparation of act 1 needs its own quests, and only the purchase of act 2 leaves no payment', () => {
+test('the last preparation of act 1 needs its own quests, and the last preparation of act 3 leaves no payment', () => {
   const ready = openCheckpoint(23);
   const state = withoutWindow(23);
   assert.ok(validateGame(state, data));
@@ -153,9 +154,9 @@ test('the last preparation of act 1 needs its own quests, and only the purchase 
   assert.equal(taskEligibility(completed, data).task, data.tasks[24]);
   assert.ok(taskEligibility(completed, data).blockers.includes('This preparation opens on Friday 2 May.'));
   rejected(completed, { type: 'task' });
-  const bought = openCheckpoint(data.tasks.length);
-  assert.deepEqual(taskEligibility(bought, data), { task: null, ready: false, requirements: [], blockers: ['Every preparation is paid.'] });
-  rejected(bought, { type: 'task' });
+  const finished = openCheckpoint(data.tasks.length);
+  assert.deepEqual(taskEligibility(finished, data), { task: null, ready: false, requirements: [], blockers: ['Every preparation is paid.'] });
+  rejected(finished, { type: 'task' });
 });
 
 test('board actions never count as quests, and invalid actions change nothing', () => {

@@ -75,6 +75,9 @@ const illustratedScenes=[
   ['adrian-third-pack','scene-cathedral-7'],['monica-third-pack','scene-cathedral-8'],['janos-third-pack','scene-cathedral-9'],
   ['mara-easter-baskets','scene-easter-baskets'],['bela-snowman','scene-bela-snowman'],['costel-icicle-clock','scene-icicle-clock'],
   ['mara-chimney-sweep','scene-chimney-sweep'],['mara-blajini','scene-blajini'],
+  // The first scroll opens on the first day of act 3. The act 3 tests examine its scene.
+  ['ambrozie-scroll-2','scene-sleeper-2'],['ambrozie-scroll-3','scene-sleeper-3'],['ambrozie-scroll-4','scene-sleeper-4'],
+  ['ambrozie-scroll-5','scene-sleeper-5'],['sanziana-holy-cross','scene-holy-cross'],['mara-name-day','scene-name-day'],['dochia-samedru','scene-samedru'],
 ] as const;
 
 for(const [id,asset] of illustratedScenes)test(`${id} shows its quest scene instead of a character sketch`,async({page})=>{

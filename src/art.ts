@@ -50,6 +50,14 @@ const questScenes: Record<string,readonly [string,string]>={
   'mara-chimney-sweep':['scene-chimney-sweep','The chimney sweep holds up a burnt page, Mara points at him and laughs, and Sorin brings food on a tray.'],
   'mara-blajini':['scene-blajini','Mara floats red eggshells down the river while Bela holds the churchyard gate open with his lantern.'],
   'mara-three-months':['scene-three-months','Mara holds a candle beside the memorial table with colivă and colaci, the priest reads the names and glances at the basket of colaci in Ilie’s hands, and villagers wait at the churchyard gate.'],
+  'ambrozie-scroll-1':['scene-sleeper-1','Adrian counts the sausages on a shelf, Janos holds up a candle, and Monica kneels with one ear to the red door.'],
+  'ambrozie-scroll-2':['scene-sleeper-2','Monica tucks a blanket around a soup pot while Janos stands at the red door with his eyes closed and one finger raised.'],
+  'ambrozie-scroll-3':['scene-sleeper-3','Janos and Adrian set a roast chicken and a dish of fish on a long table in the dusty kitchen hall, and a mouse runs from the plum brandy.'],
+  'ambrozie-scroll-4':['scene-sleeper-4','Adrian sets the last roast on the table by the lit hearth, and Monica holds out her lantern as the dust at the red door blows toward the gap below it.'],
+  'ambrozie-scroll-5':['scene-sleeper-5','Janos and Monica carry big platters down the stairs into the kitchen hall, where a fire burns under the cauldrons.'],
+  'sanziana-holy-cross':['scene-holy-cross','Sânziana holds up a bunch of basil while her two sisters pick herbs into a basket, and a grass snake nods goodbye from its hole.'],
+  'mara-name-day':['scene-name-day','Mara and Ilie smile at Mamaia’s empty chair, with a colac on its seat and a glass of red wine beside it.'],
+  'dochia-samedru':['scene-samedru','Dochia tells a story to three shepherds who eat at a table by the sheepfold, while the sheepdog eats from its bowl and the sheep watch over the fence.'],
 };
 // Mara has a second sketch, at the stove, for the quests where she cooks.
 const questDrawings: Record<string,readonly [string,string]>={

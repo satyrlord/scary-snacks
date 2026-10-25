@@ -20,28 +20,30 @@ Four levers set the economy. The levers are starting values. The campaign balanc
 
 The bistro day of each act has these levers. These levers are also starting values.
 
-| Lever | Act 1 | Act 2 |
-| --- | ---: | ---: |
-| Opening time, Monday to Saturday | 07:00 | 07:00 |
-| Closing time, Monday to Saturday | 22:00 | 22:00 |
-| Booking time, Monday to Saturday | 20:00 | 19:30 |
-| Opening time, Sunday | 10:00 | 10:00 |
-| Closing time, Sunday | 17:00 | 17:30 |
-| Merge time: the minutes that one merge adds to the clock | 15 | 25 |
-| Upkeep: the coins that each closing spends | 20 | 20 |
-| Rat take: the most loose raw ingredients that the thief rat takes in one night | 3 | 3 |
-| Rat hole limit: the most rat holes that can be open at one time | 3 | 3 |
-| Gift stage | 4 | 4 |
-| Gift space: the fewest free cells that a gift needs | 5 | 5 |
+| Lever | Act 1 | Act 2 | Act 3 |
+| --- | ---: | ---: | ---: |
+| Opening time, Monday to Saturday | 07:00 | 07:00 | 07:00 |
+| Closing time, Monday to Saturday | 22:00 | 22:00 | 22:00 |
+| Booking time, Monday to Saturday | 20:00 | 19:30 | 20:00 |
+| Opening time, Sunday | 10:00 | 10:00 | 10:00 |
+| Closing time, Sunday | 17:00 | 17:30 | 17:00 |
+| Merge time: the minutes that one merge adds to the clock | 15 | 25 | 15 |
+| Upkeep: the coins that each closing spends | 20 | 20 | 20 |
+| Rat take: the most loose raw ingredients that the thief rat takes in one night | 3 | 3 | 3 |
+| Rat hole limit: the most rat holes that can be open at one time | 3 | 3 | 3 |
+| Gift stage | 4 | 4 | 4 |
+| Gift space: the fewest free cells that a gift needs | 5 | 5 | 5 |
 
-So in act 1, a weekday holds 60 merges, and a Sunday holds 28 merges. In act 2, a weekday holds 36 merges, and a Sunday holds 18 merges. Act 1 has 76 fixed days and 75 closings. Act 2 has 122 fixed days, and its accounts count 122 closings, from 1 May to 30 August. The data check refuses a meal that needs more merges than one weekday of its act holds. Provisions, the stall quests, and the finales can take more than one day.
+So in act 1, a weekday holds 60 merges, and a Sunday holds 28 merges. In act 2, a weekday holds 36 merges, and a Sunday holds 18 merges. Act 1 has 76 fixed days and 75 closings. Act 2 has 122 fixed days, and its accounts count 122 closings, from 1 May to 30 August. In act 3, a weekday holds 60 merges, and a Sunday holds 28 merges. Act 3 has 61 fixed days, and its accounts count 61 closings, from 31 August to 30 October. The data check refuses a meal that needs more merges than one weekday of its act holds. Provisions, the stall quests, the finales, and the parts of the sleeper's order can take more than one day.
 
 A quest without provisions is one meal. One meal has at most three portions for each eater and at most two portions of one dish.
-The work rate of 2 lets these small meals pay for the preparations. The merge time of 15 minutes keeps the campaign quests of act 1 at approximately 80% of the merges that the days of act 1 hold. Act 2 has more days for the same work as act 1, so its merge time is 25 minutes. The repeating quests fill the rest. The upkeep of 20 coins keeps the purse at the end of each act inside the balance band.
+The work rate of 2 lets these small meals pay for the preparations. The merge time of 15 minutes keeps the campaign quests of act 1 at approximately 80% of the merges that the days of act 1 hold. Act 2 has more days for the same work as act 1, so its merge time is 25 minutes. Act 3 has 61 days for 18 preparations, so its merge time is 15 minutes, as in act 1. The repeating quests fill the rest. The upkeep of 20 coins keeps the purse at the end of each act inside the balance band.
 
-A take from the Herb basket, the forage basket, or the Garden beds is free. From garden stage 1, a take from the Vegetable crate is also free. A take from each other source spends the take cost, including the pickle barrel.
+A take from the Herb basket, the forage basket, or the Garden beds is free. From garden stage 1, a take from the Vegetable crate is also free. The Apple tree is free, and from orchard stage 1, a take from the Cornucopia is also free. From preparation 16 of act 3, a take from the pickle barrel is free. A take from each other source spends the take cost.
 
 The garden has three stages. Preparations 6, 14, and 22 of act 2 each open the next stage. The garden value of the stage is 1, 2, and 3 coins. From garden stage 1, a garden ingredient counts its garden value in the menu price. The garden ingredients are the ingredients of the Vegetable crate and of the Garden beds. The garden values are levers.
+
+The orchard has three stages. Preparations 2, 10, and 13 of act 3 each open the next stage. The orchard value of the stage is 1, 2, and 3 coins. From orchard stage 1, a fruit ingredient counts its orchard value in the menu price. The fruit ingredients are the ingredients of the Cornucopia and of the Apple tree. The cellar has one stage: from preparation 16 of act 3, a pickle ingredient counts the cellar value of 2 coins. The orchard values and the cellar value are levers.
 
 The starting gift of Mara's parents is 20 coins, a lever from 10 to 20. The price of the orchard is 2,000 coins. Both are levers that the balance check measures.
 The bistro buys its ingredients. For example, the Windmill sells grain, and the butcher sells pork and veal.
@@ -152,27 +154,28 @@ Merge chains are game rules, not recipes for food preparation.
 | Mixed | Cozonac (Sweet dough + Fruit bowl) | 5 | 4 | 13 |
 | Mixed | Chimney cake (Sweet dough + Milk) | 4 | 3 | 10 |
 
-The table gives the prices before garden stage 1. The seasonal chains and the four mixed dishes of act 2 follow the same formula. For example, Gherkins cost 1 coin and Mixed pickles cost 10 coins, because the pickle barrel is a paid source.
+The table gives the prices before garden stage 1. The seasonal chains and the four mixed dishes of act 2 follow the same formula. For example, Gherkins cost 1 coin and Mixed pickles cost 10 coins, because the pickle barrel is a paid source. From preparation 16 of act 3, Mixed pickles cost 14 coins. The three feast dishes of act 3 follow the same formula.
 
 ## Quest rewards
 
 Quests and cleared blockers are the only income.
-A sale of a dish pays back only the take costs of its ingredients at the current garden stage, so it earns nothing. For example, Bulz sells for 16 coins.
-Every quest except a finale quest and the piper's fee pays its menu value: the sum of the prices of its portions.
-So a delivery repays the ingredients of its dishes and earns the work rate for each merge. The supper, the feast, and the piper's fee pay nothing.
-A campaign quest of act 2 pays its menu value at the garden stage of the preparation after which it opens. A repeating quest and the recovery quest pay their menu value at the current garden stage.
+A sale of a dish pays back only the take costs of its ingredients at the current stages, so it earns nothing. For example, Bulz sells for 16 coins.
+Every quest except a finale quest, the piper's fee, and a part of the sleeper's order pays its menu value: the sum of the prices of its portions.
+So a delivery repays the ingredients of its dishes and earns the work rate for each merge. The supper, the feast, the piper's fee, and the six parts of the sleeper's order pay nothing.
+A campaign quest of act 2 or act 3 pays its menu value at the stages of the preparation after which it opens. A repeating quest and the recovery quest pay their menu value at the current stages.
 
 A quest that opens after preparation N is necessary for payment N + 1.
-The funding of a quest is its reward minus the take costs of its ingredients, at the garden stage of the preparation after which it opens.
+The funding of a quest is its reward minus the take costs of its ingredients, at the stages of the preparation after which it opens.
 A quest with no reward has a negative funding.
 In each act, the funding of the quests that open before a preparation must cover the total cost of the preparations of that act up to and including that preparation.
 The check does not count the purse that an earlier act carries.
 The coins that remain after the last preparation of an act, with the funding of the quests of the same act that open after it and before the finale, must buy the ingredients of the finale. A quest of the next act does not count.
+The dinner of the sleeper opens after preparation 15 of act 3, so the check counts its take costs in the window after preparation 15, as a quest with no reward.
 The purchase of the orchard is outside this check. The balance check covers it.
 `questProblems` in `src/content.ts` checks these rules before the data can ship.
 A player who delivers every open quest and buys only its ingredients has enough coins for the next preparation.
 
-The prologue has no purse, and act 1 starts with the starting gift of Mara's parents. The pickle barrel is a paid source on the initial board, so the gift pays for the first takes of act 1. The purse stays at or above zero at the start. The balance run plays the prologue first, then act 1 with the gift, and then act 2. For each fixed seed, the efficient run ends act 1 with 1,696 coins of 10,392 spent, 16.3 percent. It ends act 2 with 1,314 coins of 12,679 spent, 10.4 percent. Both results are inside the balance band of 0 to 20 percent. The spending of act 2 includes the price of the orchard.
+The prologue has no purse, and act 1 starts with the starting gift of Mara's parents. The pickle barrel is a paid source on the initial board, so the gift pays for the first takes of act 1. The purse stays at or above zero at the start. The balance run plays the prologue first, then act 1 with the gift, then act 2, and then act 3. For each fixed seed, the efficient run ends act 1 with 1,754 coins of 10,433 spent, 16.8 percent. It ends act 2 with 1,306 coins of 12,751 spent, 10.2 percent, and act 3 with 1,039 coins of 7,645 spent, 13.6 percent. The three results are inside the balance band of 0 to 20 percent. The spending of act 2 includes the price of the orchard.
 The early quests also ask for herb bunches, Linden tea, and socată, which need no paid ingredient. The work value of these quests gives the purse the coins to buy ingredients for the next quests.
 
 The recovery quest prevents a stop in the campaign. Ana asks for one Linden tea in two conditions:
@@ -287,10 +290,33 @@ The preparations of act 2 follow the same model. The summer kitchen reuses the o
 
 The garlands of preparation 12 have no material cost, because Sânziana gives the flowers. The purchase of the orchard, "Buy the orchard", costs 2,000 coins of materials and no labour. The cathedral uses the money to finish the church roof.
 
+The preparations of act 3 follow the same model. The orchard reuses its old trees, stones, and copper still, the bistro cellar reuses Mamaia's barrels, and the cathedral kitchen reuses its forty-year-old hearth, pots, and furniture.
+
+| N | Preparation of act 3 | Materials or stock | Labour | Person-hours | Total coins |
+| --- | --- | ---: | ---: | ---: | ---: |
+| 1 | Cut back the brambles | 18 | 108 | 3 | 126 |
+| 2 | Prune the old apple trees | 36 | 180 | 5 | 216 |
+| 3 | Clear the cellar stairs | 36 | 90 | 2.5 | 126 |
+| 4 | Scrub the old barrels | 36 | 144 | 4 | 180 |
+| 5 | Build the wine racks | 126 | 90 | 2.5 | 216 |
+| 6 | Unlock the kitchen gate | 72 | 72 | 2 | 144 |
+| 7 | Sweep forty years of dust | 18 | 252 | 7 | 270 |
+| 8 | Light the great hearth | 108 | 144 | 4 | 252 |
+| 9 | Mend the stone wall | 36 | 216 | 6 | 252 |
+| 10 | Build the apple loft | 216 | 126 | 3.5 | 342 |
+| 11 | Shelve the winter jars | 90 | 108 | 3 | 198 |
+| 12 | Scour the giant pots | 36 | 180 | 5 | 216 |
+| 13 | Fire the brandy still | 162 | 108 | 3 | 270 |
+| 14 | Hang the smoked hams | 234 | 54 | 1.5 | 288 |
+| 15 | Hang lanterns in the branches | 144 | 72 | 2 | 216 |
+| 16 | Fit the cold-room door | 108 | 72 | 2 | 180 |
+| 17 | Lay the long table | 144 | 108 | 3 | 252 |
+| 18 | Set the sleeper’s chair | 72 | 144 | 4 | 216 |
+
 ## Effort in play
 
 The estimated person-hours describe the work. The hours do not set a timer or a play goal.
-The 24 preparations of act 1 total 57 estimated person-hours and 5028 coins. The 24 preparations of act 2 total 66 estimated person-hours and 5067 coins.
+The 24 preparations of act 1 total 57 estimated person-hours and 5028 coins. The 24 preparations of act 2 total 66 estimated person-hours and 5067 coins. The 18 preparations of act 3 total 63 estimated person-hours and 3960 coins.
 
 A preparation can cost less than the preparation before it.
 Late menu or display work does not cost more only because the work occurs late in the story.
@@ -342,7 +368,7 @@ For each of the 20 fixed seeds, the report gives these values for each act:
 - The merges, the share of the merges for repeating quests, and the days with work only from repeating quests.
 - The closings and the Sunday rats.
 
-The report also gives the share of the repeating merges after the feast, and the days that reached a held position. The accounts of act 1 end at the supper. The accounts of act 2 start at the supper and end at the purchase.
+The report also gives the share of the repeating merges from 16 to 31 August, and the days that reached a held position. The accounts of act 1 end at the supper. The accounts of act 2 start at the supper and end at the purchase. The accounts of act 3 start at the purchase and end at the dinner of the sleeper.
 
 `tests/campaign-balance.test.ts` also reports the costs, work, actions, takes, merges, deliveries, recovery deliveries, and coins.
 The test file gives these values for each preparation and each chapter.
@@ -365,8 +391,8 @@ While fewer than 24 cells are free, the fixture clears the cheapest blocker betw
 The fixture makes each required dish from spare food on the board, or from stage-1 ingredients, merges, and recipes.
 If the board is full, the fixture merges spare food. The merge uses a pair, a recipe, or a match for a blocked dish.
 A full board without such a merge is a deadlock, and the fixture fails.
-After the last preparation of act 1, the fixture delivers the repeating quests until 1 May, and then it serves the supper. Act 2 follows in the same run. After the feast, the fixture delivers the quests that open after the feast and the repeating quests until 31 August, and then it buys the orchard.
-The balance band is the range of the purse at the end of each act: after the supper, and after the purchase.
+After the last preparation of act 1, the fixture delivers the repeating quests until 1 May, and then it serves the supper. Act 2 follows in the same run. After the feast, the fixture delivers the quests that open after the feast and the repeating quests until 31 August, and then it buys the orchard. Act 3 follows in the same run. The fixture cooks a meal for a later day one portion at a time, and it keeps the portions of that meal for it. After preparation 18, the fixture serves the dinner of the sleeper on 31 October.
+The balance band is the range of the purse at the end of each act: after the supper, after the purchase, and after the dinner.
 The purse must hold 0 to 20% of the coins that the fixture spent in that act on preparations, takes, upkeep, and the orchard.
 The miss-bookings strategy lets the first evening of each booking without a fixed evening pass. A fixed evening holds its day, so the strategy never misses it.
 

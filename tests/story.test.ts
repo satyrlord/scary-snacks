@@ -7,10 +7,14 @@ import type { GameData } from '../src/model.ts';
 import { actOne, act, actOneTasks, data, deliver, payNext, prologueServed, ready, rejected, status, supperEvening, withTickets } from './support.ts';
 
 const titles = ['Open the shutters', 'A kitchen for everyone', 'Around one table', 'The courtyard', 'Recipes to share', 'The first community supper',
-  'A kitchen outside', 'Beds and benches', 'The summer festival', 'A guest who snores', 'The missing page', 'What the family owes'];
-const ids = [...titles.slice(0, 6).map((_, index) => `chapter-${index + 1}`), ...titles.slice(6).map((_, index) => `act2-chapter-${index + 1}`)];
-/** The number of payments that complete each chapter. The purchase of act 2 belongs to no chapter. */
-const boundaries = titles.map((_, index) => 4 * (index + 1));
+  'A kitchen outside', 'Beds and benches', 'The summer festival', 'A guest who snores', 'The missing page', 'What the family owes',
+  'The orchard creaks', 'Jars and gates', 'Forty years of dust', 'The pumpkin fair', 'Every family’s best brandy', 'A chair for the sleeper'];
+const ids = [...titles.slice(0, 6).map((_, index) => `chapter-${index + 1}`), ...titles.slice(6, 12).map((_, index) => `act2-chapter-${index + 1}`),
+  ...titles.slice(12).map((_, index) => `act3-chapter-${index + 1}`)];
+/** The preparations of each chapter: four in act 1 and act 2, and three in act 3. */
+const sizes = titles.map((_, index) => index < 12 ? 4 : 3);
+/** The number of payments that complete each chapter. The purchase of act 2 belongs to no chapter, and act 3 starts after it. */
+const boundaries = sizes.map((_, index) => sizes.slice(0, index + 1).reduce((sum, size) => sum + size, 0) + (index < 12 ? 0 : 1));
 const preparations = data.tasks.filter(task => !task.purchase);
 /** A synthetic checkpoint after count payments, with every scene that the payments queued still waiting. */
 function checkpoint(count: number, content = data) {
@@ -24,7 +28,8 @@ const arrivals = (index: number) => data.characters.filter(person => person.arri
  * The scenes that count payments queue: each preparation scene, then the closing scene of a complete chapter,
  * then the arrivals of the regulars that the preparation brings.
  */
-const queued = (count: number) => data.tasks.slice(0, count).flatMap((task, index) => [task.id, ...((index + 1) % 4 ? [] : [data.chapters[index / 4 | 0].id]), ...arrivals(index)]);
+const queued = (count: number) => data.tasks.slice(0, count).flatMap((task, index) => [task.id,
+  ...(!task.purchase && data.tasks.findLast(other => other.chapter === task.chapter && !other.purchase) === task ? [data.chapters[task.chapter - 1].id] : []), ...arrivals(index)]);
 
 for (const [id, food] of [
   ['mara-supper', /\bbread\b/i], ['sorin-welcome', /\btea\b/i], ['eszter-cups', /\btea\b/i], ['dochia-lunch', /\bcheese\b/i],
@@ -46,15 +51,15 @@ test('Janos reports the archbishop eating a dish from Monica’s preceding deliv
   for (const item of mentioned) assert.ok(previous.requirements.some(requirement => requirement.item === item.id), `${item.name} was in the preceding pack.`);
 });
 
-test('twelve chapters, six in each act, keep their titles and cover all 48 preparations, each with a painted result', () => {
+test('eighteen chapters, six in each act, keep their titles and cover all 66 preparations, each with a painted result', () => {
   assert.deepEqual(storyProblems(data), []);
   assert.deepEqual(data.chapters.map(chapter => chapter.title), titles);
   assert.deepEqual(data.chapters.map(chapter => chapter.id), ids);
-  assert.deepEqual(data.chapters.map(chapter => chapter.act), titles.map((_, index) => index < 6 ? 1 : 2));
+  assert.deepEqual(data.chapters.map(chapter => chapter.act), titles.map((_, index) => 1 + Math.floor(index / 6)));
   const covered = resolveChapters(actOne(), data).flatMap(view => view.tasks.map(task => task.id));
   assert.deepEqual(covered, preparations.map(task => task.id));
   for (const view of resolveChapters(actOne(), data)) {
-    assert.equal(view.tasks.length, 4);
+    assert.equal(view.tasks.length, view.chapter.act === 3 ? 3 : 4);
     for (const key of ['objective', 'opening', 'payoff'] as const) assert.ok(view.chapter[key].trim(), `${view.chapter.id} needs its ${key}.`);
     for (const task of view.tasks) assert.equal(data.rooms.filter(room => room.after === task.id).length, 1, `${task.id} needs one visible result.`);
   }
@@ -66,9 +71,10 @@ test('each chapter has a neighbour contribution that opens during it, and the fo
   for (const finale of data.finales) for (const character of characters) assert.ok(finale.dialogue.some(line => line.speaker === character), `${finale.id}: ${character}`);
   for (const [index, chapter] of data.chapters.entries()) {
     const quest = data.quests.find(value => value.id === chapter.contribution)!;
-    const earlier = data.quests.filter(value => value.character === quest.character && data.quests.indexOf(value) < data.quests.indexOf(quest)).map(value => value.id);
-    // With the neighbour's earlier quests delivered, the contribution is open before the chapter's last preparation.
-    const open = [0, 1, 2, 3].filter(step => ['active', 'waiting'].includes(resolveQuests({ ...checkpoint(boundaries[index] - 4 + step), completedQuests: earlier }, data)
+    const earlier = data.quests.filter(value => value.character === quest.character && data.quests.indexOf(value) < data.quests.indexOf(quest)).map(value => value.id)
+      .concat(quest.afterQuest ? [quest.afterQuest] : []);
+    // With the neighbour's earlier quests and the quest that it waits for delivered, the contribution is open before the chapter's last preparation.
+    const open = Array.from({ length: sizes[index] }, (_, step) => step).filter(step => ['active', 'waiting'].includes(resolveQuests({ ...checkpoint(boundaries[index] - sizes[index] + step), completedQuests: earlier }, data)
       .find(view => view.quest.id === quest.id)!.status));
     assert.ok(open.length, `${chapter.id}: its contribution must open during the chapter.`);
   }
@@ -112,7 +118,7 @@ test('a chapter opens at its first preparation and completes only with its last 
     const before = checkpoint(boundary - 1);
     const chapters = resolveChapters(before, data);
     assert.equal(chapters[index].status, 'current');
-    assert.equal(chapters[index].done, 3);
+    assert.equal(chapters[index].done, sizes[index] - 1);
     assert.ok(chapters.slice(index + 1).every(view => view.status === 'locked'));
     assert.deepEqual(before.pendingScenes, queued(boundary - 1));
     const after = payNext(before);
@@ -194,7 +200,7 @@ test('the supper quest has no cost, earns the finale, and keeps the board playab
 
 test('saved scene queues hold only earned scenes, once each, in story order', () => {
   const middle = checkpoint(12);
-  assert.deepEqual(storyScenes(data), [...data.tasks.map(task => task.id), ...data.quests.map(quest => quest.id), ...data.chapters.map(chapter => chapter.id), 'finale', 'finale-act-2', 'mina-avram-news',
+  assert.deepEqual(storyScenes(data), [...data.tasks.map(task => task.id), ...data.quests.map(quest => quest.id), ...data.chapters.map(chapter => chapter.id), 'finale', 'finale-act-2', 'finale-act-3', 'mina-avram-news',
     ...data.characters.flatMap(person => person.arrival ? [`arrival-${person.id}`] : []), ...data.prologue.events.flatMap(event => [event.opening.id, event.closing.id])]);
   const quest = data.quests.find(value => middle.completedQuests.includes(value.id))!;
   const undelivered = data.quests.find(value => !value.recovery && !middle.completedQuests.includes(value.id))!;

@@ -1,6 +1,6 @@
 // The game in this tab: its data, its state, the selected space, and the saves that keep them. The other modules read these
 // bindings, and only the functions here change them. Each game change asks the interface to draw the game again.
-import { boardObstacles, gardenStage, getItem, mergeResult, takeCost } from './model.ts';
+import { boardObstacles, growthStages, getItem, mergeResult, takeCost } from './model.ts';
 import { createGame, reduceGame, validateGame } from './engine.ts';
 import type { Action, GameData, GameState, Result } from './model.ts';
 import { loadSave, saveGame, savedText, SAVE_KEY } from './storage.ts';
@@ -27,7 +27,7 @@ export const sourceOutput = (code: string) => itemName(definition(code).generato
 export const matchingBlocker = (code: string) => boardObstacles(state,data).find(obstacle =>
   !state.resolvedObstacles.includes(obstacle.id) && !!mergeResult(code, obstacle.ingredient, data));
 /** The coins that one take from a source spends, in words. Each take of the prologue is free. */
-export const takePrice = (source: string) => { const cost = state.prologue ? 0 : takeCost(definition(source), data, gardenStage(state.taskIndex, data)); return cost ? `${cost} ${cost === 1 ? 'coin' : 'coins'} each` : 'free'; };
+export const takePrice = (source: string) => { const cost = state.prologue ? 0 : takeCost(definition(source), data, growthStages(state.taskIndex, data)); return cost ? `${cost} ${cost === 1 ? 'coin' : 'coins'} each` : 'free'; };
 
 /** What the interface shows after a change: the result of an action and the state before it, or null for a redraw alone. */
 export type Change = { result: Result; before: GameState } | null;

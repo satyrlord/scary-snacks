@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { firstFreeBoardCell, freeBoardCells, gardenStage, menuPrice, menuValue, questReward, requiredQuests, resolveQuests, takeCost } from '../src/model.ts';
+import { firstFreeBoardCell, freeBoardCells, growthStages, menuPrice, menuValue, NO_STAGES, questReward, requiredQuests, resolveQuests, takeCost } from '../src/model.ts';
 import { reduceGame } from '../src/engine.ts';
 import type { GameState } from '../src/model.ts';
 import { checkpointState, moveTo } from '../tools/create-checkpoint-saves.ts';
@@ -61,23 +61,23 @@ test('the Summer salad and the Tomato salad with telemea cost the garden value o
   const { values } = data.economy.garden, work = data.economy.workRate;
   // A Summer salad is two garden ingredients and one merge. A Tomato salad adds a Telemea of eight dairy ingredients and eight merges.
   for (const stage of [0, 1, 2, 3]) {
-    const garden = stage ? values[stage - 1] : takeCost(data.items.generator_garden, data, stage);
-    assert.equal(menuPrice('garden_2', data, stage), 2 * garden + work, `Summer salad at stage ${stage}`);
-    assert.equal(menuPrice('mixed_tomato-salad', data, stage), 2 * garden + 8 * data.economy.takeCost + 9 * work, `Tomato salad at stage ${stage}`);
-    assert.equal(takeCost(data.items.generator_garden, data, stage), 0, 'The Garden beds are free.');
+    const stages = { ...NO_STAGES, garden: stage }, garden = stage ? values[stage - 1] : takeCost(data.items.generator_garden, data, stages);
+    assert.equal(menuPrice('garden_2', data, stages), 2 * garden + work, `Summer salad at stage ${stage}`);
+    assert.equal(menuPrice('mixed_tomato-salad', data, stages), 2 * garden + 8 * data.economy.takeCost + 9 * work, `Tomato salad at stage ${stage}`);
+    assert.equal(takeCost(data.items.generator_garden, data, stages), 0, 'The Garden beds are free.');
   }
   assert.deepEqual([menuPrice('garden_2', data), menuPrice('mixed_tomato-salad', data)], [data.items.garden_2.price, data.items['mixed_tomato-salad'].price]);
   const salads = data.quests.filter(value => value.requirements.some(({ item }) => item === 'garden_2' || item === 'mixed_tomato-salad'));
   const stages = new Set<number>();
   for (const value of salads) {
     // The preparation that first needs a quest sets its garden stage.
-    const stage = gardenStage(data.tasks.findIndex((_, at) => requiredQuests(at, data).includes(value)), data);
+    const growth = growthStages(data.tasks.findIndex((_, at) => requiredQuests(at, data).includes(value)), data), stage = growth.garden;
     stages.add(stage);
-    assert.equal(value.reward, menuValue(value, data, stage), `${value.id} pays its menu value at stage ${stage}.`);
+    assert.equal(value.reward, menuValue(value, data, growth), `${value.id} pays its menu value at stage ${stage}.`);
     // A stall quest releases the hold of the festival, so the tests of the festival deliver it on its day.
     if (value.stall) continue;
     const ready = onTicket(value);
-    assert.equal(gardenStage(ready.taskIndex, data), stage);
+    assert.equal(growthStages(ready.taskIndex, data).garden, stage);
     assert.equal(questReward(value, ready, data), value.reward);
     for (const state of [ready, reload(ready)]) assert.equal(deliver(state, value.id).coins, state.coins + value.reward, value.id);
   }
@@ -96,8 +96,8 @@ test('a take from the pickle barrel spends the take cost, a purse in debt takes 
   assert.deepEqual([data.items.pickles_1.price, data.items.pickles_3.price], [1, 10]);
   // The quests that ask for pickles pay their menu value: the authored reward, and the menu value of a repeating quest.
   for (const value of data.quests.filter(value => value.requirements.some(({ item }) => item.startsWith('pickles_')))) {
-    assert.equal(questReward(value, start, data), menuValue(value, data, 0), value.id);
-    if (!value.repeating) assert.equal(value.reward, menuValue(value, data, 0), value.id);
+    assert.equal(questReward(value, start, data), menuValue(value, data), value.id);
+    if (!value.repeating) assert.equal(value.reward, menuValue(value, data), value.id);
   }
 });
 

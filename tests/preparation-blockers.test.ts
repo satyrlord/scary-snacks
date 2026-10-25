@@ -35,10 +35,10 @@ function mergeOne(state: GameState) {
 }
 const active = (state: GameState) => state.preparationObstacles!.placed.filter(entry => !state.resolvedObstacles.includes(entry.id));
 
-test('all 48 preparations have two or three contextual blockers with new art and available low-stage rewards, and the purchase has none', () => {
+test('all 66 preparations have two or three contextual blockers with new art and available low-stage rewards, and the purchase has none', () => {
   assert.deepEqual(dataProblems(data), []);
   const tasks = data.tasks.filter(task => !task.purchase);
-  assert.equal(data.board.preparations.length, 48);
+  assert.equal(data.board.preparations.length, 66);
   let total = 0;
   for (const [index, batch] of data.board.preparations.entries()) {
     const task = data.tasks.indexOf(tasks[index]), chains = new Set(availableChains({ taskIndex: task + 1, clock: { day: data.chapters[tasks[index].chapter - 1].opens } }, data));
@@ -53,7 +53,7 @@ test('all 48 preparations have two or three contextual blockers with new art and
     }
     total += batch.obstacles.length;
   }
-  assert.equal(total, 120);
+  assert.equal(total, 164);
 });
 
 test('payment places a batch once and preserves existing items and quest progress', () => {

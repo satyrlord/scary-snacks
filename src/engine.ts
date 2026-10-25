@@ -1,5 +1,5 @@
 // The deterministic rules of the bistro game: the new game, the actions, and the acceptance of an untrusted save.
-import { actOf, arrivalScene, availableChains, boardLayout, boardObstacles, canDeliverQuest, canLightLanterns, chainSeason, clockMinutes, clockText, currentEvent, cycleMember, dateText, decorationUnlocked, deliveriesSince, dayMerges, dishOpen, earnedObstacles, earnedPrologue, earnedScenes, eventComplete, eventDishes, eveningOpen, finaleQuest, findQuest, firstFreeBoardCell, fixedBooking, freeBoardCells, gardenStage, getItem, holdOf, holding, holdsDay, integer, isSunday, levers, looseRaw, looseRawCells, marchOpens, mergePartners, mergeResult, own, pendingPreparationObstacles, playable, prerequisitesMet, present, prologueQuests, prologueScenes, questDeliveryCells, questEvent, questFinale, questHoliday, questPredecessors, questReward, released, salePrice, requiredQuests, resolveChapters, resolveQuests, seasonPaid, sourceNeeded, storyOrder, supperComplete, takeCost, taskEligibility, ticketNote, unresolvedObstacle } from './model.ts';
+import { actEnded, actOf, actResults, arrivalScene, availableChains, boardLayout, boardObstacles, canDeliverQuest, canLightLanterns, chainSeason, clockMinutes, clockStopped, clockText, currentEvent, cycleMember, dateText, decorationUnlocked, deliveriesSince, dayMerges, dishOpen, earnedObstacles, earnedPrologue, earnedScenes, eventComplete, eventDishes, eveningOpen, finaleQuest, findQuest, firstFreeBoardCell, fixedBooking, freeBoardCells, growthStages, getItem, holdOf, holding, holdsDay, integer, isSunday, levers, looseRaw, looseRawCells, marchOpens, mergePartners, mergeResult, own, pendingPreparationObstacles, playable, prerequisitesMet, present, prologueQuests, prologueScenes, questDeliveryCells, questEvent, questFinale, questHoliday, questPredecessors, questReward, released, salePrice, requiredQuests, resolveChapters, resolveQuests, seasonPaid, sourceNeeded, storyOrder, takeCost, taskAct, taskEligibility, ticketNote, unresolvedObstacle } from './model.ts';
 import type { Action, Cell, GameData, GameState, NightReport, Placed, PrologueEvent, Result } from './model.ts';
 
 /** At most this many preparation blockers wait on the board at one time. */
@@ -132,7 +132,7 @@ function close(state: GameState, data: GameData) {
  */
 function fixEvening(state: GameState, data: GameData) {
   const day = state.clock.day;
-  if (state.evening.guest || state.act2 || !eveningOpen(day, data)) return;
+  if (state.evening.guest || clockStopped(state, data) || !eveningOpen(day, data)) return;
   const booked = resolveQuests(state, data).filter(view => view.status === 'active' && view.quest.booked).map(view => view.quest), fixed = fixedBooking(day, data);
   if (fixed) { if (booked.includes(fixed)) state.evening.guest = fixed.character; return; }
   const guests = [...new Set(booked.filter(quest => quest.evening === undefined).map(quest => quest.character))];
@@ -253,7 +253,7 @@ function validPrologue(state: GameState, data: GameData): boolean {
   const earned = earnedPrologue(state, data), pending = state.pendingScenes;
   if (!Array.isArray(pending) || pending.length > earned.length || !pending.every((id, at) => id === earned[earned.length - pending.length + at])
     || (eventComplete(state, event) && !pending.length)) return false;
-  if (state.coins !== 0 || state.taskIndex !== 0 || state.clock.day !== 1 || state.clock.merges !== 0 || state.night !== null || state.act1 !== null || state.act2 !== null || state.piper !== 0 || state.gifts !== 0
+  if (state.coins !== 0 || state.taskIndex !== 0 || state.clock.day !== 1 || state.clock.merges !== 0 || state.night !== null || state.act1 !== null || state.act2 !== null || state.act3 !== undefined || state.piper !== 0 || state.gifts !== 0
     || !Array.isArray(state.ratHoles) || state.ratHoles.length || !Array.isArray(state.march) || state.march.length
     || (state.repeating !== undefined && (!record(state.repeating, ['last', 'open']) || state.repeating.last !== null || state.repeating.open !== null))
     || !record(state.evening, ['guest', 'last', 'delivered']) || state.evening.guest !== null || state.evening.last !== null || state.evening.delivered !== false
@@ -309,12 +309,13 @@ function validDay(state: GameState, data: GameData): boolean {
         || typeof gift.first !== 'boolean' || getItem(gift.item, data)?.stage !== nightLevers.giftStage))) return false;
     } else return false;
   } else if (clock.day > 1) return false;
-  // Each finale is served on its day at or after the booking time. The supper records the result of act 1, and the purchase that of act 2.
+  // Each finale is served on its day at or after the booking time. The end of each act records its result: the supper, the purchase of
+  // the orchard, and the dinner of the sleeper. The result of act 3 is a record only after the dinner.
   if (data.finales.some(finale => state.completedQuests.includes(finaleQuest(finale, data)?.id ?? '')
     && (clock.day < finale.day || (clock.day === finale.day && clockMinutes(state, data) < levers(finale.day, data).booking)))) return false;
   const result = (value: unknown, earned: boolean) => value === null ? !earned : earned && record(value, ['purse']) && integer(value.purse, -1_000_000_000);
-  const purchase = data.tasks.find(task => task.purchase);
-  if (!result(state.act1, supperComplete(state, data)) || !result(state.act2, !!purchase && state.decorations.includes(purchase.id))) return false;
+  if (!result(state.act1, actEnded(state, 1, data)) || !result(state.act2, actEnded(state, 2, data))
+    || (state.act3 === undefined ? actEnded(state, 3, data) : state.act3 === null || !result(state.act3, actEnded(state, 3, data)))) return false;
   const piper = data.quests.find(quest => quest.piper);
   return integer(state.piper, 0, PIPER_NIGHTS) && (!state.piper || (!!piper && state.completedQuests.includes(piper.id)));
 }
@@ -431,7 +432,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
         const note = quest && questDeliveryCells(next, quest).every(index => index >= 0) ? ticketNote(next, quest, data) : null, finale = quest && questFinale(quest, data);
         return fail(!note ? 'This quest needs every required item on the board. Check that the quest is still on a ticket.'
           : quest!.booked ? 'This table is booked for another time. Deliver when the guest arrives for the evening.'
-          : finale ? `The ${finale.id === data.finales[0].id ? 'supper' : 'feast'} is booked for ${dateText(finale.day, data, 'plain')} at ${clockText(levers(finale.day, data).booking)}. Serve it then.`
+          : finale ? `${finale.painting.title} is booked for ${dateText(finale.day, data, 'plain')} at ${clockText(levers(finale.day, data).booking)}. Serve it then.`
           : quest!.outdoor && !questHoliday(quest!, data) ? 'This quest is served in the courtyard. Deliver it on a fair day from 1 April.'
           : `${note}. Deliver it from that day.`);
       }
@@ -440,10 +441,9 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       for (const index of questDeliveryCells(next, quest)) next.board[index] = null;
       next.coins += reward;
       // Each day admits one booked delivery. While a day with bookings holds, a booked delivery ends its guest's evening, and the next
-      // guest comes at once. The supper records the result of act 1, and the piper's delivery keeps the thief rat away.
+      // guest comes at once. A finale that ends its act records the result of the act, and the piper's delivery keeps the thief rat away.
       if (quest.booked && holdsDay(next, data) && holdOf(next.clock.day, data)!.bookings) next.evening = { guest: null, last: quest.character, delivered: false };
       else if (quest.booked) next.evening.delivered = true;
-      if (quest.finale === data.finales[0].id) next.act1 = { purse: next.coins };
       if (quest.piper) next.piper = PIPER_NIGHTS;
       // The recovery quest and a repeating quest keep no record and have no reply, so they can open again.
       // A repeating delivery moves the cycle to the next quest.
@@ -464,10 +464,12 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
         next.completedQuests.push(quest.id);
         // A finale quest earns its finale in place of a reply.
         next.pendingScenes.push(quest.finale ?? quest.id);
+        const finale = questFinale(quest, data), act = finale && actOf(finale.day, data);
+        if (act && actEnded(next, act, data)) next[actResults[act - 1]] = { purse: next.coins };
         // A follow-up scene waits for a count of later deliveries; it is earned by the delivery that reaches the count.
         for (const earlier of data.quests) if (earlier.followUp && deliveriesSince(next, earlier.id) === earlier.followUp.afterDeliveries) next.pendingScenes.push(earlier.followUp.id);
       }
-      message = quest.finale || number ? `${quest.title}: served.` : `${quest.title}: delivered. Earned ${reward} ${reward === 1 ? 'coin' : 'coins'}.`;
+      message = quest.finale || quest.order || number ? `${quest.title}: served.` : `${quest.title}: delivered. Earned ${reward} ${reward === 1 ? 'coin' : 'coins'}.`;
       break;
     }
     case 'lantern': {
@@ -476,7 +478,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       if (!quest || !canLightLanterns(next, quest, data)) return fail('Light the lanterns for tonight’s booked guest before the booking time, with every dish on the board.');
       const dayLevers = levers(next.clock.day, data);
       next.clock.merges = (dayLevers.booking - dayLevers.opening) / dayLevers.mergeMinutes;
-      message = quest.finale ? `The lanterns are lit. The guests arrive for the ${quest.finale === data.finales[0].id ? 'supper' : 'feast'}.` : `The lanterns are lit. ${data.characters.find(person => person.id === quest.character)!.name} arrives for the evening.`;
+      message = quest.finale ? `The lanterns are lit. ${quest.guests ? 'The guests arrive for' : 'The table is ready for'} ${questFinale(quest, data)!.painting.title.replace(/^The /, 'the ')}.` : `The lanterns are lit. ${data.characters.find(person => person.id === quest.character)!.name} arrives for the evening.`;
       break;
     }
     case 'seeNight': {
@@ -562,7 +564,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       const empty = firstFreeBoardCell(next, data);
       if (empty === -1) return fail(BOARD_FULL);
       // A take from a paid source spends its coins. A purse that cannot pay takes nothing. Each take of the prologue is free.
-      const cost = next.prologue ? 0 : takeCost(item, data, gardenStage(next.taskIndex, data));
+      const cost = next.prologue ? 0 : takeCost(item, data, growthStages(next.taskIndex, data));
       if (cost && next.coins < cost) return fail(`The ${item.name} costs ${cost} ${cost === 1 ? 'coin' : 'coins'} for each take, and the purse cannot pay. Deliver a quest, or take free herbs from the Herb basket.`);
       next.coins -= cost;
       next.board[empty] = { code };
@@ -576,7 +578,7 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       if (!cell || !item || unresolvedObstacle(next, action.index, data)) return fail('Choose a dish to sell.');
       if (next.prologue) return fail('Dishes are sold from act 1.');
       // A sale pays back the takes of the ingredients at the current garden stage, so it makes no profit.
-      const price = salePrice(cell.code, data, gardenStage(next.taskIndex, data));
+      const price = salePrice(cell.code, data, growthStages(next.taskIndex, data));
       if (!integer(next.coins + price, -1_000_000_000)) return fail('Spend some coins before you sell this dish.');
       next.board[action.index] = null;
       next.coins += price;
@@ -599,8 +601,8 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
       if (!task.purchase && resolveChapters(next, data)[task.chapter - 1].status === 'complete') next.pendingScenes.push(data.chapters[task.chapter - 1].id);
       // The preparation that brings a regular queues their arrival after the story scenes that it earned.
       for (const person of data.characters) if (person.arrival && person.arrivesAfter === task.id) next.pendingScenes.push(arrivalScene(person));
-      // The purchase records the result of act 2.
-      if (task.purchase) next.act2 = { purse: next.coins };
+      // The purchase ends its act and records the result of the act.
+      if (task.purchase) next[actResults[taskAct(task, data) - 1]] = { purse: next.coins };
       break;
     }
     default: return fail('This action is not available.');
@@ -619,10 +621,10 @@ export function reduceGame(state: GameState, action: Action, data: GameData): Re
     const pending = pendingPreparationObstacles(next, data).length;
     if (action.type === 'task' && pending) message += ` ${pending} ${pending === 1 ? 'blocker waits' : 'blockers wait'} for safe space.`;
   }
-  // Each merge is kitchen work and moves the clock, until the purchase of the last act stops it. The merge that reaches the closing time
+  // Each merge is kitchen work and moves the clock, until the end of the last act stops it. The merge that reaches the closing time
   // closes the day, except on a day that holds: its clock stays one merge before the closing. At that position, the release of the hold,
   // a payment or a delivery, closes the day in the same change.
-  const last = dayMerges(next.clock.day, data) - 1, held = holding(state, data), clock = !next.act2;
+  const last = dayMerges(next.clock.day, data) - 1, held = holding(state, data), clock = !clockStopped(next, data);
   if (event === 'merge' && clock && holdsDay(next, data) && next.clock.merges + 1 >= last) {
     next.clock.merges = last;
     message += ` ${holdOf(next.clock.day, data)!.line}`;

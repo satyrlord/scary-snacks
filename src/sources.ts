@@ -1,6 +1,6 @@
 // Sources use a carved rack beside the desktop board and a scrolling ribbon below the phone board. A tap takes an ingredient.
 // Desktop dragging, keyboard moves, and Options change the order. Phone swipes scroll the ribbon.
-import { gardenStage, takeCost } from './model.ts';
+import { growthStages, takeCost } from './model.ts';
 import { $, button as actionButton, element, status } from './dom.ts';
 import { modal } from './dialog.ts';
 import { coinMark, food } from './art.ts';
@@ -113,7 +113,7 @@ export function renderSources() {
     value.addEventListener('click', () => take(chain));
     value.append(food(code));
     // A paid source shows the coins of one take on a tag over its pocket, under the picture. Each take of the prologue is free.
-    const cost = state.prologue ? 0 : takeCost(definition(code), data, gardenStage(state.taskIndex, data));
+    const cost = state.prologue ? 0 : takeCost(definition(code), data, growthStages(state.taskIndex, data));
     if (cost) { const price = element('span', 'take-cost', String(cost)); price.prepend(coinMark()); price.setAttribute('aria-hidden', 'true'); value.append(price); }
     pocket!.append(value);
   }

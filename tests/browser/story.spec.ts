@@ -467,8 +467,10 @@ test('a reply transcript keeps the failed delivery save warning after Close and 
   await options(page);const text=await exportText(page);expect(JSON.parse(text).state).toEqual(act(delivered,{type:'readScene',id:value.id}));
 });
 
+const purchaseAt = data.tasks.findIndex(task => task.purchase), purchase = data.tasks[purchaseAt];
+
 test('after the purchase of the orchard, the game opens on the result card of act 2, and the purchase scene reads and replays', async ({ page }) => {
-  const finished = checkpointState(data, data.tasks.length), purchase = data.tasks.at(-1)!;
+  const finished = act(checkpointState(data, purchaseAt), { type: 'task' });
   expect(finished.pendingScenes).toEqual([purchase.id]);
   await start(page, finished);
   await story(page);
@@ -485,7 +487,7 @@ test('after the purchase of the orchard, the game opens on the result card of ac
 });
 
 test('on 31 August the orchard shows as a payment with its price, and its payment opens the purchase scene and then the result card', async ({ page }) => {
-  const ready = checkpointState(data, data.tasks.length - 1), purchase = data.tasks.at(-1)!;
+  const ready = checkpointState(data, purchaseAt);
   await start(page, ready);
   await story(page);
   const card = page.locator('#story');
@@ -496,7 +498,7 @@ test('on 31 August the orchard shows as a payment with its price, and its paymen
   await page.getByRole('button', { name: 'Back to the kitchen', exact: true }).click();
   await expect(card).toContainText('The orchard is yours.');
   const done = await saved(page);
-  expect(done.taskIndex).toBe(data.tasks.length);
+  expect(done.taskIndex).toBe(purchaseAt + 1);
   expect(done.act2).toEqual({ purse: ready.coins - purchase.cost });
   expect(done.pendingScenes).toEqual([]);
 });

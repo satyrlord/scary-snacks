@@ -1,6 +1,6 @@
 // The merge board: its spaces and blockers, the selected item and its actions under the board, tap, drag, and keyboard play, and the
 // sale of a dish that a drag takes off the board.
-import { freeBoardCells, gardenStage, mergePartners, mergeResult, pendingPreparationObstacles, salePrice, unresolvedObstacle } from './model.ts';
+import { freeBoardCells, growthStages, mergePartners, mergeResult, pendingPreparationObstacles, salePrice, unresolvedObstacle } from './model.ts';
 import { $, button, coinText, either, element, names, pulse, status } from './dom.ts';
 import { blockerMark, clutterArt, crossMark, food } from './art.ts';
 import { activeQuests } from './tickets.ts';
@@ -235,7 +235,7 @@ function findMatch() {
 }
 /** Both the Sell control and an off-board drop ask before a sale. The safe choice holds focus. */
 function offerSale(index: number) {
-  const code=state.board[index]!.code,price=salePrice(code,data,gardenStage(state.taskIndex,data));
+  const code=state.board[index]!.code,price=salePrice(code,data,growthStages(state.taskIndex,data));
   const keep=button('Keep it','secondary-button',()=>modal.close()),choice=element('div','settings-actions');
   // The sale applies only to the same dish in the same space, so a board that changed meanwhile keeps it.
   choice.append(button('Sell','primary-button',()=>{modal.close();changeGame(()=>{if(state.board[index]?.code===code)apply({type:'sell',index},null);});}),keep);

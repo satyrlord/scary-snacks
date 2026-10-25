@@ -217,3 +217,20 @@ export function memoryStorage(initial: [string, string][] = []) {
 /** The preparations of act 1, and the evening of the supper: every preparation of act 1 paid, at the booking time of 1 May. */
 export const actOneTasks = data.tasks.filter(task => data.chapters[task.chapter - 1].act === 1).length;
 export const supperEvening = () => finaleCheckpoint(data, 1);
+/** The payments of act 1 and act 2, with the purchase of the orchard: the index of the first preparation of act 3. */
+export const actTwoTasks = data.tasks.findIndex(task => task.purchase) + 1;
+/** A copy of the data whose calendar ends with act 2, as a game without a later act: the purchase of the orchard ends it. */
+export function withoutActThree(content = data): GameData {
+  const copy = structuredClone(content), end = copy.acts[1].to, third = new Set(copy.tasks.slice(actTwoTasks).map(task => task.id));
+  copy.acts = copy.acts.slice(0, 2);
+  Object.assign(copy.calendar, { end, weather: copy.calendar.weather.slice(0, end), holidays: copy.calendar.holidays.filter(holiday => holiday.day <= end),
+    holds: copy.calendar.holds.filter(hold => hold.day <= end) });
+  copy.tasks = copy.tasks.filter(task => !third.has(task.id));
+  copy.chapters = copy.chapters.filter(chapter => chapter.act <= 2);
+  copy.finales = copy.finales.slice(0, 2);
+  copy.areas = copy.areas.filter(area => area.act <= 2);
+  copy.rooms = copy.rooms.filter(room => copy.areas.some(area => area.id === room.area));
+  copy.board.preparations = copy.board.preparations.filter(batch => !third.has(batch.after));
+  copy.quests = copy.quests.filter(quest => quest.act !== 3);
+  return copy;
+}

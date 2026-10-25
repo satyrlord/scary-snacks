@@ -18,7 +18,7 @@ The primary player wants short, relaxed sessions of a merge game on a phone or a
 
 The player restores a Transylvanian bistro through local foods, drinks, and character quests. Each preparation is a paid job that visibly changes the room. The neighbours and their quests connect the merge board to the story. The restored room is a permanent reward for that work.
 
-The campaign has a prologue, act 1, and act 2 of a larger game. The owner plans to extend the game after act 2.
+The campaign has a prologue, act 1, act 2, and act 3 of a larger game. The owner plans to extend the game after act 3.
 
 ## Operating Context
 
@@ -48,14 +48,14 @@ These records support content and technical verification. They do not establish 
 
 The board has six columns and seven rows. The game has these authored parts:
 
-- 15 chains of four to six dishes each, which are 73 dishes and drinks. Three of the chains are seasonal.
-- 34 mixed dishes, each cooked from dishes of two or three chains
-- 15 ingredient sources (generators), one for each chain
+- 16 chains of four to six dishes each, which are 77 dishes and drinks. Four of the chains are seasonal.
+- 37 mixed dishes, each cooked from dishes of two or three chains
+- 16 ingredient sources (generators), one for each chain
 - 28 characters, including Mara's parents, who speak in the prologue and come to the festival of act 2
 - a prologue of seven events with 16 event quests
-- 209 quests: 89 campaign quests of act 1, 101 campaign quests of act 2, five March quests, four quests of later acts, two finale quests, one recovery quest, and seven repeating quests
-- 48 preparations in 12 chapters, six chapters for each act, and the purchase of the orchard at the end of act 2
-- a calendar of 198 days, from Saturday 15 February to Sunday 31 August: act 1 has 76 days, and act 2 has 122 days
+- 253 quests: 89 campaign quests of act 1, 101 campaign quests of act 2, 45 campaign quests of act 3, five March quests, two quests of a later act, three finale quests, one recovery quest, and seven repeating quests
+- 66 preparations in 18 chapters, six chapters for each act, and the purchase of the orchard at the end of act 2
+- a calendar of 259 days, from Saturday 15 February to Friday 31 October: act 1 has 76 days, act 2 has 122 days, and act 3 has 61 days
 
 In this document, "dish" also means a drink. An ingredient is a dish that a source gives. Each dish has an English name. If English has no name for the dish, the dish has its Romanian regional name with diacritics. The initial layout, the prices, the progression, the characters, and the dialogue are new works.
 
@@ -63,7 +63,7 @@ A quest is an authored task that a character gives to the player.
 
 A campaign quest earns coins. Some preparations unlock a source. Each preparation unlocks story scenes and visibly changes the bistro.
 
-Each chain follows one staple food family. Its source gives the stage-1 ingredient, and its dishes use only foods of that family. Three chains are open at the start of act 1: Grain, Corn, and Herbs. Preparations 3, 5, 6, 7, and 8 open Dairy, Poultry, Vegetables, Fruits, and Pork. Preparations 11, 12, 13, and 16 open Beans, Fish, Lamb, and Veal. The scene of each of these preparations names its new source. The three seasonal chains, Preserved vegetables, Spring greens, and Summer garden, open with their season. Summer garden also needs preparation 6 of act 2. "Seasons and holidays" gives their rules. A mixed dish opens when each of its chains is open.
+Each chain follows one staple food family. Its source gives the stage-1 ingredient, and its dishes use only foods of that family. Three chains are open at the start of act 1: Grain, Corn, and Herbs. Preparations 3, 5, 6, 7, and 8 open Dairy, Poultry, Vegetables, Fruits, and Pork. Preparations 11, 12, 13, and 16 open Beans, Fish, Lamb, and Veal. The scene of each of these preparations names its new source. The four seasonal chains, Preserved vegetables, Spring greens, Summer garden, and Orchard, open with their season. Summer garden also needs preparation 6 of act 2, and Orchard needs preparation 2 of act 3. "Seasons and holidays" gives their rules. A mixed dish opens when each of its chains is open.
 
 The economy has four levers:
 
@@ -72,26 +72,29 @@ The economy has four levers:
 - the work rate (2 coins)
 - the recovery floor (10 coins)
 
-A take from a paid source spends the take cost. The free sources are the Herb basket, the Forage basket, and the Garden beds. From garden stage 1, the Vegetable crate is also free: "Act 2" gives the garden stages. The Pickle barrel is a paid source. Each cleared blocker gives the blocker coin. A formula gives the menu price of each dish. The price has two parts. The first part is the sum of the values of the ingredients in the dish. The second part is the number of merges in the dish times the work rate. An ingredient of a paid source counts the take cost, and an ingredient of a free source counts as zero. From garden stage 1, a garden ingredient counts its garden value. For example, Flour costs 1 coin, Elderflowers cost nothing, Gherkins cost 1 coin, Linden tea costs 14 coins, and Bulz costs 46 coins.
+A take from a paid source spends the take cost. The free sources are the Herb basket, the Forage basket, the Garden beds, and the Apple tree. From garden stage 1, the Vegetable crate is also free: "Act 2" gives the garden stages. From orchard stage 1, the Cornucopia is also free, and from preparation 16 of act 3, the Pickle barrel is also free: "Act 3" gives these rules. Each cleared blocker gives the blocker coin. A formula gives the menu price of each dish. The price has two parts. The first part is the sum of the values of the ingredients in the dish. The second part is the number of merges in the dish times the work rate. An ingredient of a paid source counts the take cost, and an ingredient of a free source counts as zero. From garden stage 1, a garden ingredient counts its garden value. From orchard stage 1, a fruit ingredient counts its orchard value, and from preparation 16 of act 3, a pickle ingredient counts the cellar value. For example, Flour costs 1 coin, Elderflowers cost nothing, Gherkins cost 1 coin, Linden tea costs 14 coins, and Bulz costs 46 coins.
 
-The menu value of a quest is the sum of the prices of its portions. Every quest except a finale quest and the piper's fee pays its menu value. So a delivery pays back its ingredients and earns the work rate for each merge. Quests and cleared blockers are the only income. A sale only pays back the takes of a dish.
+The menu value of a quest is the sum of the prices of its portions. Every quest except a finale quest, the piper's fee, and a part of the sleeper's order pays its menu value. So a delivery pays back its ingredients and earns the work rate for each merge. Quests and cleared blockers are the only income. A sale only pays back the takes of a dish.
 
 Each preparation has a work scope, a material cost, a labour cost, and an estimate of active person-hours. Its coin cost is the material cost plus the labour cost. The cost does not rise with the position of the preparation in the story. As a reference scale, the cost model uses one coin for about one Romanian leu. The model includes reuse of the furniture and supplies that the bistro has. The model does not include running costs. The [economy record](docs/economy.md) gives the quantities, the portions, the primary references, and the assumptions.
 
-A campaign quest opens after a named preparation, or at the start of act 1. A campaign quest that opens after preparation N is necessary for payment N + 1. Each payment needs every campaign quest that opens before it. The player delivers all 89 campaign quests of act 1 before the supper quest, and all 101 campaign quests of act 2 before the purchase of the orchard. A campaign quest can also have an opening date: "Calendar" gives its rules. The five quests of Dochia are March quests, and no preparation needs them. A quest of act 2 opens only from 2 May. The four quests of acts 3 and 4 stay in the game data with their act, and the game never opens them. A quest of a later act or a March quest is not an earlier quest of its character for a quest of an earlier act, and the funding check of the preparations does not count it.
+A campaign quest opens after a named preparation, or at the start of act 1. A campaign quest that opens after preparation N is necessary for payment N + 1. Each payment needs every campaign quest that opens before it. The player delivers all 89 campaign quests of act 1 before the supper quest, and all 101 campaign quests of act 2 before the purchase of the orchard. A campaign quest can also have an opening date: "Calendar" gives its rules. The five quests of Dochia are March quests, and no preparation needs them. A quest of act 2 opens only from 2 May. The two quests of act 4 stay in the game data with their act, and the game never opens them. A quest of a later act or a March quest is not an earlier quest of its character for a quest of an earlier act, and the funding check of the preparations does not count it.
 
-A quest asks only for dishes that the player can place. When a quest gets its ticket, the player surely knows a set of dishes. Each dish of the quest is one merge beyond that set. Its parts, or the dish one stage below it, are in the recipe book. Otherwise, its source is in the source tab. The player surely knows the dishes of the initial board of act 1, the prepared dishes of the prologue boards, and the dishes of the prologue quests. The player also surely knows the dishes of each quest that surely had a ticket before. A March quest and a quest of a later act do not count for this rule. When a quest gets a ticket, its dishes enter the recipe book. The data check enforces this rule for every quest of act 1 and act 2, including the finale quests. For a release requirement of a day that holds, the check counts only the dishes of the quests that it waits for and of the earlier release requirements of the same day, because a release requirement can get its ticket first on that day.
+A quest asks only for dishes that the player can place. When a quest gets its ticket, the player surely knows a set of dishes. Each dish of the quest is one merge beyond that set. Its parts, or the dish one stage below it, are in the recipe book. Otherwise, its source is in the source tab. The player surely knows the dishes of the initial board of act 1, the prepared dishes of the prologue boards, and the dishes of the prologue quests. The player also surely knows the dishes of each quest that surely had a ticket before. A March quest and a quest of a later act do not count for this rule. When a quest gets a ticket, its dishes enter the recipe book. The data check enforces this rule for every quest of the three acts, including the finale quests. For a release requirement of a day that holds, the check counts only the dishes of the quests that it waits for and of the earlier release requirements of the same day, because a release requirement can get its ticket first on that day.
 
-A quest is one meal at one sitting. It has at most three portions for each eater and at most two portions of one dish. A shared quest counts each of its characters: the character of the quest and each companion who shares the meal. Only the characters who order provisions ask for more. Adrian, Monica, and Janos pack food for days under the cathedral. Dochia packs food for her days on the hill. Sânziana buys food for her sisters. A finale has one plate for each guest. A stall quest of the festival feeds a crowd. The data check enforces these limits.
+A quest is one meal at one sitting. It has at most three portions for each eater and at most two portions of one dish. A shared quest counts each of its characters: the character of the quest and each companion who shares the meal. Only the characters who order provisions ask for more. Adrian, Monica, and Janos pack food for days under the cathedral. Dochia packs food for her days on the hill. Sânziana buys food for her sisters. A finale has one plate for each guest. A stall quest of the festival feeds a crowd. A part of the sleeper's order is a course of an old feast, with at most 11 portions. The data check enforces these limits.
 
-The supper quest is Mara's last quest, "The community supper". It opens after preparation 24. It asks for one plate for each of the 11 guests. The guests are Mara, Ilie, Eszter, Sorin, Costel, Victor, Ana, Ileana, Bran, Cătălina, and Cezar. Each plate suits the diet of its guest. Each regular gets a favourite dish. The plates use the 12 chains that are open all year. The supper is in the courtyard on 1 May: "Calendar" gives its time. The quest pays nothing. Its ticket and its dialog show Serve, and its dialog names the guest of each plate. Serve removes the plates once and records the quest. Serve also queues the finale in place of a completion scene. The finale opens immediately. The feast of act 2 is the second finale quest: "Act 2" gives its rules.
+The supper quest is Mara's last quest, "The community supper". It opens after preparation 24. It asks for one plate for each of the 11 guests. The guests are Mara, Ilie, Eszter, Sorin, Costel, Victor, Ana, Ileana, Bran, Cătălina, and Cezar. Each plate suits the diet of its guest. Each regular gets a favourite dish. The plates use the 12 chains that are open all year. The supper is in the courtyard on 1 May: "Calendar" gives its time. The quest pays nothing. Its ticket and its dialog show Serve, and its dialog names the guest of each plate. Serve removes the plates once and records the quest. Serve also queues the finale in place of a completion scene. The finale opens immediately. The feast of act 2 is the second finale quest: "Act 2" gives its rules. The dinner of the sleeper is the third: "Act 3" gives its rules.
 
-The recovery quest is Ana's "Tea for the night ward". It asks for one Linden tea and pays its menu value. It is open in two cases:
+The recovery quest is Ana's "Tea for the night ward". It asks for one Linden tea and pays its menu value. It is open in three cases:
 
 - Another quest is open, and the purse holds less than the recovery floor.
 - No other quest is open, and the purse cannot pay for the next preparation.
+- The dinner of the sleeper is served, and the purse holds less than the recovery floor.
 
-A finale quest counts as another quest, so the purse can pay for the ingredients of the finale. A repeating quest and the recovery quest pay their menu value at the current garden stage. The recovery quest has its own ticket after the three quest tickets. So the recovery quest never moves a quest to waiting. A delivery pays the reward, records nothing, queues no scene, and has no journal entry. The quest closes when neither case is true. The quest opens again each time a case becomes true. The quest is outside the order of Ana's quests. Its dialog says "Ana returns while the purse runs low. Herbs from the Herb basket are free." So a player who spends coins on extra food can always continue. The herbs are free, and blocker placement keeps room for the tea. One tea puts an empty purse above the recovery floor. At the start of act 1, two Socată are on the board. So on the first day, the player can make the tea with one merge.
+A part of the sleeper's order pays nothing. So while only parts of the order are open, each of the first two cases opens the recovery quest.
+
+A finale quest counts as another quest, so the purse can pay for the ingredients of the finale. A repeating quest and the recovery quest pay their menu value at the current stages of the garden, the orchard, and the cellar. The recovery quest has its own ticket after the three quest tickets. So the recovery quest never moves a quest to waiting. A delivery pays the reward, records nothing, queues no scene, and has no journal entry. The quest closes when none of the cases is true. The quest opens again each time a case becomes true. The quest is outside the order of Ana's quests. Its dialog says "Ana returns while the purse runs low. Herbs from the Herb basket are free." So a player who spends coins on extra food can always continue. The herbs are free, and blocker placement keeps room for the tea. One tea puts an empty purse above the recovery floor. At the start of act 1, two Socată are on the board. So on the first day, the player can make the tea with one merge.
 
 The repeating quests give the bistro work when it has no other work. A quest has work if the player can act on it on the current day. Each open campaign quest, an open finale quest, and an open recovery quest have work. A booked quest for another evening is different: the player can cook its meal now but cannot deliver it. So the booked meals for later evenings have work only while a portion is missing. The board must hold the portions of all of them together. The bistro has no work if no open quest has work and the next preparation is not ready to pay.
 
@@ -107,22 +110,23 @@ Seven repeating quests take turns in this order:
 
 A repeating quest with a season joins the cycle only in its season. An open repeating quest stays open after its season until its delivery.
 
-If the bistro has no work, the next repeating quest that can join the cycle opens in the same change. The next quest comes after the last delivered repeating quest. A repeating quest stays open until its delivery. A campaign quest gets a ticket before a repeating quest, so a repeating quest can wait without a ticket. A repeating quest pays its menu value, records nothing, queues no scene, and has no journal entry. No preparation needs a repeating quest. Its dialog shows one opening line, which does not introduce the character again. The two cases of the recovery quest do not count the repeating quests. No quest of act 2 opens before 2 May, so after the supper, the repeating quests fill the rest of 1 May by the same rule. After the purchase of the orchard, the repeating quests continue. The data check limits each repeating quest to 15 merges and one meal for each eater. At least three repeating quests exist, and one can join the cycle at the start of act 1.
+If the bistro has no work, the next repeating quest that can join the cycle opens in the same change. The next quest comes after the last delivered repeating quest. A repeating quest stays open until its delivery. A campaign quest gets a ticket before a repeating quest, so a repeating quest can wait without a ticket. A repeating quest pays its menu value, records nothing, queues no scene, and has no journal entry. No preparation needs a repeating quest. Its dialog shows one opening line, which does not introduce the character again. The recovery quest does not count the repeating quests. No quest of act 2 opens before 2 May, so after the supper, the repeating quests fill the rest of 1 May by the same rule. After the purchase of the orchard, the repeating quests continue. The data check limits each repeating quest to 15 merges and one meal for each eater. At least three repeating quests exist, and one can join the cycle at the start of act 1.
 
-The data check adds the funding of the quests that open before each preparation of an act. The funding of a quest is its reward minus the take costs of its ingredients. The take costs use the garden stage of the preparation after which the quest opens. A quest with no reward has a negative funding. The check also adds the costs of the preparations of the act up to that preparation. The funding must cover the costs. The check does not count the purse that an earlier act carries. Consider a player who delivers every open quest and pays only for its ingredients. That player always has the coins for the next preparation. The coins that remain after the last preparation of an act must pay for the ingredients of the finale of the act. The check adds the funding of the quests of the same act that open after the last preparation and before the finale. A quest of the next act does not count. The balance test covers the upkeep and the price of the orchard. The data has exactly one finale quest for each act and one recovery quest. The data check also counts the merges of each quest: each meal fits in one weekday of its act. Provisions, the stall quests, and the finales can take more than one day.
+The data check adds the funding of the quests that open before each preparation of an act. The funding of a quest is its reward minus the take costs of its ingredients. The take costs use the stages of the preparation after which the quest opens. A quest with no reward has a negative funding. The check also adds the costs of the preparations of the act up to that preparation. The funding must cover the costs. The check does not count the purse that an earlier act carries. Consider a player who delivers every open quest and pays only for its ingredients. That player always has the coins for the next preparation. The coins that remain after the last preparation of an act must pay for the ingredients of the finale of the act. The check adds the funding of the quests of the same act that open after the last preparation and before the finale. A quest of the next act does not count. The dinner of the sleeper opens before preparation 16 of act 3, so the check counts its take costs in the window after preparation 15, as a quest with no reward. The balance test covers the upkeep and the price of the orchard. The data has exactly one finale quest for each act and one recovery quest. The data check also counts the merges of each quest: each meal fits in one weekday of its act. Provisions, the stall quests, the finales, and the parts of the sleeper's order can take more than one day.
 
-The campaign balance test plays both acts with 20 fixed seeds. An efficient strategy cooks only for quests and lights the lanterns for each booking. It delivers the repeating quests when the bistro has no other work. For each seed, the efficient strategy has these results:
+The campaign balance test plays the three acts with 20 fixed seeds. An efficient strategy cooks only for quests and lights the lanterns for each booking. It delivers the repeating quests when the bistro has no other work. For each seed, the efficient strategy has these results:
 
 - The purse never goes below zero.
 - Each payment comes on or after the opening date of its chapter. Preparation 24 of act 1 comes before the closing of 30 April, so no day of act 1 holds.
 - In act 2, preparation 12 comes before the closing of 20 June, and preparation 24 comes before the closing of 14 August. The purchase of the orchard is on 31 August. The only held position that act 2 reaches is the festival on 21 June.
-- The supper is served on 1 May. Ambrozie dines on 12 July and has his lunch on 13 July. The feast is served on 15 August.
-- In act 1, the purse pays the upkeep 75 times, and a rat comes on each of the 11 Sunday nights. In act 2, the purse pays the upkeep 122 times, and a rat comes on each of the 17 Sunday nights.
+- In act 3, preparation 18 comes before the closing of 30 October. Act 3 reaches no held position.
+- The supper is served on 1 May. Ambrozie dines on 12 July and has his lunch on 13 July. The feast is served on 15 August. The dinner of the sleeper is served on 31 October.
+- In act 1, the purse pays the upkeep 75 times, and a rat comes on each of the 11 Sunday nights. In act 2, the purse pays the upkeep 122 times, and a rat comes on each of the 17 Sunday nights. In act 3, the purse pays the upkeep 61 times, from 31 August to 30 October, and a rat comes on each of the 9 Sunday nights.
 - In each act, the repeating quests use at most 20% of the merges of the act. No three days in a row have work only from repeating quests.
 - Each holiday quest is delivered on its holiday. The festival holds 21 June, and its stall quests take the tickets first, so a holiday quest of 21 to 24 June can wait up to three days. Each March quest is delivered in March. An outdoor quest never waits more than two rain days.
-- At the end of each act, the purse holds 0 to 20% of the spending of the act. The spending is the cost of the preparations, the takes, and the upkeep, and in act 2 also the price of the orchard. The accounts of act 1 end at the supper. The accounts of act 2 start at the supper and end at the purchase.
+- At the end of each act, the purse holds 0 to 20% of the spending of the act. The spending is the cost of the preparations, the takes, and the upkeep, and in act 2 also the price of the orchard. The accounts of act 1 end at the supper. The accounts of act 2 start at the supper and end at the purchase. The accounts of act 3 start at the purchase and end at the dinner, so the upkeep of 31 August counts in act 3.
 
-A strategy that misses each booking once also pays preparation 24 of act 1 before the closing of 30 April, pays preparation 24 of act 2 before the closing of 14 August, and buys the orchard on 31 August. That strategy never misses a fixed evening, because a fixed evening holds its day. Another strategy starts each preparation window with a debt of 20 coins. That strategy gets to each payment through the recovery quest, and it can use the holds.
+A strategy that misses each booking once also pays preparation 24 of act 1 before the closing of 30 April, pays preparation 24 of act 2 before the closing of 14 August, buys the orchard on 31 August, pays preparation 18 of act 3 before the closing of 30 October, and serves the dinner on 31 October. That strategy never misses a fixed evening, because a fixed evening holds its day. Another strategy starts each preparation window with a debt of 20 coins. That strategy gets to each payment through the recovery quest, and it can use the holds.
 
 Story is a card on a wide screen and a sheet on a narrow screen. A narrow screen is 1023px wide or less. Story shows the current chapter and the next preparation of the act of the current day. The first preparation of act 2 shows only from 2 May. Its list of requirements shows only the coins, the quests, and the opening date that the player still needs. Before the opening date of its chapter, the first preparation of a chapter shows the date, for example "Opens on Thursday 27 February." When the player meets all the requirements, one line says "Ready to prepare." Cost details expands below Pay inside Story. Cost details shows the work, the budget, and the exact current and required totals. The player can pay while the details are open. If the player opens or closes the details, no game state changes.
 
@@ -161,13 +165,15 @@ The dishes fly to the ticket. A temporary notice reports the delivery and the re
 
 An unread scene is a scene that the player has not read.
 
-The four core characters are Mara, Ilie, Eszter, and Sorin. Their quests continue through the chapters of both acts. Each of their campaign quests has at least two turns at its opening and at its completion. Each of these quests gives its character a want, a small complication, and a change at the end. Mara worries as a host. Ilie keeps the habits of his family. Eszter is proud of her craft. Sorin tells what he sees on his round.
+The four core characters are Mara, Ilie, Eszter, and Sorin. Their quests continue through the chapters of the three acts. Each of their campaign quests has at least two turns at its opening and at its completion. Each of these quests gives its character a want, a small complication, and a change at the end. Mara worries as a host. Ilie keeps the habits of his family. Eszter is proud of her craft. Sorin tells what he sees on his round.
 
 In act 1, Mara has 11 campaign quests, Eszter has ten, and Ilie and Sorin have eight each. Mara also has the supper quest, and Ana has the recovery quest. These two quests have no completion scene. Costel has seven quests. Dochia has five March quests. Victor and Dorian have five quests each. Ana and Ileana have four quests each. Sânziana, Cezar, Cătălina, and Bran have three quests each. Bela, Vlad, and Elisabeta have two quests each.
 
 In act 2, Mara, Ilie, Eszter, and Sorin have six campaign quests each. Gavril has seven: the contract lunch, the five stall quests, and the budget lunch. Ileana, Costel, Victor, Dorian, Cezar, Bran, and Ana have six quests each. Sânziana, Cătălina, and Bela have four quests each. Vlad and Elisabeta have three quests each. Ambrozie has two quests, and the feast is his finale quest. Janos has two quests. Adrian, Monica, Tarka, Mama, Ionatan, and Mina have one quest each. Dochia has no quest in act 2: she is on the high pasture with her flock.
 
-A visitor is a character who does not live in the neighbourhood. Adrian, Monica, Janos, and Ambrozie are returning visitors who visit more than once. Ionatan, Mina, Avram, and Tarka are single-visit visitors. In act 1, each of Adrian, Monica, and Janos has three supply quests. The nine supply quests alternate in that order. They open after preparations 6, 8, 9, 13, 14, 17, 19, 21, and 22. In act 2, each of them has one more supply quest, after preparations 5, 14, and 18 of act 2: the watch at the red door. After the feast, Janos has the proper meal that he promised in act 1.
+In act 3, Mara, Ilie, Eszter, and Sorin have four campaign quests each. Ambrozie has the six parts of the sleeper's order, and the sixth part is the finale quest. Dorian has four quests, and Bela has three: they remember the night of the raid on the village pantries, forty years ago. Vlad and Elisabeta have two booked quests each. Gavril, Victor, Sânziana, Costel, Cezar, Bran, Ana, Ileana, Cătălina, Dochia, Adrian, Monica, and Janos have one quest each.
+
+A visitor is a character who does not live in the neighbourhood. Adrian, Monica, Janos, and Ambrozie are returning visitors who visit more than once. Ionatan, Mina, Avram, and Tarka are single-visit visitors. In act 1, each of Adrian, Monica, and Janos has three supply quests. The nine supply quests alternate in that order. They open after preparations 6, 8, 9, 13, 14, 17, 19, 21, and 22. In act 2, each of them has one more supply quest, after preparations 5, 14, and 18 of act 2: the watch at the red door. After the feast, Janos has the proper meal that he promised in act 1. In act 3, each of them has one last watch at the red door, and they carry the parts of the sleeper's order down under the cathedral.
 
 Each supply quest also waits for the delivery of the previous supply quest. So only one supply quest is open at a time. The returning visitors do not join the supper.
 
@@ -207,7 +213,7 @@ The game keeps the record of the delivery. The journal can replay the scenes of 
 
 If the save of a finale fails, the finale also shows the save warning immediately inside its dialog.
 
-Each act has six chapters with four preparations each. Each act numbers its chapters from 1. Story shows the title and the objective of the current chapter. Story also shows one step for each preparation of the chapter: done, now, or not yet. A chapter opens at its first preparation and needs no payment of its own. Its closing scene stays hidden until the chapter is complete. Each chapter names one quest of a core character as its neighbour help. That quest opens during the chapter.
+Each act has six chapters. A chapter of act 1 or act 2 has four preparations, and a chapter of act 3 has three. Each act numbers its chapters from 1. Story shows the title and the objective of the current chapter. Story also shows one step for each preparation of the chapter: done, now, or not yet. A chapter opens at its first preparation and needs no payment of its own. Its closing scene stays hidden until the chapter is complete. Each chapter names one quest of a core character as its neighbour help. That quest opens during the chapter.
 
 Each payment queues the scene of its preparation. The payment for the last preparation of a chapter also records the chapter as complete. In the same change, that payment queues the closing scene of the chapter. A payment queues its scenes in this order: the preparation scene, then the closing scene. Serve on a finale quest queues its finale. The purchase of the orchard queues its own scene and completes no chapter.
 
@@ -233,7 +239,9 @@ When every preparation of an act is paid and its finale quest waits, the finale 
 
 After the supper, until the closing of 1 May, the card says "The table is ready." and "The community supper is served, and every campaign quest of act 1 is delivered. Act 2 begins in the morning." Then the card gives the result of act 1. An example is "The bistro worked from 15 February to 1 May. The purse holds 312 coins." The card shows a debt as "The shop notebook holds a debt of 40 coins." From 2 May, Story shows chapter 1 of act 2.
 
-After the purchase of the orchard, the card says "The orchard is yours." and "The trees creak, and they wait for autumn." Then the card gives the result of act 2, for example "The bistro worked from 2 May to 31 August. The purse holds 214 coins."
+After the purchase of the orchard, the card says "The orchard is yours." and "The trees creak, and they wait for autumn. Act 3 begins in the morning." Then the card gives the result of act 2, for example "The bistro worked from 2 May to 31 August. The purse holds 214 coins." From 1 September, Story shows chapter 1 of act 3.
+
+After the dinner of the sleeper, the card says "The sleeper is fed." and "He ate every course, said a few words, and went back to sleep for forty years. The village leaves its pantries open again." Then the card gives the result of act 3, for example "The bistro worked from 1 September to 31 October. The purse holds 214 coins."
 
 The kitchen is the board with the tickets and Mara's line. Mara's line is the line of text under the board. Mara says what the player can do next. The room is the main screen of the game and the reward of the game. On a narrow screen, the kitchen is a drawer over the room. On a wide screen, the kitchen is a panel next to the room. The room shows one painted area of the act of the current day. The area shows the state that the completed preparations give. Act 1 has two areas:
 
@@ -245,6 +253,12 @@ From 2 May, the room shows the three areas of act 2:
 - The summer kitchen, a shed between the bistro and the vegetable garden, is open from the start of act 2. Preparations 1 to 4, 15, 16, 19, and 20 of act 2 change it.
 - The vegetable garden opens with preparation 5 of act 2, "Clear the weeds". Preparations 5, 6, 13, 14, 17, 18, 21, and 22 change it.
 - The town square opens with preparation 7 of act 2, "Sweep the square". Preparations 7 to 12, 23, and 24 change it.
+
+From 1 September, the room shows the three areas of act 3:
+
+- The orchard, which Mara bought from the cathedral, is open from the start of act 3. Preparations 1, 2, 9, 10, 13, and 15 of act 3 change it.
+- The bistro cellar opens with preparation 3 of act 3, "Clear the cellar stairs". Preparations 3, 4, 5, 11, 14, and 16 change it.
+- The cathedral kitchen, the old kitchen hall under the cathedral, opens with preparation 6 of act 3, "Unlock the kitchen gate". Preparations 6, 7, 8, 12, 17, and 18 change it.
 
 Each area has one painting for each of its states. The room shows the state of the highest completed preparation in that area. Preparations 1 to 12, 17, and 24 of act 1 change the front room. Preparations 13 to 16 and 18 to 23 of act 1 change the courtyard. The purchase of the orchard changes no area. The room opens on the area that the player chose last. A reveal moves the room to the area of its room change. If the browser has no stored choice, the room shows the area of the latest room change.
 
@@ -264,7 +278,7 @@ One tap on a source takes one stage-1 ingredient into the first free cell of the
 
 A dish leaves the board when the player merges it, delivers it, or sells it. A dish also leaves the board when the thief rat picks it at closing. The board-full notice says "The board is full. Merge a pair or deliver a quest."
 
-To sell a dish, the player selects it, opens Actions, and chooses Sell. These controls accept taps and keyboard input. The player can also drag the dish to a point outside the board and the source tab. A dialog then asks "Are you sure you want to sell [dish], for [price] coins?" For a price of 1, the dialog says "coin". Sell removes the dish and adds the price to the purse. Keep it, Close, or Escape keeps the dish. The price is the sum of the take costs of the ingredients of the dish at the current garden stage. The work rate does not count, and an ingredient of a free source counts as zero. So a sale makes no profit. For example, Flour sells for 1 coin, Elderflowers sell for 0 coins, and Bulz sells for 16 coins. From garden stage 1, a garden ingredient counts as zero. A sale does not move the clock. A drag in the prologue sells nothing, and the Actions menu has no Sell control there. A blocked dish cannot move, so it cannot be sold.
+To sell a dish, the player selects it, opens Actions, and chooses Sell. These controls accept taps and keyboard input. The player can also drag the dish to a point outside the board and the source tab. A dialog then asks "Are you sure you want to sell [dish], for [price] coins?" For a price of 1, the dialog says "coin". Sell removes the dish and adds the price to the purse. Keep it, Close, or Escape keeps the dish. The price is the sum of the take costs of the ingredients of the dish at the current stages. The work rate does not count, and an ingredient of a free source counts as zero. So a sale makes no profit. For example, Flour sells for 1 coin, Elderflowers sell for 0 coins, and Bulz sells for 16 coins. From garden stage 1, a garden ingredient counts as zero. From orchard stage 1, a fruit ingredient counts as zero, and from preparation 16 of act 3, a pickle ingredient counts as zero. A sale does not move the clock. A drag in the prologue sells nothing, and the Actions menu has no Sell control there. A blocked dish cannot move, so it cannot be sold.
 
 The recipe book lists the dishes of each chain, then the mixed dishes. Each event of the prologue discovers its sources and the prepared dishes of its board. The start of act 1 discovers its sources and the items of its initial board. After that, a take, a merge, a gift of Șoricescu, or a quest ticket discovers a dish. A quest that gets a ticket puts its dishes in the recipe book. A dish that the player has not discovered shows as a covered dish with the label "Not yet". A discovered dish shows its picture and its name and opens its item dialog. Close or Escape from an item dialog that the book opened returns to the same position in the book. Then the book focuses that dish. "Show me on the board" leaves the book and goes to the board. Close or Escape from an item dialog that a quest opened returns to its quest. If a take or a merge makes a dish that is not in the recipe book, a notice shows. The notice says "[Dish] is a new dish! It is in the recipe book now." A section whose dishes are all discovered shows "Complete" in its heading. The item dialog of a mixed dish shows its recipe. The item dialog of a part names the mixed dishes that the part makes. The recipe book button shows how many dishes the player has discovered. These marks give no reward.
 
@@ -282,9 +296,9 @@ A blocked item cannot move and cannot fill a quest. The player can clear a block
 
 Each blocker has a small help mark. A tap selects the blocker. Then the name of the blocker and its rule replace the item actions or the preparation offer under the board. The blocker help names the blocked dish and each recipe partner that the player has made. The help also marks the movable matches. The help does not name a recipe partner that the player has not made, and that partner stays covered. A tap on a marked item merges the item into the blocker and clears the blocker in the same action. A selected matching item also merges directly into the blocked cell. To leave the help without a merge, the player can tap the blocker again. The player can also select an item that does not match, use Clear selection, or press Escape. The help changes no game state until a merge.
 
-Each of the 48 preparation payments earns one authored batch of two or three new blockers. The purchase of the orchard earns no batch. The batch shows the work that the player completed with that payment. In act 1, each batch has one of these themes: repair supplies, courtyard leaves, planting supplies, recipe papers, menu packing, or supper supplies. In act 2, each batch shows the leftovers of its summer work, for example the offcuts of the stalls or the netting of the screen door. The items of a batch come only from chains that the payment has opened. Each batch has one blocker with a contextual picture. The other blockers use familiar clutter art or an anchored item.
+Each of the 66 preparation payments earns one authored batch of two or three new blockers. The purchase of the orchard earns no batch. The batch shows the work that the player completed with that payment. In act 1, each batch has one of these themes: repair supplies, courtyard leaves, planting supplies, recipe papers, menu packing, or supper supplies. In act 2, each batch shows the leftovers of its summer work, for example the offcuts of the stalls or the netting of the screen door. In act 3, each batch shows the leftovers of its autumn work, for example the cut brambles or the old padlock of the kitchen gate. The items of a batch come only from chains that the payment has opened. Each batch has one blocker with a contextual picture. The other blockers use familiar clutter art or an anchored item.
 
-The usual blocker rules apply. Quest deliveries earn no batch. No batches arrive after the purchase of the orchard.
+The usual blocker rules apply. Quest deliveries earn no batch.
 
 A blocker goes only in a free cell. Placement follows board order and keeps at least four cells free. So the recovery quest always has room for one Linden tea. Blockers can touch each other.
 
@@ -308,7 +322,7 @@ If a guide is active, Mara's line keeps the next-step note and the Stop button v
 
 After the player pays for a preparation, its preparation scene plays. When the scene ends, the reveal runs. The new painting replaces the old painting, and the pin marks the change. The drawer can move on a narrow screen that is more than 700px high. There, the drawer lowers for the reveal and then rises again. On a narrow screen that is 700px high or less, the drawer does not move. There, the page scrolls. The reveal first brings the room into view, and the drawer body stays active during the reveal. [`DESIGN.md`](DESIGN.md) gives the order and the timing of the reveal. With reduced motion (defined in Access and persistence), the game shows the result immediately. The reveal does not spend coins and does not earn coins again.
 
-Every preparation repaints one area. Miez, the bistro cat, sits on the windowsill of the front room. When the supper is ready, a second black cat sleeps on the counter. In act 2, Miez sits on the windowsill of the summer kitchen, on the windowsill beside the garden, and on the rim of the fountain in the town square. Miez does not show in the courtyard or on a finale painting. Captions describe every earned change.
+Every preparation repaints one area. Miez, the bistro cat, sits on the windowsill of the front room. When the supper is ready, a second black cat sleeps on the counter. In act 2, Miez sits on the windowsill of the summer kitchen, on the windowsill beside the garden, and on the rim of the fountain in the town square. In act 3, Miez sits on the orchard wall, on a step of the cellar stairs, and on the raised hearth of the cathedral kitchen. Miez does not show in the courtyard or on a finale painting. Captions describe every earned change.
 
 Story has a Miez card. A tap on the card or on the cat on the windowsill changes the cat between sitting and sleeping. The change shows a short notice and plays a sound if sound is on. The change does not affect the save.
 
@@ -380,7 +394,7 @@ The save records the current event of the prologue. A prologue save is valid onl
 
 The game has a calendar. Each day of play has a date, and the story happens on fixed dates. The years have the names "year 0" and "year 1". The game never shows a real year. Year 1 has 365 days and starts on a Wednesday. In year 1, the Orthodox Easter and the Western Easter are on the same day: Sunday 20 April.
 
-Act 1 starts on Saturday 15 February of year 1 and ends with the community supper on Thursday 1 May. Act 1 has 76 days, with 11 Sundays. Act 2 starts on Friday 2 May and ends on Sunday 31 August. Act 2 has 122 days, with 18 Sundays. Each day is a day of play, and the bistro opens every day. The calendar paces the story: each chapter opens on a date. Inside a chapter, the player sets the pace. Act 1 starts on Saturday 15 February at 07:00, when the prologue ends. The act of a day comes from the day number, so the state has no field for the act.
+Act 1 starts on Saturday 15 February of year 1 and ends with the community supper on Thursday 1 May. Act 1 has 76 days, with 11 Sundays. Act 2 starts on Friday 2 May and ends on Sunday 31 August. Act 2 has 122 days, with 18 Sundays. Act 3 starts on Monday 1 September and ends on Friday 31 October, All Hallows' Eve. Act 3 has 61 days, with 8 Sundays. Each day is a day of play, and the bistro opens every day. The calendar paces the story: each chapter opens on a date. Inside a chapter, the player sets the pace. Act 1 starts on Saturday 15 February at 07:00, when the prologue ends. The act of a day comes from the day number, so the state has no field for the act.
 
 The masthead shows the short weekday, the day, the short month, and the time, for example "Sat 15 Feb · 07:00". The accessible name gives the full weekday, the day, the full month, and the time, for example "Saturday 15 February, 07:00". On a phone, the date is above the time. The saved day number gives the date: day 1 is 15 February.
 
@@ -392,8 +406,10 @@ The game data gives the day levers of each act: the times of the day, the merge 
 | 1 | Sunday | 10:00 | 17:00 | No booking | 15 minutes | 28 |
 | 2 | Monday to Saturday | 07:00 | 22:00 | 19:30 | 25 minutes | 36 |
 | 2 | Sunday | 10:00 | 17:30 | No booking | 25 minutes | 18 |
+| 3 | Monday to Saturday | 07:00 | 22:00 | 20:00 | 15 minutes | 60 |
+| 3 | Sunday | 10:00 | 17:00 | No booking | 15 minutes | 28 |
 
-Each time of an act is on the merge grid of that act. In act 2, the summer kitchen has one clay oven and one stove, so each dish takes longer. The booking time of act 2 is the 30th merge of a weekday, and the opening of each booked quest of act 2 names 19:30.
+Each time of an act is on the merge grid of that act. In act 2, the summer kitchen has one clay oven and one stove, so each dish takes longer. The booking time of act 2 is the 30th merge of a weekday, and the opening of each booked quest of act 2 names 19:30. Act 3 has the times of act 1.
 
 Each chapter has an opening date. The first preparation of a chapter can have a payment only from the opening date of its chapter. The quests of the earlier chapter can open and get their deliveries before that date. Before the opening date, Story shows the date in its list of requirements. A failed payment before the opening date changes nothing.
 
@@ -415,13 +431,22 @@ Each chapter has an opening date. The first preparation of a chapter can have a 
 | 5 | Monday 14 July | 17 to 20 |
 | 6 | Saturday 2 August | 21 to 24 |
 
+| Chapter of act 3 | Opening date | Preparations of act 3 |
+| --- | --- | --- |
+| 1 | Monday 1 September | 1 to 3 |
+| 2 | Thursday 11 September | 4 to 6 |
+| 3 | Sunday 21 September | 7 to 9 |
+| 4 | Wednesday 1 October | 10 to 12 |
+| 5 | Saturday 11 October | 13 to 15 |
+| 6 | Tuesday 21 October | 16 to 18 |
+
 A campaign quest can have an opening date. The quest opens after its preparation and its earlier quests, and not before its opening date. A quest without an opening date opens by the other rules. The data check keeps each opening date inside the act of the quest and on or after the opening date of the chapter of its preparation. Among the quests that open after the same preparation, a dated quest comes first, except Mara's "Three months". So a dated quest that opens can take the ticket of an open quest that comes later in authored order.
 
 A holiday quest is a dated quest with a holiday. Its opening date is at most three days before the holiday. Before the holiday, its ticket shows the holiday and its date, for example "For Easter, Sunday 20 April", and Later takes the place of Deliver. The quest has work only while a portion is missing from the board. Deliver works from the opening time of the holiday. After the holiday, the quest stays open, its ticket shows "Late for Easter", and the reward is the same. The completion scene is the same on and after the holiday.
 
-The supper quest opens after preparation 24. Before 1 May, its ticket shows "Booked for 1 May", and it has work only while a plate is missing. The player can cook the plates on earlier days. On 1 May, the ticket shows "Booked for 20:00". Serve works from 20:00. Before 20:00, the lantern control replaces Serve, and it works when the board holds every plate. The feast of act 2 follows the same rules on 15 August, with the booking time of act 2.
+The supper quest opens after preparation 24. Before 1 May, its ticket shows "Booked for 1 May", and it has work only while a plate is missing. The player can cook the plates on earlier days. On 1 May, the ticket shows "Booked for 20:00". Serve works from 20:00. Before 20:00, the lantern control replaces Serve, and it works when the board holds every plate. The feast of act 2 follows the same rules on 15 August, with the booking time of act 2. The dinner of the sleeper follows them on 31 October, but it opens before the last preparation of act 3, and its ticket shows "Booked for All Hallows’ Eve" before 31 October: "Act 3" gives its rules.
 
-Nine days hold:
+Eleven days hold:
 
 | Day | Holds until | Mara's line while the day holds |
 | --- | --- | --- |
@@ -434,12 +459,14 @@ Nine days hold:
 | Thursday 14 August | the payment of preparation 24 of act 2 | "The feast tables must be ready by morning." |
 | Friday 15 August | the feast | "The village waits for the feast." |
 | Sunday 31 August | the purchase of the orchard | "The cathedral sells the orchard today." |
+| Thursday 30 October | the payment of preparation 18 of act 3 | "The hall must be ready before All Hallows’ Eve." |
+| Friday 31 October | the dinner of the sleeper | "The sleeper waits for his dinner." |
 
 On a day that holds, a merge that reaches the closing time does not close the day. The clock stays one merge before the closing, and later merges do not move it. The day has no upkeep and no night while it holds. A day that holds permits the recovery quest and the repeating quests by their usual rules, so the player can always earn the coins of a held payment. The weather of each day that holds is fair.
 
 The action that releases a day that holds comes at one of two clock positions. Before the held position, the day continues, and the merge that reaches the closing time closes the day as usual. At the held position, one merge before the closing, the action closes the day in the same change, with all the usual steps of a closing. The next day starts once.
 
-While 30 April, 20 June, or 14 August holds, each booked delivery ends the evening of its guest, and the game fixes the next evening guest at once. So the player can deliver each booked quest that remains. The other days that hold have no evening of Vlad or Elisabeta.
+While 30 April, 20 June, 14 August, or 30 October holds, each booked delivery ends the evening of its guest, and the game fixes the next evening guest at once. So the player can deliver each booked quest that remains. The other days that hold have no evening of Vlad or Elisabeta.
 
 The release of a day that holds needs its release requirements: the preparations and the quests that the release needs, and their prerequisites. The data check proves that a late player can complete each new release requirement on its day. A new release requirement is one that no earlier day that holds has. The check uses the earliest delivery of each quest and the earliest payment of each preparation. The check fails if a new release requirement can come only after its day, or if it is a booked quest of Vlad or Elisabeta and its day has no evening of theirs.
 
@@ -479,7 +506,7 @@ Each quest of Vlad and Elisabeta is a booked quest. Vlad and Elisabeta are the b
 - If the day has no evening guest, the arrival of a booked ticket on the counter fixes the evening guest.
 - If only one guest has a booked ticket, that guest gets the evening. If both guests have one, the guest who did not have the last evening gets it. If neither guest had an evening, the guest whose quest is first in authored order gets it.
 - The evening guest does not change until the next closing. An evening counts for its guest whether or not the player delivers the meal.
-- A Sunday has no evening guest, because its booking time is after its closing time. Saint George's Eve, 22 April, has no evening guest: garlic hangs on every door that night. The days of a finale, 1 May and 15 August, have no evening guest. The day of the festival, 21 June, has no evening guest: the whole village is at the festival.
+- A Sunday has no evening guest, because its booking time is after its closing time. Saint George's Eve, 22 April, has no evening guest: garlic hangs on every door that night. The days of a finale, 1 May, 15 August, and 31 October, have no evening guest. The day of the festival, 21 June, has no evening guest: the whole village is at the festival.
 
 Ambrozie's dinner is a fixed booking: a booked quest with a fixed evening, Saturday 12 July. That evening belongs to Ambrozie, and Vlad and Elisabeta never get it. If his ticket is on the counter at the opening time of 12 July, Ambrozie is the evening guest. Otherwise the arrival of his ticket on the counter makes him the evening guest. His evening does not change the guest of the last evening, so the turns of Vlad and Elisabeta continue on the next evening. The data check keeps exactly two guests, Vlad and Elisabeta, in the turns of the other evenings.
 
@@ -491,13 +518,19 @@ The supper records the result of act 1: the purse at that time. The result does 
 
 The closing of 1 May is an ordinary closing: the purse pays the upkeep once, and Friday 2 May starts at 07:00. Act 2 starts with that day. The purse or the debt, the board, the open rat holes, the recipe book, the finishes, the random seed, the unread scenes, the open repeating quest, an open March quest, and the record of preparation blockers carry over without change. The preparation scenes, the closing scenes, and the finale of act 2 follow the finale of act 1 in story order.
 
-#### End of act 2
+#### From act 2 to act 3
 
-The purchase of the orchard records the result of act 2: the purse after the purchase. The game has no act 3, so the purchase stops the clock. After the purchase, merges do not move the clock, and no night comes. The board, the recipe book, and the repeating quests stay.
+The purchase of the orchard records the result of act 2: the purse after the purchase. The result does not change after the purchase, but the purse can change. The purchase releases the hold of 31 August. If the player buys the orchard before the held position, 31 August continues, and the merge that reaches the closing time closes the day. If the player buys the orchard at the held position, the purchase closes 31 August in the same change. After the purchase, until the closing of 31 August, Story shows the result card of act 2.
+
+The closing of 31 August is an ordinary Sunday closing: the purse pays the upkeep once, and the night comes. Monday 1 September starts at 07:00 with the times of act 3. Act 3 starts with that day. The purse or the debt, the board, the open rat holes, the recipe book, the finishes, the random seed, the unread scenes, the open repeating quest, and the record of preparation blockers carry over without change.
+
+#### End of act 3
+
+Serve on the dinner of the sleeper records the result of act 3: the purse after the dinner. The game has no act 4, so Serve stops the clock. After the dinner, merges do not move the clock, and no night comes. The board, the recipe book, and the repeating quests stay.
 
 ### Seasons and holidays
 
-The game uses the seasons of the weather calendar: winter is December to February, spring is March to May, summer is June to August, and autumn is September to November. Act 1 has 14 days of winter and 62 days of spring. Act 2 has 30 days of spring and 92 days of summer. A season never stops play. A holiday quest has no deadline. Weather never removes an item or coins.
+The game uses the seasons of the weather calendar: winter is December to February, spring is March to May, summer is June to August, and autumn is September to November. Act 1 has 14 days of winter and 62 days of spring. Act 2 has 30 days of spring and 92 days of summer. Act 3 has 61 days of autumn. A season never stops play. A holiday quest has no deadline. Weather never removes an item or coins.
 
 The game data gives the weather of each day: fair, rain, or snow. The weather is the same in each save and does not use the random seed. The data check enforces these rules: snow only before 15 March; from 1 April, rain on at most two days in a row; fair weather on each holiday; and fair weather on each day that holds.
 
@@ -528,6 +561,10 @@ A holiday is a date with a custom of the village. The village keeps the Orthodox
 | Tuesday 24 June | the day of the blouse (Ziua iei) | Ileana's "The day of the blouse", and Ana's "Herbs at their strongest" |
 | Sunday 20 July | Saint Elijah | Ilie's "Bread for Saint Elijah", and Victor's "Waiting for the thunder" |
 | Friday 15 August | the Dormition | Cătălina's "The bell of the feast", and Bela's "The Dormition" |
+| Sunday 14 September | Holy Cross Day | Sânziana's "The last herbs" |
+| Tuesday 14 October | Saint Parascheva | Mara's "Mamaia’s name day" |
+| Saturday 25 October | the autumn Saturday of the dead (Moșii de toamnă) | Bela's "The autumn Saturday of the dead" |
+| Sunday 26 October | Sâmedru, Saint Demetrius | Dochia's "Down from the mountain" |
 
 Ilie's "Clean Monday" opens on 3 March, the first day of Lent, and Cătălina's "The silent bells" opens on Holy Thursday. They are dated quests without a holiday.
 
@@ -542,14 +579,15 @@ A seasonal source is in the bistro only in its season. Its stage-1 dish is a loo
 | Pickle barrel | 1 December to 20 March | Preserved vegetables: Gherkins, Pickled green tomatoes, Mixed pickles, Cabbage-stuffed pickled peppers |
 | Forage basket | 21 March to 31 May | Spring greens: Nettles, Wild garlic and sorrel, Nettle soup, Nettle purée with garlic |
 | Garden beds | 1 June to 30 September | Summer garden: Tomatoes, Summer salad, Aubergine salad, Bulion |
+| Apple tree | 1 September to 31 October | Orchard: Apples, Dried apple rings, Baked apples, Apple strudel |
 
-The Garden beds also need preparation 6 of act 2, "Dig the beds". If the player pays preparation 6 before 1 June, the source waits until the opening time of 1 June. If 1 June comes first, the payment adds the source in the same change.
+The Garden beds also need preparation 6 of act 2, "Dig the beds". If the player pays preparation 6 before 1 June, the source waits until the opening time of 1 June. If 1 June comes first, the payment adds the source in the same change. The Apple tree also needs preparation 2 of act 3, "Prune the old apple trees", and that payment adds the source in the same change.
 
-The pickle barrel is in the source tab at the start of act 1. At the opening time of the first day of its season, a seasonal source joins the source tab, also when the board is full. The closing of the last day of its season removes the source, and the dishes of its chain stay. The source stays while an undelivered campaign quest of act 1 or act 2, or the open repeating quest, asks for a dish of its chain. It then leaves at the first closing after the delivery of the last such quest. The closing notice, or the morning dialog of a Sunday, says that the source left, for example "The pickle barrel is empty until next winter." A quest asks for a dish of a seasonal chain only if the days of the quest are inside the season.
+The pickle barrel is in the source tab at the start of act 1. At the opening time of the first day of its season, a seasonal source joins the source tab, also when the board is full. The closing of the last day of its season removes the source, and the dishes of its chain stay. The source stays while an undelivered campaign quest, or the open repeating quest, asks for a dish of its chain. It then leaves at the first closing after the delivery of the last such quest. The closing notice, or the morning dialog of a Sunday, says that the source left, for example "The pickle barrel is empty until next winter." A quest asks for a dish of a seasonal chain only if the days of the quest are inside the season.
 
-The terrace season is from 1 April to 31 October. A terrace day is a fair day in the terrace season. An outdoor quest delivers only on a terrace day. On another day, its ticket shows "Waits for fair weather", Later takes the place of Deliver, and it has work only while a portion is missing. The outdoor quests are Ilie's "Bread for outside" and Sorin's "A courtyard break", which open after the preparation "Clear the courtyard", and the community supper. Act 2 has no outdoor quest.
+The terrace season is from 1 April to 31 October. A terrace day is a fair day in the terrace season. An outdoor quest delivers only on a terrace day. On another day, its ticket shows "Waits for fair weather", Later takes the place of Deliver, and it has work only while a portion is missing. The outdoor quests are Ilie's "Bread for outside" and Sorin's "A courtyard break", which open after the preparation "Clear the courtyard", and the community supper. Act 2 and act 3 have no outdoor quest.
 
-The room shows the season. The front-room window shows the village in late winter until 9 March, at the thaw from 10 March to 5 April, and in blossom from 6 April. Rain and snow show on their days: through the front-room window, and in the courtyard, the vegetable garden, and the town square. Holiday decorations show in their dates: a mărțișor on the window latch from 1 to 9 March, willow catkins on the windowsill from 13 to 19 April, a bowl of red eggs on the windowsill from 17 to 27 April, and green branches on the courtyard gate from 22 April to 1 May. [`DESIGN.md`](DESIGN.md) gives how they look. The room look changes no progress and no reward.
+The room shows the season. The front-room window shows the village in late winter until 9 March, at the thaw from 10 March to 5 April, and in blossom from 6 April. Rain and snow show on their days: through the front-room window, and in the courtyard, the vegetable garden, the town square, and the orchard. Holiday decorations show in their dates: a mărțișor on the window latch from 1 to 9 March, willow catkins on the windowsill from 13 to 19 April, a bowl of red eggs on the windowsill from 17 to 27 April, and green branches on the courtyard gate from 22 April to 1 May. [`DESIGN.md`](DESIGN.md) gives how they look. The room look changes no progress and no reward.
 
 ### Act 2
 
@@ -613,22 +651,75 @@ The purchase of the orchard, "Buy the orchard", is the last payment of act 2. It
 
 The third delivery after Mina and Avram's quest earns the local news that they found Ionatan. The data check proves that at least three campaign quests of act 2 can open only after that delivery. The purchase needs every campaign quest of act 2, so the player earns the news before the purchase.
 
+### Act 3
+
+Act 3 is the autumn of year 1. Every forty years, on All Hallows' Eve, the sleeper behind the red door under the cathedral wakes for one dinner. Ambrozie brings his order from the old scrolls of the cathedral, one course at a time. Mara restores the orchard, fills the bistro cellar, and opens the old kitchen hall under the cathedral for the dinner.
+
+The six chapters of act 3 are "The orchard creaks", "Jars and gates", "Forty years of dust", "The pumpkin fair", "Every family’s best brandy", and "A chair for the sleeper". Their neighbour help is Sorin's "A look at the sleeper", Ilie's "Jars for winter", Eszter's "The plate that cracked", Sorin's "Halfway to the red door", Mara's "Mamaia’s name day", and Eszter's "A plate like a cartwheel".
+
+#### The orchard
+
+The orchard has three stages. Each stage sets the orchard value: the coins that one fruit ingredient adds to a menu price. The fruit ingredients are the ingredients of the Cornucopia and of the Apple tree.
+
+| Orchard stage | Preparation of act 3 | Orchard value |
+| ---: | --- | ---: |
+| 1 | 2, "Prune the old apple trees" | 1 coin |
+| 2 | 10, "Build the apple loft" | 2 coins |
+| 3 | 13, "Fire the brandy still" | 3 coins |
+
+From orchard stage 1, a take from the Cornucopia or the Apple tree is free, and a fruit ingredient counts its orchard value in the menu price. A fruit ingredient then sells for nothing. For example, Plum brandy costs 94, 126, and 158 coins at the three stages. A campaign quest of act 3 pays its menu value at the stages of the preparation after which it opens. The garden keeps garden stage 3 in act 3.
+
+#### The cellar pickles
+
+In act 1 and act 2, the bistro buys its pickle barrels from Ambrozie. From preparation 16 of act 3, "Fit the cold-room door", the family keeps its own pickles in the cellar. Then a take from the Pickle barrel is free, and a pickle ingredient counts the cellar value of 2 coins in the menu price. So Mixed pickles cost 14 coins, not 10. The barrel keeps its season of 1 December to 20 March. An open quest that keeps the barrel after its season gets the free takes from the payment of preparation 16.
+
+#### The sleeper's order
+
+The sleeper's order has six parts. Each part is a quest of Ambrozie, from one scroll of the cathedral: the menu of one course of an old feast. Its ticket shows the portrait of Ambrozie. A part asks for at most 11 portions, with a meat dish and Red wine or Plum brandy. A part pays nothing, and its ticket and its dialog show Serve. Adrian, Monica, and Janos carry each of parts 1 to 5 down under the cathedral, so the part leaves the board. The completion scene of each part is their report of the trip. A part is a course of a feast, so the limits of one meal and of one weekday do not apply to it.
+
+| Part | Opens after | Earliest date |
+| ---: | --- | --- |
+| 1 | the start of act 3 | Monday 1 September |
+| 2 | preparation 3 | Thursday 11 September |
+| 3 | preparation 6 | Sunday 21 September |
+| 4 | preparation 9 | Wednesday 1 October |
+| 5 | preparation 12 | Saturday 11 October |
+| 6, the dinner | preparation 15 and the delivery of part 5 | Tuesday 21 October |
+
+Parts 1 to 5 are campaign quests, so each later payment needs them. A part opens at its date if the player pays its preparation before that date, and at the payment if the player pays it later.
+
+Only the sleeper orders the three feast dishes:
+
+| Mixed dish | Part 1 | Part 2 | Tags |
+| --- | --- | --- | --- |
+| Suckling pig with an apple | Roast pork | Apples | `meat`, `pork` |
+| Lamb roasted in red wine | Roast lamb | Red wine | `meat`, `alcohol` |
+| Wooden platter | Roast veal | Sausages | `meat`, `pork`, `garlic` |
+
+The wooden platter is a Transylvanian platter of roasts on a wooden board.
+
+#### The dinner
+
+The dinner of the sleeper is part 6 and the finale of act 3. It is on Friday 31 October, All Hallows' Eve, in the cathedral kitchen. It asks for one Suckling pig with an apple, one Wooden platter, one Roast veal, one Lamb roasted in red wine, two Plum brandy, one Red wine, two Apple strudel, and one Bread basket. The sleeper is the only eater, so the dinner has no guest list. No preparation needs the dinner, so its open ticket does not stop preparations 16 to 18. Its ticket shows "Booked for All Hallows’ Eve", and on 31 October "Booked for 20:00". Serve works from 20:00 when parts 1 to 5 are delivered and preparation 18 is paid. Before 20:00, the lantern control replaces Serve.
+
+Serve queues the finale "The dinner of the sleeper". Its last button, "See the dinner", opens the dinner painting, and a replay from the journal also ends with the painting. The ending line is "The dinner is served, and the sleeper sleeps for forty years." After the dinner, the cathedral kitchen shows the dinner painting. The sleeper has no portrait, and he shows only in the painting.
+
 ## Feature specifications
 
 The register `docs/specs/README.md` records the feature specifications, their status, the product limits, and the product direction. The register stays in the repository only.
 This document owns the implemented behavior.
-The art plan `docs/specs/001-visible-renovation-art-plan.md` defines the 25 painted room states of act 1. Spec 018 defines the 25 room states of act 2. The art plan and the specs stay in the repository only.
+The art plan `docs/specs/001-visible-renovation-art-plan.md` defines the 25 painted room states of act 1. Spec 018 defines the 25 room states of act 2. Spec 019 defines the 19 room states of act 3. The art plan and the specs stay in the repository only.
 
 ## Identity
 
-The game has 117 Portable Network Graphics (PNG) masters. They include a cutting board painting that the user supplied. They give these items:
+The game has 141 Portable Network Graphics (PNG) masters. They include a cutting board painting that the user supplied. They give these items:
 
-- 20 food atlases: one for each chain, with its source and its dishes, and five for the mixed dishes
+- 22 food atlases: one for each chain, with its source and its dishes, and six for the mixed dishes
 - portraits, including three atlases for the regulars, one for Mara's parents, and one for the summer guests Ambrozie and Tarka
-- parchment paper, four sheets of character sketches, and six sheets of quest scenes: the fifth with the event scenes of the prologue, and the sixth with the memorial of three months
+- parchment paper, four sheets of character sketches, and eight sheets of quest scenes: the fifth with the event scenes of the prologue, the sixth with the memorial of three months, and the seventh and eighth with the trips with the sleeper's order and three holiday quests of the autumn
 - the two painted pages of the grandmother's notebook, and two old family photographs of Mara's parents
-- the 25 painted room states of act 1, the 25 painted room states of act 2, and four painted states of the family kitchen of the prologue
-- the supper painting, the festival painting, and the feast painting
+- the 25 painted room states of act 1, the 25 painted room states of act 2, the 19 painted room states of act 3, and four painted states of the family kitchen of the prologue
+- the supper painting, the festival painting, the feast painting, and the dinner painting
 - two decoration edit paintings, which the game samples only in their authored regions
 - the timber tabletop
 - the end-grain cutting board of the board, with its 42 carved wells
@@ -664,7 +755,7 @@ An import validates the envelope and the state of the save. The envelope is the 
 
 A current save has game state version 19 in envelope version 18 at the key `scary-snacks-save-v18`. The game supports only this format. Load reads only this key. If no current save exists, the game starts a new campaign at the prologue.
 
-Each update must keep this save key, envelope version, and state version. Every valid save in this format must still load and import without lost progress. This includes the prologue, act 1, the supper, act 2, the feast, and the purchase. An update must not require a new campaign. A change to content or validation must keep the saved IDs, completed work, board, purse, clock, discoveries, choices, and unread scenes valid. A new optional field must accept an absent value without a reset or a repeated reward.
+Each update must keep this save key, envelope version, and state version. Every valid save in this format must still load and import without lost progress. This includes the prologue, act 1, the supper, act 2, the feast, the purchase, act 3, and the dinner. An update must not require a new campaign. A change to content or validation must keep the saved IDs, completed work, board, purse, clock, discoveries, choices, and unread scenes valid. A new optional field must accept an absent value without a reset or a repeated reward.
 
 The ID of a finale quest in the completed quests records its served finale. A save earns a finale only when the player serves its finale quest. A save that holds a finale as an unread scene before its finale quest is not valid.
 
@@ -686,7 +777,7 @@ If the record starts on or after 18 July, its queue starts with the hail before 
 
 The state records the unread scenes in a list. The list holds preparation scenes, quest completion scenes, chapter closing scenes, the finale, local news, and regular arrival scenes. Only earned scenes can enter the list. A preparation scene uses the ID of its preparation. A quest completion scene uses the ID of its quest.
 
-An arrival scene has the ID `arrival-` followed by the ID of its regular. Each scene ID is unique across preparations, quests, local news, chapters, the finales, and arrivals. Each ID occurs once in the list. Preparation scenes, closing scenes, the finales, and the scene of the purchase keep one story order. In each act, each closing scene follows the four preparation scenes of its chapter, the finale of the act follows the chapters, and the purchase follows the finale. Quest completion scenes, local news, and arrival scenes can be at any position in the list.
+An arrival scene has the ID `arrival-` followed by the ID of its regular. Each scene ID is unique across preparations, quests, local news, chapters, the finales, and arrivals. Each ID occurs once in the list. Preparation scenes, closing scenes, the finales, and the scene of the purchase keep one story order. In each act, each closing scene follows the preparation scenes of its chapter, the finale of the act follows the chapters, and the purchase follows the finale. Quest completion scenes, local news, and arrival scenes can be at any position in the list.
 
 The completed preparations decide which chapters are complete. The completed quests and their delivery order decide the local news. A scene ID must stay the same after release. If a save does not list a scene as unread, the game treats that scene as read.
 
@@ -704,8 +795,9 @@ The state records these items:
 - the number of Sunday closings left without the thief rat after the piper's fee, from 0 to 4
 - the result of act 1, after the supper: the purse
 - the result of act 2, after the purchase: the purse
+- the result of act 3, after the dinner: the purse
 
-The act, the date, the season, the garden stage, and the day that holds come from the saved day number and the completed preparations, so they need no saved field. The purse can hold a whole number below zero. A reload, an export, and an import keep all of these items. The saved day is never later than 31 August. A day after a day that holds comes only after the release of that day: for example, 2 May comes only after the supper, and 22 June comes only after the fifth stall quest. The saved day cannot precede the opening date of a chapter with a paid preparation. A served finale requires the day of its finale at or after its booking time, or a later day. A delivered stall quest has the stall quests before it earlier in the list. The purchase requires 31 August, the feast, and every campaign quest of act 2. A report of a closing without a rat is seen at once, and only a Sunday report has a rat. Only a closing with the thief rat uses and advances the seed. A failed action does not change the seed.
+The act, the date, the season, the stages of the garden, the orchard, and the cellar, and the day that holds come from the saved day number and the completed preparations, so they need no saved field. The purse can hold a whole number below zero. A reload, an export, and an import keep all of these items. The saved day is never later than 31 October. A day after a day that holds comes only after the release of that day: for example, 2 May comes only after the supper, and 22 June comes only after the fifth stall quest. The saved day cannot precede the opening date of a chapter with a paid preparation. A served finale requires the day of its finale at or after its booking time, or a later day. A delivered stall quest has the stall quests before it earlier in the list. The purchase requires 31 August, the feast, and every campaign quest of act 2. A save after the dinner has the result of act 3, and a save before the dinner does not. A report of a closing without a rat is seen at once, and only a Sunday report has a rat. Only a closing with the thief rat uses and advances the seed. A failed action does not change the seed.
 
 The state records the completed quest IDs in delivery order. Each ID occurs once. Each completed quest has its prerequisites earlier in the list, and its opening date and its holiday are not later than the saved day. A quest of a later act cannot be in the list. Every completed preparation has its necessary quests in the list. Saved finish choices name only unlocked finishes. Export and import include the quest progress and the board layout.
 

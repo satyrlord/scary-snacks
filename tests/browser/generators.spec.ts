@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { unresolvedObstacle } from '../../src/model.ts';
+import { availableChains, unresolvedObstacle } from '../../src/model.ts';
 import { actOne, appearance, checkpoint, data, replaceSave, saved, source, start, tile } from './support.ts';
 
 /** The game after count preparations, with coins for paid takes. */
@@ -15,8 +15,8 @@ async function drag(page: Page, from: Locator, to: Locator) {
 
 test('all source cards show the ingredient they take, and a dragged source keeps that picture', async ({ page }) => {
   const seen = new Set<string>();
-  // These dates cover the winter, spring, and summer sources as well as all year-round chains.
-  for (const preparations of [0, 20, 34]) {
+  // These dates cover the winter, spring, summer, and autumn sources as well as all year-round chains.
+  for (const preparations of [0, 20, 34, 52]) {
     const state = checkpoint(preparations, { coins:100 });
     if (preparations === 0) await start(page, state);
     else await replaceSave(page, state);
@@ -192,9 +192,11 @@ test('the arrow keys move along a pocket and between pockets, and Alt with an ar
 });
 
 test('the rack opens an eighth pocket only while a fifteenth source is in the tab, and the board stays still', async ({ browser, baseURL }) => {
-  const thirteen = checkpoint(40), fifteen = { ...thirteen, sources: data.chains.map(chain => chain.id), discovered: [...new Set([...thirteen.discovered, ...data.chains.map(chain => `generator_${chain.id}`)])] };
+  // At this date of act 2, fifteen chains are open. The eighth pocket holds the fifteenth source and one empty place.
+  const thirteen = checkpoint(40), open = availableChains(thirteen, data);
+  const fifteen = { ...thirteen, sources: open, discovered: [...new Set([...thirteen.discovered, ...open.map(chain => `generator_${chain}`)])] };
   const boards = [];
-  for (const [state, pockets, places] of [[thirteen, 7, 14], [fifteen, 8, data.chains.length]] as const) {
+  for (const [state, pockets, places] of [[thirteen, 7, 14], [fifteen, 8, 16]] as const) {
     const context = await browser.newContext({ baseURL }), page = await context.newPage();
     await start(page, state);
     await expect(page.locator('#sources .source-pocket')).toHaveCount(pockets);

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { canDeliverQuest, canLightLanterns, dateText, dayMerges, firstFreeBoardCell, gardenStage, getItem, holdOf, questDeliveryCells, released, requiredQuests, resolveQuests, takeCost, taskEligibility, unresolvedObstacle } from '../src/model.ts';
+import { canDeliverQuest, canLightLanterns, clockStopped, dateText, dayMerges, firstFreeBoardCell, growthStages, levers, getItem, holdOf, questDeliveryCells, released, requiredQuests, resolveQuests, takeCost, taskEligibility, unresolvedObstacle } from '../src/model.ts';
 import { calendarProblems, discoveryProblems } from '../src/content.ts';
 import { validateGame } from '../src/engine.ts';
 import { exportSave, importSave } from '../src/storage.ts';
@@ -101,18 +101,18 @@ test('on 15 August no booked quest of Vlad or Elisabeta is open', () => {
   assert.deepEqual(data.quests.filter(value => value.booked && ['vlad', 'elisabeta'].includes(value.character) && value.afterTask === 'act2-prep-24').map(value => value.id), []);
 });
 
-test('a late player reaches 31 August with each quest that opens after the feast open, and the purchase still ends the day', () => {
+test('a late player reaches 31 August with each quest that opens after the feast open, and the purchase at the held position starts 1 September', () => {
   const feast = finaleCheckpoint(data, 2), served = act(supply(feast, finaleQuestId(2)), { type: 'deliverQuest', id: finaleQuestId(2) });
   const hold = holdOfRelease('act2-orchard'), late = roomy(withoutMarch({ ...on(served, hold.day), coins: 100_000 }));
   const after = requiredQuests(index('act2-orchard'), data).filter(value => !late.completedQuests.includes(value.id));
   assert.ok(after.some(value => value.id === 'janos-proper-meal'));
   assert.deepEqual(after.filter(value => !open(late).some(view => view.quest === value)).map(value => value.id), [], 'Each quest that opens after the feast is open on 31 August.');
   const held = heldPosition(late), { state } = finishHold(held, hold);
-  assert.deepEqual(state.act2, { purse: state.coins });
   assert.equal(released(state, hold), true);
-  // The purchase of the last act stops the clock: no merge moves it, and no night comes.
-  assert.deepEqual(merge(state).clock, state.clock);
-  assert.deepEqual(merge(state).night, state.night);
+  // The purchase closes 31 August in the same change, with one upkeep after the result of act 2, and act 3 starts at its opening time.
+  assert.deepEqual(state.clock, { day: data.acts[2].from, merges: 0 });
+  assert.deepEqual(state.act2, { purse: state.coins + levers(hold.day, data).upkeep });
+  assert.equal(state.night!.day, hold.day);
 });
 
 /** The ID of the finale quest of an act. */
@@ -156,8 +156,9 @@ test('the discovery check rejects a stall dish that only the holiday quest of 23
   };
   const problem = (dish: string) => `${grill.id}: ${data.items[dish].name} is more than one merge beyond the dishes that the player knows when the quest opens.`;
   const parts = (code: string) => data.items[code].recipe ?? [`${data.items[code].chain}_${data.items[code].stage - 1}`];
-  // A dish that the grill cannot ask for, one merge beyond parts that the holiday quest would teach on a day that does not hold.
-  const found = Object.values(data.items).find(item => !item.generator && discoveryProblems(dataSet(item.id, [])).includes(problem(item.id))
+  // A dish that the grill cannot ask for, one merge beyond parts that the holiday quest would teach on a day that does not hold. A
+  // dish of a source has no parts.
+  const found = Object.values(data.items).find(item => !item.generator && (!!item.recipe || item.stage > 1) && discoveryProblems(dataSet(item.id, [])).includes(problem(item.id))
     && !discoveryProblems(dataSet(item.id, parts(item.id), false)).includes(problem(item.id)))!;
   assert.ok(found, 'A dish that only the holiday quest teaches exists.');
   // On the held day, the holiday quest takes no ticket before the stall, so its dishes teach nothing.
@@ -238,7 +239,7 @@ function kitchen(initial: GameState) {
       return into;
     }
     assert.ok(state.sources.includes(item.chain), `The source of ${code} is in the bistro.`);
-    const cost = takeCost(getItem(`generator_${item.chain}`, data)!, data, gardenStage(state.taskIndex, data));
+    const cost = takeCost(getItem(`generator_${item.chain}`, data)!, data, growthStages(state.taskIndex, data));
     if (cost && state.coins < cost) return null;
     const empty = firstFreeBoardCell(state, data);
     assert.ok(empty >= 0, 'The board has room for a take.');
@@ -281,8 +282,8 @@ test('on each held day, a run that starts at the held position with a debt of 20
     }
     assert.ok(teas > 0, `${label}: the recovery quest pays the debt.`);
     const end = cook.state;
-    // The release at the held position closes the day, except the purchase of the last act, which stops the clock.
-    if (hold.task && data.tasks[index(hold.task)].purchase) assert.deepEqual([end.clock.day, end.act2], [hold.day, { purse: end.coins }], label);
+    // The release at the held position closes the day, except the dinner of the sleeper, which ends the last act and stops the clock.
+    if (clockStopped(end, data)) assert.deepEqual([end.clock.day, end.act3], [hold.day, { purse: end.coins }], label);
     else assert.deepEqual([end.clock, end.night!.day], [{ day: hold.day + 1, merges: 0 }, hold.day], `${label}: ${teas} teas, ${repeats} repeating quests.`);
   }
 });
@@ -322,6 +323,21 @@ test('Ambrozie keeps 12 July until his dinner, his evening is not Vlad’s, Vlad
   state = merge({ ...state, clock: { ...state.clock, merges: dayMerges(state.clock.day, data) - 1 } });
   assert.equal(state.clock.day, dinner.evening! + 2);
   assert.equal(state.evening.guest, 'vlad', 'Vlad gets the next evening that has a booking.');
+});
+
+test('at the held position of 30 October with the dinner open and its dishes on the board, Serve changes nothing, and preparation 18 starts 31 October once', () => {
+  const last = data.tasks.at(-1)!, hold = holdOfRelease(last.id), dinner = quest(finaleQuestId(3));
+  const held = heldPosition(roomy(withoutMarch(on(checkpointState(data, index(last.id)), hold.day))));
+  assert.equal(status(held, dinner.id), 'active');
+  const ready = supply(held, dinner.id);
+  assert.ok(questDeliveryCells(ready, dinner).every(at => at >= 0), 'Every dish of the dinner is on the board.');
+  rejected(ready, { type: 'deliverQuest', id: dinner.id });
+  const paid = act(ready, { type: 'task' });
+  assert.deepEqual([paid.clock, paid.night!.day, paid.taskIndex], [{ day: hold.day + 1, merges: 0 }, hold.day, data.tasks.length]);
+  assert.equal(status(paid, dinner.id), 'active', 'The dinner waits for its evening.');
+  const reloaded = importSave<GameState>(exportSave(paid, validator(data)), validator(data));
+  assert.deepEqual(reloaded, paid);
+  rejected(reloaded, { type: 'task' });
 });
 
 test('the feast keeps 15 August until it is served, Serve at the held position gives 16 August once, and Serve at 19:30 lets the 22:00 merge give it once', () => {

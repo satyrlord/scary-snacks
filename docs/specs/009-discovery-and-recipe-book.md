@@ -13,8 +13,8 @@ A blocker placement and a dialog do not discover a dish.
 A delivery can reveal a new ticket and discover its dishes.
 A preparation payment discovers the source that the payment unlocks. A source is not a dish.
 
-The `recipeBook` function in [`src/dishes.ts`](../../src/dishes.ts) shows one section for each of the 15 chains, with its dishes in stage order.
-A last section, Mixed dishes, lists the 34 mixed dishes in a fixed order. Specs 012, 016, 017, and 018 give these dishes.
+The `recipeBook` function in [`src/dishes.ts`](../../src/dishes.ts) shows one section for each of the 16 chains, with its dishes in stage order.
+A last section, Mixed dishes, lists the 37 mixed dishes in a fixed order. Specs 012, 016, 017, 018, and 019 give these dishes.
 A discovered dish shows its art and name and opens its item dialog.
 The item dialog of a mixed dish shows its recipe. The item dialog of a part names the mixed dishes that it makes.
 Close or Escape from that dialog returns to the same scroll position in the book and focuses its dish entry.

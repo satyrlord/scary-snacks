@@ -42,7 +42,7 @@ The sources stand in the source tab beside the board, so a late game with many s
 
 The campaign fixture makes each required item from spare food on the board, or from stage-1 ingredients, merges, and recipes.
 It pays for each take from a paid source.
-It pays all 48 preparations, delivers all required quests and both finales, and buys the orchard without injected coins or items.
+It pays all 66 preparations, delivers all required quests and the three finales, and buys the orchard without injected coins or items.
 It checks for board deadlocks. It records actions, takes, merges, deliveries, free cells, and coins by preparation and chapter.
 These counts measure one deterministic strategy, not player time.
 

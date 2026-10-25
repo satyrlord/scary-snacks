@@ -31,6 +31,9 @@ export const imageVariants = {
   // The scenes of the mourning year of the grandmother. The empty cells wait for the later memorials.
   'scene-sheet-6': { widths: [1024], formats: ['webp'], cells: { columns: 2, rows: 2, names: ['scene-three-months', null, null, null] } },
   'notebook-pages': { widths: [1024], formats: ['webp'], cells: { columns: 2, rows: 1, names: ['scene-notebook-cabbage-rolls', 'scene-notebook-note'] } },
+  // The quest scenes of act 3: the trips with the sleeper's order, and three holiday quests of the autumn.
+  'scene-sheet-7': { widths: [1024], formats: ['webp'], cells: { columns: 2, rows: 2, names: ['scene-sleeper-1', 'scene-sleeper-2', 'scene-sleeper-3', 'scene-sleeper-4'] } },
+  'scene-sheet-8': { widths: [1024], formats: ['webp'], cells: { columns: 2, rows: 2, names: ['scene-sleeper-5', 'scene-holy-cross', 'scene-name-day', 'scene-samedru'] } },
   // The family photographs of Mama and Tata take the place of their sketches, in cells of the sketch size.
   'family-photos': { widths: [672], formats: ['webp'], cells: { columns: 2, rows: 1, names: ['photo-mama', 'photo-tata'] } },
   // The food atlases have 512px cells. The 1024px width gives 256px cells.
@@ -49,11 +52,13 @@ export const imageVariants = {
   'food-pickles': { widths: [1024], formats: ['webp'] },
   'food-greens': { widths: [1024], formats: ['webp'] },
   'food-garden': { widths: [1024], formats: ['webp'] },
+  'food-orchard': { widths: [1024], formats: ['webp'] },
   'food-soups': { widths: [1024], formats: ['webp'] },
   'food-mains': { widths: [1024], formats: ['webp'] },
   'food-sweets': { widths: [1024], formats: ['webp'] },
   'food-breads': { widths: [1024], formats: ['webp'] },
   'food-summer': { widths: [1024], formats: ['webp'] },
+  'food-feast': { widths: [1024], formats: ['webp'] },
   'board-clutter': { widths: [1536], formats: ['webp'] },
   'preparation-clutter': { widths: [1448], formats: ['webp'] },
   // The two blockers of the hail have 1024px cells. The 1024px width gives 512px cells, as the preparation clutter has 362px cells.
@@ -115,6 +120,7 @@ export const imageVariants = {
   'finale-supper': { widths: [768, 1536], formats: ['avif', 'webp'] },
   'festival': { widths: [768, 1536], formats: ['avif', 'webp'] },
   'finale-feast': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'finale-dinner': { widths: [768, 1536], formats: ['avif', 'webp'] },
   'front-room-24': { widths: [768, 1536], formats: ['avif', 'webp'] },
   // The areas of act 2: the summer kitchen, the vegetable garden, and the town square.
   'summer-kitchen-00': { widths: [768, 1536], formats: ['avif', 'webp'] },
@@ -142,6 +148,26 @@ export const imageVariants = {
   'town-square-12': { widths: [768, 1536], formats: ['avif', 'webp'] },
   'town-square-23': { widths: [768, 1536], formats: ['avif', 'webp'] },
   'town-square-24': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  // The areas of act 3: the orchard, the bistro cellar, and the cathedral kitchen.
+  'orchard-00': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'orchard-01': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'orchard-02': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'orchard-09': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'orchard-10': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'orchard-13': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'orchard-15': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'bistro-cellar-03': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'bistro-cellar-04': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'bistro-cellar-05': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'bistro-cellar-11': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'bistro-cellar-14': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'bistro-cellar-16': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'cathedral-kitchen-06': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'cathedral-kitchen-07': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'cathedral-kitchen-08': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'cathedral-kitchen-12': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'cathedral-kitchen-17': { widths: [768, 1536], formats: ['avif', 'webp'] },
+  'cathedral-kitchen-18': { widths: [768, 1536], formats: ['avif', 'webp'] },
   // The family kitchen of the prologue fills the same 3:4 room view.
   'family-kitchen-mourning': { widths: [768, 1536], formats: ['avif', 'webp'] },
   'family-kitchen-christmas': { widths: [768, 1536], formats: ['avif', 'webp'] },

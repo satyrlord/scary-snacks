@@ -125,6 +125,11 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .room-frame[data-area='summer-kitchen'] .sill-cat { left: 12%; bottom: 47.6%; }
 .room-frame[data-area='vegetable-garden'] .sill-cat { left: 2%; bottom: 49.1%; }
 .room-frame[data-area='town-square'] .sill-cat { left: 42%; bottom: 32.6%; }
+/* In act 3, Miez sits on the left part of the orchard wall (its top 54% down the painting), on a step of the cellar stairs
+   (its tread 63.5% down), and on the raised hearth of the cathedral kitchen (its top 59.7% down). */
+.room-frame[data-area='orchard'] .sill-cat { left: 12%; bottom: 45.6%; }
+.room-frame[data-area='bistro-cellar'] .sill-cat { left: 9%; bottom: 36.1%; }
+.room-frame[data-area='cathedral-kitchen'] .sill-cat { left: 31%; bottom: 39.9%; }
 /* In the room ready for the supper, a second black cat sleeps on the counter's free left end, its body on the counter top 83.5% down. */
 .counter-cat { position: absolute; left: 1.05%; bottom: 15.6%; width: 11.73%; aspect-ratio: 1; pointer-events: none; }
 .room-frame .mascot { filter: var(--cat-glow); }
@@ -141,7 +146,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .window-weather,.room-weather { position: absolute; inset: 0; display: none; pointer-events: none; }
 .window-weather { clip-path: url('#window-panes-mended'); }
 .room-frame[data-weather='rain'] .window-weather,.room-frame[data-weather='snow'] .window-weather,
-.room-frame:is([data-area='courtyard'],[data-area='vegetable-garden'],[data-area='town-square']):is([data-weather='rain'],[data-weather='snow']) .room-weather { display: block; }
+.room-frame:is([data-area='courtyard'],[data-area='vegetable-garden'],[data-area='town-square'],[data-area='orchard']):is([data-weather='rain'],[data-weather='snow']) .room-weather { display: block; }
 .room-frame[data-weather='rain'] :is(.window-weather,.room-weather) {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='61' height='97'%3E%3Cg stroke='%23dfe8f4' stroke-width='1.2' stroke-linecap='round'%3E%3Cline x1='9' y1='6' x2='6.8' y2='24' stroke-opacity='0.5'/%3E%3Cline x1='33' y1='41' x2='30.8' y2='59' stroke-opacity='0.42'/%3E%3Cline x1='52' y1='70' x2='49.8' y2='88' stroke-opacity='0.55'/%3E%3Cline x1='21' y1='78' x2='18.8' y2='96' stroke-opacity='0.38'/%3E%3C/g%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='83' height='131'%3E%3Cg stroke='%23dfe8f4' stroke-width='0.9' stroke-linecap='round'%3E%3Cline x1='14' y1='20' x2='12.5' y2='32' stroke-opacity='0.34'/%3E%3Cline x1='47' y1='3' x2='45.5' y2='15' stroke-opacity='0.3'/%3E%3Cline x1='70' y1='58' x2='68.5' y2='70' stroke-opacity='0.36'/%3E%3Cline x1='29' y1='96' x2='27.5' y2='108' stroke-opacity='0.3'/%3E%3Cline x1='62' y1='110' x2='60.5' y2='122' stroke-opacity='0.28'/%3E%3C/g%3E%3C/svg%3E");
   background-size: 61px 97px, 83px 131px; animation: rain-fall .7s linear infinite;

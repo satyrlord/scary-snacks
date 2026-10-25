@@ -170,19 +170,22 @@ test('a March quest opens only in March, stays open after March, and no preparat
   // A March quest whose prerequisites come only in April does not open.
   assert.equal(status(on(openGame(), day(2, 4)), sheepskin.id), 'locked');
   assert.ok(!requiredQuests(data.tasks.length, data).some(value => value.march));
-  assert.ok(data.quests.filter(value => value.character === 'dochia').every(value => value.march));
+  assert.ok(data.quests.filter(value => value.character === 'dochia' && !value.act).every(value => value.march), 'Each act 1 quest of Dochia is a March quest.');
   const save = structuredClone(march) as any;
   save.march = [];
   assert.equal(validateGame(save, data), false, 'A March quest that opened is recorded.');
 });
 
-test('a quest of an act that the calendar does not reach never opens and never counts as a predecessor, and a quest of act 2 opens only in act 2', () => {
+test('a quest of an act that the calendar does not reach never opens and never counts as a predecessor, and a quest of a later act opens only in its act', () => {
   const later = data.quests.filter(value => !playable(value, data));
-  assert.deepEqual(later.map(value => value.id).sort(), ['ana-saint-andrew', 'bran-pumpkins', 'cezar-long-night', 'ilie-pickles']);
-  assert.deepEqual(later.filter(value => value.act === 4).map(value => value.id).sort(), ['ana-saint-andrew', 'cezar-long-night'], 'The winter quests wait for act 4.');
+  assert.deepEqual(later.map(value => value.id).sort(), ['ana-saint-andrew', 'cezar-long-night'], 'The winter quests wait for act 4.');
+  assert.ok(later.every(value => value.act === 4));
   const finished = checkpoint(data.tasks.length);
   for (const value of later) assert.equal(status(finished, value.id), 'locked');
   assert.equal(status(checkpoint(5), 'ilie-clean-monday') !== 'locked' || checkpoint(5).completedQuests.includes('ilie-clean-monday'), true, 'Ilie does not wait for his jars for winter.');
+  // On the day of the purchase of the orchard, the quests of act 3 wait for 1 September, also those that follow the purchase.
+  const purchase = checkpoint(data.tasks.findIndex(value => value.purchase));
+  for (const value of data.quests.filter(value => value.act === 3)) assert.equal(status(purchase, value.id), 'locked', value.id);
   // On the evening of the supper, the quests of act 2 wait for 2 May, also those that follow the last preparation of act 1.
   const supper = supperEvening();
   for (const value of data.quests.filter(value => value.act === 2)) assert.equal(status(supper, value.id), 'locked', value.id);

@@ -4,7 +4,7 @@ Status: Implemented.
 
 ## Result
 
-This specification describes the six chapters and the finale of act 1. Spec 018 gives the chapters and the finale of act 2. `tools/create-original-data.ts` authors both acts.
+This specification describes the six chapters and the finale of act 1. Spec 018 gives the chapters and the finale of act 2, and spec 019 those of act 3. `tools/create-original-data.ts` authors the three acts.
 Each chapter has a stable identifier (ID), a title, an objective, and opening context.
 Each chapter also has a payoff, one neighbour contribution, and a closing scene.
 Each of the 24 preparations of act 1 has a stable ID, three dialogue lines, and a chapter number.

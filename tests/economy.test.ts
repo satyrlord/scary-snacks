@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { freeBoardCells, menuPrice, pendingPreparationObstacles, salePrice, unresolvedObstacle } from '../src/model.ts';
+import { freeBoardCells, menuPrice, NO_STAGES, pendingPreparationObstacles, salePrice, unresolvedObstacle } from '../src/model.ts';
 import { dataProblems, economyProblems } from '../src/content.ts';
 import { createGame, KEEP_FREE } from '../src/engine.ts';
 import type { GameData } from '../src/model.ts';
@@ -30,8 +30,9 @@ test('renovation cost follows its materials and labour, with less work and money
   }
 });
 
-test('the starting levers are one coin a take, one coin a blocker, two coins a merge, a recovery floor of ten, and garden values of 1, 2, and 3, and the herbs, the forage basket, and the Garden beds are free', () => {
-  assert.deepEqual(data.economy, { takeCost: 1, blockerCoin: 1, workRate: 2, recoveryFloor: 10, garden: { after: ['act2-prep-6', 'act2-prep-14', 'act2-prep-22'], values: [1, 2, 3] } });
+test('the starting levers are one coin a take, one coin a blocker, two coins a merge, a recovery floor of ten, garden and orchard values of 1, 2, and 3, and a cellar value of 2, and the herbs, the forage basket, and the Garden beds are free', () => {
+  assert.deepEqual(data.economy, { takeCost: 1, blockerCoin: 1, workRate: 2, recoveryFloor: 10, garden: { after: ['act2-prep-6', 'act2-prep-14', 'act2-prep-22'], values: [1, 2, 3] },
+    orchard: { after: ['act3-prep-2', 'act3-prep-10', 'act3-prep-13'], values: [1, 2, 3] }, cellar: { after: ['act3-prep-16'], values: [2] } });
   assert.deepEqual(Object.values(data.items).filter(item => item.generator?.free).map(item => item.id), ['generator_herbs', 'generator_greens', 'generator_garden']);
 });
 
@@ -78,7 +79,7 @@ test('a take without the coins changes nothing, and its message names the source
 });
 
 test('after the last preparation, the recovery quest opens below the floor and closes at the floor', () => {
-  // The supper is a campaign quest, so after the last preparation the floor applies.
+  // The dinner pays nothing, so after the last preparation the recovery floor applies.
   const finished = checkpoint(data.tasks.length);
   assert.equal(status({ ...finished, coins: data.economy.recoveryFloor - 1 }, recovery.id), 'active');
   assert.equal(status({ ...finished, coins: data.economy.recoveryFloor }, recovery.id), 'locked');
@@ -133,7 +134,7 @@ test('authored economy rejects missing, malformed, unsupported, or inconsistent 
 test('a sold dish leaves the board and pays back the take costs of its ingredients at the current garden stage, so a sale makes no profit', () => {
   for (const item of Object.values(data.items)) if (!item.generator) assert.equal(salePrice(item.id, data), formula(item.id).staples * data.economy.takeCost, item.id);
   // The Vegetable crate is free from garden stage 1, so its dishes then sell for nothing, also where the menu counts the garden value.
-  assert.deepEqual([0, 1, 2, 3].map(stage => salePrice('vegetables_3', data, stage)), [4 * data.economy.takeCost, 0, 0, 0]);
+  assert.deepEqual([0, 1, 2, 3].map(garden => salePrice('vegetables_3', data, { ...NO_STAGES, garden })), [4 * data.economy.takeCost, 0, 0, 0]);
   const state = openGame(), flour = act(state, { type: 'sell', index: 13 });
   assert.equal(flour.board[13], null);
   assert.equal(flour.coins, state.coins + data.economy.takeCost);

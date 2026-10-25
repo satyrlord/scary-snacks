@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { dayMerges, firstFreeBoardCell, freeBoardCells, isSunday, levers, questHoliday } from '../../src/model.ts';
 import type { GameState } from '../../src/model.ts';
 import { checkpointState, moveTo } from '../../tools/create-checkpoint-saves.ts';
-import { act, actOneTasks, atBookingTime, checkpoint, data, deliverButton, dialogDeliver, onTicket, opened, openQuest, painting, quest, readNow, readTo, saved, start, supplies, supply, ticket, tile, validate } from './support.ts';
+import { act, actOneTasks, atBookingTime, checkpoint, data, deliverButton, dialogDeliver, onTicket, opened, openQuest, painting, paintingDialog, quest, readNow, readTo, saved, start, supplies, supply, ticket, tile, validate } from './support.ts';
 
 const grill = quest('gavril-grill'), dinner = quest('ambrozie-dinner'), feast = quest('ambrozie-feast');
 /** A copy at the booking time of a day. */
@@ -159,13 +159,6 @@ function lastStall() {
   for (const stall of stalls.slice(0, -1)) state = act(supply(state, supplies(stall)), { type: 'deliverQuest', id: stall.id });
   // The scenes of the payment and of the first four stalls are read.
   return { ...supply(state, supplies(stalls.at(-1)!)), pendingScenes: [] };
-}
-/** A painting dialog after its scene: its picture has loaded, and its words name the people. */
-async function paintingDialog(page: Page, title: string, alt: RegExp) {
-  const dialog = page.getByRole('dialog', { name: title, exact: true }), image = dialog.locator('img');
-  await expect(dialog).toBeVisible(); await expect(image).toHaveAttribute('alt', alt);
-  await expect.poll(() => image.evaluate(node => { const value = node as HTMLImageElement; return value.complete ? value.naturalWidth : 0; })).toBeGreaterThan(0);
-  return dialog;
 }
 
 for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {

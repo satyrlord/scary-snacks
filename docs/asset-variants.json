@@ -139,6 +139,26 @@
         "scene-notebook-note"
       ]
     },
+    "scene-sheet-7": {
+      "columns": 2,
+      "rows": 2,
+      "names": [
+        "scene-sleeper-1",
+        "scene-sleeper-2",
+        "scene-sleeper-3",
+        "scene-sleeper-4"
+      ]
+    },
+    "scene-sheet-8": {
+      "columns": 2,
+      "rows": 2,
+      "names": [
+        "scene-sleeper-5",
+        "scene-holy-cross",
+        "scene-name-day",
+        "scene-samedru"
+      ]
+    },
     "family-photos": {
       "columns": 2,
       "rows": 1,
@@ -3458,6 +3478,906 @@
       "format": "webp",
       "bytes": 167330,
       "sha256": "7e3b7da1b28c5c0062ebfbc6b47557f62d038ad37ba19f2ec922b0802aed931b"
+    },
+    {
+      "file": "public/assets/variants/orchard-00-768x1024.avif",
+      "master": "orchard-00",
+      "masterSha256": "219d6362b36693b9352e40952214c7fbe1c605821f808f6ecc5fe409f9c0aa79",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 281240,
+      "sha256": "3800e757057c4c313ee2cbb7f3dfdbd7dc6a4752d0d63e254d5f804ae4d5ab33"
+    },
+    {
+      "file": "public/assets/variants/orchard-00-768x1024.webp",
+      "master": "orchard-00",
+      "masterSha256": "219d6362b36693b9352e40952214c7fbe1c605821f808f6ecc5fe409f9c0aa79",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 409192,
+      "sha256": "d74fb7e3a7e977a52a44daa564befdce252fd3645157b6aad578d13172ac8781"
+    },
+    {
+      "file": "public/assets/variants/orchard-00-1536x2048.avif",
+      "master": "orchard-00",
+      "masterSha256": "219d6362b36693b9352e40952214c7fbe1c605821f808f6ecc5fe409f9c0aa79",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 859103,
+      "sha256": "c4b1801e6a6a5d35f3109a30c16d27ef666e3b1f6008d0bc34cf570644457434"
+    },
+    {
+      "file": "public/assets/variants/orchard-00-1536x2048.webp",
+      "master": "orchard-00",
+      "masterSha256": "219d6362b36693b9352e40952214c7fbe1c605821f808f6ecc5fe409f9c0aa79",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1374452,
+      "sha256": "cc61c309434a35e4733228d7efa74b25308cc97dd4acf86c3b36c5934a7d99da"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-03-768x1024.avif",
+      "master": "bistro-cellar-03",
+      "masterSha256": "d685a798cf476c4651ae75d8559f67db9b8de293fa363436c059ba46cda6a011",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 182984,
+      "sha256": "5325b709e0dd2429e903db2b229396bd80db7c539f843741c2aca7a45fde1a94"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-03-768x1024.webp",
+      "master": "bistro-cellar-03",
+      "masterSha256": "d685a798cf476c4651ae75d8559f67db9b8de293fa363436c059ba46cda6a011",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 275980,
+      "sha256": "8d9758b4ab57781a0ab4bda1f52d1dab8815983f501386f9ed4052a984321374"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-03-1536x2048.avif",
+      "master": "bistro-cellar-03",
+      "masterSha256": "d685a798cf476c4651ae75d8559f67db9b8de293fa363436c059ba46cda6a011",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 574387,
+      "sha256": "076ee4f3b365b8d2a92641649605798c208e65f69844b752938659ae9c740df0"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-03-1536x2048.webp",
+      "master": "bistro-cellar-03",
+      "masterSha256": "d685a798cf476c4651ae75d8559f67db9b8de293fa363436c059ba46cda6a011",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 910870,
+      "sha256": "1badd60036ec52685a59b6d01d705c467795a1775687b55cec83a48a739d586d"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-06-768x1024.avif",
+      "master": "cathedral-kitchen-06",
+      "masterSha256": "f5d6a84f037407dceffe011cf896d555926fdd04c954c0e649c57755d7c69f32",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 175939,
+      "sha256": "858b71b8089cff0725f3f8c0b190b54940aef77cad8b4f9ea9fbe6438e449784"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-06-768x1024.webp",
+      "master": "cathedral-kitchen-06",
+      "masterSha256": "f5d6a84f037407dceffe011cf896d555926fdd04c954c0e649c57755d7c69f32",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 259710,
+      "sha256": "c7a6eb36c1b84b8dcd3e1362619c4a0f58d66f5cabeb71ca4ef80292bebaa7aa"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-06-1536x2048.avif",
+      "master": "cathedral-kitchen-06",
+      "masterSha256": "f5d6a84f037407dceffe011cf896d555926fdd04c954c0e649c57755d7c69f32",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 562752,
+      "sha256": "de1a3e4c6959ca5b80dfc7c5e65e8037a50f3e59e3be22bf38d3ec05c09a63cb"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-06-1536x2048.webp",
+      "master": "cathedral-kitchen-06",
+      "masterSha256": "f5d6a84f037407dceffe011cf896d555926fdd04c954c0e649c57755d7c69f32",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 889688,
+      "sha256": "c66d3b530a5708706a92cf70736ee66057dbe9535d80a2d391f5c9139ce75926"
+    },
+    {
+      "file": "public/assets/variants/orchard-01-768x1024.avif",
+      "master": "orchard-01",
+      "masterSha256": "483aee150dab44a65b856c91ff63ebf4711575cca7260b30a09ae17508015bd4",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 281059,
+      "sha256": "1ce8f392b34448b942a77343202c9283feab3643f2384969c812381b8a978972"
+    },
+    {
+      "file": "public/assets/variants/orchard-01-768x1024.webp",
+      "master": "orchard-01",
+      "masterSha256": "483aee150dab44a65b856c91ff63ebf4711575cca7260b30a09ae17508015bd4",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 405296,
+      "sha256": "c0aa8f7bbe3759e2601b37057d29d66fd1bc3ca84619b6685ee6a303a12157ac"
+    },
+    {
+      "file": "public/assets/variants/orchard-01-1536x2048.avif",
+      "master": "orchard-01",
+      "masterSha256": "483aee150dab44a65b856c91ff63ebf4711575cca7260b30a09ae17508015bd4",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 824271,
+      "sha256": "31ec7cc77549edd0e92f9c87f642a9c8a52ecd26dd9917908015ae564159a4df"
+    },
+    {
+      "file": "public/assets/variants/orchard-01-1536x2048.webp",
+      "master": "orchard-01",
+      "masterSha256": "483aee150dab44a65b856c91ff63ebf4711575cca7260b30a09ae17508015bd4",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1316458,
+      "sha256": "857cb74c8c4eafdbc48eaf017ee00a82ea99e3a7f3103ec4dcb8cc0fef8768c8"
+    },
+    {
+      "file": "public/assets/variants/orchard-02-768x1024.avif",
+      "master": "orchard-02",
+      "masterSha256": "9bffa598434e06b8a9d9c7ae8c2502ff39e67d7b52bb426cc7b6e720aeed34cb",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 269777,
+      "sha256": "79196049ebdeee97684d87b42823b84f76d3a18737984f29f2a79d6f296064de"
+    },
+    {
+      "file": "public/assets/variants/orchard-02-768x1024.webp",
+      "master": "orchard-02",
+      "masterSha256": "9bffa598434e06b8a9d9c7ae8c2502ff39e67d7b52bb426cc7b6e720aeed34cb",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 392538,
+      "sha256": "b40f4fb41c6e4bbf42a6b5454bf79dd9a61df7181c276dd716df3036e93202a0"
+    },
+    {
+      "file": "public/assets/variants/orchard-02-1536x2048.avif",
+      "master": "orchard-02",
+      "masterSha256": "9bffa598434e06b8a9d9c7ae8c2502ff39e67d7b52bb426cc7b6e720aeed34cb",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 754687,
+      "sha256": "3f7d68e406e9b16f674b606096fc5b267a28378187583f2de0822abde078104f"
+    },
+    {
+      "file": "public/assets/variants/orchard-02-1536x2048.webp",
+      "master": "orchard-02",
+      "masterSha256": "9bffa598434e06b8a9d9c7ae8c2502ff39e67d7b52bb426cc7b6e720aeed34cb",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1213984,
+      "sha256": "3f577e7c2778f3c49196ece132bd797a41eaf5fe4468d9c55f5fb8a2483eb38d"
+    },
+    {
+      "file": "public/assets/variants/orchard-09-768x1024.avif",
+      "master": "orchard-09",
+      "masterSha256": "3a272a63baf05e2efeca219c04129366bb119cf80b59da2fa414ab01cba5ea2c",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 268153,
+      "sha256": "abd80a445c1e4f74ea7e9b6aaa15cd5b67b34922df2a8ea37631b886e8172ea7"
+    },
+    {
+      "file": "public/assets/variants/orchard-09-768x1024.webp",
+      "master": "orchard-09",
+      "masterSha256": "3a272a63baf05e2efeca219c04129366bb119cf80b59da2fa414ab01cba5ea2c",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 390404,
+      "sha256": "716b3088e0b11c8eebdcb35c25ce299565e435b3613abf99066a2edac53dd686"
+    },
+    {
+      "file": "public/assets/variants/orchard-09-1536x2048.avif",
+      "master": "orchard-09",
+      "masterSha256": "3a272a63baf05e2efeca219c04129366bb119cf80b59da2fa414ab01cba5ea2c",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 748429,
+      "sha256": "7acded323b91361f113d471e5ec09a66b8e767e606ec398525e5d6a29f20e30e"
+    },
+    {
+      "file": "public/assets/variants/orchard-09-1536x2048.webp",
+      "master": "orchard-09",
+      "masterSha256": "3a272a63baf05e2efeca219c04129366bb119cf80b59da2fa414ab01cba5ea2c",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1215040,
+      "sha256": "c7fcab67accf1751657117e2c281eb3b12ec6731093f6f5297d2ed4f29385148"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-04-768x1024.avif",
+      "master": "bistro-cellar-04",
+      "masterSha256": "d2c1aada2425c3745dd8a1c6b361d2efc9be79be42c17e2ae10ddde4f2f5f4de",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 177848,
+      "sha256": "6c5deb76d47b778b9fe1a0f9995001af103b8ccc12d3684769a7884c81b920e2"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-04-768x1024.webp",
+      "master": "bistro-cellar-04",
+      "masterSha256": "d2c1aada2425c3745dd8a1c6b361d2efc9be79be42c17e2ae10ddde4f2f5f4de",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 272498,
+      "sha256": "a93f38d3f9ac0203aaad11b7544d9c590b1203a0a9ca1fb7ae92d3852d4d6369"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-04-1536x2048.avif",
+      "master": "bistro-cellar-04",
+      "masterSha256": "d2c1aada2425c3745dd8a1c6b361d2efc9be79be42c17e2ae10ddde4f2f5f4de",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 555195,
+      "sha256": "c1974a3b218687325e15da05895d9e82cc190f34fcff580499bbb6256671986c"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-04-1536x2048.webp",
+      "master": "bistro-cellar-04",
+      "masterSha256": "d2c1aada2425c3745dd8a1c6b361d2efc9be79be42c17e2ae10ddde4f2f5f4de",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 868486,
+      "sha256": "c1dd1a397e4bb7cbdbb1ee618c33e011d6b91ee72d11de046113e8ad2436bcd8"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-07-768x1024.avif",
+      "master": "cathedral-kitchen-07",
+      "masterSha256": "21bbfe023cea6d803296590f195a349cba127cee5081d973de72f9b6b42be718",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 177403,
+      "sha256": "96b6d6397947b2c9b6e590e370c0953872e449e313c402ff840a2c07bfec36ee"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-07-768x1024.webp",
+      "master": "cathedral-kitchen-07",
+      "masterSha256": "21bbfe023cea6d803296590f195a349cba127cee5081d973de72f9b6b42be718",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 265054,
+      "sha256": "da81a683805a4547cb61abe7bbf8008556d1b3fc0659012cf04506e6eef13623"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-07-1536x2048.avif",
+      "master": "cathedral-kitchen-07",
+      "masterSha256": "21bbfe023cea6d803296590f195a349cba127cee5081d973de72f9b6b42be718",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 539125,
+      "sha256": "abe35ce903c8595de0219a317a775c296e584526143c768bbb83aa5f410d4c62"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-07-1536x2048.webp",
+      "master": "cathedral-kitchen-07",
+      "masterSha256": "21bbfe023cea6d803296590f195a349cba127cee5081d973de72f9b6b42be718",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 832086,
+      "sha256": "2f9aef9d184978550d2303676ddf8a637d2bc3b34b92d1c7b2a1d3c840293605"
+    },
+    {
+      "file": "public/assets/variants/orchard-10-768x1024.avif",
+      "master": "orchard-10",
+      "masterSha256": "7947a77177cd2f9a171c1ad12afe4a9f3e152d495635fafaa5a2506571458a68",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 265780,
+      "sha256": "3f161033244cbefc7c3b67add48ea3b8495c7631a63dad7c96dea2d63abc000f"
+    },
+    {
+      "file": "public/assets/variants/orchard-10-768x1024.webp",
+      "master": "orchard-10",
+      "masterSha256": "7947a77177cd2f9a171c1ad12afe4a9f3e152d495635fafaa5a2506571458a68",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 388670,
+      "sha256": "4dbc49f942fe1e474cbdd926ae7a02d66fcbf0fea15a145a105e5a03c22ae871"
+    },
+    {
+      "file": "public/assets/variants/orchard-10-1536x2048.avif",
+      "master": "orchard-10",
+      "masterSha256": "7947a77177cd2f9a171c1ad12afe4a9f3e152d495635fafaa5a2506571458a68",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 741283,
+      "sha256": "f1c83969be0d015383a00f63c7bd889cbedaa6f8fb9f7b4976fdda65bcaa52a1"
+    },
+    {
+      "file": "public/assets/variants/orchard-10-1536x2048.webp",
+      "master": "orchard-10",
+      "masterSha256": "7947a77177cd2f9a171c1ad12afe4a9f3e152d495635fafaa5a2506571458a68",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1188548,
+      "sha256": "7e9b329f1568f3caf99e8a60615fb95f1d5ded35c4f1b7af9342da16d3207fbb"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-05-768x1024.avif",
+      "master": "bistro-cellar-05",
+      "masterSha256": "e868051e38b9957898c51c0aab803d674ab5a762553528be634a2bfef6b03aac",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 177900,
+      "sha256": "08ecbd00c0e000e3816ea77666aae8d6d18b1ea1374df2db2de48033868430bf"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-05-768x1024.webp",
+      "master": "bistro-cellar-05",
+      "masterSha256": "e868051e38b9957898c51c0aab803d674ab5a762553528be634a2bfef6b03aac",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 273288,
+      "sha256": "ec26e220bd0ed3f44c8b88a8a86d4c30cb2bef320d75e8ad31be63dd756aaaa6"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-05-1536x2048.avif",
+      "master": "bistro-cellar-05",
+      "masterSha256": "e868051e38b9957898c51c0aab803d674ab5a762553528be634a2bfef6b03aac",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 552621,
+      "sha256": "4410fd57629aebe6f9dc6588a87fabd549790eff55b641a2021fc6ccef5aa5e0"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-05-1536x2048.webp",
+      "master": "bistro-cellar-05",
+      "masterSha256": "e868051e38b9957898c51c0aab803d674ab5a762553528be634a2bfef6b03aac",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 848820,
+      "sha256": "b4d5a0363a65fd409589c06a87ba04b1b8436f5d69ac26dc0693b2b81e112175"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-08-768x1024.avif",
+      "master": "cathedral-kitchen-08",
+      "masterSha256": "2ba4595d0490fcaf6c51ac2a7840de03b5aaf56a9f5975704b6b20b9cc118c3f",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 180506,
+      "sha256": "64af43c8aaf12b7ddb3c77d3e4825273c7d6b373d153aa795ad4acf3f811c162"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-08-768x1024.webp",
+      "master": "cathedral-kitchen-08",
+      "masterSha256": "2ba4595d0490fcaf6c51ac2a7840de03b5aaf56a9f5975704b6b20b9cc118c3f",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 269348,
+      "sha256": "c66c01edbd6f2d6555ca611e68fa3c8523302c5f0946f858914ec0274749efe6"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-08-1536x2048.avif",
+      "master": "cathedral-kitchen-08",
+      "masterSha256": "2ba4595d0490fcaf6c51ac2a7840de03b5aaf56a9f5975704b6b20b9cc118c3f",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 538475,
+      "sha256": "cf4b29c771f822a20f19a7c3f7f9b55185f535b388dcfecc27f567e6f877018b"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-08-1536x2048.webp",
+      "master": "cathedral-kitchen-08",
+      "masterSha256": "2ba4595d0490fcaf6c51ac2a7840de03b5aaf56a9f5975704b6b20b9cc118c3f",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 815330,
+      "sha256": "4b263b8df7c55a62363a6f0266487973a610f34f8eb577fad05d6775fd4be92c"
+    },
+    {
+      "file": "public/assets/variants/food-orchard-1024x512.webp",
+      "master": "food-orchard",
+      "masterSha256": "39c159467727f7c24ef7823da96c8803b33e2ef2abb3ae72f6052342c731de76",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 76114,
+      "sha256": "68bcce4d90dbefbffe482a199b31ce36d5de29ab5d19052a936fdc7981b12b45"
+    },
+    {
+      "file": "public/assets/variants/food-feast-1024x512.webp",
+      "master": "food-feast",
+      "masterSha256": "17f536179d31b055eaacd042e19c0a9d72df616cc29e36a4749d177e5e8e53ee",
+      "width": 1024,
+      "height": 512,
+      "format": "webp",
+      "bytes": 47424,
+      "sha256": "32258f8660d5fc5396f867a1f8307ddd66795a759fc5031d8d74b1cdcf5af3e0"
+    },
+    {
+      "file": "public/assets/variants/scene-sleeper-1-1024x683.webp",
+      "master": "scene-sheet-7",
+      "masterSha256": "0e5110dd44d4adfbc6f89b3a3d34fec7889fdf209cf2391746365471bccf5624",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 533398,
+      "sha256": "2320183141960bf16b773f77d5eae6fe40a5af134cefce31ff342840ec02b2ed"
+    },
+    {
+      "file": "public/assets/variants/scene-sleeper-2-1024x683.webp",
+      "master": "scene-sheet-7",
+      "masterSha256": "0e5110dd44d4adfbc6f89b3a3d34fec7889fdf209cf2391746365471bccf5624",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 479394,
+      "sha256": "0e746a6bedd168eff7a65e6ba260ed3841af38bd3b0ab84994530b6f4909c4b5"
+    },
+    {
+      "file": "public/assets/variants/scene-sleeper-3-1024x683.webp",
+      "master": "scene-sheet-7",
+      "masterSha256": "0e5110dd44d4adfbc6f89b3a3d34fec7889fdf209cf2391746365471bccf5624",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 490536,
+      "sha256": "ee20f40e91dd20aea156b397aeb5ddce09e43f34e272feba4e6b77f36e23c5ee"
+    },
+    {
+      "file": "public/assets/variants/scene-sleeper-4-1024x683.webp",
+      "master": "scene-sheet-7",
+      "masterSha256": "0e5110dd44d4adfbc6f89b3a3d34fec7889fdf209cf2391746365471bccf5624",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 549680,
+      "sha256": "1ba53b6aca5166617ea27619d542d0ac9b73818652f648233366d5577016e42a"
+    },
+    {
+      "file": "public/assets/variants/scene-sleeper-5-1024x683.webp",
+      "master": "scene-sheet-8",
+      "masterSha256": "f91d8c10f853346d4e20532735c89ac5dc1cd366a24b5176d61cf4d20233d115",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 497006,
+      "sha256": "fdf16199fdeac88dc2904f127fadc40089f725e9ea7fd1eea0365d847de614d8"
+    },
+    {
+      "file": "public/assets/variants/scene-holy-cross-1024x683.webp",
+      "master": "scene-sheet-8",
+      "masterSha256": "f91d8c10f853346d4e20532735c89ac5dc1cd366a24b5176d61cf4d20233d115",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 569228,
+      "sha256": "b2c2a27b79f0c333b7180908ff0e6fe7e3e878d01b6c9a137e6fd801cfca75bc"
+    },
+    {
+      "file": "public/assets/variants/scene-name-day-1024x683.webp",
+      "master": "scene-sheet-8",
+      "masterSha256": "f91d8c10f853346d4e20532735c89ac5dc1cd366a24b5176d61cf4d20233d115",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 385086,
+      "sha256": "8ff570e28dc028d084cf4a376a76ee9a5116d86ea039ab1050fb24605d9b2c0f"
+    },
+    {
+      "file": "public/assets/variants/scene-samedru-1024x683.webp",
+      "master": "scene-sheet-8",
+      "masterSha256": "f91d8c10f853346d4e20532735c89ac5dc1cd366a24b5176d61cf4d20233d115",
+      "width": 1024,
+      "height": 683,
+      "format": "webp",
+      "bytes": 629942,
+      "sha256": "f5d8baeb78c8d0cf4a66f1cf5def4069bca6bb6bace65db25674cd047dc3e1f3"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-11-768x1024.avif",
+      "master": "bistro-cellar-11",
+      "masterSha256": "856a18d7296f489d1abc1fab0da638418039e97a3a463b5718195eee841280e2",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 172769,
+      "sha256": "fd1e9c04c6a1d74e79bf2c8a01212054c5d4e5848ace3f4c0cb79107bf126222"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-11-768x1024.webp",
+      "master": "bistro-cellar-11",
+      "masterSha256": "856a18d7296f489d1abc1fab0da638418039e97a3a463b5718195eee841280e2",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 261830,
+      "sha256": "82a54cd766b4b897bf769ece49da41904d000ad5fbb31f394a70cb4ea063e9b3"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-11-1536x2048.avif",
+      "master": "bistro-cellar-11",
+      "masterSha256": "856a18d7296f489d1abc1fab0da638418039e97a3a463b5718195eee841280e2",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 530924,
+      "sha256": "f99ee653e2824d748e19d5548dbd78f2d76fec09f01079991c60d2c8528119dd"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-11-1536x2048.webp",
+      "master": "bistro-cellar-11",
+      "masterSha256": "856a18d7296f489d1abc1fab0da638418039e97a3a463b5718195eee841280e2",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 807494,
+      "sha256": "21ebeabac52dececa035b85c3d2bdd8ab293e572dbc74908ce10dc6adc9187aa"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-12-768x1024.avif",
+      "master": "cathedral-kitchen-12",
+      "masterSha256": "01a3e2f348a0a27e5c9dca4357731b4521a756bf28aaff31c2937a1b668414c1",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 180540,
+      "sha256": "118919fe736257bc9b3bf1408537107e9858d20510a16f5471065756f456c673"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-12-768x1024.webp",
+      "master": "cathedral-kitchen-12",
+      "masterSha256": "01a3e2f348a0a27e5c9dca4357731b4521a756bf28aaff31c2937a1b668414c1",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 269326,
+      "sha256": "134aa35b2b69499ba486ddd34d7935a62e02bf59a7865951dadd08286926247a"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-12-1536x2048.avif",
+      "master": "cathedral-kitchen-12",
+      "masterSha256": "01a3e2f348a0a27e5c9dca4357731b4521a756bf28aaff31c2937a1b668414c1",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 536921,
+      "sha256": "84e151b03316119235596363c62ed15005b690e1f944ff30c35d12fe1ca465d5"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-12-1536x2048.webp",
+      "master": "cathedral-kitchen-12",
+      "masterSha256": "01a3e2f348a0a27e5c9dca4357731b4521a756bf28aaff31c2937a1b668414c1",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 812336,
+      "sha256": "fe5887ecc6e87a0544220ab82f4e432ef92c21c6ebffb17bda98db39cb04afd1"
+    },
+    {
+      "file": "public/assets/variants/orchard-13-768x1024.avif",
+      "master": "orchard-13",
+      "masterSha256": "6083d7fe1bbcc751900eb6dc279efda8fc1d02f0a9601cb7bd2a2598952022ef",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 264420,
+      "sha256": "aa3f8dc91d7aaf8ce02a64b5d3e183eb0aa26507fe3bad51cb5b008d8e08c069"
+    },
+    {
+      "file": "public/assets/variants/orchard-13-768x1024.webp",
+      "master": "orchard-13",
+      "masterSha256": "6083d7fe1bbcc751900eb6dc279efda8fc1d02f0a9601cb7bd2a2598952022ef",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 387748,
+      "sha256": "86b74b1a21a2c3a19b6eef7e6c17dd168ef121676712cf1110e5b2690f96c9e2"
+    },
+    {
+      "file": "public/assets/variants/orchard-13-1536x2048.avif",
+      "master": "orchard-13",
+      "masterSha256": "6083d7fe1bbcc751900eb6dc279efda8fc1d02f0a9601cb7bd2a2598952022ef",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 738932,
+      "sha256": "b72de233da064c5bb832a508dba897e71b8c8624cdf5cdc514843d1e0960967a"
+    },
+    {
+      "file": "public/assets/variants/orchard-13-1536x2048.webp",
+      "master": "orchard-13",
+      "masterSha256": "6083d7fe1bbcc751900eb6dc279efda8fc1d02f0a9601cb7bd2a2598952022ef",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1171398,
+      "sha256": "4b77ee860afd51dfeb49af91ede58ce0f397809bc88a77219d8830cb251959b2"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-14-768x1024.avif",
+      "master": "bistro-cellar-14",
+      "masterSha256": "d17b95e4d6b095ee39deb9bc5dcca8b499a51b118dd8b44983af26fbf6bc7466",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 173105,
+      "sha256": "45de77f0430e46aeb55672de933fd78403c0767662a62316c3b47f9c69598a02"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-14-768x1024.webp",
+      "master": "bistro-cellar-14",
+      "masterSha256": "d17b95e4d6b095ee39deb9bc5dcca8b499a51b118dd8b44983af26fbf6bc7466",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 262154,
+      "sha256": "339e08b09f8ad4b141328d5aa7630cd0257e511e47493d14a50498d0acb9d446"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-14-1536x2048.avif",
+      "master": "bistro-cellar-14",
+      "masterSha256": "d17b95e4d6b095ee39deb9bc5dcca8b499a51b118dd8b44983af26fbf6bc7466",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 528406,
+      "sha256": "818b092d0d1add4e8025b0bdde2aefb8c88bf7ddbc0433b48f97962145a6544c"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-14-1536x2048.webp",
+      "master": "bistro-cellar-14",
+      "masterSha256": "d17b95e4d6b095ee39deb9bc5dcca8b499a51b118dd8b44983af26fbf6bc7466",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 806970,
+      "sha256": "40dcfac588715cd135ff55c3a5375ba48563b8ffbf4a9a9d7757ad6f51dc395f"
+    },
+    {
+      "file": "public/assets/variants/orchard-15-768x1024.avif",
+      "master": "orchard-15",
+      "masterSha256": "39367ec4c5d302d35135707823c0e250a07b9f16be2b76f6f7d48f17b3b1cde0",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 262966,
+      "sha256": "971ed839c34d88e34ebce261706e6323704e2cf612273a19d552fe6c91c3b9ad"
+    },
+    {
+      "file": "public/assets/variants/orchard-15-768x1024.webp",
+      "master": "orchard-15",
+      "masterSha256": "39367ec4c5d302d35135707823c0e250a07b9f16be2b76f6f7d48f17b3b1cde0",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 387842,
+      "sha256": "3a76ba2e9a87cecd53bfa012e6853ab43f53f16791f7c794b4590659c77f64bb"
+    },
+    {
+      "file": "public/assets/variants/orchard-15-1536x2048.avif",
+      "master": "orchard-15",
+      "masterSha256": "39367ec4c5d302d35135707823c0e250a07b9f16be2b76f6f7d48f17b3b1cde0",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 733389,
+      "sha256": "763a983e1fc4303d6557feae2702034f8209b6f412a0d94c41470252d9ee1108"
+    },
+    {
+      "file": "public/assets/variants/orchard-15-1536x2048.webp",
+      "master": "orchard-15",
+      "masterSha256": "39367ec4c5d302d35135707823c0e250a07b9f16be2b76f6f7d48f17b3b1cde0",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 1164956,
+      "sha256": "29af7ab0f39855f0db228ef9a3587a7a364bfadf8f848881cb12fe3e0591cbe0"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-17-768x1024.avif",
+      "master": "cathedral-kitchen-17",
+      "masterSha256": "044ec2e5963ed71b9774bcdb09cd218b1e7372281b880a4f6232b94e32ff62c3",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 175111,
+      "sha256": "8f56f7febd915b87d71bcc028ac24721403828c5f56b3860c34cd6841d6fc485"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-17-768x1024.webp",
+      "master": "cathedral-kitchen-17",
+      "masterSha256": "044ec2e5963ed71b9774bcdb09cd218b1e7372281b880a4f6232b94e32ff62c3",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 264290,
+      "sha256": "685a83f3c9ac60259f85e0531368e97bb60a5f932626e4dc94d219e8285ce57a"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-17-1536x2048.avif",
+      "master": "cathedral-kitchen-17",
+      "masterSha256": "044ec2e5963ed71b9774bcdb09cd218b1e7372281b880a4f6232b94e32ff62c3",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 525503,
+      "sha256": "5c281917390ebc04677ee024b086f9a873d2b23c0ef6b80eb1620fcf54a81899"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-17-1536x2048.webp",
+      "master": "cathedral-kitchen-17",
+      "masterSha256": "044ec2e5963ed71b9774bcdb09cd218b1e7372281b880a4f6232b94e32ff62c3",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 780368,
+      "sha256": "f9d1c7caa0f19115dffc1f10ee56aee681598ddcbf7d0894ebaf6d2829098170"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-16-768x1024.avif",
+      "master": "bistro-cellar-16",
+      "masterSha256": "0e1da6315bae4debad5e5d2dea8316d5d4dbcdd8ce0b8cc9d3267bcec245d4be",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 172843,
+      "sha256": "29a0f7ace3da046042a5c50d570df27c6d9cd9eec82e06ef772ef834acf39641"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-16-768x1024.webp",
+      "master": "bistro-cellar-16",
+      "masterSha256": "0e1da6315bae4debad5e5d2dea8316d5d4dbcdd8ce0b8cc9d3267bcec245d4be",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 264362,
+      "sha256": "7d8490739744e2f68de87fab28c0a358ab2ac5452947aba2e27906d0638cbabf"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-16-1536x2048.avif",
+      "master": "bistro-cellar-16",
+      "masterSha256": "0e1da6315bae4debad5e5d2dea8316d5d4dbcdd8ce0b8cc9d3267bcec245d4be",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 529033,
+      "sha256": "827f6342002b22038f7478f65abe400fc64918bc07600378b64799b4f00a54e0"
+    },
+    {
+      "file": "public/assets/variants/bistro-cellar-16-1536x2048.webp",
+      "master": "bistro-cellar-16",
+      "masterSha256": "0e1da6315bae4debad5e5d2dea8316d5d4dbcdd8ce0b8cc9d3267bcec245d4be",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 809050,
+      "sha256": "6b8f10eaf706ef015ced5315a2e644cf895b844d4e118c51167510a805be33bd"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-18-768x1024.avif",
+      "master": "cathedral-kitchen-18",
+      "masterSha256": "012fba9053be9076d39c69c6e190d4a0622300468c154d7c9c4f4d79f5b577cc",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 174969,
+      "sha256": "3eaf6b843f8a4dbfff6e1542a6f87a974b2bd5f818b08e1ad82ef5cacbda8002"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-18-768x1024.webp",
+      "master": "cathedral-kitchen-18",
+      "masterSha256": "012fba9053be9076d39c69c6e190d4a0622300468c154d7c9c4f4d79f5b577cc",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 260286,
+      "sha256": "52232a2d3a56b3ba9f956d4a5bdc258fe13a938d8587987791bb1f0b6f29fc7c"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-18-1536x2048.avif",
+      "master": "cathedral-kitchen-18",
+      "masterSha256": "012fba9053be9076d39c69c6e190d4a0622300468c154d7c9c4f4d79f5b577cc",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 528986,
+      "sha256": "cefd8ea4df64c178ad18447fe1f3aafb9989c6c5861584f9a12df26de96d00e3"
+    },
+    {
+      "file": "public/assets/variants/cathedral-kitchen-18-1536x2048.webp",
+      "master": "cathedral-kitchen-18",
+      "masterSha256": "012fba9053be9076d39c69c6e190d4a0622300468c154d7c9c4f4d79f5b577cc",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 779354,
+      "sha256": "027be1d4a91d45c27d28bdb2fbe3816fc9c2e6abb0706a005d5a918bd4fe7a18"
+    },
+    {
+      "file": "public/assets/variants/finale-dinner-768x1024.avif",
+      "master": "finale-dinner",
+      "masterSha256": "a77d435414234404216f4de07edfff61c92e0a93f6f7baea3ced99b2ec481c9d",
+      "width": 768,
+      "height": 1024,
+      "format": "avif",
+      "bytes": 161627,
+      "sha256": "2ff063ad111af519aeddc14e6a0eae4c566b5da4910803e83f7fae7f08c5308c"
+    },
+    {
+      "file": "public/assets/variants/finale-dinner-768x1024.webp",
+      "master": "finale-dinner",
+      "masterSha256": "a77d435414234404216f4de07edfff61c92e0a93f6f7baea3ced99b2ec481c9d",
+      "width": 768,
+      "height": 1024,
+      "format": "webp",
+      "bytes": 229698,
+      "sha256": "dc447bb76afdd7c99f9cf000dff7c1396ad8137a5343feb9a81aa4bc64c01421"
+    },
+    {
+      "file": "public/assets/variants/finale-dinner-1536x2048.avif",
+      "master": "finale-dinner",
+      "masterSha256": "a77d435414234404216f4de07edfff61c92e0a93f6f7baea3ced99b2ec481c9d",
+      "width": 1536,
+      "height": 2048,
+      "format": "avif",
+      "bytes": 512718,
+      "sha256": "fcc70c0722111ae5b8fcdeee1a1fba3328ae7f3e9798e3a46f4aee1da12ba2b1"
+    },
+    {
+      "file": "public/assets/variants/finale-dinner-1536x2048.webp",
+      "master": "finale-dinner",
+      "masterSha256": "a77d435414234404216f4de07edfff61c92e0a93f6f7baea3ced99b2ec481c9d",
+      "width": 1536,
+      "height": 2048,
+      "format": "webp",
+      "bytes": 702832,
+      "sha256": "3f48b4dd38e13ada6a4ac75d4cb4391ba597ca638aaa4af561a853685eac6b35"
     }
   ]
 }

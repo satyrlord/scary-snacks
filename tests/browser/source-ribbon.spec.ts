@@ -5,9 +5,9 @@ import { actOne, checkpoint, data, know, payAndRead, prologueAt, revealed, saved
 
 test.use({ hasTouch:true });
 
-/** Includes the seasonal sources, as a player can retain them after their arrival. */
+/** Includes the seasonal sources, as a player can retain them after their arrival. In act 3, every chain is open. */
 function fullRibbon() {
-  const state = checkpoint(40, { coins:100 });
+  const state = checkpoint(52, { coins:100 });
   state.sources = data.chains.map(chain => chain.id);
   state.discovered = [...new Set([...state.discovered, ...state.sources.map(chain => `generator_${chain}`)])];
   return state;

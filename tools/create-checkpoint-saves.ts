@@ -1,7 +1,7 @@
 // Synthetic saves at every preparation checkpoint, for manual checks without playing the whole campaign.
 // Each save has its preparations paid, the quests that the next preparation needs delivered, and the exact coins for the next reveal.
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { currentTask, finaleQuest, finaleServed, gardenStage, isSunday, levers, marchOpens, questFinale, questHoliday, requiredQuests, seasonPaid, sourceNeeded, stapleCost, taskAct, terraceDay } from '../src/model.ts';
+import { actEnded, actOf, actResults, currentTask, finaleQuest, finaleServed, growthStages, isSunday, levers, marchOpens, questFinale, questHoliday, requiredQuests, seasonPaid, sourceNeeded, stapleCost, taskAct, terraceDay } from '../src/model.ts';
 import { reduceGame, revealTickets, validateGame } from '../src/engine.ts';
 import type { Finale, GameData, GameState, Quest } from '../src/model.ts';
 import { runPrologue } from './campaign-balance.ts';
@@ -51,13 +51,13 @@ export function moveTo(state: GameState, day: number, data: GameData) {
 }
 import { exportSave } from '../src/storage.ts';
 
-/** Serves a finale on its evening at the booking time. The supper records the result of act 1. */
+/** Serves a finale on its evening at the booking time. A finale that ends its act records the result of the act. */
 export function serveFinale(state: GameState, finale: Finale, data: GameData) {
   moveTo(state, finale.day, data);
-  const dayLevers = levers(finale.day, data);
+  const dayLevers = levers(finale.day, data), act = actOf(finale.day, data);
   state.clock.merges = (dayLevers.booking - dayLevers.opening) / dayLevers.mergeMinutes;
   state.completedQuests.push(finaleQuest(finale, data)!.id);
-  if (finale === data.finales[0]) state.act1 = { purse: state.coins };
+  if (actEnded(state, act, data)) state[actResults[act - 1]] = { purse: state.coins };
 }
 /**
  * Delivers the quests that the next preparation needs, in data order, on the earliest morning that permits them and the payment. A
@@ -103,7 +103,7 @@ export function finaleCheckpoint(data: GameData, act: number, start: GameState =
   const next = result.state, dayLevers = levers(finale.day, data);
   moveTo(next, finale.day, data);
   next.clock.merges = (dayLevers.booking - dayLevers.opening) / dayLevers.mergeMinutes;
-  next.coins = stapleCost(finaleQuest(finale, data)!, data, gardenStage(next.taskIndex, data));
+  next.coins = stapleCost(finaleQuest(finale, data)!, data, growthStages(next.taskIndex, data));
   next.pendingScenes = [];
   revealTickets(next, data);
   return next;
@@ -135,6 +135,17 @@ export function actTwoCheckpoints(data: GameData): [name: string, state: GameSta
     ['31-august', checkpointState(data, index('act2-orchard'))],
   ];
 }
+/** The named checkpoints of act 3: its first morning, the held day before the dinner, and the dinner of the sleeper before and after. */
+export function actThreeCheckpoints(data: GameData): [name: string, state: GameState][] {
+  const purchase = reduceGame(checkpointState(data, data.tasks.findIndex(task => task.purchase)), { type: 'task' }, data).state;
+  moveTo(purchase, data.acts[2].from, data);
+  purchase.pendingScenes = [];
+  const last = data.tasks.length - 1, held = checkpointState(data, last);
+  moveTo(held, data.calendar.holds.find(hold => hold.task === data.tasks[last].id)!.day, data);
+  const dinner = finaleCheckpoint(data, 3), served = structuredClone(dinner);
+  serveFinale(served, data.finales[2], data);
+  return [['1-september', purchase], ['30-october', held], ['31-october-before-dinner', dinner], ['31-october-after-dinner', served]];
+}
 
 if (import.meta.main) {
   const data: GameData = JSON.parse(await readFile(new URL('../public/data/game.json', import.meta.url), 'utf8'));
@@ -148,5 +159,6 @@ if (import.meta.main) {
     await write(`${String(count).padStart(2, '0')}-${next ? `next-${next.title.toLowerCase().replaceAll(' ', '-').replaceAll('’', '')}` : 'finished'}`, state);
   }
   for (const [name, state] of actTwoCheckpoints(data)) await write(`act2-${name}`, state);
-  console.log(`Created ${data.tasks.length + 1} preparation checkpoint saves and the act 2 checkpoint saves in tmp/checkpoint-saves/. Import one from Options, with Import saved game.`);
+  for (const [name, state] of actThreeCheckpoints(data)) await write(`act3-${name}`, state);
+  console.log(`Created ${data.tasks.length + 1} preparation checkpoint saves and the checkpoint saves of acts 2 and 3 in tmp/checkpoint-saves/. Import one from Options, with Import saved game.`);
 }

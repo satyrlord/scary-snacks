@@ -2,7 +2,7 @@
 import { expect } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { eveningOpen, firstFreeBoardCell, levers, playable, prologueQuests, resolveQuests, supperQuest } from '../../src/model.ts';
+import { eveningOpen, firstFreeBoardCell, levers, playable, prologueQuests, questFinale, resolveQuests, supperQuest } from '../../src/model.ts';
 import { actOneStart, checkpointState, deliverRequired, moveTo } from '../../tools/create-checkpoint-saves.ts';
 import { runPrologue } from '../../tools/campaign-balance.ts';
 import { createGame, reduceGame, revealTickets, validateGame } from '../../src/engine.ts';
@@ -45,15 +45,18 @@ export function checkpoint(count: number,{ready=false,coins=0,march=true}: {read
 }
 /** The earliest checkpoint at which this quest is on a ticket: the open quests before it are delivered. */
 export function onTicket(target: Quest){
-  for(let count=0;count<=data.tasks.length;count++){
+  // A quest opens only after the payment of the preparation that it waits for.
+  const after=target.afterTask?data.tasks.findIndex(task=>task.id===target.afterTask)+1:0;
+  for(let count=after;count<=data.tasks.length;count++){
     const state=checkpoint(count,{march:!target.march});
     // The recovery quest is never recorded as delivered, and it never holds a quest ticket.
     // A dated quest is delivered on its date, so the day moves to it.
     for(const earlier of data.quests.slice(0,data.quests.indexOf(target)).filter(value=>!value.recovery)){
       // A quest that waits only for its opening date opens when the day moves to it.
       if(earlier.opens&&state.clock.day<earlier.opens&&playable(earlier,data)&&!earlier.march&&resolveQuests(state,data).find(value=>value.quest===earlier)!.status==='locked')moveTo(state,earlier.opens,data);
-      const view=resolveQuests(state,data).find(value=>value.quest.id===earlier.id)!;
-      if(view.status!=='active'&&view.status!=='waiting')continue;
+      const view=resolveQuests(state,data).find(value=>value.quest.id===earlier.id)!,finale=questFinale(earlier,data);
+      // A finale is served only on its day, so an earlier date leaves it open.
+      if((view.status!=='active'&&view.status!=='waiting')||(finale&&state.clock.day<finale.day))continue;
       moveTo(state,Math.max(state.clock.day,earlier.opens??1,data.calendar.holidays.find(holiday=>holiday.id===earlier.holiday)?.day??1),data);
       state.completedQuests.push(earlier.id);
     }
@@ -192,6 +195,13 @@ export async function payAndRead(page: Page){
 export const revealed=(page: Page)=>expect(page.locator('#room-stage')).toHaveAttribute('data-reveal','done',{timeout:8000});
 /** The room's painting once it has loaded, by file name. */
 export const painting=(page: Page)=>page.locator('#room-paintings img').last().evaluate(e=>{const image=e as HTMLImageElement;return image.complete&&image.naturalWidth>0?image.currentSrc.split('/').at(-1)!:'';});
+/** A painting dialog after its scene: its picture has loaded, and its words name the people. */
+export async function paintingDialog(page: Page,title: string,alt: RegExp){
+  const dialog=page.getByRole('dialog',{name:title,exact:true}),image=dialog.locator('img');
+  await expect(dialog).toBeVisible();await expect(image).toHaveAttribute('alt',alt);
+  await expect.poll(()=>image.evaluate(node=>{const value=node as HTMLImageElement;return value.complete?value.naturalWidth:0;})).toBeGreaterThan(0);
+  return dialog;
+}
 /** Makes every later write of the save fail, as a full storage does. */
 export async function failWrites(page: Page){
   await page.evaluate(key=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(name,value){if(name===key)throw new DOMException('Storage is full.','QuotaExceededError');original.call(this,name,value);};},KEY);

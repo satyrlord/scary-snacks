@@ -2,10 +2,10 @@
 
 Each specification in this folder records one feature of Scary Snacks: its rules, its data, its saves, and its checks. [PRODUCT.md](../../PRODUCT.md), [DESIGN.md](../../DESIGN.md), and [DELIVERY.md](../../DELIVERY.md) control the current behavior. A specification does not change a contract. When you change a feature, change its owner documents in the same task.
 
-The implemented specifications cover the prologue, act 1, act 2, the calendar, and the seasons.
+The implemented specifications cover the prologue, act 1, act 2, act 3, the calendar, and the seasons.
 
-The game has a prologue of seven events with 16 event quests, 12 chapters, 48 preparations, the purchase of the orchard, and 209 authored quests.
-The quests are 89 campaign quests of act 1, 101 campaign quests of act 2, five March quests, four quests of later acts, two finale quests, the recovery quest, and seven repeating quests.
+The game has a prologue of seven events with 16 event quests, 18 chapters, 66 preparations, the purchase of the orchard, and 253 authored quests.
+The quests are 89 campaign quests of act 1, 101 campaign quests of act 2, 45 campaign quests of act 3, five March quests, two quests of a later act, three finale quests, the recovery quest, and seven repeating quests.
 
 ## File names
 
@@ -49,7 +49,7 @@ The status column gives the state of each specification. The status of a specifi
 | 016 | [The prologue](016-prologue.md) | Implemented | 015, 017 for the pickle barrel |
 | 017 | [Seasons and holidays](017-seasons-and-holidays.md) | Implemented | 012, 014, and 015 in the same change |
 | 018 | [Act 2](018-act-two.md) | Implemented | 015, 016, 017 |
-| 019 | [Act 3](019-act-three.md) | Draft | 018 |
+| 019 | [Act 3](019-act-three.md) | Implemented | 018 |
 
 A dependency is a specification that the complete feature needs. A reference to another specification is not always a dependency. Only this register lists the dependencies.
 

@@ -69,24 +69,28 @@ The helper reads each other value from the contract of the asset:
 
 | Asset identifier | Default size | Background | Grid |
 | --- | --- | --- | --- |
-| `food-<atlas>` for each food atlas: `grain`, `corn`, `herbs`, `dairy`, `poultry`, `vegetables`, `fruits`, `pork`, `beans`, `lamb`, `veal`, `fish`, `soups`, `mains`, `sweets`, `breads`, and the seasonal `pickles` and `greens` | `2048x1024` | `transparent` | 4 columns by 2 rows; the cells after the last picture stay fully transparent |
+| `food-<atlas>` for each food atlas: `grain`, `corn`, `herbs`, `dairy`, `poultry`, `vegetables`, `fruits`, `pork`, `beans`, `lamb`, `veal`, `fish`, `soups`, `mains`, `sweets`, `breads`, `pickles`, `greens`, `garden`, `summer`, `orchard`, and `feast` | `2048x1024` | `transparent` | 4 columns by 2 rows; the cells after the last picture stay fully transparent |
 | `portraits` | `1536x1536` | `transparent` | 2 columns by 2 rows |
 | `regulars-1`, `regulars-2` | `1536x1536` | `transparent` | 2 columns by 2 rows |
 | `regulars-3` | `1536x1536` | `transparent` | 2 columns by 2 rows; four portraits, with Gavril in the lower-right cell |
+| `summer-guests` | `1536x1536` | `transparent` | 2 columns by 2 rows; Ambrozie and Tarka in the upper cells; the lower cells stay blank |
 | `mascots` | `1536x1536` | `transparent` | 2 columns by 2 rows |
 | `timber-tabletop` | `1536x1536` | `opaque` | One image, square, tileable |
 | Each room state and each family kitchen state in `public/data/game.json` | `1536x2048` | `opaque` | One image, 3:4 portrait, a painted room state |
 | `decoration-front`, `decoration-courtyard` | `1536x2048` | `opaque` | One image, 3:4 portrait, a decoration edit of a room state |
 | `holiday-front`, `holiday-courtyard` | `1536x2048` | `opaque` | One image, 3:4 portrait, a room state with the holiday decorations painted in; the decorations are then cut out |
 | `finale-supper` | `1536x2048` | `opaque` | One image, 3:4 portrait, the supper painting: an edit of `courtyard-23` with the guests |
+| `festival`, `finale-feast`, `finale-dinner` | `1536x2048` | `opaque` | One image, 3:4 portrait; an edit of the room state with the guests |
 | `board-clutter` | `1536x1024` | `transparent` | 3 columns by 2 rows, six blockers with open centres |
+| `hail-clutter` | `2048x1024` | `transparent` | 2 columns by 1 row; hailstones and a broken pot |
 | `rat-thief-reference`, `rat-soricescu-reference` | `1024x1024` | `transparent` | One image, square, one reference pose of a rat of the night |
 | `rat-thief`, `rat-soricescu` | `2048x1024` | `transparent` | 4 columns by 2 rows, eight poses of one rat |
 | `rat-hole` | `1024x1024` | `transparent` | One image, square, the rat hole blocker |
 | `night-sky` | `2048x1024` | `opaque` | One image, 2:1, the night sky behind the window glass |
 | `source-rack` | `1024x3072` | `transparent` | One image, 1:3 portrait, the walnut wall letter rack of the source tab |
 | `sketch-sheet-1` to `sketch-sheet-3` | `2688x1344` | `opaque`, then `ink` and `sepia` | 4 columns by 2 rows, eight character sketches in one request |
-| `scene-sheet-1` to `scene-sheet-5` | `2304x1536` | `opaque`, then `ink` and `sepia` | 2 columns by 2 rows, four quest scenes in one request |
+| `sketch-sheet-4` | `2688x1344` | `opaque`, then `ink` and `sepia` | 4 columns by 2 rows; Ambrozie, Gavril, and Tarka in the first three cells; the other cells stay blank |
+| `scene-sheet-1` to `scene-sheet-5`, `scene-sheet-7`, `scene-sheet-8` | `2304x1536` | `opaque`, then `ink` and `sepia` | 2 columns by 2 rows, four quest scenes in one request |
 | `scene-sheet-6` | `2304x1536` | `opaque`, then `ink` and `sepia` | 2 columns by 2 rows; the quest scenes of the mourning year; the cells after the last scene stay blank |
 | `notebook-pages` | `2304x768` | `opaque` | 2 columns by 1 row, two painted notebook pages |
 | `family-photos` | `2048x1024` | `transparent`, then `halo` | 2 columns by 1 row, two old photographs |

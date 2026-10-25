@@ -13,8 +13,9 @@ const MAX_REFERENCE_BYTES = 50_000_000;
 // State 00 of the front room shows the new game. Each other state shows its area after one preparation.
 // The family kitchen of the prologue has one state for each group of events.
 const gameData: GameData = JSON.parse(readFileSync(new URL('../../../../public/data/game.json', import.meta.url), 'utf8'));
-type RoomStateId = `front-room-${string}` | `courtyard-${string}` | `family-kitchen-${string}` | `summer-kitchen-${string}` | `vegetable-garden-${string}` | `town-square-${string}`;
-type PencilSheetId = 'sketch-sheet-1' | 'sketch-sheet-2' | 'sketch-sheet-3' | 'sketch-sheet-4' | 'scene-sheet-1' | 'scene-sheet-2' | 'scene-sheet-3' | 'scene-sheet-4' | 'scene-sheet-5' | 'scene-sheet-6';
+type RoomStateId = `front-room-${string}` | `courtyard-${string}` | `family-kitchen-${string}` | `summer-kitchen-${string}` | `vegetable-garden-${string}` | `town-square-${string}`
+  | `orchard-${string}` | `bistro-cellar-${string}` | `cathedral-kitchen-${string}`;
+type PencilSheetId = 'sketch-sheet-1' | 'sketch-sheet-2' | 'sketch-sheet-3' | 'sketch-sheet-4' | 'scene-sheet-1' | 'scene-sheet-2' | 'scene-sheet-3' | 'scene-sheet-4' | 'scene-sheet-5' | 'scene-sheet-6' | 'scene-sheet-7' | 'scene-sheet-8';
 type FoodAtlasId = `food-${string}`;
 type WindowViewId = 'window-view-late-winter' | 'window-view-early-spring' | 'window-view-spring';
 export type AssetId =
@@ -34,6 +35,7 @@ export type AssetId =
   | 'holiday-courtyard'
   | 'finale-supper'
   | 'finale-feast'
+  | 'finale-dinner'
   | 'festival'
   | 'board-clutter'
   | 'hail-clutter'
@@ -89,6 +91,8 @@ const foodAtlases: [id: string, pictures: number][] = [
   ['pickles', 5], ['greens', 5],
   // The summer garden of act 2, and the mixed dishes of the summer.
   ['garden', 5], ['summer', 4],
+  // The orchard chain of act 3, and the feast dishes of the sleeper's order.
+  ['orchard', 5], ['feast', 3],
 ];
 const foodAtlas = (pictures: number): AssetContract => ({ background: 'transparent', shape: 'landscape-2x1', columns: 4, rows: 2,
   ...(pictures < 8 ? { blankCells: Array.from({ length: 8 - pictures }, (_, index) => pictures + index) } : {}), defaultSize: '2048x1024' });
@@ -109,6 +113,9 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   'scene-sheet-5': sceneSheet,
   // The scenes of the mourning year of the grandmother: the memorial of three months, and empty cells for the later memorials.
   'scene-sheet-6': { ...sceneSheet, blankCells: [1, 2, 3] },
+  // The quest scenes of act 3: the trips with the parts of the sleeper's order, and three holiday quests of the autumn.
+  'scene-sheet-7': sceneSheet,
+  'scene-sheet-8': sceneSheet,
   // The two painted pages of the grandmother's notebook, in two cells of the quest scene size.
   'notebook-pages': { background: 'opaque', shape: 'landscape-3x1', columns: 2, rows: 1, defaultSize: '2304x768' },
   // Two old studio photographs of Mara's parents, each a paper rectangle on transparency in a square cell of the sketch size.
@@ -124,6 +131,8 @@ const ASSETS: Readonly<Record<AssetId, AssetContract>> = Object.freeze({
   // The paintings of act 2: the festival in the square of its garlands, and the feast of the cathedral at the laid feast tables.
   festival: roomState,
   'finale-feast': roomState,
+  // The painting of act 3: the dinner of the sleeper at the long table of the cathedral kitchen.
+  'finale-dinner': roomState,
   // The two weather blockers of the hail, each with an open centre: a heap of hailstones and a pot broken by the hail.
   'hail-clutter': { background: 'transparent', shape: 'landscape-2x1', columns: 2, rows: 1, defaultSize: '2048x1024' },
   'board-clutter': {

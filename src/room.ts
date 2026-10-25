@@ -157,7 +157,9 @@ function drawRoom(view: RoomView, fade = 0) {
 /** The area switch in the room's corner: open areas by name, and a locked one with the dashed "not yet" edge and the preparation that opens it. */
 function renderAreaSwitch(views: RoomView[], view: RoomView) {
   const group=$('#area-switch');
-  if(group.childElementCount!==views.length*2) group.replaceChildren(...views.flatMap(area=>{
+  // Acts 2 and 3 each have three areas. Replace their controls even when their count stays the same.
+  const choices=[...group.querySelectorAll<HTMLElement>('[data-area]')];
+  if(choices.length!==views.length||views.some((area,index)=>choices[index]?.dataset.area!==area.id)) group.replaceChildren(...views.flatMap(area=>{
     const short=area.name.replace(/^The /,''),choice=button(short[0].toUpperCase()+short.slice(1),'area-choice',()=>chooseArea(area.id)),note=element('span','visually-hidden');
     choice.dataset.area=area.id;note.id=`area-note-${area.id}`;return [choice,note];
   }));
@@ -176,7 +178,8 @@ function chooseArea(id: string) {
   if(id===viewArea)return;
   viewArea=id;try{storage?.setItem(AREA_KEY,id);}catch{/* The choice holds for this visit. */}
   renderAreaSwitch(views,area);void drawRoom(area,400);
-  status(`${area.name}: ${area.current!.text}`);
+  // A finale's text describes its whole painting. Keep that text in the painting view, not in the short board status line.
+  status(`${area.name}: ${area.current!.id===finaleState()?.id?area.current!.label:area.current!.text}`);
 }
 /**
  * After the story of a paid preparation: the drawer lowers by itself, the new state comes into focus in place over the old one,

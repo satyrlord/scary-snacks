@@ -19,6 +19,12 @@ const storyAct = () => actOf(state.clock.day, data);
 const actPrefix = (view: ChapterView) => storyAct() > 1 ? `Act ${view.chapter.act} · ` : '';
 /** The meal of a finale in words: "the supper" or "the feast". */
 const meal = (painting: Painting) => painting.title.replace(/^The /, 'the ');
+/** The card at the end of each act: its title and its words. */
+const RESULT_CARDS: [title: string, words: string][] = [
+  ['The table is ready.', 'The community supper is served, and every campaign quest of act 1 is delivered.'],
+  ['The orchard is yours.', 'The trees creak, and they wait for autumn.'],
+  ['The sleeper is fed.', 'He ate every course, said a few words, and went back to sleep for forty years. The village leaves its pantries open again.'],
+];
 /** The purse that ends an act, in words. */
 const purseText = (purse: number) => purse < 0 ? `The shop notebook holds a debt of ${coinText(-purse)}.` : `The purse holds ${coinText(purse)}.`;
 /** The story card on wider screens and the Story sheet on phones show the same content; the sheet's title replaces the heading. */
@@ -36,17 +42,15 @@ export function storyContent(inSheet: boolean) {
   content.append(...waitingNotice());
   const body = element('div', 'task-content');
   const preparations = actTasks(act, data).filter(value => !value.purchase), paid = preparations.filter(value => data.tasks.indexOf(value) < state.taskIndex).length;
-  const finale = data.finales.find(value => actOf(value.day, data) === act), finaleMeal = finale && finaleQuest(finale, data);
+  const finale = data.finales.find(value => actOf(value.day, data) === act), finaleMeal = finale && finaleQuest(finale, data), result = [state.act1, state.act2, state.act3][act - 1];
   if (finale && finaleMeal && paid === preparations.length && !finaleServed(state, finale, data)) {
-    body.append(element('h3', '', finaleMeal.title), element('p', '', `Every preparation is done. ${character(finaleMeal.character).name}’s last quest waits on the counter: cook ${meal(finale.painting)} there, one plate for each guest.`));
-  } else if (!task && act === 1 && state.act1) {
-    // The result of act 1 keeps the purse of the supper, whatever the purse holds now.
-    body.append(element('h3', '', 'The table is ready.'), element('p', '', 'The community supper is served, and every campaign quest of act 1 is delivered. Act 2 begins in the morning.'),
-      element('p', 'act-result', `The bistro worked from ${dateText(data.acts[0].from, data, 'plain')} to ${dateText(data.finales[0].day, data, 'plain')}. ${purseText(state.act1.purse)}`));
-  } else if (!task && state.act2) {
-    // With no later act, the purchase of the orchard ends the game. Its result keeps the purse after the purchase.
-    body.append(element('h3', '', 'The orchard is yours.'), element('p', '', 'The trees creak, and they wait for autumn.'),
-      element('p', 'act-result', `The bistro worked from ${dateText(data.acts[1].from, data, 'plain')} to ${dateText(data.calendar.end, data, 'plain')}. ${purseText(state.act2.purse)}`));
+    // A finale with guests has one plate for each guest. The dinner of the sleeper has one eater.
+    body.append(element('h3', '', finaleMeal.title), element('p', '', `Every preparation is done. ${character(finaleMeal.character).name}’s last quest waits on the counter: cook ${meal(finale.painting)} there${finaleMeal.guests ? ', one plate for each guest' : `, for ${finale.occasion ?? dateText(finale.day, data)}`}.`));
+  } else if (!task && result) {
+    // The result of an act keeps the purse at its end, whatever the purse holds now. Without a later act, the end of the act ends the game.
+    const [title, words] = RESULT_CARDS[act - 1], later = act < data.acts.length ? ` Act ${act + 1} begins in the morning.` : '';
+    body.append(element('h3', '', title), element('p', '', words + later),
+      element('p', 'act-result', `The bistro worked from ${dateText(data.acts[act - 1].from, data, 'plain')} to ${dateText(data.acts[act - 1].to, data, 'plain')}. ${purseText(result.purse)}`));
   }
   else if (task) {
     body.append(element('h3', '', task.title));
